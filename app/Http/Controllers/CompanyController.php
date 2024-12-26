@@ -76,54 +76,49 @@ class CompanyController extends Controller
         try {
             // Get country and related states
             $country = DB::table('countries')->where('id', $id_country)->first();
-            $states = DB::table('states')->where('country_id', $country->id)->get();
+            $states = DB::table('states')
+                ->where('country_id', $id_country)
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get();
+            
+            // Get currency for this country
+            $currency = DB::table('currencies')
+                ->where('country_id', $id_country)
+                ->first();
 
-            // Build select element with states
-            $html = '<select name="state" id="state" class="form-control" required onchange="loadCities(this.value)">';
-            $html .= '<option value="">Estado</option>';
-            
-            foreach($states as $state) {
-                $html .= '<option value="'.$state->id.'">'.$state->name.'</option>';
-            }
-            
-            $html .= '</select>';
-
-            // Update postal code
-            $postal_code = $country->phone_code ?? '';
-            
             return response()->json([
-                'html' => $html,
-                'postal_code' => $postal_code
+                'states' => $states,
+                'postal_code' => $country->phone_code ?? '',
+                'currency_code' => $currency ? $currency->code : null
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'html' => '<select name="state" class="form-control" required><option value="">Error al cargar estados</option></select>',
-                'postal_code' => ''
-            ]);
+                'states' => [],
+                'postal_code' => '',
+                'currency_code' => null
+            ], 500);
         }
     }
 
     public function search_state($id_state)
     {
         try {
-            // Get cities for the state
-            $cities = DB::table('cities')->where('state_id', $id_state)->get();
+            $cities = DB::table('cities')
+                ->where('state_id', $id_state)
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get();
 
-            // Build select element with cities
-            $html = '<select name="city" class="form-control" required>';
-            $html .= '<option value="">Ciudad</option>';
-            
-            foreach($cities as $city) {
-                $html .= '<option value="'.$city->id.'">'.$city->name.'</option>';
-            }
-            
-            $html .= '</select>';
-
-            return $html;
+            return response()->json([
+                'cities' => $cities
+            ]);
 
         } catch (\Exception $e) {
-            return '<select name="city" class="form-control" required><option value="">Error al cargar ciudades</option></select>';
+            return response()->json([
+                'cities' => []
+            ], 500);
         }
     }
 }

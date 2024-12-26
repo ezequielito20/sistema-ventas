@@ -198,9 +198,9 @@
                                         {{-- State --}}
                                         <div class="col-md-4">
                                             <div class="input-group mb-3">
-                                                
-                                                    {{-- <option value="">Estado</option> --}}
-                                                    <div id="country_response"></div>
+                                                <select name="state" id="state" class="form-control @error('state') is-invalid @enderror" required>
+                                                    <option value="">Estado</option>
+                                                </select>
                                                     
 
 
@@ -218,11 +218,6 @@
                                                 <select name="city"
                                                     class="form-control @error('city') is-invalid @enderror" required>
                                                     <option value="">Ciudad</option>
-                                                    {{-- @foreach ($cities as $city)
-                                                        <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>
-                                                            {{ $city->name }}
-                                                        </option>
-                                                @endforeach --}}
                                                 </select>
                                                 @error('city')
                                                     <span class="invalid-feedback" role="alert">
@@ -379,7 +374,6 @@
     @yield('js')
     <script>
         $(document).ready(function() {
-            // Manejar cambio de país
             $('#country').change(function() {
                 var id_country = $(this).val();
 
@@ -387,51 +381,59 @@
                     $.ajax({
                         url: "{{ route('admin.company.search_country', '') }}/" + id_country,
                         type: 'GET',
-                        data: {
-                            id_country: id_country
-                        },
                         success: function(response) {
                             // Actualizar select de estados
-                            $('#country_response').html(response.html);
+                            let stateSelect = $('#state');
+                            stateSelect.empty().append('<option value="">Estado</option>');
                             
-                            // Actualizar código postal
-                            $('select[name="postal_code"]').val(response.postal_code);
+                            if(response.states && response.states.length > 0) {
+                                response.states.forEach(function(state) {
+                                    stateSelect.append('<option value="' + state.id + '">' + state.name + '</option>');
+                                });
+                            }
                             
-                            // Limpiar select de ciudades
-                            $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
+                            // Actualizar código postal y moneda
+                            $('input[name="postal_code"]').val(response.postal_code);
+                            $('input[name="currency"]').val(response.currency_code);
                         },
                         error: function(xhr, status, error) {
-                            console.error('Error al obtener información del país:', error);
+                            console.error('Error al obtener estados:', error);
+                            $('#state').empty().append('<option value="">Error al cargar estados</option>');
                         }
                     });
                 } else {
-                    $('#country_response').html('<select name="state" class="form-control" required><option value="">Estado</option></select>');
-                    $('select[name="postal_code"]').val('');
-                    $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
+                    $('#state').empty().append('<option value="">Estado</option>');
+                    $('input[name="postal_code"]').val('');
+                    $('input[name="currency"]').val('');
                 }
             });
 
-            // Función para cargar ciudades
-            function loadCities(id_state) {
+            // Manejar cambio de estado
+            $('#state').change(function() {
+                var id_state = $(this).val();
+                
                 if (id_state) {
                     $.ajax({
                         url: "{{ route('admin.company.search_state', '') }}/" + id_state,
                         type: 'GET',
-                        success: function(html) {
-                            $('select[name="city"]').html(html);
+                        success: function(response) {
+                            let citySelect = $('select[name="city"]');
+                            citySelect.empty().append('<option value="">Ciudad</option>');
+                            
+                            if(response.cities && response.cities.length > 0) {
+                                response.cities.forEach(function(city) {
+                                    citySelect.append('<option value="' + city.id + '">' + city.name + '</option>');
+                                });
+                            }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al obtener ciudades:', error);
+                            $('select[name="city"]').empty().append('<option value="">Error al cargar ciudades</option>');
                         }
                     });
                 } else {
                     $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
                 }
-            }
-
-            // Asignar función loadCities al evento change del select de estados
-            $(document).on('change', '#state', function() {
-                loadCities($(this).val());
             });
         });
     </script>
