@@ -79,7 +79,7 @@ class CompanyController extends Controller
             $states = DB::table('states')->where('country_id', $country->id)->get();
 
             // Build select element with states
-            $html = '<select name="state" class="form-control" required>';
+            $html = '<select name="state" id="state" class="form-control" required onchange="loadCities(this.value)">';
             $html .= '<option value="">Estado</option>';
             
             foreach($states as $state) {
@@ -88,11 +88,42 @@ class CompanyController extends Controller
             
             $html .= '</select>';
 
+            // Update postal code
+            $postal_code = $country->phone_code ?? '';
+            
+            return response()->json([
+                'html' => $html,
+                'postal_code' => $postal_code
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'html' => '<select name="state" class="form-control" required><option value="">Error al cargar estados</option></select>',
+                'postal_code' => ''
+            ]);
+        }
+    }
+
+    public function search_state($id_state)
+    {
+        try {
+            // Get cities for the state
+            $cities = DB::table('cities')->where('state_id', $id_state)->get();
+
+            // Build select element with cities
+            $html = '<select name="city" class="form-control" required>';
+            $html .= '<option value="">Ciudad</option>';
+            
+            foreach($cities as $city) {
+                $html .= '<option value="'.$city->id.'">'.$city->name.'</option>';
+            }
+            
+            $html .= '</select>';
+
             return $html;
 
         } catch (\Exception $e) {
-            return '<select name="state" class="form-control" required><option value="">Error al cargar estados</option></select>';
+            return '<select name="city" class="form-control" required><option value="">Error al cargar ciudades</option></select>';
         }
-        
     }
 }

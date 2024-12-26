@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CompanyController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -11,6 +12,7 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/create-company', [App\Http\Controllers\CompanyController::class, 'create'])->name('admin.company.create');
-Route::post('/create-company', [App\Http\Controllers\CompanyController::class, 'store'])->name('admin.company.store');
-Route::get('/create-company/{country}', [App\Http\Controllers\CompanyController::class, 'search_country'])->name('admin.company.search_country');
+Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
+Route::post('/create-company', [CompanyController::class, 'store'])->name('admin.company.store');
+Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
+Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');

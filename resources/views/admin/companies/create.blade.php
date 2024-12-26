@@ -379,6 +379,7 @@
     @yield('js')
     <script>
         $(document).ready(function() {
+            // Manejar cambio de país
             $('#country').change(function() {
                 var id_country = $(this).val();
 
@@ -389,31 +390,48 @@
                         data: {
                             id_country: id_country
                         },
-                        success: function(data) {
-                            // if(data.states) {
-                            //     var stateSelect = $('select[name="state"]');
-                            //     stateSelect.empty();
-                            //     stateSelect.append('<option value="">Seleccione un estado</option>');
-
-                            //     $.each(data.states, function(key, value) {
-                            //         stateSelect.append('<option value="'+ value.name +'">'+ value.name +'</option>');
-                            //     });
-                            // }
-
-                            // if(data.postal_code) {
-                            //     $('input[name="postal_code"]').val(data.postal_code);
-                            // }
-                            $('#country_response').html(data);
+                        success: function(response) {
+                            // Actualizar select de estados
+                            $('#country_response').html(response.html);
+                            
+                            // Actualizar código postal
+                            $('select[name="postal_code"]').val(response.postal_code);
+                            
+                            // Limpiar select de ciudades
+                            $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al obtener información del país:', error);
                         }
                     });
                 } else {
-                    $('select[name="state"]').empty().append(
-                        '<option value="">Seleccione un estado</option>');
-                    $('input[name="postal_code"]').val('');
+                    $('#country_response').html('<select name="state" class="form-control" required><option value="">Estado</option></select>');
+                    $('select[name="postal_code"]').val('');
+                    $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
                 }
+            });
+
+            // Función para cargar ciudades
+            function loadCities(id_state) {
+                if (id_state) {
+                    $.ajax({
+                        url: "{{ route('admin.company.search_state', '') }}/" + id_state,
+                        type: 'GET',
+                        success: function(html) {
+                            $('select[name="city"]').html(html);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al obtener ciudades:', error);
+                        }
+                    });
+                } else {
+                    $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
+                }
+            }
+
+            // Asignar función loadCities al evento change del select de estados
+            $(document).on('change', '#state', function() {
+                loadCities($(this).val());
             });
         });
     </script>
