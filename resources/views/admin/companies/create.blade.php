@@ -201,10 +201,6 @@
                                                 <select name="state" id="state" class="form-control @error('state') is-invalid @enderror" required>
                                                     <option value="">Estado</option>
                                                 </select>
-                                                    
-
-
-                                                
                                                 @error('state')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -232,6 +228,7 @@
                                                 <input type="text" name="postal_code" 
                                                        class="form-control @error('postal_code') is-invalid @enderror"
                                                        readonly
+                                                       value="{{ old('postal_code') }}"
                                                        placeholder="Código postal">
                                                 <div class="input-group-append">
                                                     <div class="input-group-text">
@@ -250,6 +247,7 @@
                                     {{-- Currency field --}}
                                     <div class="input-group mb-3">
                                         <input type="text" name="currency" placeholder="Moneda de la empresa" readonly
+                                            value="{{ old('currency') }}"
                                             class="form-control @error('currency') is-invalid @enderror" required>
                                         <div class="input-group-append">
                                             <div class="input-group-text">
@@ -286,8 +284,11 @@
                                                 <label for="file">Logo de la empresa</label>
                                                 <div class="input-group mb-3">
                                                     <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" id="file"
-                                                            name="logo" accept="image/*">
+                                                        <input type="file" 
+                                                        value="{{ old('logo') }}"
+                                                        accept=".jpg,.jpeg,.png"
+                                                        class="custom-file-input" id="file"
+                                                            name="logo" accept="image/*" required>
                                                         <label class="custom-file-label" for="logo">Seleccionar
                                                             archivo</label>
                                                     </div>

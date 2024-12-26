@@ -10,10 +10,9 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'country',
-        'company_name',
         'business_type',
-        'tax_id',
         'phone',
         'email',
         'tax_amount',
@@ -24,6 +23,7 @@ class Company extends Model
         'state',
         'postal_code',
         'logo',
+        'nit'
     ];
 
     protected $casts = [
