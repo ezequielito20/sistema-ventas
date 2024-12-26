@@ -42,8 +42,8 @@
 
                     {{-- Card Body --}}
                     <div
-                        class="card-body {{ $auth_type ?? 'login' }}-card-body {{ config('adminlte.classes_auth_body', '') }}">
-                        <form action="{{ route('admin.company.store') }}" method="POST" enctype="multipart/form-data">
+                        class="card-body card-body">
+                        <form action="{{ url('create-company/create') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="row">
