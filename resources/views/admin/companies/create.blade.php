@@ -420,8 +420,7 @@
                                 });
                             }
 
-                            // Actualizar código postal
-                            $('input[name="postal_code"]').val(response.postal_code);
+                            
                         },
                         error: function(xhr, status, error) {
                             console.error('Error al obtener datos del estado:', error);
