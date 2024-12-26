@@ -90,7 +90,7 @@ class CompanyController extends Controller
             return response()->json([
                 'states' => $states,
                 'postal_code' => $country->phone_code ?? '',
-                'currency_code' => $currency ? $currency->code : null
+                'currency_code' => $currency ? $currency->code . ' - ' . $currency->symbol : null
             ]);
 
         } catch (\Exception $e) {

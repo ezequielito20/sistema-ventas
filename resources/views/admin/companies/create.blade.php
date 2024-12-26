@@ -249,11 +249,8 @@
 
                                     {{-- Currency field --}}
                                     <div class="input-group mb-3">
-                                        <select name="currency"
+                                        <input type="text" name="currency" placeholder="Moneda de la empresa" readonly
                                             class="form-control @error('currency') is-invalid @enderror" required>
-                                            <option value="">Seleccione una moneda</option>
-                                            
-                                        </select>
                                         <div class="input-group-append">
                                             <div class="input-group-text">
                                                 <span class="fas fa-coins"></span>
