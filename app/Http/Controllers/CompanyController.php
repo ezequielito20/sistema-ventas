@@ -36,7 +36,49 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request->all());
+        // Validate request data
+        $validated = $request->validate([
+            'country' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'business_type' => 'required|string|max:255',
+            'nit' => 'required|string|max:255|unique:companies',
+            'phone' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:companies',
+            'tax_amount' => 'required|integer',
+            'tax_name' => 'required|string|max:255',
+            'currency' => 'required|string|size:20',
+            'address' => 'required|string',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:255',
+            'logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('company_logos', 'public');
+        }
+
+        // Create new company
+        $company = Company::create([
+            'country' => $validated['country'],
+            'name' => $validated['name'],
+            'business_type' => $validated['business_type'],
+            'nit' => $validated['nit'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'],
+            'tax_amount' => $validated['tax_amount'],
+            'tax_name' => $validated['tax_name'],
+            'currency' => $validated['currency'],
+            'address' => $validated['address'],
+            'city' => $validated['city'],
+            'state' => $validated['state'],
+            'postal_code' => $validated['postal_code'],
+            'logo' => $logoPath
+        ]);
+
+        return redirect()->route('admin.companies.index')
+            ->with('success', 'Empresa creada exitosamente.');
     }
 
     /**

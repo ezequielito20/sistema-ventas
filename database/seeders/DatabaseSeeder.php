@@ -41,5 +41,9 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('12345'),
             'company_id' => 1,
         ]);
+
+        $this->call([
+            WorldSeeder::class,
+        ]);
     }
 }

@@ -409,7 +409,7 @@
                         success: function(response) {
                             // Actualizar ciudades
                             let citySelect = $('select[name="city"]');
-                            citySelect.empty().append('<option value="">Seleccione una ciudad</option>');
+                            citySelect.empty().append('<option value="">Ciudad </option>');
                             
                             if(response.cities && response.cities.length > 0) {
                                 response.cities.forEach(function(city) {
@@ -426,7 +426,7 @@
                         }
                     });
                 } else {
-                    $('select[name="city"]').empty().append('<option value="">Seleccione una ciudad</option>');
+                    $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
                     $('input[name="postal_code"]').val('');
                 }
             });

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->integer('tax_amount');
             $table->string('tax_name');
-            $table->string('currency', 3);
+            $table->string('currency', 20);
             $table->text('address');
             $table->string('city');
             $table->string('state'); 
