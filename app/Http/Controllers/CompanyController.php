@@ -105,12 +105,18 @@ class CompanyController extends Controller
     public function search_state($id_state)
     {
         try {
+            // Get cities and state information
+            $state = DB::table('states')
+                ->where('id', $id_state)
+                ->first();
+            
             $cities = DB::table('cities')
                 ->where('state_id', $id_state)
                 ->select('id', 'name')
                 ->orderBy('name')
                 ->get();
 
+            // No enviamos el código postal en la respuesta del estado
             return response()->json([
                 'cities' => $cities
             ]);

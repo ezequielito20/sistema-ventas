@@ -229,12 +229,15 @@
                                         {{-- Code Postal --}}
                                         <div class="col-md-4">
                                             <div class="input-group mb-3">
-                                                <select name="postal_code"
-                                                    class="form-control @error('postal_code') is-invalid @enderror"
-                                                    required>
-                                                    <option value="">Código postal</option>
-                                                    
-                                                </select>
+                                                <input type="text" name="postal_code" 
+                                                       class="form-control @error('postal_code') is-invalid @enderror"
+                                                       readonly
+                                                       placeholder="Código postal">
+                                                <div class="input-group-append">
+                                                    <div class="input-group-text">
+                                                        <span class="fas fa-mail-bulk"></span>
+                                                    </div>
+                                                </div>
                                                 @error('postal_code')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -407,22 +410,28 @@
                         url: "{{ route('admin.company.search_state', '') }}/" + id_state,
                         type: 'GET',
                         success: function(response) {
+                            // Actualizar ciudades
                             let citySelect = $('select[name="city"]');
-                            citySelect.empty().append('<option value="">Ciudad</option>');
+                            citySelect.empty().append('<option value="">Seleccione una ciudad</option>');
                             
                             if(response.cities && response.cities.length > 0) {
                                 response.cities.forEach(function(city) {
                                     citySelect.append('<option value="' + city.id + '">' + city.name + '</option>');
                                 });
                             }
+
+                            // Actualizar código postal
+                            $('input[name="postal_code"]').val(response.postal_code);
                         },
                         error: function(xhr, status, error) {
-                            console.error('Error al obtener ciudades:', error);
+                            console.error('Error al obtener datos del estado:', error);
                             $('select[name="city"]').empty().append('<option value="">Error al cargar ciudades</option>');
+                            $('input[name="postal_code"]').val('');
                         }
                     });
                 } else {
-                    $('select[name="city"]').empty().append('<option value="">Ciudad</option>');
+                    $('select[name="city"]').empty().append('<option value="">Seleccione una ciudad</option>');
+                    $('input[name="postal_code"]').val('');
                 }
             });
         });
