@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use Nnjeim\World\World;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
-use Illuminate\Http\Request;
-use Nnjeim\World\World;
 
 class CompanyController extends Controller
 {
@@ -23,18 +24,11 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        $countries = World::countries()
-            ->data
-            ->sortBy('name')
-            ->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'name' => $country->name,
-                    'iso2' => $country->iso2,
-                ];
-            });
-
-        return view('admin.companies.create', compact('countries'));
+        $countries = DB::table('countries')->get();
+        $states = DB::table('states')->get();
+        $cities = DB::table('cities')->get();
+        $currencies = DB::table('currencies')->get();
+        return view('admin.companies.create', compact('countries', 'states', 'cities', 'currencies'));
     }
 
     /**

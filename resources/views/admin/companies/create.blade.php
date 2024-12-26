@@ -52,8 +52,8 @@
                                     <select name="country" class="form-control @error('country') is-invalid @enderror" required>
                                         <option value="">Seleccione un país</option>
                                         @foreach($countries as $country)
-                                            <option value="{{ $country['iso2'] }}" {{ old('country') == $country['iso2'] ? 'selected' : '' }}>
-                                                {{ $country['name'] }}
+                                            <option value="{{ $country->name }}" {{ old('country') == $country->name ? 'selected' : '' }}>
+                                                {{ $country->name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -148,9 +148,6 @@
                                         </span>
                                     @enderror
                                 </div>
-                            </div>
-
-                            <div class="col-md-6">
                                 {{-- Tax amount field --}}
                                 <div class="input-group mb-3">
                                     <input type="number" name="tax_amount" class="form-control @error('tax_amount') is-invalid @enderror"
@@ -182,14 +179,80 @@
                                         </span>
                                     @enderror
                                 </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                {{-- City, State and Postal Code fields --}}
+                                <div class="row">
+                                    {{-- State --}}
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3">
+                                            <select name="state" class="form-control @error('state') is-invalid @enderror" required>
+                                                <option value="">Estado</option>
+                                                @foreach($states as $state)
+                                                        <option value="{{ $state->id }}" {{ old('state') == $state->id ? 'selected' : '' }}>
+                                                            {{ $state->name }}
+                                                        </option>
+                                                @endforeach
+                                            </select>
+                                            @error('state')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    {{-- City --}}
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3">
+                                            <select name="city" class="form-control @error('city') is-invalid @enderror" required>
+                                                <option value="">Ciudad</option>
+                                                {{-- @foreach($cities as $city)
+                                                        <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>
+                                                            {{ $city->name }}
+                                                        </option>
+                                                @endforeach --}}
+                                            </select>
+                                            @error('city')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    {{-- Code Postal --}}
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3">
+                                            <select name="postal_code" class="form-control @error('postal_code') is-invalid @enderror" required>
+                                                <option value="">Código postal</option>
+                                                @foreach($countries as $country)
+                                                    <option value="{{ $country->phone_code }}" {{ old('postal_code') == $country->phone_code ? 'selected' : '' }}>
+                                                        {{ $country->phone_code }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('postal_code')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
 
                                 {{-- Currency field --}}
                                 <div class="input-group mb-3">
-                                    <input type="text" name="currency" class="form-control @error('currency') is-invalid @enderror"
-                                        value="{{ old('currency') }}" placeholder="Moneda (ej: USD)" maxlength="3" required>
+                                    <select name="currency" class="form-control @error('currency') is-invalid @enderror" required>
+                                        <option value="">Seleccione una moneda</option>
+                                        @foreach($currencies as $currency)
+                                            <option value="{{ $currency->code }}" {{ old('currency') == $currency->code ? 'selected' : '' }}>
+                                                {{ $currency->code }} - {{ $currency->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <div class="input-group-append">
                                         <div class="input-group-text">
-                                            <span class="fas fa-dollar-sign"></span>
+                                            <span class="fas fa-coins"></span>
                                         </div>
                                     </div>
                                     @error('currency')
@@ -215,55 +278,54 @@
                                     @enderror
                                 </div>
 
-                                {{-- City, State and Postal Code fields --}}
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="input-group mb-3">
-                                            <input type="text" name="city" class="form-control @error('city') is-invalid @enderror"
-                                                value="{{ old('city') }}" placeholder="Ciudad" required>
-                                            @error('city')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                {{-- Logo field --}}
+                                <div class="row mb-2" style="border: 1px solid #ccc; padding: 10px;">
+                                    <div class="col-md-6" >
+                                        <div class="form-group">
+                                            <label for="file">Logo de la empresa</label>
+                                            <div class="input-group mb-3">
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input" id="file" name="logo" accept="image/*">
+                                                    <label class="custom-file-label" for="logo">Seleccionar archivo</label>
+                                                </div>
+                                            </div>
+                                            @error('logo')
+                                                <span class="text-danger">{{ $message }}</span>
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="input-group mb-3">
-                                            <input type="text" name="state" class="form-control @error('state') is-invalid @enderror"
-                                                value="{{ old('state') }}" placeholder="Estado/Provincia" required>
-                                            @error('state')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="input-group mb-3">
-                                            <input type="text" name="postal_code" class="form-control @error('postal_code') is-invalid @enderror"
-                                                value="{{ old('postal_code') }}" placeholder="Código Postal" required>
-                                            @error('postal_code')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
-                                            @enderror
+                                    <div class="col-md-6">
+                                        <div class="text-center">
+                                            <output id="list"></output>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Logo field --}}
-                                <div class="input-group mb-3">
-                                    <div class="custom-file">
-                                        <input type="file" name="logo" class="custom-file-input @error('logo') is-invalid @enderror" id="logo" accept="image/*">
-                                        <label class="custom-file-label" for="logo">Elegir logo</label>
-                                    </div>
-                                    @error('logo')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                <script>
+                                    function archivo(evt) {
+                                        var files = evt.target.files; // Filelist object
+    
+                                        // Obtenemos la imagen del campo "file"
+                                        for (var i = 0, f; f = files[i]; i++) {
+                                            // Solo admitimos imágenes.
+                                            if (!f.type.match('image.*')) {
+                                                continue;
+                                            }
+    
+                                            var reader = new FileReader();
+                                            reader.onload = (function(theFile) {
+                                                return function(e) {
+                                                    // Insertamos la imagen
+                                                    document.getElementById('list').innerHTML = ['<img class="thumb thumbnail img-fluid rounded" src="', e
+                                                        .target.result, '" style="max-height: 208px;" />'].join('');
+                                                };
+                                            })(f);
+                                            reader.readAsDataURL(f);
+                                        }
+                                    }
+    
+                                    document.getElementById('file').addEventListener('change', archivo, false);
+                                </script>
                             </div>
                         </div>
 
