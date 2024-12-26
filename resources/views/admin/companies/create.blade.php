@@ -49,8 +49,14 @@
                             <div class="col-md-6">
                                 {{-- Country field --}}
                                 <div class="input-group mb-3">
-                                    <input type="text" name="country" class="form-control @error('country') is-invalid @enderror"
-                                        value="{{ old('country') }}" placeholder="País" required>
+                                    <select name="country" class="form-control @error('country') is-invalid @enderror" required>
+                                        <option value="">Seleccione un país</option>
+                                        @foreach($countries as $country)
+                                            <option value="{{ $country['iso2'] }}" {{ old('country') == $country['iso2'] ? 'selected' : '' }}>
+                                                {{ $country['name'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                     <div class="input-group-append">
                                         <div class="input-group-text">
                                             <span class="fas fa-globe"></span>

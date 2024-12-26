@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use Illuminate\Http\Request;
+use Nnjeim\World\World;
 
 class CompanyController extends Controller
 {
@@ -21,7 +23,18 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        return view('admin.companies.create');
+        $countries = World::countries()
+            ->data
+            ->sortBy('name')
+            ->map(function($country) {
+                return [
+                    'id' => $country->id,
+                    'name' => $country->name,
+                    'iso2' => $country->iso2,
+                ];
+            });
+
+        return view('admin.companies.create', compact('countries'));
     }
 
     /**
