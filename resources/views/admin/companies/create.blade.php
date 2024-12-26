@@ -233,12 +233,7 @@
                                                     class="form-control @error('postal_code') is-invalid @enderror"
                                                     required>
                                                     <option value="">Código postal</option>
-                                                    @foreach ($countries as $country)
-                                                        <option value="{{ $country->phone_code }}"
-                                                            {{ old('postal_code') == $country->phone_code ? 'selected' : '' }}>
-                                                            {{ $country->phone_code }}
-                                                        </option>
-                                                    @endforeach
+                                                    
                                                 </select>
                                                 @error('postal_code')
                                                     <span class="invalid-feedback" role="alert">
@@ -254,12 +249,7 @@
                                         <select name="currency"
                                             class="form-control @error('currency') is-invalid @enderror" required>
                                             <option value="">Seleccione una moneda</option>
-                                            @foreach ($currencies as $currency)
-                                                <option value="{{ $currency->code }}"
-                                                    {{ old('currency') == $currency->code ? 'selected' : '' }}>
-                                                    {{ $currency->code }} - {{ $currency->name }}
-                                                </option>
-                                            @endforeach
+                                            
                                         </select>
                                         <div class="input-group-append">
                                             <div class="input-group-text">
