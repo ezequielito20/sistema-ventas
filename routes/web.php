@@ -13,3 +13,4 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::get('/create-company', [App\Http\Controllers\CompanyController::class, 'create'])->name('admin.company.create');
 Route::post('/create-company', [App\Http\Controllers\CompanyController::class, 'store'])->name('admin.company.store');
+Route::get('/create-company/{country}', [App\Http\Controllers\CompanyController::class, 'search_country'])->name('admin.company.search_country');

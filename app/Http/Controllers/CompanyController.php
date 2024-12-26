@@ -70,4 +70,29 @@ class CompanyController extends Controller
     {
         //
     }
+
+    public function search_country($id_country)
+    {
+        try {
+            // Get country and related states
+            $country = DB::table('countries')->where('id', $id_country)->first();
+            $states = DB::table('states')->where('country_id', $country->id)->get();
+
+            // Build select element with states
+            $html = '<select name="state" class="form-control" required>';
+            $html .= '<option value="">Estado</option>';
+            
+            foreach($states as $state) {
+                $html .= '<option value="'.$state->id.'">'.$state->name.'</option>';
+            }
+            
+            $html .= '</select>';
+
+            return $html;
+
+        } catch (\Exception $e) {
+            return '<select name="state" class="form-control" required><option value="">Error al cargar estados</option></select>';
+        }
+        
+    }
 }
