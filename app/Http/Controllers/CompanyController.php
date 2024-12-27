@@ -151,7 +151,12 @@ class CompanyController extends Controller
      */
     public function edit( )
     {
-        return view('admin.companies.edit');
+        $countries = DB::table('countries')->get();
+        $states = DB::table('states')->get();
+        $cities = DB::table('cities')->get();
+        $currencies = DB::table('currencies')->get();
+        $company = Auth::user()->company;
+        return view('admin.companies.edit', compact('countries', 'states', 'cities', 'currencies', 'company'));
     }
 
     /**
