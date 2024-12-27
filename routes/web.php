@@ -19,3 +19,5 @@ Route::get('/create-company', [CompanyController::class, 'create'])->name('admin
 Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store');
 Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
+
+Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit');

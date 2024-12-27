@@ -149,9 +149,9 @@ class CompanyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Company $company)
+    public function edit( )
     {
-        //
+        return view('admin.companies.edit');
     }
 
     /**
