@@ -21,3 +21,4 @@ Route::get('/create-company/{country}', [CompanyController::class, 'search_count
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
 
 Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit');
+Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware('auth');

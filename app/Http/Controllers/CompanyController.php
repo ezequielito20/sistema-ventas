@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Company;
 use Nnjeim\World\World;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 
@@ -162,9 +164,100 @@ class CompanyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Company $company)
+    public function update(Request $request, $id)
     {
-        //
+        // Encuentra la compañía por ID
+        $company = Company::findOrFail($id);
+
+        // Valida los datos de entrada
+        $validated = $request->validate([
+            'country' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'business_type' => 'required|string|max:255',
+            'nit' => 'required|string|max:255|unique:companies,nit,' . $id,
+            'phone' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:companies,email,' . $id,
+            'tax_amount' => 'required|integer',
+            'tax_name' => 'required|string|max:255',
+            'currency' => 'required|string|max:20',
+            'address' => 'required|string',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ],[
+            'country.required' => 'El país es requerido',
+            'country.string' => 'El país debe ser texto',
+            'country.max' => 'El país no debe exceder 255 caracteres',
+            'name.required' => 'El nombre es requerido',
+            'name.string' => 'El nombre debe ser texto',
+            'name.max' => 'El nombre no debe exceder 255 caracteres',
+            'business_type.required' => 'El tipo de negocio es requerido',
+            'business_type.string' => 'El tipo de negocio debe ser texto',
+            'business_type.max' => 'El tipo de negocio no debe exceder 255 caracteres',
+            'nit.required' => 'El NIT es requerido',
+            'nit.string' => 'El NIT debe ser texto',
+            'nit.max' => 'El NIT no debe exceder 255 caracteres',
+            'nit.unique' => 'Este NIT ya está registrado',
+            'phone.required' => 'El teléfono es requerido',
+            'phone.string' => 'El teléfono debe ser texto',
+            'phone.max' => 'El teléfono no debe exceder 255 caracteres',
+            'email.required' => 'El correo electrónico es requerido',
+            'email.email' => 'Debe ingresar un correo electrónico válido',
+            'email.max' => 'El correo electrónico no debe exceder 255 caracteres',
+            'email.unique' => 'Este correo electrónico ya está registrado',
+            'tax_amount.required' => 'El monto del impuesto es requerido',
+            'tax_amount.integer' => 'El monto del impuesto debe ser un número entero',
+            'tax_name.required' => 'El nombre del impuesto es requerido',
+            'tax_name.string' => 'El nombre del impuesto debe ser texto',
+            'tax_name.max' => 'El nombre del impuesto no debe exceder 255 caracteres',
+            'currency.required' => 'La moneda es requerida',
+            'currency.string' => 'La moneda debe ser texto',
+            'currency.max' => 'La moneda no debe tener más de 20 caracteres',
+            'address.required' => 'La dirección es requerida',
+            'address.string' => 'La dirección debe ser texto',
+            'city.required' => 'La ciudad es requerida',
+            'city.string' => 'La ciudad debe ser texto',
+            'city.max' => 'La ciudad no debe exceder 255 caracteres',
+            'state.required' => 'El estado es requerido',
+            'state.string' => 'El estado debe ser texto',
+            'state.max' => 'El estado no debe exceder 255 caracteres',
+            'postal_code.required' => 'El código postal es requerido',
+            'postal_code.string' => 'El código postal debe ser texto', 
+            'postal_code.max' => 'El código postal no debe exceder 255 caracteres',
+            'logo.image' => 'El archivo debe ser una imagen',
+            'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
+            'logo.max' => 'El archivo no debe pesar más de 2MB'
+        ]);
+
+        try {
+            // Maneja la actualización del logo si se proporciona uno nuevo
+            if ($request->hasFile('logo')) {
+                // Elimina el logo anterior si existe
+                if ($company->logo) {
+                    Storage::delete('public/' . $company->logo);
+                }
+                // Guarda el nuevo logo
+                $logoPath = $request->file('logo')->store('logos', 'public');
+                $validated['logo'] = $logoPath;
+            }
+
+            // Actualiza la compañía con los datos validados
+            $company->update($validated);
+            
+            // Update associated user's email if it changed
+            if (isset($validated['email'])) {
+                User::where('company_id', $company->id)
+                    ->where('name', 'superAdmin')
+                    ->update(['email' => $validated['email']]);
+            }
+
+            return redirect()->route('admin.index')
+                ->with('success', 'Empresa actualizada correctamente.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.company.edit')
+                ->with('error', 'Hubo un problema al actualizar la empresa.');
+        }
     }
 
     /**
