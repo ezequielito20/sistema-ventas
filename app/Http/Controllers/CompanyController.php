@@ -6,6 +6,8 @@ use App\Models\Company;
 use Nnjeim\World\World;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 
@@ -121,8 +123,19 @@ class CompanyController extends Controller
             'logo' => $logoPath
         ]);
 
+        // Create default admin user for the company
+        $user = \App\Models\User::create([
+            'name' => 'superAdmin',
+            'email' => $validated['email'], 
+            'password' => Hash::make('12345'), // Default password
+            'company_id' => $company->id,
+            'email_verified_at' => now(),
+        ]);
+
+        Auth::login($user);
+
         return redirect()->route('admin.index')
-            ->with('success', 'Empresa creada exitosamente.');
+            ->with('success', 'Empresa y usuario administrador creados exitosamente.');
     }
 
     /**

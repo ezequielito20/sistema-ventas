@@ -13,7 +13,7 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/', [AdminController::class, 'index'])->name('admin.index');
+Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
 Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
 Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store');
