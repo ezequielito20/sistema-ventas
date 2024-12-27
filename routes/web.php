@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
 
 Route::get('/', function () {
@@ -11,6 +12,8 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/', [AdminController::class, 'index'])->name('admin.index');
 
 Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
 Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store');

@@ -121,7 +121,7 @@ class CompanyController extends Controller
             'logo' => $logoPath
         ]);
 
-        return redirect()->route('admin.companies.index')
+        return redirect()->route('admin.index')
             ->with('success', 'Empresa creada exitosamente.');
     }
 
