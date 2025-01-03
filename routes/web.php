@@ -32,3 +32,4 @@ Route::post('/roles/create', [RoleController::class, 'store'])->name('admin.role
 Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('admin.roles.edit')->middleware('auth');
 Route::put('/roles/edit/{id}', [RoleController::class, 'update'])->name('admin.roles.update')->middleware('auth');
 Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('admin.roles.destroy')->middleware('auth');
+Route::get('/roles/{id}', [RoleController::class, 'show'])->name('admin.roles.show')->middleware('auth');

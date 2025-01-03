@@ -114,26 +114,45 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
 
+        // Validación mejorada del request
         $validated = $request->validate([
             'name' => [
                 'required',
+                'string',
                 'max:255',
                 Rule::unique('roles')->ignore($role->id),
-            ],
-            'description' => 'nullable|string|max:500',
+                // Asegura que el nombre solo contenga letras, números, espacios y guiones
+                'regex:/^[a-zA-Z0-9\s-]+$/',
+            ]
         ], [
             'name.required' => 'El nombre del rol es obligatorio',
-            'name.unique' => 'Este nombre de rol ya existe',
+            'name.string' => 'El nombre debe ser una cadena de texto',
             'name.max' => 'El nombre no puede exceder los 255 caracteres',
-            'description.max' => 'La descripción no puede exceder los 500 caracteres',
+            'name.unique' => 'Este nombre de rol ya existe',
+            'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
         ]);
 
         try {
             DB::beginTransaction();
 
+            // Limpieza y formateo del nombre
+            $roleName = trim(strtolower($validated['name']));
+            
+            // Verificación adicional de roles del sistema
+            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'user'];
+            if (in_array($roleName, $systemRoles) && !in_array($role->name, $systemRoles)) {
+                throw new \Exception('No se puede cambiar a un nombre de rol del sistema');
+            }
+
+            // Verificar si es un rol del sistema que intenta ser modificado
+            if (in_array($role->name, $systemRoles) && $role->name !== $roleName) {
+                throw new \Exception('No se pueden modificar roles del sistema');
+            }
+
+            // Actualizar el rol
             $role->update([
-                'name' => $validated['name'],
-                'description' => $validated['description']
+                'name' => $roleName,
+                'updated_at' => now(),
             ]);
 
             DB::commit();
@@ -141,10 +160,21 @@ class RoleController extends Controller
             return redirect()->route('admin.roles.index')
                 ->with('message', 'Rol actualizado exitosamente')
                 ->with('icons', 'success');
+
         } catch (\Exception $e) {
             DB::rollBack();
+
+            // Si es un error específico de roles del sistema
+            if (str_contains($e->getMessage(), 'roles del sistema')) {
+                return redirect()->back()
+                    ->with('message', $e->getMessage())
+                    ->with('icons', 'error')
+                    ->withInput();
+            }
+
+            // Para otros errores
             return redirect()->back()
-                ->with('message', 'Error al actualizar el rol')
+                ->with('message', 'Error al actualizar el rol: ' . $e->getMessage())
                 ->with('icons', 'error')
                 ->withInput();
         }
@@ -173,6 +203,33 @@ class RoleController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error al eliminar el rol'
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        try {
+            $role = Role::with('permissions', 'users')->findOrFail($id);
+            
+            return response()->json([
+                'status' => 'success',
+                'role' => [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'created_at' => $role->created_at->format('d/m/Y H:i'),
+                    'updated_at' => $role->updated_at->format('d/m/Y H:i'),
+                    'users_count' => $role->users->count(),
+                    'permissions_count' => $role->permissions->count()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener los datos del rol'
             ], 500);
         }
     }

@@ -39,6 +39,13 @@
                             <td>{{ $role->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
+                                    <button type="button"
+                                            class="btn btn-success btn-sm show-role"
+                                            data-id="{{ $role->id }}"
+                                            data-toggle="tooltip"
+                                            title="Mostrar">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                     <a href="{{ route('admin.roles.edit', $role->id) }}" 
                                        class="btn btn-info btn-sm" 
                                        data-toggle="tooltip" 
@@ -58,6 +65,66 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    {{-- Modal para mostrar rol --}}
+    <div class="modal fade" id="showRoleModal" tabindex="-1" role="dialog" aria-labelledby="showRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="showRoleModalLabel">
+                        <i class="fas fa-user-shield mr-2"></i>
+                        Detalles del Rol
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Nombre del Rol:</label>
+                                <p id="roleName" class="form-control-static"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Fecha de Creación:</label>
+                                <p id="roleCreated" class="form-control-static"></p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Última Actualización:</label>
+                                <p id="roleUpdated" class="form-control-static"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Usuarios Asignados:</label>
+                                <p id="roleUsers" class="form-control-static"></p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Permisos Asignados:</label>
+                                <p id="rolePermissions" class="form-control-static"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cerrar
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 @stop
@@ -83,6 +150,20 @@
         }
         .btn-sm {
             border-radius: 0.5rem;
+        }
+        .modal-header {
+            border-radius: 0.3rem 0.3rem 0 0;
+        }
+        .modal-content {
+            border-radius: 0.3rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .form-control-static {
+            padding: 0.375rem 0.75rem;
+            margin-bottom: 0;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
         }
     </style>
 @stop
@@ -157,24 +238,82 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        // Token CSRF
+                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                        
                         // Enviar solicitud de eliminación
-                        axios.delete(`/roles/delete/${roleId}`)
-                            .then(response => {
-                                Swal.fire(
-                                    '¡Eliminado!',
-                                    'El rol ha sido eliminado.',
-                                    'success'
-                                ).then(() => {
-                                    window.location.reload();
-                                });
-                            })
-                            .catch(error => {
+                        $.ajax({
+                            url: `/roles/delete/${roleId}`,
+                            type: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: response.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        // Recargar la página o eliminar la fila
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Error',
+                                        response.message,
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function(xhr) {
+                                const response = xhr.responseJSON;
                                 Swal.fire(
                                     'Error',
-                                    'No se pudo eliminar el rol.',
+                                    response.message || 'No se pudo eliminar el rol',
                                     'error'
                                 );
-                            });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Manejo de visualización de rol
+            $('.show-role').click(function() {
+                const roleId = $(this).data('id');
+                
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Cargando...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Obtener datos del rol
+                $.ajax({
+                    url: `/roles/${roleId}`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // Llenar datos en el modal
+                            $('#roleName').text(response.role.name);
+                            $('#roleCreated').text(response.role.created_at);
+                            $('#roleUpdated').text(response.role.updated_at);
+                            $('#roleUsers').text(response.role.users_count + ' usuario(s)');
+                            $('#rolePermissions').text(response.role.permissions_count + ' permiso(s)');
+                            
+                            // Cerrar loading y mostrar modal
+                            Swal.close();
+                            $('#showRoleModal').modal('show');
+                        } else {
+                            Swal.fire('Error', 'No se pudieron obtener los datos del rol', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron obtener los datos del rol', 'error');
                     }
                 });
             });
