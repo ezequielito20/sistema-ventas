@@ -340,41 +340,19 @@ return [
             'classes' => 'bg-blue text-white',
         ],
         [
-            'text' => 'multilevel',
-            'icon' => 'fas fa-fw fa-share',
+            'text' => 'Roles',
+            'icon' => 'fas fa-fw fa-user-shield',
             'submenu' => [
                 [
-                    'text' => 'level_one',
-                    'url' => '#',
+                    'text' => 'Lista de Roles',
+                    'url' => 'roles',
+                    'icon' => 'fas fa-fw fa-list'
                 ],
                 [
-                    'text' => 'level_one',
-                    'url' => '#',
-                    'submenu' => [
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                        ],
-                        [
-                            'text' => 'level_two',
-                            'url' => '#',
-                            'submenu' => [
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                                [
-                                    'text' => 'level_three',
-                                    'url' => '#',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'text' => 'level_one',
-                    'url' => '#',
-                ],
+                    'text' => 'Crear Rol',
+                    'url' => 'roles/create',
+                    'icon' => 'fas fa-fw fa-plus'
+                ]
             ],
         ],
         // ['header' => 'labels'],
