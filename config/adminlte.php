@@ -342,16 +342,19 @@ return [
         [
             'text' => 'Roles',
             'icon' => 'fas fa-fw fa-user-shield',
+            'classes' => 'bg-blue text-white',
             'submenu' => [
                 [
                     'text' => 'Lista de Roles',
                     'url' => 'roles',
-                    'icon' => 'fas fa-fw fa-list'
+                    'icon' => 'fas fa-fw fa-list',
+                    'classes' => 'bg-white text-black'
                 ],
                 [
                     'text' => 'Crear Rol',
                     'url' => 'roles/create',
-                    'icon' => 'fas fa-fw fa-plus'
+                    'icon' => 'fas fa-fw fa-plus',
+                    'classes' => 'bg-white text-black'
                 ]
             ],
         ],
@@ -409,7 +412,7 @@ return [
 
     'plugins' => [
         'Datatables' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',

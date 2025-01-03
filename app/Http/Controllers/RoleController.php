@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
@@ -11,7 +14,11 @@ class RoleController extends Controller
      */
     public function index()
     {
-        return view('admin.roles.index');
+        $roles = Role::with('permissions')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.roles.index', compact('roles'));
     }
 
     /**
@@ -27,38 +34,146 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        // Validación básica del request
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:roles,name',
+                // Asegura que el nombre solo contenga letras, números, espacios y guiones
+                'regex:/^[a-zA-Z0-9\s-]+$/',
+            ]
+        ], [
+            'name.required' => 'El nombre del rol es obligatorio',
+            'name.string' => 'El nombre debe ser una cadena de texto',
+            'name.max' => 'El nombre no puede exceder los 255 caracteres',
+            'name.unique' => 'Este nombre de rol ya existe',
+            'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
+        try {
+            DB::beginTransaction();
+
+            // Limpieza y formateo del nombre
+            $roleName = trim(strtolower($validated['name']));
+            
+            // Verificación adicional de roles del sistema
+            $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+            if (in_array($roleName, $systemRoles)) {
+                throw new \Exception('No se pueden crear roles del sistema');
+            }
+
+            // Crear el rol
+            $role = Role::create([
+                'name' => $roleName,
+                'guard_name' => 'web',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::commit();
+
+            // Registro exitoso
+            return redirect()->route('admin.roles.index')
+                ->with('message', 'Rol creado exitosamente')
+                ->with('icons', 'success');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Si es un error específico de roles del sistema
+            if ($e->getMessage() === 'No se pueden crear roles del sistema') {
+                return redirect()->back()
+                    ->with('message', 'No se pueden crear roles del sistema')
+                    ->with('icons', 'error')
+                    ->withInput();
+            }
+
+            // Para otros errores
+            return redirect()->back()
+                ->with('message', 'Error al crear el rol: ' . $e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $role = Role::findOrFail($id);
+        return view('admin.roles.edit', compact('role'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $role = Role::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'max:255',
+                Rule::unique('roles')->ignore($role->id),
+            ],
+            'description' => 'nullable|string|max:500',
+        ], [
+            'name.required' => 'El nombre del rol es obligatorio',
+            'name.unique' => 'Este nombre de rol ya existe',
+            'name.max' => 'El nombre no puede exceder los 255 caracteres',
+            'description.max' => 'La descripción no puede exceder los 500 caracteres',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $role->update([
+                'name' => $validated['name'],
+                'description' => $validated['description']
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.roles.index')
+                ->with('message', 'Rol actualizado exitosamente')
+                ->with('icons', 'success');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('message', 'Error al actualizar el rol')
+                ->with('icons', 'error')
+                ->withInput();
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $role = Role::findOrFail($id);
+            
+            // Verificar si es un rol del sistema
+            if ($role->name === 'admin' || $role->name === 'user') {
+                return response()->json([
+                    'message' => 'No se pueden eliminar roles del sistema'
+                ], 403);
+            }
+
+            $role->delete();
+
+            return response()->json([
+                'message' => 'Rol eliminado exitosamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el rol'
+            ], 500);
+        }
     }
 }
