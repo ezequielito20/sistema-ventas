@@ -350,12 +350,12 @@ return [
                     'icon' => 'fas fa-fw fa-list',
                     'classes' => 'bg-white text-black'
                 ],
-                [
-                    'text' => 'Crear Rol',
-                    'url' => 'roles/create',
-                    'icon' => 'fas fa-fw fa-plus',
-                    'classes' => 'bg-white text-black'
-                ]
+                // [
+                //     'text' => 'Crear Rol',
+                //     'url' => 'roles/create',
+                //     'icon' => 'fas fa-fw fa-plus',
+                //     'classes' => 'bg-white text-black'
+                // ]
             ],
         ],
         // ['header' => 'labels'],
