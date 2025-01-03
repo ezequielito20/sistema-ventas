@@ -16,5 +16,15 @@
 @stop
 
 @section('js')
-    <script> console.log("Hi, I'm using the Laravel-AdminLTE package!"); </script>
+    @if (($message = Session::get('message')) && ($icons = Session::get('icons')))
+            <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "{{ $icons }}",
+                    title: "{{ $message }}",
+                    showConfirmButton: false,
+                    timer: 2500
+                });
+            </script>
+        @endif
 @stop
