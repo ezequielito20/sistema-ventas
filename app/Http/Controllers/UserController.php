@@ -136,9 +136,44 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        try {
+            // Obtener usuario con sus relaciones
+            $user = User::with(['roles', 'company'])->findOrFail($id);
+            
+            // Verificar que el usuario pertenezca a la misma empresa
+            if ($user->company_id !== Auth::user()->company_id) {
+                throw new \Exception('No tiene permisos para ver este usuario');
+            }
+
+            // Preparar la respuesta con solo los campos necesarios
+            return response()->json([
+                'status' => 'success',
+                'user' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'company_name' => $user->company->name,
+                    'roles' => $user->roles->map(function($role) {
+                        return [
+                            'name' => $role->name,
+                            'display_name' => ucfirst($role->name) // Capitaliza el nombre del rol
+                        ];
+                    }),
+                    'verified' => [
+                        'status' => $user->email_verified_at ? true : false,
+                        'text' => $user->email_verified_at ? 'Verificado' : 'Pendiente de verificación',
+                        'class' => $user->email_verified_at ? 'success' : 'warning'
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener los datos del usuario'
+            ], 500);
+        }
     }
 
     /**
@@ -274,8 +309,47 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            $user = User::findOrFail($id);
+            
+            // Verificar que el usuario pertenezca a la misma empresa
+            if ($user->company_id !== Auth::user()->company_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No tiene permisos para eliminar este usuario'
+                ], 403);
+            }
+
+            // Verificar si es un usuario admin
+            if ($user->hasRole('admin')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No se pueden eliminar usuarios administradores'
+                ], 403);
+            }
+
+            // Verificar que no se elimine a sí mismo
+            if ($user->id === Auth::id()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No puede eliminarse a sí mismo'
+                ], 403);
+            }
+
+            $user->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Usuario eliminado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar el usuario'
+            ], 500);
+        }
     }
 }

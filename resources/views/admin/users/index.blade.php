@@ -11,47 +11,56 @@
     </div>
 @stop
 <style>
-   .card {
-       border-radius: 0.75rem;
-   }
-   .card-header {
-       background-color: #f8f9fa;
-       border-bottom: 1px solid rgba(0,0,0,.125);
-   }
-   .table th {
-       background-color: #007bff !important;
-       color: white !important;
-   }
-   .btn-group {
-       box-shadow: 0 2px 4px rgba(0,0,0,.04);
-   }
-   .btn-sm {
-       border-radius: 0.5rem;
-   }
-   .modal-header {
-       border-radius: 0.3rem 0.3rem 0 0;
-   }
-   .modal-content {
-       border-radius: 0.3rem;
-       box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-   }
-   .form-control-static {
-       padding: 0.375rem 0.75rem;
-       margin-bottom: 0;
-       background-color: #f8f9fa;
-       border: 1px solid #ced4da;
-       border-radius: 0.25rem;
-   }
-   .badge {
-       font-size: 85%;
-       font-weight: 600;
-       padding: 0.35em 0.65em;
-   }
-   #userActivity {
-       background-color: #f8f9fa;
-       border: 1px solid #ced4da;
-       border-radius: 0.25rem;
-   }
+    .card {
+        border-radius: 0.75rem;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, .125);
+    }
+
+    .table th {
+        background-color: #007bff !important;
+        color: white !important;
+    }
+
+    .btn-group {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .04);
+    }
+
+    .btn-sm {
+        border-radius: 0.5rem;
+    }
+
+    .modal-header {
+        border-radius: 0.3rem 0.3rem 0 0;
+    }
+
+    .modal-content {
+        border-radius: 0.3rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .form-control-static {
+        padding: 0.375rem 0.75rem;
+        margin-bottom: 0;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+
+    .badge {
+        font-size: 85%;
+        font-weight: 600;
+        padding: 0.35em 0.65em;
+    }
+
+    #userActivity {
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
 </style>
 @section('content')
     <div class="card card-outline card-primary shadow-sm">
@@ -88,19 +97,19 @@
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->company->name ?? 'N/A' }}</td>
                             <td>
-                                @foreach($user->roles as $role)
+                                @foreach ($user->roles as $role)
                                     <span class="badge badge-info">{{ $role->name }}</span>
                                 @endforeach
                             </td>
                             <td>
-                                @if($user->email_verified_at)
+                                @if ($user->email_verified_at)
                                     <span class="badge badge-success">Verificado</span>
                                 @else
                                     <span class="badge badge-warning">Pendiente</span>
                                 @endif
                             </td>
                             <td>
-                                @if($user->last_login)
+                                @if ($user->last_login)
                                     <span data-toggle="tooltip" title="{{ $user->last_login }}">
                                         {{ $user->last_login->diffForHumans() }}
                                     </span>
@@ -110,32 +119,22 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button"
-                                            class="btn btn-success btn-sm show-user"
-                                            data-id="{{ $user->id }}"
-                                            data-toggle="tooltip"
-                                            title="Ver Detalles">
+                                    <button type="button" class="btn btn-success btn-sm show-user"
+                                        data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <a href="{{ route('admin.users.edit', $user->id) }}" 
-                                       class="btn btn-info btn-sm" 
-                                       data-toggle="tooltip" 
-                                       title="Editar">
+                                    <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-info btn-sm"
+                                        data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    @if($user->id !== auth()->id())
-                                        <button type="button" 
-                                                class="btn btn-warning btn-sm reset-password" 
-                                                data-id="{{ $user->id }}"
-                                                data-toggle="tooltip" 
-                                                title="Resetear Contraseña">
+                                    @if ($user->id !== auth()->id())
+                                        <button type="button" class="btn btn-warning btn-sm reset-password"
+                                            data-id="{{ $user->id }}" data-toggle="tooltip"
+                                            title="Resetear Contraseña">
                                             <i class="fas fa-key"></i>
                                         </button>
-                                        <button type="button" 
-                                                class="btn btn-danger btn-sm delete-user" 
-                                                data-id="{{ $user->id }}"
-                                                data-toggle="tooltip" 
-                                                title="Eliminar">
+                                        <button type="button" class="btn btn-danger btn-sm delete-user"
+                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @endif
@@ -186,21 +185,9 @@
                                 <label class="font-weight-bold">Estado de Verificación:</label>
                                 <p id="userVerification" class="form-control-static"></p>
                             </div>
-                            <div class="form-group">
-                                <label class="font-weight-bold">Último Acceso:</label>
-                                <p id="userLastLogin" class="form-control-static"></p>
-                            </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Actividad Reciente:</label>
-                                <div id="userActivity" class="form-control-static p-3" style="max-height: 200px; overflow-y: auto;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -210,172 +197,8 @@
             </div>
         </div>
     </div>
-    <script>
-      $(document).ready(function() {
-          // Inicialización de tooltips
-          $('[data-toggle="tooltip"]').tooltip();
-      
-          // Inicialización de DataTables
-          $('#usersTable').DataTable({
-              responsive: true,
-              autoWidth: false,
-              dom: 'Bfrtip',
-              buttons: [
-                  {
-                      extend: 'collection',
-                      text: '<i class="fas fa-file-export mr-2"></i>Exportar',
-                      className: 'btn btn-primary',
-                      buttons: [
-                          {
-                              extend: 'excel',
-                              text: '<i class="fas fa-file-excel mr-2"></i>Excel',
-                              className: 'btn btn-success',
-                              exportOptions: { columns: [0,1,2,3,4,5,6] }
-                          },
-                          {
-                              extend: 'pdf',
-                              text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
-                              className: 'btn btn-danger',
-                              exportOptions: { columns: [0,1,2,3,4,5,6] }
-                          },
-                          {
-                              extend: 'print',
-                              text: '<i class="fas fa-print mr-2"></i>Imprimir',
-                              className: 'btn btn-info',
-                              exportOptions: { columns: [0,1,2,3,4,5,6] }
-                          }
-                      ]
-                  }
-              ],
-              language: {
-                  url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
-              }
-          });
-      
-          // Manejo de eliminación de usuarios
-          $('.delete-user').click(function() {
-              const userId = $(this).data('id');
-              
-              Swal.fire({
-                  title: '¿Estás seguro?',
-                  text: "Esta acción no se puede revertir",
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Sí, eliminar',
-                  cancelButtonText: 'Cancelar'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                      
-                      $.ajax({
-                          url: `/users/delete/${userId}`,
-                          type: 'DELETE',
-                          headers: {
-                              'X-CSRF-TOKEN': csrfToken
-                          },
-                          success: function(response) {
-                              if (response.status === 'success') {
-                                  Swal.fire({
-                                      title: '¡Eliminado!',
-                                      text: response.message,
-                                      icon: 'success'
-                                  }).then(() => {
-                                      window.location.reload();
-                                  });
-                              } else {
-                                  Swal.fire('Error', response.message, 'error');
-                              }
-                          },
-                          error: function(xhr) {
-                              const response = xhr.responseJSON;
-                              Swal.fire('Error', response.message || 'No se pudo eliminar el usuario', 'error');
-                          }
-                      });
-                  }
-              });
-          });
-      
-          // Manejo de reseteo de contraseña
-          $('.reset-password').click(function() {
-              const userId = $(this).data('id');
-              
-              Swal.fire({
-                  title: '¿Resetear contraseña?',
-                  text: "Se enviará un email al usuario con las instrucciones",
-                  icon: 'question',
-                  showCancelButton: true,
-                  confirmButtonColor: '#3085d6',
-                  cancelButtonColor: '#d33',
-                  confirmButtonText: 'Sí, resetear',
-                  cancelButtonText: 'Cancelar'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                      
-                      $.ajax({
-                          url: `/users/reset-password/${userId}`,
-                          type: 'POST',
-                          headers: {
-                              'X-CSRF-TOKEN': csrfToken
-                          },
-                          success: function(response) {
-                              Swal.fire('¡Éxito!', 'Se ha enviado el email de reseteo', 'success');
-                          },
-                          error: function() {
-                              Swal.fire('Error', 'No se pudo resetear la contraseña', 'error');
-                          }
-                      });
-                  }
-              });
-          });
-      
-          // Manejo de visualización de usuario
-          $('.show-user').click(function() {
-              const userId = $(this).data('id');
-              
-              Swal.fire({
-                  title: 'Cargando...',
-                  allowOutsideClick: false,
-                  didOpen: () => {
-                      Swal.showLoading();
-                  }
-              });
-      
-              $.ajax({
-                  url: `/users/${userId}`,
-                  type: 'GET',
-                  success: function(response) {
-                      if (response.status === 'success') {
-                          $('#userName').text(response.user.name);
-                          $('#userEmail').text(response.user.email);
-                          $('#userCompany').text(response.user.company_name);
-                          $('#userRoles').html(response.user.roles.map(role => 
-                              `<span class="badge badge-info mr-1">${role}</span>`
-                          ).join(''));
-                          $('#userVerification').html(response.user.verified ? 
-                              '<span class="badge badge-success">Verificado</span>' : 
-                              '<span class="badge badge-warning">Pendiente</span>'
-                          );
-                          $('#userLastLogin').text(response.user.last_login || 'Nunca');
-                          $('#userActivity').html(response.user.recent_activity || 'No hay actividad reciente');
-                          
-                          Swal.close();
-                          $('#showUserModal').modal('show');
-                      } else {
-                          Swal.fire('Error', 'No se pudieron obtener los datos del usuario', 'error');
-                      }
-                  },
-                  error: function() {
-                      Swal.fire('Error', 'No se pudieron obtener los datos del usuario', 'error');
-                  }
-              });
-          });
-      });
-      </script>
+    
 @stop
-
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
@@ -383,4 +206,178 @@
 @stop
 
 @section('js')
+<script>
+    $(document).ready(function() {
+        // Inicialización de tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Inicialización de DataTables
+        $('#usersTable').DataTable({
+            responsive: true,
+            autoWidth: false,
+            dom: 'Bfrtip',
+            buttons: [{
+                extend: 'collection',
+                text: '<i class="fas fa-file-export mr-2"></i>Exportar',
+                className: 'btn btn-primary',
+                buttons: [{
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel mr-2"></i>Excel',
+                        className: 'btn btn-success',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6]
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
+                        className: 'btn btn-danger',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6]
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print mr-2"></i>Imprimir',
+                        className: 'btn btn-info',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6]
+                        }
+                    }
+                ]
+            }],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+            }
+        });
+
+        // Manejo de eliminación de usuarios
+        $('.delete-user').click(function() {
+            const userId = $(this).data('id');
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede revertir",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                    $.ajax({
+                        url: `/users/delete/${userId}`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                Swal.fire({
+                                    title: '¡Eliminado!',
+                                    text: response.message,
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            const response = xhr.responseJSON;
+                            Swal.fire('Error', response.message ||
+                                'No se pudo eliminar el usuario', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Manejo de reseteo de contraseña
+        $('.reset-password').click(function() {
+            const userId = $(this).data('id');
+
+            Swal.fire({
+                title: '¿Resetear contraseña?',
+                text: "Se enviará un email al usuario con las instrucciones",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, resetear',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                    $.ajax({
+                        url: `/users/reset-password/${userId}`,
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        success: function(response) {
+                            Swal.fire('¡Éxito!',
+                                'Se ha enviado el email de reseteo', 'success');
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudo resetear la contraseña',
+                                'error');
+                        }
+                    });
+                }
+            });
+        });
+
+        // Manejo de visualización de usuario
+        $('.show-user').click(function() {
+            const userId = $(this).data('id');
+
+            Swal.fire({
+                title: 'Cargando...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: `/users/${userId}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#userName').text(response.user.name);
+                        $('#userEmail').text(response.user.email);
+                        $('#userCompany').text(response.user.company_name);
+                        
+                        const rolesHtml = response.user.roles.map(role => 
+                            `<span class="badge badge-info mr-1">${role.display_name}</span>`
+                        ).join('');
+                        $('#userRoles').html(rolesHtml || '<span class="text-muted">Sin rol asignado</span>');
+                        
+                        $('#userVerification').html(response.user.verified ?
+                            '<span class="badge badge-success">Verificado</span>' :
+                            '<span class="badge badge-warning">Pendiente de verificación</span>'
+                        );
+
+                        Swal.close();
+                        $('#showUserModal').modal('show');
+                    } else {
+                        Swal.fire('Error', 'No se pudieron obtener los datos del usuario',
+                            'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'No se pudieron obtener los datos del usuario',
+                        'error');
+                }
+            });
+        });
+    });
+</script>
 @stop
+

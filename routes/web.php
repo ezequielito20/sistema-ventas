@@ -43,3 +43,4 @@ Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('admin.use
 Route::put('/users/edit/{id}', [UserController::class, 'update'])->name('admin.users.update')->middleware('auth');
 Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware('auth');
 Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
+Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
