@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             'business_type' => 'Comercial',
             'nit' => '1234567890',
             'phone' => '1234567890',
-            'email' => 'empresa@gmail.com',
+            'email' => 'superAdmin@gmail.com',
             'tax_amount' => 19,
             'tax_name' => 'IVA',
             'currency' => 'COP',
@@ -45,5 +45,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             WorldSeeder::class,
         ]);
+
+        // Create default admin role
+        $adminRole = \Spatie\Permission\Models\Role::create([
+            'name' => 'administrador',
+            'guard_name' => 'web'
+        ]);
+
+        // Assign admin role to superAdmin user
+        User::where('email', 'superAdmin@gmail.com')->first()->assignRole($adminRole);
     }
 }

@@ -135,6 +135,10 @@ class CompanyController extends Controller
                 'email_verified_at' => now(),
             ]);
 
+            // Asignar rol de administrador
+            $adminRole = \Spatie\Permission\Models\Role::where('name', 'administrador')->first();
+            $user->assignRole($adminRole);
+
             Auth::login($user);
 
             return redirect()->route('admin.index')

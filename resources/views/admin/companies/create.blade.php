@@ -336,9 +336,14 @@
                             </div>
 
                             <div class="row justify-content-center">
-                                <div class="col-6">
+                                <div class="col-2">
                                     <button type="submit" class="btn btn-primary btn-block">
                                         Crear empresa
+                                    </button>
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" onclick="window.history.back()" class="btn btn-secondary btn-block">
+                                        Volver
                                     </button>
                                 </div>
                             </div>
