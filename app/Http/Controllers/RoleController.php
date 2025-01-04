@@ -189,19 +189,31 @@ class RoleController extends Controller
             $role = Role::findOrFail($id);
             
             // Verificar si es un rol del sistema
-            if ($role->name === 'admin' || $role->name === 'user') {
+            if (in_array($role->name, ['admin', 'user', 'superadmin'])) {
                 return response()->json([
+                    'status' => 'error',
                     'message' => 'No se pueden eliminar roles del sistema'
+                ], 403);
+            }
+
+            // Verificar si el rol tiene usuarios asignados
+            if ($role->users()->count() > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No se puede eliminar un rol que tiene usuarios asignados'
                 ], 403);
             }
 
             $role->delete();
 
             return response()->json([
+                'status' => 'success',
                 'message' => 'Rol eliminado exitosamente'
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
+                'status' => 'error',
                 'message' => 'Error al eliminar el rol'
             ], 500);
         }
