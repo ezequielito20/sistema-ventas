@@ -358,6 +358,25 @@ return [
                 // ]
             ],
         ],
+        [
+            'text' => 'Usuarios',
+            'icon' => 'fas fa-fw fa-users',
+            'classes' => 'bg-blue text-white',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Usuarios',
+                    'url' => 'users',
+                    'icon' => 'fas fa-fw fa-list',
+                    'classes' => 'bg-white text-black'
+                ],
+                [
+                    'text' => 'Crear Usuario',
+                    'url' => 'users/create', 
+                    'icon' => 'fas fa-fw fa-user-plus',
+                    'classes' => 'bg-white text-black'
+                ]
+            ],
+        ],
         // ['header' => 'labels'],
         // [
         //     'text' => 'important',
