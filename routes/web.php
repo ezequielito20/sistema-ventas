@@ -13,7 +13,7 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
@@ -42,5 +42,4 @@ Route::post('/users/create', [UserController::class, 'store'])->name('admin.user
 Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('admin.users.edit')->middleware('auth');
 Route::put('/users/edit/{id}', [UserController::class, 'update'])->name('admin.users.update')->middleware('auth');
 Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware('auth');
-Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
 Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
