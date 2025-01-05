@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,3 +44,12 @@ Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('admin.use
 Route::put('/users/edit/{id}', [UserController::class, 'update'])->name('admin.users.update')->middleware('auth');
 Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware('auth');
 Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
+
+// Categories
+Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index')->middleware('auth');
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create')->middleware('auth');
+Route::post('/categories/create', [CategoryController::class, 'store'])->name('admin.categories.store')->middleware('auth');
+Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('admin.categories.edit')->middleware('auth');
+Route::put('/categories/edit/{id}', [CategoryController::class, 'update'])->name('admin.categories.update')->middleware('auth');
+Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy')->middleware('auth');
+Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('admin.categories.show')->middleware('auth');

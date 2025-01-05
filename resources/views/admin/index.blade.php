@@ -10,7 +10,7 @@
 <div class="row">
     {{-- Widget de Usuarios --}}
     <div class="col-lg-3 col-12">
-        <div class="small-box bg-info shadow">
+        <div class="small-box bg-info shadow zoomP">
             <div class="inner">
                 <h3>{{ $usersCount }}</h3>
                 <p>Usuarios Registrados</p>
@@ -26,7 +26,7 @@
 
     {{-- Widget de Roles --}}
     <div class="col-lg-3 col-12">
-        <div class="small-box bg-success shadow">
+        <div class="small-box bg-success shadow zoomP">
             <div class="inner">
                 <h3>{{ $rolesCount }}</h3>
                 <p>Roles del Sistema</p>

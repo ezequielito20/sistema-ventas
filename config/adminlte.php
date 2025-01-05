@@ -378,6 +378,25 @@ return [
                 ]
             ],
         ],
+        [
+            'text' => 'Categorías',
+            'icon' => 'fas fa-fw fa-tags',
+            'classes' => 'bg-blue text-white',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Categorías',
+                    'url' => 'categories',
+                    'icon' => 'fas fa-fw fa-list',
+                    'classes' => 'bg-white text-black'
+                ],
+                [
+                    'text' => 'Crear Categoría',
+                    'url' => 'categories/create',
+                    'icon' => 'fas fa-fw fa-plus',
+                    'classes' => 'bg-white text-black'
+                ]
+            ],
+        ],
         // ['header' => 'labels'],
         // [
         //     'text' => 'important',
