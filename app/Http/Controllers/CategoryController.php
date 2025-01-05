@@ -111,30 +111,29 @@ class CategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Category $category)
+    public function edit($id)
     {
-        try {
-            return view('admin.categories.edit', compact('category'));
-        } catch (\Exception $e) {
-            Log::error('Error loading edit category form: ' . $e->getMessage());
-            return redirect()->route('admin.categories.index')
-                ->with('message', 'Error al cargar el formulario de edición')
-                ->with('icons', 'error');
-        }
+        $category = Category::findOrFail($id);
+        return view('admin.categories.edit', compact('category'));
+        
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
+        $category = Category::findOrFail($id);
+
         // Validación del request
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('categories')->ignore($category),
+                Rule::unique('categories')->ignore($category->id)->where(function ($query) {
+                    return $query->where('company_id', Auth::user()->company_id);
+                }),
                 'regex:/^[a-zA-Z0-9\s-]+$/',
             ],
             'description' => [
@@ -146,7 +145,7 @@ class CategoryController extends Controller
             'name.required' => 'El nombre de la categoría es obligatorio',
             'name.string' => 'El nombre debe ser una cadena de texto',
             'name.max' => 'El nombre no puede exceder los 255 caracteres',
-            'name.unique' => 'Ya existe una categoría con este nombre',
+            'name.unique' => 'Ya existe una categoría con este nombre en tu empresa',
             'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
             'description.string' => 'La descripción debe ser una cadena de texto',
             'description.max' => 'La descripción no puede exceder los 255 caracteres',
@@ -155,9 +154,13 @@ class CategoryController extends Controller
         try {
             DB::beginTransaction();
 
+            $categoryName = trim($validated['name']);
+            
+            // Actualizar la categoría
             $category->update([
-                'name' => trim($validated['name']),
+                'name' => $categoryName,
                 'description' => $validated['description'] ?? null,
+                
             ]);
 
             DB::commit();
@@ -171,7 +174,7 @@ class CategoryController extends Controller
             Log::error('Error updating category: ' . $e->getMessage());
 
             return redirect()->back()
-                ->with('message', 'Error al actualizar la categoría: ' . $e->getMessage())
+                ->with('message', 'Error al actualizar la categoría')
                 ->with('icons', 'error')
                 ->withInput();
         }
@@ -180,11 +183,12 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
+        $category = Category::findOrFail($id);
+
         try {
-            // Nota: Verificación de productos se implementará en el futuro
-            // if ($category->products()->exists()) { ... }
+            
 
             $category->delete();
 

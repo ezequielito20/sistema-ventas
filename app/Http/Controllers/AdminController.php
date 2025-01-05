@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use App\Models\Category;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
@@ -14,6 +15,7 @@ class AdminController extends Controller
         // Obtener conteos básicos
         $usersCount = User::where('company_id', Auth::user()->company_id)->count();
         $rolesCount = Role::count();
+        $categoriesCount = Category::where('company_id', Auth::user()->company_id)->count();
 
         // Usuarios por rol
         $usersByRole = Role::withCount(['users' => function($query) {
@@ -37,7 +39,8 @@ class AdminController extends Controller
             'usersCount',
             'rolesCount',
             'usersByRole',
-            'usersPerMonth'
+            'usersPerMonth',
+            'categoriesCount'
         ));
     }
 }

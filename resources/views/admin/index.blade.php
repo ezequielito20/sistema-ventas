@@ -39,8 +39,22 @@
             </a>
         </div>
     </div>
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-warning shadow zoomP">
+            <div class="inner">
+                <h3>{{ $categoriesCount }}</h3>
+                <p>Categorías Registradas</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <a href="#" class="small-box-footer">
+                Total de categorías <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
 </div>
-
+    
 {{-- Gráficos o estadísticas adicionales --}}
 <div class="row">
     <div class="col-md-6">
