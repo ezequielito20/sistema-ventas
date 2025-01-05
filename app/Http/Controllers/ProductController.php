@@ -137,10 +137,16 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show($id)
     {
         try {
+            $product = Product::find($id);
             $product->load('category');
+            
+            // Formatear fechas para el modal
+            $product->formatted_entry_date = $product->entry_date->format('d/m/Y');
+            $product->entry_days_ago = $product->entry_date->diffForHumans();
+            
             return response()->json([
                 'status' => 'success',
                 'product' => $product
@@ -157,9 +163,10 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit($id)
     {
         try {
+            $product = Product::find($id);
             $categories = Category::all();
             return view('admin.products.edit', compact('product', 'categories'));
         } catch (\Exception $e) {
@@ -173,8 +180,10 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
+        $product = Product::find($id);
+
         // Validación
         $validator = Validator::make($request->all(), [
             'code' => 'required|string|max:50|unique:products,code,' . $product->id,
@@ -210,7 +219,7 @@ class ProductController extends Controller
         }
 
         try {
-            \DB::beginTransaction();
+            DB::beginTransaction();
 
             $data = $validator->validated();
 
@@ -227,14 +236,14 @@ class ProductController extends Controller
 
             $product->update($data);
 
-            \DB::commit();
+            DB::commit();
 
             return redirect()->route('admin.products.index')
                 ->with('message', 'Producto actualizado exitosamente')
                 ->with('icons', 'success');
 
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             Log::error('Error updating product: ' . $e->getMessage());
 
             // Eliminar nueva imagen si se subió
@@ -252,10 +261,11 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy($id)
     {
         try {
-            \DB::beginTransaction();
+            $product = Product::findOrFail($id);
+            DB::beginTransaction();
 
             // Eliminar imagen si existe
             if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
@@ -263,8 +273,8 @@ class ProductController extends Controller
             }
 
             $product->delete();
-
-            \DB::commit();
+            
+            DB::commit();
 
             return response()->json([
                 'status' => 'success',
@@ -272,7 +282,7 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \DB::rollBack();
+            DB::rollBack();
             Log::error('Error deleting product: ' . $e->getMessage());
             
             return response()->json([

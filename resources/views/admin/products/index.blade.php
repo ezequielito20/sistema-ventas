@@ -295,7 +295,7 @@
             $('.show-product').click(function() {
                 const id = $(this).data('id');
                 $.ajax({
-                    url: `/admin/products/${id}`,
+                    url: `/products/${id}`,
                     type: 'GET',
                     success: function(response) {
                         const product = response.product;
@@ -323,7 +323,7 @@
                         $('#productImage').attr('src', product.image || '/img/no-image.png');
 
                         // Actualizar enlace de edición
-                        $('#editProductBtn').attr('href', `/admin/products/edit/${product.id}`);
+                        $('#editProductBtn').attr('href', `/products/edit/${product.id}`);
 
                         $('#showProductModal').modal('show');
                     },
@@ -337,13 +337,13 @@
                 });
             });
 
-            // Eliminar producto
+            // Manejo de eliminación de productos
             $('.delete-product').click(function() {
-                const id = $(this).data('id');
-
+                const productId = $(this).data('id');
+                
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: "Esta acción no se puede deshacer",
+                    text: "Esta acción no se puede revertir",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -353,28 +353,27 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/admin/products/${id}`,
+                            url: `/products/delete/${productId}`,
                             type: 'DELETE',
-                            data: {
-                                _token: '{{ csrf_token() }}'
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
                             success: function(response) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Eliminado!',
-                                    text: 'El producto ha sido eliminado correctamente.',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
+                                if (response.status === 'success') {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: response.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
                             },
-                            error: function() {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: 'No se pudo eliminar el producto'
-                                });
+                            error: function(xhr) {
+                                const response = xhr.responseJSON;
+                                Swal.fire('Error', response.message || 'No se pudo eliminar el producto', 'error');
                             }
                         });
                     }
