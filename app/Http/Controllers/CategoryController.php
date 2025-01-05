@@ -60,7 +60,7 @@ class CategoryController extends Controller
                 'max:255',
                 'unique:categories,name',
                 // Asegura que el nombre solo contenga letras, números, espacios y guiones
-                'regex:/^[a-zA-Z0-9\s-]+$/',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s-]+$/',
             ],
             'description' => [
                 'nullable',
@@ -134,7 +134,7 @@ class CategoryController extends Controller
                 Rule::unique('categories')->ignore($category->id)->where(function ($query) {
                     return $query->where('company_id', Auth::user()->company_id);
                 }),
-                'regex:/^[a-zA-Z0-9\s-]+$/',
+                'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s-]+$/',
             ],
             'description' => [
                 'nullable',

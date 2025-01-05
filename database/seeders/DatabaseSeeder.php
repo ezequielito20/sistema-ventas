@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             WorldSeeder::class,
+            CategorySeeder::class,
         ]);
 
         // Create default admin role

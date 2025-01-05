@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
@@ -53,3 +54,12 @@ Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('
 Route::put('/categories/edit/{id}', [CategoryController::class, 'update'])->name('admin.categories.update')->middleware('auth');
 Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy')->middleware('auth');
 Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('admin.categories.show')->middleware('auth');
+
+// Products
+Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index')->middleware('auth');
+Route::get('/products/create', [ProductController::class, 'create'])->name('admin.products.create')->middleware('auth');
+Route::post('/products/create', [ProductController::class, 'store'])->name('admin.products.store')->middleware('auth');
+Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('admin.products.edit')->middleware('auth');
+Route::put('/products/edit/{id}', [ProductController::class, 'update'])->name('admin.products.update')->middleware('auth');
+Route::delete('/products/delete/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy')->middleware('auth');
+Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show')->middleware('auth');

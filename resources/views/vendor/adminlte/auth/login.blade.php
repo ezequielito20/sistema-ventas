@@ -18,7 +18,7 @@
     @php( $password_reset_url = $password_reset_url ? url($password_reset_url) : '' )
 @endif
 
-@section('auth_header', __('adminlte::adminlte.login_message'))
+@section('auth_header', 'Iniciar sesión')
 
 @section('auth_body')
     <form action="{{ $login_url }}" method="post">
@@ -27,7 +27,7 @@
         {{-- Email field --}}
         <div class="input-group mb-3">
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
+                   value="{{ old('email') }}" placeholder="Correo electrónico" autofocus>
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -37,7 +37,7 @@
 
             @error('email')
                 <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
+                    <strong>Correo electrónico incorrecto</strong>
                 </span>
             @enderror
         </div>
@@ -45,7 +45,7 @@
         {{-- Password field --}}
         <div class="input-group mb-3">
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                   placeholder="{{ __('adminlte::adminlte.password') }}">
+                   placeholder="Contraseña">
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -55,28 +55,28 @@
 
             @error('password')
                 <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
+                    <strong>Contraseña incorrecta</strong>
                 </span>
             @enderror
         </div>
 
         {{-- Login field --}}
         <div class="row">
-            <div class="col-7">
-                <div class="icheck-primary" title="{{ __('adminlte::adminlte.remember_me_hint') }}">
-                    <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                    <label for="remember">
-                        {{ __('adminlte::adminlte.remember_me') }}
-                    </label>
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="icheck-primary" title="Recordarme">
+                        <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <label for="remember">
+                            Recordarme
+                        </label>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary shadow-sm">
+                            <span class="fas fa-sign-in-alt mr-2"></span>
+                            Iniciar sesión
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-5">
-                <button type=submit class="btn btn-block {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
-                    <span class="fas fa-sign-in-alt"></span>
-                    {{ __('adminlte::adminlte.sign_in') }}
-                </button>
             </div>
         </div>
 
@@ -88,7 +88,7 @@
     @if($password_reset_url)
         <p class="my-0">
             <a href="{{ $password_reset_url }}">
-                {{ __('adminlte::adminlte.i_forgot_my_password') }}
+                Recuperar contraseña
             </a>
         </p>
     @endif
@@ -97,7 +97,7 @@
     @if($register_url)
         <p class="my-0">
             <a href="{{ route('admin.company.create') }}">
-                {{ __('adminlte::adminlte.register_a_new_membership') }}
+                Crear una Empresa
             </a>
         </p>
     @endif

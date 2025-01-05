@@ -389,12 +389,19 @@ return [
                     'icon' => 'fas fa-fw fa-list',
                     'classes' => 'bg-white text-black'
                 ],
+            ],
+        ],
+        [
+            'text' => 'Productos',
+            'icon' => 'fas fa-fw fa-boxes',
+            'classes' => 'bg-blue text-white',
+            'submenu' => [
                 [
-                    'text' => 'Crear Categoría',
-                    'url' => 'categories/create',
-                    'icon' => 'fas fa-fw fa-plus',
+                    'text' => 'Lista de Productos',
+                    'url' => 'products',
+                    'icon' => 'fas fa-fw fa-list',
                     'classes' => 'bg-white text-black'
-                ]
+                ],
             ],
         ],
         // ['header' => 'labels'],

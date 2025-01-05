@@ -49,4 +49,9 @@ class Category extends Model
     {
         return $this->description ?? 'Sin descripción';
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
