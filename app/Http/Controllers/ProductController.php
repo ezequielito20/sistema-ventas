@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
@@ -13,7 +17,30 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $products = Product::with('category')->get();
+            $categories = Category::all();
+            
+            // Calcular estadísticas
+            $totalProducts = $products->count();
+            $lowStockProducts = $products->filter->hasLowStock()->count();
+            $totalValue = $products->sum(function ($product) {
+                return $product->stock * $product->purchase_price;
+            });
+
+            return view('admin.products.index', compact(
+                'products',
+                'categories',
+                'totalProducts',
+                'lowStockProducts',
+                'totalValue'
+            ));
+        } catch (\Exception $e) {
+            Log::error('Error loading products: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('message', 'Error al cargar los productos')
+                ->with('icons', 'error');
+        }
     }
 
     /**
@@ -21,15 +48,90 @@ class ProductController extends Controller
      */
     public function create()
     {
-        //
+        try {
+            $categories = Category::all();
+            return view('admin.products.create', compact('categories'));
+        } catch (\Exception $e) {
+            Log::error('Error loading create product form: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('message', 'Error al cargar el formulario')
+                ->with('icons', 'error');
+        }
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store(Request $request)
     {
-        //
+        // Validación
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|max:50|unique:products',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'max_stock' => 'required|integer|gt:min_stock',
+            'purchase_price' => 'required|numeric|min:0',
+            'sale_price' => 'required|numeric|min:0|gt:purchase_price',
+            'entry_date' => 'required|date|before_or_equal:today',
+            'category_id' => 'required|exists:categories,id'
+        ], [
+            'code.required' => 'El código es obligatorio',
+            'code.unique' => 'Este código ya está en uso',
+            'name.required' => 'El nombre es obligatorio',
+            'stock.min' => 'El stock no puede ser negativo',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo',
+            'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
+            'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
+            'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
+            'category_id.required' => 'La categoría es obligatoria',
+            'category_id.exists' => 'La categoría seleccionada no existe'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('message', 'Error de validación')
+                ->with('icons', 'error');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $data = $validator->validated();
+
+            // Procesar imagen si existe
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('products', 'public');
+                $data['image'] = 'storage/' . $path;
+            }
+
+            // Crear producto
+            $product = Product::create($data);
+
+            DB::commit();
+
+            return redirect()->route('admin.products.index')
+                ->with('message', 'Producto creado exitosamente')
+                ->with('icons', 'success');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating product: ' . $e->getMessage());
+            
+            // Eliminar imagen si se subió
+            if (isset($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            return redirect()->back()
+                ->with('message', 'Error al crear el producto: ' . $e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
     }
 
     /**
@@ -37,7 +139,19 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        try {
+            $product->load('category');
+            return response()->json([
+                'status' => 'success',
+                'product' => $product
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error showing product: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener los datos del producto'
+            ], 500);
+        }
     }
 
     /**
@@ -45,15 +159,94 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        //
+        try {
+            $categories = Category::all();
+            return view('admin.products.edit', compact('product', 'categories'));
+        } catch (\Exception $e) {
+            Log::error('Error loading edit product form: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('message', 'Error al cargar el formulario de edición')
+                ->with('icons', 'error');
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(Request $request, Product $product)
     {
-        //
+        // Validación
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|max:50|unique:products,code,' . $product->id,
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'max_stock' => 'required|integer|gt:min_stock',
+            'purchase_price' => 'required|numeric|min:0',
+            'sale_price' => 'required|numeric|min:0|gt:purchase_price',
+            'entry_date' => 'required|date|before_or_equal:today',
+            'category_id' => 'required|exists:categories,id'
+        ], [
+            'code.required' => 'El código es obligatorio',
+            'code.unique' => 'Este código ya está en uso',
+            'name.required' => 'El nombre es obligatorio',
+            'stock.min' => 'El stock no puede ser negativo',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo',
+            'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
+            'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
+            'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
+            'category_id.required' => 'La categoría es obligatoria',
+            'category_id.exists' => 'La categoría seleccionada no existe'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('message', 'Error de validación')
+                ->with('icons', 'error');
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $data = $validator->validated();
+
+            // Procesar nueva imagen si existe
+            if ($request->hasFile('image')) {
+                // Eliminar imagen anterior si existe
+                if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
+                    Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+                }
+
+                $path = $request->file('image')->store('products', 'public');
+                $data['image'] = 'storage/' . $path;
+            }
+
+            $product->update($data);
+
+            \DB::commit();
+
+            return redirect()->route('admin.products.index')
+                ->with('message', 'Producto actualizado exitosamente')
+                ->with('icons', 'success');
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error updating product: ' . $e->getMessage());
+
+            // Eliminar nueva imagen si se subió
+            if (isset($path)) {
+                Storage::disk('public')->delete($path);
+            }
+
+            return redirect()->back()
+                ->with('message', 'Error al actualizar el producto: ' . $e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
     }
 
     /**
@@ -61,6 +254,31 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        try {
+            \DB::beginTransaction();
+
+            // Eliminar imagen si existe
+            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            }
+
+            $product->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Producto eliminado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            Log::error('Error deleting product: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar el producto'
+            ], 500);
+        }
     }
 }
