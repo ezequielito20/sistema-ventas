@@ -190,16 +190,13 @@
 
                 // Obtener datos de la categoría
                 $.ajax({
-                    url: `{{ route('admin.categories.show', '') }}/${categoryId}`,
+                    url: `/categories/${categoryId}`,
                     type: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
                     success: function(response) {
                         if (response.status === 'success') {
                             // Llenar datos en el modal
                             $('#categoryName').text(response.category.name);
-                            $('#categoryDescription').text(response.category.description || 'Sin descripción');
+                            $('#categoryDescription').text(response.category.description);
                             $('#categoryCreated').text(response.category.created_at);
                             $('#categoryUpdated').text(response.category.updated_at);
                             
@@ -231,15 +228,11 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Token CSRF
-                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                        
-                        // Enviar solicitud de eliminación
                         $.ajax({
-                            url: `{{ route('admin.categories.destroy', '') }}/${categoryId}`,
+                            url: `/categories/delete/${categoryId}`,
                             type: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': csrfToken
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
                             success: function(response) {
                                 if (response.status === 'success') {
@@ -251,20 +244,12 @@
                                         window.location.reload();
                                     });
                                 } else {
-                                    Swal.fire(
-                                        'Error',
-                                        response.message,
-                                        'error'
-                                    );
+                                    Swal.fire('Error', response.message, 'error');
                                 }
                             },
                             error: function(xhr) {
                                 const response = xhr.responseJSON;
-                                Swal.fire(
-                                    'Error',
-                                    response.message || 'No se pudo eliminar la categoría',
-                                    'error'
-                                );
+                                Swal.fire('Error', response.message || 'No se pudo eliminar la categoría', 'error');
                             }
                         });
                     }

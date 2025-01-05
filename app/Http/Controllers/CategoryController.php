@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -86,6 +87,7 @@ class CategoryController extends Controller
             $category = Category::create([
                 'name' => $categoryName,
                 'description' => $validated['description'] ?? null,
+                'company_id' => Auth::user()->company_id,
             ]);
 
             DB::commit();
@@ -203,9 +205,10 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show($id)
     {
         try {
+            $category = Category::findOrFail($id);
             return response()->json([
                 'status' => 'success',
                 'category' => [
