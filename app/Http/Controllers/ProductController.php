@@ -24,6 +24,8 @@ class ProductController extends Controller
             // Calcular estadísticas
             $totalProducts = $products->count();
             $lowStockProducts = $products->filter->hasLowStock()->count();
+            // Calcula el valor total del inventario multiplicando el stock por el precio de compra
+            // de cada producto y sumando todos los resultados
             $totalValue = $products->sum(function ($product) {
                 return $product->stock * $product->purchase_price;
             });

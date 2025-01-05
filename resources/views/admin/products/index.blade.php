@@ -75,7 +75,7 @@
         </div>
         <div class="card-body">
             <table id="productsTable" class="table table-striped table-hover">
-                <thead class="bg-primary text-white">
+                <thead >
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>
