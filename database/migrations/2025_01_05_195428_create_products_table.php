@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->text('image')->nullable();
-            $table->integer('stock');
-            $table->integer('min_stock');
-            $table->integer('max_stock');
-            $table->decimal('purchase_price', 8, 2);
-            $table->decimal('sale_price', 8, 2);
-            $table->date('entry_date');
+            $table->string('code')->comment('Código único del producto');
+            $table->string('name')->comment('Nombre del producto');
+            $table->text('description')->nullable()->comment('Descripción detallada del producto');
+            $table->text('image')->nullable()->comment('Ruta de la imagen del producto');
+            $table->integer('stock')->comment('Cantidad actual en inventario');
+            $table->integer('min_stock')->comment('Stock mínimo permitido');
+            $table->integer('max_stock')->comment('Stock máximo permitido');
+            $table->decimal('purchase_price', 8, 2)->comment('Precio de compra del producto');
+            $table->decimal('sale_price', 8, 2)->comment('Precio de venta al público');
+            $table->date('entry_date')->comment('Fecha de ingreso al inventario');
             
             // Relación con categoría
             $table->unsignedBigInteger('category_id');
