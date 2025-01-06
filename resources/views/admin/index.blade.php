@@ -157,6 +157,198 @@
         </div>
     </div>
 </div>
+
+{{-- Después de los widgets existentes, agregar nueva fila para Proveedores --}}
+<div class="row mt-4">
+    <div class="col-12">
+        <h4 class="text-primary">
+            <i class="fas fa-truck mr-2"></i>
+            Información de Proveedores
+        </h4>
+    </div>
+    
+    {{-- Widget de Total Proveedores --}}
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-primary shadow">
+            <div class="inner">
+                <h3>{{ $suppliersCount }}</h3>
+                <p>Total Proveedores</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <a href="{{ route('admin.suppliers.index') }}" class="small-box-footer">
+                Ver proveedores <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    {{-- Widget de Proveedores con Stock Bajo --}}
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning shadow">
+            <div class="inner">
+                <h3>{{ $suppliersWithLowStock->count() }}</h3>
+                <p>Proveedores con Stock Bajo</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <a href="#supplierLowStockTable" class="small-box-footer" data-toggle="collapse">
+                Ver detalles <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    {{-- Widget de Proveedores Nuevos --}}
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success shadow">
+            <div class="inner">
+                <h3>{{ $suppliersPerMonth->last()->count ?? 0 }}</h3>
+                <p>Proveedores Nuevos este Mes</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <a href="#supplierTrendsChart" class="small-box-footer" data-toggle="collapse">
+                Ver tendencia <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    {{-- Widget de Valor Total de Inventario --}}
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info shadow">
+            <div class="inner">
+                <h3>${{ number_format($supplierInventoryValue->sum('total_value'), 2) }}</h3>
+                <p>Valor Total de Inventario</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <a href="#supplierValueTable" class="small-box-footer" data-toggle="collapse">
+                Ver detalles <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+{{-- Tablas y Gráficos Detallados --}}
+<div class="row mt-4">
+    {{-- Top 5 Proveedores --}}
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary">
+                <h3 class="card-title">
+                    <i class="fas fa-trophy mr-2"></i>
+                    Top 5 Proveedores por Productos
+                </h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Productos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($topSuppliers as $supplier)
+                        <tr>
+                            <td>{{ $supplier->company_name }}</td>
+                            <td>
+                                <span class="badge badge-primary">
+                                    {{ $supplier->products_count }}
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Proveedores con Stock Bajo --}}
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h3 class="card-title">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Proveedores con Productos en Stock Bajo
+                </h3>
+            </div>
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Productos en Stock Bajo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($suppliersWithLowStock as $supplier)
+                        <tr>
+                            <td>{{ $supplier->company_name }}</td>
+                            <td>
+                                <span class="badge badge-warning">
+                                    {{ $supplier->low_stock_products }}
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Gráfico de Tendencias de Proveedores --}}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Tendencia de Nuevos Proveedores
+                </h3>
+            </div>
+            <div class="card-body">
+                <canvas id="supplierTrendsChart" style="min-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('js')
+<script>
+// Gráfico de tendencias de proveedores
+new Chart(document.getElementById('supplierTrendsChart'), {
+    type: 'line',
+    data: {
+        labels: {!! json_encode($suppliersPerMonth->pluck('month')) !!},
+        datasets: [{
+            label: 'Nuevos Proveedores',
+            data: {!! json_encode($suppliersPerMonth->pluck('count')) !!},
+            borderColor: '#28a745',
+            tension: 0.1,
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+@endpush
 @stop
 
 @section('css')

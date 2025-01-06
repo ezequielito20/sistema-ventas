@@ -57,4 +57,9 @@ class Supplier extends Model
     {
         return "{$this->company_name} - {$this->supplier_name}";
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

@@ -163,4 +163,12 @@ class Product extends Model
         }
         return 0;
     }
+
+    /**
+     * Get the supplier that owns the product.
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
 }
