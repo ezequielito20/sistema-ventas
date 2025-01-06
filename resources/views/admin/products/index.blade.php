@@ -131,13 +131,12 @@
         </div>
     </div>
 
-    {{-- Modal de Detalles del Producto --}}
-    <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel"
-        aria-hidden="true">
+    {{-- Modal para mostrar producto --}}
+    <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="showProductModalLabel">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="showProductModalLabel">
                         <i class="fas fa-box mr-2"></i>
                         Detalles del Producto
                     </h5>
@@ -147,81 +146,133 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="text-center mb-3">
-                                <img id="productImage" src="" alt="Imagen del producto"
-                                    class="img-fluid rounded shadow-sm" style="max-height: 300px; object-fit: contain;">
-                            </div>
+                        {{-- Imagen del producto --}}
+                        <div class="col-md-3 ">
+                            <img src="{{ asset( $product->image) }}" 
+                            alt="Imagen del producto"
+                            style="width: 100%; height: 100%; 
+                            border-radius: 8px;">
+                            <p id="noImage" class="text-muted mt-3" style="display: none;">Sin imagen</p>
                         </div>
-                        <div class="col-md-6">
-                            <h4 id="productName" class="font-weight-bold mb-3"></h4>
-                            <div class="badge badge-primary mb-2">
-                                <i class="fas fa-barcode mr-1"></i>
-                                <span id="productCode"></span>
-                            </div>
+                        
+                        
+                        {{-- Información básica --}}
+                        <div class="col-md-8">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th style="width: 30%">Código:</th>
+                                    <td><span id="productCode"></span></td>
+                                </tr>
+                                <tr>
+                                    <th>Nombre:</th>
+                                    <td><span id="productName"></span></td>
+                                </tr>
+                                <tr>
+                                    <th>Categoría:</th>
+                                    <td><span id="productCategory"></span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
 
-                            <div class="card card-outline card-primary mb-3">
-                                <div class="card-body">
-                                    <h6 class="font-weight-bold">Descripción:</h6>
-                                    <p id="productDescription" class="text-muted"></p>
+                    {{-- Descripción --}}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Descripción</h6>
                                 </div>
-                            </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-sm">
-                                    <tr>
-                                        <th class="bg-light" width="40%">Categoría</th>
-                                        <td id="productCategory"></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Stock Actual</th>
-                                        <td>
-                                            <span id="productStock" class="badge"></span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Límites de Stock</th>
-                                        <td>
-                                            <small class="text-danger">Mín: </small>
-                                            <span id="productMinStock"></span>
-                                            <small class="text-success ml-2">Máx: </small>
-                                            <span id="productMaxStock"></span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Precio de Compra</th>
-                                        <td id="productPurchasePrice" class="text-primary"></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Precio de Venta</th>
-                                        <td id="productSalePrice" class="text-success"></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Margen de Beneficio</th>
-                                        <td>
-                                            <span id="productProfit" class="badge badge-info"></span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="bg-light">Fecha de Ingreso</th>
-                                        <td>
-                                            <i class="far fa-calendar-alt mr-1"></i>
-                                            <span id="productEntryDate"></span>
-                                        </td>
-                                    </tr>
-                                </table>
+                                <div class="card-body">
+                                    <p id="productDescription" class="mb-0"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    {{-- Información de stock --}}
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Stock Actual</span>
+                                    <span class="info-box-number" id="productStock"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Stock Mínimo</span>
+                                    <span class="info-box-number" id="productMinStock"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-warehouse"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Stock Máximo</span>
+                                    <span class="info-box-number" id="productMaxStock"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Información de precios --}}
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Precio de Compra</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="text-primary mb-0">$<span id="productPurchasePrice"></span></h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Precio de Venta</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="text-success mb-0">$<span id="productSalePrice"></span></h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Fechas --}}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Fecha de Ingreso:</th>
+                                    <td>
+                                        <span id="productEntryDate"></span>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            <span id="productEntryDaysAgo"></span>
+                                        </small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Creado:</th>
+                                    <td id="productCreatedAt"></td>
+                                </tr>
+                                <tr>
+                                    <th>Última Actualización:</th>
+                                    <td id="productUpdatedAt"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <a href="#" id="editProductBtn" class="btn btn-warning">
-                        <i class="fas fa-edit mr-1"></i>
-                        Editar Producto
-                    </a>
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-1"></i>
-                        Cerrar
+                        <i class="fas fa-times mr-2"></i>Cerrar
                     </button>
                 </div>
             </div>
@@ -294,45 +345,49 @@
             // Mostrar detalles del producto
             $('.show-product').click(function() {
                 const id = $(this).data('id');
+                
                 $.ajax({
                     url: `/products/${id}`,
                     type: 'GET',
                     success: function(response) {
-                        const product = response.product;
-
-                        // Actualizar contenido del modal
-                        $('#productName').text(product.name);
-                        $('#productCode').text(product.code);
-                        $('#productDescription').text(product.description || 'Sin descripción');
-                        $('#productCategory').text(product.category.name);
-
-                        // Stock con clase dinámica
-                        $('#productStock')
-                            .text(product.stock)
-                            .removeClass()
-                            .addClass(`badge badge-${product.stock_status_class}`);
-
-                        $('#productMinStock').text(product.min_stock);
-                        $('#productMaxStock').text(product.max_stock);
-                        $('#productPurchasePrice').text(product.formatted_purchase_price);
-                        $('#productSalePrice').text(product.formatted_sale_price);
-                        $('#productProfit').text(`${product.profit_margin.toFixed(2)}%`);
-                        $('#productEntryDate').text(product.formatted_entry_date);
-
-                        // Imagen con fallback
-                        $('#productImage').attr('src', product.image || '/img/no-image.png');
-
-                        // Actualizar enlace de edición
-                        $('#editProductBtn').attr('href', `/products/edit/${product.id}`);
-
-                        $('#showProductModal').modal('show');
+                        if (response.status === 'success') {
+                            const product = response.product;
+                            
+                            // Actualizar imagen
+                            if (product.image) {
+                                $('#productImage').attr('src', product.image).show();
+                                $('#noImage').hide();
+                            } else {
+                                $('#productImage').hide();
+                                $('#noImage').show();
+                            }
+                            
+                            // Actualizar información básica
+                            $('#productCode').text(product.code);
+                            $('#productName').text(product.name);
+                            $('#productCategory').text(product.category);
+                            $('#productDescription').text(product.description);
+                            
+                            // Actualizar stock
+                            $('#productStock').text(product.stock);
+                            $('#productMinStock').text(product.min_stock);
+                            $('#productMaxStock').text(product.max_stock);
+                            
+                            // Actualizar precios
+                            $('#productPurchasePrice').text(product.purchase_price);
+                            $('#productSalePrice').text(product.sale_price);
+                            
+                            // Actualizar fechas
+                            $('#productEntryDate').text(product.entry_date);
+                            $('#productEntryDaysAgo').text(product.entry_days_ago);
+                            $('#productCreatedAt').text(product.created_at);
+                            $('#productUpdatedAt').text(product.updated_at);
+                            
+                            $('#showProductModal').modal('show');
+                        }
                     },
                     error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'No se pudo cargar la información del producto'
-                        });
+                        Swal.fire('Error', 'No se pudo cargar la información del producto', 'error');
                     }
                 });
             });

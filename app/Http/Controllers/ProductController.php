@@ -142,16 +142,27 @@ class ProductController extends Controller
     public function show($id)
     {
         try {
-            $product = Product::find($id);
-            $product->load('category');
-            
-            // Formatear fechas para el modal
-            $product->formatted_entry_date = $product->entry_date->format('d/m/Y');
-            $product->entry_days_ago = $product->entry_date->diffForHumans();
+            $product = Product::with('category')->findOrFail($id);
             
             return response()->json([
                 'status' => 'success',
-                'product' => $product
+                'product' => [
+                    'id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'description' => $product->description ?? 'Sin descripción',
+                    'image' => $product->image ? Storage::url($product->image) : null,
+                    'stock' => $product->stock,
+                    'min_stock' => $product->min_stock,
+                    'max_stock' => $product->max_stock,
+                    'purchase_price' => number_format($product->purchase_price, 2),
+                    'sale_price' => number_format($product->sale_price, 2),
+                    'entry_date' => $product->entry_date->format('d/m/Y'),
+                    'entry_days_ago' => $product->entry_date->diffForHumans(),
+                    'category' => $product->category->name,
+                    'created_at' => $product->created_at->format('d/m/Y H:i'),
+                    'updated_at' => $product->updated_at->format('d/m/Y H:i')
+                ]
             ]);
         } catch (\Exception $e) {
             Log::error('Error showing product: ' . $e->getMessage());
