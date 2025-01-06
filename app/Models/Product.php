@@ -25,7 +25,8 @@ class Product extends Model
         'purchase_price',
         'sale_price',
         'entry_date',
-        'category_id'
+        'category_id',
+        'company_id'
     ];
 
     /**
@@ -40,6 +41,7 @@ class Product extends Model
         'stock' => 'integer',
         'min_stock' => 'integer',
         'max_stock' => 'integer',
+        'company_id' => 'integer'
     ];
 
     /**

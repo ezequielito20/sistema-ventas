@@ -30,6 +30,8 @@ return new class extends Migration
                   ->references('id')
                   ->on('categories')
                   ->onDelete('cascade');
+            
+            $table->unsignedBigInteger('company_id');
 
             $table->timestamps();
         });

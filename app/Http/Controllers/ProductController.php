@@ -7,6 +7,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -104,6 +105,7 @@ class ProductController extends Controller
             DB::beginTransaction();
 
             $data = $validator->validated();
+            $data['company_id'] = Auth::user()->company_id;
 
             // Procesar imagen si existe
             if ($request->hasFile('image')) {
