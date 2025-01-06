@@ -304,7 +304,7 @@
 </div>
 
 {{-- Gráfico de Tendencias de Proveedores --}}
-<div class="row mt-4">
+{{-- <div class="row mt-4">
     <div class="col-12">
         <div class="card shadow">
             <div class="card-header bg-success">
@@ -318,7 +318,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 @push('js')
 <script>
