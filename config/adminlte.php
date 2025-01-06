@@ -404,6 +404,19 @@ return [
                 ],
             ],
         ],
+        [
+            'text' => 'Proveedores',
+            'icon' => 'fas fa-fw fa-truck',
+            'classes' => 'bg-blue text-white',
+            'submenu' => [
+                [
+                    'text' => 'Lista de Proveedores',
+                    'url' => 'suppliers',
+                    'icon' => 'fas fa-fw fa-list',
+                    'classes' => 'bg-white text-black'
+                ],
+            ],
+        ],
         // ['header' => 'labels'],
         // [
         //     'text' => 'important',

@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -63,3 +64,12 @@ Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('adm
 Route::put('/products/edit/{id}', [ProductController::class, 'update'])->name('admin.products.update')->middleware('auth');
 Route::delete('/products/delete/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy')->middleware('auth');
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show')->middleware('auth');
+
+// Suppliers
+Route::get('/suppliers', [SupplierController::class, 'index'])->name('admin.suppliers.index')->middleware('auth');
+Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('admin.suppliers.create')->middleware('auth');
+Route::post('/suppliers/create', [SupplierController::class, 'store'])->name('admin.suppliers.store')->middleware('auth');
+Route::get('/suppliers/edit/{id}', [SupplierController::class, 'edit'])->name('admin.suppliers.edit')->middleware('auth');
+Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('admin.suppliers.update')->middleware('auth');
+Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('admin.suppliers.destroy')->middleware('auth');
+Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware('auth');
