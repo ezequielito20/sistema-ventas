@@ -317,36 +317,45 @@ $(document).ready(function() {
     // Inicializar tooltips
     $('[data-toggle="tooltip"]').tooltip();
 
-    // Mostrar detalles del proveedor
+    // Mostrar modal de detalles del proveedor
     $('.show-supplier').click(function() {
         const id = $(this).data('id');
+        
+        // Limpiar datos anteriores
+        $('#companyName, #companyEmail, #companyPhone, #companyAddress, #supplierName, #supplierPhone').text('');
+        
+        // Mostrar loader o spinner si lo deseas
         
         $.ajax({
             url: `/suppliers/${id}`,
             type: 'GET',
             success: function(response) {
-                if (response.status === 'success') {
+                if (response.icons === 'success') {
                     const supplier = response.supplier;
                     
-                    // Actualizar información de la empresa
+                    // Llenar datos de la empresa
                     $('#companyName').text(supplier.company_name);
                     $('#companyEmail').text(supplier.company_email);
                     $('#companyPhone').text(supplier.company_phone);
                     $('#companyAddress').text(supplier.company_address);
                     
-                    // Actualizar información del contacto
+                    // Llenar datos del contacto
                     $('#supplierName').text(supplier.supplier_name);
                     $('#supplierPhone').text(supplier.supplier_phone);
                     
+                    // Si tienes un gráfico, actualizarlo aquí
+                    if (supplier.stats) {
+                        updateSupplierChart(supplier.stats);
+                    }
+                    
                     // Mostrar el modal
                     $('#showSupplierModal').modal('show');
-                    
-                    // Crear gráfico de estadísticas
-                    createSupplierStatsChart(supplier);
+                } else {
+                    Swal.fire('Error', response.message, 'error');
                 }
             },
             error: function() {
-                Swal.fire('Error', 'No se pudo cargar la información del proveedor', 'error');
+                Swal.fire('Error', 'No se pudieron cargar los datos del proveedor', 'error');
             }
         });
     });
@@ -397,29 +406,31 @@ $(document).ready(function() {
         });
     });
 
-    // Función para crear el gráfico de estadísticas
-    function createSupplierStatsChart(supplier) {
-        const ctx = document.getElementById('supplierStatsChart').getContext('2d');
-        
-        // Destruir gráfico existente si hay uno
+    // Función para actualizar el gráfico si lo necesitas
+    function updateSupplierChart(stats) {
         if (window.supplierChart) {
             window.supplierChart.destroy();
         }
         
+        const ctx = document.getElementById('supplierStatsChart').getContext('2d');
         window.supplierChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                labels: stats.months,
                 datasets: [{
-                    label: 'Productos Suministrados',
-                    data: [12, 19, 3, 5, 2, 3],
-                    borderColor: 'rgb(75, 192, 192)',
+                    label: 'Productos',
+                    data: stats.products,
+                    borderColor: '#007bff',
                     tension: 0.1
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
         });
     }

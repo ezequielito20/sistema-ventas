@@ -163,8 +163,9 @@ class SupplierController extends Controller
     public function show($id)
     {
         try {
+            $supplier = Supplier::findOrFail($id);
+            
             // Verificar que el proveedor pertenece a la compañía del usuario
-            $supplier = Supplier::find($id);
             if ($supplier->company_id !== Auth::user()->company_id) {
                 return response()->json([
                     'icons' => 'error',
@@ -172,59 +173,27 @@ class SupplierController extends Controller
                 ], 403);
             }
 
-            // Obtener estadísticas del proveedor (últimos 6 meses)
-            $monthlyStats = [];
-            for ($i = 5; $i >= 0; $i--) {
-                $date = now()->subMonths($i);
-                $monthlyStats[] = [
-                    'month' => $date->format('M'),
-                    'year' => $date->format('Y'),
-                    'products' => rand(1, 20), // Aquí deberías obtener datos reales de productos/transacciones
-                ];
-            }
-
-            // Preparar datos para la respuesta
-            $supplierData = [
+            return response()->json([
                 'icons' => 'success',
                 'supplier' => [
-                    // Información de la empresa
                     'company_name' => $supplier->company_name,
                     'company_email' => $supplier->company_email,
                     'company_phone' => $supplier->company_phone,
                     'company_address' => $supplier->company_address,
-
-                    // Información del contacto
                     'supplier_name' => $supplier->supplier_name,
                     'supplier_phone' => $supplier->supplier_phone,
-
-                    // Fechas formateadas
                     'created_at' => $supplier->created_at->format('d/m/Y H:i'),
                     'updated_at' => $supplier->updated_at->format('d/m/Y H:i'),
-                    'created_days_ago' => $supplier->created_at->diffForHumans(),
-
-                    // Estadísticas
                     'stats' => [
-                        'months' => collect($monthlyStats)->pluck('month'),
-                        'products' => collect($monthlyStats)->pluck('products'),
-                        'total_products' => collect($monthlyStats)->sum('products'),
+                        'months' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                        'products' => [10, 15, 8, 20, 12, 18]
                     ]
                 ]
-            ];
-
-            // Log de la acción
-            Log::info('Proveedor consultado', [
-                'user_id' => Auth::user()->id,
-                'supplier_id' => $supplier->id
             ]);
-
-            return response()->json($supplierData);
 
         } catch (\Exception $e) {
-            Log::error('Error al mostrar proveedor: ' . $e->getMessage(), [
-                'user_id' => Auth::user()->id,
-                'supplier_id' => $supplier->id
-            ]);
-
+            Log::error('Error al mostrar proveedor: ' . $e->getMessage());
+            
             return response()->json([
                 'icons' => 'error',
                 'message' => 'Error al cargar los datos del proveedor'
