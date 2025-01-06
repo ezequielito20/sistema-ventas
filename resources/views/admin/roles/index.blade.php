@@ -218,8 +218,24 @@
                         ]
                     }
                 ],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                "language": {
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Roles",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 Roles",
+                    "infoFiltered": "(Filtrado de _MAX_ total Roles)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar _MENU_ Roles",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscador:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
                 }
             });
 

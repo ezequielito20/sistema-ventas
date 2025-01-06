@@ -246,9 +246,25 @@
                     }
                 ]
             }],
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
-            }
+            "language": {
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Usuarios",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 Usuarios",
+                    "infoFiltered": "(Filtrado de _MAX_ total Usuarios)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar _MENU_ Usuarios",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscador:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                }
         });
 
         // Manejo de eliminación de usuarios

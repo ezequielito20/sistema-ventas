@@ -37,24 +37,16 @@
                             <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button" 
-                                            class="btn btn-success btn-sm show-category" 
-                                            data-id="{{ $category->id }}"
-                                            data-toggle="tooltip" 
-                                            title="Ver Detalles">
+                                    <button type="button" class="btn btn-success btn-sm show-category"
+                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <a href="{{ route('admin.categories.edit', $category->id) }}" 
-                                       class="btn btn-info btn-sm" 
-                                       data-toggle="tooltip" 
-                                       title="Editar">
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                        class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-danger btn-sm delete-category" 
-                                            data-id="{{ $category->id }}"
-                                            data-toggle="tooltip" 
-                                            title="Eliminar">
+                                    <button type="button" class="btn btn-danger btn-sm delete-category"
+                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -67,7 +59,8 @@
     </div>
 
     {{-- Modal para mostrar categoría --}}
-    <div class="modal fade" id="showCategoryModal" tabindex="-1" role="dialog" aria-labelledby="showCategoryModalLabel" aria-hidden="true">
+    <div class="modal fade" id="showCategoryModal" tabindex="-1" role="dialog" aria-labelledby="showCategoryModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary">
@@ -127,27 +120,34 @@
         .card {
             border-radius: 0.75rem;
         }
+
         .card-header {
             background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
         }
+
         .table th {
             background-color: #007bff !important;
             color: white !important;
         }
+
         .btn-group {
-            box-shadow: 0 2px 4px rgba(0,0,0,.04);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .04);
         }
+
         .btn-sm {
             border-radius: 0.5rem;
         }
+
         .modal-header {
             border-radius: 0.3rem 0.3rem 0 0;
         }
+
         .modal-content {
             border-radius: 0.3rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
+
         .form-control-static {
             padding: 0.375rem 0.75rem;
             margin-bottom: 0;
@@ -170,15 +170,31 @@
             $('#categoriesTable').DataTable({
                 responsive: true,
                 autoWidth: false,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+                "language": {
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Categorías",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 Categorías",
+                    "infoFiltered": "(Filtrado de _MAX_ total Categorías)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar _MENU_ Categorías",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscador:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
                 }
             });
 
             // Manejo de visualización de categoría
             $('.show-category').click(function() {
                 const categoryId = $(this).data('id');
-                
+
                 // Mostrar loading
                 Swal.fire({
                     title: 'Cargando...',
@@ -199,16 +215,18 @@
                             $('#categoryDescription').text(response.category.description);
                             $('#categoryCreated').text(response.category.created_at);
                             $('#categoryUpdated').text(response.category.updated_at);
-                            
+
                             // Cerrar loading y mostrar modal
                             Swal.close();
                             $('#showCategoryModal').modal('show');
                         } else {
-                            Swal.fire('Error', 'No se pudieron obtener los datos de la categoría', 'error');
+                            Swal.fire('Error',
+                                'No se pudieron obtener los datos de la categoría', 'error');
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudieron obtener los datos de la categoría', 'error');
+                        Swal.fire('Error', 'No se pudieron obtener los datos de la categoría',
+                            'error');
                     }
                 });
             });
@@ -216,7 +234,7 @@
             // Manejo de eliminación de categorías
             $('.delete-category').click(function() {
                 const categoryId = $(this).data('id');
-                
+
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "Esta acción no se puede revertir",
@@ -249,7 +267,8 @@
                             },
                             error: function(xhr) {
                                 const response = xhr.responseJSON;
-                                Swal.fire('Error', response.message || 'No se pudo eliminar la categoría', 'error');
+                                Swal.fire('Error', response.message ||
+                                    'No se pudo eliminar la categoría', 'error');
                             }
                         });
                     }
