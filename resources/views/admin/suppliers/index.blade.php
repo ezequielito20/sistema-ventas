@@ -367,19 +367,30 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: `/suppliers/${id}`,
+                    url: `/suppliers/delete/${id}`,
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        if (response.status === 'success') {
-                            Swal.fire('¡Eliminado!', response.message, 'success')
-                                .then(() => location.reload());
+                        if (response.success) {
+                            Swal.fire({
+                                title: '¡Eliminado!',
+                                text: response.message,
+                                icon: response.icons
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
                         }
                     },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudo eliminar el proveedor', 'error');
+                    error: function(xhr) {
+                        let errorMessage = 'No se pudo eliminar el proveedor';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        Swal.fire('Error', errorMessage, 'error');
                     }
                 });
             }
