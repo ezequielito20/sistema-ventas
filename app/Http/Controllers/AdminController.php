@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -16,6 +17,7 @@ class AdminController extends Controller
         $usersCount = User::where('company_id', Auth::user()->company_id)->count();
         $rolesCount = Role::count();
         $categoriesCount = Category::where('company_id', Auth::user()->company_id)->count();
+        $productsCount = Product::where('company_id', Auth::user()->company_id)->count();
 
         // Usuarios por rol
         $usersByRole = Role::withCount(['users' => function($query) {
@@ -35,12 +37,27 @@ class AdminController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Productos por categoría
+        $productsByCategory = Category::where('company_id', Auth::user()->company_id)
+            ->withCount('products')
+            ->get()
+            ->map(function($category) {
+                return [
+                    'name' => $category->name,
+                    'count' => $category->products_count
+                ];
+            });
+
+        
+
         return view('admin.index', compact(
             'usersCount',
             'rolesCount',
             'usersByRole',
             'usersPerMonth',
-            'categoriesCount'
+            'categoriesCount',
+            'productsCount',
+            'productsByCategory',
         ));
     }
 }

@@ -53,6 +53,22 @@
             </a>
         </div>
     </div>
+
+    {{-- Widget de Productos --}}
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-danger shadow zoomP">
+            <div class="inner">
+                <h3>{{ $productsCount }}</h3>
+                <p>Productos Registrados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-box"></i>
+            </div>
+            <a href="{{ route('admin.products.index') }}" class="small-box-footer">
+                Ver productos <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
 </div>
     
 {{-- Gráficos o estadísticas adicionales --}}
@@ -81,6 +97,62 @@
             </div>
             <div class="card-body">
                 <canvas id="usersPerMonthChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Nueva fila para gráficos de productos --}}
+<div class="row">
+    {{-- Gráfico de productos por categoría --}}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Productos por Categoría
+                </h3>
+            </div>
+            <div class="card-body">
+                <canvas id="productsByCategoryChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tabla de resumen de productos --}}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger">
+                <h3 class="card-title">
+                    <i class="fas fa-list mr-1"></i>
+                    Resumen de Productos por Categoría
+                </h3>
+            </div>
+            <div class="card-body table-responsive p-0" style="height: 250px;">
+                <table class="table table-head-fixed text-nowrap">
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Cantidad</th>
+                            <th>Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($productsByCategory as $category)
+                        <tr>
+                            <td>{{ $category['name'] }}</td>
+                            <td>{{ $category['count'] }}</td>
+                            <td>
+                                @if($productsCount > 0)
+                                    {{ round(($category['count'] / $productsCount) * 100, 1) }}%
+                                @else
+                                    0%
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -157,6 +229,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     ticks: {
                         stepSize: 1
                     }
+                }
+            }
+        }
+    });
+
+    // Gráfico de productos por categoría
+    new Chart(document.getElementById('productsByCategoryChart'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($productsByCategory->pluck('name')) !!},
+            datasets: [{
+                label: 'Cantidad de Productos',
+                data: {!! json_encode($productsByCategory->pluck('count')) !!},
+                backgroundColor: [
+                    '#f56954',
+                    '#00a65a',
+                    '#f39c12',
+                    '#00c0ef',
+                    '#3c8dbc',
+                    '#d2d6de'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
                 }
             }
         }
