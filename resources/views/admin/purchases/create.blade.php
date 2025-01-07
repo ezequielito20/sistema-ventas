@@ -56,26 +56,6 @@
                                 </div>
                             </div>
 
-                            <!-- Cantidad -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="quantity" class="required">Cantidad</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-hashtag"></i>
-                                            </span>
-                                        </div>
-                                        <input type="number" name="quantity" id="quantity"
-                                            class="form-control @error('quantity') is-invalid @enderror"
-                                            value="{{ old('quantity', 1) }}" min="1" required>
-                                        @error('quantity')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
                             <!-- Fecha de compra -->
                             <div class="col-md-4">
                                 <div class="form-group">
