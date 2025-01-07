@@ -337,32 +337,31 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
-                        console.log('Respuesta:', response); // Para debug
                         if (response.success) {
-                            alert(response.details);
                             let total = 0;
 
                             response.details.forEach(function(detail) {
-                                const subtotal = detail.quantity * detail.product_price;
+                                // Convertir los valores a números
+                                const quantity = parseFloat(detail.quantity);
+                                const price = parseFloat(detail.product_price);
+                                const subtotal = quantity * price;
                                 total += subtotal;
 
                                 $('#purchaseDetailsTableBody').append(`
                                     <tr>
                                         <td>${detail.product.code}</td>
                                         <td>${detail.product.name}</td>
-                                        <td>${detail.quantity}</td>
-                                        <td>$${detail.product_price.toFixed(2)}</td>
+                                        <td>${quantity}</td>
+                                        <td>$${price.toFixed(2)}</td>
                                         <td>$${subtotal.toFixed(2)}</td>
                                     </tr>
                                 `);
                             });
 
                             $('#modalTotal').text(total.toFixed(2));
-                            $('#purchaseDetailsModal').modal(
-                            'show'); // Asegurarnos de que el modal se muestre
+                            $('#purchaseDetailsModal').modal('show');
                         } else {
-                            Swal.fire('Error', response.message ||
-                                'Error al cargar los detalles', 'error');
+                            Swal.fire('Error', response.message || 'Error al cargar los detalles', 'error');
                         }
                     },
                     error: function(xhr, status, error) {
