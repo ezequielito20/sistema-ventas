@@ -78,52 +78,46 @@
                 <thead class="bg-primary text-white">
                     <tr>
                         <th>#</th>
-                        <th>ID</th>
+                        <th>ID Compra</th>
                         <th>Fecha</th>
-                        <th>Proveedor</th>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Total</th>
+                        <th>Total Productos</th>
+                        <th>Monto Total</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($purchases as $purchase)
-                        @foreach ($purchase->details as $detail)
-                            <tr>
-                                <td>{{ $loop->parent->iteration }}</td>
-                                <td>{{ $purchase->id }}</td>
-                                <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
-                                <td>{{ $detail->supplier->name }}</td>
-                                <td>{{ $detail->product->name }}</td>
-                                <td>{{ $detail->quantity }}</td>
-                                <td>${{ number_format($detail->product_price * $detail->quantity, 2) }}</td>
-                                <td>
-                                    @if ($purchase->payment_receipt)
-                                        <span class="badge badge-success">Completado</span>
-                                    @else
-                                        <span class="badge badge-warning">Pendiente</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm show-purchase"
-                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-purchase"
-                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $purchase->id }}</td>
+                            <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
+                            <td>{{ $purchase->details->sum('quantity') }} {{ $purchase->details->sum('quantity') == 1 ? 'producto' : 'productos' }}</td>
+                            <td>${{ number_format($purchase->total_price, 2) }}</td>
+                            <td>
+                                @if ($purchase->payment_receipt)
+                                    <span class="badge badge-success">Completado</span>
+                                @else
+                                    <span class="badge badge-warning">Pendiente</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info btn-sm show-purchase"
+                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
+                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
