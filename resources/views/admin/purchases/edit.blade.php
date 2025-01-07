@@ -66,8 +66,7 @@
                                         </div>
                                         <input type="date" name="purchase_date" id="purchase_date"
                                             class="form-control @error('purchase_date') is-invalid @enderror"
-                                            value="{{ old('purchase_date', $purchase->purchase_date ?? now()->format('Y-m-d')) }}"
-                                            required>
+                                            value="{{ old('purchase_date', date('Y-m-d')) }}" required>
                                         @error('purchase_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
