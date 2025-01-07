@@ -205,6 +205,23 @@
         .badge {
             padding: 8px 12px;
         }
+
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            .table td,
+            .table th {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 @stop
 
@@ -361,14 +378,15 @@
                             $('#modalTotal').text(total.toFixed(2));
                             $('#purchaseDetailsModal').modal('show');
                         } else {
-                            Swal.fire('Error', response.message || 'Error al cargar los detalles', 'error');
+                            Swal.fire('Error', response.message ||
+                                'Error al cargar los detalles', 'error');
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error:', error);
                         console.log('Status:', status);
                         console.log('Response:', xhr
-                        .responseText); // Para ver más detalles del error
+                            .responseText); // Para ver más detalles del error
                         Swal.fire('Error', 'No se pudieron cargar los detalles de la compra',
                             'error');
                     }
