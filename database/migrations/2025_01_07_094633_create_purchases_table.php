@@ -16,11 +16,7 @@ return new class extends Migration
 
             $table->date('purchase_date');
             $table->string('payment_receipt')->nullable(); 
-            $table->integer('quantity');
             $table->decimal('total_price', 10, 2);
-
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
 
             $table->unsignedBigInteger('company_id');
 
