@@ -137,7 +137,7 @@ class PurchaseController extends Controller
 
          return redirect()->route('admin.purchases.index')
             ->with('message', '¡Compra registrada exitosamente!')
-            ->with('icon', 'success');
+            ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear compra: ' . $e->getMessage(), [
@@ -255,40 +255,43 @@ class PurchaseController extends Controller
 
    public function getDetails($id)
    {
+      try {
 
-      dd($id);
-      // // try {
-      // $purchase = Purchase::with(['details.product'])
-      //    ->where('id', $id)
-      //    ->firstOrFail();
+         $purchase = PurchaseDetail::with(['product'])
+            ->where('id', $id)
+            ->get();
 
-      // // $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
-      // // ->where('company_id', $companyId)
-      // // ->get();
+         
 
-      // $details = $purchase->details->map(function ($detail) {
-      //    return [
-      //       'quantity' => $detail->quantity,
-      //       'product_price' => $detail->product_price,
-      //       'product' => [
-      //          'code' => $detail->product->code,
-      //          'name' => $detail->product->name,
-      //       ],
-      //       'subtotal' => $detail->quantity * $detail->product_price
-      //    ];
-      // });
+         
 
-      // return response()->json([
-      //    'success' => true,
-      //    'details' => $details
-      // ]);
+         $response = [
+            'success' => true,
+            'purchase' => [
+               'id' => $purchase->id,
+               'purchase_date' => $purchase->purchase_date->format('Y-m-d'),
+               'payment_receipt' => $purchase->payment_receipt,
+               'total_price' => $purchase->total_price
+            ],
+            'details' => $details
+         ];
 
-      // // } catch (\Exception $e) {
-      // //    Log::error('Error al cargar detalles de compra: ' . $e->getMessage());
-      // //    return response()->json([
-      // //       'success' => false,
-      // //       'message' => 'Error al cargar los detalles de la compra'
-      // //    ], 500);
-      // // }
+         Log::info('Respuesta final:', $response); // Debug
+
+         return response()->json($response);
+
+      } catch (\Exception $e) {
+         Log::error('Error en getDetails: ' . $e->getMessage(), [
+            'id' => $id,
+            'user_id' => Auth::id(),
+            'company_id' => Auth::user()->company_id,
+            'trace' => $e->getTraceAsString()
+         ]);
+
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar los detalles de la compra: ' . $e->getMessage()
+         ], 500);
+      }
    }
 }

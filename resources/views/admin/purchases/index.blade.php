@@ -172,7 +172,7 @@
         </div>
     </div>
 
-    
+
 @stop
 
 @section('css')
@@ -320,19 +320,21 @@
             // Ver detalles de la compra
             $('.view-details').click(function() {
                 const purchaseId = $(this).data('id');
-                // alert(purchaseId);
+                alert(purchaseId); // Para debug
 
-                // // Limpiar la tabla
+                // Limpiar la tabla
                 $('#purchaseDetailsTableBody').empty();
+                $('#modalTotal').text('0.00');
 
                 // Cargar los detalles
                 $.ajax({
-                    url: `/purchases/${purchaseId}/details`,
+                    url: `/purchases/${purchaseId}/details`, // URL corregida
                     method: 'GET',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
+                        console.log('Respuesta:', response); // Para debug
                         if (response.success) {
                             let total = 0;
 
@@ -341,24 +343,31 @@
                                 total += subtotal;
 
                                 $('#purchaseDetailsTableBody').append(`
-                                <tr>
-                                    <td>${detail.product.code}</td>
-                                    <td>${detail.product.name}</td>
-                                    <td>${detail.quantity}</td>
-                                    <td>$${detail.product_price.toFixed(2)}</td>
-                                    <td>$${subtotal.toFixed(2)}</td>
-                                </tr>
-                            `);
+                                    <tr>
+                                        <td>${detail.product.code}</td>
+                                        <td>${detail.product.name}</td>
+                                        <td>${detail.quantity}</td>
+                                        <td>$${detail.product_price.toFixed(2)}</td>
+                                        <td>$${subtotal.toFixed(2)}</td>
+                                    </tr>
+                                `);
                             });
 
-                            $('#modalTotal').text(`$${total.toFixed(2)}`);
+                            $('#modalTotal').text(total.toFixed(2));
+                            $('#purchaseDetailsModal').modal(
+                            'show'); // Asegurarnos de que el modal se muestre
                         } else {
-                            Swal.fire('Error', response.message || 'Error al cargar los detalles', 'error');
+                            Swal.fire('Error', response.message ||
+                                'Error al cargar los detalles', 'error');
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error:', error);
-                        Swal.fire('Error', 'No se pudieron cargar los detalles de la compra', 'error');
+                        console.log('Status:', status);
+                        console.log('Response:', xhr
+                        .responseText); // Para ver más detalles del error
+                        Swal.fire('Error', 'No se pudieron cargar los detalles de la compra',
+                            'error');
                     }
                 });
             });
