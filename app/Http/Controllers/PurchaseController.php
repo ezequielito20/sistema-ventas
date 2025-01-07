@@ -199,6 +199,8 @@ class PurchaseController extends Controller
          $validated = $request->validate([
             'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.price' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
          ]);
 
@@ -207,6 +209,19 @@ class PurchaseController extends Controller
          // Obtener la compra
          $purchase = Purchase::where('company_id', Auth::user()->company_id)
             ->findOrFail($id);
+
+         // Guardar el estado anterior para el log
+         $previousState = [
+            'purchase_date' => $purchase->purchase_date,
+            'total_price' => $purchase->total_price,
+            'details' => $purchase->details->map(function($detail) {
+                return [
+                    'product_id' => $detail->product_id,
+                    'quantity' => $detail->quantity,
+                    'price' => $detail->product_price
+                ];
+            })->toArray()
+         ];
 
          // Actualizar fecha y total
          $purchase->purchase_date = $validated['purchase_date'];
@@ -230,7 +245,8 @@ class PurchaseController extends Controller
 
             if ($detail) {
                 // Actualizar stock: restar la cantidad anterior y sumar la nueva
-                $product->stock = $product->stock - $detail->quantity + $item['quantity'];
+                $stockDifference = $item['quantity'] - $detail->quantity;
+                $product->stock += $stockDifference;
                 
                 // Actualizar detalle existente
                 $detail->update([
@@ -249,7 +265,7 @@ class PurchaseController extends Controller
                     'product_id' => $product->id,
                 ]);
                 
-                // Actualizar stock solo sumando la nueva cantidad
+                // Actualizar stock sumando la nueva cantidad
                 $product->stock += $item['quantity'];
                 $newDetailIds[] = $detail->id;
             }
@@ -272,6 +288,18 @@ class PurchaseController extends Controller
              }
          }
 
+         // Log de la actualización
+         Log::info('Compra actualizada exitosamente', [
+            'user_id' => Auth::user()->id,
+            'purchase_id' => $purchase->id,
+            'previous_state' => $previousState,
+            'new_state' => [
+                'purchase_date' => $purchase->purchase_date,
+                'total_price' => $purchase->total_price,
+                'items' => $request->items
+            ]
+         ]);
+
          DB::commit();
 
          return redirect()->route('admin.purchases.index')
@@ -280,12 +308,16 @@ class PurchaseController extends Controller
 
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al actualizar compra: ' . $e->getMessage());
+         Log::error('Error al actualizar compra: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'purchase_id' => $id,
+            'request_data' => $request->all()
+         ]);
          
          return response()->json([
-             'success' => false,
-             'message' => 'Error al actualizar la compra: ' . $e->getMessage(),
-             'icons' => 'error'
+            'success' => false,
+            'message' => 'Error al actualizar la compra: ' . $e->getMessage(),
+            'icons' => 'error'
          ], 500);
       }
    }
