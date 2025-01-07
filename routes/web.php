@@ -82,4 +82,7 @@ Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('ad
 Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware('auth');
 Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware('auth');
 Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware('auth');
+Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])
+    ->name('admin.purchases.product-details')
+    ->middleware('auth');
 Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('admin.purchases.show')->middleware('auth');

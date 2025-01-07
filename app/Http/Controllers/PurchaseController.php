@@ -206,23 +206,31 @@ class PurchaseController extends Controller
         //
     }
 
-    public function getProductDetails($id)
+    public function getProductDetails($code)
     {
         try {
-            $product = Product::findOrFail($id);
+            $product = Product::where('code', $code)
+                ->where('company_id', Auth::user()->company_id)
+                ->first();
 
-            // Verificar que el producto pertenece a la compañía del usuario
-            if ($product->company_id !== Auth::user()->company_id) {
+            if (!$product) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No tiene permiso para ver este producto'
-                ], 403);
+                    'message' => 'Producto no encontrado'
+                ], 404);
             }
 
+            // Asegúrate de que todos estos campos existan en tu modelo Product
             return response()->json([
                 'success' => true,
-                'current_stock' => $product->stock,
-                'unit_price' => $product->price
+                'product' => [
+                    'id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'purchase_price' => $product->purchase_price ?? $product->price,
+                    'stock' => $product->stock
+                ]
             ]);
 
         } catch (\Exception $e) {

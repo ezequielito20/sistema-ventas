@@ -298,6 +298,7 @@
             // Evento para el botón de seleccionar producto
             $(document).on('click', '.select-product', function() {
                 const productCode = $(this).data('code');
+                console.log('Código del producto:', productCode); // Debug
 
                 // Verificar si el producto ya está en la tabla
                 if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
@@ -310,17 +311,29 @@
                 }
 
                 // Obtener detalles del producto y agregarlo a la tabla
-                $.get(`/admin/purchases/product-details/${productCode}`, function(response) {
-                    if (response.success) {
-                        addProductToTable(response.product);
-                    } else {
-                        Swal.fire('Error', response.message, 'error');
+                $.ajax({
+                    url: `/purchases/product-details/${productCode}`,
+                    method: 'GET',
+                    success: function(response) {
+                        console.log('Respuesta del servidor:', response); // Debug
+                        if (response.success) {
+                            addProductToTable(response.product);
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la petición:', error); // Debug
+                        Swal.fire('Error', 'No se pudo obtener la información del producto',
+                            'error');
                     }
                 });
             });
 
             // Función para agregar producto a la tabla
             function addProductToTable(product) {
+                console.log('Agregando producto:', product); // Debug
+
                 const row = `
                     <tr data-product-code="${product.code}">
                         <td>${product.code}</td>
@@ -331,8 +344,7 @@
                                        class="form-control quantity-input" 
                                        name="items[${product.id}][quantity]" 
                                        value="1" 
-                                       min="1"
-                                       style="width: 80px">
+                                       min="1">
                             </div>
                         </td>
                         <td>
@@ -343,15 +355,14 @@
                                 <input type="number" 
                                        class="form-control price-input" 
                                        name="items[${product.id}][price]" 
-                                       value="${product.purchase_price}" 
-                                       step="0.01"
-                                       style="width: 100px">
+                                       value="${product.purchase_price || product.price}" 
+                                       step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${product.purchase_price}</span>
+                            $<span class="subtotal">${product.purchase_price || product.price}</span>
                         </td>
-                        <td class="text-center">
+                        <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -387,30 +398,8 @@
             // Eliminar producto de la tabla
             $(document).on('click', '.remove-item', function() {
                 const row = $(this).closest('tr');
-
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "¿Deseas eliminar este producto de la lista?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        row.remove();
-                        updateTotal();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Producto eliminado',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                    }
-                });
+                row.remove();
+                updateTotal();
             });
 
             // Actualizar total general
@@ -421,6 +410,7 @@
                 });
                 $('#totalAmount').text(total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
+                console.log('Total actualizado:', total); // Debug
             }
         });
     </script>
