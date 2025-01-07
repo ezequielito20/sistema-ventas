@@ -147,7 +147,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body p-0">
+                <div class="modal-body p-4">
                     <div class="table-responsive">
                         <table id="productsTable" class="table table-striped table-hover w-100">
                             <thead>
@@ -175,7 +175,7 @@
                                             <div class="d-flex align-items-center">
                                                 <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
                                                     alt="{{ $product->name }}" class="img-thumbnail mr-2"
-                                                    style="width: 50px; height: 50px; object-fit: cover;">
+                                                    style="width: 40px; height: 40px; object-fit: cover;">
                                                 <span>{{ $product->name }}</span>
                                             </div>
                                         </td>
@@ -185,11 +185,9 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
-                                        </td>
+                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}</td>
                                         <td class="align-middle text-center">
-                                            <span
-                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -198,6 +196,11 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cerrar
+                    </button>
                 </div>
             </div>
         </div>
@@ -210,14 +213,13 @@
     <style>
         .modal-xl {
             max-width: 95% !important;
-            margin: 1.75rem auto;
         }
 
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin: 0;
-            padding: 0;
+            min-height: 300px;
+            max-height: calc(100vh - 200px);
         }
 
         #productsTable {
@@ -227,23 +229,27 @@
 
         #productsTable th {
             white-space: nowrap;
-            background-color: #f4f6f9;
             padding: 12px 8px;
+            background-color: #f4f6f9;
         }
 
         #productsTable td {
+            white-space: normal;
             vertical-align: middle;
         }
 
+        .select-product {
+            padding: 0.25rem 0.5rem;
+        }
+
         .img-thumbnail {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
+            max-width: 40px;
+            height: auto;
         }
 
         @media (max-width: 768px) {
             .modal-xl {
-                max-width: 100% !important;
+                max-width: 95%;
                 margin: 0.5rem;
             }
 
@@ -251,15 +257,16 @@
                 padding: 8px 4px;
                 font-size: 0.9rem;
             }
+        }
 
-            .btn-sm {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.75rem;
+        @media (max-width: 576px) {
+            .d-flex.align-items-center {
+                flex-direction: column;
+                align-items: flex-start !important;
             }
 
             .img-thumbnail {
-                width: 40px;
-                height: 40px;
+                margin-bottom: 0.5rem;
             }
         }
     </style>
@@ -288,18 +295,10 @@
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
                 },
-                columnDefs: [{
-                        responsivePriority: 1,
-                        targets: [0, 1, 2]
-                    }, // Código, Acción y Nombre siempre visibles
-                    {
-                        responsivePriority: 2,
-                        targets: [4, 5]
-                    }, // Stock y Precio siguiente prioridad
-                    {
-                        responsivePriority: 3,
-                        targets: '_all'
-                    } // El resto menos prioritario
+                columnDefs: [
+                    { responsivePriority: 1, targets: [0, 1, 2] }, // Código, Acción y Nombre siempre visibles
+                    { responsivePriority: 2, targets: [4, 5] },    // Stock y Precio siguiente prioridad
+                    { responsivePriority: 3, targets: '_all' }     // El resto menos prioritario
                 ]
             });
 
