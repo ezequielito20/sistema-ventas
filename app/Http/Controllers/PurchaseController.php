@@ -274,11 +274,9 @@ class PurchaseController extends Controller
 
          DB::commit();
 
-         return response()->json([
-             'success' => true,
-             'message' => '¡Compra actualizada exitosamente!',
-             'icons' => 'success'
-         ]);
+         return redirect()->route('admin.purchases.index')
+            ->with('message', '¡Compra actualizada exitosamente!')
+            ->with('icons', 'success');
 
       } catch (\Exception $e) {
          DB::rollBack();

@@ -66,7 +66,8 @@
                                         </div>
                                         <input type="date" name="purchase_date" id="purchase_date"
                                             class="form-control @error('purchase_date') is-invalid @enderror"
-                                            value="{{ old('purchase_date', $purchase->purchase_date) }}" required>
+                                            value="{{ old('purchase_date', $purchase->purchase_date ?? now()->format('Y-m-d')) }}"
+                                            required>
                                         @error('purchase_date')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
@@ -239,17 +240,97 @@
                 }
             });
 
-            // Función modificada para agregar producto a la tabla
-            function addProductToTable(product, isExisting = false) {
-                // Verificar si el producto ya existe
-                if (!isExisting && $(`tr[data-product-code="${product.code}"]`).length > 0) {
+            // Manejar la adición de productos
+            $('#addProduct').click(function() {
+                const productCode = $('#product_code').val();
+                if (productCode) {
+                    // Aquí irá la lógica para buscar el producto por código
+                    // y agregarlo a la tabla
+                    $.get(`/admin/purchases/product-by-code/${productCode}`, function(response) {
+                        if (response.success) {
+                            addProductToTable(response.product);
+                            $('#product_code').val('');
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    });
+                }
+            });
+
+            // Manejar la entrada de código de producto
+            $('#product_code').keypress(function(e) {
+                if (e.which == 13) { // Si presiona Enter
+                    e.preventDefault();
+                    const productCode = $(this).val();
+
+                    if (productCode) {
+                        // Verificar si el producto ya está en la tabla
+                        if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Producto ya agregado',
+                                text: 'Este producto ya está en la lista de compra'
+                            });
+                            return;
+                        }
+
+                        // Buscar el producto por código
+                        $.ajax({
+                            url: `/purchases/product-by-code/${productCode}`,
+                            method: 'GET',
+                            success: function(response) {
+                                if (response.success) {
+                                    addProductToTable(response.product);
+                                    $('#product_code').val(''); // Limpiar el input
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'No se encontró el producto', 'error');
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Evento para el botón de seleccionar producto
+            $(document).on('click', '.select-product', function() {
+                const productCode = $(this).data('code');
+                console.log('Código del producto:', productCode); // Debug
+
+                // Verificar si el producto ya está en la tabla
+                if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Producto duplicado',
+                        title: 'Producto ya agregado',
                         text: 'Este producto ya está en la lista de compra'
                     });
                     return;
                 }
+
+                // Obtener detalles del producto y agregarlo a la tabla
+                $.ajax({
+                    url: `/purchases/product-details/${productCode}`,
+                    method: 'GET',
+                    success: function(response) {
+                        console.log('Respuesta del servidor:', response); // Debug
+                        if (response.success) {
+                            addProductToTable(response.product);
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en la petición:', error); // Debug
+                        Swal.fire('Error', 'No se pudo obtener la información del producto',
+                            'error');
+                    }
+                });
+            });
+
+            // Función para agregar producto a la tabla
+            function addProductToTable(product) {
 
                 const row = `
                     <tr data-product-code="${product.code}">
@@ -260,7 +341,7 @@
                                 <input type="number" 
                                        class="form-control quantity-input" 
                                        name="items[${product.id}][quantity]" 
-                                       value="${product.quantity || 1}" 
+                                       value="1" 
                                        min="1">
                             </div>
                         </td>
@@ -272,12 +353,12 @@
                                 <input type="number" 
                                        class="form-control price-input" 
                                        name="items[${product.id}][price]" 
-                                       value="${product.price}" 
+                                       value="${product.purchase_price || product.price}" 
                                        step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${(product.quantity || 1) * product.price}</span>
+                            $<span class="subtotal">${product.purchase_price || product.price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -290,27 +371,16 @@
                 $('#purchaseItems').append(row);
                 updateTotal();
 
-                if (!isExisting) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Producto agregado',
-                        text: 'El producto se agregó a la lista de compra',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
-            }
-
-            // Actualizar total general
-            function updateTotal() {
-                let total = 0;
-                $('.subtotal').each(function() {
-                    total += parseFloat($(this).text()) || 0;
+                // Notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Producto agregado',
+                    text: 'El producto se agregó a la lista de compra',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
                 });
-                $('#totalAmount').text(total.toFixed(2));
-                $('#totalAmountInput').val(total.toFixed(2));
             }
 
             // Actualizar subtotal cuando cambie cantidad o precio
@@ -328,6 +398,71 @@
                 const row = $(this).closest('tr');
                 row.remove();
                 updateTotal();
+            });
+
+            // Actualizar total general
+            function updateTotal() {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    total += parseFloat($(this).text()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+                $('#totalAmountInput').val(total.toFixed(2));
+                console.log('Total actualizado:', total); // Debug
+            }
+
+            // Cuando se hace clic en "Registrar Compra"
+            $('#registrarCompra').click(function(e) {
+                e.preventDefault();
+
+                // Recolectar todos los items de la tabla
+                let items = [];
+                $('#purchaseTable tbody tr').each(function() {
+                    items.push({
+                        code: $(this).find('td:eq(0)').text(),
+                        quantity: parseInt($(this).find('input.quantity').val()),
+                        price: parseFloat($(this).find('input.price').val()),
+                        subtotal: parseFloat($(this).find('td:eq(4)').text().replace('$',
+                            ''))
+                    });
+                });
+
+                // Crear el formulario
+                let formData = new FormData();
+                formData.append('purchase_date', $('#purchase_date').val());
+                formData.append('total', $('#total').text());
+
+                // Agregar los items
+                items.forEach((item, index) => {
+                    formData.append(`items[${index}][code]`, item.code);
+                    formData.append(`items[${index}][quantity]`, item.quantity);
+                    formData.append(`items[${index}][price]`, item.price);
+                });
+
+                // Enviar el formulario
+                $.ajax({
+                    url: '{{ route('admin.purchases.store') }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: 'Compra registrada correctamente',
+                            icon: 'success'
+                        }).then((result) => {
+                            window.location.href =
+                                '{{ route('admin.purchases.index') }}';
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Error', 'Hubo un error al registrar la compra', 'error');
+                    }
+                });
             });
         });
     </script>
