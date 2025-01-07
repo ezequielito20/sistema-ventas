@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
@@ -73,3 +74,12 @@ Route::get('/suppliers/edit/{id}', [SupplierController::class, 'edit'])->name('a
 Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('admin.suppliers.update')->middleware('auth');
 Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('admin.suppliers.destroy')->middleware('auth');
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware('auth');
+
+// Purchases
+Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware('auth');
+Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware('auth');
+Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware('auth');
+Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware('auth');
+Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware('auth');
+Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware('auth');
+Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('admin.purchases.show')->middleware('auth');

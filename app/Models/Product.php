@@ -113,6 +113,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
     /**
      * Scope a query to only include products with low stock.
      */
