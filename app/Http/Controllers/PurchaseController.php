@@ -220,15 +220,14 @@ class PurchaseController extends Controller
                 ], 404);
             }
 
-            // Asegúrate de que todos estos campos existan en tu modelo Product
             return response()->json([
                 'success' => true,
                 'product' => [
                     'id' => $product->id,
                     'code' => $product->code,
                     'name' => $product->name,
-                    'price' => $product->price,
-                    'purchase_price' => $product->purchase_price ?? $product->price,
+                    'price' => $product->sale_price,
+                    'purchase_price' => $product->sale_price,
                     'stock' => $product->stock
                 ]
             ]);
