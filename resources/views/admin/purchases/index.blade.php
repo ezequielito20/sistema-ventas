@@ -138,7 +138,7 @@
     {{--  Modal para mostrar detalles  --}}
     <div class="modal fade" id="purchaseDetailsModal" tabindex="-1" role="dialog"
         aria-labelledby="purchaseDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="purchaseDetailsModalLabel">Detalle de la Compra</h5>
@@ -150,11 +150,14 @@
                     <table class="table table-striped">
                         <thead class="bg-light">
                             <tr>
+                                <th style="width: 80px">Imagen</th>
                                 <th>Código</th>
                                 <th>Producto</th>
-                                <th>Cantidad</th>
-                                <th>Precio Unitario</th>
-                                <th>Subtotal</th>
+                                <th>Categoría</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio Unit.</th>
+                                <th class="text-right">Subtotal</th>
+                                <th class="text-center">Stock</th>
                             </tr>
                         </thead>
                         <tbody id="purchaseDetailsTableBody">
@@ -366,11 +369,23 @@
 
                                 $('#purchaseDetailsTableBody').append(`
                                     <tr>
+                                        <td class="text-center">
+                                            <img src="${detail.product.image_url || '/img/no-image.png'}" 
+                                                 class="product-img" 
+                                                 alt="${detail.product.name}"
+                                                 onerror="this.src='/img/no-image.png'">
+                                        </td>
                                         <td>${detail.product.code}</td>
                                         <td>${detail.product.name}</td>
-                                        <td>${quantity}</td>
-                                        <td>$${price.toFixed(2)}</td>
-                                        <td>$${subtotal.toFixed(2)}</td>
+                                        <td>${detail.product.category || 'Sin categoría'}</td>
+                                        <td class="text-center">${quantity}</td>
+                                        <td class="text-right">$${price.toFixed(2)}</td>
+                                        <td class="text-right">$${subtotal.toFixed(2)}</td>
+                                        <td class="text-center">
+                                            <span class="badge ${detail.product.stock > 10 ? 'badge-success' : 'badge-warning'}">
+                                                ${detail.product.stock || 0}
+                                            </span>
+                                        </td>
                                     </tr>
                                 `);
                             });

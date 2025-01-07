@@ -255,14 +255,13 @@ class PurchaseController extends Controller
 
    public function getDetails($id)
    {
-      
       try {
-         // Mantenemos tu consulta original
-         $purchaseDetails = PurchaseDetail::with(['product', 'purchase'])
+         $purchaseDetails = PurchaseDetail::with(['product.category', 'purchase'])
             ->where('purchase_id', $id)
             ->get();
 
-         // Formateamos la respuesta para que coincida con lo que espera el modal
+         $purchase = Purchase::find($id);
+
          $details = $purchaseDetails->map(function($detail) {
             return [
                'quantity' => $detail->quantity,
@@ -270,6 +269,9 @@ class PurchaseController extends Controller
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
+                  'category' => $detail->product->category->name ?? 'N/A',
+                  'image_url' => $detail->product->image_url,
+                  'stock' => $detail->product->stock
                ],
                'subtotal' => $detail->quantity * $detail->product_price
             ];
@@ -277,16 +279,17 @@ class PurchaseController extends Controller
 
          return response()->json([
             'success' => true,
+            'purchase' => [
+               'id' => $purchase->id,
+               'date' => $purchase->purchase_date->format('d/m/Y'),
+               'payment_receipt' => $purchase->payment_receipt,
+               'total_price' => $purchase->total_price
+            ],
             'details' => $details
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error en getDetails: ' . $e->getMessage(), [
-            'id' => $id,
-            'user_id' => Auth::id(),
-            'company_id' => Auth::user()->company_id
-         ]);
-
+         Log::error('Error en getDetails: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los detalles de la compra'
