@@ -168,7 +168,25 @@ class PurchaseController extends Controller
     */
    public function edit($id)
    {
-      //
+      try {
+         $companyId = Auth::user()->company_id;
+         
+         // Obtener la compra con sus detalles y productos
+         $purchase = Purchase::with(['details.product', 'details.supplier'])
+            ->where('company_id', $companyId)
+            ->findOrFail($id);
+
+         // Obtener productos y proveedores de la compañía para el modal de búsqueda
+         $products = Product::where('company_id', $companyId)->get();
+         $suppliers = Supplier::where('company_id', $companyId)->get();
+
+         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers'));
+      } catch (\Exception $e) {
+         Log::error('Error en PurchaseController@edit: ' . $e->getMessage());
+         return redirect()->route('admin.purchases.index')
+            ->with('message', 'Hubo un problema al cargar el formulario de edición: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 
    /**
@@ -176,7 +194,102 @@ class PurchaseController extends Controller
     */
    public function update(Request $request, $id)
    {
-      //
+      try {
+         // Validación de los datos
+         $validated = $request->validate([
+            'purchase_date' => 'required|date',
+            'items' => 'required|array|min:1',
+            'total_amount' => 'required|numeric|min:0',
+         ]);
+
+         DB::beginTransaction();
+
+         // Obtener la compra
+         $purchase = Purchase::where('company_id', Auth::user()->company_id)
+            ->findOrFail($id);
+
+         // Actualizar fecha y total
+         $purchase->purchase_date = $validated['purchase_date'];
+         $purchase->total_price = $validated['total_amount'];
+         $purchase->save();
+
+         // Obtener los IDs de los detalles actuales
+         $currentDetailIds = $purchase->details->pluck('id')->toArray();
+         $newDetailIds = [];
+
+         // Procesar cada producto en la compra
+         foreach ($request->items as $productId => $item) {
+            $product = Product::where('id', $productId)
+                ->where('company_id', Auth::user()->company_id)
+                ->firstOrFail();
+
+            // Buscar si ya existe el detalle
+            $detail = PurchaseDetail::where('purchase_id', $purchase->id)
+                ->where('product_id', $productId)
+                ->first();
+
+            if ($detail) {
+                // Actualizar stock: restar la cantidad anterior y sumar la nueva
+                $product->stock = $product->stock - $detail->quantity + $item['quantity'];
+                
+                // Actualizar detalle existente
+                $detail->update([
+                    'quantity' => $item['quantity'],
+                    'product_price' => $item['price']
+                ]);
+                
+                $newDetailIds[] = $detail->id;
+            } else {
+                // Crear nuevo detalle
+                $detail = PurchaseDetail::create([
+                    'quantity' => $item['quantity'],
+                    'product_price' => $item['price'],
+                    'purchase_id' => $purchase->id,
+                    'supplier_id' => $product->supplier_id,
+                    'product_id' => $product->id,
+                ]);
+                
+                // Actualizar stock solo sumando la nueva cantidad
+                $product->stock += $item['quantity'];
+                $newDetailIds[] = $detail->id;
+            }
+            
+            $product->save();
+         }
+
+         // Eliminar detalles que ya no están en la compra
+         $detailsToDelete = array_diff($currentDetailIds, $newDetailIds);
+         foreach ($detailsToDelete as $detailId) {
+             $detail = PurchaseDetail::find($detailId);
+             if ($detail) {
+                 // Restar del stock la cantidad que se elimina
+                 $product = Product::find($detail->product_id);
+                 if ($product) {
+                     $product->stock -= $detail->quantity;
+                     $product->save();
+                 }
+                 $detail->delete();
+             }
+         }
+
+         DB::commit();
+
+         return response()->json([
+             'success' => true,
+             'message' => '¡Compra actualizada exitosamente!',
+             'icons' => 'success'
+         ]);
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         Log::error('Error al actualizar compra: ' . $e->getMessage());
+         
+         return response()->json([
+             'success' => false,
+             'message' => 'Error al actualizar la compra: ' . $e->getMessage(),
+             'icons' => 'error'
+         ], 500);
+      }
    }
 
    /**

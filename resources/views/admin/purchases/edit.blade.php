@@ -1,0 +1,334 @@
+@extends('adminlte::page')
+
+@section('title', 'Editar Compra')
+
+@section('content_header')
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="text-dark font-weight-bold">Editar Compra #{{ $purchase->id }}</h1>
+        <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
+        </a>
+    </div>
+@stop
+
+@section('content')
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Información de la Compra
+                    </h3>
+                </div>
+
+                <form action="{{ route('admin.purchases.update', $purchase->id) }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Código de Producto -->
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="product_code" class="required">Código de Producto</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-barcode"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" name="product_code" id="product_code"
+                                            class="form-control @error('product_code') is-invalid @enderror"
+                                            placeholder="Ingrese el código del producto">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-info" id="addProduct" data-toggle="modal"
+                                                data-target="#searchProductModal">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                        @error('product_code')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fecha de compra -->
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="purchase_date" class="required">Fecha de Compra</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                        <input type="date" name="purchase_date" id="purchase_date"
+                                            class="form-control @error('purchase_date') is-invalid @enderror"
+                                            value="{{ old('purchase_date', $purchase->purchase_date) }}" required>
+                                        @error('purchase_date')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de productos -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-shopping-cart mr-2"></i>
+                                            Productos en la Compra
+                                        </h3>
+                                    </div>
+                                    <div class="card-body table-responsive p-0">
+                                        <table class="table table-hover text-nowrap">
+                                            <thead>
+                                                <tr>
+                                                    <th>Código</th>
+                                                    <th>Producto</th>
+                                                    <th>Cantidad</th>
+                                                    <th>Precio Unitario</th>
+                                                    <th>Subtotal</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="purchaseItems">
+                                                <!-- Los items existentes y nuevos se cargarán aquí -->
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="4" class="text-right">
+                                                        <strong>Total:</strong>
+                                                    </td>
+                                                    <td>
+                                                        $<span id="totalAmount">0.00</span>
+                                                        <input type="hidden" name="total_amount" id="totalAmountInput"
+                                                            value="0">
+                                                    </td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary" id="updatePurchase">
+                                <i class="fas fa-save mr-2"></i>
+                                Actualizar Compra
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Búsqueda de Productos -->
+    <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog" aria-labelledby="searchProductModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="searchProductModalLabel">
+                        <i class="fas fa-search mr-2"></i>
+                        Búsqueda de Productos
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="productsTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Acción</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Precio Venta</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($products as $product)
+                                <tr>
+                                    <td>{{ $product->code }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-sm select-product"
+                                            data-code="{{ $product->code }}" data-dismiss="modal">
+                                            <i class="fas fa-plus-circle mr-1"></i>
+                                            Añadir
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                            alt="{{ $product->name }}" class="img-thumbnail mr-2"
+                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                        {{ $product->name }}
+                                    </td>
+                                    <td>{{ $product->category->name }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $product->stock_status_class }}">
+                                            {{ $product->stock }}
+                                        </span>
+                                    </td>
+                                    <td>${{ number_format($product->sale_price, 2) }}</td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            {{ $product->stock_status_label }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cerrar
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+@stop
+
+@section('js')
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Cargar los productos existentes
+            const existingPurchase = @json($purchase->details);
+            existingPurchase.forEach(detail => {
+                addProductToTable({
+                    id: detail.product.id,
+                    code: detail.product.code,
+                    name: detail.product.name,
+                    quantity: detail.quantity,
+                    price: detail.product_price
+                }, true);
+            });
+
+            // Inicializar DataTable para el modal de búsqueda
+            $('#productsTable').DataTable({
+                responsive: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+                }
+            });
+
+            // Función modificada para agregar producto a la tabla
+            function addProductToTable(product, isExisting = false) {
+                // Verificar si el producto ya existe
+                if (!isExisting && $(`tr[data-product-code="${product.code}"]`).length > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Producto duplicado',
+                        text: 'Este producto ya está en la lista de compra'
+                    });
+                    return;
+                }
+
+                const row = `
+                    <tr data-product-code="${product.code}">
+                        <td>${product.code}</td>
+                        <td>${product.name}</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" 
+                                       class="form-control quantity-input" 
+                                       name="items[${product.id}][quantity]" 
+                                       value="${product.quantity || 1}" 
+                                       min="1">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" 
+                                       class="form-control price-input" 
+                                       name="items[${product.id}][price]" 
+                                       value="${product.price}" 
+                                       step="0.01">
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            $<span class="subtotal">${(product.quantity || 1) * product.price}</span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                $('#purchaseItems').append(row);
+                updateTotal();
+
+                if (!isExisting) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Producto agregado',
+                        text: 'El producto se agregó a la lista de compra',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            }
+
+            // Actualizar total general
+            function updateTotal() {
+                let total = 0;
+                $('.subtotal').each(function() {
+                    total += parseFloat($(this).text()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+                $('#totalAmountInput').val(total.toFixed(2));
+            }
+
+            // Actualizar subtotal cuando cambie cantidad o precio
+            $(document).on('input', '.quantity-input, .price-input', function() {
+                const row = $(this).closest('tr');
+                const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+                const price = parseFloat(row.find('.price-input').val()) || 0;
+                const subtotal = quantity * price;
+                row.find('.subtotal').text(subtotal.toFixed(2));
+                updateTotal();
+            });
+
+            // Eliminar producto de la tabla
+            $(document).on('click', '.remove-item', function() {
+                const row = $(this).closest('tr');
+                row.remove();
+                updateTotal();
+            });
+        });
+    </script>
+@stop
