@@ -83,13 +83,14 @@
                         <th>Total Productos</th>
                         <th>Monto Total</th>
                         <th>Detalle de la Compra</th>
+                        <th>Recibo de pago</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($purchases as $purchase)
-                        <tr>
+                        <tr style="text-align: center">
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $purchase->id }}</td>
                             <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
@@ -101,10 +102,8 @@
                                     data-id="{{ $purchase->id }}" data-toggle="modal" data-target="#purchaseDetailsModal">
                                     <i class="fas fa-list"></i> Ver Detalle
                                 </button>
-                                {{-- <a href="/purchases/{{ $purchase->id }}/details" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-list"></i> Ver Detalle
-                                </a> --}}
                             </td>
+                            <td><strong>{{ $purchase->payment_receipt }}</strong></td>
                             <td>
                                 @if ($purchase->payment_receipt)
                                     <span class="badge badge-success">Completado</span>
@@ -222,29 +221,6 @@
             .table td,
             .table th {
                 padding: 0.5rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        .table th {
-            background-color: #f8f9fa;
-        }
-        
-        .badge {
-            padding: 8px 12px;
-            font-size: 0.9rem;
-        }
-        
-        .table td, .table th {
-            vertical-align: middle;
-        }
-        
-        .modal-lg {
-            max-width: 900px;
-        }
-        
-        @media (max-width: 768px) {
-            .table td, .table th {
                 font-size: 0.9rem;
             }
         }
@@ -366,25 +342,16 @@
             // Ver detalles de la compra
             $('.view-details').click(function() {
                 const purchaseId = $(this).data('id');
-                // alert(purchaseId); // Para debug
-
-                // Limpiar la tabla
                 $('#purchaseDetailsTableBody').empty();
-                $('#modalTotal').text('0.00');
 
-                // Cargar los detalles
                 $.ajax({
-                    url: `/purchases/${purchaseId}/details`, // URL corregida
+                    url: `/purchases/${purchaseId}/details`,
                     method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
                     success: function(response) {
                         if (response.success) {
                             let total = 0;
 
                             response.details.forEach(function(detail) {
-                                // Convertir los valores a números
                                 const quantity = parseFloat(detail.quantity);
                                 const price = parseFloat(detail.product_price);
                                 const subtotal = quantity * price;
@@ -392,20 +359,14 @@
 
                                 $('#purchaseDetailsTableBody').append(`
                                     <tr>
-                                        <td class="text-center">
-                                            <img src="${detail.product.image_url || '/img/no-image.png'}" 
-                                                 class="product-img" 
-                                                 alt="${detail.product.name}"
-                                                 onerror="this.src='/img/no-image.png'">
-                                        </td>
-                                        <td>${detail.product.code}</td>
-                                        <td>${detail.product.name}</td>
+                                        <td>${detail.product.code || ''}</td>
+                                        <td>${detail.product.name || ''}</td>
                                         <td>${detail.product.category || 'Sin categoría'}</td>
                                         <td class="text-center">${quantity}</td>
                                         <td class="text-right">$${price.toFixed(2)}</td>
                                         <td class="text-right">$${subtotal.toFixed(2)}</td>
                                         <td class="text-center">
-                                            <span class="badge ${detail.product.stock > 10 ? 'badge-success' : 'badge-warning'}">
+                                            <span class="badge badge-${detail.product.stock > 50 ? 'success' : 'warning'}">
                                                 ${detail.product.stock || 0}
                                             </span>
                                         </td>
@@ -413,20 +374,18 @@
                                 `);
                             });
 
-                            $('#modalTotal').text(total.toFixed(2));
+                            // Formatear el total con separador de miles
+                            const formattedTotal = total.toFixed(2).replace(
+                                /\B(?=(\d{3})+(?!\d))/g, ",");
+                            $('#modalTotal').text(formattedTotal);
                             $('#purchaseDetailsModal').modal('show');
                         } else {
                             Swal.fire('Error', response.message ||
                                 'Error al cargar los detalles', 'error');
                         }
                     },
-                    error: function(xhr, status, error) {
-                        console.error('Error:', error);
-                        console.log('Status:', status);
-                        console.log('Response:', xhr
-                            .responseText); // Para ver más detalles del error
-                        Swal.fire('Error', 'No se pudieron cargar los detalles de la compra',
-                            'error');
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron cargar los detalles', 'error');
                     }
                 });
             });
