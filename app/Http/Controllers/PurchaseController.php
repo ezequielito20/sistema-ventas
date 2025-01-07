@@ -271,7 +271,7 @@ class PurchaseController extends Controller
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
                   'image_url' => $detail->product->image_url,
-                  'stock' => $detail->product->stock
+                  // 'stock' => $detail->product->stock
                ],
                'subtotal' => $detail->quantity * $detail->product_price
             ];

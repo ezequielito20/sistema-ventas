@@ -113,10 +113,6 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-purchase"
-                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
                                         class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
@@ -155,7 +151,6 @@
                                 <th class="text-center">Cantidad</th>
                                 <th class="text-right">Precio Unit.</th>
                                 <th class="text-right">Subtotal</th>
-                                <th class="text-center">Stock</th>
                             </tr>
                         </thead>
                         <tbody id="purchaseDetailsTableBody">
@@ -365,11 +360,7 @@
                                         <td class="text-center">${quantity}</td>
                                         <td class="text-right">$${price.toFixed(2)}</td>
                                         <td class="text-right">$${subtotal.toFixed(2)}</td>
-                                        <td class="text-center">
-                                            <span class="badge badge-${detail.product.stock > 50 ? 'success' : 'warning'}">
-                                                ${detail.product.stock || 0}
-                                            </span>
-                                        </td>
+                                        
                                     </tr>
                                 `);
                             });
