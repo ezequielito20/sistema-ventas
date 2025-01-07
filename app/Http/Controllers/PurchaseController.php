@@ -19,17 +19,14 @@ class PurchaseController extends Controller
     */
    public function index()
    {
-      // try {
+      try {
          $companyId = Auth::user()->company_id;
          
 
          // Obtener compras con sus relaciones
-         $purchases = Purchase::with(['details', 'company'])
+         $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
             ->where('company_id', $companyId)
             ->get();
-
-
-         dd($purchases->details);
 
          // Calcular estadísticas
          $totalPurchases = $purchases->count();
@@ -41,18 +38,18 @@ class PurchaseController extends Controller
 
          return view('admin.purchases.index', compact(
             'purchases',
-         // 'totalPurchases',
-         // 'totalAmount',
-         // 'monthlyPurchases',
-         // 'pendingDeliveries'
+            'totalPurchases',
+            'totalAmount',
+            'monthlyPurchases',
+            'pendingDeliveries'
          ));
 
-      // } catch (\Exception $e) {
-      //    Log::error('Error en index de compras: ' . $e->getMessage());
-      //    return redirect()->back()
-      //       ->with('message', 'Error al cargar las compras')
-      //       ->with('icon', 'error');
-      // }
+      } catch (\Exception $e) {
+         Log::error('Error en index de compras: ' . $e->getMessage());
+         return redirect()->back()
+            ->with('message', 'Error al cargar las compras')
+            ->with('icon', 'error');
+      }
    }
 
    /**

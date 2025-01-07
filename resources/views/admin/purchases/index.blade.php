@@ -90,73 +90,40 @@
                 </thead>
                 <tbody>
                     @foreach ($purchases as $purchase)
-                        <tr>
-                            {{-- # --}}
-                            <td>{{ $loop->iteration }}</td>
-                            {{-- ID --}}
-                            <td>
-                                <strong>#{{ str_pad($purchase->id, 6, '0', STR_PAD_LEFT) }}</strong>
-                            </td>
-                            {{-- Fecha --}}
-                            <td>
-                                <i class="fas fa-calendar-day mr-1"></i>
-                                {{ $purchase->purchase_date->format('d/m/Y') }}
-                            </td>
-                            {{-- Proveedor --}}
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="supplier-avatar mr-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                            style="width: 40px; height: 40px; font-size: 1.2em;">
-                                            {{ strtoupper(substr($purchase->details->supplier->name, 0, 1)) }}
-                                        </div>
+                        @foreach ($purchase->details as $detail)
+                            <tr>
+                                <td>{{ $loop->parent->iteration }}</td>
+                                <td>{{ $purchase->id }}</td>
+                                <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
+                                <td>{{ $detail->supplier->name }}</td>
+                                <td>{{ $detail->product->name }}</td>
+                                <td>{{ $detail->quantity }}</td>
+                                <td>${{ number_format($detail->product_price * $detail->quantity, 2) }}</td>
+                                <td>
+                                    @if ($purchase->payment_receipt)
+                                        <span class="badge badge-success">Completado</span>
+                                    @else
+                                        <span class="badge badge-warning">Pendiente</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-info btn-sm show-purchase"
+                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
-                                    <div>
-                                        {{-- {{ $purchase->supplier->name }} --}}
-                                    </div>
-                                </div>
-                            </td>
-                            {{-- <td>{{ $purchase->product->name }}</td> --}}
-                            <td>
-                                <span class="badge badge-info">
-                                    {{ $purchase->quantity }} unidades
-                                </span>
-                            </td>
-                            <td>
-                                <strong class="text-success">
-                                    ${{ number_format($purchase->total_price, 2) }}
-                                </strong>
-                            </td>
-                            <td>
-                                @if ($purchase->payment_receipt)
-                                    <span class="badge badge-success">
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                        Completado
-                                    </span>
-                                @else
-                                    <span class="badge badge-warning">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        Pendiente
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-purchase"
-                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-purchase"
-                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        @endforeach
                     @endforeach
                 </tbody>
             </table>
