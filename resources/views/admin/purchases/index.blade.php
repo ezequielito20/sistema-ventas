@@ -100,8 +100,8 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="supplier-avatar mr-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
-                                             style="width: 40px; height: 40px; font-size: 1.2em;">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                            style="width: 40px; height: 40px; font-size: 1.2em;">
                                             {{ strtoupper(substr($purchase->supplier->name, 0, 1)) }}
                                         </div>
                                     </div>
@@ -122,7 +122,7 @@
                                 </strong>
                             </td>
                             <td>
-                                @if($purchase->payment_receipt)
+                                @if ($purchase->payment_receipt)
                                     <span class="badge badge-success">
                                         <i class="fas fa-check-circle mr-1"></i>
                                         Completado
@@ -136,24 +136,16 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" 
-                                            class="btn btn-info btn-sm show-purchase"
-                                            data-id="{{ $purchase->id }}" 
-                                            data-toggle="tooltip" 
-                                            title="Ver detalles">
+                                    <button type="button" class="btn btn-info btn-sm show-purchase"
+                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                       class="btn btn-warning btn-sm" 
-                                       data-toggle="tooltip" 
-                                       title="Editar">
+                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-danger btn-sm delete-purchase"
-                                            data-id="{{ $purchase->id }}" 
-                                            data-toggle="tooltip" 
-                                            title="Eliminar">
+                                    <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -211,7 +203,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         {{-- Información del producto y proveedor --}}
                         <div class="col-md-6">
                             <div class="card">
@@ -252,7 +244,8 @@
                                     </h6>
                                 </div>
                                 <div class="card-body text-center">
-                                    <img id="receiptImage" src="" alt="Recibo" class="img-fluid" style="max-height: 300px;">
+                                    <img id="receiptImage" src="" alt="Recibo" class="img-fluid"
+                                        style="max-height: 300px;">
                                 </div>
                             </div>
                         </div>
@@ -270,7 +263,7 @@
         .small-box {
             transition: transform .3s;
         }
-        
+
         .small-box:hover {
             transform: translateY(-5px);
         }
@@ -294,113 +287,116 @@
 @stop
 
 @section('js')
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-$(document).ready(function() {
-    // Inicializar DataTable
-    $('#purchasesTable').DataTable({
-        responsive: true,
-        language: {
-            "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-        }
-    });
-
-    // Inicializar tooltips
-    $('[data-toggle="tooltip"]').tooltip();
-
-    // Mostrar modal de detalles de la compra
-    $('.show-purchase').click(function() {
-        const id = $(this).data('id');
-        
-        // Limpiar datos anteriores
-        $('#purchaseId, #purchaseDate, #purchaseTotal, #purchaseStatus, #productName, #productQuantity, #supplierName').text('');
-        $('#receiptImage').attr('src', '');
-        $('#receiptSection').hide();
-        
-        $.ajax({
-            url: `/admin/purchases/${id}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.success) {
-                    const purchase = response.purchase;
-                    
-                    // Llenar datos generales
-                    $('#purchaseId').text(`#${String(purchase.id).padStart(6, '0')}`);
-                    $('#purchaseDate').text(purchase.formatted_date);
-                    $('#purchaseTotal').text(`$${purchase.total_price}`);
-                    $('#purchaseStatus').html(purchase.payment_receipt ? 
-                        '<span class="badge badge-success">Completado</span>' : 
-                        '<span class="badge badge-warning">Pendiente</span>'
-                    );
-                    
-                    // Llenar datos del producto
-                    $('#productName').text(purchase.product.name);
-                    $('#productQuantity').text(`${purchase.quantity} unidades`);
-                    $('#supplierName').text(purchase.supplier.name);
-                    
-                    // Mostrar recibo si existe
-                    if (purchase.payment_receipt) {
-                        $('#receiptImage').attr('src', purchase.payment_receipt);
-                        $('#receiptSection').show();
-                    }
-                    
-                    // Mostrar el modal
-                    $('#showPurchaseModal').modal('show');
-                } else {
-                    Swal.fire('Error', response.message, 'error');
+    <script>
+        $(document).ready(function() {
+            // Inicializar DataTable
+            $('#purchasesTable').DataTable({
+                responsive: true,
+                language: {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
                 }
-            },
-            error: function() {
-                Swal.fire('Error', 'No se pudieron cargar los datos de la compra', 'error');
-            }
-        });
-    });
+            });
 
-    // Eliminar compra
-    $('.delete-purchase').click(function() {
-        const id = $(this).data('id');
-        
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción no se puede revertir",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Mostrar modal de detalles de la compra
+            $('.show-purchase').click(function() {
+                const id = $(this).data('id');
+
+                // Limpiar datos anteriores
+                $('#purchaseId, #purchaseDate, #purchaseTotal, #purchaseStatus, #productName, #productQuantity, #supplierName')
+                    .text('');
+                $('#receiptImage').attr('src', '');
+                $('#receiptSection').hide();
+
                 $.ajax({
-                    url: `/admin/purchases/delete/${id}`,
-                    type: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
+                    url: `/admin/purchases/${id}`,
+                    type: 'GET',
                     success: function(response) {
                         if (response.success) {
-                            Swal.fire({
-                                title: '¡Eliminado!',
-                                text: response.message,
-                                icon: 'success'
-                            }).then(() => {
-                                location.reload();
-                            });
+                            const purchase = response.purchase;
+
+                            // Llenar datos generales
+                            $('#purchaseId').text(`#${String(purchase.id).padStart(6, '0')}`);
+                            $('#purchaseDate').text(purchase.formatted_date);
+                            $('#purchaseTotal').text(`$${purchase.total_price}`);
+                            $('#purchaseStatus').html(purchase.payment_receipt ?
+                                '<span class="badge badge-success">Completado</span>' :
+                                '<span class="badge badge-warning">Pendiente</span>'
+                            );
+
+                            // Llenar datos del producto
+                            $('#productName').text(purchase.product.name);
+                            $('#productQuantity').text(`${purchase.quantity} unidades`);
+                            $('#supplierName').text(purchase.supplier.name);
+
+                            // Mostrar recibo si existe
+                            if (purchase.payment_receipt) {
+                                $('#receiptImage').attr('src', purchase.payment_receipt);
+                                $('#receiptSection').show();
+                            }
+
+                            // Mostrar el modal
+                            $('#showPurchaseModal').modal('show');
                         } else {
                             Swal.fire('Error', response.message, 'error');
                         }
                     },
-                    error: function(xhr) {
-                        Swal.fire('Error', 'No se pudo eliminar la compra', 'error');
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron cargar los datos de la compra',
+                            'error');
                     }
                 });
-            }
+            });
+
+            // Eliminar compra
+            $('.delete-purchase').click(function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "Esta acción no se puede revertir",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/admin/purchases/delete/${id}`,
+                            type: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: response.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Error', 'No se pudo eliminar la compra',
+                                    'error');
+                            }
+                        });
+                    }
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 @stop

@@ -5,7 +5,7 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Crear Nuevo Producto</h1>
-        <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
+        <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('admin.products.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-1"></i>
             Volver
         </a>

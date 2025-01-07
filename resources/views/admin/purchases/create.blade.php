@@ -26,25 +26,6 @@
                     @csrf
                     <div class="card-body">
                         <div class="row">
-                            <!-- Fecha de compra -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="purchase_date" class="required">Fecha de Compra</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-calendar"></i>
-                                            </span>
-                                        </div>
-                                        <input type="date" name="purchase_date" id="purchase_date"
-                                            class="form-control @error('purchase_date') is-invalid @enderror"
-                                            value="{{ old('purchase_date', date('Y-m-d')) }}" required>
-                                        @error('purchase_date')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
 
                             <!-- Código de Producto -->
                             <div class="col-md-4">
@@ -60,10 +41,11 @@
                                             class="form-control @error('product_code') is-invalid @enderror"
                                             placeholder="Ingrese el código del producto" value="{{ old('product_code') }}">
                                         <div class="input-group-append">
-                                            <button type="button" class="btn btn-success" id="addProduct">
+                                            <a href="/products/create" class="btn btn-success">
                                                 <i class="fas fa-plus"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-info" id="searchProduct">
+                                            </a>
+                                            <button type="button" class="btn btn-info" id="searchProduct"
+                                                data-toggle="modal" data-target="#searchProductModal">
                                                 <i class="fas fa-search"></i>
                                             </button>
                                         </div>
@@ -86,13 +68,37 @@
                                         </div>
                                         <input type="number" name="quantity" id="quantity"
                                             class="form-control @error('quantity') is-invalid @enderror"
-                                            value="{{ old('quantity') }}" min="1" required>
+                                            value="{{ old('quantity', 1) }}" min="1" required>
                                         @error('quantity')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Fecha de compra -->
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="purchase_date" class="required">Fecha de Compra</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                        <input type="date" name="purchase_date" id="purchase_date"
+                                            class="form-control @error('purchase_date') is-invalid @enderror"
+                                            value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                                        @error('purchase_date')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
                         </div>
                         <!-- Tabla de productos agregados -->
                         <div class="row">
@@ -113,7 +119,6 @@
                                                     <th>Cantidad</th>
                                                     <th>Precio Unitario</th>
                                                     <th>Subtotal</th>
-                                                    <th>Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="purchaseItems">
@@ -149,6 +154,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Búsqueda de Productos -->
+    <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog" aria-labelledby="searchProductModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="searchProductModalLabel">
+                        <i class="fas fa-search mr-2"></i>
+                        Búsqueda de Productos
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table id="productsTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Acción</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Precio Venta</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($products as $product)
+                                <tr>
+                                    <td>{{ $product->code }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-sm select-product"
+                                            data-code="{{ $product->code }}" data-dismiss="modal">
+                                            <i class="fas fa-plus-circle mr-1"></i>
+                                            Añadir
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                            alt="{{ $product->name }}" class="img-thumbnail mr-2"
+                                            style="width: 50px; height: 50px; object-fit: cover;">
+                                        {{ $product->name }}
+                                    </td>
+                                    <td>{{ $product->category->name }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $product->stock_status_class }}">
+                                            {{ $product->stock }}
+                                        </span>
+                                    </td>
+                                    <td>${{ number_format($product->sale_price, 2) }}</td>
+                                    <td>
+                                        <span
+                                            class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            {{ $product->stock_status_label }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cerrar
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -167,6 +244,32 @@
 @section('js')
     <script>
         $(document).ready(function() {
+            // Inicializar DataTable
+            $('#productsTable').DataTable({
+                responsive: true,
+                "language": {
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Productos",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 Productos",
+                    "infoFiltered": "(Filtrado de _MAX_ total Productos)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar _MENU_ Productos",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscador:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                },
+                order: [
+                    [1, 'asc']
+                ], // Ordenar por nombre por defecto
+            });
             // Manejar la adición de productos
             $('#addProduct').click(function() {
                 const productCode = $('#product_code').val();
@@ -192,35 +295,86 @@
                 }
             });
 
+            // Evento para el botón de seleccionar producto
+            $(document).on('click', '.select-product', function() {
+                const productCode = $(this).data('code');
+
+                // Verificar si el producto ya está en la tabla
+                if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Producto ya agregado',
+                        text: 'Este producto ya está en la lista de compra'
+                    });
+                    return;
+                }
+
+                // Obtener detalles del producto y agregarlo a la tabla
+                $.get(`/admin/purchases/product-details/${productCode}`, function(response) {
+                    if (response.success) {
+                        addProductToTable(response.product);
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                });
+            });
+
             // Función para agregar producto a la tabla
             function addProductToTable(product) {
                 const row = `
-            <tr data-product-id="${product.id}">
-                <td>${product.code}</td>
-                <td>${product.name}</td>
-                <td>
-                    <input type="number" class="form-control quantity-input" 
-                           name="items[${product.id}][quantity]" 
-                           value="1" min="1" style="width: 100px">
-                </td>
-                <td>
-                    <input type="number" class="form-control price-input" 
-                           name="items[${product.id}][price]" 
-                           value="${product.price}" step="0.01" style="width: 100px">
-                </td>
-                <td class="subtotal">${product.price}</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm remove-item">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
+                    <tr data-product-code="${product.code}">
+                        <td>${product.code}</td>
+                        <td>${product.name}</td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" 
+                                       class="form-control quantity-input" 
+                                       name="items[${product.id}][quantity]" 
+                                       value="1" 
+                                       min="1"
+                                       style="width: 80px">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input type="number" 
+                                       class="form-control price-input" 
+                                       name="items[${product.id}][price]" 
+                                       value="${product.purchase_price}" 
+                                       step="0.01"
+                                       style="width: 100px">
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            $<span class="subtotal">${product.purchase_price}</span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm remove-item">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
                 $('#purchaseItems').append(row);
                 updateTotal();
+
+                // Notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Producto agregado',
+                    text: 'El producto se agregó a la lista de compra',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
 
-            // Actualizar subtotales cuando cambie cantidad o precio
+            // Actualizar subtotal cuando cambie cantidad o precio
             $(document).on('input', '.quantity-input, .price-input', function() {
                 const row = $(this).closest('tr');
                 const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
@@ -230,13 +384,36 @@
                 updateTotal();
             });
 
-            // Eliminar item
+            // Eliminar producto de la tabla
             $(document).on('click', '.remove-item', function() {
-                $(this).closest('tr').remove();
-                updateTotal();
+                const row = $(this).closest('tr');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¿Deseas eliminar este producto de la lista?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        row.remove();
+                        updateTotal();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Producto eliminado',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                });
             });
 
-            // Actualizar total
+            // Actualizar total general
             function updateTotal() {
                 let total = 0;
                 $('.subtotal').each(function() {
