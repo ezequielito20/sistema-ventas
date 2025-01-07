@@ -85,7 +85,7 @@ Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])-
 Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])
     ->name('admin.purchases.product-details')
     ->middleware('auth');
-Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode'])
-    ->name('admin.purchases.product-by-code')
-    ->middleware('auth');
-Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('admin.purchases.show')->middleware('auth');
+Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode']) ->name('admin.purchases.product-by-code')->middleware('auth');
+Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware('auth');
+// Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('admin.purchases.show')->middleware('auth');
+

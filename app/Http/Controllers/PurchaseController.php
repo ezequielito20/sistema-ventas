@@ -21,7 +21,7 @@ class PurchaseController extends Controller
    {
       try {
          $companyId = Auth::user()->company_id;
-         
+
 
          // Obtener compras con sus relaciones
          $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
@@ -43,7 +43,6 @@ class PurchaseController extends Controller
             'monthlyPurchases',
             'pendingDeliveries'
          ));
-
       } catch (\Exception $e) {
          Log::error('Error en index de compras: ' . $e->getMessage());
          return redirect()->back()
@@ -86,7 +85,7 @@ class PurchaseController extends Controller
          // Validación de los datos
          $validated = $request->validate([
             'purchase_date' => 'required|date',
-            'items' => 'required|array|min:1', 
+            'items' => 'required|array|min:1',
             'total_amount' => 'required|numeric|min:0',
          ]);
 
@@ -108,8 +107,8 @@ class PurchaseController extends Controller
             // dd($key, $item);
             // Obtener el producto
             $product = Product::where('id', $key)
-                           ->where('company_id', Auth::user()->company_id)
-                           ->firstOrFail();
+               ->where('company_id', Auth::user()->company_id)
+               ->firstOrFail();
 
             // Crear el detalle de la compra
             PurchaseDetail::create([
@@ -139,7 +138,6 @@ class PurchaseController extends Controller
          return redirect()->route('admin.purchases.index')
             ->with('message', '¡Compra registrada exitosamente!')
             ->with('icon', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear compra: ' . $e->getMessage(), [
@@ -253,5 +251,44 @@ class PurchaseController extends Controller
             'message' => 'Error al buscar el producto'
          ], 500);
       }
+   }
+
+   public function getDetails($id)
+   {
+
+      dd($id);
+      // // try {
+      // $purchase = Purchase::with(['details.product'])
+      //    ->where('id', $id)
+      //    ->firstOrFail();
+
+      // // $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
+      // // ->where('company_id', $companyId)
+      // // ->get();
+
+      // $details = $purchase->details->map(function ($detail) {
+      //    return [
+      //       'quantity' => $detail->quantity,
+      //       'product_price' => $detail->product_price,
+      //       'product' => [
+      //          'code' => $detail->product->code,
+      //          'name' => $detail->product->name,
+      //       ],
+      //       'subtotal' => $detail->quantity * $detail->product_price
+      //    ];
+      // });
+
+      // return response()->json([
+      //    'success' => true,
+      //    'details' => $details
+      // ]);
+
+      // // } catch (\Exception $e) {
+      // //    Log::error('Error al cargar detalles de compra: ' . $e->getMessage());
+      // //    return response()->json([
+      // //       'success' => false,
+      // //       'message' => 'Error al cargar los detalles de la compra'
+      // //    ], 500);
+      // // }
    }
 }

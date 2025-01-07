@@ -82,6 +82,7 @@
                         <th>Fecha</th>
                         <th>Total Productos</th>
                         <th>Monto Total</th>
+                        <th>Detalle de la Compra</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -92,8 +93,15 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $purchase->id }}</td>
                             <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
-                            <td>{{ $purchase->details->sum('quantity') }} {{ $purchase->details->sum('quantity') == 1 ? 'producto' : 'productos' }}</td>
+                            <td>{{ $purchase->details->sum('quantity') }}
+                                {{ $purchase->details->sum('quantity') == 1 ? 'producto' : 'productos' }}</td>
                             <td>${{ number_format($purchase->total_price, 2) }}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm view-details"
+                                    data-id="{{ $purchase->id }}" data-toggle="modal" data-target="#purchaseDetailsModal">
+                                    <i class="fas fa-list"></i> Ver Detalle
+                                </button>
+                            </td>
                             <td>
                                 @if ($purchase->payment_receipt)
                                     <span class="badge badge-success">Completado</span>
@@ -124,103 +132,47 @@
         </div>
     </div>
 
-    {{-- Modal para mostrar compra --}}
-    <div class="modal fade" id="showPurchaseModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    {{--  Modal para mostrar detalles  --}}
+    <div class="modal fade" id="purchaseDetailsModal" tabindex="-1" role="dialog"
+        aria-labelledby="purchaseDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        Detalles de la Compra
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
+                    <h5 class="modal-title" id="purchaseDetailsModalLabel">Detalle de la Compra</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        {{-- Información de la compra --}}
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-info-circle mr-2"></i>
-                                        Información General
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th>Nº Compra:</th>
-                                            <td id="purchaseId"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Fecha:</th>
-                                            <td id="purchaseDate"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Total:</th>
-                                            <td id="purchaseTotal"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Estado:</th>
-                                            <td id="purchaseStatus"></td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Información del producto y proveedor --}}
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-box mr-2"></i>
-                                        Detalles del Producto
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th>Producto:</th>
-                                            <td id="productName"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Cantidad:</th>
-                                            <td id="productQuantity"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Proveedor:</th>
-                                            <td id="supplierName"></td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Recibo de pago --}}
-                    <div class="row mt-3" id="receiptSection">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-file-invoice mr-2"></i>
-                                        Recibo de Pago
-                                    </h6>
-                                </div>
-                                <div class="card-body text-center">
-                                    <img id="receiptImage" src="" alt="Recibo" class="img-fluid"
-                                        style="max-height: 300px;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <table class="table table-striped">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchaseDetailsTableBody">
+                            <!-- Los detalles se cargarán aquí dinámicamente -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                                <td id="modalTotal"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
+
+    
 @stop
 
 @section('css')
@@ -283,7 +235,7 @@
                 $('#receiptSection').hide();
 
                 $.ajax({
-                    url: `/admin/purchases/${id}`,
+                    url: `/purchases/${id}`,
                     type: 'GET',
                     success: function(response) {
                         if (response.success) {
@@ -338,7 +290,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/admin/purchases/delete/${id}`,
+                            url: `/purchases/delete/${id}`,
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -361,6 +313,52 @@
                                     'error');
                             }
                         });
+                    }
+                });
+            });
+
+            // Ver detalles de la compra
+            $('.view-details').click(function() {
+                const purchaseId = $(this).data('id');
+                // alert(purchaseId);
+
+                // // Limpiar la tabla
+                $('#purchaseDetailsTableBody').empty();
+
+                // Cargar los detalles
+                $.ajax({
+                    url: `/purchases/${purchaseId}/details`,
+                    method: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            let total = 0;
+
+                            response.details.forEach(function(detail) {
+                                const subtotal = detail.quantity * detail.product_price;
+                                total += subtotal;
+
+                                $('#purchaseDetailsTableBody').append(`
+                                <tr>
+                                    <td>${detail.product.code}</td>
+                                    <td>${detail.product.name}</td>
+                                    <td>${detail.quantity}</td>
+                                    <td>$${detail.product_price.toFixed(2)}</td>
+                                    <td>$${subtotal.toFixed(2)}</td>
+                                </tr>
+                            `);
+                            });
+
+                            $('#modalTotal').text(`$${total.toFixed(2)}`);
+                        } else {
+                            Swal.fire('Error', response.message || 'Error al cargar los detalles', 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        Swal.fire('Error', 'No se pudieron cargar los detalles de la compra', 'error');
                     }
                 });
             });
