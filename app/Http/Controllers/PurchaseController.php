@@ -184,7 +184,76 @@ class PurchaseController extends Controller
     */
    public function destroy($id)
    {
-      //
+      try {
+         // Buscar la compra
+         $purchase = Purchase::findOrFail($id);
+
+         // Verificar que la compra pertenece a la compañía del usuario
+         if ($purchase->company_id !== Auth::user()->company_id) {
+            Log::warning('Intento de eliminación no autorizada de compra', [
+                'user_id' => Auth::user()->id,
+                'purchase_id' => $id
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'No tiene permiso para eliminar esta compra',
+                'icons' => 'error'
+            ], 403);
+         }
+
+         // Iniciar transacción
+         DB::beginTransaction();
+
+         // Guardar información para el log antes de eliminar
+         $purchaseInfo = [
+             'id' => $purchase->id,
+             'payment_receipt' => $purchase->payment_receipt,
+             'total_price' => $purchase->total_price,
+             'company_id' => $purchase->company_id
+         ];
+
+         // Revertir el stock de los productos
+         foreach ($purchase->details as $detail) {
+             $product = $detail->product;
+             $product->stock -= $detail->quantity;
+             $product->save();
+         }
+
+         // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
+         $purchase->delete();
+
+         // Confirmar transacción
+         DB::commit();
+
+         // Log de la eliminación
+         Log::info('Compra eliminada exitosamente', [
+             'user_id' => Auth::user()->id,
+             'purchase_info' => $purchaseInfo
+         ]);
+
+         // Retornar respuesta exitosa
+         return response()->json([
+             'success' => true,
+             'message' => '¡Compra eliminada exitosamente!',
+             'icons' => 'success'
+         ]);
+
+      } catch (\Exception $e) {
+         // Revertir transacción en caso de error
+         DB::rollBack();
+
+         Log::error('Error al eliminar compra: ' . $e->getMessage(), [
+             'user_id' => Auth::user()->id,
+             'purchase_id' => $id
+         ]);
+
+         return response()->json([
+             'success' => false,
+             'message' => 'Hubo un problema al eliminar la compra. Por favor, inténtelo de nuevo.',
+             'icons' => 'error'
+         ], 500);
+      }
    }
 
    public function getProductDetails($code)
