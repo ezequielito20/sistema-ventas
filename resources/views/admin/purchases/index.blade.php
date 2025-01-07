@@ -77,6 +77,7 @@
             <table id="purchasesTable" class="table table-striped table-hover">
                 <thead class="bg-primary text-white">
                     <tr>
+                        <th>#</th>
                         <th>ID</th>
                         <th>Fecha</th>
                         <th>Proveedor</th>
@@ -90,27 +91,32 @@
                 <tbody>
                     @foreach ($purchases as $purchase)
                         <tr>
+                            {{-- # --}}
+                            <td>{{ $loop->iteration }}</td>
+                            {{-- ID --}}
                             <td>
                                 <strong>#{{ str_pad($purchase->id, 6, '0', STR_PAD_LEFT) }}</strong>
                             </td>
+                            {{-- Fecha --}}
                             <td>
                                 <i class="fas fa-calendar-day mr-1"></i>
                                 {{ $purchase->purchase_date->format('d/m/Y') }}
                             </td>
+                            {{-- Proveedor --}}
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="supplier-avatar mr-2">
                                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
                                             style="width: 40px; height: 40px; font-size: 1.2em;">
-                                            {{ strtoupper(substr($purchase->supplier->name, 0, 1)) }}
+                                            {{ strtoupper(substr($purchase->details->supplier->name, 0, 1)) }}
                                         </div>
                                     </div>
                                     <div>
-                                        {{ $purchase->supplier->name }}
+                                        {{-- {{ $purchase->supplier->name }} --}}
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $purchase->product->name }}</td>
+                            {{-- <td>{{ $purchase->product->name }}</td> --}}
                             <td>
                                 <span class="badge badge-info">
                                     {{ $purchase->quantity }} unidades

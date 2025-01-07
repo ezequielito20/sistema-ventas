@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PurchaseDetail extends Model
 {
@@ -25,7 +26,7 @@ class PurchaseDetail extends Model
     /**
      * Obtiene la compra asociada
      */
-    public function purchase()
+    public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
     }
@@ -33,7 +34,7 @@ class PurchaseDetail extends Model
     /**
      * Obtiene el proveedor asociado
      */
-    public function supplier()
+    public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
@@ -41,7 +42,7 @@ class PurchaseDetail extends Model
     /**
      * Obtiene el producto asociado
      */
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }

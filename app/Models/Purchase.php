@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Purchase extends Model
 {
@@ -30,25 +32,6 @@ class Purchase extends Model
       'purchase_date' => 'date',
       'total_price' => 'decimal:2'
    ];
-
-   /**
-    * Obtiene los detalles de la compra
-    */
-   public function details()
-   {
-      return $this->hasMany(PurchaseDetail::class);
-   }
-
-   /**
-    * Obtiene la compañía asociada a la compra
-    */
-   public function company()
-   {
-      return $this->belongsTo(Company::class);
-   }
-
-   
-
    /**
     * Scope para filtrar compras por compañía
     */
@@ -65,5 +48,20 @@ class Purchase extends Model
       }
 
       return $query->sum('total_price');
+   }
+   /**
+    * Obtiene los detalles de la compra
+    */
+   public function details(): HasMany
+   {
+      return $this->hasMany(PurchaseDetail::class);
+   }
+
+   /**
+    * Obtiene la compañía asociada a la compra
+    */
+   public function company(): BelongsTo
+   {
+      return $this->belongsTo(Company::class);
    }
 }

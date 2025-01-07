@@ -206,6 +206,8 @@
             </div>
         </div>
     </div>
+
+
 @stop
 
 @section('css')
@@ -421,6 +423,60 @@
                 $('#totalAmountInput').val(total.toFixed(2));
                 console.log('Total actualizado:', total); // Debug
             }
+
+            // Cuando se hace clic en "Registrar Compra"
+            $('#registrarCompra').click(function(e) {
+                e.preventDefault();
+
+                // Recolectar todos los items de la tabla
+                let items = [];
+                $('#purchaseTable tbody tr').each(function() {
+                    items.push({
+                        code: $(this).find('td:eq(0)').text(),
+                        quantity: parseInt($(this).find('input.quantity').val()),
+                        price: parseFloat($(this).find('input.price').val()),
+                        subtotal: parseFloat($(this).find('td:eq(4)').text().replace('$',
+                            ''))
+                    });
+                });
+
+                // Crear el formulario
+                let formData = new FormData();
+                formData.append('purchase_date', $('#purchase_date').val());
+                formData.append('total', $('#total').text());
+
+                // Agregar los items
+                items.forEach((item, index) => {
+                    formData.append(`items[${index}][code]`, item.code);
+                    formData.append(`items[${index}][quantity]`, item.quantity);
+                    formData.append(`items[${index}][price]`, item.price);
+                });
+
+                // Enviar el formulario
+                $.ajax({
+                    url: '{{ route('admin.purchases.store') }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: 'Compra registrada correctamente',
+                            icon: 'success'
+                        }).then((result) => {
+                            window.location.href =
+                                '{{ route('admin.purchases.index') }}';
+                        });
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Error', 'Hubo un error al registrar la compra', 'error');
+                    }
+                });
+            });
         });
     </script>
 @stop
