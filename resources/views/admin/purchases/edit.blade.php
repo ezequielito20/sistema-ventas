@@ -148,58 +148,59 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table id="productsTable" class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Acción</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Stock</th>
-                                <th>Precio Venta</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($products as $product)
+                    <div class="table-responsive">
+                        <table id="productsTable" class="table table-striped table-hover display nowrap w-100">
+                            <thead>
                                 <tr>
-                                    <td>{{ $product->code }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-primary btn-sm select-product"
-                                            data-code="{{ $product->code }}" data-dismiss="modal">
-                                            <i class="fas fa-plus-circle mr-1"></i>
-                                            Añadir
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
-                                            alt="{{ $product->name }}" class="img-thumbnail mr-2"
-                                            style="width: 50px; height: 50px; object-fit: cover;">
-                                        {{ $product->name }}
-                                    </td>
-                                    <td>{{ $product->category->name }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ $product->stock_status_class }}">
-                                            {{ $product->stock }}
-                                        </span>
-                                    </td>
-                                    <td>${{ number_format($product->sale_price, 2) }}</td>
-                                    <td>
-                                        <span
-                                            class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
-                                            {{ $product->stock_status_label }}
-                                        </span>
-                                    </td>
+                                    <th>Código</th>
+                                    <th>Acción</th>
+                                    <th>Nombre</th>
+                                    <th>Categoría</th>
+                                    <th>Stock</th>
+                                    <th>Precio Venta</th>
+                                    <th>Estado</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($products as $product)
+                                    <tr>
+                                        <td class="align-middle">{{ $product->code }}</td>
+                                        <td class="align-middle">
+                                            <button type="button" class="btn btn-primary btn-sm select-product"
+                                                data-code="{{ $product->code }}" data-dismiss="modal">
+                                                <i class="fas fa-plus-circle"></i>
+                                            </button>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                    alt="{{ $product->name }}" class="img-thumbnail mr-2"
+                                                    style="width: 40px; height: 40px; object-fit: cover;">
+                                                <span>{{ $product->name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">{{ $product->category->name }}</td>
+                                        <td class="align-middle text-center">
+                                            <span class="badge badge-{{ $product->stock_status_class }}">
+                                                {{ $product->stock }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}</td>
+                                        <td class="align-middle text-center">
+                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                                {{ $product->stock_status_label }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         <i class="fas fa-times mr-2"></i>Cerrar
                     </button>
-
                 </div>
             </div>
         </div>
@@ -209,6 +210,52 @@
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <style>
+        .modal-xl {
+            max-width: 90%;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-xl {
+                max-width: 95%;
+                margin: 0.5rem;
+            }
+        }
+
+        .table-responsive {
+            min-height: 300px;
+            max-height: calc(100vh - 200px);
+        }
+
+        #productsTable {
+            width: 100% !important;
+        }
+
+        #productsTable td {
+            white-space: normal;
+            vertical-align: middle;
+        }
+
+        .select-product {
+            padding: 0.25rem 0.5rem;
+        }
+
+        .img-thumbnail {
+            max-width: 40px;
+            height: auto;
+        }
+
+        @media (max-width: 576px) {
+            .d-flex.align-items-center {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+            
+            .img-thumbnail {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
 @stop
 
 @section('js')
@@ -229,9 +276,15 @@
             // Inicializar DataTable para el modal de búsqueda
             $('#productsTable').DataTable({
                 responsive: true,
+                scrollX: true,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-                }
+                },
+                columnDefs: [
+                    { responsivePriority: 1, targets: [0, 1, 2] }, // Código, Acción y Nombre siempre visibles
+                    { responsivePriority: 2, targets: [4, 5] },    // Stock y Precio siguiente prioridad
+                    { responsivePriority: 3, targets: '_all' }     // El resto menos prioritario
+                ]
             });
 
             // Manejar la adición de productos
