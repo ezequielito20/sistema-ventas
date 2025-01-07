@@ -220,16 +220,11 @@
 
     <script>
         $(document).ready(function() {
-            // Cargar los productos existentes
-            const existingPurchase = @json($purchase->details);
-            existingPurchase.forEach(detail => {
-                addProductToTable({
-                    id: detail.product.id,
-                    code: detail.product.code,
-                    name: detail.product.name,
-                    quantity: detail.quantity,
-                    price: detail.product_price
-                }, true);
+            // Cargar los detalles existentes de la compra
+            const purchaseDetails = @json($purchaseDetails);
+
+            purchaseDetails.forEach(product => {
+                addProductToTable(product, true);
             });
 
             // Inicializar DataTable para el modal de búsqueda
@@ -330,7 +325,9 @@
             });
 
             // Función para agregar producto a la tabla
-            function addProductToTable(product) {
+            function addProductToTable(product, isExisting = false) {
+                const quantity = isExisting ? product.quantity : 1;
+                const price = product.purchase_price || product.price;
 
                 const row = `
                     <tr data-product-code="${product.code}">
@@ -341,7 +338,7 @@
                                 <input type="number" 
                                        class="form-control quantity-input" 
                                        name="items[${product.id}][quantity]" 
-                                       value="1" 
+                                       value="${quantity}" 
                                        min="1">
                             </div>
                         </td>
@@ -353,12 +350,12 @@
                                 <input type="number" 
                                        class="form-control price-input" 
                                        name="items[${product.id}][price]" 
-                                       value="${product.purchase_price || product.price}" 
+                                       value="${price}" 
                                        step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${product.purchase_price || product.price}</span>
+                            $<span class="subtotal">${(quantity * price).toFixed(2)}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -371,16 +368,17 @@
                 $('#purchaseItems').append(row);
                 updateTotal();
 
-                // Notificación de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Producto agregado',
-                    text: 'El producto se agregó a la lista de compra',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                if (!isExisting) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Producto agregado',
+                        text: 'El producto se agregó a la lista de compra',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
             }
 
             // Actualizar subtotal cuando cambie cantidad o precio

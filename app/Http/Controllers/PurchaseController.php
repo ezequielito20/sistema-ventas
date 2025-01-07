@@ -176,15 +176,28 @@ class PurchaseController extends Controller
             ->where('company_id', $companyId)
             ->findOrFail($id);
 
-         // Obtener productos y proveedores de la compañía para el modal de búsqueda
+         // Formatear los detalles para JavaScript
+         $purchaseDetails = $purchase->details->map(function($detail) {
+            return [
+                'id' => $detail->product->id,
+                'code' => $detail->product->code,
+                'name' => $detail->product->name,
+                'quantity' => $detail->quantity,
+                'price' => $detail->product_price,
+                'purchase_price' => $detail->product_price,
+                'supplier_id' => $detail->supplier_id
+            ];
+         });
+
+         // Obtener productos y proveedores
          $products = Product::where('company_id', $companyId)->get();
          $suppliers = Supplier::where('company_id', $companyId)->get();
 
-         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers'));
+         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails'));
       } catch (\Exception $e) {
          Log::error('Error en PurchaseController@edit: ' . $e->getMessage());
          return redirect()->route('admin.purchases.index')
-            ->with('message', 'Hubo un problema al cargar el formulario de edición: ' . $e->getMessage())
+            ->with('message', 'Error al cargar el formulario de edición')
             ->with('icons', 'error');
       }
    }
