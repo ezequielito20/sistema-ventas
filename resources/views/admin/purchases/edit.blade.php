@@ -185,9 +185,11 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}</td>
+                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
+                                        </td>
                                         <td class="align-middle text-center">
-                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span
+                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -295,10 +297,18 @@
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
                 },
-                columnDefs: [
-                    { responsivePriority: 1, targets: [0, 1, 2] }, // Código, Acción y Nombre siempre visibles
-                    { responsivePriority: 2, targets: [4, 5] },    // Stock y Precio siguiente prioridad
-                    { responsivePriority: 3, targets: '_all' }     // El resto menos prioritario
+                columnDefs: [{
+                        responsivePriority: 1,
+                        targets: [0, 1, 2]
+                    }, // Código, Acción y Nombre siempre visibles
+                    {
+                        responsivePriority: 2,
+                        targets: [4, 5]
+                    }, // Stock y Precio siguiente prioridad
+                    {
+                        responsivePriority: 3,
+                        targets: '_all'
+                    } // El resto menos prioritario
                 ]
             });
 
