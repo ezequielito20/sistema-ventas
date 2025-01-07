@@ -240,4 +240,39 @@ class PurchaseController extends Controller
             ], 500);
         }
     }
+
+    public function getProductByCode($code)
+    {
+        try {
+            $product = Product::where('code', $code)
+                ->where('company_id', Auth::user()->company_id)
+                ->first();
+
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Producto no encontrado'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'price' => $product->sale_price,
+                    'purchase_price' => $product->sale_price,
+                    'stock' => $product->stock
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al obtener producto por código: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar el producto'
+            ], 500);
+        }
+    }
 }

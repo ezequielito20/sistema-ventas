@@ -41,8 +41,8 @@
                                             class="form-control @error('product_code') is-invalid @enderror"
                                             placeholder="Ingrese el código del producto" value="{{ old('product_code') }}">
                                         <div class="input-group-append">
-                                            <button type="button" class="btn btn-info" id="addProduct"
-                                                data-toggle="modal" data-target="#searchProductModal">
+                                            <button type="button" class="btn btn-info" id="addProduct" data-toggle="modal"
+                                                data-target="#searchProductModal">
                                                 <i class="fas fa-search"></i>
                                             </button>
                                             <a href="/products/create" class="btn btn-success">
@@ -267,11 +267,40 @@
                 }
             });
 
-            // Permitir enviar el formulario presionando Enter en el código
+            // Manejar la entrada de código de producto
             $('#product_code').keypress(function(e) {
-                if (e.which == 13) {
+                if (e.which == 13) { // Si presiona Enter
                     e.preventDefault();
-                    $('#addProduct').click();
+                    const productCode = $(this).val();
+
+                    if (productCode) {
+                        // Verificar si el producto ya está en la tabla
+                        if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Producto ya agregado',
+                                text: 'Este producto ya está en la lista de compra'
+                            });
+                            return;
+                        }
+
+                        // Buscar el producto por código
+                        $.ajax({
+                            url: `/purchases/product-by-code/${productCode}`,
+                            method: 'GET',
+                            success: function(response) {
+                                if (response.success) {
+                                    addProductToTable(response.product);
+                                    $('#product_code').val(''); // Limpiar el input
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'No se encontró el producto', 'error');
+                            }
+                        });
+                    }
                 }
             });
 
