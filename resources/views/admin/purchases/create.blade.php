@@ -41,13 +41,13 @@
                                             class="form-control @error('product_code') is-invalid @enderror"
                                             placeholder="Ingrese el código del producto" value="{{ old('product_code') }}">
                                         <div class="input-group-append">
-                                            <a href="/products/create" class="btn btn-success">
-                                                <i class="fas fa-plus"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-info" id="searchProduct"
+                                            <button type="button" class="btn btn-info" id="addProduct"
                                                 data-toggle="modal" data-target="#searchProductModal">
                                                 <i class="fas fa-search"></i>
                                             </button>
+                                            <a href="/products/create" class="btn btn-success">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
                                         </div>
                                         @error('product_code')
                                             <span class="invalid-feedback">{{ $message }}</span>
