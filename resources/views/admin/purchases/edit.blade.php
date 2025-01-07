@@ -85,7 +85,7 @@
                                             Productos en la Compra
                                         </h3>
                                     </div>
-                                    <div class="card-body table-responsive p-0">
+                                    <div class="card-body table-responsive p-1">
                                         <table class="table table-hover text-nowrap">
                                             <thead>
                                                 <tr>
@@ -147,25 +147,25 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-0">
                     <div class="table-responsive">
-                        <table id="productsTable" class="table table-striped table-hover display nowrap w-100">
+                        <table id="productsTable" class="table table-striped table-hover w-100">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
-                                    <th>Acción</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Stock</th>
-                                    <th>Precio Venta</th>
-                                    <th>Estado</th>
+                                    <th style="min-width: 120px">Código</th>
+                                    <th style="min-width: 80px">Acción</th>
+                                    <th style="min-width: 300px">Nombre</th>
+                                    <th style="min-width: 150px">Categoría</th>
+                                    <th style="min-width: 100px">Stock</th>
+                                    <th style="min-width: 120px">Precio Venta</th>
+                                    <th style="min-width: 100px">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($products as $product)
                                     <tr>
                                         <td class="align-middle">{{ $product->code }}</td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
                                             <button type="button" class="btn btn-primary btn-sm select-product"
                                                 data-code="{{ $product->code }}" data-dismiss="modal">
                                                 <i class="fas fa-plus-circle"></i>
@@ -175,7 +175,7 @@
                                             <div class="d-flex align-items-center">
                                                 <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
                                                     alt="{{ $product->name }}" class="img-thumbnail mr-2"
-                                                    style="width: 40px; height: 40px; object-fit: cover;">
+                                                    style="width: 50px; height: 50px; object-fit: cover;">
                                                 <span>{{ $product->name }}</span>
                                             </div>
                                         </td>
@@ -185,9 +185,11 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}</td>
+                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
+                                        </td>
                                         <td class="align-middle text-center">
-                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span
+                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -196,11 +198,6 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i>Cerrar
-                    </button>
                 </div>
             </div>
         </div>
@@ -212,47 +209,57 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <style>
         .modal-xl {
-            max-width: 90%;
-        }
-        
-        @media (max-width: 768px) {
-            .modal-xl {
-                max-width: 95%;
-                margin: 0.5rem;
-            }
+            max-width: 95% !important;
+            margin: 1.75rem auto;
         }
 
         .table-responsive {
-            min-height: 300px;
-            max-height: calc(100vh - 200px);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0;
+            padding: 0;
         }
 
         #productsTable {
             width: 100% !important;
+            margin: 0 !important;
+        }
+
+        #productsTable th {
+            white-space: nowrap;
+            background-color: #f4f6f9;
+            padding: 12px 8px;
         }
 
         #productsTable td {
-            white-space: normal;
             vertical-align: middle;
         }
 
-        .select-product {
-            padding: 0.25rem 0.5rem;
-        }
-
         .img-thumbnail {
-            max-width: 40px;
-            height: auto;
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
         }
 
-        @media (max-width: 576px) {
-            .d-flex.align-items-center {
-                flex-direction: column;
-                align-items: flex-start !important;
+        @media (max-width: 768px) {
+            .modal-xl {
+                max-width: 100% !important;
+                margin: 0.5rem;
             }
-            
+
+            #productsTable thead th {
+                padding: 8px 4px;
+                font-size: 0.9rem;
+            }
+
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
             .img-thumbnail {
-                margin-bottom: 0.5rem;
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
@@ -277,13 +284,22 @@
             $('#productsTable').DataTable({
                 responsive: true,
                 scrollX: true,
+                autoWidth: false,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
                 },
-                columnDefs: [
-                    { responsivePriority: 1, targets: [0, 1, 2] }, // Código, Acción y Nombre siempre visibles
-                    { responsivePriority: 2, targets: [4, 5] },    // Stock y Precio siguiente prioridad
-                    { responsivePriority: 3, targets: '_all' }     // El resto menos prioritario
+                columnDefs: [{
+                        responsivePriority: 1,
+                        targets: [0, 1, 2]
+                    }, // Código, Acción y Nombre siempre visibles
+                    {
+                        responsivePriority: 2,
+                        targets: [4, 5]
+                    }, // Stock y Precio siguiente prioridad
+                    {
+                        responsivePriority: 3,
+                        targets: '_all'
+                    } // El resto menos prioritario
                 ]
             });
 

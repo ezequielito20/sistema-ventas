@@ -149,18 +149,18 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div class="table-responsive">
-                        <table id="productsTable" class="table table-striped table-hover display nowrap w-100">
+                        <table id="productsTable" class="table table-striped table-hover w-100">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
-                                    <th>Acción</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Stock</th>
-                                    <th>Precio Venta</th>
-                                    <th>Estado</th>
+                                    <th style="min-width: 120px">Código</th>
+                                    <th style="min-width: 80px">Acción</th>
+                                    <th style="min-width: 300px">Nombre</th>
+                                    <th style="min-width: 150px">Categoría</th>
+                                    <th style="min-width: 100px">Stock</th>
+                                    <th style="min-width: 120px">Precio Venta</th>
+                                    <th style="min-width: 100px">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -217,6 +217,24 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <style>
+        .modal-xl {
+            max-width: 95% !important;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #productsTable {
+            margin: 0 !important;
+        }
+
+        #productsTable th {
+            white-space: nowrap;
+            padding: 12px 8px;
+        }
+
         .modal-xl {
             max-width: 90%;
         }
