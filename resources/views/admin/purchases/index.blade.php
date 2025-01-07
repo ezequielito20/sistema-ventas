@@ -78,12 +78,11 @@
                 <thead class="bg-primary text-white">
                     <tr>
                         <th>#</th>
-                        <th>ID Compra</th>
+                        <th>Recibo de pago</th>
                         <th>Fecha</th>
                         <th>Total Productos</th>
                         <th>Monto Total</th>
                         <th>Detalle de la Compra</th>
-                        <th>Recibo de pago</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -92,10 +91,24 @@
                     @foreach ($purchases as $purchase)
                         <tr style="text-align: center">
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $purchase->id }}</td>
+                            <td><strong>{{ $purchase->payment_receipt }}</strong></td>
                             <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
-                            <td>{{ $purchase->details->sum('quantity') }}
-                                {{ $purchase->details->sum('quantity') == 1 ? 'producto' : 'productos' }}</td>
+                            <td>
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1">
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-boxes mr-1"></i>
+                                            {{ $purchase->details->count() }} únicos
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge badge-primary">
+                                            <i class="fas fa-cubes mr-1"></i>
+                                            {{ $purchase->details->sum('quantity') }} totales
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
                             <td>${{ number_format($purchase->total_price, 2) }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm view-details"
@@ -103,7 +116,6 @@
                                     <i class="fas fa-list"></i> Ver Detalle
                                 </button>
                             </td>
-                            <td><strong>{{ $purchase->payment_receipt }}</strong></td>
                             <td>
                                 @if ($purchase->payment_receipt)
                                     <span class="badge badge-success">Completado</span>

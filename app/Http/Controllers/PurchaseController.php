@@ -29,7 +29,9 @@ class PurchaseController extends Controller
             ->get();
 
          // Calcular estadísticas
-         $totalPurchases = $purchases->count();
+         $totalPurchases = $purchases->sum(function($purchase) {
+             return $purchase->details->count();
+         });
          $totalAmount = $purchases->sum('total_price');
          $monthlyPurchases = $purchases->filter(function ($purchase) {
             return $purchase->purchase_date->isCurrentMonth();
