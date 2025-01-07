@@ -150,7 +150,6 @@
                     <table class="table table-striped">
                         <thead class="bg-light">
                             <tr>
-                                <th style="width: 80px">Imagen</th>
                                 <th>Código</th>
                                 <th>Producto</th>
                                 <th>Categoría</th>
@@ -165,8 +164,9 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                <td id="modalTotal"></td>
+                                <td colspan="5" class="text-right"><strong>Total:</strong></td>
+                                <td colspan="2" class="text-right"><strong>$<span id="modalTotal">0.00</span></strong>
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -222,6 +222,29 @@
             .table td,
             .table th {
                 padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+        
+        .table td, .table th {
+            vertical-align: middle;
+        }
+        
+        .modal-lg {
+            max-width: 900px;
+        }
+        
+        @media (max-width: 768px) {
+            .table td, .table th {
                 font-size: 0.9rem;
             }
         }
