@@ -101,6 +101,9 @@
                                     data-id="{{ $purchase->id }}" data-toggle="modal" data-target="#purchaseDetailsModal">
                                     <i class="fas fa-list"></i> Ver Detalle
                                 </button>
+                                {{-- <a href="/purchases/{{ $purchase->id }}/details" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-list"></i> Ver Detalle
+                                </a> --}}
                             </td>
                             <td>
                                 @if ($purchase->payment_receipt)
@@ -320,7 +323,7 @@
             // Ver detalles de la compra
             $('.view-details').click(function() {
                 const purchaseId = $(this).data('id');
-                alert(purchaseId); // Para debug
+                // alert(purchaseId); // Para debug
 
                 // Limpiar la tabla
                 $('#purchaseDetailsTableBody').empty();
@@ -336,6 +339,7 @@
                     success: function(response) {
                         console.log('Respuesta:', response); // Para debug
                         if (response.success) {
+                            alert(response.details);
                             let total = 0;
 
                             response.details.forEach(function(detail) {

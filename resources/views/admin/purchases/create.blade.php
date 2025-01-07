@@ -343,7 +343,6 @@
 
             // Función para agregar producto a la tabla
             function addProductToTable(product) {
-                console.log('Agregando producto:', product); // Debug
 
                 const row = `
                     <tr data-product-code="${product.code}">

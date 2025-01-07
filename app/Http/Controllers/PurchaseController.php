@@ -255,42 +255,41 @@ class PurchaseController extends Controller
 
    public function getDetails($id)
    {
+      
       try {
-
-         $purchase = PurchaseDetail::with(['product'])
-            ->where('id', $id)
+         // Mantenemos tu consulta original
+         $purchaseDetails = PurchaseDetail::with(['product', 'purchase'])
+            ->where('purchase_id', $id)
             ->get();
 
-         
+         // Formateamos la respuesta para que coincida con lo que espera el modal
+         $details = $purchaseDetails->map(function($detail) {
+            return [
+               'quantity' => $detail->quantity,
+               'product_price' => $detail->product_price,
+               'product' => [
+                  'code' => $detail->product->code,
+                  'name' => $detail->product->name,
+               ],
+               'subtotal' => $detail->quantity * $detail->product_price
+            ];
+         });
 
-         
-
-         $response = [
+         return response()->json([
             'success' => true,
-            'purchase' => [
-               'id' => $purchase->id,
-               'purchase_date' => $purchase->purchase_date->format('Y-m-d'),
-               'payment_receipt' => $purchase->payment_receipt,
-               'total_price' => $purchase->total_price
-            ],
             'details' => $details
-         ];
-
-         Log::info('Respuesta final:', $response); // Debug
-
-         return response()->json($response);
+         ]);
 
       } catch (\Exception $e) {
          Log::error('Error en getDetails: ' . $e->getMessage(), [
             'id' => $id,
             'user_id' => Auth::id(),
-            'company_id' => Auth::user()->company_id,
-            'trace' => $e->getTraceAsString()
+            'company_id' => Auth::user()->company_id
          ]);
 
          return response()->json([
             'success' => false,
-            'message' => 'Error al cargar los detalles de la compra: ' . $e->getMessage()
+            'message' => 'Error al cargar los detalles de la compra'
          ], 500);
       }
    }
