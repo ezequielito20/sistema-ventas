@@ -140,16 +140,21 @@ class AdminController extends Controller
             'total_amount' => 0
          ];
 
-      // Datos para gráficos mensuales
+      // Datos para gráficos mensuales de compras
       $purchaseMonthlyLabels = [];
       $purchaseMonthlyData = [];
-      
+
       for ($i = 5; $i >= 0; $i--) {
          $date = now()->subMonths($i);
          $purchaseMonthlyLabels[] = $date->format('M Y');
-         $purchaseMonthlyData[] = Purchase::whereMonth('created_at', $date->month)
+         
+         // Suma del total de compras por mes
+         $monthlyTotal = DB::table('purchases')
+            ->whereMonth('created_at', $date->month)
             ->whereYear('created_at', $date->year)
             ->sum('total_price');
+         
+         $purchaseMonthlyData[] = $monthlyTotal ?? 0;
       }
 
       // Top 5 productos más comprados
