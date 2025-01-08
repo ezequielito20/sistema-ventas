@@ -100,7 +100,52 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="purchaseItems">
-                                                <!-- Los items existentes y nuevos se cargarán aquí -->
+                                                @foreach ($purchase->details as $detail)
+                                                    <tr data-product-code="{{ $detail->product->code }}">
+                                                        <td>{{ $detail->product->code }}</td>
+                                                        <td>{{ $detail->product->name }}</td>
+                                                        <td>
+                                                            <img src="{{ $detail->product->image ? asset($detail->product->image) : asset('img/no-image.png') }}"
+                                                                alt="{{ $detail->product->name }}"
+                                                                class="img-thumbnail"
+                                                                style="max-height: 50px;">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span
+                                                                class="badge badge-{{ $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger') }}">
+                                                                {{ $detail->product->stock }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number"
+                                                                class="form-control form-control-sm quantity-input"
+                                                                name="items[{{ $detail->product->id }}][quantity]"
+                                                                value="{{ $detail->quantity }}" min="1"
+                                                                max="{{ $detail->product->stock + $detail->quantity }}">
+                                                        </td>
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text">$</span>
+                                                                </div>
+                                                                <input type="number"
+                                                                    class="form-control form-control-sm price-input"
+                                                                    name="items[{{ $detail->product->id }}][price]"
+                                                                    value="{{ $detail->product->sale_price }}"
+                                                                    step="0.01" readonly>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-right subtotal">
+                                                            ${{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
+                                                        </td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm remove-item">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                             </tbody>
                                             <tfoot>
                                                 <tr>
@@ -286,9 +331,9 @@
             // Cargar los detalles existentes de la compra
             const purchaseDetails = @json($purchaseDetails);
 
-            purchaseDetails.forEach(product => {
-                addProductToTable(product, true);
-            });
+            // purchaseDetails.forEach(product => {
+            //     addProductToTable(product, true);
+            // });
 
             // Inicializar DataTable para el modal de búsqueda
             $('#productsTable').DataTable({
@@ -387,7 +432,6 @@
                     url: `/purchases/product-details/${productCode}`,
                     method: 'GET',
                     success: function(response) {
-                        console.log('Respuesta del servidor:', response); // Debug
                         if (response.success) {
                             addProductToTable(response.product);
                         } else {
@@ -410,9 +454,16 @@
                         <td>${product.code}</td>
                         <td>${product.name}</td>
                         <td>
-                            ${product.image}
+                            <img src="/${product.image ? product.image : '/img/no-image.png'}"
+                                alt="${product.name}"
+                                class="img-thumbnail"
+                                style="max-height: 50px;">
                         </td>
-                        <td>${product.stock}</td>
+                        <td class="text-center">
+                            <span class="badge badge-${product.stock > 10 ? 'success' : (product.stock > 0 ? 'warning' : 'danger')}">
+                                ${product.stock}
+                            </span>
+                        </td>
                         
                         <td>
                             <div class="input-group input-group-sm">
