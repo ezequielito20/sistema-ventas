@@ -152,7 +152,7 @@
                                 </span>
                             </td>
                             <td>
-                                @if(isset($customer->lastPurchase))
+                                @if (isset($customer->lastPurchase))
                                     <div>
                                         {{ $customer->lastPurchase->created_at->format('d/m/Y') }}
                                         <br>

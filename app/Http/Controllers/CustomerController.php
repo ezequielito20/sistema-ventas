@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Customer;
-use App\Http\Requests\StoreCustomerRequest;
-use App\Http\Requests\UpdateCustomerRequest;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
@@ -20,10 +24,10 @@ class CustomerController extends Controller
          // Obtener todos los clientes
          $customers = Customer::all();
 
-         // Estadísticas básicas que no dependen de la relación con purchases
+         // Estadísticas básicas
          $totalCustomers = $customers->count();
          
-         // Clientes nuevos este mes
+         // Calcular crecimiento de clientes
          $lastMonthCustomers = Customer::whereMonth('created_at', '=', Carbon::now()->subMonth()->month)->count();
          $customerGrowth = $lastMonthCustomers > 0 
             ? round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1)
@@ -51,7 +55,7 @@ class CustomerController extends Controller
          Log::error('Error en CustomerController@index: ' . $e->getMessage());
          
          return redirect()->back()
-            ->with('message', 'Hubo un problema al cargar los clientes: ' . $e->getMessage())
+            ->with('message', 'Hubo un problema al cargar los clientes')
             ->with('icon', 'error');
       }
    }
@@ -61,15 +65,99 @@ class CustomerController extends Controller
     */
    public function create()
    {
-      //
+      try {
+         return view('admin.customers.create');
+      } catch (\Exception $e) {
+         Log::error('Error en CustomerController@create: ' . $e->getMessage());
+         return redirect()->route('admin.customers.index')
+            ->with('message', 'Error al cargar el formulario de creación')
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Store a newly created resource in storage.
     */
-   public function store(StoreCustomerRequest $request)
+   public function store(Request $request)
    {
-      //
+      try {
+         DB::beginTransaction();
+
+         // Validación personalizada
+         $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-]+$/u'],
+            'nit_number' => [
+               'required',
+               'string',
+               'max:20',
+               // 'regex:/^\d{3}-\d{6}-\d{3}-\d{1}$/',
+               Rule::unique('customers', 'nit_number'),
+            ],
+            'phone' => [
+               'required',
+               'string',
+               'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
+               Rule::unique('customers', 'phone'),
+            ],
+            'email' => [
+               'required',
+               'string',
+               'email',
+               'max:255',
+               Rule::unique('customers', 'email'),
+            ]
+         ], [
+            'name.regex' => 'El nombre solo debe contener letras y espacios',
+            'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
+            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
+            'nit_number.unique' => 'Este NIT ya está registrado',
+            'phone.unique' => 'Este teléfono ya está registrado',
+            'email.unique' => 'Este correo ya está registrado'
+         ]);
+
+         if ($validator->fails()) {
+            return redirect()->back()
+               ->withErrors($validator)
+               ->withInput()
+               ->with('message', 'Error de validación')
+               ->with('icons', 'error');
+         }
+
+         // Formatear datos
+         $customerData = [
+            'name' => ucwords(strtolower($request->name)),
+            'nit_number' => $request->nit_number,
+            'phone' => $request->phone,
+            'email' => strtolower($request->email),
+            'created_at' => now(),
+            'updated_at' => now()
+         ];
+
+         // Crear el cliente
+         $customer = Customer::create($customerData);
+
+         // Registrar la acción en el log
+         Log::info('Cliente creado exitosamente', [
+            'user_id' => Auth::id(),
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name
+         ]);
+
+         DB::commit();
+
+         return redirect()->route('admin.customers.index')
+            ->with('message', '¡Cliente creado exitosamente!')
+            ->with('icons', 'success');
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         Log::error('Error en CustomerController@store: ' . $e->getMessage());
+
+         return redirect()->back()
+            ->withInput()
+            ->with('message', 'Error al crear el cliente: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 
    /**

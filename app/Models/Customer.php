@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Customer extends Model
 {
-    /** @use HasFactory<\Database\Factories\CustomerFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -24,10 +23,61 @@ class Customer extends Model
     ];
 
     /**
-     * Get all purchases for the customer
+     * Determina si el cliente está activo basado en su última interacción
      */
-    public function purchases(): HasMany
+    public function isActive()
     {
-        return $this->hasMany(Purchase::class);
+        return $this->created_at->isCurrentMonth() || 
+               $this->updated_at->isCurrentMonth();
+    }
+
+    /**
+     * Obtiene el estado formateado del cliente
+     */
+    public function getStatusAttribute()
+    {
+        return $this->isActive() ? 'Activo' : 'Inactivo';
+    }
+
+    /**
+     * Formatea el nombre del cliente
+     */
+    public function getFormattedNameAttribute()
+    {
+        return ucwords(strtolower($this->name));
+    }
+
+    /**
+     * Formatea el teléfono del cliente
+     */
+    public function getFormattedPhoneAttribute()
+    {
+        return $this->phone ? $this->phone : 'No registrado';
+    }
+
+    /**
+     * Obtiene la fecha de creación formateada
+     */
+    public function getCreatedAtFormattedAttribute()
+    {
+        return $this->created_at->format('d/m/Y H:i:s');
+    }
+
+    /**
+     * Scope para clientes activos
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereMonth('created_at', '=', Carbon::now()->month)
+                    ->orWhereMonth('updated_at', '=', Carbon::now()->month);
+    }
+
+    /**
+     * Scope para clientes inactivos
+     */
+    public function scopeInactive($query)
+    {
+        return $query->whereMonth('created_at', '<', Carbon::now()->month)
+                    ->whereMonth('updated_at', '<', Carbon::now()->month);
     }
 }
