@@ -103,55 +103,73 @@ class AdminController extends Controller
          ->orderByDesc('low_stock_products')
          ->get();
 
-      // Datos de compras
-      $monthlyPurchases = Purchase::whereMonth('created_at', now()->month)->sum('total_amount');
-      $lastMonthPurchases = Purchase::whereMonth('created_at', now()->subMonth()->month)->sum('total_amount');
-      $purchaseGrowth = $lastMonthPurchases > 0 ?
-         (($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100 : 0;
+      // Compras mensuales (usando total_price en lugar de total)
+      $monthlyPurchases = Purchase::whereMonth('created_at', now()->month)
+         ->sum('total_price');
+
+      // Crecimiento mensual
+      $lastMonthPurchases = Purchase::whereMonth('created_at', now()->subMonth()->month)
+         ->sum('total_price');
+      
+      $purchaseGrowth = $lastMonthPurchases > 0 ? 
+         round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
 
       // Producto más comprado
-      $topProduct = PurchaseDetail::select('product_id')
-         ->selectRaw('SUM(quantity) as total_quantity')
-         ->with('product:id,name')
-         ->groupBy('product_id')
+      $topProduct = DB::table('purchase_details')
+         ->select(
+            'products.name',
+            DB::raw('SUM(purchase_details.quantity) as total_quantity')
+         )
+         ->join('products', 'purchase_details.product_id', '=', 'products.id')
+         ->groupBy('products.id', 'products.name')
          ->orderByDesc('total_quantity')
          ->first();
 
       // Proveedor principal
-      $topSupplier = Purchase::select('supplier_id')
-         ->selectRaw('SUM(total_amount) as total_amount')
-         ->with('supplier:id,name')
-         ->groupBy('supplier_id')
+      $topSupplier = DB::table('purchase_details')
+         ->select(
+            'suppliers.company_name as name',
+            DB::raw('SUM(purchase_details.quantity * purchase_details.product_price) as total_amount')
+         )
+         ->join('suppliers', 'purchase_details.supplier_id', '=', 'suppliers.id')
+         ->whereMonth('purchase_details.created_at', now()->month())
+         ->groupBy('suppliers.id', 'suppliers.company_name')
          ->orderByDesc('total_amount')
-         ->first();
+         ->first() ?? (object)[
+            'name' => 'N/A',
+            'total_amount' => 0
+         ];
 
-      // Productos en stock bajo
-      $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
-
-      // Datos para gráficos
-      $purchaseMonthlyLabels = collect(range(5, 0))->map(function ($months) {
-         return now()->subMonths($months)->format('M Y');
-      });
-
-      $purchaseMonthlyData = collect(range(5, 0))->map(function ($months) {
-         return Purchase::whereMonth('created_at', now()->subMonths($months))
-            ->whereYear('created_at', now()->subMonths($months))
-            ->sum('total_amount');
-      });
+      // Datos para gráficos mensuales
+      $purchaseMonthlyLabels = [];
+      $purchaseMonthlyData = [];
+      
+      for ($i = 5; $i >= 0; $i--) {
+         $date = now()->subMonths($i);
+         $purchaseMonthlyLabels[] = $date->format('M Y');
+         $purchaseMonthlyData[] = Purchase::whereMonth('created_at', $date->month)
+            ->whereYear('created_at', $date->year)
+            ->sum('total_price');
+      }
 
       // Top 5 productos más comprados
-      $topProducts = PurchaseDetail::select('product_id')
-         ->selectRaw('SUM(quantity) as total_quantity')
-         ->with('product:id,name')
-         ->groupBy('product_id')
+      $topProducts = DB::table('purchase_details')
+         ->select(
+            'products.name',
+            DB::raw('SUM(purchase_details.quantity) as total_quantity')
+         )
+         ->join('products', 'purchase_details.product_id', '=', 'products.id')
+         ->groupBy('products.id', 'products.name')
          ->orderByDesc('total_quantity')
-         ->take(5)
+         ->limit(5)
          ->get();
 
-      $topProductsLabels = $topProducts->pluck('product.name');
+      $topProductsLabels = $topProducts->pluck('name');
       $topProductsData = $topProducts->pluck('total_quantity');
 
-      // Agregar las nuevas variables al array de retorno
+      // Productos con stock bajo
+      $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
+
       return view('admin.index', compact(
          'usersCount',
          'rolesCount',

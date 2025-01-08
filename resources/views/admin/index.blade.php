@@ -412,9 +412,9 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary">
-                    <h3 class="card-title">
+                    <h3 class="card-title text-white">
                         <i class="fas fa-chart-line mr-2"></i>
-                        Tendencia de Compras
+                        Tendencia de Compras Mensuales
                     </h3>
                 </div>
                 <div class="card-body">
@@ -427,9 +427,9 @@
         <div class="col-md-4">
             <div class="card shadow">
                 <div class="card-header bg-success">
-                    <h3 class="card-title">
+                    <h3 class="card-title text-white">
                         <i class="fas fa-chart-pie mr-2"></i>
-                        Top Productos por Volumen
+                        Top 5 Productos más Comprados
                     </h3>
                 </div>
                 <div class="card-body">
@@ -441,85 +441,93 @@
 
     @push('js')
         <script>
-            // Gráfico de tendencia de compras
-            new Chart(document.getElementById('purchaseTrendsChart'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($purchaseMonthlyLabels) !!},
-                    datasets: [{
-                        label: 'Monto de Compras',
-                        data: {!! json_encode($purchaseMonthlyData) !!},
-                        borderColor: '#007bff',
-                        tension: 0.3,
-                        fill: true,
-                        backgroundColor: 'rgba(0, 123, 255, 0.1)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        }
+            document.addEventListener('DOMContentLoaded', function() {
+                // Gráfico de tendencia de compras
+                new Chart(document.getElementById('purchaseTrendsChart'), {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($purchaseMonthlyLabels) !!},
+                        datasets: [{
+                            label: 'Total de Compras',
+                            data: {!! json_encode($purchaseMonthlyData) !!},
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Total: $' + context.raw.toLocaleString('es-PE');
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString('es-PE');
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            // Gráfico de productos top
-            new Chart(document.getElementById('topProductsChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($topProductsLabels) !!},
-                    datasets: [{
-                        data: {!! json_encode($topProductsData) !!},
-                        backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6c757d']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            // Gráfico de tendencias de proveedores
-            new Chart(document.getElementById('supplierTrendsChart'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($suppliersPerMonth->pluck('month')) !!},
-                    datasets: [{
-                        label: 'Nuevos Proveedores',
-                        data: {!! json_encode($suppliersPerMonth->pluck('count')) !!},
-                        borderColor: '#28a745',
-                        tension: 0.1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
+                // Gráfico de productos top
+                new Chart(document.getElementById('topProductsChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: {!! json_encode($topProductsLabels) !!},
+                        datasets: [{
+                            data: {!! json_encode($topProductsData) !!},
+                            backgroundColor: [
+                                '#28a745', // Verde
+                                '#17a2b8', // Azul claro
+                                '#ffc107', // Amarillo
+                                '#dc3545', // Rojo
+                                '#6c757d' // Gris
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    boxWidth: 12
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        let value = context.raw || 0;
+                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        let percentage = ((value * 100) / total).toFixed(1);
+                                        return `${label}: ${value} unidades (${percentage}%)`;
+                                    }
+                                }
                             }
                         }
                     }
-                }
+                });
             });
         </script>
     @endpush
