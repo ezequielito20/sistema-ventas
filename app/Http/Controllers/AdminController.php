@@ -14,16 +14,17 @@ use Illuminate\Support\Facades\Auth;
 class AdminController extends Controller
 {
    public function index()
-   {
+   {  
+      $companyId = Auth::user()->company_id;
       // Obtener conteos básicos
-      $usersCount = User::where('company_id', Auth::user()->company_id)->count();
+      $usersCount = User::where('company_id', $companyId)->count();
       $rolesCount = Role::count();
-      $categoriesCount = Category::where('company_id', Auth::user()->company_id)->count();
-      $productsCount = Product::where('company_id', Auth::user()->company_id)->count();
+      $categoriesCount = Category::where('company_id', $companyId)->count();
+      $productsCount = Product::where('company_id', $companyId)->count();
 
       // Usuarios por rol
-      $usersByRole = Role::withCount(['users' => function ($query) {
-         $query->where('company_id', Auth::user()->company_id);
+      $usersByRole = Role::withCount(['users' => function ($query) use ($companyId) {
+         $query->where('company_id', $companyId);
       }])->get()->map(function ($role) {
          return [
             'name' => ucfirst($role->name),
@@ -32,7 +33,7 @@ class AdminController extends Controller
       });
 
       // Usuarios por mes (últimos 6 meses)
-      $usersPerMonth = User::where('company_id', Auth::user()->company_id)
+      $usersPerMonth = User::where('company_id', $companyId)
          ->select(DB::raw('DATE_FORMAT(created_at, "%M %Y") as month'), DB::raw('count(*) as count'))
          ->whereDate('created_at', '>=', now()->subMonths(6))
          ->groupBy('month')
@@ -40,7 +41,7 @@ class AdminController extends Controller
          ->get();
 
       // Productos por categoría
-      $productsByCategory = Category::where('company_id', Auth::user()->company_id)
+      $productsByCategory = Category::where('company_id', $companyId)
          ->withCount('products')
          ->get()
          ->map(function ($category) {
@@ -51,14 +52,14 @@ class AdminController extends Controller
          });
       // Obtener conteo de proveedores
       $suppliersCount = DB::table('suppliers')
-         ->where('company_id', Auth::user()->company_id)
+         ->where('company_id', $companyId)
          ->count();
 
       // Proveedores más activos (con más productos asociados)
       $topSuppliers = DB::table('suppliers')
          ->select('suppliers.company_name', DB::raw('COUNT(products.id) as products_count'))
          ->leftJoin('products', 'products.supplier_id', '=', 'suppliers.id')
-         ->where('suppliers.company_id', Auth::user()->company_id)
+         ->where('suppliers.company_id', $companyId)
          ->groupBy('suppliers.id', 'suppliers.company_name')
          ->orderByDesc('products_count')
          ->limit(5)
@@ -72,7 +73,7 @@ class AdminController extends Controller
             DB::raw('COUNT(products.id) as products_count')
          )
          ->leftJoin('products', 'suppliers.id', '=', 'products.supplier_id')
-         ->where('suppliers.company_id', Auth::user()->company_id)
+         ->where('suppliers.company_id', $companyId)
          ->groupBy('suppliers.id', 'suppliers.company_name')
          ->orderByDesc('total_value')
          ->get();
@@ -83,7 +84,7 @@ class AdminController extends Controller
             DB::raw('DATE_FORMAT(created_at, "%M %Y") as month'),
             DB::raw('count(*) as count')
          )
-         ->where('company_id', Auth::user()->company_id)
+         ->where('company_id', $companyId)
          ->whereDate('created_at', '>=', now()->subMonths(6))
          ->groupBy('month')
          ->orderBy('created_at')
@@ -96,7 +97,7 @@ class AdminController extends Controller
             DB::raw('COUNT(DISTINCT products.id) as low_stock_products')
          )
          ->join('products', 'suppliers.id', '=', 'products.supplier_id')
-         ->where('suppliers.company_id', Auth::user()->company_id)
+         ->where('suppliers.company_id', $companyId)
          ->whereRaw('products.stock <= products.min_stock')
          ->groupBy('suppliers.id', 'suppliers.company_name')
          ->having('low_stock_products', '>', 0)
@@ -125,18 +126,24 @@ class AdminController extends Controller
          ->orderByDesc('total_quantity')
          ->first();
 
-      // Proveedor principal
+      // Proveedor principal (basado en cantidad de productos comprados)
       $topSupplier = DB::table('purchase_details')
          ->select(
             'suppliers.company_name as name',
-            DB::raw('SUM(purchase_details.quantity * purchase_details.product_price) as total_amount')
+            DB::raw('SUM(purchase_details.quantity) as total_quantity'),
+            DB::raw('SUM(purchase_details.quantity * products.purchase_price) as total_amount')
          )
          ->join('suppliers', 'purchase_details.supplier_id', '=', 'suppliers.id')
-         ->whereMonth('purchase_details.created_at', now()->month())
+         ->join('products', 'purchase_details.product_id', '=', 'products.id')
+         ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+         ->where('purchases.company_id', $companyId)
+         ->whereMonth('purchases.purchase_date', now()->month)
+         ->whereYear('purchases.purchase_date', now()->year)
          ->groupBy('suppliers.id', 'suppliers.company_name')
-         ->orderByDesc('total_amount')
+         ->orderByDesc('total_quantity')
          ->first() ?? (object)[
             'name' => 'N/A',
+            'total_quantity' => 0,
             'total_amount' => 0
          ];
 
@@ -157,15 +164,21 @@ class AdminController extends Controller
          $purchaseMonthlyData[] = $monthlyTotal ?? 0;
       }
 
-      // Top 5 productos más comprados (con precio unitario)
-      $topProducts = DB::table('purchase_details')
+      // Top 5 productos más comprados
+      $topProducts = DB::table('purchase_details as pd')
          ->select(
-            'products.name',
-            DB::raw('SUM(purchase_details.quantity) as total_quantity'),
-            DB::raw('AVG(purchase_details.product_price) as unit_price')
+            'p.name',
+            'p.code',
+            's.company_name as supplier_name',
+            DB::raw('SUM(pd.quantity) as total_quantity'),
+            DB::raw('p.purchase_price as unit_price'),
+            DB::raw('SUM(pd.quantity * p.purchase_price) as total_invested')
          )
-         ->join('products', 'purchase_details.product_id', '=', 'products.id')
-         ->groupBy('products.id', 'products.name')
+         ->join('products as p', 'pd.product_id', '=', 'p.id')
+         ->join('suppliers as s', 'pd.supplier_id', '=', 's.id')
+         ->join('purchases as pu', 'pd.purchase_id', '=', 'pu.id')
+         ->where('pu.company_id', $companyId)
+         ->groupBy('p.id', 'p.name', 'p.code', 's.company_name', 'p.purchase_price')
          ->orderByDesc('total_quantity')
          ->limit(5)
          ->get();
@@ -177,39 +190,26 @@ class AdminController extends Controller
       
       // Total de clientes y crecimiento
       $totalCustomers = DB::table('customers')
-         ->where('company_id', Auth::user()->company_id)
+         ->where('company_id', $companyId)
          ->count();
 
       $lastMonthCustomers = DB::table('customers')
-         ->where('company_id', Auth::user()->company_id)
+         ->where('company_id', $companyId)
          ->whereMonth('created_at', now()->subMonth()->month)
          ->count();
 
+      // Calcula el porcentaje de crecimiento de clientes comparando el total actual con el mes anterior
+      // Si no hay clientes del mes anterior, retorna 0 para evitar división por cero
+      // La fórmula es: ((total_actual - total_mes_anterior) / total_mes_anterior) * 100
       $customerGrowth = $lastMonthCustomers > 0 ? 
          round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1) : 0;
 
       // Nuevos clientes este mes
       $newCustomers = DB::table('customers')
-         ->where('company_id', Auth::user()->company_id)
+         ->where('company_id', $companyId)
          ->whereMonth('created_at', now()->month)
          ->count();
 
-      // Top 5 clientes por compras
-      $topCustomers = DB::table('customers')
-         ->select(
-            'customers.name',
-            'customers.nit_number',
-            'customers.phone',
-            'customers.email',
-            DB::raw('COUNT(purchases.id) as total_purchases'),
-            DB::raw('SUM(purchases.total_price) as total_spent')
-         )
-         ->leftJoin('purchases', 'customers.id', '=', 'purchases.customer_id')
-         ->where('customers.company_id', Auth::user()->company_id)
-         ->groupBy('customers.id', 'customers.name', 'customers.nit_number', 'customers.phone', 'customers.email')
-         ->orderByDesc('total_spent')
-         ->limit(5)
-         ->get();
 
       // Actividad mensual de clientes (últimos 6 meses)
       $monthlyActivity = [];
@@ -220,7 +220,7 @@ class AdminController extends Controller
          $monthlyLabels[] = $date->format('M Y');
          
          $monthlyActivity[] = DB::table('customers')
-            ->where('company_id', Auth::user()->company_id)
+            ->where('company_id', $companyId)
             ->whereMonth('created_at', $date->month)
             ->whereYear('created_at', $date->year)
             ->count();
@@ -233,91 +233,20 @@ class AdminController extends Controller
          $date = now()->subDays($i);
          $activityLabels[] = $date->format('d M');
          $activityData[] = DB::table('purchases')
-            ->where('company_id', Auth::user()->company_id)
+            ->where('company_id', $companyId)
             ->whereDate('created_at', $date)
             ->count();
       }
 
+      
 
-      // Frecuencia de compras
-      $frequencyData = DB::table('purchases')
-         ->where('purchases.company_id', Auth::user()->company_id)
-         ->select(DB::raw('COUNT(*) as purchase_count'))
-         ->groupBy('customer_id')
-         ->get()
-         ->groupBy('purchase_count')
-         ->map->count()
-         ->values()
-         ->toArray();
-
-      $frequencyLabels = ['1 compra', '2-3 compras', '4-6 compras', '7+ compras'];
-
-      // Segmentación de clientes
-      $segmentationData = [
-         DB::table('customers')
-            ->where('company_id', Auth::user()->company_id)
-            ->whereExists(function ($query) {
-               $query->select(DB::raw(1))
-                  ->from('purchases')
-                  ->whereColumn('purchases.customer_id', 'customers.id')
-                  ->havingRaw('COUNT(*) >= 7');
-            })->count(),
-         DB::table('customers')
-            ->where('company_id', Auth::user()->company_id)
-            ->whereExists(function ($query) {
-               $query->select(DB::raw(1))
-                  ->from('purchases')
-                  ->whereColumn('purchases.customer_id', 'customers.id')
-                  ->havingRaw('COUNT(*) BETWEEN 4 AND 6');
-            })->count(),
-         DB::table('customers')
-            ->where('company_id', Auth::user()->company_id)
-            ->whereExists(function ($query) {
-               $query->select(DB::raw(1))
-                  ->from('purchases')
-                  ->whereColumn('purchases.customer_id', 'customers.id')
-                  ->havingRaw('COUNT(*) BETWEEN 2 AND 3');
-            })->count(),
-         DB::table('customers')
-            ->where('company_id', Auth::user()->company_id)
-            ->whereExists(function ($query) {
-               $query->select(DB::raw(1))
-                  ->from('purchases')
-                  ->whereColumn('purchases.customer_id', 'customers.id')
-                  ->havingRaw('COUNT(*) = 1');
-            })->count()
-      ];
-
-      $segmentationLabels = ['VIP', 'Frecuentes', 'Ocasionales', 'Nuevos'];
+      
 
      
 
-      $averagePurchaseInterval = DB::table('purchases')
-         ->where('company_id', Auth::user()->company_id)
-         ->select('customer_id')
-         ->selectRaw('DATEDIFF(MAX(purchase_date), MIN(purchase_date)) as days_between')
-         ->groupBy('customer_id')
-         ->havingRaw('COUNT(*) > 1')
-         ->get()
-         ->avg('days_between') ?? 0;
+      
 
-      $churnRate = DB::table('customers')
-         ->where('company_id', Auth::user()->company_id)
-         ->whereNotExists(function ($query) {
-            $query->select(DB::raw(1))
-               ->from('purchases')
-               ->whereColumn('purchases.customer_id', 'customers.id')
-               ->where('purchases.created_at', '>=', now()->subMonths(3));
-         })
-         ->whereExists(function ($query) {
-            $query->select(DB::raw(1))
-               ->from('purchases')
-               ->whereColumn('purchases.customer_id', 'customers.id');
-         })
-         ->count();
-
-      $churnRate = $totalCustomers > 0 ? 
-         round(($churnRate / $totalCustomers) * 100, 1) : 0;
+      
 
       // Agregar las nuevas variables al compact existente
       return view('admin.index', compact(
@@ -344,17 +273,11 @@ class AdminController extends Controller
          'totalCustomers',
          'customerGrowth',
          'newCustomers',
-         'topCustomers',
-         'averagePurchaseInterval',
-         'churnRate',
          'monthlyLabels',
          'monthlyActivity',
          'activityData',
          'activityLabels',
-         'frequencyData',
-         'frequencyLabels',
-         'segmentationData',
-         'segmentationLabels'
+
       ));
    }
 }

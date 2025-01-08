@@ -477,7 +477,7 @@
 
         {{-- Widget de Total Clientes --}}
         <div class="col-lg-4 col-6">
-            <div class="small-box bg-gradient-primary shadow">
+            <div class="small-box bg-gradient-primary shadow" style="min-height: 180px;">
                 <div class="inner">
                     <h3>{{ $totalCustomers }}</h3>
                     <p>Total Clientes</p>
@@ -498,10 +498,12 @@
 
         {{-- Widget de Nuevos Clientes --}}
         <div class="col-lg-4 col-6">
-            <div class="small-box bg-gradient-success shadow">
+            <div class="small-box bg-gradient-success shadow" style="min-height: 180px;">
                 <div class="inner">
                     <h3>{{ $newCustomers }}</h3>
                     <p>Nuevos Clientes este Mes</p>
+                    <br>
+                    <span class="text-sm">&nbsp;</span>
                 </div>
                 <div class="icon">
                     <i class="fas fa-user-plus"></i>
@@ -513,165 +515,8 @@
         </div>
     </div>
 
-    {{-- Top Clientes y Gráfico de Actividad --}}
-    <div class="row mt-4">
-        {{-- Top 5 Clientes --}}
-        <div class="col-md-7">
-            <div class="card shadow">
-                <div class="card-header bg-primary">
-                    <h3 class="card-title">
-                        <i class="fas fa-crown mr-2"></i>
-                        Top 5 Clientes
-                    </h3>
-                </div>
-                <div class="card-body table-responsive p-0">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>NIT</th>
-                                <th>Teléfono</th>
-                                <th>Email</th>
-                                <th>Total Compras</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($topCustomers as $customer)
-                                <tr>
-                                    <td>{{ $customer->name }}</td>
-                                    <td>{{ $customer->nit_number }}</td>
-                                    <td>{{ $customer->phone }}</td>
-                                    <td>{{ $customer->email }}</td>
-                                    <td>
-                                        <span class="badge badge-primary">
-                                            {{ $customer->total_purchases }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    
 
-        {{-- Gráfico de Actividad Mensual --}}
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-success">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-line mr-2"></i>
-                        Nuevos Clientes por Mes
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="customerActivityChart" style="min-height: 250px;"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Segunda Fila de Gráficos --}}
-    <div class="row mt-4">
-        {{-- Distribución de Clientes por Región --}}
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header bg-info">
-                    <h3 class="card-title">
-                        <i class="fas fa-map-marker-alt mr-2"></i>
-                        Distribución Geográfica
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="customerRegionChart" style="min-height: 250px;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        {{-- Frecuencia de Compras --}}
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header bg-warning">
-                    <h3 class="card-title">
-                        <i class="fas fa-clock mr-2"></i>
-                        Frecuencia de Compras
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="purchaseFrequencyChart" style="min-height: 250px;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        {{-- Segmentación de Clientes --}}
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header bg-purple">
-                    <h3 class="card-title">
-                        <i class="fas fa-layer-group mr-2"></i>
-                        Segmentación de Clientes
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="customerSegmentationChart" style="min-height: 250px;"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Últimas Métricas --}}
-    {{-- <div class="row mt-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-dark">
-                    <h3 class="card-title">
-                        <i class="fas fa-chart-pie mr-2"></i>
-                        Métricas Clave de Clientes
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 text-center">
-                            <div class="info-box bg-gradient-primary">
-                                <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">LTV Promedio</span>
-                                    <span class="info-box-number">${{ number_format($averageLifetimeValue, 2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-center">
-                            <div class="info-box bg-gradient-success">
-                                <span class="info-box-icon"><i class="fas fa-sync"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Tasa de Recompra</span>
-                                    <span class="info-box-number">{{ $repurchaseRate }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-center">
-                            <div class="info-box bg-gradient-warning">
-                                <span class="info-box-icon"><i class="fas fa-user-clock"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Tiempo Promedio entre Compras</span>
-                                    <span class="info-box-number">{{ $averagePurchaseInterval }} días</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 text-center">
-                            <div class="info-box bg-gradient-danger">
-                                <span class="info-box-icon"><i class="fas fa-user-minus"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Tasa de Deserción</span>
-                                    <span class="info-box-number">{{ $churnRate }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> --}}
 
 @stop
 
@@ -863,59 +708,10 @@
                 }
             });
 
-            // Gráfico de Distribución por Región
+
             
 
-            // Gráfico de Frecuencia de Compras
-            new Chart(document.getElementById('purchaseFrequencyChart'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($frequencyLabels) !!},
-                    datasets: [{
-                        label: 'Clientes',
-                        data: {!! json_encode($frequencyData) !!},
-                        backgroundColor: '#ffc107'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Gráfico de Segmentación de Clientes
-            new Chart(document.getElementById('customerSegmentationChart'), {
-                type: 'pie',
-                data: {
-                    labels: {!! json_encode($segmentationLabels) !!},
-                    datasets: [{
-                        data: {!! json_encode($segmentationData) !!},
-                        backgroundColor: [
-                            '#6f42c1', '#e83e8c', '#fd7e14', '#20c997'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
+            
         });
     </script>
 @stop
