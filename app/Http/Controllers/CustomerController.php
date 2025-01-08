@@ -56,7 +56,7 @@ class CustomerController extends Controller
          
          return redirect()->back()
             ->with('message', 'Hubo un problema al cargar los clientes')
-            ->with('icon', 'error');
+            ->with('icons', 'error');
       }
    }
 
@@ -163,32 +163,200 @@ class CustomerController extends Controller
    /**
     * Display the specified resource.
     */
-   public function show(Customer $customer)
+   public function show($id)
    {
-      //
+      try {
+         $customer = Customer::findOrFail($id);
+
+         // Obtener estadísticas del cliente
+         $stats = [
+            'total_purchases' => 0, // Implementar cuando exista el modelo Purchase
+            'total_spent' => 0,     // Implementar cuando exista el modelo Purchase
+            'purchase_history' => [
+               'labels' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+               'values' => [0, 0, 0, 0, 0, 0] // Implementar cuando exista el modelo Purchase
+            ]
+         ];
+
+         return response()->json([
+            'success' => true,
+            'customer' => [
+               'name' => $customer->name,
+               'email' => $customer->email,
+               'phone' => $customer->phone,
+               'nit_number' => $customer->nit_number,
+               'created_at' => $customer->created_at->format('d/m/Y H:i'),
+               'updated_at' => $customer->updated_at->format('d/m/Y H:i'),
+               'stats' => $stats
+            ]
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al mostrar cliente: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id
+         ]);
+         
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar los datos del cliente'
+         ], 500);
+      }
    }
 
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit(Customer $customer)
+   public function edit($id)
    {
-      //
+      try {
+         // Buscar el cliente
+         $customer = Customer::findOrFail($id);
+
+         // Retornar vista con datos del cliente
+         return view('admin.customers.edit', compact('customer'));
+
+      } catch (\Exception $e) {
+         Log::error('Error en CustomerController@edit: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id
+         ]);
+
+         return redirect()->route('admin.customers.index')
+            ->with('message', 'No se pudo cargar el formulario de edición')
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Update the specified resource in storage.
     */
-   public function update(UpdateCustomerRequest $request, Customer $customer)
+   public function update(Request $request, $id)
    {
-      //
+      try {
+         // Buscar el cliente
+         $customer = Customer::findOrFail($id);
+
+         // Validación personalizada
+         $validated = $request->validate([
+            'name' => [
+               'required', 
+               'string', 
+               'max:255', 
+               'regex:/^[\pL\s\-]+$/u'
+            ],
+            'nit_number' => [
+               'required',
+               'string',
+               'max:20',
+               // 'regex:/^\d{3}-\d{6}-\d{3}-\d{1}$/',
+               'unique:customers,nit_number,' . $id,
+            ],
+            'phone' => [
+               'required',
+               'string',
+               'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
+               'unique:customers,phone,' . $id,
+            ],
+            'email' => [
+               'required',
+               'email',
+               'max:255',
+               'unique:customers,email,' . $id,
+            ],
+         ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.regex' => 'El nombre solo debe contener letras y espacios.',
+            'nit_number.required' => 'El NIT es obligatorio.',
+            'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
+            'nit_number.unique' => 'Este NIT ya está registrado.',
+            'phone.required' => 'El teléfono es obligatorio.',
+            'phone.regex' => 'El formato del teléfono debe ser (123) 456-7890.',
+            'phone.unique' => 'Este teléfono ya está registrado.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingrese un correo electrónico válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.'
+         ]);
+
+         // Actualizar el cliente
+         $customer->update($validated);
+
+         // Log de la actualización
+         Log::info('Cliente actualizado exitosamente', [
+            'user_id' => Auth::id(),
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name
+         ]);
+
+         // Redireccionar con mensaje de éxito
+         return redirect()->route('admin.customers.index')
+            ->with('message', '¡Cliente actualizado exitosamente!')
+            ->with('icons', 'success');
+
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('message', 'Por favor, corrija los errores en el formulario.')
+            ->with('icons', 'error');
+
+      } catch (\Exception $e) {
+         Log::error('Error al actualizar cliente: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id,
+            'data' => $request->all()
+         ]);
+
+         return redirect()->back()
+            ->withInput()
+            ->with('message', 'Hubo un problema al actualizar el cliente. Por favor, inténtelo de nuevo.')
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Remove the specified resource from storage.
     */
-   public function destroy(Customer $customer)
+   public function destroy($id)
    {
-      //
+      try {
+         // Buscar el cliente
+         $customer = Customer::findOrFail($id);
+
+         // Guardar información para el log antes de eliminar
+         $customerInfo = [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email
+         ];
+
+         // Eliminar el cliente
+         $customer->delete();
+
+         // Log de la eliminación
+         Log::info('Cliente eliminado exitosamente', [
+            'user_id' => Auth::id(),
+            'customer_info' => $customerInfo
+         ]);
+
+         // Retornar respuesta exitosa
+         return response()->json([
+            'success' => true,
+            'message' => '¡Cliente eliminado exitosamente!',
+            'icons' => 'success'
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al eliminar cliente: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id
+         ]);
+
+         return response()->json([
+            'success' => false,
+            'message' => 'Hubo un problema al eliminar el cliente. Por favor, inténtelo de nuevo.',
+            'icons' => 'error'
+         ], 500);
+      }
    }
 }

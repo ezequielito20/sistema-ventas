@@ -358,42 +358,38 @@
     </style>
 @stop
 
-@section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@push('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable con exportación
+            // Inicializar DataTable
             const table = $('#customersTable').DataTable({
                 responsive: true,
-                dom: 'Bfrtip',
-                buttons: [{
-                        extend: 'excel',
-                        text: '<i class="fas fa-file-excel mr-2"></i>Excel',
-                        className: 'btn btn-success btn-sm',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4]
-                        }
-                    },
-                    {
-                        extend: 'pdf',
-                        text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
-                        className: 'btn btn-danger btn-sm',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4]
-                        }
-                    }
-                ],
+                autoWidth: false,
                 language: {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/Spanish.json"
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 }
+            });
+
+            // Animación de contadores
+            $('.counter').each(function() {
+                const $this = $(this);
+                const countTo = parseInt($this.text());
+
+                $({
+                    countNum: 0
+                }).animate({
+                    countNum: countTo
+                }, {
+                    duration: 1000,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum));
+                    },
+                    complete: function() {
+                        $this.text(this.countNum);
+                    }
+                });
             });
 
             // Filtros de estado
@@ -402,6 +398,7 @@
                 $(this).addClass('active');
 
                 const filter = $(this).data('filter');
+
                 if (filter === 'all') {
                     table.column(4).search('').draw();
                 } else {
@@ -479,20 +476,37 @@
                                     Swal.fire({
                                         title: '¡Eliminado!',
                                         text: response.message,
-                                        icon: 'success'
+                                        icon: response.icon
                                     }).then(() => {
                                         location.reload();
                                     });
                                 } else {
-                                    Swal.fire('Error', response.message, 'error');
+                                    Swal.fire('Error', response.message, response.icon);
                                 }
                             },
-                            error: function(xhr) {
+                            error: function() {
                                 Swal.fire('Error', 'No se pudo eliminar el cliente',
                                     'error');
                             }
                         });
                     }
+                });
+            });
+
+            // Exportar clientes
+            $('#exportCustomers').click(function() {
+                Swal.fire({
+                    title: 'Exportar Clientes',
+                    text: 'Seleccione el formato de exportación',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Excel',
+                    cancelButtonText: 'PDF'
+                }).then((result) => {
+                    const format = result.isConfirmed ? 'excel' : 'pdf';
+                    window.location.href = `/customers/export/${format}`;
                 });
             });
 
@@ -538,4 +552,4 @@
             }
         });
     </script>
-@stop
+@endpush
