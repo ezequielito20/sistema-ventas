@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
@@ -98,3 +99,11 @@ Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name(
 Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware('auth');
 Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware('auth');
 
+// Sales
+Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware('auth');
+Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware('auth');
+Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware('auth');
+Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sales.edit')->middleware('auth');
+Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware('auth');
+Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware('auth');
+Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware('auth');

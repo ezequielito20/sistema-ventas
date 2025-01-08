@@ -431,6 +431,19 @@ return [
          ],
       ],
       [
+         'text' => 'Ventas',
+         'icon' => 'fas fa-fw fa-cash-register',
+         'classes' => 'bg-blue text-white',
+         'submenu' => [
+            [
+               'text' => 'Lista de Ventas', 
+               'url' => 'sales',
+               'icon' => 'fas fa-fw fa-list',
+               'classes' => 'bg-white text-black'
+            ],
+         ],
+      ],
+      [
          'text' => 'Clientes',
          'icon' => 'fas fa-fw fa-users',
          'classes' => 'bg-blue text-white', 
