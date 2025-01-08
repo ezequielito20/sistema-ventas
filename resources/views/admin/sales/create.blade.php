@@ -191,49 +191,47 @@
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table id="productsTable" class="table table-striped table-hover">
+                        <table id="productsTable" class="table table-striped table-hover w-100 nowrap">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
-                                    <th>Acción</th>◘
-                                    <th>Imagen</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Stock</th>
-                                    <th>Precio</th>
-                                    <th>Estado</th>
+                                    <th style="min-width: 120px">Código</th>
+                                    <th style="min-width: 80px">Acción</th>
+                                    <th style="min-width: 80px">Imagen</th>
+                                    <th style="min-width: 250px">Nombre</th>
+                                    <th style="min-width: 150px">Categoría</th>
+                                    <th style="min-width: 100px">Stock</th>
+                                    <th style="min-width: 120px">Precio</th>
+                                    <th style="min-width: 100px">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($products as $product)
                                     <tr>
-                                        <td>{{ $product->code }}</td>
-                                        <td>
+                                        <td class="align-middle">{{ $product->code }}</td>
+                                        <td class="align-middle text-center">
                                             <button type="button" class="btn btn-primary btn-sm select-product"
                                                 data-code="{{ $product->code }}"
                                                 {{ $product->stock <= 0 ? 'disabled' : '' }}>
                                                 <i class="fas fa-plus-circle"></i>
                                             </button>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <img src="{{ $product->image_url }}" alt="{{ $product->name }}"
                                                 class="img-thumbnail" width="50">
                                         </td>
-                                        <td>{{ $product->name }}</td>
-                                        <td>{{ $product->category->name }}</td>
-                                        <td class="text-center">
+                                        <td class="align-middle">{{ $product->name }}</td>
+                                        <td class="align-middle">{{ $product->category->name }}</td>
+                                        <td class="align-middle text-center">
                                             <span class="badge badge-{{ $product->stock_status_class }}">
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td>${{ number_format($product->sale_price, 2) }}</td>
+                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}</td>
                                         <td class="align-middle text-center">
-                                            <span
-                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
-                                        
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -266,6 +264,37 @@
             content: " *";
             color: red;
         }
+
+        /* Estilos para hacer la tabla responsive */
+        .modal-xl {
+            max-width: 95% !important;
+        }
+
+        .table-responsive {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        #productsTable {
+            width: 100% !important;
+        }
+
+        .dataTables_wrapper {
+            width: 100%;
+        }
+
+        /* Ajustes para pantallas pequeñas */
+        @media screen and (max-width: 768px) {
+            .modal-body {
+                padding: 0.5rem;
+            }
+            
+            #productsTable td, 
+            #productsTable th {
+                white-space: nowrap;
+            }
+        }
     </style>
 @stop
 
@@ -285,9 +314,24 @@
             // Inicializar DataTable
             $('#productsTable').DataTable({
                 responsive: true,
+                autoWidth: false,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-                }
+                },
+                columnDefs: [
+                    {
+                        responsivePriority: 1,
+                        targets: [0, 1, 3]  // Código, Acción y Nombre siempre visibles
+                    },
+                    {
+                        responsivePriority: 2,
+                        targets: [5, 6]     // Stock y Precio siguiente prioridad
+                    },
+                    {
+                        responsivePriority: 3,
+                        targets: '_all'     // El resto menos prioritario
+                    }
+                ]
             });
 
             // Función para agregar producto a la tabla
