@@ -374,6 +374,17 @@
                 }]
             });
 
+            // Al cargar la página, inicializamos los productos existentes
+            $('#saleItems tr').each(function() {
+                const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                const price = parseFloat($(this).find('.price-input').val()) || 0;
+                const subtotal = quantity * price;
+                $(this).find('.subtotal').text(subtotal.toFixed(2));
+            });
+            
+            // Actualizar el total inicial
+            updateTotal();
+
             // Función para agregar producto a la tabla
             function addProductToTable(product, isExisting = false) {
                 // Verificar si el producto ya está en la tabla
