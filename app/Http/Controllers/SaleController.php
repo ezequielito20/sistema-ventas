@@ -282,4 +282,51 @@ class SaleController extends Controller
          ], 500);
       }
    }
+
+   /**
+    * Obtiene los detalles de una venta por su ID para el modal
+    */
+   public function getDetails($id)
+   {
+      try {
+         $saleDetails = SaleDetail::with(['product.category', 'sale.customer'])
+            ->where('sale_id', $id)
+            ->get();
+
+         $sale = Sale::with('customer')->find($id);
+
+         $details = $saleDetails->map(function($detail) {
+            return [
+               'quantity' => $detail->quantity,
+               'product_price' => $detail->product_price,
+               'product' => [
+                  'code' => $detail->product->code,
+                  'name' => $detail->product->name,
+                  'category' => $detail->product->category->name ?? 'N/A',
+                  'image_url' => $detail->product->image_url,
+               ],
+               'subtotal' => $detail->quantity * $detail->product_price
+            ];
+         });
+
+         return response()->json([
+            'success' => true,
+            'sale' => [
+               'id' => $sale->id,
+               'date' => $sale->sale_date->format('d/m/Y'),
+               'customer_name' => $sale->customer->name,
+               'customer_email' => $sale->customer->email,
+               'total_price' => $sale->total_price
+            ],
+            'details' => $details
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error en getDetails de ventas: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar los detalles de la venta'
+         ], 500);
+      }
+   }
 }
