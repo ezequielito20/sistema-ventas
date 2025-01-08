@@ -82,7 +82,7 @@ class PurchaseController extends Controller
     */
    public function store(Request $request)
    {
-      dd($request->all());
+      // dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
@@ -91,7 +91,7 @@ class PurchaseController extends Controller
             'total_price' => 'required|numeric|min:0',
          ]);
 
-         $payment_receipt = str_replace('-', '', $validated['purchase_date']) . count($request->items) . str_pad((int)$validated['total_amount'], '0', STR_PAD_LEFT);
+         $payment_receipt = str_replace('-', '', $validated['purchase_date']) . count($request->items) . str_pad((int)$validated['total_price'], '0', STR_PAD_LEFT);
          // dd($payment_receipt);
 
          DB::beginTransaction();
@@ -115,7 +115,6 @@ class PurchaseController extends Controller
             // Crear el detalle de la compra
             PurchaseDetail::create([
                'quantity' => $item['quantity'],
-               'product_price' => $item['price'],
                'purchase_id' => $purchase->id,
                'supplier_id' => $product->supplier_id,
                'product_id' => $product->id,
@@ -183,8 +182,8 @@ class PurchaseController extends Controller
                'code' => $detail->product->code,
                'name' => $detail->product->name,
                'quantity' => $detail->quantity,
-               'price' => $detail->product_price,
-               'purchase_price' => $detail->product_price,
+               'price' => $detail->product->purchase_price,
+               'purchase_price' => $detail->product->purchase_price,
                'supplier_id' => $detail->supplier_id
             ];
          });
@@ -207,6 +206,7 @@ class PurchaseController extends Controller
     */
    public function update(Request $request, $id)
    {
+      // dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
@@ -214,7 +214,7 @@ class PurchaseController extends Controller
             'items' => 'required|array|min:1',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
-            'total_amount' => 'required|numeric|min:0',
+            'total_price' => 'required|numeric|min:0',
          ]);
 
          DB::beginTransaction();
@@ -231,14 +231,14 @@ class PurchaseController extends Controller
                return [
                   'product_id' => $detail->product_id,
                   'quantity' => $detail->quantity,
-                  'price' => $detail->product_price
+                  'price' => $detail->product->purchase_price,
                ];
             })->toArray()
          ];
 
          // Actualizar fecha y total
          $purchase->purchase_date = $validated['purchase_date'];
-         $purchase->total_price = $validated['total_amount'];
+         $purchase->total_price = $validated['total_price'];
          $purchase->save();
 
          // Obtener los IDs de los detalles actuales
@@ -264,7 +264,6 @@ class PurchaseController extends Controller
                // Actualizar detalle existente
                $detail->update([
                   'quantity' => $item['quantity'],
-                  'product_price' => $item['price']
                ]);
 
                $newDetailIds[] = $detail->id;
@@ -272,7 +271,6 @@ class PurchaseController extends Controller
                // Crear nuevo detalle
                $detail = PurchaseDetail::create([
                   'quantity' => $item['quantity'],
-                  'product_price' => $item['price'],
                   'purchase_id' => $purchase->id,
                   'supplier_id' => $product->supplier_id,
                   'product_id' => $product->id,
@@ -326,11 +324,10 @@ class PurchaseController extends Controller
             'request_data' => $request->all()
          ]);
 
-         return response()->json([
-            'success' => false,
-            'message' => 'Error al actualizar la compra: ' . $e->getMessage(),
-            'icons' => 'error'
-         ], 500);
+         return redirect()->back()
+            ->withInput()
+            ->with('message', 'Error al actualizar la compra: ' . $e->getMessage())
+            ->with('icons', 'error');
       }
    }
 
@@ -430,8 +427,8 @@ class PurchaseController extends Controller
                'id' => $product->id,
                'code' => $product->code,
                'name' => $product->name,
-               'price' => $product->sale_price,
-               'purchase_price' => $product->sale_price,
+               'price' => $product->purchase_price,
+               'purchase_price' => $product->purchase_price,
                'stock' => $product->stock
             ]
          ]);
@@ -464,8 +461,8 @@ class PurchaseController extends Controller
                'id' => $product->id,
                'code' => $product->code,
                'name' => $product->name,
-               'price' => $product->sale_price,
-               'purchase_price' => $product->sale_price,
+               'price' => $product->purchase_price,
+               'purchase_price' => $product->purchase_price,
                'stock' => $product->stock
             ]
          ]);

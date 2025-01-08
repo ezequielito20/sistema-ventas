@@ -157,7 +157,7 @@
                                     <th style="min-width: 300px">Nombre</th>
                                     <th style="min-width: 150px">Categoría</th>
                                     <th style="min-width: 100px">Stock</th>
-                                    <th style="min-width: 120px">Precio Venta</th>
+                                    <th style="min-width: 120px">Precio Compra </th>
                                     <th style="min-width: 100px">Estado</th>
                                 </tr>
                             </thead>
@@ -185,7 +185,7 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
+                                        <td class="align-middle text-right">${{ number_format($product->purchase_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
