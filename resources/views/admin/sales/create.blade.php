@@ -27,7 +27,7 @@
                     <div class="card-body">
                         <div class="row">
                             <!-- Código de Producto -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="product_code" class="required">Código de Producto</label>
                                     <div class="input-group">
@@ -50,7 +50,7 @@
                             </div>
 
                             <!-- Cliente -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="customer_id" class="required">Cliente</label>
                                     <div class="input-group">
@@ -69,17 +69,15 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="input-group-append">
                                             <a href="{{ route('admin.customers.create') }}" class="btn btn-success">
                                                 <i class="fas fa-plus"></i>
                                             </a>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Fecha de venta -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="sale_date" class="required">Fecha de Venta</label>
                                     <div class="input-group">
