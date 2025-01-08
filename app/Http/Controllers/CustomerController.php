@@ -129,6 +129,7 @@ class CustomerController extends Controller
             'nit_number' => $request->nit_number,
             'phone' => $request->phone,
             'email' => strtolower($request->email),
+            'company_id' => Auth::user()->company_id,
             'created_at' => now(),
             'updated_at' => now()
          ];

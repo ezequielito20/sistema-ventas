@@ -96,7 +96,7 @@
                             </div>
 
                             <!-- Tipo de pago -->
-                            <div class="col-md-3">
+                            {{-- <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="payment_type" class="required">Tipo de Pago</label>
                                     <div class="input-group">
@@ -113,7 +113,7 @@
                                         </select>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
 
                         <!-- Tabla de productos -->
@@ -197,19 +197,26 @@
                             <thead>
                                 <tr>
                                     <th>Código</th>
+                                    <th>Acción</th>◘
                                     <th>Imagen</th>
                                     <th>Nombre</th>
                                     <th>Categoría</th>
                                     <th>Stock</th>
                                     <th>Precio</th>
                                     <th>Estado</th>
-                                    <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($products as $product)
                                     <tr>
                                         <td>{{ $product->code }}</td>
+                                        <td>
+                                            <button type="button" class="btn btn-primary btn-sm select-product"
+                                                data-code="{{ $product->code }}"
+                                                {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                                <i class="fas fa-plus-circle"></i>
+                                            </button>
+                                        </td>
                                         <td>
                                             <img src="{{ $product->image_url }}" alt="{{ $product->name }}"
                                                 class="img-thumbnail" width="50">
@@ -222,18 +229,13 @@
                                             </span>
                                         </td>
                                         <td>${{ number_format($product->sale_price, 2) }}</td>
-                                        <td>
-                                            <span class="badge badge-{{ $product->status ? 'success' : 'danger' }}">
-                                                {{ $product->status ? 'Activo' : 'Inactivo' }}
+                                        <td class="align-middle text-center">
+                                            <span
+                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                                {{ $product->stock_status_label }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <button type="button" class="btn btn-primary btn-sm select-product"
-                                                data-code="{{ $product->code }}"
-                                                {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                                                <i class="fas fa-plus-circle"></i>
-                                            </button>
-                                        </td>
+                                        
                                     </tr>
                                 @endforeach
                             </tbody>

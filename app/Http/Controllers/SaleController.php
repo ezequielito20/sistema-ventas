@@ -90,7 +90,7 @@ class SaleController extends Controller
          $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'sale_date' => 'required|date',
-            'payment_type' => 'required|in:cash,card,transfer',
+            // 'payment_type' => 'required|in:cash,card,transfer',
             'items' => 'required|array|min:1',
             'total_price' => 'required|numeric|min:0',
          ]);

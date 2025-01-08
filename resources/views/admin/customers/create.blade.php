@@ -8,7 +8,7 @@
             <h1 class="text-dark font-weight-bold">Crear Nuevo Cliente</h1>
             <p class="mb-0">Ingrese la información del cliente en el formulario</p>
         </div>
-        <a href="{{ route('admin.customers.index') }}" class="btn btn-secondary">
+        <a href="{{ url()->previous() == url()->current() ? route('admin.customers.index') : url()->previous() }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-2"></i>Volver
         </a>
     </div>
