@@ -85,6 +85,7 @@ class SaleController extends Controller
     */
    public function store(Request $request)
    {
+      // dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
@@ -106,10 +107,9 @@ class SaleController extends Controller
          ]);
 
          // Procesar cada producto en la venta
-         $items = json_decode($request->items, true);
-         foreach ($items as $item) {
+         foreach ($request->items as $key => $item) {
             // Obtener el producto
-            $product = Product::where('id', $item['product_id'])
+            $product = Product::where('id', $key)
                ->where('company_id', Auth::user()->company_id)
                ->firstOrFail();
 
@@ -136,16 +136,13 @@ class SaleController extends Controller
             'sale_id' => $sale->id,
             'company_id' => Auth::user()->company_id,
             'total' => $validated['total_price'],
-            'items_count' => count($items)
          ]);
 
          DB::commit();
 
-         return response()->json([
-            'success' => true,
-            'message' => '¡Venta registrada exitosamente!',
-            'sale_id' => $sale->id
-         ]);
+         return redirect()->route('admin.sales.index')
+            ->with('message', '¡Venta registrada exitosamente!')
+            ->with('icons', 'success');
 
       } catch (\Exception $e) {
          DB::rollBack();
@@ -155,10 +152,9 @@ class SaleController extends Controller
             'data' => $request->all()
          ]);
 
-         return response()->json([
-            'success' => false,
-            'message' => 'Error al registrar la venta: ' . $e->getMessage()
-         ], 500);
+         return redirect()->back()
+            ->with('message', 'Error al registrar la venta: ' . $e->getMessage())
+            ->with('icons', 'error');
       }
    }
 
