@@ -349,7 +349,6 @@
         $(document).ready(function() {
             // Cargar los detalles existentes de la venta
             const saleDetails = @json($saleDetails);
-            alert(saleDetails);
 
             // saleDetails.forEach(product => {
             //     addProductToTable(product, true);

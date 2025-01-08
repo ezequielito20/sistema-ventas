@@ -29,9 +29,9 @@ class PurchaseController extends Controller
             ->get();
 
          // Calcular estadísticas
-         $totalPurchases = $purchases->sum(function ($purchase) {
-            return $purchase->details->count();
-         });
+         $totalPurchases = $purchases->flatMap(function($purchase) {
+            return $purchase->details->pluck('product_id');
+         })->unique()->count();
          $totalAmount = $purchases->sum('total_price');
          $monthlyPurchases = $purchases->filter(function ($purchase) {
             return $purchase->purchase_date->isCurrentMonth();
@@ -492,10 +492,10 @@ class PurchaseController extends Controller
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
-                  'image_url' => $detail->product->image_url,
+                  'image_url' => $detail->product->image,
                   // 'stock' => $detail->product->stock
                ],
-               'subtotal' => $detail->quantity * $detail->product_price
+               'subtotal' => $detail->quantity * $detail->product->purchase_price
             ];
          });
 

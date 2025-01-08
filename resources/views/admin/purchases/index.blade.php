@@ -18,7 +18,7 @@
             <div class="small-box bg-info">
                 <div class="inner">
                     <h3>{{ $totalPurchases }}</h3>
-                    <p>Total Compras</p>
+                    <p>Productos Unicos Comprados</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-shopping-cart"></i>

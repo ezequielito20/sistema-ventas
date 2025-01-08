@@ -26,10 +26,10 @@ class SaleController extends Controller
             ->where('company_id', $companyId)
             ->get();
 
-         // Calcular estadísticas
-         $totalSales = $sales->sum(function($sale) {
-            return $sale->saleDetails->count();
-         });
+         // Calcular productos únicos vendidos
+         $totalSales = $sales->flatMap(function($sale) {
+            return $sale->saleDetails->pluck('product_id');
+         })->unique()->count();
          $totalAmount = $sales->sum('total_price');
          $monthlySales = $sales->filter(function ($sale) {
             return $sale->sale_date->isCurrentMonth();
