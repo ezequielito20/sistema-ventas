@@ -487,7 +487,7 @@ class PurchaseController extends Controller
          $details = $purchaseDetails->map(function ($detail) {
             return [
                'quantity' => $detail->quantity,
-               'product_price' => $detail->product_price,
+               'product_price' => $detail->product->purchase_price,
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
