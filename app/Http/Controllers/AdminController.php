@@ -238,15 +238,15 @@ class AdminController extends Controller
             ->count();
       }
 
-      
+      // Clientes verificados (con NIT)
+      $verifiedCustomers = DB::table('customers')
+         ->where('company_id', $companyId)
+         ->whereNotNull('nit_number')
+         ->count();
 
-      
-
-     
-
-      
-
-      
+      $verifiedPercentage = $totalCustomers > 0 
+         ? round(($verifiedCustomers / $totalCustomers) * 100, 1) 
+         : 0;
 
       // Agregar las nuevas variables al compact existente
       return view('admin.index', compact(
@@ -277,7 +277,8 @@ class AdminController extends Controller
          'monthlyActivity',
          'activityData',
          'activityLabels',
-
+         'verifiedCustomers',
+         'verifiedPercentage'
       ));
    }
 }

@@ -502,14 +502,34 @@
                 <div class="inner">
                     <h3>{{ $newCustomers }}</h3>
                     <p>Nuevos Clientes este Mes</p>
-                    <br>
-                    <span class="text-sm">&nbsp;</span>
+                    <span class="text-sm">
+                        Total registrados: {{ $monthlyActivity[count($monthlyActivity)-1] ?? 0 }} este mes
+                    </span>
                 </div>
                 <div class="icon">
                     <i class="fas fa-user-plus"></i>
                 </div>
-                <a href="#" class="small-box-footer">
-                    Más información <i class="fas fa-arrow-circle-right"></i>
+                <a href="#customerActivityChart" class="small-box-footer" data-toggle="modal">
+                    Ver tendencia <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- Widget de Clientes Verificados --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-gradient-info shadow" style="min-height: 180px;">
+                <div class="inner">
+                    <h3>{{ $verifiedCustomers ?? 0 }}</h3>
+                    <p>Clientes con NIT Verificado</p>
+                    <span class="text-sm">
+                        {{ $verifiedPercentage ?? 0 }}% del total de clientes
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <a href="{{ route('admin.customers.index', ['verified' => 1]) }}" class="small-box-footer">
+                    Ver listado <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
         </div>
