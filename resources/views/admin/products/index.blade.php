@@ -81,6 +81,7 @@
                         <th>Nombre</th>
                         <th>Categoría</th>
                         <th>Stock</th>
+                        <th>Precio Compra</th>
                         <th>Precio Venta</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -102,6 +103,7 @@
                                     {{ $product->stock }}
                                 </span>
                             </td>
+                            <td>${{ number_format($product->purchase_price, 2) }}</td>
                             <td>${{ number_format($product->sale_price, 2) }}</td>
                             <td>
                                 <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
@@ -130,7 +132,7 @@
             </table>
         </div>
     </div>
-    @if(isset($product) && $product->image)
+    @if(isset($product) )
     {{-- Modal para mostrar producto --}}
     <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -369,6 +371,7 @@
                     success: function(response) {
                         if (response.status === 'success') {
                             const product = response.product;
+                            
                             
                             // Actualizar imagen
                             if (product.image) {
