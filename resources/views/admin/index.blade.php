@@ -428,12 +428,37 @@
             <div class="card shadow">
                 <div class="card-header bg-success">
                     <h3 class="card-title text-white">
-                        <i class="fas fa-chart-pie mr-2"></i>
+                        <i class="fas fa-star mr-2"></i>
                         Top 5 Productos más Comprados
                     </h3>
                 </div>
-                <div class="card-body">
-                    <canvas id="topProductsChart" style="min-height: 300px;"></canvas>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px;">
+                        <table class="table table-striped table-hover m-0">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-right">Precio/U</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($topProducts as $product)
+                                    <tr>
+                                        <td>{{ Str::limit($product->name, 30) }}</td>
+                                        <td class="text-center">
+                                            <span class="badge badge-success">
+                                                {{ number_format($product->total_quantity) }}
+                                            </span>
+                                        </td>
+                                        <td class="text-right">
+                                            ${{ number_format($product->unit_price, 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -479,49 +504,6 @@
                                 ticks: {
                                     callback: function(value) {
                                         return '$' + value.toLocaleString('es-PE');
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // Gráfico de productos top
-                new Chart(document.getElementById('topProductsChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: {!! json_encode($topProductsLabels) !!},
-                        datasets: [{
-                            data: {!! json_encode($topProductsData) !!},
-                            backgroundColor: [
-                                '#28a745', // Verde
-                                '#17a2b8', // Azul claro
-                                '#ffc107', // Amarillo
-                                '#dc3545', // Rojo
-                                '#6c757d' // Gris
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 20,
-                                    boxWidth: 12
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.label || '';
-                                        let value = context.raw || 0;
-                                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        let percentage = ((value * 100) / total).toFixed(1);
-                                        return `${label}: ${value} unidades (${percentage}%)`;
                                     }
                                 }
                             }

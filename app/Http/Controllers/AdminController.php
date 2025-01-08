@@ -157,20 +157,18 @@ class AdminController extends Controller
          $purchaseMonthlyData[] = $monthlyTotal ?? 0;
       }
 
-      // Top 5 productos más comprados
+      // Top 5 productos más comprados (con precio unitario)
       $topProducts = DB::table('purchase_details')
          ->select(
             'products.name',
-            DB::raw('SUM(purchase_details.quantity) as total_quantity')
+            DB::raw('SUM(purchase_details.quantity) as total_quantity'),
+            DB::raw('AVG(purchase_details.product_price) as unit_price')
          )
          ->join('products', 'purchase_details.product_id', '=', 'products.id')
          ->groupBy('products.id', 'products.name')
          ->orderByDesc('total_quantity')
          ->limit(5)
          ->get();
-
-      $topProductsLabels = $topProducts->pluck('name');
-      $topProductsData = $topProducts->pluck('total_quantity');
 
       // Productos con stock bajo
       $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
@@ -195,8 +193,7 @@ class AdminController extends Controller
          'lowStockCount',
          'purchaseMonthlyLabels',
          'purchaseMonthlyData',
-         'topProductsLabels',
-         'topProductsData'
+         'topProducts'
       ));
    }
 }
