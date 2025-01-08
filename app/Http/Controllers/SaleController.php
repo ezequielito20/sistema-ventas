@@ -51,7 +51,7 @@ class SaleController extends Controller
          Log::error('Error en index de ventas: ' . $e->getMessage());
          return redirect()->back()
             ->with('message', 'Error al cargar las ventas')
-            ->with('icon', 'error');
+            ->with('icons', 'error');
       }
    }
 
@@ -60,15 +60,106 @@ class SaleController extends Controller
     */
    public function create()
    {
-      //
+      try {
+         $companyId = Auth::user()->company_id;
+
+         // Obtener productos y clientes de la compañía actual
+         $products = Product::where('company_id', $companyId)
+            // ->where('status', true)
+            ->get();
+         $customers = Customer::where('company_id', $companyId)
+            // ->where('status', true)
+            ->get();
+
+         return view('admin.sales.create', compact('products', 'customers'));
+      } catch (\Exception $e) {
+         Log::error('Error en SaleController@create: ' . $e->getMessage());
+         return redirect()->back()
+            ->with('message', 'Error al cargar el formulario de venta')
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Store a newly created resource in storage.
     */
-   public function store(StoreSaleRequest $request)
+   public function store(Request $request)
    {
-      //
+      try {
+         // Validación de los datos
+         $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'sale_date' => 'required|date',
+            'payment_type' => 'required|in:cash,card,transfer',
+            'items' => 'required|array|min:1',
+            'total_price' => 'required|numeric|min:0',
+         ]);
+
+         DB::beginTransaction();
+
+         // Crear la venta principal
+         $sale = Sale::create([
+            'sale_date' => $validated['sale_date'],
+            'total_price' => $validated['total_price'],
+            'company_id' => Auth::user()->company_id,
+            'customer_id' => $validated['customer_id'],
+         ]);
+
+         // Procesar cada producto en la venta
+         $items = json_decode($request->items, true);
+         foreach ($items as $item) {
+            // Obtener el producto
+            $product = Product::where('id', $item['product_id'])
+               ->where('company_id', Auth::user()->company_id)
+               ->firstOrFail();
+
+            // Verificar stock disponible
+            if ($product->stock < $item['quantity']) {
+               throw new \Exception("Stock insuficiente para el producto: {$product->name}");
+            }
+
+            // Crear el detalle de la venta
+            SaleDetail::create([
+               'quantity' => $item['quantity'],
+               'sale_id' => $sale->id,
+               'product_id' => $product->id,
+            ]);
+
+            // Actualizar el stock del producto
+            $product->stock -= $item['quantity'];
+            $product->save();
+         }
+
+         // Log de la acción
+         Log::info('Venta creada exitosamente', [
+            'user_id' => Auth::user()->id,
+            'sale_id' => $sale->id,
+            'company_id' => Auth::user()->company_id,
+            'total' => $validated['total_price'],
+            'items_count' => count($items)
+         ]);
+
+         DB::commit();
+
+         return response()->json([
+            'success' => true,
+            'message' => '¡Venta registrada exitosamente!',
+            'sale_id' => $sale->id
+         ]);
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         Log::error('Error al crear venta: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'company_id' => Auth::user()->company_id,
+            'data' => $request->all()
+         ]);
+
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al registrar la venta: ' . $e->getMessage()
+         ], 500);
+      }
    }
 
    /**
@@ -101,5 +192,98 @@ class SaleController extends Controller
    public function destroy(Sale $sale)
    {
       //
+   }
+
+   /**
+    * Obtiene los detalles de un producto por su código para el modal
+    */
+   public function getProductDetails($code)
+   {
+      try {
+         $product = Product::with('category')
+            ->where('code', $code)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+         if (!$product) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Producto no encontrado'
+            ], 404);
+         }
+
+         // Preparar la respuesta con los datos necesarios para la vista
+         $productData = [
+            'id' => $product->id,
+            'code' => $product->code,
+            'name' => $product->name,
+            'stock' => $product->stock,
+            'sale_price' => $product->sale_price,
+            'category' => $product->category->name,
+            'stock_status_class' => $product->stock > 10 ? 'success' : ($product->stock > 0 ? 'warning' : 'danger'),
+            'image_url' => $product->image_url
+         ];
+
+         return response()->json([
+            'success' => true,
+            'product' => $productData
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al obtener detalles del producto: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar los datos del producto'
+         ], 500);
+      }
+   }
+
+   /**
+    * Busca un producto por código para la entrada rápida
+    */
+   public function getProductByCode($code)
+   {
+      try {
+         $product = Product::where('code', $code)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+         if (!$product) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Producto no encontrado'
+            ], 404);
+         }
+
+         // Verificar stock
+         if ($product->stock <= 0) {
+            return response()->json([
+               'success' => false,
+               'message' => 'El producto no tiene stock disponible'
+            ], 400);
+         }
+
+         // Preparar la respuesta con los datos necesarios
+         $productData = [
+            'id' => $product->id,
+            'code' => $product->code,
+            'name' => $product->name,
+            'stock' => $product->stock,
+            'sale_price' => $product->sale_price,
+            'stock_status_class' => $product->stock > 10 ? 'success' : 'warning'
+         ];
+
+         return response()->json([
+            'success' => true,
+            'product' => $productData
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al buscar producto por código: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al buscar el producto'
+         ], 500);
+      }
    }
 }

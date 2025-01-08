@@ -107,3 +107,9 @@ Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sal
 Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware('auth');
 Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware('auth');
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware('auth');
+Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])
+    ->name('admin.sales.product-details')
+    ->middleware('auth');
+Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])
+    ->name('admin.sales.product-by-code')
+    ->middleware('auth');
