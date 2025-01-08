@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 
@@ -88,5 +89,12 @@ Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'get
     ->middleware('auth');
 Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode']) ->name('admin.purchases.product-by-code')->middleware('auth');
 
-// Route::get('/purchases/{id}', [PurchaseController::class, 'show'])->name('admin.purchases.show')->middleware('auth');
+// Customers
+Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware('auth');
+Route::get('/customers/create', [CustomerController::class, 'create'])->name('admin.customers.create')->middleware('auth');
+Route::post('/customers/create', [CustomerController::class, 'store'])->name('admin.customers.store')->middleware('auth');
+Route::get('/customers/edit/{id}', [CustomerController::class, 'edit'])->name('admin.customers.edit')->middleware('auth');
+Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name('admin.customers.update')->middleware('auth');
+Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware('auth');
+Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware('auth');
 
