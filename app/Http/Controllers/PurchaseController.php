@@ -29,8 +29,8 @@ class PurchaseController extends Controller
             ->get();
 
          // Calcular estadísticas
-         $totalPurchases = $purchases->sum(function($purchase) {
-             return $purchase->details->count();
+         $totalPurchases = $purchases->sum(function ($purchase) {
+            return $purchase->details->count();
          });
          $totalAmount = $purchases->sum('total_price');
          $monthlyPurchases = $purchases->filter(function ($purchase) {
@@ -170,22 +170,22 @@ class PurchaseController extends Controller
    {
       try {
          $companyId = Auth::user()->company_id;
-         
+
          // Obtener la compra con sus detalles y productos
          $purchase = Purchase::with(['details.product', 'details.supplier'])
             ->where('company_id', $companyId)
             ->findOrFail($id);
 
          // Formatear los detalles para JavaScript
-         $purchaseDetails = $purchase->details->map(function($detail) {
+         $purchaseDetails = $purchase->details->map(function ($detail) {
             return [
-                'id' => $detail->product->id,
-                'code' => $detail->product->code,
-                'name' => $detail->product->name,
-                'quantity' => $detail->quantity,
-                'price' => $detail->product_price,
-                'purchase_price' => $detail->product_price,
-                'supplier_id' => $detail->supplier_id
+               'id' => $detail->product->id,
+               'code' => $detail->product->code,
+               'name' => $detail->product->name,
+               'quantity' => $detail->quantity,
+               'price' => $detail->product_price,
+               'purchase_price' => $detail->product_price,
+               'supplier_id' => $detail->supplier_id
             ];
          });
 
@@ -227,12 +227,12 @@ class PurchaseController extends Controller
          $previousState = [
             'purchase_date' => $purchase->purchase_date,
             'total_price' => $purchase->total_price,
-            'details' => $purchase->details->map(function($detail) {
-                return [
-                    'product_id' => $detail->product_id,
-                    'quantity' => $detail->quantity,
-                    'price' => $detail->product_price
-                ];
+            'details' => $purchase->details->map(function ($detail) {
+               return [
+                  'product_id' => $detail->product_id,
+                  'quantity' => $detail->quantity,
+                  'price' => $detail->product_price
+               ];
             })->toArray()
          ];
 
@@ -248,57 +248,57 @@ class PurchaseController extends Controller
          // Procesar cada producto en la compra
          foreach ($request->items as $productId => $item) {
             $product = Product::where('id', $productId)
-                ->where('company_id', Auth::user()->company_id)
-                ->firstOrFail();
+               ->where('company_id', Auth::user()->company_id)
+               ->firstOrFail();
 
             // Buscar si ya existe el detalle
             $detail = PurchaseDetail::where('purchase_id', $purchase->id)
-                ->where('product_id', $productId)
-                ->first();
+               ->where('product_id', $productId)
+               ->first();
 
             if ($detail) {
-                // Actualizar stock: restar la cantidad anterior y sumar la nueva
-                $stockDifference = $item['quantity'] - $detail->quantity;
-                $product->stock += $stockDifference;
-                
-                // Actualizar detalle existente
-                $detail->update([
-                    'quantity' => $item['quantity'],
-                    'product_price' => $item['price']
-                ]);
-                
-                $newDetailIds[] = $detail->id;
+               // Actualizar stock: restar la cantidad anterior y sumar la nueva
+               $stockDifference = $item['quantity'] - $detail->quantity;
+               $product->stock += $stockDifference;
+
+               // Actualizar detalle existente
+               $detail->update([
+                  'quantity' => $item['quantity'],
+                  'product_price' => $item['price']
+               ]);
+
+               $newDetailIds[] = $detail->id;
             } else {
-                // Crear nuevo detalle
-                $detail = PurchaseDetail::create([
-                    'quantity' => $item['quantity'],
-                    'product_price' => $item['price'],
-                    'purchase_id' => $purchase->id,
-                    'supplier_id' => $product->supplier_id,
-                    'product_id' => $product->id,
-                ]);
-                
-                // Actualizar stock sumando la nueva cantidad
-                $product->stock += $item['quantity'];
-                $newDetailIds[] = $detail->id;
+               // Crear nuevo detalle
+               $detail = PurchaseDetail::create([
+                  'quantity' => $item['quantity'],
+                  'product_price' => $item['price'],
+                  'purchase_id' => $purchase->id,
+                  'supplier_id' => $product->supplier_id,
+                  'product_id' => $product->id,
+               ]);
+
+               // Actualizar stock sumando la nueva cantidad
+               $product->stock += $item['quantity'];
+               $newDetailIds[] = $detail->id;
             }
-            
+
             $product->save();
          }
 
          // Eliminar detalles que ya no están en la compra
          $detailsToDelete = array_diff($currentDetailIds, $newDetailIds);
          foreach ($detailsToDelete as $detailId) {
-             $detail = PurchaseDetail::find($detailId);
-             if ($detail) {
-                 // Restar del stock la cantidad que se elimina
-                 $product = Product::find($detail->product_id);
-                 if ($product) {
-                     $product->stock -= $detail->quantity;
-                     $product->save();
-                 }
-                 $detail->delete();
-             }
+            $detail = PurchaseDetail::find($detailId);
+            if ($detail) {
+               // Restar del stock la cantidad que se elimina
+               $product = Product::find($detail->product_id);
+               if ($product) {
+                  $product->stock -= $detail->quantity;
+                  $product->save();
+               }
+               $detail->delete();
+            }
          }
 
          // Log de la actualización
@@ -307,9 +307,9 @@ class PurchaseController extends Controller
             'purchase_id' => $purchase->id,
             'previous_state' => $previousState,
             'new_state' => [
-                'purchase_date' => $purchase->purchase_date,
-                'total_price' => $purchase->total_price,
-                'items' => $request->items
+               'purchase_date' => $purchase->purchase_date,
+               'total_price' => $purchase->total_price,
+               'items' => $request->items
             ]
          ]);
 
@@ -318,7 +318,6 @@ class PurchaseController extends Controller
          return redirect()->route('admin.purchases.index')
             ->with('message', '¡Compra actualizada exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al actualizar compra: ' . $e->getMessage(), [
@@ -326,7 +325,7 @@ class PurchaseController extends Controller
             'purchase_id' => $id,
             'request_data' => $request->all()
          ]);
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Error al actualizar la compra: ' . $e->getMessage(),
@@ -347,14 +346,14 @@ class PurchaseController extends Controller
          // Verificar que la compra pertenece a la compañía del usuario
          if ($purchase->company_id !== Auth::user()->company_id) {
             Log::warning('Intento de eliminación no autorizada de compra', [
-                'user_id' => Auth::user()->id,
-                'purchase_id' => $id
+               'user_id' => Auth::user()->id,
+               'purchase_id' => $id
             ]);
-            
+
             return response()->json([
-                'success' => false,
-                'message' => 'No tiene permiso para eliminar esta compra',
-                'icons' => 'error'
+               'success' => false,
+               'message' => 'No tiene permiso para eliminar esta compra',
+               'icons' => 'error'
             ], 403);
          }
 
@@ -363,17 +362,17 @@ class PurchaseController extends Controller
 
          // Guardar información para el log antes de eliminar
          $purchaseInfo = [
-             'id' => $purchase->id,
-             'payment_receipt' => $purchase->payment_receipt,
-             'total_price' => $purchase->total_price,
-             'company_id' => $purchase->company_id
+            'id' => $purchase->id,
+            'payment_receipt' => $purchase->payment_receipt,
+            'total_price' => $purchase->total_price,
+            'company_id' => $purchase->company_id
          ];
 
          // Revertir el stock de los productos
          foreach ($purchase->details as $detail) {
-             $product = $detail->product;
-             $product->stock -= $detail->quantity;
-             $product->save();
+            $product = $detail->product;
+            $product->stock -= $detail->quantity;
+            $product->save();
          }
 
          // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
@@ -384,30 +383,29 @@ class PurchaseController extends Controller
 
          // Log de la eliminación
          Log::info('Compra eliminada exitosamente', [
-             'user_id' => Auth::user()->id,
-             'purchase_info' => $purchaseInfo
+            'user_id' => Auth::user()->id,
+            'purchase_info' => $purchaseInfo
          ]);
 
          // Retornar respuesta exitosa
          return response()->json([
-             'success' => true,
-             'message' => '¡Compra eliminada exitosamente!',
-             'icons' => 'success'
+            'success' => true,
+            'message' => '¡Compra eliminada exitosamente!',
+            'icons' => 'success'
          ]);
-
       } catch (\Exception $e) {
          // Revertir transacción en caso de error
          DB::rollBack();
 
          Log::error('Error al eliminar compra: ' . $e->getMessage(), [
-             'user_id' => Auth::user()->id,
-             'purchase_id' => $id
+            'user_id' => Auth::user()->id,
+            'purchase_id' => $id
          ]);
 
          return response()->json([
-             'success' => false,
-             'message' => 'Hubo un problema al eliminar la compra. Por favor, inténtelo de nuevo.',
-             'icons' => 'error'
+            'success' => false,
+            'message' => 'Hubo un problema al eliminar la compra. Por favor, inténtelo de nuevo.',
+            'icons' => 'error'
          ], 500);
       }
    }
@@ -489,7 +487,7 @@ class PurchaseController extends Controller
 
          $purchase = Purchase::find($id);
 
-         $details = $purchaseDetails->map(function($detail) {
+         $details = $purchaseDetails->map(function ($detail) {
             return [
                'quantity' => $detail->quantity,
                'product_price' => $detail->product_price,
@@ -514,7 +512,6 @@ class PurchaseController extends Controller
             ],
             'details' => $details
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error en getDetails: ' . $e->getMessage());
          return response()->json([

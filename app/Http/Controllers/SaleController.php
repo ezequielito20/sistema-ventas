@@ -169,25 +169,256 @@ class SaleController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit(Sale $sale)
+   public function edit($id)
    {
-      //
+      try {
+         $companyId = Auth::user()->company_id;
+
+         // Obtener la venta con sus detalles
+         $sale = Sale::where('company_id', $companyId)
+            ->findOrFail($id);
+
+         // Obtener los detalles de la venta con la información necesaria
+         $saleDetails = $sale->saleDetails->map(function ($detail) {
+            return [
+               'id' => $detail->product->id,
+               'code' => $detail->product->code,
+               'name' => $detail->product->name,
+               'quantity' => $detail->quantity,
+               'sale_price' => $detail->product->sale_price,
+               'stock' => $detail->product->stock + $detail->quantity, // Sumamos la cantidad actual para permitir edición
+               'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
+            ];
+         });
+
+         // Obtener productos y clientes para los selectores
+         $products = Product::where('company_id', $companyId)
+            ->where('stock', '>', 0)
+            ->get();
+         $customers = Customer::where('company_id', $companyId)->get();
+
+         return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails'));
+
+      } catch (\Exception $e) {
+         Log::error('Error en SaleController@edit: ' . $e->getMessage());
+         return redirect()->route('admin.sales.index')
+            ->with('message', 'Error al cargar el formulario de edición')
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Update the specified resource in storage.
     */
-   public function update(UpdateSaleRequest $request, Sale $sale)
+   public function update(Request $request, $id)
    {
-      //
+      try {
+         // Validación de datos
+         $validated = $request->validate([
+            'sale_date' => 'required|date',
+            'customer_id' => 'required|exists:customers,id',
+            'items' => 'required|array|min:1',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'total_price' => 'required|numeric|min:0',
+         ]);
+
+         DB::beginTransaction();
+
+         // Obtener la venta
+         $sale = Sale::where('company_id', Auth::user()->company_id)
+            ->findOrFail($id);
+
+         // Guardar estado anterior para el log
+         $previousState = [
+            'sale_date' => $sale->sale_date,
+            'customer_id' => $sale->customer_id,
+            'total_price' => $sale->total_price,
+            'details' => $sale->saleDetails->map(function ($detail) {
+               return [
+                  'product_id' => $detail->product_id,
+                  'quantity' => $detail->quantity
+               ];
+            })->toArray()
+         ];
+
+         // Actualizar datos principales de la venta
+         $sale->sale_date = $validated['sale_date'];
+         $sale->customer_id = $validated['customer_id'];
+         $sale->total_price = $validated['total_price'];
+         $sale->save();
+
+         // Obtener IDs de detalles actuales
+         $currentDetailIds = $sale->saleDetails->pluck('id')->toArray();
+         $newDetailIds = [];
+
+         // Procesar cada producto en la venta
+         foreach ($request->items as $productId => $item) {
+            $product = Product::where('id', $productId)
+               ->where('company_id', Auth::user()->company_id)
+               ->firstOrFail();
+
+            // Buscar si ya existe el detalle
+            $detail = SaleDetail::where('sale_id', $sale->id)
+               ->where('product_id', $productId)
+               ->first();
+
+            if ($detail) {
+               // Actualizar stock: devolver la cantidad anterior y restar la nueva
+               $stockDifference = $detail->quantity - $item['quantity'];
+               $product->stock += $stockDifference;
+
+               // Verificar stock suficiente
+               if ($product->stock < 0) {
+                  throw new \Exception("Stock insuficiente para el producto: {$product->name}");
+               }
+
+               // Actualizar detalle
+               $detail->quantity = $item['quantity'];
+               $detail->save();
+               $newDetailIds[] = $detail->id;
+            } else {
+               // Verificar stock suficiente para nuevo detalle
+               if ($product->stock < $item['quantity']) {
+                  throw new \Exception("Stock insuficiente para el producto: {$product->name}");
+               }
+
+               // Crear nuevo detalle
+               $detail = SaleDetail::create([
+                  'sale_id' => $sale->id,
+                  'product_id' => $productId,
+                  'quantity' => $item['quantity']
+               ]);
+
+               // Actualizar stock
+               $product->stock -= $item['quantity'];
+               $newDetailIds[] = $detail->id;
+            }
+
+            $product->save();
+         }
+
+         // Eliminar detalles que ya no están en la venta
+         $detailsToDelete = array_diff($currentDetailIds, $newDetailIds);
+         foreach ($detailsToDelete as $detailId) {
+            $detail = SaleDetail::find($detailId);
+            if ($detail) {
+               // Devolver al stock la cantidad que se elimina
+               $product = Product::find($detail->product_id);
+               if ($product) {
+                  $product->stock += $detail->quantity;
+                  $product->save();
+               }
+               $detail->delete();
+            }
+         }
+
+         // Log de la actualización
+         Log::info('Venta actualizada exitosamente', [
+            'user_id' => Auth::user()->id,
+            'sale_id' => $sale->id,
+            'previous_state' => $previousState,
+            'new_state' => [
+               'sale_date' => $sale->sale_date,
+               'customer_id' => $sale->customer_id,
+               'total_price' => $sale->total_price,
+               'items' => $request->items
+            ]
+         ]);
+
+         DB::commit();
+
+         return redirect()->route('admin.sales.index')
+            ->with('message', '¡Venta actualizada exitosamente!')
+            ->with('icons', 'success');
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         Log::error('Error al actualizar venta: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'sale_id' => $id,
+            'request_data' => $request->all()
+         ]);
+
+         return redirect()->back()
+            ->withInput()
+            ->with('message', 'Error al actualizar la venta: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Remove the specified resource from storage.
     */
-   public function destroy(Sale $sale)
+   public function destroy($id)
    {
-      //
+      try {
+         // Buscar la venta
+         $sale = Sale::findOrFail($id);
+
+         // Verificar que la venta pertenece a la compañía del usuario
+         if ($sale->company_id !== Auth::user()->company_id) {
+            Log::warning('Intento de eliminación no autorizada de venta', [
+               'user_id' => Auth::user()->id,
+               'sale_id' => $id
+            ]);
+
+            return redirect()->back()
+               ->with('message', 'No tienes permisos para eliminar esta venta')
+               ->with('icons', 'error');
+         }
+
+         // Iniciar transacción
+         DB::beginTransaction();
+
+         // Guardar información para el log antes de eliminar
+         $saleInfo = [
+            'id' => $sale->id,
+            'sale_date' => $sale->sale_date,
+            'total_price' => $sale->total_price,
+            'company_id' => $sale->company_id,
+            'customer_id' => $sale->customer_id
+         ];
+
+         // Revertir el stock de los productos
+         foreach ($sale->saleDetails as $detail) {
+            $product = $detail->product;
+            $product->stock += $detail->quantity; // Sumamos al stock porque es una venta
+            $product->save();
+         }
+
+         // Eliminar la venta (los detalles se eliminarán en cascada)
+         $sale->delete();
+
+         DB::commit();
+
+         // Registrar la eliminación en el log
+         Log::info('Venta eliminada exitosamente', [
+            'user_id' => Auth::user()->id,
+            'company_id' => Auth::user()->company_id,
+            'sale_info' => $saleInfo
+         ]);
+
+         // Retornar respuesta exitosa
+         return response()->json([
+            'success' => true,
+            'message' => '¡Venta eliminada exitosamente!',
+            'icons' => 'success'
+         ]);
+         
+
+      } catch (\Exception $e) {
+         // Revertir transacción en caso de error
+         DB::rollBack();
+
+         Log::error('Error al eliminar venta: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'sale_id' => $id
+         ]);
+
+         return redirect()->back()
+            ->with('message', 'Hubo un problema al eliminar la venta. Por favor, inténtelo de nuevo.')
+            ->with('icons', 'error');
+      }
    }
 
    /**
