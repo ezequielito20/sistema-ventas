@@ -260,7 +260,7 @@
                                     <div class="row">
                                         <div class="col-6 text-center border-right">
                                             <h4 class="mb-0" id="totalPurchases">0</h4>
-                                            <small class="text-muted">Compras Totales</small>
+                                            <small class="text-muted">Total Ventas</small>
                                         </div>
                                         <div class="col-6 text-center">
                                             <h4 class="mb-0" id="totalSpent">$0</h4>
@@ -272,14 +272,14 @@
                         </div>
                     </div>
 
-                    {{-- Historial de Compras --}}
+                    {{-- Historial de Ventas --}}
                     <div class="row mt-3">
                         <div class="col-12">
                             <div class="card shadow-sm">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
-                                        <i class="fas fa-shopping-cart mr-2"></i>
-                                        Historial de Compras
+                                        <i class="fas fa-chart-line mr-2"></i>
+                                        Historial de Ventas
                                     </h6>
                                 </div>
                                 <div class="card-body">
@@ -411,15 +411,11 @@
 
             // Ver detalles del cliente
             $('.show-customer').click(function() {
-                const id = $(this).data('id');
-
-                // Limpiar datos anteriores
-                $('#customerName, #customerEmail, #customerPhone, #customerNit, #totalPurchases, #totalSpent')
-                    .text('');
+                const customerId = $(this).data('id');
 
                 $.ajax({
-                    url: `/customers/${id}`,
-                    type: 'GET',
+                    url: `/customers/${customerId}`,
+                    method: 'GET',
                     success: function(response) {
                         if (response.success) {
                             const customer = response.customer;
@@ -433,18 +429,56 @@
                             // Estadísticas
                             $('#totalPurchases').text(customer.stats.total_purchases);
                             $('#totalSpent').text('$' + customer.stats.total_spent
-                                .toLocaleString());
+                                .toLocaleString('es-PE', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
 
-                            // Actualizar gráfico
-                            updatePurchaseHistory(customer.stats.purchase_history);
+                            // Gráfico de historial
+                            const ctx = document.getElementById('purchaseHistoryChart')
+                                .getContext('2d');
+                            if (window.purchaseChart) {
+                                window.purchaseChart.destroy();
+                            }
+                            window.purchaseChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: customer.stats.purchase_history.labels,
+                                    datasets: [{
+                                        label: 'Ventas por Mes',
+                                        data: customer.stats.purchase_history
+                                            .values,
+                                        borderColor: '#007bff',
+                                        tension: 0.1,
+                                        fill: false
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom'
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return '$' + value
+                                                        .toLocaleString('es-PE');
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
 
                             $('#showCustomerModal').modal('show');
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudieron cargar los datos del cliente',
+                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente',
                             'error');
                     }
                 });
@@ -509,47 +543,6 @@
                     window.location.href = `/customers/export/${format}`;
                 });
             });
-
-            // Función para actualizar el gráfico de historial de compras
-            function updatePurchaseHistory(data) {
-                if (window.purchaseChart) {
-                    window.purchaseChart.destroy();
-                }
-
-                const ctx = document.getElementById('purchaseHistoryChart').getContext('2d');
-                window.purchaseChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Compras Mensuales',
-                            data: data.values,
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '$' + value.toLocaleString();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
         });
     </script>
 @endpush

@@ -167,16 +167,15 @@ class CustomerController extends Controller
    public function show($id)
    {
       try {
-         $customer = Customer::findOrFail($id);
+         $customer = Customer::with(['sales' => function($query) {
+            $query->orderBy('sale_date', 'asc');
+         }])->findOrFail($id);
 
          // Obtener estadísticas del cliente
          $stats = [
-            'total_purchases' => 0, // Implementar cuando exista el modelo Purchase
-            'total_spent' => 0,     // Implementar cuando exista el modelo Purchase
-            'purchase_history' => [
-               'labels' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-               'values' => [0, 0, 0, 0, 0, 0] // Implementar cuando exista el modelo Purchase
-            ]
+            'total_purchases' => $customer->sales->count(),
+            'total_spent' => $customer->sales->sum('total_price'),
+            'purchase_history' => $this->getPurchaseHistory($customer->sales)
          ];
 
          return response()->json([
@@ -203,6 +202,36 @@ class CustomerController extends Controller
             'message' => 'Error al cargar los datos del cliente'
          ], 500);
       }
+   }
+
+   /**
+    * Obtiene el historial de compras por mes
+    */
+   private function getPurchaseHistory($sales)
+   {
+      $months = collect([]);
+      $values = collect([]);
+      
+      // Agrupar ventas por mes
+      $salesByMonth = $sales->groupBy(function($sale) {
+         return $sale->sale_date->format('Y-m');
+      })->map(function($monthSales) {
+         return $monthSales->sum('total_price');
+      });
+
+      // Obtener los últimos 6 meses
+      for ($i = 5; $i >= 0; $i--) {
+         $date = now()->subMonths($i);
+         $monthKey = $date->format('Y-m');
+         
+         $months->push($date->format('M'));
+         $values->push($salesByMonth[$monthKey] ?? 0);
+      }
+
+      return [
+         'labels' => $months->toArray(),
+         'values' => $values->toArray()
+      ];
    }
 
    /**
