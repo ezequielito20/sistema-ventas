@@ -174,19 +174,22 @@ class SaleController extends Controller
       try {
          $companyId = Auth::user()->company_id;
 
-         // Obtener la venta con sus detalles
-         $sale = Sale::where('company_id', $companyId)
+         // Obtener la venta con sus detalles y productos
+         $sale = Sale::with(['saleDetails.product'])
+            ->where('company_id', $companyId)
             ->findOrFail($id);
 
-         // Obtener los detalles de la venta con la información necesaria
+         // dd($sale);
+
+         // Obtener los detalles de la venta una sola vez
          $saleDetails = $sale->saleDetails->map(function ($detail) {
             return [
-               'id' => $detail->product->id,
+               'id' => $detail->product_id,
                'code' => $detail->product->code,
                'name' => $detail->product->name,
                'quantity' => $detail->quantity,
                'sale_price' => $detail->product->sale_price,
-               'stock' => $detail->product->stock + $detail->quantity, // Sumamos la cantidad actual para permitir edición
+               'stock' => $detail->product->stock + $detail->quantity,
                'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
             ];
          });

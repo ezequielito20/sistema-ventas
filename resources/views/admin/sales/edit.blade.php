@@ -348,7 +348,8 @@
     <script>
         $(document).ready(function() {
             // Cargar los detalles existentes de la venta
-            const saleDetails = @json($saleDetails);
+            const saleDetails = @json($sale->saleDetails);
+            alert(saleDetails);
 
             saleDetails.forEach(product => {
                 addProductToTable(product, true);
