@@ -282,7 +282,6 @@
                                 const price = parseFloat(detail.product_price);
                                 const subtotal = quantity * price;
                                 total += subtotal;
-
                                 $('#saleDetailsTableBody').append(`
                                     <tr>
                                         <td>${detail.product.code || ''}</td>

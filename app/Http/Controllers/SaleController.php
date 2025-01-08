@@ -298,12 +298,12 @@ class SaleController extends Controller
          $details = $saleDetails->map(function($detail) {
             return [
                'quantity' => $detail->quantity,
-               'product_price' => $detail->product_price,
+               'product_price' => $detail->product->sale_price,
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
-                  'image_url' => $detail->product->image_url,
+                  'image_url' => $detail->product->image,
                ],
                'subtotal' => $detail->quantity * $detail->product_price
             ];
