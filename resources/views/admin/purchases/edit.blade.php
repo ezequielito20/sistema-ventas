@@ -131,8 +131,8 @@
                                                                 <input type="number"
                                                                     class="form-control form-control-sm price-input"
                                                                     name="items[{{ $detail->product->id }}][price]"
-                                                                    value="{{ $detail->product->sale_price }}"
-                                                                    step="0.01" readonly>
+                                                                    value="{{ $detail->product->purchase_price }}"
+                                                                    step="0.01" >
                                                             </div>
                                                         </td>
                                                         <td class="text-right subtotal">
