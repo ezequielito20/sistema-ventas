@@ -77,11 +77,9 @@
                             </div>
 
 
-
-
                         </div>
                         <!-- Tabla de productos agregados -->
-                        <div class="row">
+                        <div class="row mt-3">
                             <div class="col-12">
                                 <div class="card">
                                     <div class="card-header bg-light">
@@ -91,7 +89,7 @@
                                         </h3>
                                     </div>
                                     <div class="card-body table-responsive p-0">
-                                        <table class="table table-hover text-nowrap">
+                                        <table class="table table-hover ">
                                             <thead>
                                                 <tr>
                                                     <th>Código</th>
@@ -110,7 +108,7 @@
                                                     </td>
                                                     <td colspan="2">
                                                         <span id="totalAmount">0.00</span>
-                                                        <input type="hidden" name="total_amount" id="totalAmountInput"
+                                                        <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
                                                 </tr>
@@ -247,7 +245,6 @@
         }
 
         .table-responsive {
-            min-height: 300px;
             max-height: calc(100vh - 200px);
         }
 

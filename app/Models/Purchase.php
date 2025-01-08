@@ -65,8 +65,5 @@ class Purchase extends Model
       return $this->belongsTo(Company::class);
    }
 
-   public function customer(): BelongsTo
-   {
-      return $this->belongsTo(Customer::class);
-   }
+   
 }

@@ -82,13 +82,13 @@ class PurchaseController extends Controller
     */
    public function store(Request $request)
    {
-      // dd($request->all());
+      dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
             'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
-            'total_amount' => 'required|numeric|min:0',
+            'total_price' => 'required|numeric|min:0',
          ]);
 
          $payment_receipt = str_replace('-', '', $validated['purchase_date']) . count($request->items) . str_pad((int)$validated['total_amount'], '0', STR_PAD_LEFT);
@@ -100,7 +100,7 @@ class PurchaseController extends Controller
          $purchase = Purchase::create([
             'purchase_date' => $validated['purchase_date'],
             'payment_receipt' => $payment_receipt,
-            'total_price' => $validated['total_amount'],
+            'total_price' => $validated['total_price'],
             'company_id' => Auth::user()->company_id,
          ]);
 
@@ -151,7 +151,7 @@ class PurchaseController extends Controller
          return redirect()->back()
             ->withInput()
             ->with('message', 'Error al registrar la compra: ' . $e->getMessage())
-            ->with('icon', 'error');
+            ->with('icons', 'error');
       }
    }
 

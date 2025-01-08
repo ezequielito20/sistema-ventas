@@ -19,7 +19,6 @@ return new class extends Migration
          $table->decimal('total_price', 10, 2);
 
          $table->unsignedBigInteger('company_id');
-         $table->foreignId('customer_id')->constrained('customers');
 
          $table->timestamps();
 
