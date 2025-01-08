@@ -173,6 +173,153 @@ class AdminController extends Controller
       // Productos con stock bajo
       $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
 
+      // Nuevas variables para la sección de clientes
+      
+      // Total de clientes y crecimiento
+      $totalCustomers = DB::table('customers')
+         ->where('company_id', Auth::user()->company_id)
+         ->count();
+
+      $lastMonthCustomers = DB::table('customers')
+         ->where('company_id', Auth::user()->company_id)
+         ->whereMonth('created_at', now()->subMonth()->month)
+         ->count();
+
+      $customerGrowth = $lastMonthCustomers > 0 ? 
+         round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1) : 0;
+
+      // Nuevos clientes este mes
+      $newCustomers = DB::table('customers')
+         ->where('company_id', Auth::user()->company_id)
+         ->whereMonth('created_at', now()->month)
+         ->count();
+
+      // Top 5 clientes por compras
+      $topCustomers = DB::table('customers')
+         ->select(
+            'customers.name',
+            'customers.nit_number',
+            'customers.phone',
+            'customers.email',
+            DB::raw('COUNT(purchases.id) as total_purchases'),
+            DB::raw('SUM(purchases.total_price) as total_spent')
+         )
+         ->leftJoin('purchases', 'customers.id', '=', 'purchases.customer_id')
+         ->where('customers.company_id', Auth::user()->company_id)
+         ->groupBy('customers.id', 'customers.name', 'customers.nit_number', 'customers.phone', 'customers.email')
+         ->orderByDesc('total_spent')
+         ->limit(5)
+         ->get();
+
+      // Actividad mensual de clientes (últimos 6 meses)
+      $monthlyActivity = [];
+      $monthlyLabels = [];
+
+      for ($i = 5; $i >= 0; $i--) {
+         $date = now()->subMonths($i);
+         $monthlyLabels[] = $date->format('M Y');
+         
+         $monthlyActivity[] = DB::table('customers')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereMonth('created_at', $date->month)
+            ->whereYear('created_at', $date->year)
+            ->count();
+      }
+
+      // Datos para el gráfico de actividad de clientes (últimos 30 días)
+      $activityData = [];
+      $activityLabels = [];
+      for ($i = 29; $i >= 0; $i--) {
+         $date = now()->subDays($i);
+         $activityLabels[] = $date->format('d M');
+         $activityData[] = DB::table('purchases')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereDate('created_at', $date)
+            ->count();
+      }
+
+
+      // Frecuencia de compras
+      $frequencyData = DB::table('purchases')
+         ->where('purchases.company_id', Auth::user()->company_id)
+         ->select(DB::raw('COUNT(*) as purchase_count'))
+         ->groupBy('customer_id')
+         ->get()
+         ->groupBy('purchase_count')
+         ->map->count()
+         ->values()
+         ->toArray();
+
+      $frequencyLabels = ['1 compra', '2-3 compras', '4-6 compras', '7+ compras'];
+
+      // Segmentación de clientes
+      $segmentationData = [
+         DB::table('customers')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereExists(function ($query) {
+               $query->select(DB::raw(1))
+                  ->from('purchases')
+                  ->whereColumn('purchases.customer_id', 'customers.id')
+                  ->havingRaw('COUNT(*) >= 7');
+            })->count(),
+         DB::table('customers')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereExists(function ($query) {
+               $query->select(DB::raw(1))
+                  ->from('purchases')
+                  ->whereColumn('purchases.customer_id', 'customers.id')
+                  ->havingRaw('COUNT(*) BETWEEN 4 AND 6');
+            })->count(),
+         DB::table('customers')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereExists(function ($query) {
+               $query->select(DB::raw(1))
+                  ->from('purchases')
+                  ->whereColumn('purchases.customer_id', 'customers.id')
+                  ->havingRaw('COUNT(*) BETWEEN 2 AND 3');
+            })->count(),
+         DB::table('customers')
+            ->where('company_id', Auth::user()->company_id)
+            ->whereExists(function ($query) {
+               $query->select(DB::raw(1))
+                  ->from('purchases')
+                  ->whereColumn('purchases.customer_id', 'customers.id')
+                  ->havingRaw('COUNT(*) = 1');
+            })->count()
+      ];
+
+      $segmentationLabels = ['VIP', 'Frecuentes', 'Ocasionales', 'Nuevos'];
+
+     
+
+      $averagePurchaseInterval = DB::table('purchases')
+         ->where('company_id', Auth::user()->company_id)
+         ->select('customer_id')
+         ->selectRaw('DATEDIFF(MAX(purchase_date), MIN(purchase_date)) as days_between')
+         ->groupBy('customer_id')
+         ->havingRaw('COUNT(*) > 1')
+         ->get()
+         ->avg('days_between') ?? 0;
+
+      $churnRate = DB::table('customers')
+         ->where('company_id', Auth::user()->company_id)
+         ->whereNotExists(function ($query) {
+            $query->select(DB::raw(1))
+               ->from('purchases')
+               ->whereColumn('purchases.customer_id', 'customers.id')
+               ->where('purchases.created_at', '>=', now()->subMonths(3));
+         })
+         ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+               ->from('purchases')
+               ->whereColumn('purchases.customer_id', 'customers.id');
+         })
+         ->count();
+
+      $churnRate = $totalCustomers > 0 ? 
+         round(($churnRate / $totalCustomers) * 100, 1) : 0;
+
+      // Agregar las nuevas variables al compact existente
       return view('admin.index', compact(
          'usersCount',
          'rolesCount',
@@ -193,7 +340,22 @@ class AdminController extends Controller
          'lowStockCount',
          'purchaseMonthlyLabels',
          'purchaseMonthlyData',
-         'topProducts'
+         'topProducts',
+         'totalCustomers',
+         'customerGrowth',
+         'newCustomers',
+         'topCustomers',
+         'averagePurchaseInterval',
+         'churnRate',
+         'monthlyLabels',
+         'monthlyActivity',
+         'activityData',
+         'activityLabels',
+         'frequencyData',
+         'frequencyLabels',
+         'segmentationData',
+         'segmentationLabels'
       ));
    }
 }
+
