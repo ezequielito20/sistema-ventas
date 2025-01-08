@@ -147,7 +147,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="5" class="text-right">
+                                                    <td colspan="6" class="text-right">
                                                         <strong>Total:</strong>
                                                     </td>
                                                     <td colspan="2">

@@ -94,6 +94,7 @@
                                                 <tr>
                                                     <th>Código</th>
                                                     <th>Producto</th>
+                                                    <th>Imagen</th>
                                                     <th>stock</th>
                                                     <th>Cantidad</th>
                                                     <th>Precio Unitario</th>
@@ -105,10 +106,10 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="4" class="text-right"><strong>Total:</strong>
+                                                    <td colspan="6" class="text-right"><strong>Total:</strong>
                                                     </td>
                                                     <td colspan="2">
-                                                        <span id="totalAmount">0.00</span>
+                                                        $<span id="totalAmount">0.00</span>
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
@@ -413,6 +414,9 @@
                     <tr data-product-code="${product.code}">
                         <td>${product.code}</td>
                         <td>${product.name}</td>
+                        <td>
+                            <img src="/${product.image}" alt="${product.name}" class="img-thumbnail" style="max-height: 50px;">
+                        </td>
                         <td>${product.stock}</td>
                         
                         <td>

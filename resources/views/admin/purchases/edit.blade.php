@@ -91,6 +91,8 @@
                                                 <tr>
                                                     <th>Código</th>
                                                     <th>Producto</th>
+                                                    <th>Imagen</th>
+                                                    <th>stock</th>
                                                     <th>Cantidad</th>
                                                     <th>Precio Unitario</th>
                                                     <th>Subtotal</th>
@@ -102,7 +104,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="4" class="text-right">
+                                                    <td colspan="6" class="text-right">
                                                         <strong>Total:</strong>
                                                     </td>
                                                     <td>
@@ -110,7 +112,6 @@
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
-                                                    <td></td>
                                                 </tr>
                                             </tfoot>
                                         </table>
@@ -318,7 +319,7 @@
                 if (productCode) {
                     // Aquí irá la lógica para buscar el producto por código
                     // y agregarlo a la tabla
-                    $.get(`/admin/purchases/product-by-code/${productCode}`, function(response) {
+                    $.get(`/purchases/product-by-code/${productCode}`, function(response) {
                         if (response.success) {
                             addProductToTable(response.product);
                             $('#product_code').val('');
@@ -402,20 +403,23 @@
             });
 
             // Función para agregar producto a la tabla
-            function addProductToTable(product, isExisting = false) {
-                const quantity = isExisting ? product.quantity : 1;
-                const price = product.purchase_price || product.price;
+            function addProductToTable(product) {
 
                 const row = `
                     <tr data-product-code="${product.code}">
                         <td>${product.code}</td>
                         <td>${product.name}</td>
                         <td>
+                            ${product.image}
+                        </td>
+                        <td>${product.stock}</td>
+                        
+                        <td>
                             <div class="input-group input-group-sm">
                                 <input type="number" 
                                        class="form-control quantity-input" 
                                        name="items[${product.id}][quantity]" 
-                                       value="${quantity}" 
+                                       value="1" 
                                        min="1">
                             </div>
                         </td>
@@ -427,12 +431,12 @@
                                 <input type="number" 
                                        class="form-control price-input" 
                                        name="items[${product.id}][price]" 
-                                       value="${price}" 
+                                       value="${product.purchase_price || product.price}" 
                                        step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${(quantity * price).toFixed(2)}</span>
+                            $<span class="subtotal">${product.purchase_price || product.price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -445,17 +449,16 @@
                 $('#purchaseItems').append(row);
                 updateTotal();
 
-                if (!isExisting) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Producto agregado',
-                        text: 'El producto se agregó a la lista de compra',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
+                // Notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Producto agregado',
+                    text: 'El producto se agregó a la lista de compra',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
             }
 
             // Actualizar subtotal cuando cambie cantidad o precio

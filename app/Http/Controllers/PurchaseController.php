@@ -426,6 +426,7 @@ class PurchaseController extends Controller
             'product' => [
                'id' => $product->id,
                'code' => $product->code,
+               'image' => $product->image,
                'name' => $product->name,
                'price' => $product->purchase_price,
                'purchase_price' => $product->purchase_price,
@@ -460,6 +461,7 @@ class PurchaseController extends Controller
             'product' => [
                'id' => $product->id,
                'code' => $product->code,
+               'image' => $product->image,
                'name' => $product->name,
                'price' => $product->purchase_price,
                'purchase_price' => $product->purchase_price,
