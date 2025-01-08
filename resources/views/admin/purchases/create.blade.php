@@ -94,6 +94,7 @@
                                                 <tr>
                                                     <th>Código</th>
                                                     <th>Producto</th>
+                                                    <th>stock</th>
                                                     <th>Cantidad</th>
                                                     <th>Precio Unitario</th>
                                                     <th>Subtotal</th>
@@ -185,7 +186,8 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->purchase_price, 2) }}
+                                        <td class="align-middle text-right">
+                                            ${{ number_format($product->purchase_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -411,6 +413,8 @@
                     <tr data-product-code="${product.code}">
                         <td>${product.code}</td>
                         <td>${product.name}</td>
+                        <td>${product.stock}</td>
+                        
                         <td>
                             <div class="input-group input-group-sm">
                                 <input type="number" 
