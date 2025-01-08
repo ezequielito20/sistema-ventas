@@ -116,7 +116,7 @@
                         <th>Cliente</th>
                         <th>Contacto</th>
                         <th>NIT</th>
-                        <th>Última Compra</th>
+                        <th>Total en Compras</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -152,16 +152,16 @@
                                 </span>
                             </td>
                             <td>
-                                @if (isset($customer->lastPurchase))
+                                @if ($customer->sales->count() > 0)
                                     <div>
-                                        {{ $customer->lastPurchase->created_at->format('d/m/Y') }}
+                                        ${{ number_format($customer->sales->sum('total_price'), 2) }}
                                         <br>
                                         <small class="text-muted">
-                                            ${{ number_format($customer->lastPurchase->total, 2) }}
+                                            {{ $customer->sales->count() }} venta(s)
                                         </small>
                                     </div>
                                 @else
-                                    <span class="text-muted">Sin compras</span>
+                                    <span class="text-muted">Sin ventas</span>
                                 @endif
                             </td>
                             <td>

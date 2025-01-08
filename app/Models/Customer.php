@@ -47,6 +47,17 @@ class Customer extends Model
    {
       return ucwords(strtolower($this->name));
    }
+   /**
+    * Obtiene el total de compras realizadas por el cliente
+    *
+    * @return float
+    */
+   public function getTotalPurchasesAmountAttribute()
+   {
+      return $this->sales()
+         ->where('company_id', $this->company_id)
+         ->sum('total_price');
+   }
 
    /**
     * Formatea el teléfono del cliente
@@ -82,13 +93,38 @@ class Customer extends Model
          ->whereMonth('updated_at', '<', Carbon::now()->month);
    }
 
-   public function purchases()
+
+   public function sales()
    {
-      return $this->hasMany(Purchase::class);
+      return $this->hasMany(Sale::class);
    }
 
    public function company()
    {
       return $this->belongsTo(Company::class);
+   }
+
+   /**
+    * Obtiene la última venta del cliente
+    */
+   public function lastSale()
+   {
+      return $this->hasOne(Sale::class)->latest();
+   }
+
+   /**
+    * Obtiene el total de ventas del cliente
+    */
+   public function getTotalSalesAttribute()
+   {
+      return $this->sales->count();
+   }
+
+   /**
+    * Obtiene el monto total de ventas del cliente
+    */
+   public function getTotalSalesAmountAttribute()
+   {
+      return $this->sales->sum('total_price');
    }
 }
