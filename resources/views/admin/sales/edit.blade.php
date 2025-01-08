@@ -348,12 +348,12 @@
     <script>
         $(document).ready(function() {
             // Cargar los detalles existentes de la venta
-            const saleDetails = @json($sale->saleDetails);
+            const saleDetails = @json($saleDetails);
             alert(saleDetails);
 
-            saleDetails.forEach(product => {
-                addProductToTable(product, true);
-            });
+            // saleDetails.forEach(product => {
+            //     addProductToTable(product, true);
+            // });
 
             // Inicializar DataTable para el modal de búsqueda
             $('#productsTable').DataTable({
