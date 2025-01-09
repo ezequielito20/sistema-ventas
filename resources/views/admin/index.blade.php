@@ -861,9 +861,6 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'right'
-                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {

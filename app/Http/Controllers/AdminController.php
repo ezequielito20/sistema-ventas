@@ -284,16 +284,16 @@ class AdminController extends Controller
       // Ventas por categoría
       $salesByCategory = DB::table('sale_details as sd')
          ->select(
-            'cat.name',
+            DB::raw('COALESCE(cat.name, "Sin Categoría") as name'),
             DB::raw('COUNT(sd.id) as total_sales'),
             DB::raw('SUM(sd.quantity) as total_quantity'),
             DB::raw('SUM(sd.quantity * p.sale_price) as total_revenue')
          )
          ->join('products as p', 'sd.product_id', '=', 'p.id')
-         ->join('categories as cat', 'p.category_id', '=', 'cat.id')
+         ->leftJoin('categories as cat', 'p.category_id', '=', 'cat.id')
          ->join('sales as s', 'sd.sale_id', '=', 's.id')
          ->where('s.company_id', $companyId)
-         ->groupBy('cat.id', 'cat.name')
+         ->groupBy('cat.id', DB::raw('COALESCE(cat.name, "Sin Categoría")'))
          ->orderByDesc('total_revenue')
          ->get();
 
