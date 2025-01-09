@@ -109,7 +109,7 @@
                                                     <td colspan="6" class="text-right"><strong>Total:</strong>
                                                     </td>
                                                     <td colspan="2">
-                                                        $<span id="totalAmount">0.00</span>
+                                                            {{$currency->symbol}}<span id="totalAmount">0.00</span>
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
@@ -188,7 +188,7 @@
                                             </span>
                                         </td>
                                         <td class="align-middle text-right">
-                                            ${{ number_format($product->purchase_price, 2) }}
+                                            {{$currency->symbol}} {{ number_format($product->purchase_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -419,29 +419,27 @@
                         </td>
                         <td>${product.stock}</td>
                         
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <input type="number" 
-                                       class="form-control quantity-input" 
-                                       name="items[${product.id}][quantity]" 
-                                       value="1" 
-                                       min="1">
-                            </div>
+                        <td style="width: 100px">
+                            <input type="number" 
+                                class="form-control form-control-sm quantity-input" 
+                                name="items[${product.id}][quantity]" 
+                                value="1" 
+                                min="1">
                         </td>
-                        <td>
+                        <td style="width: 150px">
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{$currency->symbol}}</span>
                                 </div>
                                 <input type="number" 
-                                       class="form-control price-input" 
-                                       name="items[${product.id}][price]" 
-                                       value="${product.purchase_price || product.price}" 
-                                       step="0.01">
+                                    class="form-control price-input" 
+                                    name="items[${product.id}][price]" 
+                                    value="${product.purchase_price || product.price}" 
+                                    step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${product.purchase_price || product.price}</span>
+                            {{$currency->symbol}} <span class="subtotal">${product.purchase_price || product.price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">

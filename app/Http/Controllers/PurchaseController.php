@@ -75,14 +75,14 @@ class PurchaseController extends Controller
       try {
          // Obtener productos y proveedores de la compañía actual
          $companyId = Auth::user()->company_id;
-
+         $currency = $this->currencies;
          $products = Product::where('company_id', $companyId)
             ->get();
 
          $suppliers = Supplier::where('company_id', $companyId)
             ->get();
 
-         return view('admin.purchases.create', compact('products', 'suppliers'));
+         return view('admin.purchases.create', compact('products', 'suppliers', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error en PurchaseController@create: ' . $e->getMessage());
          return redirect()->route('admin.purchases.index')
