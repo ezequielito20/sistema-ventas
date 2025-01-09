@@ -15,13 +15,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
+
    public function index()
    {
       try {
          $companyId = Auth::user()->company_id;
+         $currency = $this->currencies;
 
          // Obtener ventas con sus relaciones
          $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
@@ -47,7 +61,8 @@ class SaleController extends Controller
             'totalSales',
             'totalAmount',
             'monthlySales',
-            'averageTicket'
+            'averageTicket',
+            'currency'
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de ventas: ' . $e->getMessage());
@@ -64,6 +79,7 @@ class SaleController extends Controller
    {
       try {
          $companyId = Auth::user()->company_id;
+         $currency = $this->currencies;
 
          // Obtener productos y clientes de la compañía actual
          $products = Product::where('company_id', $companyId)
@@ -73,7 +89,7 @@ class SaleController extends Controller
             // ->where('status', true)
             ->get();
 
-         return view('admin.sales.create', compact('products', 'customers'));
+         return view('admin.sales.create', compact('products', 'customers', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@create: ' . $e->getMessage());
          return redirect()->back()
@@ -575,7 +591,7 @@ class SaleController extends Controller
          }
 
          // Obtener los detalles de la venta
-         $saleDetails = SaleDetail::with(['product' ])
+         $saleDetails = SaleDetail::with(['product'])
             ->where('sale_id', $id)
             ->get();
 

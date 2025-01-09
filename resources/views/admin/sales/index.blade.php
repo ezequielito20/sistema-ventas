@@ -28,7 +28,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>${{ number_format($totalAmount, 2) }}</h3>
+                    <h3>{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</h3>
                     <p>Total Ingresos</p>
                 </div>
                 <div class="icon">
@@ -50,7 +50,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary">
                 <div class="inner">
-                    <h3>${{ number_format($averageTicket, 2) }}</h3>
+                    <h3>{{ $currency->symbol }} {{ number_format($averageTicket, 2) }}</h3>
                     <p>Ticket Promedio</p>
                 </div>
                 <div class="icon">
@@ -108,7 +108,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>${{ number_format($sale->total_price, 2) }}</td>
+                            <td>{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm view-details"
                                     data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
@@ -184,7 +184,7 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" class="text-right"><strong>Total:</strong></td>
-                                <td class="text-right"><strong>$<span id="modalTotal">0.00</span></strong></td>
+                                <td class="text-right"><strong>{{ $currency->symbol }}<span id="modalTotal">0.00</span></strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -293,8 +293,8 @@
                                         <td>${detail.product.name || ''}</td>
                                         <td>${detail.product.category || 'Sin categoría'}</td>
                                         <td class="text-center">${quantity}</td>
-                                        <td class="text-right">$${price.toFixed(2)}</td>
-                                        <td class="text-right">$${subtotal.toFixed(2)}</td>
+                                        <td class="text-right">{{ $currency->symbol }} ${price.toFixed(2)}</td>
+                                        <td class="text-right">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
                                     </tr>
                                 `);
                             });

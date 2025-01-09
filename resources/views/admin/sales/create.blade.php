@@ -147,11 +147,11 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="6" class="text-right">
+                                                    <td colspan="5" class="text-right">
                                                         <strong>Total:</strong>
                                                     </td>
                                                     <td colspan="2">
-                                                        $<span id="totalAmount">0.00</span>
+                                                        <span id="totalAmount">{{ $currency->symbol }} 0.00</span>
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
@@ -232,7 +232,7 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
+                                        <td class="align-middle text-right">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -400,7 +400,7 @@
                         <td>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{$currency->symbol}}</span>
                                 </div>
                                 <input type="number" 
                                     class="form-control form-control-sm price-input" 
@@ -411,7 +411,7 @@
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${product.sale_price}</span>
+                            <span class="subtotal">{{$currency->symbol}}${product.sale_price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
