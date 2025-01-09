@@ -74,12 +74,12 @@
             </div>
         </div>
         <div class="card-body">
-            <table id="productsTable" class="table table-striped table-hover">
-                <thead>
+            <table id="productsTable" class="table table-striped table-hover" >
+                <thead >
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>
-                        <th>Categoría</th>
+                        <th style="width: 120px">Categoría</th>
                         <th>Stock</th>
                         <th>Precio Compra</th>
                         <th>Precio Venta</th>
@@ -89,22 +89,38 @@
                 <tbody>
                     @foreach ($products as $product)
                         <tr>
-                            <td>{{ $product->code }}</td>
+                            <td><small><strong>{{ $product->code }}</strong></small></td>
                             <td>
-                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
-                                    alt="{{ $product->name }}" class="img-thumbnail mr-2"
-                                    style="width: 50px; height: 50px; object-fit: cover;">
-                                {{ $product->name }}
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                        alt="{{ $product->name }}" class="product-thumbnail mr-2">
+                                    {{ $product->name }}
+                                </div>
                             </td>
-                            <td>{{ $product->category->name }}</td>
+                            <td>
+                                <span class="">
+                                    <i class=""></i>
+                                    {{ $product->category->name }}
+                                </span>
+                            </td>
                             <td>
                                 <span
                                     class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                    <i class="fas fa-boxes mr-1"></i>
                                     {{ $product->stock }}
                                 </span>
                             </td>
-                            <td>{{ $currency->symbol }} {{ number_format($product->purchase_price, 2) }}</td>
-                            <td>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</td>
+                            <td>
+                                <span class="text-primary">
+                                    <strong>{{ $currency->symbol }}
+                                        {{ number_format($product->purchase_price, 2) }}</strong>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-success">
+                                    <strong>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</strong>
+                                </span>
+                            </td>
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-info btn-sm show-product"
@@ -127,6 +143,7 @@
             </table>
         </div>
     </div>
+
     @if (isset($product))
         {{-- Modal para mostrar producto --}}
         <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel"
@@ -226,7 +243,8 @@
                                         <h6 class="mb-0">Precio de Compra</h6>
                                     </div>
                                     <div class="card-body">
-                                        <h4 class="text-primary mb-0">{{$currency->symbol}}<span id="productPurchasePrice"></span></h4>
+                                        <h4 class="text-primary mb-0">{{ $currency->symbol }}<span
+                                                id="productPurchasePrice"></span></h4>
                                     </div>
                                 </div>
                             </div>
@@ -236,7 +254,8 @@
                                         <h6 class="mb-0">Precio de Venta</h6>
                                     </div>
                                     <div class="card-body">
-                                        <h4 class="text-success mb-0">{{$currency->symbol}}<span id="productSalePrice"></span></h4>
+                                        <h4 class="text-success mb-0">{{ $currency->symbol }}<span
+                                                id="productSalePrice"></span></h4>
                                     </div>
                                 </div>
                             </div>
@@ -290,31 +309,79 @@
         .small-box:hover {
             transform: translateY(-5px);
         }
-    </style>
-    <style>
-        .small-box {
-            transition: transform .3s;
-        }
 
-        .small-box:hover {
-            transform: translateY(-5px);
-        }
-
-        .modal-header .close {
-            padding: 1rem;
-            margin: -1rem -1rem -1rem auto;
+        /* Estilos de tabla mejorados */
+        .table td {
+            vertical-align: middle !important;
         }
 
         .table th {
             background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
         }
 
-        #productImage {
-            transition: transform .3s;
+        /* Estilos de imagen de producto */
+        .product-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            transition: transform .2s;
         }
 
-        #productImage:hover {
-            transform: scale(1.05);
+        .product-thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        /* Estilos de badges */
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            transition: all .2s;
+        }
+
+        .badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos de botones */
+        .btn-group .btn {
+            margin: 0 2px;
+            transition: all .2s;
+        }
+
+        .btn-group .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para precios */
+        .text-primary strong,
+        .text-success strong {
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+
+            .table td,
+            .table th {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .product-thumbnail {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Ancho fijo para columna de categoría */
+        #productsTable th:nth-child(3),
+        #productsTable td:nth-child(3) {
+            width: 120px;
+            max-width: 120px;
         }
     </style>
 @stop
