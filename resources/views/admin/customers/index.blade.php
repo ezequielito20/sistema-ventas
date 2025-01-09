@@ -49,7 +49,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-gradient-success shadow-sm">
                 <div class="inner">
-                    <h3>{{ $activeCustomers }}</h3>
+                    <h3>{{ $activeCustomers }}/{{ $totalCustomers }}</h3>
                     <p>Clientes Activos</p>
                 </div>
                 <div class="icon">
@@ -73,7 +73,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-gradient-purple shadow-sm">
                 <div class="inner">
-                    <h3>${{ number_format($totalRevenue, 2) }}</h3>
+                    <h3>{{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}</h3>
                     <p>Ingresos Totales</p>
                 </div>
                 <div class="icon">
@@ -154,7 +154,7 @@
                             <td>
                                 @if ($customer->sales->count() > 0)
                                     <div>
-                                        ${{ number_format($customer->sales->sum('total_price'), 2) }}
+                                        {{$currency->symbol}} {{ number_format($customer->sales->sum('total_price'), 2) }}
                                         <br>
                                         <small class="text-muted">
                                             {{ $customer->sales->count() }} venta(s)
@@ -263,7 +263,7 @@
                                             <small class="text-muted">Total Ventas</small>
                                         </div>
                                         <div class="col-6 text-center">
-                                            <h4 class="mb-0" id="totalSpent">$0</h4>
+                                            <h4 class="mb-0" id="totalSpent">{{$currency->symbol}}0</h4>
                                             <small class="text-muted">Gasto Total</small>
                                         </div>
                                     </div>
@@ -428,7 +428,7 @@
 
                             // Estadísticas
                             $('#totalPurchases').text(customer.stats.total_purchases);
-                            $('#totalSpent').text('$' + customer.stats.total_spent
+                            $('#totalSpent').text('{{$currency->symbol}}' + customer.stats.total_spent
                                 .toLocaleString('es-PE', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -465,7 +465,7 @@
                                             beginAtZero: true,
                                             ticks: {
                                                 callback: function(value) {
-                                                    return '$' + value
+                                                    return '{{$currency->symbol}}' + value
                                                         .toLocaleString('es-PE');
                                                 }
                                             }

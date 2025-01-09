@@ -15,14 +15,26 @@ use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
          // Obtener todos los clientes
-         $customers = Customer::all();
+         $customers = Customer::where('company_id', $this->company->id)->get();
+         $currency = $this->currencies;
 
          // Estadísticas básicas
          $totalCustomers = $customers->count();
@@ -38,9 +50,16 @@ class CustomerController extends Controller
             return $customer->created_at->isCurrentMonth();
          })->count();
 
-         // Por ahora, establecemos estos valores en 0 hasta implementar las ventas
-         $activeCustomers = 0;
-         $totalRevenue = 0;
+         // Calcular clientes activos (los que han realizado al menos una compra)
+         $activeCustomers = Customer::where('company_id', $this->company->id)
+            ->whereHas('sales')
+            ->count();
+
+         // Calcular ingresos totales sumando todas las ventas
+         $totalRevenue = DB::table('sales')
+            ->join('customers', 'sales.customer_id', '=', 'customers.id')
+            ->where('customers.company_id', $this->company->id)
+            ->sum('total_price');
 
          return view('admin.customers.index', compact(
             'customers',
@@ -48,7 +67,8 @@ class CustomerController extends Controller
             'customerGrowth',
             'activeCustomers',
             'newCustomers',
-            'totalRevenue'
+            'totalRevenue',
+            'currency'
          ));
 
       } catch (\Exception $e) {
