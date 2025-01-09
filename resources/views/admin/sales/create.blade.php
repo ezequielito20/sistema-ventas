@@ -68,7 +68,7 @@
                                             <option value="">Seleccione un cliente</option>
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->id }}">
-                                                    {{ $customer->name }} - {{ $customer->document_number }}
+                                                    {{ $customer->name }} - {{ $customer->nit_number }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -232,7 +232,8 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}
+                                        <td class="align-middle text-right">{{ $currency->symbol }}
+                                            {{ number_format($product->sale_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -400,7 +401,7 @@
                         <td>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text">{{$currency->symbol}}</span>
+                                    <span class="input-group-text">{{ $currency->symbol }}</span>
                                 </div>
                                 <input type="number" 
                                     class="form-control form-control-sm price-input" 
@@ -411,7 +412,8 @@
                             </div>
                         </td>
                         <td class="text-right">
-                            <span class="subtotal">{{$currency->symbol}}${product.sale_price}</span>
+                            <span class="subtotal-value" style="display:none;">${product.sale_price}</span>
+                            <span class="subtotal-display">{{ $currency->symbol }}${product.sale_price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -504,7 +506,8 @@
                 }
 
                 const subtotal = quantity * price;
-                row.find('.subtotal').text(subtotal.toFixed(2));
+                row.find('.subtotal-value').text(subtotal.toFixed(2));
+                row.find('.subtotal-display').text('{{ $currency->symbol }} ' + subtotal.toFixed(2));
                 updateTotal();
             });
 
@@ -531,97 +534,13 @@
             // Actualizar total general
             function updateTotal() {
                 let total = 0;
-                $('.subtotal').each(function() {
+                $('.subtotal-value').each(function() {
                     total += parseFloat($(this).text()) || 0;
                 });
-                $('#totalAmount').text(total.toFixed(2));
+                $('#totalAmount').text('{{ $currency->symbol }} ' + total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
             }
 
-            // Procesar venta
-            // $('#processSale').click(function(e) {
-            //     e.preventDefault();
-
-            //     // Validar cliente seleccionado
-            //     if (!$('#customer_id').val()) {
-            //         Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
-            //         return;
-            //     }
-
-            //     // Validar productos en la venta
-            //     if ($('#saleItems tr').length === 0) {
-            //         Swal.fire('Error', 'Debe agregar al menos un producto', 'error');
-            //         return;
-            //     }
-
-            //     // Recolectar datos de la venta
-            //     let items = [];
-            //     $('#saleItems tr').each(function() {
-            //         const productId = $(this).find('.quantity-input').attr('name').match(
-            //             /\[(\d+)\]/)[1];
-            //         items.push({
-            //             product_id: productId,
-            //             quantity: parseInt($(this).find('.quantity-input').val()),
-            //             price: parseFloat($(this).find('.price-input').val())
-            //         });
-            //     });
-
-            //     // Crear FormData
-            //     const formData = new FormData();
-            //     formData.append('customer_id', $('#customer_id').val());
-            //     formData.append('sale_date', $('#sale_date').val());
-            //     // formData.append('payment_type', $('#payment_type').val());
-            //     formData.append('total_price', $('#totalAmountInput').val());
-            //     formData.append('items', JSON.stringify(items));
-
-            //     // Enviar formulario
-            //     $.ajax({
-            //         url: '{{ route('admin.sales.store') }}',
-            //         type: 'POST',
-            //         data: formData,
-            //         processData: false,
-            //         contentType: false,
-            //         headers: {
-            //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            //         },
-            //         success: function(response) {
-            //             if (response.success) {
-            //                 Swal.fire({
-            //                     icon: 'success',
-            //                     title: '¡Venta registrada!',
-            //                     text: 'La venta se ha registrado correctamente',
-            //                     showCancelButton: true,
-            //                     confirmButtonText: 'Ver detalles',
-            //                     cancelButtonText: 'Cerrar'
-            //                 }).then((result) => {
-            //                     if (result.isConfirmed) {
-            //                         window.location.href =
-            //                             `/sales/${response.sale_id}/details`;
-            //                     } else {
-            //                         window.location.href =
-            //                             '{{ route('admin.sales.index') }}';
-            //                     }
-            //                 });
-            //             } else {
-            //                 Swal.fire('Error', response.message, 'error');
-            //             }
-            //         },
-            //         error: function(xhr) {
-            //             const errors = xhr.responseJSON.errors;
-            //             let errorMessage = 'Ocurrieron los siguientes errores:<br><br>';
-
-            //             for (const key in errors) {
-            //                 errorMessage += `- ${errors[key][0]}<br>`;
-            //             }
-
-            //             Swal.fire({
-            //                 icon: 'error',
-            //                 title: 'Error al procesar la venta',
-            //                 html: errorMessage
-            //             });
-            //         }
-            //     });
-            // });
 
             // Limpiar formulario
             $('#clearForm').click(function() {

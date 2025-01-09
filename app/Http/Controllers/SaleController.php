@@ -190,6 +190,7 @@ class SaleController extends Controller
    {
       try {
          $companyId = Auth::user()->company_id;
+         $currency = $this->currencies;
 
          // Obtener la venta con sus detalles y productos
          $sale = Sale::with(['saleDetails.product'])
@@ -217,7 +218,7 @@ class SaleController extends Controller
             ->get();
          $customers = Customer::where('company_id', $companyId)->get();
 
-         return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails'));
+         return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@edit: ' . $e->getMessage());
          return redirect()->route('admin.sales.index')
