@@ -845,12 +845,12 @@
                 }
             });
 
-            // Agregar dentro del DOMContentLoaded existente
             new Chart(document.getElementById('salesByCategoryChart'), {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($salesByCategory->pluck('name')) !!},
                     datasets: [{
+                        label: 'Ventas por Categoría',
                         data: {!! json_encode($salesByCategory->pluck('total_revenue')) !!},
                         backgroundColor: [
                             '#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'
@@ -861,12 +861,25 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        legend: {
+                            display: false
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     let label = context.label || '';
                                     let value = context.raw || 0;
                                     return label + ': $' + value.toLocaleString('es-PE');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-PE');
                                 }
                             }
                         }
