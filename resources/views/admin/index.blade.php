@@ -307,24 +307,6 @@
         </div>
     </div>
 
-
-    {{-- Gráfico de Tendencias de Proveedores --}}
-    {{-- <div class="row mt-4">
-    <div class="col-12">
-        <div class="card shadow">
-            <div class="card-header bg-success">
-                <h3 class="card-title">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    Tendencia de Nuevos Proveedores
-                </h3>
-            </div>
-            <div class="card-body">
-                <canvas id="supplierTrendsChart" style="min-height: 250px;"></canvas>
-            </div>
-        </div>
-    </div>
-</div> --}}
-
     {{-- Sección de Compras --}}
     <div class="row mt-4">
         <div class="col-12">
@@ -464,7 +446,6 @@
             </div>
         </div>
     </div>
-    {{-- ---------------------------------------------- --}}
 
     {{-- Información de Clientes --}}
     <div class="row mt-4">
@@ -503,7 +484,7 @@
                     <h3>{{ $newCustomers }}</h3>
                     <p>Nuevos Clientes este Mes</p>
                     <span class="text-sm">
-                        Total registrados: {{ $monthlyActivity[count($monthlyActivity)-1] ?? 0 }} este mes
+                        Total registrados: {{ $monthlyActivity[count($monthlyActivity) - 1] ?? 0 }} este mes
                     </span>
                 </div>
                 <div class="icon">
@@ -535,7 +516,143 @@
         </div>
     </div>
 
-    
+    {{-- ---------------------------------------------- --}}
+    {{-- Sección de Ventas --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4 class="text-primary">
+                <i class="fas fa-cash-register mr-2"></i>
+                Información de Ventas
+            </h4>
+        </div>
+
+        {{-- Widget de Ventas del Día --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-success shadow">
+                <div class="inner">
+                    <h3>${{ number_format($todaySales, 2) }}</h3>
+                    <p>Ventas del Día</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Promedio por Cliente --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-info shadow">
+                <div class="inner">
+                    <h3>${{ number_format($averageCustomerSpend, 2) }}</h3>
+                    <p>Promedio de Venta por Cliente</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Productos Rentables --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-warning shadow">
+                <div class="inner">
+                    <h3>${{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}</h3>
+                    <p>Ganancia Total</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Top 10 Productos Más Vendidos --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">
+                        <i class="fas fa-trophy mr-2"></i>
+                        Top 10 Productos Más Vendidos
+                    </h3>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Veces Vendido</th>
+                                <th class="text-center">Cantidad Total</th>
+                                <th class="text-right">Precio Unitario</th>
+                                <th class="text-right">Ingresos Totales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($topSellingProducts as $product)
+                                <tr>
+                                    <td>{{ $product->name }}</td>
+                                    <td class="text-center">{{ $product->times_sold }}</td>
+                                    <td class="text-center">{{ $product->total_quantity }}</td>
+                                    <td class="text-right">${{ number_format($product->sale_price, 2) }}</td>
+                                    <td class="text-right">${{ number_format($product->total_revenue, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Top 5 Clientes y Categorías más Vendidas --}}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success">
+                    <h3 class="card-title">
+                        <i class="fas fa-users mr-2"></i>
+                        Top 5 Clientes
+                    </h3>
+                </div>
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th class="text-right">Total Gastado</th>
+                                <th class="text-center">Productos Únicos</th>
+                                <th class="text-center">Total Productos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($topCustomers as $customer)
+                                <tr>
+                                    <td>{{ $customer->name }}</td>
+                                    <td class="text-right">${{ number_format($customer->total_spent, 2) }}</td>
+                                    <td class="text-center">{{ $customer->unique_products }}</td>
+                                    <td class="text-center">{{ $customer->total_products }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-info">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        Ventas por Categoría
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesByCategoryChart" style="min-height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
 @stop
@@ -728,10 +845,40 @@
                 }
             });
 
+            // Agregar dentro del DOMContentLoaded existente
+            new Chart(document.getElementById('salesByCategoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($salesByCategory->pluck('name')) !!},
+                    datasets: [{
+                        data: {!! json_encode($salesByCategory->pluck('total_revenue')) !!},
+                        backgroundColor: [
+                            '#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    return label + ': $' + value.toLocaleString('es-PE');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
-            
 
-            
+
         });
     </script>
 @stop

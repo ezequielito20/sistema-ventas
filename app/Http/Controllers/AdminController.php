@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 class AdminController extends Controller
 {
    public function index()
-   {  
+   {
       $companyId = Auth::user()->company_id;
       // Obtener conteos básicos
       $usersCount = User::where('company_id', $companyId)->count();
@@ -111,8 +111,8 @@ class AdminController extends Controller
       // Crecimiento mensual
       $lastMonthPurchases = Purchase::whereMonth('created_at', now()->subMonth()->month)
          ->sum('total_price');
-      
-      $purchaseGrowth = $lastMonthPurchases > 0 ? 
+
+      $purchaseGrowth = $lastMonthPurchases > 0 ?
          round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
 
       // Producto más comprado
@@ -154,13 +154,13 @@ class AdminController extends Controller
       for ($i = 5; $i >= 0; $i--) {
          $date = now()->subMonths($i);
          $purchaseMonthlyLabels[] = $date->format('M Y');
-         
+
          // Suma del total de compras por mes
          $monthlyTotal = DB::table('purchases')
             ->whereMonth('created_at', $date->month)
             ->whereYear('created_at', $date->year)
             ->sum('total_price');
-         
+
          $purchaseMonthlyData[] = $monthlyTotal ?? 0;
       }
 
@@ -187,7 +187,7 @@ class AdminController extends Controller
       $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
 
       // Nuevas variables para la sección de clientes
-      
+
       // Total de clientes y crecimiento
       $totalCustomers = DB::table('customers')
          ->where('company_id', $companyId)
@@ -201,7 +201,7 @@ class AdminController extends Controller
       // Calcula el porcentaje de crecimiento de clientes comparando el total actual con el mes anterior
       // Si no hay clientes del mes anterior, retorna 0 para evitar división por cero
       // La fórmula es: ((total_actual - total_mes_anterior) / total_mes_anterior) * 100
-      $customerGrowth = $lastMonthCustomers > 0 ? 
+      $customerGrowth = $lastMonthCustomers > 0 ?
          round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1) : 0;
 
       // Nuevos clientes este mes
@@ -218,7 +218,7 @@ class AdminController extends Controller
       for ($i = 5; $i >= 0; $i--) {
          $date = now()->subMonths($i);
          $monthlyLabels[] = $date->format('M Y');
-         
+
          $monthlyActivity[] = DB::table('customers')
             ->where('company_id', $companyId)
             ->whereMonth('created_at', $date->month)
@@ -244,11 +244,87 @@ class AdminController extends Controller
          ->whereNotNull('nit_number')
          ->count();
 
-      $verifiedPercentage = $totalCustomers > 0 
-         ? round(($verifiedCustomers / $totalCustomers) * 100, 1) 
+      $verifiedPercentage = $totalCustomers > 0
+         ? round(($verifiedCustomers / $totalCustomers) * 100, 1)
          : 0;
 
-      // Agregar las nuevas variables al compact existente
+      // Top 10 productos más vendidos
+      $topSellingProducts = DB::table('sale_details as sd')
+         ->select(
+            'p.name',
+            DB::raw('COUNT(sd.id) as times_sold'),
+            DB::raw('SUM(sd.quantity) as total_quantity'),
+            'p.sale_price',
+            DB::raw('SUM(sd.quantity * p.sale_price) as total_revenue')
+         )
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $companyId)
+         ->groupBy('p.id', 'p.name', 'p.sale_price')
+         ->orderByDesc('total_quantity')
+         ->limit(10)
+         ->get();
+
+      // Top 5 clientes
+      $topCustomers = DB::table('sales as s')
+         ->select(
+            'c.name',
+            DB::raw('SUM(s.total_price) as total_spent'),
+            DB::raw('COUNT(DISTINCT sd.product_id) as unique_products'),
+            DB::raw('SUM(sd.quantity) as total_products')
+         )
+         ->join('customers as c', 's.customer_id', '=', 'c.id')
+         ->join('sale_details as sd', 's.id', '=', 'sd.sale_id')
+         ->where('s.company_id', $companyId)
+         ->groupBy('c.id', 'c.name')
+         ->orderByDesc('total_spent')
+         ->limit(5)
+         ->get();
+
+      // Ventas por categoría
+      $salesByCategory = DB::table('sale_details as sd')
+         ->select(
+            'cat.name',
+            DB::raw('COUNT(sd.id) as total_sales'),
+            DB::raw('SUM(sd.quantity) as total_quantity'),
+            DB::raw('SUM(sd.quantity * p.sale_price) as total_revenue')
+         )
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->join('categories as cat', 'p.category_id', '=', 'cat.id')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $companyId)
+         ->groupBy('cat.id', 'cat.name')
+         ->orderByDesc('total_revenue')
+         ->get();
+
+      // Widgets adicionales que agregaré:
+
+      // 1. Ventas del día actual
+      $todaySales = DB::table('sales')
+         ->where('company_id', $companyId)
+         ->whereDate('sale_date', now())
+         ->sum('total_price');
+
+      // 2. Promedio de venta por cliente
+      $averageCustomerSpend = DB::table('sales')
+         ->where('company_id', $companyId)
+         ->avg('total_price');
+
+      // 3. Productos más rentables (mayor margen de ganancia)
+      $mostProfitableProducts = DB::table('sale_details as sd')
+         ->select(
+            'p.name',
+            DB::raw('(p.sale_price - p.purchase_price) as profit_margin'),
+            DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit')
+         )
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $companyId)
+         ->groupBy('p.id', 'p.name', 'p.sale_price', 'p.purchase_price')
+         ->orderByDesc('total_profit')
+         ->limit(5)
+         ->get();
+
       return view('admin.index', compact(
          'usersCount',
          'rolesCount',
@@ -278,7 +354,13 @@ class AdminController extends Controller
          'activityData',
          'activityLabels',
          'verifiedCustomers',
-         'verifiedPercentage'
+         'verifiedPercentage',
+         'topSellingProducts',
+         'topCustomers',
+         'salesByCategory',
+         'todaySales',
+         'averageCustomerSpend',
+         'mostProfitableProducts'
       ));
    }
 }
