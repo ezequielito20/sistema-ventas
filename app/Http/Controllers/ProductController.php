@@ -13,14 +13,26 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
-         $products = Product::with('category')->get();
-         $categories = Category::all();
+         $products = Product::with('category')->where('company_id', $this->company->id)->get();
+         $categories = Category::where('company_id', $this->company->id)->get();
+         $currency = $this->currencies;
 
          // Calcular estadísticas
          $totalProducts = $products->count();
@@ -36,7 +48,8 @@ class ProductController extends Controller
             'categories',
             'totalProducts',
             'lowStockProducts',
-            'totalValue'
+            'totalValue',
+            'currency'
          ));
       } catch (\Exception $e) {
          Log::error('Error loading products: ' . $e->getMessage());

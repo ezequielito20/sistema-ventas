@@ -39,11 +39,11 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>${{ number_format($totalValue, 2) }}</h3>
+                    <h2>{{ $currency->symbol }} {{ number_format($totalValue, 2) }}</h2>
                     <p>Valor del Inventario</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i class="fas fa-money-bill"></i>
                 </div>
             </div>
         </div>
@@ -103,8 +103,8 @@
                                     {{ $product->stock }}
                                 </span>
                             </td>
-                            <td>${{ number_format($product->purchase_price, 2) }}</td>
-                            <td>${{ number_format($product->sale_price, 2) }}</td>
+                            <td>{{ $currency->symbol }} {{ number_format($product->purchase_price, 2) }}</td>
+                            <td>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</td>
                             <td>
                                 <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                     {{ $product->stock_status_label }}
