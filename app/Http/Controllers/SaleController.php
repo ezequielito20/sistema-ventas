@@ -207,10 +207,14 @@ class SaleController extends Controller
                'name' => $detail->product->name,
                'quantity' => $detail->quantity,
                'sale_price' => $detail->product->sale_price,
+               'subtotal' => $detail->quantity * $detail->product->sale_price,
                'stock' => $detail->product->stock + $detail->quantity,
                'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
             ];
          });
+
+         // Calcular el total inicial
+         $totalAmount = $saleDetails->sum('subtotal');
 
          // Obtener productos y clientes para los selectores
          $products = Product::where('company_id', $companyId)

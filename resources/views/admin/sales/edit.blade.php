@@ -118,37 +118,39 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="saleItems">
-                                                @foreach ($sale->saleDetails as $detail)
-                                                    <tr data-product-code="{{ $detail->product->code }}">
-                                                        <td>{{ $detail->product->code }}</td>
-                                                        <td>{{ $detail->product->name }}</td>
+                                                @foreach ($saleDetails as $detail)
+                                                    <tr data-product-code="{{ $detail['code'] }}">
+                                                        <td>{{ $detail['code'] }}</td>
+                                                        <td>{{ $detail['name'] }}</td>
                                                         <td class="text-center">
                                                             <span
-                                                                class="badge badge-{{ $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger') }}">
-                                                                {{ $detail->product->stock }}
-                                                            </span>
+                                                                class="badge badge-{{ $detail['stock_status_class'] }}">{{ $detail['stock'] }}</span>
                                                         </td>
                                                         <td>
                                                             <input type="number"
                                                                 class="form-control form-control-sm quantity-input"
-                                                                name="items[{{ $detail->product->id }}][quantity]"
-                                                                value="{{ $detail->quantity }}" min="1"
-                                                                max="{{ $detail->product->stock + $detail->quantity }}">
+                                                                name="items[{{ $detail['id'] }}][quantity]"
+                                                                value="{{ $detail['quantity'] }}" min="1"
+                                                                max="{{ $detail['stock'] }}">
                                                         </td>
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <div class="input-group-prepend">
-                                                                    <span class="input-group-text">$</span>
+                                                                    <span
+                                                                        class="input-group-text">{{ $currency->symbol }}</span>
                                                                 </div>
                                                                 <input type="number"
                                                                     class="form-control form-control-sm price-input"
-                                                                    name="items[{{ $detail->product->id }}][price]"
-                                                                    value="{{ $detail->product->sale_price }}"
-                                                                    step="0.01" readonly>
+                                                                    name="items[{{ $detail['id'] }}][price]"
+                                                                    value="{{ $detail['sale_price'] }}" step="0.01"
+                                                                    readonly>
                                                             </div>
                                                         </td>
-                                                        <td class="text-right subtotal">
-                                                            ${{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
+                                                        <td class="text-right">
+                                                            <span class="subtotal-value"
+                                                                style="display:none;">{{ $detail['quantity'] * $detail['sale_price'] }}</span>
+                                                            <span class="subtotal-display">{{ $currency->symbol }}
+                                                                {{ number_format($detail['quantity'] * $detail['sale_price'], 2) }}</span>
                                                         </td>
                                                         <td>
                                                             <button type="button"
@@ -161,11 +163,10 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="6" class="text-right">
+                                                    <td colspan="5" class="text-right">
                                                         <strong>Total:</strong>
                                                     </td>
-                                                    <td class="text-right">
-                                                        $<span
+                                                    <td class="text-right"> <span
                                                             id="totalAmount">{{ number_format($sale->total_price, 2) }}</span>
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="{{ $sale->total_price }}">
@@ -246,7 +247,8 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->sale_price, 2) }}
+                                        <td class="align-middle text-right">
+                                            {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -381,7 +383,7 @@
                 const subtotal = quantity * price;
                 $(this).find('.subtotal').text(subtotal.toFixed(2));
             });
-            
+
             // Actualizar el total inicial
             updateTotal();
 
@@ -418,7 +420,7 @@
                         <td>
                             <div class="input-group input-group-sm">
                                 <div class="input-group-prepend">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">{{ $currency->symbol }}</span>
                                 </div>
                                 <input type="number" 
                                     class="form-control form-control-sm price-input" 
@@ -429,7 +431,7 @@
                             </div>
                         </td>
                         <td class="text-right">
-                            $<span class="subtotal">${(quantity * price).toFixed(2)}</span>
+                            {{ $currency->symbol }}   <span class="subtotal"> ${(quantity * price).toFixed(2)}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -547,10 +549,13 @@
             // Actualizar total general
             function updateTotal() {
                 let total = 0;
-                $('.subtotal').each(function() {
-                    total += parseFloat($(this).text()) || 0;
+                $('#saleItems tr').each(function() {
+                    const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                    const price = parseFloat($(this).find('.price-input').val()) || 0;
+                    total += quantity * price;
                 });
-                $('#totalAmount').text(total.toFixed(2));
+
+                $('#totalAmount').text('{{ $currency->symbol }} ' + total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
             }
 
