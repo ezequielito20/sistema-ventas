@@ -57,32 +57,26 @@
 
         .customer-container {
             margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
+            padding: 5px;
+            border: 1px solid #000000;
             border-radius: 8px;
             background-color: #f8fafc;
         }
 
         .customer-header {
-            border-bottom: 1px solid #4a5568;
+            border-bottom: 1px solid #000000;
             padding-bottom: 8px;
             margin-bottom: 12px;
             font-size: 14px;
-            color: #2d3748;
+            color: #000000;
             font-weight: bold;
+            padding-left: 35px;
+            
         }
 
         .customer-info {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .customer-row {
-            display: flex;
-            justify-content: flex-start;
-            gap: 40px;
-            /* Espacio entre elementos */
+            align-items: center;
         }
 
         .customer-item {
@@ -93,7 +87,7 @@
 
         .customer-label {
             font-weight: bold;
-            color: #4a5568;
+            color: #000000;
             font-size: 11px;
             margin-right: 5px;
         }
@@ -101,6 +95,7 @@
         .customer-value {
             color: #2d3748;
             font-size: 11px;
+            margin-right: 30px;
         }
 
         .products-table {
@@ -185,27 +180,21 @@
             Información del Cliente
         </div>
         <div class="customer-info">
-            <!-- Primera fila -->
-            <div class="customer-row">
-                <div class="customer-item">
-                    <span class="customer-label">Nombre:</span>
-                    <span class="customer-value">{{ $customer->name }}</span>
-                </div>
-                <div class="customer-item">
-                    <span class="customer-label">NIT:</span>
-                    <span class="customer-value">{{ $customer->nit_number }}</span>
-                </div>
+            <div class="customer-item">
+                <span class="customer-label">Nombre:</span>
+                <span class="customer-value">{{ $customer->name }}</span>
             </div>
-            <!-- Segunda fila -->
-            <div class="customer-row">
-                <div class="customer-item">
-                    <span class="customer-label">Teléfono:</span>
-                    <span class="customer-value">{{ $customer->phone }}</span>
-                </div>
-                <div class="customer-item">
-                    <span class="customer-label">Email:</span>
-                    <span class="customer-value">{{ $customer->email }}</span>
-                </div>
+            <div class="customer-item">
+                <span class="customer-label">NIT:</span>
+                <span class="customer-value">{{ $customer->nit_number }}</span>
+            </div>
+            <div class="customer-item">
+                <span class="customer-label">Teléfono:</span>
+                <span class="customer-value">{{ $customer->phone }}</span>
+            </div>
+            <div class="customer-item">
+                <span class="customer-label">Email:</span>
+                <span class="customer-value">{{ $customer->email }}</span>
             </div>
         </div>
     </div>
