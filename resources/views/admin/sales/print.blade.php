@@ -100,21 +100,25 @@
 
         .products-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin: 10px 0;
             font-size: 11px;
+            border: 1px solid #000000;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .products-table th {
             background: #f8f9fa;
             padding: 8px;
             text-align: left;
-            border-bottom: 1px solid #dee2e6;
+            border: 1px solid #000000;
         }
 
         .products-table td {
+            border: 1px solid #000000;
             padding: 8px;
-            border-bottom: 1px solid #dee2e6;
         }
 
         .summary {
