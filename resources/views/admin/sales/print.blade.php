@@ -55,14 +55,45 @@
             line-height: 1.3;
         }
 
-        
+        .customer-container {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #f8fafc;
+        }
 
-        .customer-info {
-            background: #f8f9fa;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
+        .customer-header {
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: bold;
+        }
+
+        .customer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .customer-item {
+            display: flex;
+            align-items: baseline;
+        }
+
+        .customer-label {
+            min-width: 80px;
+            font-weight: bold;
+            color: #4a5568;
             font-size: 11px;
+        }
+
+        .customer-value {
+            color: #2d3748;
+            font-size: 11px;
+            flex: 1;
         }
 
         .products-table {
@@ -141,12 +172,28 @@
         </div>
     </div>
 
-    <div class="customer-info">
-        <strong>Información del Cliente</strong><br>
-        <strong>Nombre:</strong> {{ $customer->name }}<br>
-        <strong>NIT:</strong> {{ $customer->nit_number }}<br>
-        <strong>Teléfono:</strong> {{ $customer->phone }}<br>
-        <strong>Email:</strong> {{ $customer->email }}
+    <div class="customer-container">
+        <div class="customer-header">
+            Información del Cliente
+        </div>
+        <div class="customer-grid row">
+            <div class="customer-item col-md-6">
+                <span class="customer-label">Nombre:</span>
+                <span class="customer-value">{{ $customer->name }}</span>
+            </div>
+            <div class="customer-item col-md-6">
+                <span class="customer-label">NIT:</span>
+                <span class="customer-value">{{ $customer->nit_number }}</span>
+            </div>
+            <div class="customer-item col-md-6">
+                <span class="customer-label">Teléfono:</span>
+                <span class="customer-value">{{ $customer->phone }}</span>
+            </div>
+            <div class="customer-item col-md-6">
+                <span class="customer-label">Email:</span>
+                <span class="customer-value">{{ $customer->email }}</span>
+            </div>
+        </div>
     </div>
 
     <table class="products-table">
