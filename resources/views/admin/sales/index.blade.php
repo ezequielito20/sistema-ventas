@@ -126,6 +126,7 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                     <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
+                                        target="_blank"
                                         data-toggle="tooltip" title="Imprimir">
                                         <i class="fas fa-print"></i>
                                     </a>

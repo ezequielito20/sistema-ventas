@@ -585,12 +585,15 @@ class SaleController extends Controller
          // Obtener el cliente
          $customer = Customer::find($sale->customer_id);
 
+         $currency = DB::table('currencies')->where('country_id', $company->country)->first();
+
          // Generar el PDF
          $pdf = PDF::loadView('admin.sales.print', compact(
             'sale',
             'saleDetails',
             'company',
-            'customer'
+            'customer',
+            'currency'
          ));
 
          // Configurar el PDF

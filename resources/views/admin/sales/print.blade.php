@@ -116,7 +116,7 @@
     <div class="header clearfix">
         <div class="company-info">
             @if($company->logo)
-                <img src="{{ public_path($company->logo) }}" class="company-logo" alt="Logo">
+            <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo de {{ $company->name }}" style="max-width: 150px; max-height: 150px;">
             @endif
             <h2>{{ $company->name }}</h2>
             <p>
