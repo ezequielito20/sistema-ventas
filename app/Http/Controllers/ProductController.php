@@ -65,8 +65,9 @@ class ProductController extends Controller
    public function create()
    {
       try {
-         $categories = Category::all();
-         return view('admin.products.create', compact('categories'));
+         $categories = Category::where('company_id', $this->company->id)->get();
+         $currency = $this->currencies;
+         return view('admin.products.create', compact('categories', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error loading create product form: ' . $e->getMessage());
          return redirect()->back()
@@ -194,8 +195,9 @@ class ProductController extends Controller
    {
       try {
          $product = Product::find($id);
-         $categories = Category::all();
-         return view('admin.products.edit', compact('product', 'categories'));
+         $categories = Category::where('company_id', $this->company->id)->get();
+         $currency = $this->currencies;
+         return view('admin.products.edit', compact('product', 'categories', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error loading edit product form: ' . $e->getMessage());
          return redirect()->back()

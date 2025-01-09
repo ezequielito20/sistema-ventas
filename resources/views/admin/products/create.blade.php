@@ -236,7 +236,7 @@
                                             class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">$</span>
+                                            <span class="input-group-text">{{$currency->symbol}}</span>
                                         </div>
                                         <input type="number"
                                             class="form-control @error('purchase_price') is-invalid @enderror"
@@ -255,7 +255,7 @@
                                     <label for="sale_price">Precio de Venta <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">$</span>
+                                            <span class="input-group-text">{{$currency->symbol}}</span>
                                         </div>
                                         <input type="number"
                                             class="form-control @error('sale_price') is-invalid @enderror"

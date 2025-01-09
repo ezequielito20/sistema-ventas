@@ -75,7 +75,7 @@
         </div>
         <div class="card-body">
             <table id="productsTable" class="table table-striped table-hover">
-                <thead >
+                <thead>
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>
@@ -83,7 +83,6 @@
                         <th>Stock</th>
                         <th>Precio Compra</th>
                         <th>Precio Venta</th>
-                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -99,17 +98,13 @@
                             </td>
                             <td>{{ $product->category->name }}</td>
                             <td>
-                                <span class="badge badge-{{ $product->stock_status_class }}">
+                                <span
+                                    class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                     {{ $product->stock }}
                                 </span>
                             </td>
                             <td>{{ $currency->symbol }} {{ number_format($product->purchase_price, 2) }}</td>
                             <td>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</td>
-                            <td>
-                                <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
-                                    {{ $product->stock_status_label }}
-                                </span>
-                            </td>
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-info btn-sm show-product"
@@ -132,154 +127,155 @@
             </table>
         </div>
     </div>
-    @if(isset($product) )
-    {{-- Modal para mostrar producto --}}
-    <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white" id="showProductModalLabel">
-                        <i class="fas fa-box mr-2"></i>
-                        Detalles del Producto
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        {{-- Imagen del producto --}}
-                        <div class="col-md-3 ">
-                            <img src="{{ asset( $product->image) }}" 
-                            alt="Imagen del producto"
-                            style="width: 100%; height: 100%; 
+    @if (isset($product))
+        {{-- Modal para mostrar producto --}}
+        <div class="modal fade" id="showProductModal" tabindex="-1" role="dialog" aria-labelledby="showProductModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white" id="showProductModalLabel">
+                            <i class="fas fa-box mr-2"></i>
+                            Detalles del Producto
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            {{-- Imagen del producto --}}
+                            <div class="col-md-3 ">
+                                <img src="{{ asset($product->image) }}" alt="Imagen del producto"
+                                    style="width: 100%; height: 100%; 
                             border-radius: 8px;">
-                            <p id="noImage" class="text-muted mt-3" style="display: none;">Sin imagen</p>
-                        </div>
-                        
-                        
-                        {{-- Información básica --}}
-                        <div class="col-md-8">
-                            <table class="table table-bordered">
-                                <tr>
-                                    <th style="width: 30%">Código:</th>
-                                    <td><span id="productCode"></span></td>
-                                </tr>
-                                <tr>
-                                    <th>Nombre:</th>
-                                    <td><span id="productName"></span></td>
-                                </tr>
-                                <tr>
-                                    <th>Categoría:</th>
-                                    <td><span id="productCategory"></span></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                                <p id="noImage" class="text-muted mt-3" style="display: none;">Sin imagen</p>
+                            </div>
 
-                    {{-- Descripción --}}
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">Descripción</h6>
-                                </div>
-                                <div class="card-body">
-                                    <p id="productDescription" class="mb-0"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {{-- Información de stock --}}
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Stock Actual</span>
-                                    <span class="info-box-number" id="productStock"></span>
-                                </div>
+                            {{-- Información básica --}}
+                            <div class="col-md-8">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th style="width: 30%">Código:</th>
+                                        <td><span id="productCode"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Nombre:</th>
+                                        <td><span id="productName"></span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Categoría:</th>
+                                        <td><span id="productCategory"></span></td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Stock Mínimo</span>
-                                    <span class="info-box-number" id="productMinStock"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-success"><i class="fas fa-warehouse"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Stock Máximo</span>
-                                    <span class="info-box-number" id="productMaxStock"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {{-- Información de precios --}}
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">Precio de Compra</h6>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="text-primary mb-0">$<span id="productPurchasePrice"></span></h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">Precio de Venta</h6>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="text-success mb-0">$<span id="productSalePrice"></span></h4>
+                        {{-- Descripción --}}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Descripción</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p id="productDescription" class="mb-0"></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {{-- Fechas --}}
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <table class="table table-sm">
-                                <tr>
-                                    <th>Fecha de Ingreso:</th>
-                                    <td>
-                                        <span id="productEntryDate"></span>
-                                        <small class="text-muted d-block">
-                                            <i class="fas fa-clock mr-1"></i>
-                                            <span id="productEntryDaysAgo"></span>
-                                        </small>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Creado:</th>
-                                    <td id="productCreatedAt"></td>
-                                </tr>
-                                <tr>
-                                    <th>Última Actualización:</th>
-                                    <td id="productUpdatedAt"></td>
-                                </tr>
-                            </table>
+                        {{-- Información de stock --}}
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Stock Actual</span>
+                                        <span class="info-box-number" id="productStock"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-warning"><i
+                                            class="fas fa-exclamation-triangle"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Stock Mínimo</span>
+                                        <span class="info-box-number" id="productMinStock"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="info-box">
+                                    <span class="info-box-icon bg-success"><i class="fas fa-warehouse"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Stock Máximo</span>
+                                        <span class="info-box-number" id="productMaxStock"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Información de precios --}}
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Precio de Compra</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h4 class="text-primary mb-0">{{$currency->symbol}}<span id="productPurchasePrice"></span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">Precio de Venta</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h4 class="text-success mb-0">{{$currency->symbol}}<span id="productSalePrice"></span></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Fechas --}}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Fecha de Ingreso:</th>
+                                        <td>
+                                            <span id="productEntryDate"></span>
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                <span id="productEntryDaysAgo"></span>
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Creado:</th>
+                                        <td id="productCreatedAt"></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Última Actualización:</th>
+                                        <td id="productUpdatedAt"></td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i>Cerrar
-                    </button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-2"></i>Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 @stop
 
@@ -364,15 +360,15 @@
             // Mostrar detalles del producto
             $('.show-product').click(function() {
                 const id = $(this).data('id');
-                
+
                 $.ajax({
                     url: `/products/${id}`,
                     type: 'GET',
                     success: function(response) {
                         if (response.status === 'success') {
                             const product = response.product;
-                            
-                            
+
+
                             // Actualizar imagen
                             if (product.image) {
                                 $('#productImage').attr('src', product.image).show();
@@ -381,33 +377,34 @@
                                 $('#productImage').hide();
                                 $('#noImage').show();
                             }
-                            
+
                             // Actualizar información básica
                             $('#productCode').text(product.code);
                             $('#productName').text(product.name);
                             $('#productCategory').text(product.category);
                             $('#productDescription').text(product.description);
-                            
+
                             // Actualizar stock
                             $('#productStock').text(product.stock);
                             $('#productMinStock').text(product.min_stock);
                             $('#productMaxStock').text(product.max_stock);
-                            
+
                             // Actualizar precios
                             $('#productPurchasePrice').text(product.purchase_price);
                             $('#productSalePrice').text(product.sale_price);
-                            
+
                             // Actualizar fechas
                             $('#productEntryDate').text(product.entry_date);
                             $('#productEntryDaysAgo').text(product.entry_days_ago);
                             $('#productCreatedAt').text(product.created_at);
                             $('#productUpdatedAt').text(product.updated_at);
-                            
+
                             $('#showProductModal').modal('show');
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudo cargar la información del producto', 'error');
+                        Swal.fire('Error', 'No se pudo cargar la información del producto',
+                            'error');
                     }
                 });
             });
@@ -415,7 +412,7 @@
             // Manejo de eliminación de productos
             $('.delete-product').click(function() {
                 const productId = $(this).data('id');
-                
+
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "Esta acción no se puede revertir",
@@ -448,7 +445,8 @@
                             },
                             error: function(xhr) {
                                 const response = xhr.responseJSON;
-                                Swal.fire('Error', response.message || 'No se pudo eliminar el producto', 'error');
+                                Swal.fire('Error', response.message ||
+                                    'No se pudo eliminar el producto', 'error');
                             }
                         });
                     }
