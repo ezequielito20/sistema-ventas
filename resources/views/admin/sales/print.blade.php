@@ -58,13 +58,13 @@
         .customer-container {
             margin: 20px 0;
             padding: 5px;
-            border: 1px solid #000000;
+            border: 2px solid #000000;
             border-radius: 8px;
             background-color: #f8fafc;
         }
 
         .customer-header {
-            border-bottom: 1px solid #000000;
+            border-bottom: 2px solid #000000;
             padding-bottom: 8px;
             margin-bottom: 12px;
             font-size: 14px;
@@ -124,17 +124,20 @@
         .summary {
             float: right;
             width: 30%;
-            margin-top: 15px;
+            margin-top: 0px;
             font-size: 11px;
+            border: 2px solid #000000;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .footer {
-            margin-top: 30px;
+            margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid #dee2e6;
             font-size: 10px;
             text-align: center;
-            color: #6c757d;
+            color: #474a4d;
         }
 
         .text-right {
@@ -154,6 +157,7 @@
 </head>
 
 <body>
+    <!-- Header -->
     <div class="header-container clearfix">
         <div class="company-section">
             @if ($company->logo)
@@ -228,6 +232,7 @@
         </tbody>
     </table>
 
+    <!-- Total -->
     <div class="summary">
         <table width="100%">
             <tr>
@@ -248,6 +253,7 @@
         </table>
     </div>
 
+    <!-- Footer -->
     <div class="footer">
         <p>Gracias por su compra</p>
         <small>Este documento es una representación impresa de una factura electrónica</small>
