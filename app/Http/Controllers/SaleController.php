@@ -10,6 +10,8 @@ use App\Models\SaleDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Company;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
@@ -27,17 +29,17 @@ class SaleController extends Controller
             ->get();
 
          // Calcular productos únicos vendidos
-         $totalSales = $sales->flatMap(function($sale) {
+         $totalSales = $sales->flatMap(function ($sale) {
             return $sale->saleDetails->pluck('product_id');
          })->unique()->count();
          $totalAmount = $sales->sum('total_price');
          $monthlySales = $sales->filter(function ($sale) {
             return $sale->sale_date->isCurrentMonth();
          })->count();
-         
+
          // Calcular ticket promedio
-         $averageTicket = $sales->count() > 0 
-            ? $totalAmount / $sales->count() 
+         $averageTicket = $sales->count() > 0
+            ? $totalAmount / $sales->count()
             : 0;
 
          return view('admin.sales.index', compact(
@@ -143,7 +145,6 @@ class SaleController extends Controller
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta registrada exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear venta: ' . $e->getMessage(), [
@@ -201,7 +202,6 @@ class SaleController extends Controller
          $customers = Customer::where('company_id', $companyId)->get();
 
          return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails'));
-
       } catch (\Exception $e) {
          Log::error('Error en SaleController@edit: ' . $e->getMessage());
          return redirect()->route('admin.sales.index')
@@ -333,7 +333,6 @@ class SaleController extends Controller
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta actualizada exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al actualizar venta: ' . $e->getMessage(), [
@@ -407,8 +406,6 @@ class SaleController extends Controller
             'message' => '¡Venta eliminada exitosamente!',
             'icons' => 'success'
          ]);
-         
-
       } catch (\Exception $e) {
          // Revertir transacción en caso de error
          DB::rollBack();
@@ -458,7 +455,6 @@ class SaleController extends Controller
             'success' => true,
             'product' => $productData
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al obtener detalles del producto: ' . $e->getMessage());
          return response()->json([
@@ -507,7 +503,6 @@ class SaleController extends Controller
             'success' => true,
             'product' => $productData
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al buscar producto por código: ' . $e->getMessage());
          return response()->json([
@@ -529,7 +524,7 @@ class SaleController extends Controller
 
          $sale = Sale::with('customer')->find($id);
 
-         $details = $saleDetails->map(function($detail) {
+         $details = $saleDetails->map(function ($detail) {
             return [
                'quantity' => $detail->quantity,
                'product_price' => $detail->product->sale_price,
@@ -554,13 +549,67 @@ class SaleController extends Controller
             ],
             'details' => $details
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error en getDetails de ventas: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los detalles de la venta'
          ], 500);
+      }
+   }
+
+   /**
+    * Imprimir una venta
+    */
+   public function printSale($id)
+   {
+      try {
+         // Obtener la venta con sus relaciones
+         $sale = Sale::with(['customer', 'company'])->findOrFail($id);
+
+         // Verificar que el usuario tenga acceso a esta venta (misma compañía)
+         if ($sale->company_id !== Auth::user()->company_id) {
+            return redirect()->back()
+               ->with('message', 'No tiene permiso para acceder a esta venta.')
+               ->with('icons', 'error');
+         }
+
+         // Obtener los detalles de la venta
+         $saleDetails = SaleDetail::with(['product' ])
+            ->where('sale_id', $id)
+            ->get();
+
+         // Obtener la compañía
+         $company = Company::find($sale->company_id);
+
+         // Obtener el cliente
+         $customer = Customer::find($sale->customer_id);
+
+         // Generar el PDF
+         $pdf = PDF::loadView('admin.sales.print', compact(
+            'sale',
+            'saleDetails',
+            'company',
+            'customer'
+         ));
+
+         // Configurar el PDF
+         $pdf->setPaper('a4');
+
+         // Nombre del archivo
+         $fileName = 'factura-' . str_pad($sale->id, 8, '0', STR_PAD_LEFT) . '.pdf';
+
+         // Retornar el PDF para descarga o visualización
+         return $pdf->stream($fileName);
+      } catch (\Exception $e) {
+         Log::error('Error al generar PDF de venta: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'sale_id' => $id
+         ]);
+
+         return redirect()->back()
+            ->with('message', 'Error al generar el PDF de la venta. Por favor, inténtelo de nuevo.')
+            ->with('icons', 'error');
       }
    }
 }

@@ -125,10 +125,14 @@
                                         data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                    <button type="button" class="btn btn-info btn-sm print-sale"
+                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
+                                        data-toggle="tooltip" title="Imprimir">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    {{-- <button type="button" class="btn btn-info btn-sm print-sale"
                                         data-id="{{ $sale->id }}" data-toggle="tooltip" title="Imprimir">
                                         <i class="fas fa-print"></i>
-                                    </button>
+                                    </button> --}}
                                 </div>
                             </td>
                         </tr>

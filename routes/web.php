@@ -85,9 +85,7 @@ Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('a
 Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware('auth');
 Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware('auth');
 Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware('auth');
-Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])
-    ->name('admin.purchases.product-details')
-    ->middleware('auth');
+Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])->name('admin.purchases.product-details')->middleware('auth');
 Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode']) ->name('admin.purchases.product-by-code')->middleware('auth');
 
 // Customers
@@ -109,3 +107,4 @@ Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('a
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware('auth');
 Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware('auth');
 Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware('auth');
+Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware('auth');
