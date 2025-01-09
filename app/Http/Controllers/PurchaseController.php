@@ -14,13 +14,26 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
          $companyId = Auth::user()->company_id;
+         $currency = $this->currencies;
 
 
          // Obtener compras con sus relaciones
@@ -40,6 +53,7 @@ class PurchaseController extends Controller
 
          return view('admin.purchases.index', compact(
             'purchases',
+            'currency',
             'totalPurchases',
             'totalAmount',
             'monthlyPurchases',
