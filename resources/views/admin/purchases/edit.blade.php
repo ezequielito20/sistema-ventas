@@ -328,6 +328,15 @@
 
     <script>
         $(document).ready(function() {
+            // Inicializar los subtotales y el total al cargar la página
+            $('#purchaseItems tr').each(function() {
+                const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                const price = parseFloat($(this).find('.price-input').val()) || 0;
+                const subtotal = quantity * price;
+                $(this).find('.subtotal').text(subtotal.toFixed(2));
+            });
+            updateTotal();
+
             // Cargar los detalles existentes de la compra
             const purchaseDetails = @json($purchaseDetails);
 
@@ -532,12 +541,16 @@
             // Actualizar total general
             function updateTotal() {
                 let total = 0;
-                $('.subtotal').each(function() {
-                    total += parseFloat($(this).text()) || 0;
+                $('#purchaseItems tr').each(function() {
+                    const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                    const price = parseFloat($(this).find('.price-input').val()) || 0;
+                    const subtotal = quantity * price;
+                    $(this).find('.subtotal').text(subtotal.toFixed(2));
+                    total += subtotal;
                 });
+                
                 $('#totalAmount').text(total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
-                console.log('Total actualizado:', total); // Debug
             }
 
             // Cuando se hace clic en "Registrar Compra"
