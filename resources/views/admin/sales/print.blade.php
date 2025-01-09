@@ -224,8 +224,8 @@
                     <td>{{ $detail->product->code }}</td>
                     <td>{{ $detail->product->name }}</td>
                     <td class="text-right">{{ $detail->quantity }}</td>
-                    <td class="text-right">{{ number_format($detail->product->sale_price, 2) }}</td>
-                    <td class="text-right">{{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
+                    <td class="text-right">{{ $currency->symbol }} {{ number_format($detail->product->sale_price, 2) }}</td>
+                    <td class="text-right">{{ $currency->symbol }} {{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
                     </td>
                 </tr>
             @endforeach
@@ -237,18 +237,18 @@
         <table width="100%">
             <tr>
                 <td>Subtotal:</td>
-                <td class="text-right">{{ number_format($sale->total_price / (1 + $company->tax_amount / 100), 2) }}
+                <td class="text-right">{{ $currency->symbol }} {{ number_format($sale->total_price / (1 + $company->tax_amount / 100), 2) }}
                 </td>
             </tr>
             <tr>
                 <td>{{ $company->tax_name }} ({{ $company->tax_amount }}%):</td>
                 <td class="text-right">
-                    {{ number_format($sale->total_price - $sale->total_price / (1 + $company->tax_amount / 100), 2) }}
+                    {{ $currency->symbol }} {{ number_format($sale->total_price - $sale->total_price / (1 + $company->tax_amount / 100), 2) }}
                 </td>
             </tr>
             <tr class="font-bold">
                 <td>Total:</td>
-                <td class="text-right">{{ number_format($sale->total_price, 2) }}</td>
+                <td class="text-right">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
             </tr>
         </table>
     </div>
