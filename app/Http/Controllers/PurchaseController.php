@@ -169,20 +169,13 @@ class PurchaseController extends Controller
    }
 
    /**
-    * Display the specified resource.
-    */
-   public function show($id)
-   {
-      //
-   }
-
-   /**
     * Show the form for editing the specified resource.
     */
    public function edit($id)
    {
       try {
          $companyId = Auth::user()->company_id;
+         $currency = $this->currencies;
 
          // Obtener la compra con sus detalles y productos
          $purchase = Purchase::with(['details.product', 'details.supplier'])
@@ -198,7 +191,8 @@ class PurchaseController extends Controller
                'quantity' => $detail->quantity,
                'price' => $detail->product->purchase_price,
                'purchase_price' => $detail->product->purchase_price,
-               'supplier_id' => $detail->supplier_id
+               'supplier_id' => $detail->supplier_id,
+               'subtotal' => $detail->quantity * $detail->product->purchase_price
             ];
          });
 
@@ -206,7 +200,7 @@ class PurchaseController extends Controller
          $products = Product::where('company_id', $companyId)->get();
          $suppliers = Supplier::where('company_id', $companyId)->get();
 
-         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails'));
+         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency'));
       } catch (\Exception $e) {
          Log::error('Error en PurchaseController@edit: ' . $e->getMessage());
          return redirect()->route('admin.purchases.index')

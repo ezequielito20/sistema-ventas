@@ -106,8 +106,7 @@
                                                         <td>{{ $detail->product->name }}</td>
                                                         <td>
                                                             <img src="{{ $detail->product->image ? asset($detail->product->image) : asset('img/no-image.png') }}"
-                                                                alt="{{ $detail->product->name }}"
-                                                                class="img-thumbnail"
+                                                                alt="{{ $detail->product->name }}" class="img-thumbnail"
                                                                 style="max-height: 50px;">
                                                         </td>
                                                         <td class="text-center">
@@ -126,17 +125,21 @@
                                                         <td>
                                                             <div class="input-group input-group-sm">
                                                                 <div class="input-group-prepend">
-                                                                    <span class="input-group-text">$</span>
+                                                                    <span
+                                                                        class="input-group-text">{{ $currency->symbol }}</span>
                                                                 </div>
                                                                 <input type="number"
                                                                     class="form-control form-control-sm price-input"
                                                                     name="items[{{ $detail->product->id }}][price]"
                                                                     value="{{ $detail->product->purchase_price }}"
-                                                                    step="0.01" >
+                                                                    step="0.01">
                                                             </div>
                                                         </td>
-                                                        <td class="text-right subtotal">
-                                                            ${{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
+                                                        <td class="text-right">
+                                                            <span class="subtotal-value"
+                                                                style="display:none;">{{ $detail->quantity * $detail->product->purchase_price }}</span>
+                                                            <span class="subtotal-display">{{ $currency->symbol }}
+                                                                {{ number_format($detail->quantity * $detail->product->purchase_price, 2) }}</span>
                                                         </td>
                                                         <td>
                                                             <button type="button"
@@ -153,7 +156,7 @@
                                                         <strong>Total:</strong>
                                                     </td>
                                                     <td>
-                                                        $<span id="totalAmount">0.00</span>
+                                                        {{ $currency->symbol }}<span id="totalAmount">0.00</span>
                                                         <input type="hidden" name="total_price" id="totalAmountInput"
                                                             value="0">
                                                     </td>
@@ -180,8 +183,8 @@
     </div>
 
     <!-- Modal de Búsqueda de Productos -->
-    <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog" aria-labelledby="searchProductModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog"
+        aria-labelledby="searchProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary">
@@ -231,7 +234,8 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">${{ number_format($product->purchase_price, 2) }}
+                                        <td class="align-middle text-right">
+                                            {{$currency->symbol}} {{ number_format($product->purchase_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
                                             <span
@@ -548,7 +552,7 @@
                     $(this).find('.subtotal').text(subtotal.toFixed(2));
                     total += subtotal;
                 });
-                
+
                 $('#totalAmount').text(total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
             }
