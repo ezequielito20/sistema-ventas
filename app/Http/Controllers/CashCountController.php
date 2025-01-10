@@ -3,17 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\CashCount;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreCashCountRequest;
 use App\Http\Requests\UpdateCashCountRequest;
 
 class CashCountController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
-      return view('admin.cash-counts.index');
+      $cashCounts = CashCount::with('movements')
+         ->where('company_id', $this->company->id)
+         ->get();
+      $currency = $this->currencies;
+      return view('admin.cash-counts.index', compact('cashCounts', 'currency'));
    }
 
    /**
