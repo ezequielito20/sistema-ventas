@@ -213,4 +213,60 @@ class CashCountController extends Controller
    {
       //
    }
+
+   /**
+    * Store a new cash movement.
+    */
+   public function storeMovement(Request $request)
+   {
+      try {
+         // Validación de datos
+         $validated = $request->validate([
+            'type' => 'required|in:income,expense',
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:255',
+         ], [
+            'type.required' => 'El tipo de movimiento es obligatorio',
+            'type.in' => 'El tipo de movimiento debe ser ingreso o egreso',
+            'amount.required' => 'El monto es obligatorio',
+            'amount.numeric' => 'El monto debe ser un número',
+            'amount.min' => 'El monto no puede ser negativo',
+            'description.max' => 'La descripción no puede exceder los 255 caracteres',
+         ]);
+
+         DB::beginTransaction();
+
+         // Obtener la caja abierta actual
+         $currentCashCount = CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+
+         if (!$currentCashCount) {
+            return redirect()->back()
+               ->with('message', 'No hay una caja abierta para registrar movimientos')
+               ->with('icons', 'error');
+         }
+
+         // Crear el movimiento
+         $movement = $currentCashCount->movements()->create([
+            'type' => $validated['type'],
+            'amount' => $validated['amount'],
+            'description' => $validated['description'],
+            'cash_count_id' => $currentCashCount->id,
+         ]);
+
+         DB::commit();
+
+         return redirect()->route('admin.cash-counts.index')
+            ->with('message', 'Movimiento registrado correctamente por ' . 
+               $this->currencies->symbol . number_format($validated['amount'], 2))
+            ->with('icons', 'success');
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         return redirect()->back()
+            ->with('message', 'Error al registrar el movimiento: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
+   }
 }
