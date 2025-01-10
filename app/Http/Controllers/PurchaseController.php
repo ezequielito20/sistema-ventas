@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
+use App\Models\CashCount;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,9 @@ class PurchaseController extends Controller
       try {
          $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
+         $cashCount = CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
 
 
          // Obtener compras con sus relaciones
@@ -57,7 +61,8 @@ class PurchaseController extends Controller
             'totalPurchases',
             'totalAmount',
             'monthlyPurchases',
-            'pendingDeliveries'
+            'pendingDeliveries',
+            'cashCount'
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de compras: ' . $e->getMessage());

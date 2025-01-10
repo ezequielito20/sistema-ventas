@@ -37,7 +37,9 @@ class SaleController extends Controller
       try {
          $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
-         $cashCount = CashCount::where('company_id', $companyId)->first();
+         $cashCount = CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
 
          // Obtener ventas con sus relaciones
          $sales = Sale::with(['saleDetails.product', 'customer', 'company'])

@@ -231,15 +231,16 @@
                 </div>
                 <form id="openCashForm" action="{{ route('admin.cash-counts.store') }}" method="POST">
                     @csrf
+                    <input type="hidden" name="opening_date" value="{{ date('Y-m-d') }}">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="initial_amount">Monto Inicial</label>
+                            <label for="initial_amount">Monto Inicial <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text">{{ $currency->symbol }}</span>
                                 </div>
                                 <input type="number" step="0.01" class="form-control" id="initial_amount"
-                                    name="initial_amount" required>
+                                    name="initial_amount" value="0.00" required>
                             </div>
                         </div>
                         <div class="form-group">
@@ -563,6 +564,27 @@
             $('.view-movements').click(function() {
                 const id = $(this).data('id');
                 // Implementar lógica para mostrar movimientos
+            });
+
+            // Validación del formulario modal
+            $('#openCashForm').submit(function(e) {
+                const initialAmount = parseFloat($('#initial_amount').val());
+                
+                if (initialAmount < 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'El monto inicial no puede ser negativo'
+                    });
+                }
+            });
+
+            // Formateo automático del monto
+            $('#initial_amount').on('blur', function() {
+                if (this.value) {
+                    this.value = parseFloat(this.value).toFixed(2);
+                }
             });
         });
     </script>

@@ -5,9 +5,15 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Compras</h1>
+        @if($cashCount)
         <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
             <i class="fas fa-plus-circle mr-2"></i>Nueva Compra
         </a>
+        @else
+            <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger">
+                <i class="fas fa-plus-circle mr-2"></i>Abrir caja
+            </a>
+        @endif
     </div>
 @stop
 
