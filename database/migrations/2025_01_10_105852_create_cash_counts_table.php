@@ -14,8 +14,8 @@ return new class extends Migration
       Schema::create('cash_counts', function (Blueprint $table) {
          $table->id();
 
-         $table->date('opening_date');
-         $table->date('closing_date')->nullable();
+         $table->dateTime('opening_date');
+         $table->dateTime('closing_date')->nullable();
          $table->decimal('initial_amount', 10, 2)->nullable();
          $table->decimal('final_amount', 10, 2)->nullable();
          $table->text('observations')->nullable();

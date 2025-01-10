@@ -112,8 +112,8 @@
                 <tbody>
                     @foreach ($cashCounts as $cashCount)
                         <tr>
-                            <td>{{ str_pad($cashCount->id, 6, '0', STR_PAD_LEFT) }}</td>
-                            <td>{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y H:i') }}</td>
+                            <td>{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($cashCount->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
                                 @if ($cashCount->closing_date)
                                     {{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y H:i') }}
@@ -231,7 +231,6 @@
                 </div>
                 <form id="openCashForm" action="{{ route('admin.cash-counts.store') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="opening_date" value="{{ date('Y-m-d') }}">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="initial_amount">Monto Inicial <span class="text-danger">*</span></label>
@@ -564,27 +563,6 @@
             $('.view-movements').click(function() {
                 const id = $(this).data('id');
                 // Implementar lógica para mostrar movimientos
-            });
-
-            // Validación del formulario modal
-            $('#openCashForm').submit(function(e) {
-                const initialAmount = parseFloat($('#initial_amount').val());
-                
-                if (initialAmount < 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'El monto inicial no puede ser negativo'
-                    });
-                }
-            });
-
-            // Formateo automático del monto
-            $('#initial_amount').on('blur', function() {
-                if (this.value) {
-                    this.value = parseFloat(this.value).toFixed(2);
-                }
             });
         });
     </script>

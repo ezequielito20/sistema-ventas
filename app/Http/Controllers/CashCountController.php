@@ -160,7 +160,7 @@ class CashCountController extends Controller
 
          // Crear el nuevo arqueo
          $cashCount = new CashCount([
-            'opening_date' => now()->format('Y-m-d H:i:s'),
+            'opening_date' => now(),
             'initial_amount' => $validated['initial_amount'],
             'observations' => $validated['observations'],
             'company_id' => $this->company->id
