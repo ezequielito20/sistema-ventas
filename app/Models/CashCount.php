@@ -42,4 +42,12 @@ class CashCount extends Model
    {
       return $this->belongsTo(Company::class);
    }
+
+   /**
+    * Obtiene los movimientos de caja asociados al arqueo.
+    */
+   public function movements()
+   {
+      return $this->hasMany(CashMovement::class);
+   }
 }
