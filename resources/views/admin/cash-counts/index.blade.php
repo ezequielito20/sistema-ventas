@@ -401,6 +401,7 @@
                             </div>
                         </div>
 
+                        {{-- Tarjeta para Balance Actual --}}
                         <div class="col-md-6">
                             <div class="info-box bg-light">
                                 <span class="info-box-icon bg-success">
@@ -416,7 +417,7 @@
                         </div>
                     </div>
 
-                    <form id="closeCashForm" action="{{ route('admin.cash-counts.update', $currentCashCount->id ?? 0) }}"
+                    <form id="closeCashForm" action="{{ route('admin.cash-counts.close', $currentCashCount->id ?? 0) }}"
                         method="POST">
                         @csrf
                         @method('PUT')

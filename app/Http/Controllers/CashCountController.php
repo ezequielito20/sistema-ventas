@@ -44,17 +44,18 @@ class CashCountController extends Controller
       // Calcular estadísticas del día
       $today = Carbon::today();
       $todayIncome = CashMovement::whereHas('cashCount', function ($query) {
-         $query->where('company_id', $this->company->id);
+         $query->where('company_id', $this->company->id)
+            ->whereNull('closing_date');
       })
          ->where('type', 'income')
          ->whereDate('created_at', $today)
          ->sum('amount');
 
       $todayExpenses = CashMovement::whereHas('cashCount', function ($query) {
-         $query->where('company_id', $this->company->id);
+         $query->where('company_id', $this->company->id)
+            ->whereNull('closing_date');
       })
          ->where('type', 'expense')
-         ->whereDate('created_at', $today)
          ->sum('amount');
 
       $totalMovements = CashMovement::whereHas('cashCount', function ($query) {
@@ -96,20 +97,25 @@ class CashCountController extends Controller
             ->sum('amount');
       }
 
-      // Agregar el cálculo de productos vendidos
+      // Calcular total de productos vendidos en la caja actual
       $totalProducts = DB::table('sale_details')
          ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
          ->where('sales.company_id', $this->company->id)
-         ->whereDate('sales.created_at', $today)
-         ->count();
+         ->whereBetween('sales.created_at', [
+            $currentCashCount->opening_date ?? now(),
+            $currentCashCount->closing_date ?? now()
+         ])
+         ->sum('sale_details.quantity');
 
-      // Calcular total de productos comprados
+      // Calcular total de productos comprados en la caja actual
       $totalPurchasedProducts = DB::table('purchase_details')
          ->join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
          ->where('purchases.company_id', $this->company->id)
-         ->whereDate('purchases.created_at', $today)
+         ->whereBetween('purchases.created_at', [
+            $currentCashCount->opening_date ?? now(),
+            $currentCashCount->closing_date ?? now()
+         ])
          ->sum('purchase_details.quantity');
-
       return view('admin.cash-counts.index', compact(
          'cashCounts',
          'currentCashCount',
@@ -298,36 +304,36 @@ class CashCountController extends Controller
          $currentCashCount = CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
             ->first();
-
          if (!$currentCashCount) {
             return redirect()->back()
                ->with('message', 'No hay una caja abierta para cerrar')
                ->with('icons', 'error');
          }
 
-         // Calcular totales de movimientos
-         $totalIncome = $currentCashCount->movements()
-            ->where('type', 'income')
-            ->sum('amount');
+         // // Calcular totales de movimientos
+         // $totalIncome = $currentCashCount->movements()
+         //    ->where('type', 'income')
+         //    ->sum('amount');
 
-         $totalExpense = $currentCashCount->movements()
-            ->where('type', 'expense')
-            ->sum('amount');
+         // $totalExpense = $currentCashCount->movements()
+         //    ->where('type', 'expense')
+         //    ->sum('amount');
 
          // Calcular monto final y diferencia
-         $finalAmount = ($currentCashCount->initial_amount + $totalIncome) - $totalExpense;
+         // $finalAmount = ($currentCashCount->initial_amount + $totalIncome) - $totalExpense;
          
          // Actualizar la caja
          $currentCashCount->update([
             'closing_date' => now(),
-            'final_amount' => $finalAmount,
+            'final_amount' => $request->final_amount,
+            'observations' => $request->observations
          ]);
 
          DB::commit();
 
          return redirect()->route('admin.cash-counts.index')
             ->with('message', 'Caja cerrada correctamente. Monto final: ' . 
-               $this->currencies->symbol . number_format($finalAmount, 2))
+               $this->currencies->symbol . number_format($request->final_amount, 2))
             ->with('icons', 'success');
 
       } catch (\Exception $e) {

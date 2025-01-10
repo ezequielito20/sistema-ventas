@@ -50,4 +50,6 @@ class CashCount extends Model
    {
       return $this->hasMany(CashMovement::class);
    }
+
+   
 }

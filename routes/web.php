@@ -123,3 +123,7 @@ Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('adm
 Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])
     ->name('admin.cash-counts.store-movement')
     ->middleware('auth');
+
+Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])
+    ->name('admin.cash-counts.close')
+    ->middleware('auth');
