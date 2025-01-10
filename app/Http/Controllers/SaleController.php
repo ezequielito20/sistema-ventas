@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\Company;
 use App\Models\Product;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Models\CashCount;
 use App\Models\SaleDetail;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Company;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class SaleController extends Controller
 {
@@ -36,6 +37,7 @@ class SaleController extends Controller
       try {
          $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
+         $cashCount = CashCount::where('company_id', $companyId)->first();
 
          // Obtener ventas con sus relaciones
          $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
@@ -62,7 +64,8 @@ class SaleController extends Controller
             'totalAmount',
             'monthlySales',
             'averageTicket',
-            'currency'
+            'currency',
+            'cashCount'
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de ventas: ' . $e->getMessage());

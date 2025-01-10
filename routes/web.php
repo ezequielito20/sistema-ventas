@@ -118,3 +118,8 @@ Route::get('/cash-counts/edit/{id}', [CashCountController::class, 'edit'])->name
 Route::put('/cash-counts/edit/{id}', [CashCountController::class, 'update'])->name('admin.cash-counts.update')->middleware('auth');
 Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'])->name('admin.cash-counts.destroy')->middleware('auth');
 Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('admin.cash-counts.show')->middleware('auth');
+
+// Agregar esta nueva ruta para los movimientos
+Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])
+    ->name('admin.cash-counts.store-movement')
+    ->middleware('auth');
