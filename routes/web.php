@@ -12,6 +12,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\CashCountController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -108,3 +109,12 @@ Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('
 Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware('auth');
 Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware('auth');
 Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware('auth');
+
+// Cash Counts
+Route::get('/cash-counts', [CashCountController::class, 'index'])->name('admin.cash-counts.index')->middleware('auth');
+Route::get('/cash-counts/create', [CashCountController::class, 'create'])->name('admin.cash-counts.create')->middleware('auth');
+Route::post('/cash-counts/create', [CashCountController::class, 'store'])->name('admin.cash-counts.store')->middleware('auth');
+Route::get('/cash-counts/edit/{id}', [CashCountController::class, 'edit'])->name('admin.cash-counts.edit')->middleware('auth');
+Route::put('/cash-counts/edit/{id}', [CashCountController::class, 'update'])->name('admin.cash-counts.update')->middleware('auth');
+Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'])->name('admin.cash-counts.destroy')->middleware('auth');
+Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('admin.cash-counts.show')->middleware('auth');

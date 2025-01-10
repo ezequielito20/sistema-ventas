@@ -432,7 +432,7 @@ return [
       ],
       [
          'text' => 'Ventas',
-         'icon' => 'fas fa-fw fa-cash-register',
+         'icon' => 'fas fa-fw fa-receipt',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
@@ -451,6 +451,19 @@ return [
             [
                'text' => 'Lista de Clientes',
                'url' => 'customers',
+               'icon' => 'fas fa-fw fa-list',
+               'classes' => 'bg-white text-black'
+            ],
+         ],
+      ],
+      [
+         'text' => 'Arqueo de Caja',
+         'icon' => 'fas fa-fw fa-cash-register',
+         'classes' => 'bg-blue text-white',
+         'submenu' => [
+            [
+               'text' => 'Lista de Arqueos',
+               'url' => 'cash-counts', 
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],
