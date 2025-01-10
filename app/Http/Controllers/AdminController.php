@@ -13,9 +13,24 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       $companyId = Auth::user()->company_id;
+      $currency = $this->currencies;
       // Obtener conteos básicos
       $usersCount = User::where('company_id', $companyId)->count();
       $rolesCount = Role::count();
@@ -326,6 +341,7 @@ class AdminController extends Controller
          ->get();
 
       return view('admin.index', compact(
+         'currency',
          'usersCount',
          'rolesCount',
          'usersByRole',

@@ -320,7 +320,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary shadow">
                 <div class="inner">
-                    <h3>${{ number_format($monthlyPurchases, 2) }}</h3>
+                    <h3>{{ $currency->symbol }}{{ number_format($monthlyPurchases, 2) }}</h3>
                     <p>Compras del Mes</p>
                     <span class="text-sm">
                         <i
@@ -358,7 +358,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-warning shadow">
                 <div class="inner">
-                    <h3>${{ number_format($topSupplier->total_amount ?? 0, 2) }}</h3>
+                    <h3>{{ $currency->symbol }}{{ number_format($topSupplier->total_amount ?? 0, 2) }}</h3>
                     <p>{{ Str::limit($topSupplier->name ?? 'N/A', 20) }}</p>
                     <span class="text-sm">Proveedor principal del mes</span>
                 </div>
@@ -421,7 +421,7 @@
                             <thead>
                                 <tr>
                                     <th>Producto</th>
-                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-center">Cant</th>
                                     <th class="text-right">Precio/U</th>
                                 </tr>
                             </thead>
@@ -435,7 +435,7 @@
                                             </span>
                                         </td>
                                         <td class="text-right">
-                                            ${{ number_format($product->unit_price, 2) }}
+                                            {{ $currency->symbol }}{{ number_format($product->unit_price, 2) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -530,7 +530,7 @@
         <div class="col-lg-4 col-6">
             <div class="small-box bg-success shadow">
                 <div class="inner">
-                    <h3>${{ number_format($todaySales, 2) }}</h3>
+                    <h3>{{ $currency->symbol }}{{ number_format($todaySales, 2) }}</h3>
                     <p>Ventas del Día</p>
                 </div>
                 <div class="icon">
@@ -543,7 +543,7 @@
         <div class="col-lg-4 col-6">
             <div class="small-box bg-info shadow">
                 <div class="inner">
-                    <h3>${{ number_format($averageCustomerSpend, 2) }}</h3>
+                    <h3>{{ $currency->symbol }}{{ number_format($averageCustomerSpend, 2) }}</h3>
                     <p>Promedio de Venta por Cliente</p>
                 </div>
                 <div class="icon">
@@ -556,7 +556,7 @@
         <div class="col-lg-4 col-6">
             <div class="small-box bg-warning shadow">
                 <div class="inner">
-                    <h3>${{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}</h3>
+                    <h3>{{ $currency->symbol }}{{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}</h3>
                     <p>Ganancia Total</p>
                 </div>
                 <div class="icon">
@@ -593,8 +593,8 @@
                                     <td>{{ $product->name }}</td>
                                     <td class="text-center">{{ $product->times_sold }}</td>
                                     <td class="text-center">{{ $product->total_quantity }}</td>
-                                    <td class="text-right">${{ number_format($product->sale_price, 2) }}</td>
-                                    <td class="text-right">${{ number_format($product->total_revenue, 2) }}</td>
+                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</td>
+                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -628,7 +628,7 @@
                             @foreach ($topCustomers as $customer)
                                 <tr>
                                     <td>{{ $customer->name }}</td>
-                                    <td class="text-right">${{ number_format($customer->total_spent, 2) }}</td>
+                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</td>
                                     <td class="text-center">{{ $customer->unique_products }}</td>
                                     <td class="text-center">{{ $customer->total_products }}</td>
                                 </tr>
@@ -796,7 +796,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Total: $' + context.raw.toLocaleString('es-PE');
+                                    return 'Total: {{ $currency->symbol }}' + context.raw.toLocaleString('es-PE');
                                 }
                             }
                         }
@@ -806,7 +806,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString('es-PE');
+                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
                                 }
                             }
                         }
@@ -869,7 +869,7 @@
                                 label: function(context) {
                                     let label = context.label || '';
                                     let value = context.raw || 0;
-                                    return label + ': $' + value.toLocaleString('es-PE');
+                                    return label + ': {{ $currency->symbol }}' + value.toLocaleString('es-PE');
                                 }
                             }
                         }
@@ -879,7 +879,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString('es-PE');
+                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
                                 }
                             }
                         }
