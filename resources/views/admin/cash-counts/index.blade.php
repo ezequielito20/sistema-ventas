@@ -338,6 +338,38 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Nueva tarjeta para Total de Ingresos --}}
+                        <div class="col-md-6">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon bg-success">
+                                    <i class="fas fa-arrow-up"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Ingresos</span>
+                                    <span class="info-box-number">
+                                        {{ $currency->symbol }}
+                                        {{ number_format($todayIncome, 2) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Nueva tarjeta para Total de Productos --}}
+                        <div class="col-md-6">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon bg-warning">
+                                    <i class="fas fa-box"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Productos Vendidos</span>
+                                    <span class="info-box-number">
+                                        {{ $totalProducts }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-md-6">
                             <div class="info-box bg-light">
                                 <span class="info-box-icon bg-success">

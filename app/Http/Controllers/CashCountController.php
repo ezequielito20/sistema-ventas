@@ -96,6 +96,13 @@ class CashCountController extends Controller
             ->sum('amount');
       }
 
+      // Agregar el cálculo de productos vendidos
+      $totalProducts = DB::table('sale_details')
+         ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+         ->where('sales.company_id', $this->company->id)
+         ->whereDate('sales.created_at', $today)
+         ->count();
+
       return view('admin.cash-counts.index', compact(
          'cashCounts',
          'currentCashCount',
@@ -104,7 +111,8 @@ class CashCountController extends Controller
          'totalMovements',
          'currentBalance',
          'chartData',
-         'currency'
+         'currency',
+         'totalProducts'
       ));
    }
 
@@ -266,6 +274,58 @@ class CashCountController extends Controller
          DB::rollBack();
          return redirect()->back()
             ->with('message', 'Error al registrar el movimiento: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
+   }
+
+   /**
+    * Close the current cash count
+    */
+   public function closeCash(Request $request)
+   {
+      try {
+         DB::beginTransaction();
+
+         // Obtener la caja abierta actual
+         $currentCashCount = CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+
+         if (!$currentCashCount) {
+            return redirect()->back()
+               ->with('message', 'No hay una caja abierta para cerrar')
+               ->with('icons', 'error');
+         }
+
+         // Calcular totales de movimientos
+         $totalIncome = $currentCashCount->movements()
+            ->where('type', 'income')
+            ->sum('amount');
+
+         $totalExpense = $currentCashCount->movements()
+            ->where('type', 'expense')
+            ->sum('amount');
+
+         // Calcular monto final y diferencia
+         $finalAmount = ($currentCashCount->initial_amount + $totalIncome) - $totalExpense;
+         
+         // Actualizar la caja
+         $currentCashCount->update([
+            'closing_date' => now(),
+            'final_amount' => $finalAmount,
+         ]);
+
+         DB::commit();
+
+         return redirect()->route('admin.cash-counts.index')
+            ->with('message', 'Caja cerrada correctamente. Monto final: ' . 
+               $this->currencies->symbol . number_format($finalAmount, 2))
+            ->with('icons', 'success');
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         return redirect()->back()
+            ->with('message', 'Error al cerrar la caja: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
