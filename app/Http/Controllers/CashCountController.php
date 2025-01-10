@@ -103,6 +103,13 @@ class CashCountController extends Controller
          ->whereDate('sales.created_at', $today)
          ->count();
 
+      // Calcular total de productos comprados
+      $totalPurchasedProducts = DB::table('purchase_details')
+         ->join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+         ->where('purchases.company_id', $this->company->id)
+         ->whereDate('purchases.created_at', $today)
+         ->sum('purchase_details.quantity');
+
       return view('admin.cash-counts.index', compact(
          'cashCounts',
          'currentCashCount',
@@ -112,7 +119,8 @@ class CashCountController extends Controller
          'currentBalance',
          'chartData',
          'currency',
-         'totalProducts'
+         'totalProducts',
+         'totalPurchasedProducts'
       ));
    }
 

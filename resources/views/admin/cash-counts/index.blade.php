@@ -355,6 +355,37 @@
                             </div>
                         </div>
 
+                        {{-- Tarjeta para Productos Comprados --}}
+                        <div class="col-md-6">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon bg-primary">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Productos Comprados</span>
+                                    <span class="info-box-number">
+                                        {{ $totalPurchasedProducts }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Tarjeta para Total Egresos --}}
+                        <div class="col-md-6">
+                            <div class="info-box bg-light">
+                                <span class="info-box-icon bg-danger">
+                                    <i class="fas fa-arrow-down"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Egresos</span>
+                                    <span class="info-box-number">
+                                        {{ $currency->symbol }}
+                                        {{ number_format($todayExpenses, 2) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Nueva tarjeta para Total de Productos --}}
                         <div class="col-md-6">
                             <div class="info-box bg-light">
@@ -396,7 +427,7 @@
                                     <span class="input-group-text">{{ $currency->symbol }}</span>
                                 </div>
                                 <input type="number" step="0.01" class="form-control" id="final_amount"
-                                    name="final_amount" required>
+                                    name="final_amount" value="{{ $currentBalance }}" required>
                             </div>
                         </div>
                         <div class="form-group">
