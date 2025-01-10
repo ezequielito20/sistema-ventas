@@ -116,7 +116,7 @@
                             <td>{{ \Carbon\Carbon::parse($cashCount->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
                                 @if ($cashCount->closing_date)
-                                    {{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y H:i') }}
+                                    {{ \Carbon\Carbon::parse($cashCount->updated_at)->format('d/m/Y H:i') }}
                                 @else
                                     <span class="badge badge-info">En curso</span>
                                 @endif
