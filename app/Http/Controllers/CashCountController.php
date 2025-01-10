@@ -231,9 +231,39 @@ class CashCountController extends Controller
    /**
     * Remove the specified resource from storage.
     */
-   public function destroy(CashCount $cashCount)
+   public function destroy($id)
    {
-      //
+      try {
+         DB::beginTransaction();
+
+         $cashCount = CashCount::where('company_id', $this->company->id)
+            ->findOrFail($id);
+
+         // Verificar si la caja tiene movimientos
+         if ($cashCount->movements()->count() > 0) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No se puede eliminar la caja porque tiene movimientos registrados'
+            ]);
+         }
+
+         // Eliminar la caja
+         $cashCount->delete();
+
+         DB::commit();
+
+         return response()->json([
+            'success' => true,
+            'message' => 'Caja eliminada correctamente'
+            
+         ]);
+      } catch (\Exception $e) {
+         DB::rollBack();
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar la caja: ' . $e->getMessage()
+         ]);
+      }
    }
 
    /**
@@ -280,10 +310,9 @@ class CashCountController extends Controller
          DB::commit();
 
          return redirect()->route('admin.cash-counts.index')
-            ->with('message', 'Movimiento registrado correctamente por ' . 
+            ->with('message', 'Movimiento registrado correctamente por ' .
                $this->currencies->symbol . number_format($validated['amount'], 2))
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          return redirect()->back()
@@ -321,7 +350,7 @@ class CashCountController extends Controller
 
          // Calcular monto final y diferencia
          // $finalAmount = ($currentCashCount->initial_amount + $totalIncome) - $totalExpense;
-         
+
          // Actualizar la caja
          $currentCashCount->update([
             'closing_date' => now(),
@@ -332,10 +361,9 @@ class CashCountController extends Controller
          DB::commit();
 
          return redirect()->route('admin.cash-counts.index')
-            ->with('message', 'Caja cerrada correctamente. Monto final: ' . 
+            ->with('message', 'Caja cerrada correctamente. Monto final: ' .
                $this->currencies->symbol . number_format($request->final_amount, 2))
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          return redirect()->back()
@@ -343,4 +371,8 @@ class CashCountController extends Controller
             ->with('icons', 'error');
       }
    }
+
+   /**
+    * Remove the specified cash count.
+    */
 }
