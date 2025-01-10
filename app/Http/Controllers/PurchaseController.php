@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PurchaseController extends Controller
 {
-   
+
    public $currencies;
    protected $company;
 
@@ -36,8 +36,8 @@ class PurchaseController extends Controller
          $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
          $cashCount = CashCount::where('company_id', $this->company->id)
-         ->whereNull('closing_date')
-         ->first();
+            ->whereNull('closing_date')
+            ->first();
 
 
          // Obtener compras con sus relaciones
@@ -46,7 +46,7 @@ class PurchaseController extends Controller
             ->get();
 
          // Calcular estadísticas
-         $totalPurchases = $purchases->flatMap(function($purchase) {
+         $totalPurchases = $purchases->flatMap(function ($purchase) {
             return $purchase->details->pluck('product_id');
          })->unique()->count();
          $totalAmount = $purchases->sum('total_price');
@@ -115,6 +115,17 @@ class PurchaseController extends Controller
 
          DB::beginTransaction();
 
+         // Verificar si hay una caja abierta
+         $currentCashCount = CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+
+         if (!$currentCashCount) {
+            return redirect()->back()
+               ->with('message', 'No hay una caja abierta. Debe abrir una caja antes de realizar compras.')
+               ->with('icons', 'error');
+         }
+
          // Crear la compra principal
          $purchase = Purchase::create([
             'purchase_date' => $validated['purchase_date'],
@@ -143,6 +154,14 @@ class PurchaseController extends Controller
             $product->stock += $item['quantity'];
             $product->save();
          }
+
+         // Registrar el movimiento en la caja
+         $currentCashCount->movements()->create([
+            'type' => 'expense',
+            'amount' => $validated['total_price'],
+            'description' => 'Compra #' . $purchase->id,
+            'cash_count_id' => $purchase->id,
+         ]);
 
          // Log de la acción
          Log::info('Compra creada exitosamente', [

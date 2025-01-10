@@ -38,8 +38,8 @@ class SaleController extends Controller
          $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
          $cashCount = CashCount::where('company_id', $this->company->id)
-         ->whereNull('closing_date')
-         ->first();
+            ->whereNull('closing_date')
+            ->first();
 
          // Obtener ventas con sus relaciones
          $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
@@ -121,6 +121,17 @@ class SaleController extends Controller
 
          DB::beginTransaction();
 
+         // Verificar si hay una caja abierta
+         $currentCashCount = CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+
+         if (!$currentCashCount) {
+            return redirect()->back()
+               ->with('message', 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.')
+               ->with('icons', 'error');
+         }
+
          // Crear la venta principal
          $sale = Sale::create([
             'sale_date' => $validated['sale_date'],
@@ -159,6 +170,14 @@ class SaleController extends Controller
             'sale_id' => $sale->id,
             'company_id' => Auth::user()->company_id,
             'total' => $validated['total_price'],
+         ]);
+
+         // Registrar el movimiento en la caja
+         $currentCashCount->movements()->create([
+            'type' => 'income',
+            'amount' => $validated['total_price'],
+            'description' => 'Venta #' . $sale->id,
+            'cash_count_id' => $sale->id,
          ]);
 
          DB::commit();
