@@ -466,58 +466,84 @@
                         {{-- Información General --}}
                         <div class="col-md-12 mb-4">
                             <h5 class="border-bottom pb-2">
-                                <i class="fas fa-info-circle mr-2"></i>Información General
+                                <i class="fas fa-info-circle mr-2"></i>Resumen General
                             </h5>
                             <div class="row">
                                 <div class="col-md-3">
-                                    <div class="small-box bg-info">
-                                        <div class="inner">
-                                            <h3 id="totalMovements">0</h3>
-                                            <p>Movimientos Totales</p>
-                                        </div>
-                                        <div class="icon">
-                                            <i class="fas fa-exchange-alt"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="small-box bg-success">
-                                        <div class="inner">
-                                            <h3 id="totalIncome">$0</h3>
-                                            <p>Total Ingresos</p>
-                                        </div>
-                                        <div class="icon">
-                                            <i class="fas fa-arrow-up"></i>
+                                    <div class="info-box bg-light">
+                                        <span class="info-box-icon bg-primary">
+                                            <i class="fas fa-money-bill-wave"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Monto Inicial</span>
+                                            <span class="info-box-number" id="initialAmount">$0</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="small-box bg-danger">
-                                        <div class="inner">
-                                            <h3 id="totalExpense">$0</h3>
-                                            <p>Total Egresos</p>
-                                        </div>
-                                        <div class="icon">
-                                            <i class="fas fa-arrow-down"></i>
+                                    <div class="info-box bg-light">
+                                        <span class="info-box-icon bg-success">
+                                            <i class="fas fa-plus"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Total Ingresos</span>
+                                            <span class="info-box-number" id="totalIncome">$0</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="small-box bg-warning">
-                                        <div class="inner">
-                                            <h3 id="hoursActive">0</h3>
-                                            <p>Horas Activa</p>
+                                    <div class="info-box bg-light">
+                                        <span class="info-box-icon bg-danger">
+                                            <i class="fas fa-minus"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Total Egresos</span>
+                                            <span class="info-box-number" id="totalExpense">$0</span>
                                         </div>
-                                        <div class="icon">
-                                            <i class="fas fa-clock"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="info-box bg-light">
+                                        <span class="info-box-icon bg-warning">
+                                            <i class="fas fa-balance-scale"></i>
+                                        </span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Diferencia Neta</span>
+                                            <span class="info-box-number" id="netDifference">$0</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Estadísticas de Ventas --}}
-                        <div class="col-md-6 mb-4">
+                        {{-- Detalles de Movimientos --}}
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-primary">
+                                    <h3 class="card-title text-white">
+                                        <i class="fas fa-exchange-alt mr-2"></i>Detalle de Movimientos
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Descripción</th>
+                                                    <th class="text-right">Monto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="movementsDetail">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Resto del modal existente (ventas y compras) --}}
+                        <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header bg-success">
                                     <h3 class="card-title text-white">
@@ -541,8 +567,7 @@
                             </div>
                         </div>
 
-                        {{-- Estadísticas de Compras --}}
-                        <div class="col-md-6 mb-4">
+                        <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header bg-primary">
                                     <h3 class="card-title text-white">
@@ -559,8 +584,8 @@
                                         <span id="totalPurchasesAmount" class="badge badge-primary">$0</span>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span>Promedio por Hora:</span>
-                                        <span id="movementsPerHour" class="badge badge-primary">0</span>
+                                        <span>Productos Comprados:</span>
+                                        <span id="productsPurchased" class="badge badge-primary">0</span>
                                     </div>
                                 </div>
                             </div>

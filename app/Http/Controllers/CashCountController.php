@@ -210,62 +210,69 @@ class CashCountController extends Controller
     * Display the specified resource.
     */
    public function show($id)
-   { {
-         try {
-            $cashCount = CashCount::with('movements')->findOrFail($id);
+   {
+      try {
+         $cashCount = CashCount::with('movements')->findOrFail($id);
+         
+         // Calcular totales de movimientos
+         $incomeMovements = $cashCount->movements()->where('type', 'income')->get();
+         $expenseMovements = $cashCount->movements()->where('type', 'expense')->get();
+         
+         // Estadísticas generales
+         $stats = [
+            'initial_amount' => $cashCount->initial_amount,
+            'final_amount' => $cashCount->final_amount,
+            'total_income' => $incomeMovements->sum('amount'),
+            'total_expense' => $expenseMovements->sum('amount'),
+            'total_movements' => $cashCount->movements()->count(),
+            'net_difference' => $incomeMovements->sum('amount') - $expenseMovements->sum('amount'),
+            
+            // Detalles de movimientos
+            'income_movements' => $incomeMovements,
+            'expense_movements' => $expenseMovements,
+            
+            // Ventas
+            'total_sales' => Sale::where('company_id', $this->company->id)
+               ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+               ->count(),
+            'total_sales_amount' => Sale::where('company_id', $this->company->id)
+               ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+               ->sum('total_price'),
+            'products_sold' => DB::table('sale_details')
+               ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+               ->whereBetween('sales.created_at', [
+                  $cashCount->opening_date,
+                  $cashCount->closing_date ?? now()
+               ])
+               ->sum('sale_details.quantity'),
+            
+            // Compras
+            'total_purchases' => Purchase::where('company_id', $this->company->id)
+               ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+               ->count(),
+            'total_purchases_amount' => Purchase::where('company_id', $this->company->id)
+               ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+               ->sum('total_price'),
+            'products_purchased' => DB::table('purchase_details')
+               ->join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+               ->whereBetween('purchases.created_at', [
+                  $cashCount->opening_date,
+                  $cashCount->closing_date ?? now()
+               ])
+               ->sum('purchase_details.quantity'),
+         ];
 
-            // Estadísticas generales
-            $stats = [
-               'total_income' => $cashCount->movements()->where('type', 'income')->sum('amount'),
-               'total_expense' => $cashCount->movements()->where('type', 'expense')->sum('amount'),
-               'total_movements' => $cashCount->movements()->count(),
-               'average_movement' => $cashCount->movements()->avg('amount'),
-
-               // Ventas
-               'total_sales' => Sale::where('company_id', $this->company->id)
-                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
-                  ->count(),
-               'total_sales_amount' => Sale::where('company_id', $this->company->id)
-                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
-                  ->sum('total_price'),
-
-               // Productos
-               'products_sold' => DB::table('sale_details')
-                  ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
-                  ->where('sales.company_id', $this->company->id)
-                  ->whereBetween('sales.created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
-                  ->sum('sale_details.quantity'),
-
-               // Compras
-               'total_purchases' => Purchase::where('company_id', $this->company->id)
-                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
-                  ->count(),
-               'total_purchases_amount' => Purchase::where('company_id', $this->company->id)
-                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
-                  ->sum('total_price'),
-
-               // Horas activa
-               'hours_active' => $cashCount->closing_date
-                  ? now()->diffInHours($cashCount->opening_date)
-                  : Carbon::parse($cashCount->opening_date)->diffInHours(now()),
-
-               // Movimientos por hora
-               'movements_per_hour' => $cashCount->movements()->count() /
-                  (Carbon::parse($cashCount->opening_date)->diffInHours(now()) ?: 1),
-            ];
-
-            return response()->json([
-               'success' => true,
-               'cashCount' => $cashCount,
-               'stats' => $stats,
-               'currency' => $this->currencies
-            ]);
-         } catch (\Exception $e) {
-            return response()->json([
-               'success' => false,
-               'message' => 'Error al obtener los movimientos: ' . $e->getMessage()
-            ]);
-         }
+         return response()->json([
+            'success' => true,
+            'cashCount' => $cashCount,
+            'stats' => $stats,
+            'currency' => $this->currencies
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener los datos: ' . $e->getMessage()
+         ]);
       }
    }
 
