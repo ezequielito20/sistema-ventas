@@ -287,17 +287,82 @@ class CashCountController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit(CashCount $cashCount)
+   public function edit($id)
    {
-      //
+      try {
+         // Buscar la caja por ID
+         $cashCount = CashCount::findOrFail($id);
+         
+         // Verificar que la caja pertenezca a la compañía actual
+         if ($cashCount->company_id !== $this->company->id) {
+            return redirect()->route('admin.cash-counts.index')
+               ->with('message', 'No tiene permiso para editar esta caja')
+               ->with('icons', 'error');
+         }
+
+         return view('admin.cash-counts.edit', [
+            'cashCount' => $cashCount,
+            'currency' => $this->currencies
+         ]);
+      } catch (\Exception $e) {
+         return redirect()->route('admin.cash-counts.index')
+            ->with('message', 'Error al cargar la caja: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 
    /**
     * Update the specified resource in storage.
     */
-   public function update(UpdateCashCountRequest $request, CashCount $cashCount)
+   public function update(Request $request, $id)
    {
-      //
+      try {
+         // Buscar la caja por ID
+         $cashCount = CashCount::findOrFail($id);
+         
+         // Verificar que la caja pertenezca a la compañía actual
+         if ($cashCount->company_id !== $this->company->id) {
+            return redirect()->route('admin.cash-counts.index')
+               ->with('message', 'No tiene permiso para actualizar esta caja')
+               ->with('icons', 'error');
+         }
+
+         // Validar datos
+         $validated = $request->validate([
+            'opening_date' => 'required|date',
+            'initial_amount' => 'required|numeric|min:0',
+            'observations' => 'nullable|string|max:1000',
+         ], [
+            'opening_date.required' => 'La fecha de apertura es obligatoria',
+            'opening_date.date' => 'La fecha de apertura debe ser una fecha válida',
+            'initial_amount.required' => 'El monto inicial es obligatorio',
+            'initial_amount.numeric' => 'El monto inicial debe ser un número',
+            'initial_amount.min' => 'El monto inicial no puede ser negativo',
+            'observations.max' => 'Las observaciones no pueden exceder los 1000 caracteres',
+         ]);
+
+         DB::beginTransaction();
+
+         // Actualizar la caja
+         $cashCount->update([
+            'opening_date' => $validated['opening_date'],
+            'initial_amount' => $validated['initial_amount'],
+            'observations' => $validated['observations'],
+         ]);
+
+         DB::commit();
+
+         return redirect()->route('admin.cash-counts.index')
+            ->with('message', 'Caja actualizada correctamente')
+            ->with('icons', 'success');
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         return redirect()->back()
+            ->with('message', 'Error al actualizar la caja: ' . $e->getMessage())
+            ->with('icons', 'error')
+            ->withInput();
+      }
    }
 
    /**
