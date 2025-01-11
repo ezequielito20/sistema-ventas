@@ -29,8 +29,8 @@ class CashCount extends Model
     * @var array<string, string>
     */
    protected $casts = [
-      'opening_date' => 'date',
-      'closing_date' => 'date',
+      'opening_date' => 'datetime',
+      'closing_date' => 'datetime',
       'initial_amount' => 'decimal:2',
       'final_amount' => 'decimal:2',
    ];

@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
+use App\Models\Sale;
+use App\Models\Purchase;
 use App\Models\CashCount;
 use App\Models\CashMovement;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreCashCountRequest;
 use App\Http\Requests\UpdateCashCountRequest;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class CashCountController extends Controller
 {
@@ -207,9 +209,64 @@ class CashCountController extends Controller
    /**
     * Display the specified resource.
     */
-   public function show(CashCount $cashCount)
-   {
-      //
+   public function show($id)
+   { {
+         try {
+            $cashCount = CashCount::with('movements')->findOrFail($id);
+
+            // Estadísticas generales
+            $stats = [
+               'total_income' => $cashCount->movements()->where('type', 'income')->sum('amount'),
+               'total_expense' => $cashCount->movements()->where('type', 'expense')->sum('amount'),
+               'total_movements' => $cashCount->movements()->count(),
+               'average_movement' => $cashCount->movements()->avg('amount'),
+
+               // Ventas
+               'total_sales' => Sale::where('company_id', $this->company->id)
+                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+                  ->count(),
+               'total_sales_amount' => Sale::where('company_id', $this->company->id)
+                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+                  ->sum('total_price'),
+
+               // Productos
+               'products_sold' => DB::table('sale_details')
+                  ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
+                  ->where('sales.company_id', $this->company->id)
+                  ->whereBetween('sales.created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+                  ->sum('sale_details.quantity'),
+
+               // Compras
+               'total_purchases' => Purchase::where('company_id', $this->company->id)
+                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+                  ->count(),
+               'total_purchases_amount' => Purchase::where('company_id', $this->company->id)
+                  ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
+                  ->sum('total_price'),
+
+               // Horas activa
+               'hours_active' => $cashCount->closing_date
+                  ? now()->diffInHours($cashCount->opening_date)
+                  : Carbon::parse($cashCount->opening_date)->diffInHours(now()),
+
+               // Movimientos por hora
+               'movements_per_hour' => $cashCount->movements()->count() /
+                  (Carbon::parse($cashCount->opening_date)->diffInHours(now()) ?: 1),
+            ];
+
+            return response()->json([
+               'success' => true,
+               'cashCount' => $cashCount,
+               'stats' => $stats,
+               'currency' => $this->currencies
+            ]);
+         } catch (\Exception $e) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error al obtener los movimientos: ' . $e->getMessage()
+            ]);
+         }
+      }
    }
 
    /**
@@ -255,7 +312,7 @@ class CashCountController extends Controller
          return response()->json([
             'success' => true,
             'message' => 'Caja eliminada correctamente'
-            
+
          ]);
       } catch (\Exception $e) {
          DB::rollBack();

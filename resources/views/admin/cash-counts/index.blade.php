@@ -113,10 +113,10 @@
                     @foreach ($cashCounts as $cashCount)
                         <tr>
                             <td>{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}</td>
-                            <td>{{ \Carbon\Carbon::parse($cashCount->created_at)->format('d/m/Y H:i') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y H:i') }}</td>
                             <td>
                                 @if ($cashCount->closing_date)
-                                    {{ \Carbon\Carbon::parse($cashCount->updated_at)->format('d/m/Y H:i') }}
+                                    {{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y H:i') }}
                                 @else
                                     <span class="badge badge-info">En curso</span>
                                 @endif
@@ -446,6 +446,130 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal de Detalles de Caja --}}
+    <div class="modal fade" id="movementsModal" tabindex="-1" role="dialog" aria-labelledby="movementsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white" id="movementsModalLabel">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Estadísticas de Caja
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        {{-- Información General --}}
+                        <div class="col-md-12 mb-4">
+                            <h5 class="border-bottom pb-2">
+                                <i class="fas fa-info-circle mr-2"></i>Información General
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="small-box bg-info">
+                                        <div class="inner">
+                                            <h3 id="totalMovements">0</h3>
+                                            <p>Movimientos Totales</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="small-box bg-success">
+                                        <div class="inner">
+                                            <h3 id="totalIncome">$0</h3>
+                                            <p>Total Ingresos</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="small-box bg-danger">
+                                        <div class="inner">
+                                            <h3 id="totalExpense">$0</h3>
+                                            <p>Total Egresos</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="small-box bg-warning">
+                                        <div class="inner">
+                                            <h3 id="hoursActive">0</h3>
+                                            <p>Horas Activa</p>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Estadísticas de Ventas --}}
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-success">
+                                    <h3 class="card-title text-white">
+                                        <i class="fas fa-shopping-cart mr-2"></i>Ventas
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Total Ventas:</span>
+                                        <span id="totalSales" class="badge badge-success">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Monto Total:</span>
+                                        <span id="totalSalesAmount" class="badge badge-success">$0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Productos Vendidos:</span>
+                                        <span id="productsSold" class="badge badge-success">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Estadísticas de Compras --}}
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header bg-primary">
+                                    <h3 class="card-title text-white">
+                                        <i class="fas fa-truck mr-2"></i>Compras
+                                    </h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Total Compras:</span>
+                                        <span id="totalPurchases" class="badge badge-primary">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>Monto Total:</span>
+                                        <span id="totalPurchasesAmount" class="badge badge-primary">$0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Promedio por Hora:</span>
+                                        <span id="movementsPerHour" class="badge badge-primary">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -626,8 +750,57 @@
             // Ver movimientos
             $('.view-movements').click(function() {
                 const id = $(this).data('id');
-                // Implementar lógica para mostrar movimientos
+
+                // Mostrar loader
+                Swal.fire({
+                    title: 'Cargando estadísticas...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Obtener datos
+                $.get(`/cash-counts/${id}`, function(response) {
+                    if (response.success) {
+                        const stats = response.stats;
+                        const currency = response.currency;
+
+                        // Actualizar información en el modal
+                        $('#totalMovements').text(stats.total_movements);
+                        $('#totalIncome').text(currency.symbol + number_format(stats.total_income,
+                            2));
+                        $('#totalExpense').text(currency.symbol + number_format(stats.total_expense,
+                            2));
+                        $('#hoursActive').text(stats.hours_active);
+
+                        $('#totalSales').text(stats.total_sales);
+                        $('#totalSalesAmount').text(currency.symbol + number_format(stats
+                            .total_sales_amount, 2));
+                        $('#productsSold').text(stats.products_sold);
+
+                        $('#totalPurchases').text(stats.total_purchases);
+                        $('#totalPurchasesAmount').text(currency.symbol + number_format(stats
+                            .total_purchases_amount, 2));
+                        $('#movementsPerHour').text(number_format(stats.movements_per_hour, 2));
+
+                        // Cerrar loader y mostrar modal
+                        Swal.close();
+                        $('#movementsModal').modal('show');
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                }).fail(function() {
+                    Swal.fire('Error', 'No se pudieron cargar las estadísticas', 'error');
+                });
             });
+
+            function number_format(number, decimals) {
+                return new Intl.NumberFormat('es-ES', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                }).format(number);
+            }
         });
     </script>
 @stop
