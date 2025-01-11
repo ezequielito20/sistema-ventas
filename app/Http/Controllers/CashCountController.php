@@ -225,7 +225,6 @@ class CashCountController extends Controller
             'total_income' => $incomeMovements->sum('amount'),
             'total_expense' => $expenseMovements->sum('amount'),
             'total_movements' => $cashCount->movements()->count(),
-            'net_difference' => $incomeMovements->sum('amount') - $expenseMovements->sum('amount'),
             
             // Detalles de movimientos
             'income_movements' => $incomeMovements,

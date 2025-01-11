@@ -797,6 +797,8 @@
                             2));
                         $('#totalExpense').text(currency.symbol + number_format(stats.total_expense,
                             2));
+                        $('#netDifference').text(currency.symbol + number_format((stats.total_income-stats.total_expense),
+                            2));
                         $('#hoursActive').text(stats.hours_active);
 
                         $('#totalSales').text(stats.total_sales);
