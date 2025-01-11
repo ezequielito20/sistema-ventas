@@ -516,7 +516,6 @@
         </div>
     </div>
 
-    {{-- ---------------------------------------------- --}}
     {{-- Sección de Ventas --}}
     <div class="row mt-4">
         <div class="col-12">
@@ -593,8 +592,10 @@
                                     <td>{{ $product->name }}</td>
                                     <td class="text-center">{{ $product->times_sold }}</td>
                                     <td class="text-center">{{ $product->total_quantity }}</td>
-                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</td>
-                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</td>
+                                    <td class="text-right">
+                                        {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</td>
+                                    <td class="text-right">
+                                        {{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -628,7 +629,8 @@
                             @foreach ($topCustomers as $customer)
                                 <tr>
                                     <td>{{ $customer->name }}</td>
-                                    <td class="text-right">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</td>
+                                    <td class="text-right">
+                                        {{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</td>
                                     <td class="text-center">{{ $customer->unique_products }}</td>
                                     <td class="text-center">{{ $customer->total_products }}</td>
                                 </tr>
@@ -654,6 +656,151 @@
         </div>
     </div>
 
+    {{-- ---------------------------------------------- --}}
+    {{-- Sección de Arqueo de Caja --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4 class="text-primary">
+                <i class="fas fa-cash-register mr-2"></i>
+                Información de Arqueo de Caja
+            </h4>
+        </div>
+
+        {{-- Widget de Balance General --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-success shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($currentBalance, 2) }}</h3>
+                    <p>Balance Actual</p>
+                    <span class="text-sm">
+                        Desde:
+                        {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m/Y H:i') : 'No hay caja abierta' }}
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Eficiencia de Caja --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-info shadow">
+                <div class="inner">
+                    @php
+                        $efficiency = $todayIncome > 0 ? (($todayIncome - $todayExpenses) / $todayIncome) * 100 : 0;
+                    @endphp
+                    <h3>{{ number_format($efficiency, 1) }}%</h3>
+                    <p>Eficiencia de Caja</p>
+                    <span class="text-sm">
+                        Basado en ingresos vs egresos del día
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Movimientos por Hora --}}
+        {{-- <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-warning shadow">
+                <div class="inner">
+                    @php
+                        $hoursOpen = $currentCashCount ? now()->diffInHours($currentCashCount->opening_date) + 1 : 1;
+                        $movementsPerHour = $totalMovements / $hoursOpen;
+                    @endphp
+                    <h3>{{ number_format($movementsPerHour, 1) }}</h3>
+                    <p>Movimientos por Hora</p>
+                    <span class="text-sm">
+                        Total hoy: {{ $totalMovements }} movimientos
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div> --}}
+
+        {{-- Widget de Días Críticos --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-danger shadow">
+                <div class="inner">
+                    @php
+                        $criticalDays = collect($chartData['income'])
+                            ->zip($chartData['expenses'])
+                            ->filter(function ($pair) {
+                                return $pair[1] > $pair[0];
+                            })
+                            ->count();
+                    @endphp
+                    <h3>{{ $criticalDays }}</h3>
+                    <p>Días con Déficit</p>
+                    <span class="text-sm">
+                        Últimos 7 días
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Gráficos de Análisis --}}
+    <div class="row mt-4">
+        {{-- Gráfico de Ingresos vs Egresos --}}
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar mr-2"></i>
+                        Ingresos vs Egresos (Últimos 7 días)
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="cashFlowChart" style="min-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Tabla de Días Críticos --}}
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-danger">
+                    <h3 class="card-title">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        Días con Mayor Déficit
+                    </h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Déficit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($chartData['labels'] as $index => $date)
+                                @php
+                                    $deficit = $chartData['income'][$index] - $chartData['expenses'][$index];
+                                @endphp
+                                @if ($deficit < 0)
+                                    <tr>
+                                        <td>{{ $date }}</td>
+                                        <td class="text-danger">
+                                            {{ $currency->symbol }}{{ number_format(abs($deficit), 2) }}
+                                        </td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @stop
 
@@ -796,7 +943,8 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Total: {{ $currency->symbol }}' + context.raw.toLocaleString('es-PE');
+                                    return 'Total: {{ $currency->symbol }}' + context.raw
+                                        .toLocaleString('es-PE');
                                 }
                             }
                         }
@@ -869,7 +1017,8 @@
                                 label: function(context) {
                                     let label = context.label || '';
                                     let value = context.raw || 0;
-                                    return label + ': {{ $currency->symbol }}' + value.toLocaleString('es-PE');
+                                    return label + ': {{ $currency->symbol }}' + value.toLocaleString(
+                                        'es-PE');
                                 }
                             }
                         }
@@ -887,6 +1036,50 @@
                 }
             });
 
+            // Gráfico de Ingresos vs Egresos
+            new Chart(document.getElementById('cashFlowChart'), {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode($chartData['labels']) !!},
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: {!! json_encode($chartData['income']) !!},
+                        backgroundColor: 'rgba(40, 167, 69, 0.5)',
+                        borderColor: 'rgb(40, 167, 69)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Egresos',
+                        data: {!! json_encode($chartData['expenses']) !!},
+                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                        borderColor: 'rgb(220, 53, 69)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': {{ $currency->symbol }}' +
+                                        context.raw.toLocaleString('es-PE');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
 
         });

@@ -10,6 +10,7 @@ use App\Models\PurchaseDetail;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -340,6 +341,68 @@ class AdminController extends Controller
          ->limit(5)
          ->get();
 
+      // Estadísticas de Arqueo de Caja
+      $currentCashCount = DB::table('cash_counts')
+         ->where('company_id', $companyId)
+         ->whereNull('closing_date')
+         ->first();
+
+      // Calcular estadísticas del día para la caja
+      $today = now()->startOfDay();
+      $todayIncome = DB::table('cash_movements')
+         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+         ->where('cash_counts.company_id', $companyId)
+         ->where('cash_movements.type', 'income')
+         ->whereDate('cash_movements.created_at', $today)
+         ->sum('cash_movements.amount');
+
+      $todayExpenses = DB::table('cash_movements')
+         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+         ->where('cash_counts.company_id', $companyId)
+         ->where('cash_movements.type', 'expense')
+         ->whereDate('cash_movements.created_at', $today)
+         ->sum('cash_movements.amount');
+
+      // Calcular balance actual
+      $currentBalance = $currentCashCount ? 
+         ($currentCashCount->initial_amount + 
+            DB::table('cash_movements')
+               ->where('cash_count_id', $currentCashCount->id)
+               ->where('type', 'income')
+               ->sum('amount') -
+            DB::table('cash_movements')
+               ->where('cash_count_id', $currentCashCount->id)
+               ->where('type', 'expense')
+               ->sum('amount')
+         ) : 0;
+
+      // Datos para el gráfico de ingresos vs egresos (últimos 7 días)
+      $lastDays = collect(range(6, 0))->map(function ($days) {
+         return now()->subDays($days)->format('Y-m-d');
+      });
+
+      $chartData = [
+         'labels' => $lastDays->map(fn($date) => Carbon::parse($date)->format('d/m')),
+         'income' => [],
+         'expenses' => []
+      ];
+
+      foreach ($lastDays as $date) {
+         $chartData['income'][] = DB::table('cash_movements')
+            ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+            ->where('cash_counts.company_id', $companyId)
+            ->where('cash_movements.type', 'income')
+            ->whereDate('cash_movements.created_at', $date)
+            ->sum('cash_movements.amount');
+
+         $chartData['expenses'][] = DB::table('cash_movements')
+            ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+            ->where('cash_counts.company_id', $companyId)
+            ->where('cash_movements.type', 'expense')
+            ->whereDate('cash_movements.created_at', $date)
+            ->sum('cash_movements.amount');
+      }
+
       return view('admin.index', compact(
          'currency',
          'usersCount',
@@ -376,7 +439,12 @@ class AdminController extends Controller
          'salesByCategory',
          'todaySales',
          'averageCustomerSpend',
-         'mostProfitableProducts'
+         'mostProfitableProducts',
+         'currentCashCount',
+         'todayIncome',
+         'todayExpenses',
+         'currentBalance',
+         'chartData'
       ));
    }
 }
