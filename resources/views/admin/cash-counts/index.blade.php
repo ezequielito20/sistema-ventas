@@ -791,25 +791,44 @@
                         const stats = response.stats;
                         const currency = response.currency;
 
-                        // Actualizar información en el modal
+                        // Actualizar información general
                         $('#totalMovements').text(stats.total_movements);
                         $('#totalIncome').text(currency.symbol + number_format(stats.total_income,
                             2));
                         $('#totalExpense').text(currency.symbol + number_format(stats.total_expense,
                             2));
-                        $('#netDifference').text(currency.symbol + number_format((stats.total_income-stats.total_expense),
-                            2));
-                        $('#hoursActive').text(stats.hours_active);
+                        $('#netDifference').text(currency.symbol + number_format(stats
+                            .net_difference, 2));
 
+                        // Limpiar y actualizar tabla de movimientos
+                        const movementsTable = $('#movementsDetail');
+                        movementsTable.empty();
+
+                        // Agregar cada movimiento a la tabla
+                        stats.movements.forEach(movement => {
+                            const rowClass = movement.type === 'income' ? 'text-success' :
+                                'text-danger';
+                            const typeText = movement.type === 'income' ? 'Ingreso' :
+                                'Egreso';
+
+                            movementsTable.append(`
+                                <tr>
+                                    <td class="${rowClass}">${typeText}</td>
+                                    <td>${movement.description || 'Sin descripción'}</td>
+                                    <td class="text-right ${rowClass}">${currency.symbol}${number_format(movement.amount, 2)}</td>
+                                </tr>
+                            `);
+                        });
+
+                        // Actualizar resto de estadísticas
                         $('#totalSales').text(stats.total_sales);
                         $('#totalSalesAmount').text(currency.symbol + number_format(stats
                             .total_sales_amount, 2));
                         $('#productsSold').text(stats.products_sold);
-
                         $('#totalPurchases').text(stats.total_purchases);
                         $('#totalPurchasesAmount').text(currency.symbol + number_format(stats
                             .total_purchases_amount, 2));
-                        $('#movementsPerHour').text(number_format(stats.movements_per_hour, 2));
+                        $('#productsPurchased').text(stats.products_purchased);
 
                         // Cerrar loader y mostrar modal
                         Swal.close();

@@ -212,25 +212,34 @@ class CashCountController extends Controller
    public function show($id)
    {
       try {
-         $cashCount = CashCount::with('movements')->findOrFail($id);
-         
+         $cashCount = CashCount::with(['movements' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+         }])->findOrFail($id);
+
          // Calcular totales de movimientos
          $incomeMovements = $cashCount->movements()->where('type', 'income')->get();
          $expenseMovements = $cashCount->movements()->where('type', 'expense')->get();
-         
+
          // Estadísticas generales
          $stats = [
             'initial_amount' => $cashCount->initial_amount,
             'final_amount' => $cashCount->final_amount,
             'total_income' => $incomeMovements->sum('amount'),
             'total_expense' => $expenseMovements->sum('amount'),
+            'net_difference' => $incomeMovements->sum('amount') - $expenseMovements->sum('amount'),
             'total_movements' => $cashCount->movements()->count(),
-            
-            // Detalles de movimientos
-            'income_movements' => $incomeMovements,
-            'expense_movements' => $expenseMovements,
-            
-            // Ventas
+
+            // Detalles de movimientos con información completa
+            'movements' => $cashCount->movements->map(function ($movement) {
+               return [
+                  'type' => $movement->type,
+                  'description' => $movement->description,
+                  'amount' => $movement->amount,
+                  'created_at' => $movement->created_at->format('d/m/Y H:i'),
+               ];
+            }),
+
+            // Resto de las estadísticas...
             'total_sales' => Sale::where('company_id', $this->company->id)
                ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
                ->count(),
@@ -244,7 +253,7 @@ class CashCountController extends Controller
                   $cashCount->closing_date ?? now()
                ])
                ->sum('sale_details.quantity'),
-            
+
             // Compras
             'total_purchases' => Purchase::where('company_id', $this->company->id)
                ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date ?? now()])
