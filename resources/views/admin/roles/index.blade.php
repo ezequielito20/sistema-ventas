@@ -147,11 +147,20 @@
                 </div>
                 <div class="modal-body">
                     <div class="row mb-3">
-                        <div class="col-md-12">
+                        <div class="col-md-8">
                             <div class="search-box">
                                 <input type="text" id="searchPermission" class="form-control"
                                     placeholder="Buscar permisos...">
                                 <i class="fas fa-search search-icon"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-center justify-content-end">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="selectAllPermissions">
+                                <label class="custom-control-label pl-2" for="selectAllPermissions"
+                                    style="margin-left: 15px;">
+                                    Seleccionar todos los permisos
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -611,6 +620,20 @@
                     $(this).prop('checked', totalPermissions === checkedPermissions);
                 });
             }
+
+            // Selector para todos los permisos
+            $('#selectAllPermissions').change(function() {
+                const isChecked = $(this).prop('checked');
+                $('.permission-checkbox').prop('checked', isChecked);
+                $('.group-selector').prop('checked', isChecked);
+            });
+
+            // Actualizar el selector general cuando se cambien los permisos individuales
+            $('.permission-checkbox').change(function() {
+                const totalPermissions = $('.permission-checkbox').length;
+                const checkedPermissions = $('.permission-checkbox:checked').length;
+                $('#selectAllPermissions').prop('checked', totalPermissions === checkedPermissions);
+            });
         });
     </script>
 @stop
