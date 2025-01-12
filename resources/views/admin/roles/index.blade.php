@@ -52,7 +52,7 @@
                                         data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="#" class="btn btn-warning btn-sm assign-permissions"
+                                    <a type="button" class="btn btn-warning btn-sm assign-permissions"
                                         data-id="{{ $role->id }}" data-name="{{ $role->name }}" data-toggle="tooltip"
                                         title="Asignar Permisos">
                                         <i class="fas fa-key"></i>
@@ -553,9 +553,24 @@
             $('#searchPermission').on('input', function() {
                 const searchTerm = $(this).val().toLowerCase();
 
-                $('.permission-item').each(function() {
-                    const text = $(this).text().toLowerCase();
-                    $(this).toggle(text.includes(searchTerm));
+                // Recorrer cada card de módulo
+                $('.permissions-container .card').each(function() {
+                    const $card = $(this);
+                    const $permissionItems = $card.find('.permission-item');
+                    let hasVisiblePermissions = false;
+
+                    // Revisar los permisos dentro de este card
+                    $permissionItems.each(function() {
+                        const text = $(this).text().toLowerCase();
+                        const isVisible = text.includes(searchTerm);
+                        $(this).toggle(isVisible);
+                        if (isVisible) {
+                            hasVisiblePermissions = true;
+                        }
+                    });
+
+                    // Mostrar u ocultar el card completo según si tiene permisos visibles
+                    $card.closest('.col-md-6').toggle(hasVisiblePermissions);
                 });
             });
 
