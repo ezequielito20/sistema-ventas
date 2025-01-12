@@ -341,7 +341,7 @@ return [
          'classes' => 'bg-blue text-white',
       ],
       [
-         'text' => 'Roles',
+         'text' => 'Roles y Permisos',
          'icon' => 'fas fa-fw fa-user-shield',
          'classes' => 'bg-blue text-white',
          'submenu' => [
@@ -351,12 +351,12 @@ return [
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],
-            // [
-            //     'text' => 'Crear Rol',
-            //     'url' => 'roles/create',
-            //     'icon' => 'fas fa-fw fa-plus',
-            //     'classes' => 'bg-white text-black'
-            // ]
+            [
+               'text' => 'Permisos',
+               'url' => 'permissions',
+               'icon' => 'fas fa-fw fa-key',
+               'classes' => 'bg-white text-black'
+            ]
          ],
       ],
       [
@@ -436,7 +436,7 @@ return [
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
-               'text' => 'Lista de Ventas', 
+               'text' => 'Lista de Ventas',
                'url' => 'sales',
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
@@ -446,7 +446,7 @@ return [
       [
          'text' => 'Clientes',
          'icon' => 'fas fa-fw fa-users',
-         'classes' => 'bg-blue text-white', 
+         'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Clientes',
@@ -463,7 +463,7 @@ return [
          'submenu' => [
             [
                'text' => 'Lista de Arqueos',
-               'url' => 'cash-counts', 
+               'url' => 'cash-counts',
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],

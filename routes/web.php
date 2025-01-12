@@ -13,6 +13,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CashCountController;
+use App\Http\Controllers\PermissionController;
 
 Route::get('/', function () {
    return view('welcome');
@@ -42,6 +43,7 @@ Route::get('/purchases/report', [PurchaseController::class, 'report'])->name('ad
 Route::get('/customers/report', [CustomerController::class, 'report'])->name('admin.customers.report')->middleware('auth');
 Route::get('/sales/report', [SaleController::class, 'report'])->name('admin.sales.report')->middleware('auth');
 Route::get('/cash-counts/report', [CashCountController::class, 'report'])->name('admin.cash-counts.report')->middleware('auth');
+Route::get('/permissions/report', [PermissionController::class, 'report'])->name('admin.permissions.report')->middleware('auth');
 
 // Roles
 Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index')->middleware('auth');
@@ -131,4 +133,11 @@ Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('adm
 Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])->name('admin.cash-counts.store-movement')->middleware('auth');
 Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])->name('admin.cash-counts.close')->middleware('auth');
 
-
+// Permissions
+Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware('auth');
+Route::get('/permissions/create', [PermissionController::class, 'create'])->name('admin.permissions.create')->middleware('auth');
+Route::post('/permissions/create', [PermissionController::class, 'store'])->name('admin.permissions.store')->middleware('auth');
+Route::get('/permissions/edit/{id}', [PermissionController::class, 'edit'])->name('admin.permissions.edit')->middleware('auth');
+Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->name('admin.permissions.update')->middleware('auth');
+Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware('auth');
+Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware('auth');
