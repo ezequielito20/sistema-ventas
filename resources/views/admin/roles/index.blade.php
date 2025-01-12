@@ -197,10 +197,12 @@
                                                             class="custom-control-input permission-checkbox"
                                                             id="permission_{{ $permission->id }}"
                                                             value="{{ $permission->id }}"
-                                                            data-group="{{ $module }}">
+                                                            data-group="{{ $module }}"
+                                                            data-name="{{ $permission->name }}">
                                                         <label class="custom-control-label"
-                                                            for="permission_{{ $permission->id }}">
-                                                            {{ $permission->name }}
+                                                            for="permission_{{ $permission->id }}"
+                                                            title="{{ $permission->name }}">
+                                                            {{ $permission->friendly_name }}
                                                         </label>
                                                     </div>
                                                 </div>
@@ -549,29 +551,63 @@
                 $('#permissionsModal').modal('show');
             });
 
+            // Selector para todos los permisos
+            $('#selectAllPermissions').change(function() {
+                const isChecked = $(this).prop('checked');
+                const searchTerm = $('#searchPermission').val().toLowerCase();
+
+                if (searchTerm) {
+                    // Si hay término de búsqueda, solo seleccionar los permisos visibles
+                    $('.permission-checkbox').each(function() {
+                        const $permissionItem = $(this).closest('.permission-item');
+                        if ($permissionItem.is(':visible')) {
+                            $(this).prop('checked', isChecked);
+                        }
+                    });
+
+                    // Actualizar los selectores de grupo
+                    $('.group-selector').each(function() {
+                        const $card = $(this).closest('.card');
+                        if ($card.closest('.col-md-6').is(':visible')) {
+                            const totalVisible = $card.find('.permission-item:visible').length;
+                            const checkedVisible = $card.find(
+                                '.permission-item:visible .permission-checkbox:checked').length;
+                            $(this).prop('checked', totalVisible === checkedVisible);
+                        }
+                    });
+                } else {
+                    // Si no hay búsqueda, comportamiento normal
+                    $('.permission-checkbox').prop('checked', isChecked);
+                    $('.group-selector').prop('checked', isChecked);
+                }
+            });
+
             // Búsqueda de permisos
             $('#searchPermission').on('input', function() {
                 const searchTerm = $(this).val().toLowerCase();
 
-                // Recorrer cada card de módulo
                 $('.permissions-container .card').each(function() {
                     const $card = $(this);
                     const $permissionItems = $card.find('.permission-item');
                     let hasVisiblePermissions = false;
 
-                    // Revisar los permisos dentro de este card
                     $permissionItems.each(function() {
-                        const text = $(this).text().toLowerCase();
-                        const isVisible = text.includes(searchTerm);
+                        const friendlyText = $(this).find('label').text().toLowerCase();
+                        const technicalText = $(this).find('input').data('name')
+                            .toLowerCase();
+                        const isVisible = friendlyText.includes(searchTerm) || technicalText
+                            .includes(searchTerm);
                         $(this).toggle(isVisible);
                         if (isVisible) {
                             hasVisiblePermissions = true;
                         }
                     });
 
-                    // Mostrar u ocultar el card completo según si tiene permisos visibles
                     $card.closest('.col-md-6').toggle(hasVisiblePermissions);
                 });
+
+                // Resetear el checkbox general
+                $('#selectAllPermissions').prop('checked', false);
             });
 
             // Selector de grupo
@@ -635,20 +671,6 @@
                     $(this).prop('checked', totalPermissions === checkedPermissions);
                 });
             }
-
-            // Selector para todos los permisos
-            $('#selectAllPermissions').change(function() {
-                const isChecked = $(this).prop('checked');
-                $('.permission-checkbox').prop('checked', isChecked);
-                $('.group-selector').prop('checked', isChecked);
-            });
-
-            // Actualizar el selector general cuando se cambien los permisos individuales
-            $('.permission-checkbox').change(function() {
-                const totalPermissions = $('.permission-checkbox').length;
-                const checkedPermissions = $('.permission-checkbox:checked').length;
-                $('#selectAllPermissions').prop('checked', totalPermissions === checkedPermissions);
-            });
         });
     </script>
 @stop
