@@ -204,12 +204,13 @@
                 const permissionId = $(this).data('id');
                 $.get(`/permissions/${permissionId}`, function(permission) {
                     Swal.fire({
-                        title: '<i class="fas fa-key mr-2"></i>Detalles del Permiso',
+                        title: '<i class="fas fa-key text-primary mr-2"></i>Detalles del Permiso',
                         html: `
                             <div class="text-left p-3">
+                                <!-- Primera fila: Nombre y Guard -->
                                 <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="info-box bg-light">
+                                    <div class="col-md-6">
+                                        <div class="info-box bg-light h-100">
                                             <div class="info-box-content">
                                                 <h5 class="text-primary mb-2">
                                                     <i class="fas fa-tag mr-2"></i>Nombre
@@ -218,11 +219,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="info-box bg-light">
+                                    <div class="col-md-6">
+                                        <div class="info-box bg-light h-100">
                                             <div class="info-box-content">
                                                 <h5 class="text-info mb-2">
                                                     <i class="fas fa-shield-alt mr-2"></i>Guard
@@ -233,9 +231,10 @@
                                     </div>
                                 </div>
 
+                                <!-- Segunda fila: Roles y Usuarios -->
                                 <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="info-box bg-light">
+                                    <div class="col-md-6">
+                                        <div class="info-box bg-light h-100">
                                             <div class="info-box-content">
                                                 <h5 class="text-success mb-2">
                                                     <i class="fas fa-user-shield mr-2"></i>Roles Asignados
@@ -243,7 +242,7 @@
                                                 <p class="mb-0">
                                                     ${permission.roles.length ? 
                                                         permission.roles.map(role => 
-                                                            `<span class="badge badge-success mr-1">${role}</span>`
+                                                            `<span class="badge badge-success mr-1 mb-1">${role}</span>`
                                                         ).join('') : 
                                                         '<span class="text-muted">Ninguno</span>'
                                                     }
@@ -251,19 +250,16 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col-12">
-                                        <div class="info-box bg-light">
+                                    <div class="col-md-6">
+                                        <div class="info-box bg-light h-100">
                                             <div class="info-box-content">
-                                                <h5 class="text-warning mb-2">
+                                                <h5 class="text-success mb-2">
                                                     <i class="fas fa-users mr-2"></i>Usuarios con Permiso
                                                 </h5>
                                                 <p class="mb-0">
                                                     ${permission.users.length ? 
                                                         permission.users.map(user => 
-                                                            `<span class="badge badge-warning mr-1">${user}</span>`
+                                                            `<span class="badge badge-warning mr-1 mb-1">${user}</span>`
                                                         ).join('') : 
                                                         '<span class="text-muted">Ninguno</span>'
                                                     }
@@ -273,6 +269,7 @@
                                     </div>
                                 </div>
 
+                                <!-- Tercera fila: Fechas -->
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="info-box bg-light">
@@ -297,7 +294,7 @@
                                 </div>
                             </div>
                         `,
-                        width: '600px',
+                        width: '800px',
                         showCloseButton: true,
                         showConfirmButton: false,
                         customClass: {
@@ -336,6 +333,11 @@
         .permission-details-modal .badge {
             font-size: 0.85rem;
             padding: 0.4em 0.6em;
+        }
+
+        /* Asegurar que las cajas tengan la misma altura en cada fila */
+        .permission-details-modal .h-100 {
+            height: 100% !important;
         }
     </style>
 @stop
