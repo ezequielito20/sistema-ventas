@@ -29,21 +29,18 @@
                         <div class="form-group">
                             <label for="name" class="required">Nombre del Permiso</label>
                             <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-key"></i>
-                                    </span>
-                                </div>
-                                <input type="text" name="name" id="name"
-                                    class="form-control @error('name') is-invalid @enderror"
-                                    value="{{ old('name', $permission->name) }}" required autofocus
-                                    placeholder="Ejemplo: users.create">
-                            </div>
-                            @error('name')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
+                                <span class="input-group-text">
+                                    <i class="fas fa-key"></i>
                                 </span>
-                            @enderror
+                                <input type="text" name="name" id="name"
+                                    class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}"
+                                    value="{{ old('name', $permission->name) }}" required>
+                                @if ($errors->has('name'))
+                                    <div class="invalid-feedback">
+                                        {{ $errors->first('name') }}
+                                    </div>
+                                @endif
+                            </div>
                             <small class="text-muted">
                                 El nombre debe ser único y seguir el formato: modulo.accion
                             </small>
