@@ -422,7 +422,7 @@
                     }
                 },
                 order: [
-                    [1, 'asc']
+                    []
                 ], // Ordenar por nombre por defecto
             });
 

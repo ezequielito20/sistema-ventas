@@ -515,8 +515,10 @@ class CashCountController extends Controller
     */
    public function report()
    {
-      $cashCounts = CashCount::with(['movements'])->get();
-      $pdf = PDF::loadView('admin.cash-counts.report', compact('cashCounts'));
+      $company = $this->company;
+      $currency = $this->currencies;
+      $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+      $pdf = PDF::loadView('admin.cash-counts.report', compact('cashCounts', 'company', 'currency'));
       return $pdf->stream('reporte-caja.pdf');
    }
 }

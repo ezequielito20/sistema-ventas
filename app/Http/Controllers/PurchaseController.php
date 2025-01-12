@@ -44,6 +44,7 @@ class PurchaseController extends Controller
          // Obtener compras con sus relaciones
          $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
             ->where('company_id', $companyId)
+            ->orderBy('created_at', 'desc')
             ->get();
 
          // Calcular estadísticas
@@ -555,8 +556,10 @@ class PurchaseController extends Controller
 
    public function report()
    {
-      $purchases = Purchase::with(['details.product', 'details.supplier'])->get();
-      $pdf = PDF::loadView('admin.purchases.report', compact('purchases'));
+      $company = $this->company;
+      $currency = $this->currencies;
+      $purchases = Purchase::with(['details.product', 'details.supplier'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+      $pdf = PDF::loadView('admin.purchases.report', compact('purchases', 'company', 'currency'));
       return $pdf->stream('reporte-compras.pdf');
    }
 }

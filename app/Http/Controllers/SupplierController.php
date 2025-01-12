@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Supplier;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class SupplierController extends Controller
 {
@@ -20,7 +21,7 @@ class SupplierController extends Controller
       try {
          // Obtener todos los proveedores de la compañía actual
          $suppliers = Supplier::where('company_id', Auth::user()->company_id)
-            ->latest()
+            ->orderBy('company_name', 'asc')
             ->get();
 
          // Estadísticas para los widgets
@@ -394,8 +395,9 @@ class SupplierController extends Controller
 
    public function report()
    {
-      $suppliers = Supplier::withCount('products')->get();
-      $pdf = PDF::loadView('admin.suppliers.report', compact('suppliers'))
+      $company = Company::find(Auth::user()->company_id);
+      $suppliers = Supplier::withCount('products')->where('company_id', $company->id)->orderBy('company_name', 'asc')->get();
+      $pdf = PDF::loadView('admin.suppliers.report', compact('suppliers', 'company'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-proveedores.pdf');
    }

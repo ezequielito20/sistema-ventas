@@ -20,7 +20,9 @@ class UserController extends Controller
     */
    public function index()
    {
-      $users = User::where('company_id', Auth::user()->company_id)->get();
+      $users = User::where('company_id', Auth::user()->company_id)
+      ->orderBy('name', 'asc')
+      ->get();
       return view('admin.users.index', compact('users'));
    }
 
@@ -350,8 +352,11 @@ class UserController extends Controller
 
    public function report()
    {
-      $users = User::with('roles')->get();
-      $pdf = PDF::loadView('admin.users.report', compact('users'));
+      $company = Company::find(Auth::user()->company_id);
+      $users = User::with('roles')->where('company_id', $company->id)
+      ->orderBy('name', 'asc')
+      ->get();
+      $pdf = PDF::loadView('admin.users.report', compact('users', 'company'));
       return $pdf->stream('reporte-usuarios.pdf');
    }
 }

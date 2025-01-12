@@ -413,8 +413,10 @@ class CustomerController extends Controller
 
    public function report()
    {
-      $customers = Customer::withCount('sales')->get();
-      $pdf = PDF::loadView('admin.customers.report', compact('customers'));
+      $company = $this->company;
+      $currency = $this->currencies;
+      $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
+      $pdf = PDF::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
       return $pdf->stream('reporte-clientes.pdf');
    }
 }

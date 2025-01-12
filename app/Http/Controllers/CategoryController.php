@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
+
 class CategoryController extends Controller
 {
    /**
@@ -17,7 +19,8 @@ class CategoryController extends Controller
    public function index()
    {
       try {
-         $categories = Category::orderBy('created_at', 'desc')->get();
+         $company = Company::find(Auth::user()->company_id);
+         $categories = Category::where('company_id', $company->id)->orderBy('name', 'asc')->get();
          $totalCategories = $categories->count();
 
          return view('admin.categories.index', compact(
@@ -230,8 +233,12 @@ class CategoryController extends Controller
 
    public function report()
    {
-      $categories = Category::withCount('products')->get();
-      $pdf = PDF::loadView('admin.categories.report', compact('categories'));
+      $company = Company::find(Auth::user()->company_id);
+      $categories = Category::withCount('products')->where('company_id', $company->id)
+      ->orderBy('products_count', 'desc')
+      ->orderBy('name', 'asc')
+      ->get();
+      $pdf = PDF::loadView('admin.categories.report', compact('categories', 'company'));
       return $pdf->stream('reporte-categorias.pdf');
    }
 }

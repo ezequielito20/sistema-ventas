@@ -44,6 +44,7 @@ class SaleController extends Controller
          // Obtener ventas con sus relaciones
          $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
             ->where('company_id', $companyId)
+            ->orderBy('created_at', 'desc')
             ->get();
 
          // Calcular productos únicos vendidos
@@ -663,8 +664,10 @@ class SaleController extends Controller
 
    public function report()
    {
-      $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->get();
-      $pdf = PDF::loadView('admin.sales.report', compact('sales'));
+      $company = $this->company;
+      $currency = $this->currencies;
+      $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+      $pdf = PDF::loadView('admin.sales.report', compact('sales', 'company', 'currency'));
       return $pdf->stream('reporte-ventas.pdf');
    }
 }

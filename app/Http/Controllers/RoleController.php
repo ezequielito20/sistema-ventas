@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
@@ -246,8 +248,11 @@ class RoleController extends Controller
 
    public function report()
    {
-      $roles = Role::all();
-      $pdf = PDF::loadView('admin.roles.report', compact('roles'));
+      $company = Company::find(Auth::user()->company_id);
+      $roles = Role::with('permissions')
+      ->orderBy('name', 'asc')
+      ->get();
+      $pdf = PDF::loadView('admin.roles.report', compact('roles', 'company'));
       return $pdf->stream('reporte-roles.pdf');
    }
 }

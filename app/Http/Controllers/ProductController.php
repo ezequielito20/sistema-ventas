@@ -31,7 +31,14 @@ class ProductController extends Controller
    public function index()
    {
       try {
-         $products = Product::with('category')->where('company_id', $this->company->id)->get();
+         $products = Product::with('category')
+            ->where('products.company_id', $this->company->id)
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->orderBy('categories.name')
+            ->orderBy('products.stock', 'desc')
+            ->orderBy('products.name')
+            ->select('products.*')
+            ->get();
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
 
@@ -55,7 +62,7 @@ class ProductController extends Controller
       } catch (\Exception $e) {
          Log::error('Error loading products: ' . $e->getMessage());
          return redirect()->back()
-            ->with('message', 'Error al cargar los productos')
+            ->with('message', 'Error al cargar los productos: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
@@ -322,8 +329,17 @@ class ProductController extends Controller
 
    public function report()
    {
-      $products = Product::with(['category', 'supplier'])->get();
-      $pdf = PDF::loadView('admin.products.report', compact('products'))
+      $company = $this->company;
+      $currency = $this->currencies;
+      $products = Product::with(['category','supplier'])
+         ->where('products.company_id', $this->company->id)
+         ->join('categories', 'products.category_id', '=', 'categories.id')
+         ->orderBy('categories.name')
+         ->orderBy('products.stock', 'desc')
+         ->orderBy('products.name')
+         ->select('products.*')
+            ->get();
+      $pdf = PDF::loadView('admin.products.report', compact('products', 'company', 'currency'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-productos.pdf');
    }
