@@ -6,11 +6,11 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Compras</h1>
         <div>
-            <a href="{{ route('admin.purchases.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.purchases.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
             @if ($cashCount)
-                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
+                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary" >
                     <i class="fas fa-plus-circle mr-2"></i>Nueva Compra
                 </a>
             @else

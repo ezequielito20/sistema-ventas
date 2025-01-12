@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Categorías</h1>
         <div>
-            <a href="{{ route('admin.categories.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.categories.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
             <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">

@@ -11,345 +11,347 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $users = User::where('company_id', Auth::user()->company_id)->get();
-        return view('admin.users.index', compact('users'));
-    }
+   /**
+    * Display a listing of the resource.
+    */
+   public function index()
+   {
+      $users = User::where('company_id', Auth::user()->company_id)->get();
+      return view('admin.users.index', compact('users'));
+   }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        try {
-            // Obtener las empresas disponibles
-            $companies = Company::select('id', 'name')
-                ->where('id', Auth::user()->company_id)
-                ->orderBy('name')
-                ->get();
+   /**
+    * Show the form for creating a new resource.
+    */
+   public function create()
+   {
+      try {
+         // Obtener las empresas disponibles
+         $companies = Company::select('id', 'name')
+            ->where('id', Auth::user()->company_id)
+            ->orderBy('name')
+            ->get();
 
-            // Obtener los roles disponibles (excluyendo roles del sistema si el usuario no es admin)
-            $roles = Role::all();
+         // Obtener los roles disponibles (excluyendo roles del sistema si el usuario no es admin)
+         $roles = Role::all();
 
-            return view('admin.users.create', compact('companies', 'roles'));
+         return view('admin.users.create', compact('companies', 'roles'));
+      } catch (\Exception $e) {
+         return redirect()->route('admin.users.index')
+            ->with('message', 'Error al cargar el formulario de creación: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
+   }
 
-        } catch (\Exception $e) {
-            return redirect()->route('admin.users.index')
-                ->with('message', 'Error al cargar el formulario de creación: ' . $e->getMessage())
-                ->with('icons', 'error');
-        }
-    }
+   /**
+    * Store a newly created resource in storage.
+    */
+   public function store(Request $request)
+   {
+      // Validación del request
+      $validated = $request->validate([
+         'name' => ['required', 'string', 'max:255'],
+         'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+         'password' => [
+            'required',
+            'string',
+            'min:8',
+            'confirmed',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/' // Al menos una mayúscula, una minúscula y un número
+         ],
+         'company_id' => ['required', 'exists:companies,id'],
+         'role' => ['required', 'exists:roles,id'],
+      ], [
+         'name.required' => 'El nombre es obligatorio',
+         'name.max' => 'El nombre no puede exceder los 255 caracteres',
+         'email.required' => 'El correo electrónico es obligatorio',
+         'email.email' => 'El correo electrónico debe ser válido',
+         'email.unique' => 'Este correo electrónico ya está registrado',
+         'password.required' => 'La contraseña es obligatoria',
+         'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+         'password.confirmed' => 'Las contraseñas no coinciden',
+         'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
+         'company_id.required' => 'La empresa es obligatoria',
+         'company_id.exists' => 'La empresa seleccionada no existe',
+         'role.required' => 'El rol es obligatorio',
+         'role.exists' => 'El rol seleccionado no existe'
+      ]);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Validación del request
-        $validated = $request->validate([
+      try {
+         DB::beginTransaction();
+
+         // Verificar que la empresa pertenezca al usuario autenticado
+         if (Auth::user()->company_id != $validated['company_id']) {
+            throw new \Exception('No tiene permisos para crear usuarios en esta empresa');
+         }
+
+         // Crear el usuario
+         $user = User::create([
+            'name' => $validated['name'],
+            'email' => strtolower($validated['email']), // Convertir email a minúsculas
+            'password' => Hash::make($validated['password']),
+            'company_id' => $validated['company_id'],
+            'email_verified_at' => now(), // Usuario verificado por defecto
+         ]);
+
+         // Asignar el rol
+         $role = Role::findOrFail($validated['role']);
+
+         // Verificar que no se asigne un rol de sistema si no es admin
+         $systemRoles = ['admin', 'superadmin'];
+         if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
+            throw new \Exception('No tiene permisos para asignar roles del sistema');
+         }
+
+         $user->assignRole($role);
+
+
+
+         DB::commit();
+
+         return redirect()->route('admin.users.index')
+            ->with('message', 'Usuario creado exitosamente')
+            ->with('icons', 'success');
+      } catch (\Exception $e) {
+         DB::rollBack();
+
+         // Log del error
+         Log::error('Error creating user: ' . $e->getMessage(), [
+            'user' => Auth::id(),
+            'request' => $request->except('password', 'password_confirmation')
+         ]);
+
+         return redirect()->back()
+            ->with('message', 'Error al crear el usuario: ' . $e->getMessage())
+            ->with('icons', 'error')
+            ->withInput($request->except('password', 'password_confirmation'));
+      }
+   }
+
+   /**
+    * Display the specified resource.
+    */
+   public function show($id)
+   {
+      try {
+         // Obtener usuario con sus relaciones
+         $user = User::with(['roles', 'company'])->findOrFail($id);
+
+         // Verificar que el usuario pertenezca a la misma empresa
+         if ($user->company_id !== Auth::user()->company_id) {
+            throw new \Exception('No tiene permisos para ver este usuario');
+         }
+
+         // Preparar la respuesta con solo los campos necesarios
+         return response()->json([
+            'status' => 'success',
+            'user' => [
+               'name' => $user->name,
+               'email' => $user->email,
+               'company_name' => $user->company->name,
+               'roles' => $user->roles->map(function ($role) {
+                  return [
+                     'name' => $role->name,
+                     'display_name' => ucfirst($role->name) // Capitaliza el nombre del rol
+                  ];
+               }),
+               'verified' => [
+                  'status' => $user->email_verified_at ? true : false,
+                  'text' => $user->email_verified_at ? 'Verificado' : 'Pendiente de verificación',
+                  'class' => $user->email_verified_at ? 'success' : 'warning'
+               ]
+            ]
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Error al obtener los datos del usuario'
+         ], 500);
+      }
+   }
+
+   /**
+    * Show the form for editing the specified resource.
+    */
+   public function edit(string $id)
+   {
+      try {
+         // Obtener usuario con sus roles
+         $user = User::with('roles')->findOrFail($id);
+
+         // Verificar que el usuario pertenezca a la misma empresa
+         if ($user->company_id !== Auth::user()->company_id) {
+            throw new \Exception('No tiene permisos para editar este usuario');
+         }
+
+         // Obtener empresas disponibles
+         $companies = Company::select('id', 'name')
+            ->where('id', Auth::user()->company_id)
+            ->orderBy('name')
+            ->get();
+
+         // Obtener roles disponibles
+         $roles = Role::when(!Auth::user()->hasRole('admin'), function ($query) {
+            return $query->whereNotIn('name', ['admin', 'superadmin']);
+         })->get();
+
+         return view('admin.users.edit', compact('user', 'companies', 'roles'));
+      } catch (\Exception $e) {
+         return redirect()->route('admin.users.index')
+            ->with('message', 'Error al cargar el usuario: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
+   }
+
+   /**
+    * Update the specified resource in storage.
+    */
+   public function update(Request $request, string $id)
+   {
+      try {
+         $user = User::findOrFail($id);
+
+         // Verificar permisos
+         if ($user->company_id !== Auth::user()->company_id) {
+            throw new \Exception('No tiene permisos para editar este usuario');
+         }
+
+         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/' // Al menos una mayúscula, una minúscula y un número
-            ],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'company_id' => ['required', 'exists:companies,id'],
             'role' => ['required', 'exists:roles,id'],
-        ], [
-            'name.required' => 'El nombre es obligatorio',
-            'name.max' => 'El nombre no puede exceder los 255 caracteres',
-            'email.required' => 'El correo electrónico es obligatorio',
-            'email.email' => 'El correo electrónico debe ser válido',
-            'email.unique' => 'Este correo electrónico ya está registrado',
-            'password.required' => 'La contraseña es obligatoria',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
-            'password.confirmed' => 'Las contraseñas no coinciden',
-            'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
-            'company_id.required' => 'La empresa es obligatoria',
-            'company_id.exists' => 'La empresa seleccionada no existe',
-            'role.required' => 'El rol es obligatorio',
-            'role.exists' => 'El rol seleccionado no existe'
-        ]);
+         ];
 
-        try {
-            DB::beginTransaction();
-
-            // Verificar que la empresa pertenezca al usuario autenticado
-            if (Auth::user()->company_id != $validated['company_id']) {
-                throw new \Exception('No tiene permisos para crear usuarios en esta empresa');
-            }
-
-            // Crear el usuario
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => strtolower($validated['email']), // Convertir email a minúsculas
-                'password' => Hash::make($validated['password']),
-                'company_id' => $validated['company_id'],
-                'email_verified_at' => now(), // Usuario verificado por defecto
-            ]);
-
-            // Asignar el rol
-            $role = Role::findOrFail($validated['role']);
-            
-            // Verificar que no se asigne un rol de sistema si no es admin
-            $systemRoles = ['admin', 'superadmin'];
-            if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
-                throw new \Exception('No tiene permisos para asignar roles del sistema');
-            }
-
-            $user->assignRole($role);
-
-            
-
-            DB::commit();
-
-            return redirect()->route('admin.users.index')
-                ->with('message', 'Usuario creado exitosamente')
-                ->with('icons', 'success');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            // Log del error
-            Log::error('Error creating user: ' . $e->getMessage(), [
-                'user' => Auth::id(),
-                'request' => $request->except('password', 'password_confirmation')
-            ]);
-            
-            return redirect()->back()
-                ->with('message', 'Error al crear el usuario: ' . $e->getMessage())
-                ->with('icons', 'error')
-                ->withInput($request->except('password', 'password_confirmation'));
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        try {
-            // Obtener usuario con sus relaciones
-            $user = User::with(['roles', 'company'])->findOrFail($id);
-            
-            // Verificar que el usuario pertenezca a la misma empresa
-            if ($user->company_id !== Auth::user()->company_id) {
-                throw new \Exception('No tiene permisos para ver este usuario');
-            }
-
-            // Preparar la respuesta con solo los campos necesarios
-            return response()->json([
-                'status' => 'success',
-                'user' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'company_name' => $user->company->name,
-                    'roles' => $user->roles->map(function($role) {
-                        return [
-                            'name' => $role->name,
-                            'display_name' => ucfirst($role->name) // Capitaliza el nombre del rol
-                        ];
-                    }),
-                    'verified' => [
-                        'status' => $user->email_verified_at ? true : false,
-                        'text' => $user->email_verified_at ? 'Verificado' : 'Pendiente de verificación',
-                        'class' => $user->email_verified_at ? 'success' : 'warning'
-                    ]
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error al obtener los datos del usuario'
-            ], 500);
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        try {
-            // Obtener usuario con sus roles
-            $user = User::with('roles')->findOrFail($id);
-            
-            // Verificar que el usuario pertenezca a la misma empresa
-            if ($user->company_id !== Auth::user()->company_id) {
-                throw new \Exception('No tiene permisos para editar este usuario');
-            }
-
-            // Obtener empresas disponibles
-            $companies = Company::select('id', 'name')
-                ->where('id', Auth::user()->company_id)
-                ->orderBy('name')
-                ->get();
-
-            // Obtener roles disponibles
-            $roles = Role::when(!Auth::user()->hasRole('admin'), function ($query) {
-                return $query->whereNotIn('name', ['admin', 'superadmin']);
-            })->get();
-
-            return view('admin.users.edit', compact('user', 'companies', 'roles'));
-
-        } catch (\Exception $e) {
-            return redirect()->route('admin.users.index')
-                ->with('message', 'Error al cargar el usuario: ' . $e->getMessage())
-                ->with('icons', 'error');
-        }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        try {
-            $user = User::findOrFail($id);
-
-            // Verificar permisos
-            if ($user->company_id !== Auth::user()->company_id) {
-                throw new \Exception('No tiene permisos para editar este usuario');
-            }
-
-            $rules = [
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-                'company_id' => ['required', 'exists:companies,id'],
-                'role' => ['required', 'exists:roles,id'],
+         // Si se está intentando cambiar la contraseña
+         if ($request->filled('password')) {
+            $rules['current_password'] = ['required', function ($attribute, $value, $fail) use ($user) {
+               if (!Hash::check($value, $user->password)) {
+                  $fail('La contraseña actual es incorrecta.');
+               }
+            }];
+            $rules['password'] = [
+               'required',
+               'string',
+               'min:8',
+               'confirmed',
+               'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
             ];
+         }
 
-            // Si se está intentando cambiar la contraseña
-            if ($request->filled('password')) {
-                $rules['current_password'] = ['required', function ($attribute, $value, $fail) use ($user) {
-                    if (!Hash::check($value, $user->password)) {
-                        $fail('La contraseña actual es incorrecta.');
-                    }
-                }];
-                $rules['password'] = [
-                    'required',
-                    'string',
-                    'min:8',
-                    'confirmed',
-                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
-                ];
-            }
+         $validated = $request->validate($rules, [
+            'name.required' => 'El nombre es obligatorio',
+            'email.required' => 'El correo electrónico es obligatorio',
+            'email.email' => 'El formato del correo electrónico no es válido',
+            'email.unique' => 'Este correo electrónico ya está registrado',
+            'current_password.required' => 'Debe proporcionar la contraseña actual para cambiarla',
+            'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres',
+            'password.regex' => 'La nueva contraseña debe contener al menos una mayúscula, una minúscula y un número',
+            'company_id.required' => 'La empresa es obligatoria',
+            'role.required' => 'El rol es obligatorio',
+         ]);
 
-            $validated = $request->validate($rules, [
-                'name.required' => 'El nombre es obligatorio',
-                'email.required' => 'El correo electrónico es obligatorio',
-                'email.email' => 'El formato del correo electrónico no es válido',
-                'email.unique' => 'Este correo electrónico ya está registrado',
-                'current_password.required' => 'Debe proporcionar la contraseña actual para cambiarla',
-                'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres',
-                'password.regex' => 'La nueva contraseña debe contener al menos una mayúscula, una minúscula y un número',
-                'company_id.required' => 'La empresa es obligatoria',
-                'role.required' => 'El rol es obligatorio',
-            ]);
+         DB::beginTransaction();
 
-            DB::beginTransaction();
+         // Actualizar datos básicos
+         $user->name = $validated['name'];
+         $user->email = strtolower($validated['email']);
+         $user->company_id = $validated['company_id'];
 
-            // Actualizar datos básicos
-            $user->name = $validated['name'];
-            $user->email = strtolower($validated['email']);
-            $user->company_id = $validated['company_id'];
+         // Actualizar contraseña si se proporcionó
+         if ($request->filled('password')) {
+            $user->password = Hash::make($validated['password']);
+         }
 
-            // Actualizar contraseña si se proporcionó
-            if ($request->filled('password')) {
-                $user->password = Hash::make($validated['password']);
-            }
+         $user->save();
 
-            $user->save();
+         // Actualizar rol
+         $role = Role::findOrFail($validated['role']);
 
-            // Actualizar rol
-            $role = Role::findOrFail($validated['role']);
-            
-            // Verificar que no se asigne un rol de sistema si no es admin
-            $systemRoles = ['admin', 'superadmin'];
-            if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
-                throw new \Exception('No tiene permisos para asignar roles del sistema');
-            }
+         // Verificar que no se asigne un rol de sistema si no es admin
+         $systemRoles = ['admin', 'superadmin'];
+         if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
+            throw new \Exception('No tiene permisos para asignar roles del sistema');
+         }
 
-            // Sincronizar roles (elimina roles anteriores y asigna el nuevo)
-            $user->syncRoles([$role]);
+         // Sincronizar roles (elimina roles anteriores y asigna el nuevo)
+         $user->syncRoles([$role]);
 
-            DB::commit();
+         DB::commit();
 
-            return redirect()->route('admin.users.index')
-                ->with('message', 'Usuario actualizado exitosamente')
-                ->with('icons', 'success');
+         return redirect()->route('admin.users.index')
+            ->with('message', 'Usuario actualizado exitosamente')
+            ->with('icons', 'success');
+      } catch (\Exception $e) {
+         DB::rollBack();
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            Log::error('Error updating user: ' . $e->getMessage(), [
-                'user' => Auth::id(),
-                'target_user' => $id,
-                'request' => $request->except(['password', 'password_confirmation'])
-            ]);
-            
-            return redirect()->back()
-                ->with('message', 'Error al actualizar el usuario: ' . $e->getMessage())
-                ->with('icons', 'error')
-                ->withInput($request->except(['password', 'password_confirmation']));
-        }
-    }
+         Log::error('Error updating user: ' . $e->getMessage(), [
+            'user' => Auth::id(),
+            'target_user' => $id,
+            'request' => $request->except(['password', 'password_confirmation'])
+         ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        try {
-            $user = User::findOrFail($id);
-            
-            // Verificar que el usuario pertenezca a la misma empresa
-            if ($user->company_id !== Auth::user()->company_id) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No tiene permisos para eliminar este usuario'
-                ], 403);
-            }
+         return redirect()->back()
+            ->with('message', 'Error al actualizar el usuario: ' . $e->getMessage())
+            ->with('icons', 'error')
+            ->withInput($request->except(['password', 'password_confirmation']));
+      }
+   }
 
-            // Verificar si es un usuario admin
-            if ($user->hasRole('admin')) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No se pueden eliminar usuarios administradores'
-                ], 403);
-            }
+   /**
+    * Remove the specified resource from storage.
+    */
+   public function destroy($id)
+   {
+      try {
+         $user = User::findOrFail($id);
 
-            // Verificar que no se elimine a sí mismo
-            if ($user->id === Auth::id()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No puede eliminarse a sí mismo'
-                ], 403);
-            }
-
-            $user->delete();
-
+         // Verificar que el usuario pertenezca a la misma empresa
+         if ($user->company_id !== Auth::user()->company_id) {
             return response()->json([
-                'status' => 'success',
-                'message' => 'Usuario eliminado exitosamente'
-            ]);
+               'status' => 'error',
+               'message' => 'No tiene permisos para eliminar este usuario'
+            ], 403);
+         }
 
-        } catch (\Exception $e) {
+         // Verificar si es un usuario admin
+         if ($user->hasRole('admin')) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Error al eliminar el usuario'
-            ], 500);
-        }
-    }
+               'status' => 'error',
+               'message' => 'No se pueden eliminar usuarios administradores'
+            ], 403);
+         }
+
+         // Verificar que no se elimine a sí mismo
+         if ($user->id === Auth::id()) {
+            return response()->json([
+               'status' => 'error',
+               'message' => 'No puede eliminarse a sí mismo'
+            ], 403);
+         }
+
+         $user->delete();
+
+         return response()->json([
+            'status' => 'success',
+            'message' => 'Usuario eliminado exitosamente'
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Error al eliminar el usuario'
+         ], 500);
+      }
+   }
+
+   public function report()
+   {
+      $users = User::with('roles')->get();
+      $pdf = PDF::loadView('admin.users.report', compact('users'));
+      return $pdf->stream('reporte-usuarios.pdf');
+   }
 }

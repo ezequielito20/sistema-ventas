@@ -6,10 +6,10 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Roles</h1>
         <div>
-            <a href="{{ route('admin.roles.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.roles.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-            <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
+            <a href="{{ route('admin.roles.create') }}" class="btn btn-primary" >
                 <i class="fas fa-plus-circle mr-2"></i>Crear Nuevo Rol
             </a>
         </div>
@@ -37,31 +37,23 @@
                 <tbody>
                     @foreach ($roles as $role)
                         <tr class="text-center">
-                            <td >{{ $loop->iteration }}</td>
+                            <td>{{ $loop->iteration }}</td>
                             <td>
                                 <span class="font-weight-bold">{{ $role->name }}</span>
                             </td>
                             <td>{{ $role->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button"
-                                            class="btn btn-success btn-sm show-role"
-                                            data-id="{{ $role->id }}"
-                                            data-toggle="tooltip"
-                                            title="Mostrar">
+                                    <button type="button" class="btn btn-success btn-sm show-role"
+                                        data-id="{{ $role->id }}" data-toggle="tooltip" title="Mostrar">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <a href="{{ route('admin.roles.edit', $role->id) }}" 
-                                       class="btn btn-info btn-sm" 
-                                       data-toggle="tooltip" 
-                                       title="Editar">
+                                    <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm"
+                                        data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-danger btn-sm delete-role" 
-                                            data-id="{{ $role->id }}"
-                                            data-toggle="tooltip" 
-                                            title="Eliminar">
+                                    <button type="button" class="btn btn-danger btn-sm delete-role"
+                                        data-id="{{ $role->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -74,7 +66,8 @@
     </div>
 
     {{-- Modal para mostrar rol --}}
-    <div class="modal fade" id="showRoleModal" tabindex="-1" role="dialog" aria-labelledby="showRoleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="showRoleModal" tabindex="-1" role="dialog" aria-labelledby="showRoleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-primary">
@@ -142,27 +135,34 @@
         .card {
             border-radius: 0.75rem;
         }
+
         .card-header {
             background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
         }
+
         .table th {
             background-color: #007bff !important;
             color: white !important;
         }
+
         .btn-group {
-            box-shadow: 0 2px 4px rgba(0,0,0,.04);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .04);
         }
+
         .btn-sm {
             border-radius: 0.5rem;
         }
+
         .modal-header {
             border-radius: 0.3rem 0.3rem 0 0;
         }
+
         .modal-content {
             border-radius: 0.3rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
+
         .form-control-static {
             padding: 0.375rem 0.75rem;
             margin-bottom: 0;
@@ -196,33 +196,36 @@
                 responsive: true,
                 autoWidth: false,
                 dom: 'Bfrtip',
-                buttons: [
-                    {
-                        extend: 'collection',
-                        text: '<i class="fas fa-file-export mr-2"></i>Exportar',
-                        className: 'btn btn-primary',
-                        buttons: [
-                            {
-                                extend: 'excel',
-                                text: '<i class="fas fa-file-excel mr-2"></i>Excel',
-                                className: 'btn btn-success',
-                                exportOptions: { columns: [0,1,2,3] }
-                            },
-                            {
-                                extend: 'pdf',
-                                text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
-                                className: 'btn btn-danger',
-                                exportOptions: { columns: [0,1,2,3] }
-                            },
-                            {
-                                extend: 'print',
-                                text: '<i class="fas fa-print mr-2"></i>Imprimir',
-                                className: 'btn btn-info',
-                                exportOptions: { columns: [0,1,2,3] }
+                buttons: [{
+                    extend: 'collection',
+                    text: '<i class="fas fa-file-export mr-2"></i>Exportar',
+                    className: 'btn btn-primary',
+                    buttons: [{
+                            extend: 'excel',
+                            text: '<i class="fas fa-file-excel mr-2"></i>Excel',
+                            className: 'btn btn-success',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3]
                             }
-                        ]
-                    }
-                ],
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
+                            className: 'btn btn-danger',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3]
+                            }
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="fas fa-print mr-2"></i>Imprimir',
+                            className: 'btn btn-info',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3]
+                            }
+                        }
+                    ]
+                }],
                 "language": {
                     "emptyTable": "No hay información",
                     "info": "Mostrando _START_ a _END_ de _TOTAL_ Roles",
@@ -247,7 +250,7 @@
             // Manejo de eliminación de roles
             $('.delete-role').click(function() {
                 const roleId = $(this).data('id');
-                
+
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "Esta acción no se puede revertir",
@@ -261,7 +264,7 @@
                     if (result.isConfirmed) {
                         // Token CSRF
                         const csrfToken = $('meta[name="csrf-token"]').attr('content');
-                        
+
                         // Enviar solicitud de eliminación
                         $.ajax({
                             url: `/roles/delete/${roleId}`,
@@ -291,7 +294,8 @@
                                 const response = xhr.responseJSON;
                                 Swal.fire(
                                     'Error',
-                                    response.message || 'No se pudo eliminar el rol',
+                                    response.message ||
+                                    'No se pudo eliminar el rol',
                                     'error'
                                 );
                             }
@@ -303,7 +307,7 @@
             // Manejo de visualización de rol
             $('.show-role').click(function() {
                 const roleId = $(this).data('id');
-                
+
                 // Mostrar loading
                 Swal.fire({
                     title: 'Cargando...',
@@ -324,13 +328,15 @@
                             $('#roleCreated').text(response.role.created_at);
                             $('#roleUpdated').text(response.role.updated_at);
                             $('#roleUsers').text(response.role.users_count + ' usuario(s)');
-                            $('#rolePermissions').text(response.role.permissions_count + ' permiso(s)');
-                            
+                            $('#rolePermissions').text(response.role.permissions_count +
+                                ' permiso(s)');
+
                             // Cerrar loading y mostrar modal
                             Swal.close();
                             $('#showRoleModal').modal('show');
                         } else {
-                            Swal.fire('Error', 'No se pudieron obtener los datos del rol', 'error');
+                            Swal.fire('Error', 'No se pudieron obtener los datos del rol',
+                                'error');
                         }
                     },
                     error: function() {

@@ -9,7 +9,7 @@
             <p class="mb-0">Administra y visualiza todos tus clientes en un solo lugar</p>
         </div>
         <div class="d-flex">
-            <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
             <button class="btn btn-outline-primary mr-2" id="exportCustomers">
@@ -157,7 +157,8 @@
                             <td>
                                 @if ($customer->sales->count() > 0)
                                     <div>
-                                        {{$currency->symbol}} {{ number_format($customer->sales->sum('total_price'), 2) }}
+                                        {{ $currency->symbol }}
+                                        {{ number_format($customer->sales->sum('total_price'), 2) }}
                                         <br>
                                         <small class="text-muted">
                                             {{ $customer->sales->count() }} venta(s)
@@ -266,7 +267,7 @@
                                             <small class="text-muted">Total Ventas</small>
                                         </div>
                                         <div class="col-6 text-center">
-                                            <h4 class="mb-0" id="totalSpent">{{$currency->symbol}}0</h4>
+                                            <h4 class="mb-0" id="totalSpent">{{ $currency->symbol }}0</h4>
                                             <small class="text-muted">Gasto Total</small>
                                         </div>
                                     </div>
@@ -431,7 +432,8 @@
 
                             // Estadísticas
                             $('#totalPurchases').text(customer.stats.total_purchases);
-                            $('#totalSpent').text('{{$currency->symbol}}' + customer.stats.total_spent
+                            $('#totalSpent').text('{{ $currency->symbol }}' + customer.stats
+                                .total_spent
                                 .toLocaleString('es-PE', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -468,7 +470,8 @@
                                             beginAtZero: true,
                                             ticks: {
                                                 callback: function(value) {
-                                                    return '{{$currency->symbol}}' + value
+                                                    return '{{ $currency->symbol }}' +
+                                                        value
                                                         .toLocaleString('es-PE');
                                                 }
                                             }

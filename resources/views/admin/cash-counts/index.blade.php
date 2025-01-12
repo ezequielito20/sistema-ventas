@@ -15,7 +15,7 @@
                     <i class="fas fa-cash-register mr-2"></i>Cerrar Caja
                 </button>
             @else
-                <a href="{{ route('admin.cash-counts.report') }}" class="btn btn-info mr-2">
+                <a href="{{ route('admin.cash-counts.report') }}" class="btn btn-info mr-2" target="_blank">
                     <i class="fas fa-file-pdf mr-2"></i>Reporte
                 </a>
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#openCashModal">

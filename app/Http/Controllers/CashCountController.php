@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreCashCountRequest;
 use App\Http\Requests\UpdateCashCountRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CashCountController extends Controller
 {
@@ -512,4 +513,10 @@ class CashCountController extends Controller
    /**
     * Remove the specified cash count.
     */
+   public function report()
+   {
+      $cashCounts = CashCount::with(['movements'])->get();
+      $pdf = PDF::loadView('admin.cash-counts.report', compact('cashCounts'));
+      return $pdf->stream('reporte-caja.pdf');
+   }
 }

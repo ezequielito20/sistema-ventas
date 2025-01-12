@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Productos</h1>
         <div>
-            <a href="{{ route('admin.products.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.products.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
             <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
@@ -79,8 +79,8 @@
             </div>
         </div>
         <div class="card-body">
-            <table id="productsTable" class="table table-striped table-hover" >
-                <thead >
+            <table id="productsTable" class="table table-striped table-hover">
+                <thead>
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>

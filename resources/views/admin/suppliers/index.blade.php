@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Proveedores</h1>
         <div>
-            <a href="{{ route('admin.suppliers.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.suppliers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
             <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
@@ -96,8 +96,8 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="supplier-avatar mr-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
-                                             style="width: 40px; height: 40px; font-size: 1.2em;">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                            style="width: 40px; height: 40px; font-size: 1.2em;">
                                             {{ strtoupper(substr($supplier->company_name, 0, 1)) }}
                                         </div>
                                     </div>
@@ -135,24 +135,16 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" 
-                                            class="btn btn-info btn-sm show-supplier"
-                                            data-id="{{ $supplier->id }}" 
-                                            data-toggle="tooltip" 
-                                            title="Ver detalles">
+                                    <button type="button" class="btn btn-info btn-sm show-supplier"
+                                        data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <a href="{{ route('admin.suppliers.edit', $supplier->id) }}"
-                                       class="btn btn-warning btn-sm" 
-                                       data-toggle="tooltip" 
-                                       title="Editar">
+                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button" 
-                                            class="btn btn-danger btn-sm delete-supplier"
-                                            data-id="{{ $supplier->id }}" 
-                                            data-toggle="tooltip" 
-                                            title="Eliminar">
+                                    <button type="button" class="btn btn-danger btn-sm delete-supplier"
+                                        data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -210,7 +202,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         {{-- Información del contacto --}}
                         <div class="col-md-6">
                             <div class="card">
@@ -265,7 +257,7 @@
         .small-box {
             transition: transform .3s;
         }
-        
+
         .small-box:hover {
             transform: translateY(-5px);
         }
@@ -289,156 +281,158 @@
 @stop
 
 @section('js')
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-<script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script>
-$(document).ready(function() {
-    // Inicializar DataTable
-    $('#suppliersTable').DataTable({
-        responsive: true,
-        language: {
-            "emptyTable": "No hay proveedores registrados",
-            "info": "Mostrando _START_ a _END_ de _TOTAL_ proveedores",
-            "infoEmpty": "Mostrando 0 a 0 de 0 proveedores",
-            "infoFiltered": "(filtrado de _MAX_ proveedores totales)",
-            "lengthMenu": "Mostrar _MENU_ proveedores",
-            "loadingRecords": "Cargando...",
-            "processing": "Procesando...",
-            "search": "Buscar:",
-            "zeroRecords": "No se encontraron coincidencias",
-            "paginate": {
-                "first": "Primero",
-                "last": "Último",
-                "next": "Siguiente",
-                "previous": "Anterior"
-            }
-        }
-    });
-
-    // Inicializar tooltips
-    $('[data-toggle="tooltip"]').tooltip();
-
-    // Mostrar modal de detalles del proveedor
-    $('.show-supplier').click(function() {
-        const id = $(this).data('id');
-        
-        // Limpiar datos anteriores
-        $('#companyName, #companyEmail, #companyPhone, #companyAddress, #supplierName, #supplierPhone').text('');
-        
-        // Mostrar loader o spinner si lo deseas
-        
-        $.ajax({
-            url: `/suppliers/${id}`,
-            type: 'GET',
-            success: function(response) {
-                if (response.icons === 'success') {
-                    const supplier = response.supplier;
-                    
-                    // Llenar datos de la empresa
-                    $('#companyName').text(supplier.company_name);
-                    $('#companyEmail').text(supplier.company_email);
-                    $('#companyPhone').text(supplier.company_phone);
-                    $('#companyAddress').text(supplier.company_address);
-                    
-                    // Llenar datos del contacto
-                    $('#supplierName').text(supplier.supplier_name);
-                    $('#supplierPhone').text(supplier.supplier_phone);
-                    
-                    // Si tienes un gráfico, actualizarlo aquí
-                    if (supplier.stats) {
-                        updateSupplierChart(supplier.stats);
+    <script>
+        $(document).ready(function() {
+            // Inicializar DataTable
+            $('#suppliersTable').DataTable({
+                responsive: true,
+                language: {
+                    "emptyTable": "No hay proveedores registrados",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ proveedores",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 proveedores",
+                    "infoFiltered": "(filtrado de _MAX_ proveedores totales)",
+                    "lengthMenu": "Mostrar _MENU_ proveedores",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar:",
+                    "zeroRecords": "No se encontraron coincidencias",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
                     }
-                    
-                    // Mostrar el modal
-                    $('#showSupplierModal').modal('show');
-                } else {
-                    Swal.fire('Error', response.message, 'error');
                 }
-            },
-            error: function() {
-                Swal.fire('Error', 'No se pudieron cargar los datos del proveedor', 'error');
-            }
-        });
-    });
+            });
 
-    // Eliminar proveedor
-    $('.delete-supplier').click(function() {
-        const id = $(this).data('id');
-        
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción no se puede revertir",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Mostrar modal de detalles del proveedor
+            $('.show-supplier').click(function() {
+                const id = $(this).data('id');
+
+                // Limpiar datos anteriores
+                $('#companyName, #companyEmail, #companyPhone, #companyAddress, #supplierName, #supplierPhone')
+                    .text('');
+
+                // Mostrar loader o spinner si lo deseas
+
                 $.ajax({
-                    url: `/suppliers/delete/${id}`,
-                    type: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
+                    url: `/suppliers/${id}`,
+                    type: 'GET',
                     success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                title: '¡Eliminado!',
-                                text: response.message,
-                                icon: response.icons
-                            }).then(() => {
-                                location.reload();
-                            });
+                        if (response.icons === 'success') {
+                            const supplier = response.supplier;
+
+                            // Llenar datos de la empresa
+                            $('#companyName').text(supplier.company_name);
+                            $('#companyEmail').text(supplier.company_email);
+                            $('#companyPhone').text(supplier.company_phone);
+                            $('#companyAddress').text(supplier.company_address);
+
+                            // Llenar datos del contacto
+                            $('#supplierName').text(supplier.supplier_name);
+                            $('#supplierPhone').text(supplier.supplier_phone);
+
+                            // Si tienes un gráfico, actualizarlo aquí
+                            if (supplier.stats) {
+                                updateSupplierChart(supplier.stats);
+                            }
+
+                            // Mostrar el modal
+                            $('#showSupplierModal').modal('show');
                         } else {
                             Swal.fire('Error', response.message, 'error');
                         }
                     },
-                    error: function(xhr) {
-                        let errorMessage = 'No se pudo eliminar el proveedor';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron cargar los datos del proveedor',
+                            'error');
+                    }
+                });
+            });
+
+            // Eliminar proveedor
+            $('.delete-supplier').click(function() {
+                const id = $(this).data('id');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "Esta acción no se puede revertir",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/suppliers/delete/${id}`,
+                            type: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: response.message,
+                                        icon: response.icons
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function(xhr) {
+                                let errorMessage = 'No se pudo eliminar el proveedor';
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+                                Swal.fire('Error', errorMessage, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Función para actualizar el gráfico si lo necesitas
+            function updateSupplierChart(stats) {
+                if (window.supplierChart) {
+                    window.supplierChart.destroy();
+                }
+
+                const ctx = document.getElementById('supplierStatsChart').getContext('2d');
+                window.supplierChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: stats.months,
+                        datasets: [{
+                            label: 'Productos',
+                            data: stats.products,
+                            borderColor: '#007bff',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
-                        Swal.fire('Error', errorMessage, 'error');
                     }
                 });
             }
         });
-    });
-
-    // Función para actualizar el gráfico si lo necesitas
-    function updateSupplierChart(stats) {
-        if (window.supplierChart) {
-            window.supplierChart.destroy();
-        }
-        
-        const ctx = document.getElementById('supplierStatsChart').getContext('2d');
-        window.supplierChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: stats.months,
-                datasets: [{
-                    label: 'Productos',
-                    data: stats.products,
-                    borderColor: '#007bff',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
+    </script>
 @stop

@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 class CategoryController extends Controller
 {
    /**
@@ -226,5 +226,12 @@ class CategoryController extends Controller
             'message' => 'Error al obtener los datos de la categoría'
          ], 500);
       }
+   }
+
+   public function report()
+   {
+      $categories = Category::withCount('products')->get();
+      $pdf = PDF::loadView('admin.categories.report', compact('categories'));
+      return $pdf->stream('reporte-categorias.pdf');
    }
 }

@@ -660,4 +660,11 @@ class SaleController extends Controller
             ->with('icons', 'error');
       }
    }
+
+   public function report()
+   {
+      $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->get();
+      $pdf = PDF::loadView('admin.sales.report', compact('sales'));
+      return $pdf->stream('reporte-ventas.pdf');
+   }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
@@ -317,5 +318,13 @@ class ProductController extends Controller
             'message' => 'Error al eliminar el producto'
          ], 500);
       }
+   }
+
+   public function report()
+   {
+      $products = Product::with(['category', 'supplier'])->get();
+      $pdf = PDF::loadView('admin.products.report', compact('products'))
+         ->setPaper('a4', 'landscape');
+      return $pdf->stream('reporte-productos.pdf');
    }
 }

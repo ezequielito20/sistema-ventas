@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseController extends Controller
 {
@@ -550,5 +551,12 @@ class PurchaseController extends Controller
             'message' => 'Error al cargar los detalles de la compra'
          ], 500);
       }
+   }
+
+   public function report()
+   {
+      $purchases = Purchase::with(['details.product', 'details.supplier'])->get();
+      $pdf = PDF::loadView('admin.purchases.report', compact('purchases'));
+      return $pdf->stream('reporte-compras.pdf');
    }
 }

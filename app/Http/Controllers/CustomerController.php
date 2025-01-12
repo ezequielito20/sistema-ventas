@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerController extends Controller
 {
@@ -408,5 +409,12 @@ class CustomerController extends Controller
             'icons' => 'error'
          ], 500);
       }
+   }
+
+   public function report()
+   {
+      $customers = Customer::withCount('sales')->get();
+      $pdf = PDF::loadView('admin.customers.report', compact('customers'));
+      return $pdf->stream('reporte-clientes.pdf');
    }
 }

@@ -6,10 +6,10 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Ventas</h1>
         <div>
-            <a href="{{ route('admin.sales.report') }}" class="btn btn-info mr-2">
+            <a href="{{ route('admin.sales.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-            @if($cashCount)
+            @if ($cashCount)
                 <a href="{{ route('admin.sales.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus-circle mr-2"></i>Nueva Venta
                 </a>
@@ -137,8 +137,7 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                     <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
-                                        target="_blank"
-                                        data-toggle="tooltip" title="Imprimir">
+                                        target="_blank" data-toggle="tooltip" title="Imprimir">
                                         <i class="fas fa-print"></i>
                                     </a>
                                     {{-- <button type="button" class="btn btn-info btn-sm print-sale"
@@ -195,7 +194,8 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" class="text-right"><strong>Total:</strong></td>
-                                <td class="text-right"><strong>{{ $currency->symbol }}<span id="modalTotal">0.00</span></strong></td>
+                                <td class="text-right"><strong>{{ $currency->symbol }}<span
+                                            id="modalTotal">0.00</span></strong></td>
                             </tr>
                         </tfoot>
                     </table>
