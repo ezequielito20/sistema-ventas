@@ -98,7 +98,7 @@ class PermissionSeeder extends Seeder
          'purchases.details' => 'Ver detalles de productos en compras',
          'purchases.product-details' => 'Ver detalles de producto específico en compras',
          'purchases.product-by-code' => 'Buscar producto por código en compras',
-
+         'purchases.edit' => 'Editar compras',
          // Arqueos
          'cash-counts.index' => 'Ver listado de arqueos',
          'cash-counts.create' => 'Crear arqueos',

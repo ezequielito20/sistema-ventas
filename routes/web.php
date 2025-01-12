@@ -25,6 +25,9 @@ Auth::routes();
 
 Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
+Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
+Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
+
 // Configuración de empresa
 Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create')->middleware(['auth', 'can:companies.create']);
 Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store')->middleware(['auth', 'can:companies.store']);
@@ -99,6 +102,7 @@ Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])-
 Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware(['auth', 'can:purchases.details']);
 Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])->name('admin.purchases.product-details')->middleware(['auth', 'can:purchases.product-details']);
 Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode'])->name('admin.purchases.product-by-code')->middleware(['auth', 'can:purchases.product-by-code']);
+Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware(['auth', 'can:purchases.edit']);
 
 // Customers
 Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware(['auth', 'can:customers.index']);

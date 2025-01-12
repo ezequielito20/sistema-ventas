@@ -19,7 +19,7 @@ class RoleController extends Controller
    public function index()
    {
       $roles = Role::with('permissions')
-         ->orderBy('created_at', 'desc')
+         ->orderBy('name', 'asc')
          ->get();
 
       // Agrupar permisos por módulo con nombres amigables
