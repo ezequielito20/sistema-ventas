@@ -22,9 +22,8 @@ class AdminController extends Controller
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
          $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->country)
+            ->where('country_id', $this->company->id)
             ->first();
-
          return $next($request);
       });
    }
