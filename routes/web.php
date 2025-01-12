@@ -25,121 +25,116 @@ Auth::routes();
 
 Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
-Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
-Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store');
-Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
-Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
+// Configuración de empresa
+Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create')->middleware(['auth', 'can:companies.create']);
+Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store')->middleware(['auth', 'can:companies.store']);
+Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
+Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
 
-Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit');
-Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware('auth');
 
 // Rutas para reportes
-Route::get('/users/report', [UserController::class, 'report'])->name('admin.users.report')->middleware('auth');
-Route::get('/roles/report', [RoleController::class, 'report'])->name('admin.roles.report')->middleware('auth');
-Route::get('/categories/report', [CategoryController::class, 'report'])->name('admin.categories.report')->middleware('auth');
-Route::get('/products/report', [ProductController::class, 'report'])->name('admin.products.report')->middleware('auth');
-Route::get('/suppliers/report', [SupplierController::class, 'report'])->name('admin.suppliers.report')->middleware('auth');
-Route::get('/purchases/report', [PurchaseController::class, 'report'])->name('admin.purchases.report')->middleware('auth');
-Route::get('/customers/report', [CustomerController::class, 'report'])->name('admin.customers.report')->middleware('auth');
-Route::get('/sales/report', [SaleController::class, 'report'])->name('admin.sales.report')->middleware('auth');
-Route::get('/cash-counts/report', [CashCountController::class, 'report'])->name('admin.cash-counts.report')->middleware('auth');
-Route::get('/permissions/report', [PermissionController::class, 'report'])->name('admin.permissions.report')->middleware('auth');
+Route::get('/users/report', [UserController::class, 'report'])->name('admin.users.report')->middleware(['auth', 'can:users.report']);
+Route::get('/roles/report', [RoleController::class, 'report'])->name('admin.roles.report')->middleware(['auth', 'can:roles.report']);
+Route::get('/categories/report', [CategoryController::class, 'report'])->name('admin.categories.report')->middleware(['auth', 'can:categories.report']);
+Route::get('/products/report', [ProductController::class, 'report'])->name('admin.products.report')->middleware(['auth', 'can:products.report']);
+Route::get('/suppliers/report', [SupplierController::class, 'report'])->name('admin.suppliers.report')->middleware(['auth', 'can:suppliers.report']);
+Route::get('/purchases/report', [PurchaseController::class, 'report'])->name('admin.purchases.report')->middleware(['auth', 'can:purchases.report']);
+Route::get('/customers/report', [CustomerController::class, 'report'])->name('admin.customers.report')->middleware(['auth', 'can:customers.report']);
+Route::get('/sales/report', [SaleController::class, 'report'])->name('admin.sales.report')->middleware(['auth', 'can:sales.report']);
+Route::get('/cash-counts/report', [CashCountController::class, 'report'])->name('admin.cash-counts.report')->middleware(['auth', 'can:cash-counts.report']);
+Route::get('/permissions/report', [PermissionController::class, 'report'])->name('admin.permissions.report')->middleware(['auth', 'can:permissions.report']);
 
 // Roles
-Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index')->middleware('auth');
-Route::get('/roles/create', [RoleController::class, 'create'])->name('admin.roles.create')->middleware('auth');
-Route::post('/roles/create', [RoleController::class, 'store'])->name('admin.roles.store')->middleware('auth');
-Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('admin.roles.edit')->middleware('auth');
-Route::put('/roles/edit/{id}', [RoleController::class, 'update'])->name('admin.roles.update')->middleware('auth');
-Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('admin.roles.destroy')->middleware('auth');
-Route::get('/roles/{id}', [RoleController::class, 'show'])->name('admin.roles.show')->middleware('auth');
-Route::get('/roles/{id}/permissions', [RoleController::class, 'permissions'])->name('admin.roles.permissions')->middleware('auth');
-Route::post('/roles/{id}/permissions', [RoleController::class, 'assignPermissions'])->name('admin.roles.assign.permissions')->middleware('auth');
+Route::get('/roles', [RoleController::class, 'index'])->name('admin.roles.index')->middleware(['auth', 'can:roles.index']);
+Route::get('/roles/create', [RoleController::class, 'create'])->name('admin.roles.create')->middleware(['auth', 'can:roles.create']);
+Route::post('/roles/create', [RoleController::class, 'store'])->name('admin.roles.store')->middleware(['auth', 'can:roles.create']);
+Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('admin.roles.edit')->middleware(['auth', 'can:roles.edit']);
+Route::put('/roles/edit/{id}', [RoleController::class, 'update'])->name('admin.roles.update')->middleware(['auth', 'can:roles.edit']);
+Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('admin.roles.destroy')->middleware(['auth', 'can:roles.destroy']);
+Route::get('/roles/{id}', [RoleController::class, 'show'])->name('admin.roles.show')->middleware(['auth', 'can:roles.show']);
+Route::get('/roles/{id}/permissions', [RoleController::class, 'permissions'])->name('admin.roles.permissions')->middleware(['auth', 'can:roles.permissions']);
+Route::post('/roles/{id}/permissions', [RoleController::class, 'assignPermissions'])->name('admin.roles.assign.permissions')->middleware(['auth', 'can:roles.assign.permissions']);
 
 // Users
-Route::get('/users', [UserController::class, 'index'])->name('admin.users.index')->middleware('auth');
-Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create')->middleware('auth');
-Route::post('/users/create', [UserController::class, 'store'])->name('admin.users.store')->middleware('auth');
-Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('admin.users.edit')->middleware('auth');
-Route::put('/users/edit/{id}', [UserController::class, 'update'])->name('admin.users.update')->middleware('auth');
-Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware('auth');
-Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware('auth');
+Route::get('/users', [UserController::class, 'index'])->name('admin.users.index')->middleware(['auth', 'can:users.index']);
+Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create')->middleware(['auth', 'can:users.create']);
+Route::post('/users/create', [UserController::class, 'store'])->name('admin.users.store')->middleware(['auth', 'can:users.create']);
+Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('admin.users.edit')->middleware(['auth', 'can:users.edit']);
+Route::put('/users/edit/{id}', [UserController::class, 'update'])->name('admin.users.update')->middleware(['auth', 'can:users.edit']);
+Route::delete('/users/delete/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy')->middleware(['auth', 'can:users.destroy']);
+Route::get('/users/{id}', [UserController::class, 'show'])->name('admin.users.show')->middleware(['auth', 'can:users.show']);
 
 // Categories
-Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index')->middleware('auth');
-Route::get('/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create')->middleware('auth');
-Route::post('/categories/create', [CategoryController::class, 'store'])->name('admin.categories.store')->middleware('auth');
-Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('admin.categories.edit')->middleware('auth');
-Route::put('/categories/edit/{id}', [CategoryController::class, 'update'])->name('admin.categories.update')->middleware('auth');
-Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy')->middleware('auth');
-Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('admin.categories.show')->middleware('auth');
+Route::get('/categories', [CategoryController::class, 'index'])->name('admin.categories.index')->middleware(['auth', 'can:categories.index']);
+Route::get('/categories/create', [CategoryController::class, 'create'])->name('admin.categories.create')->middleware(['auth', 'can:categories.create']);
+Route::post('/categories/create', [CategoryController::class, 'store'])->name('admin.categories.store')->middleware(['auth', 'can:categories.create']);
+Route::get('/categories/edit/{id}', [CategoryController::class, 'edit'])->name('admin.categories.edit')->middleware(['auth', 'can:categories.edit']);
+Route::put('/categories/edit/{id}', [CategoryController::class, 'update'])->name('admin.categories.update')->middleware(['auth', 'can:categories.edit']);
+Route::delete('/categories/delete/{id}', [CategoryController::class, 'destroy'])->name('admin.categories.destroy')->middleware(['auth', 'can:categories.destroy']);
+Route::get('/categories/{id}', [CategoryController::class, 'show'])->name('admin.categories.show')->middleware(['auth', 'can:categories.show']);
 
 // Products
-Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index')->middleware('auth');
-Route::get('/products/create', [ProductController::class, 'create'])->name('admin.products.create')->middleware('auth');
-Route::post('/products/create', [ProductController::class, 'store'])->name('admin.products.store')->middleware('auth');
-Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('admin.products.edit')->middleware('auth');
-Route::put('/products/edit/{id}', [ProductController::class, 'update'])->name('admin.products.update')->middleware('auth');
-Route::delete('/products/delete/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy')->middleware('auth');
-Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show')->middleware('auth');
+Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index')->middleware(['auth', 'can:products.index']);
+Route::get('/products/create', [ProductController::class, 'create'])->name('admin.products.create')->middleware(['auth', 'can:products.create']);
+Route::post('/products/create', [ProductController::class, 'store'])->name('admin.products.store')->middleware(['auth', 'can:products.create']);
+Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('admin.products.edit')->middleware(['auth', 'can:products.edit']);
+Route::put('/products/edit/{id}', [ProductController::class, 'update'])->name('admin.products.update')->middleware(['auth', 'can:products.edit']);
+Route::delete('/products/delete/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy')->middleware(['auth', 'can:products.destroy']);
+Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show')->middleware(['auth', 'can:products.show']);
 
 // Suppliers
-Route::get('/suppliers', [SupplierController::class, 'index'])->name('admin.suppliers.index')->middleware('auth');
-Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('admin.suppliers.create')->middleware('auth');
-Route::post('/suppliers/create', [SupplierController::class, 'store'])->name('admin.suppliers.store')->middleware('auth');
-Route::get('/suppliers/edit/{id}', [SupplierController::class, 'edit'])->name('admin.suppliers.edit')->middleware('auth');
-Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('admin.suppliers.update')->middleware('auth');
-Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('admin.suppliers.destroy')->middleware('auth');
-Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware('auth');
+Route::get('/suppliers', [SupplierController::class, 'index'])->name('admin.suppliers.index')->middleware(['auth', 'can:suppliers.index']);
+Route::get('/suppliers/create', [SupplierController::class, 'create'])->name('admin.suppliers.create')->middleware(['auth', 'can:suppliers.create']);
+Route::post('/suppliers/create', [SupplierController::class, 'store'])->name('admin.suppliers.store')->middleware(['auth', 'can:suppliers.create']);
+Route::get('/suppliers/edit/{id}', [SupplierController::class, 'edit'])->name('admin.suppliers.edit')->middleware(['auth', 'can:suppliers.edit']);
+Route::put('/suppliers/edit/{id}', [SupplierController::class, 'update'])->name('admin.suppliers.update')->middleware(['auth', 'can:suppliers.edit']);
+Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])->name('admin.suppliers.destroy')->middleware(['auth', 'can:suppliers.destroy']);
+Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware(['auth', 'can:suppliers.show']);
 
 // Purchases
-Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware('auth');
-Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware('auth');
-Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware('auth');
-Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware('auth');
-Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware('auth');
-Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware('auth');
-Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware('auth');
-Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])->name('admin.purchases.product-details')->middleware('auth');
-Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode'])->name('admin.purchases.product-by-code')->middleware('auth');
+Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware(['auth', 'can:purchases.index']);
+Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware(['auth', 'can:purchases.create']);
+Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware(['auth', 'can:purchases.create']);
+Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware(['auth', 'can:purchases.destroy']);
+Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware(['auth', 'can:purchases.details']);
+Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])->name('admin.purchases.product-details')->middleware(['auth', 'can:purchases.product-details']);
+Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode'])->name('admin.purchases.product-by-code')->middleware(['auth', 'can:purchases.product-by-code']);
 
 // Customers
-Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware('auth');
-Route::get('/customers/create', [CustomerController::class, 'create'])->name('admin.customers.create')->middleware('auth');
-Route::post('/customers/create', [CustomerController::class, 'store'])->name('admin.customers.store')->middleware('auth');
-Route::get('/customers/edit/{id}', [CustomerController::class, 'edit'])->name('admin.customers.edit')->middleware('auth');
-Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name('admin.customers.update')->middleware('auth');
-Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware('auth');
-Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware('auth');
+Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware(['auth', 'can:customers.index']);
+Route::get('/customers/create', [CustomerController::class, 'create'])->name('admin.customers.create')->middleware(['auth', 'can:customers.create']);
+Route::post('/customers/create', [CustomerController::class, 'store'])->name('admin.customers.store')->middleware(['auth', 'can:customers.create']);
+Route::get('/customers/edit/{id}', [CustomerController::class, 'edit'])->name('admin.customers.edit')->middleware(['auth', 'can:customers.edit']);
+Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name('admin.customers.update')->middleware(['auth', 'can:customers.edit']);
+Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware(['auth', 'can:customers.destroy']);
+Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware(['auth', 'can:customers.show']);
 
 // Sales
-Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware('auth');
-Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware('auth');
-Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware('auth');
-Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sales.edit')->middleware('auth');
-Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware('auth');
-Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware('auth');
-Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware('auth');
-Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware('auth');
-Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware('auth');
-Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware('auth');
+Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
+Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
+Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware(['auth', 'can:sales.create']);
+Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware(['auth', 'can:sales.destroy']);
+Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware(['auth', 'can:sales.details']);
+Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware(['auth', 'can:sales.product-details']);
+Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware(['auth', 'can:sales.product-by-code']);
+Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware(['auth', 'can:sales.print']);
 
 // Cash Counts
-Route::get('/cash-counts', [CashCountController::class, 'index'])->name('admin.cash-counts.index')->middleware('auth');
-Route::get('/cash-counts/create', [CashCountController::class, 'create'])->name('admin.cash-counts.create')->middleware('auth');
-Route::post('/cash-counts/create', [CashCountController::class, 'store'])->name('admin.cash-counts.store')->middleware('auth');
-Route::get('/cash-counts/edit/{id}', [CashCountController::class, 'edit'])->name('admin.cash-counts.edit')->middleware('auth');
-Route::put('/cash-counts/edit/{id}', [CashCountController::class, 'update'])->name('admin.cash-counts.update')->middleware('auth');
-Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'])->name('admin.cash-counts.destroy')->middleware('auth');
-Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('admin.cash-counts.show')->middleware('auth');
-Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])->name('admin.cash-counts.store-movement')->middleware('auth');
-Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])->name('admin.cash-counts.close')->middleware('auth');
+Route::get('/cash-counts', [CashCountController::class, 'index'])->name('admin.cash-counts.index')->middleware(['auth', 'can:cash-counts.index']);
+Route::get('/cash-counts/create', [CashCountController::class, 'create'])->name('admin.cash-counts.create')->middleware(['auth', 'can:cash-counts.create']);
+Route::post('/cash-counts/create', [CashCountController::class, 'store'])->name('admin.cash-counts.store')->middleware(['auth', 'can:cash-counts.create']);
+Route::get('/cash-counts/edit/{id}', [CashCountController::class, 'edit'])->name('admin.cash-counts.edit')->middleware(['auth', 'can:cash-counts.edit']);
+Route::put('/cash-counts/edit/{id}', [CashCountController::class, 'update'])->name('admin.cash-counts.update')->middleware(['auth', 'can:cash-counts.edit']);
+Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'])->name('admin.cash-counts.destroy')->middleware(['auth', 'can:cash-counts.destroy']);
+Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('admin.cash-counts.show')->middleware(['auth', 'can:cash-counts.show']);
+Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])->name('admin.cash-counts.store-movement')->middleware(['auth', 'can:cash-counts.store-movement']);
+Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])->name('admin.cash-counts.close')->middleware(['auth', 'can:cash-counts.close']);
 
 // Permissions
-Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware('auth');
-Route::get('/permissions/create', [PermissionController::class, 'create'])->name('admin.permissions.create')->middleware('auth');
-Route::post('/permissions/create', [PermissionController::class, 'store'])->name('admin.permissions.store')->middleware('auth');
-Route::get('/permissions/edit/{id}', [PermissionController::class, 'edit'])->name('admin.permissions.edit')->middleware('auth');
-Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->name('admin.permissions.update')->middleware('auth');
-Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware('auth');
-Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware('auth');
+Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware(['auth', 'can:permissions.index']);
+Route::get('/permissions/create', [PermissionController::class, 'create'])->name('admin.permissions.create')->middleware(['auth', 'can:permissions.create']);
+Route::post('/permissions/create', [PermissionController::class, 'store'])->name('admin.permissions.store')->middleware(['auth', 'can:permissions.create']);
+Route::get('/permissions/edit/{id}', [PermissionController::class, 'edit'])->name('admin.permissions.edit')->middleware(['auth', 'can:permissions.edit']);
+Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->name('admin.permissions.update')->middleware(['auth', 'can:permissions.edit']);
+Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware(['auth', 'can:permissions.destroy']);
+Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware(['auth', 'can:permissions.show']);
