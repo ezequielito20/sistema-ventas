@@ -204,21 +204,138 @@
                 const permissionId = $(this).data('id');
                 $.get(`/permissions/${permissionId}`, function(permission) {
                     Swal.fire({
-                        title: 'Detalles del Permiso',
+                        title: '<i class="fas fa-key mr-2"></i>Detalles del Permiso',
                         html: `
-                            <div class="text-left">
-                                <p><strong>Nombre:</strong> ${permission.name}</p>
-                                <p><strong>Guard:</strong> ${permission.guard_name}</p>
-                                <p><strong>Roles:</strong> ${permission.roles.join(', ') || 'Ninguno'}</p>
-                                <p><strong>Usuarios:</strong> ${permission.users.join(', ') || 'Ninguno'}</p>
-                                <p><strong>Creado:</strong> ${permission.created_at}</p>
-                                <p><strong>Actualizado:</strong> ${permission.updated_at}</p>
+                            <div class="text-left p-3">
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-primary mb-2">
+                                                    <i class="fas fa-tag mr-2"></i>Nombre
+                                                </h5>
+                                                <p class="mb-0 font-weight-bold">${permission.name}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-info mb-2">
+                                                    <i class="fas fa-shield-alt mr-2"></i>Guard
+                                                </h5>
+                                                <span class="badge badge-info">${permission.guard_name}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-success mb-2">
+                                                    <i class="fas fa-user-shield mr-2"></i>Roles Asignados
+                                                </h5>
+                                                <p class="mb-0">
+                                                    ${permission.roles.length ? 
+                                                        permission.roles.map(role => 
+                                                            `<span class="badge badge-success mr-1">${role}</span>`
+                                                        ).join('') : 
+                                                        '<span class="text-muted">Ninguno</span>'
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-warning mb-2">
+                                                    <i class="fas fa-users mr-2"></i>Usuarios con Permiso
+                                                </h5>
+                                                <p class="mb-0">
+                                                    ${permission.users.length ? 
+                                                        permission.users.map(user => 
+                                                            `<span class="badge badge-warning mr-1">${user}</span>`
+                                                        ).join('') : 
+                                                        '<span class="text-muted">Ninguno</span>'
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-secondary mb-2">
+                                                    <i class="fas fa-calendar-plus mr-2"></i>Creado
+                                                </h5>
+                                                <p class="mb-0">${permission.created_at}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                <h5 class="text-secondary mb-2">
+                                                    <i class="fas fa-calendar-check mr-2"></i>Actualizado
+                                                </h5>
+                                                <p class="mb-0">${permission.updated_at}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         `,
-                        icon: 'info'
+                        width: '600px',
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        customClass: {
+                            container: 'permission-details-modal',
+                            title: 'text-primary font-weight-bold'
+                        }
                     });
                 });
             });
         });
     </script>
+
+    <style>
+        .permission-details-modal .info-box {
+            min-height: auto;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 0 1px rgba(0, 0, 0, .125), 0 1px 3px rgba(0, 0, 0, .2);
+            transition: all .3s;
+        }
+
+        .permission-details-modal .info-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+        }
+
+        .permission-details-modal .info-box-content {
+            padding: 0;
+        }
+
+        .permission-details-modal h5 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .permission-details-modal .badge {
+            font-size: 0.85rem;
+            padding: 0.4em 0.6em;
+        }
+    </style>
 @stop
