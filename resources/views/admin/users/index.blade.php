@@ -5,9 +5,14 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Usuarios</h1>
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-            <i class="fas fa-user-plus mr-2"></i>Crear Nuevo Usuario
-        </a>
+        <div>
+            <a href="{{ route('admin.users.report') }}" class="btn btn-info mr-2">
+                <i class="fas fa-file-pdf mr-2"></i>Reporte
+            </a>
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus mr-2"></i>Crear Nuevo Usuario
+            </a>
+        </div>
     </div>
 @stop
 <style>

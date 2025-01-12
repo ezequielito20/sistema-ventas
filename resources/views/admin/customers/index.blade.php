@@ -9,6 +9,9 @@
             <p class="mb-0">Administra y visualiza todos tus clientes en un solo lugar</p>
         </div>
         <div class="d-flex">
+            <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2">
+                <i class="fas fa-file-pdf mr-2"></i>Reporte
+            </a>
             <button class="btn btn-outline-primary mr-2" id="exportCustomers">
                 <i class="fas fa-file-export mr-2"></i>Exportar
             </button>

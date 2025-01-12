@@ -5,15 +5,20 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Compras</h1>
-        @if($cashCount)
-        <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle mr-2"></i>Nueva Compra
-        </a>
-        @else
-            <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger">
-                <i class="fas fa-plus-circle mr-2"></i>Abrir caja
+        <div>
+            <a href="{{ route('admin.purchases.report') }}" class="btn btn-info mr-2">
+                <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-        @endif
+            @if ($cashCount)
+                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-2"></i>Nueva Compra
+                </a>
+            @else
+                <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger">
+                    <i class="fas fa-plus-circle mr-2"></i>Abrir caja
+                </a>
+            @endif
+        </div>
     </div>
 @stop
 
@@ -177,7 +182,8 @@
                         <tfoot>
                             <tr>
                                 <td colspan="5" class="text-right"><strong>Total:</strong></td>
-                                <td colspan="2" class="text-right"><strong>{{ $currency->symbol }} <span id="modalTotal">0.00</span></strong>
+                                <td colspan="2" class="text-right"><strong>{{ $currency->symbol }} <span
+                                            id="modalTotal">0.00</span></strong>
                                 </td>
                             </tr>
                         </tfoot>

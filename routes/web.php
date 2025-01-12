@@ -127,3 +127,40 @@ Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMo
 Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])
     ->name('admin.cash-counts.close')
     ->middleware('auth');
+
+// Rutas para reportes
+Route::get('/users/report', [UserController::class, 'report'])
+    ->name('admin.users.report')
+    ->middleware('auth');
+
+Route::get('/roles/report', [RoleController::class, 'report'])
+    ->name('admin.roles.report')
+    ->middleware('auth');
+
+Route::get('/categories/report', [CategoryController::class, 'report'])
+    ->name('admin.categories.report')
+    ->middleware('auth');
+
+Route::get('/products/report', [ProductController::class, 'report'])
+    ->name('admin.products.report')
+    ->middleware('auth');
+
+Route::get('/suppliers/report', [SupplierController::class, 'report'])
+    ->name('admin.suppliers.report')
+    ->middleware('auth');
+
+Route::get('/purchases/report', [PurchaseController::class, 'report'])
+    ->name('admin.purchases.report')
+    ->middleware('auth');
+
+Route::get('/customers/report', [CustomerController::class, 'report'])
+    ->name('admin.customers.report')
+    ->middleware('auth');
+
+Route::get('/sales/report', [SaleController::class, 'report'])
+    ->name('admin.sales.report')
+    ->middleware('auth');
+
+Route::get('/cash-counts/report', [CashCountController::class, 'report'])
+    ->name('admin.cash-counts.report')
+    ->middleware('auth');

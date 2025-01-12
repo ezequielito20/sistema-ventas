@@ -6,6 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Caja</h1>
         <div class="d-flex gap-2">
+
             @if ($currentCashCount)
                 <button type="button" class="btn btn-success mr-2" data-toggle="modal" data-target="#newMovementModal">
                     <i class="fas fa-money-bill-wave mr-2"></i>Nuevo Movimiento
@@ -14,6 +15,9 @@
                     <i class="fas fa-cash-register mr-2"></i>Cerrar Caja
                 </button>
             @else
+                <a href="{{ route('admin.cash-counts.report') }}" class="btn btn-info mr-2">
+                    <i class="fas fa-file-pdf mr-2"></i>Reporte
+                </a>
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#openCashModal">
                     <i class="fas fa-cash-register mr-2"></i>Abrir Caja
                 </button>

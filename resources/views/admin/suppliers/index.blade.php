@@ -5,9 +5,14 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Proveedores</h1>
-        <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle mr-2"></i>Nuevo Proveedor
-        </a>
+        <div>
+            <a href="{{ route('admin.suppliers.report') }}" class="btn btn-info mr-2">
+                <i class="fas fa-file-pdf mr-2"></i>Reporte
+            </a>
+            <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle mr-2"></i>Nuevo Proveedor
+            </a>
+        </div>
     </div>
 @stop
 
