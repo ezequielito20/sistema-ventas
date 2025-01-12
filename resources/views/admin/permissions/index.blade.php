@@ -292,6 +292,15 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Botón Cerrar -->
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center">
+                                        <button class="btn btn-secondary px-4" onclick="Swal.close()">
+                                            <i class="fas fa-times mr-2"></i>Cerrar
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         `,
                         width: '800px',
@@ -338,6 +347,15 @@
         /* Asegurar que las cajas tengan la misma altura en cada fila */
         .permission-details-modal .h-100 {
             height: 100% !important;
+        }
+
+        .permission-details-modal .btn-secondary {
+            transition: all 0.3s;
+        }
+
+        .permission-details-modal .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
 @stop
