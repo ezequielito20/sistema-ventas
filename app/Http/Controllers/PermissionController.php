@@ -122,14 +122,12 @@ class PermissionController extends Controller
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Permiso creado correctamente')
             ->with('icons', 'success');
-
       } catch (\Illuminate\Validation\ValidationException $e) {
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
             ->with('message', 'Error de validación')
             ->with('icons', 'error');
-
       } catch (\Exception $e) {
          Log::error('Error al crear permiso: ' . $e->getMessage());
          return redirect()->back()
@@ -146,7 +144,7 @@ class PermissionController extends Controller
    {
       try {
          $permission = Permission::with(['roles', 'users'])->findOrFail($id);
-         
+
          return response()->json([
             'name' => $permission->name,
             'guard_name' => $permission->guard_name,
@@ -155,7 +153,6 @@ class PermissionController extends Controller
             'created_at' => $permission->created_at->format('d/m/Y H:i:s'),
             'updated_at' => $permission->updated_at->format('d/m/Y H:i:s')
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al mostrar permiso: ' . $e->getMessage());
          return response()->json(['error' => 'Error al obtener los detalles del permiso'], 500);
@@ -187,7 +184,7 @@ class PermissionController extends Controller
          $permission = Permission::findOrFail($id);
 
          // Modificar las reglas para permitir que el permiso mantenga su nombre actual
-         $rules = [
+         $validated = $request->validate([
             'name' => [
                'required',
                'string',
@@ -201,13 +198,18 @@ class PermissionController extends Controller
                   }
                },
             ]
-         ];
+         ], [
+            'name.required' => 'El nombre del permiso es obligatorio.',
+            'name.string' => 'El nombre del permiso debe ser texto.',
+            'name.max' => 'El nombre del permiso no puede tener más de :max caracteres.',
+            'name.unique' => 'Ya existe un permiso con este nombre.',
+            'name.regex' => 'El nombre del permiso debe seguir el formato: modulo.accion',
+            'name.table_exists' => 'El módulo ":module" no es válido porque no existe una tabla correspondiente en la base de datos.',
+         ]);
 
-         // Validar los datos
-         $validatedData = $request->validate($rules, $this->messages);
 
          // Verificar si el permiso está en uso y el nombre ha cambiado
-         if ($permission->name !== strtolower($validatedData['name'])) {
+         if ($permission->name !== strtolower($validated['name'])) {
             if ($permission->roles->count() > 0 || $permission->users->count() > 0) {
                return redirect()->back()
                   ->with('message', 'No se puede modificar el nombre del permiso porque está en uso')
@@ -218,7 +220,7 @@ class PermissionController extends Controller
 
          // Actualizar el permiso
          $permission->update([
-            'name' => strtolower($validatedData['name'])
+            'name' => strtolower($validated['name'])
          ]);
 
          // Registrar la acción en el log
@@ -227,14 +229,12 @@ class PermissionController extends Controller
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Permiso actualizado correctamente')
             ->with('icons', 'success');
-
       } catch (\Illuminate\Validation\ValidationException $e) {
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
             ->with('message', 'Error de validación')
             ->with('icons', 'error');
-
       } catch (\Exception $e) {
          Log::error('Error al actualizar permiso: ' . $e->getMessage());
          return redirect()->back()
@@ -270,7 +270,6 @@ class PermissionController extends Controller
             'message' => 'Permiso eliminado correctamente',
             'icons' => 'success'
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al eliminar permiso: ' . $e->getMessage());
          return response()->json([
