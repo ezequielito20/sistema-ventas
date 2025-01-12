@@ -146,8 +146,8 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12 mb-4">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
                             <div class="search-box">
                                 <input type="text" id="searchPermission" class="form-control"
                                     placeholder="Buscar permisos...">
@@ -161,48 +161,39 @@
                         <input type="hidden" id="roleId" name="role_id">
 
                         <div class="row permissions-container">
-                            @php
-                                $groupedPermissions = $permissions->groupBy(function ($permission) {
-                                    return explode('.', $permission->name)[0];
-                                });
-                            @endphp
-
-                            @foreach ($groupedPermissions as $group => $permissions)
-                                <div class="col-md-6 mb-4 permission-group">
+                            @foreach ($permissions as $module => $modulePermissions)
+                                <div class="col-md-6 mb-4">
                                     <div class="card card-outline card-warning h-100">
                                         <div class="card-header">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <h3 class="card-title text-capitalize">
-                                                    <i class="fas fa-folder mr-2"></i>{{ $group }}
+                                                    <i class="fas fa-folder mr-2"></i>{{ $module }}
                                                 </h3>
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" class="custom-control-input group-selector"
-                                                        id="group_{{ $group }}" data-group="{{ $group }}">
-                                                    <label class="custom-control-label" for="group_{{ $group }}">
+                                                        id="group_{{ $module }}" data-group="{{ $module }}">
+                                                    <label class="custom-control-label" for="group_{{ $module }}">
                                                         Seleccionar todo
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="card-body">
-                                            <div class="row">
-                                                @foreach ($permissions as $permission)
-                                                    <div class="col-md-12 permission-item"
-                                                        data-group="{{ $group }}">
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="checkbox"
-                                                                class="custom-control-input permission-checkbox"
-                                                                id="permission_{{ $permission->id }}"
-                                                                name="permissions[]" value="{{ $permission->id }}"
-                                                                data-group="{{ $group }}">
-                                                            <label class="custom-control-label"
-                                                                for="permission_{{ $permission->id }}">
-                                                                {{ $permission->description }}
-                                                            </label>
-                                                        </div>
+                                            @foreach ($modulePermissions as $permission)
+                                                <div class="permission-item" data-group="{{ $module }}">
+                                                    <div class="custom-control custom-checkbox">
+                                                        <input type="checkbox"
+                                                            class="custom-control-input permission-checkbox"
+                                                            id="permission_{{ $permission->id }}"
+                                                            value="{{ $permission->id }}"
+                                                            data-group="{{ $module }}">
+                                                        <label class="custom-control-label"
+                                                            for="permission_{{ $permission->id }}">
+                                                            {{ $permission->name }}
+                                                        </label>
                                                     </div>
-                                                @endforeach
-                                            </div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
                                 </div>

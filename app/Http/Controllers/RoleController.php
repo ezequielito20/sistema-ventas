@@ -22,7 +22,10 @@ class RoleController extends Controller
          ->orderBy('created_at', 'desc')
          ->get();
 
-      $permissions = Permission::all();
+      // Agrupar permisos por módulo
+      $permissions = Permission::all()->groupBy(function($permission) {
+         return explode('.', $permission->name)[0]; // Agrupa por la primera parte del nombre (users, roles, etc)
+      });
 
       return view('admin.roles.index', compact('roles', 'permissions'));
    }
