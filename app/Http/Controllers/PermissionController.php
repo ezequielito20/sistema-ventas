@@ -183,41 +183,34 @@ class PermissionController extends Controller
       try {
          $permission = Permission::findOrFail($id);
 
-         // Modificar las reglas para permitir que el permiso mantenga su nombre actual
+         // Validación personalizada
          $validated = $request->validate([
             'name' => [
-               'required',
-               'string',
-               'max:255',
-               'unique:permissions,name,' . $id,
-               'regex:/^[a-z]+\.[a-z]+$/',
-               function ($attribute, $value, $fail) {
-                  $module = explode('.', $value)[0];
-                  if (!Schema::hasTable($module)) {
-                     $fail(__($this->messages['name.table_exists'], ['module' => $module]));
-                  }
-               },
-               
+                'required',
+                'string',
+                'max:255',
+                'unique:permissions,name,' . $id,
+                'regex:/^[a-z]+\.[a-z]+$/',
+                function ($attribute, $value, $fail) {
+                    $module = explode('.', $value)[0];
+                    if (!Schema::hasTable($module)) {
+                        $fail('El módulo "' . $module . '" no es válido porque no existe una tabla correspondiente en la base de datos.');
+                    }
+                },
+                function ($attribute, $value, $fail) use ($permission) {
+                    if ($permission->name !== strtolower($value) && 
+                        ($permission->roles->count() > 0 || $permission->users->count() > 0)) {
+                        $fail('No se puede modificar el nombre del permiso porque está en uso por roles o usuarios.');
+                    }
+                }
             ]
          ], [
             'name.required' => 'El nombre del permiso es obligatorio.',
             'name.string' => 'El nombre del permiso debe ser texto.',
             'name.max' => 'El nombre del permiso no puede tener más de :max caracteres.',
             'name.unique' => 'Ya existe un permiso con este nombre.',
-            'name.regex' => 'El nombre del permiso debe seguir el formato: modulo.accion',
-            'name.table_exists' => 'El módulo ":module" no es válido porque no existe una tabla correspondiente en la base de datos.',
+            'name.regex' => 'El nombre del permiso debe seguir el formato: modulo.accion'
          ]);
-
-
-         // Verificar si el permiso está en uso y el nombre ha cambiado
-         if ($permission->name !== strtolower($validated['name'])) {
-            if ($permission->roles->count() > 0 || $permission->users->count() > 0) {
-               return redirect()->back()
-                  ->with('message', 'No se puede modificar el nombre del permiso porque está en uso')
-                  ->with('icons', 'error')
-                  ->withInput();
-            }
-         }
 
          // Actualizar el permiso
          $permission->update([
