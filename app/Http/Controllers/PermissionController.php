@@ -189,7 +189,7 @@ class PermissionController extends Controller
                'required',
                'string',
                'max:255',
-               'unique:permissions,name,' . $id, // Ignorar el nombre actual en la validación unique
+               'unique:permissions,name,' . $id,
                'regex:/^[a-z]+\.[a-z]+$/',
                function ($attribute, $value, $fail) {
                   $module = explode('.', $value)[0];
@@ -197,6 +197,7 @@ class PermissionController extends Controller
                      $fail(__($this->messages['name.table_exists'], ['module' => $module]));
                   }
                },
+               
             ]
          ], [
             'name.required' => 'El nombre del permiso es obligatorio.',
