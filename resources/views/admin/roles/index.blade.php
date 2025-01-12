@@ -165,14 +165,16 @@
                                 <div class="col-md-6 mb-4">
                                     <div class="card card-outline card-warning h-100">
                                         <div class="card-header">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h3 class="card-title text-capitalize">
+                                            <div
+                                                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                                                <h3 class="card-title text-capitalize mb-2 mb-md-0">
                                                     <i class="fas fa-folder mr-2"></i>{{ $module }}
                                                 </h3>
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" class="custom-control-input group-selector"
                                                         id="group_{{ $module }}" data-group="{{ $module }}">
-                                                    <label class="custom-control-label" for="group_{{ $module }}">
+                                                    <label class="custom-control-label pl-2"
+                                                        for="group_{{ $module }}" style="margin-left: 15px;">
                                                         Seleccionar todo
                                                     </label>
                                                 </div>
@@ -302,6 +304,15 @@
 
         .custom-switch .custom-control-label::after {
             width: calc(1.5rem - 4px);
+        }
+
+        .custom-switch .custom-control-input:checked~.custom-control-label::after {
+            transform: translateX(1rem);
+        }
+
+        .custom-control-label {
+            padding-left: 15px;
+            cursor: pointer;
         }
 
         .modal-xl {
