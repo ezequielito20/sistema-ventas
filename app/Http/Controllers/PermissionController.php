@@ -167,7 +167,15 @@ class PermissionController extends Controller
     */
    public function edit(string $id)
    {
-      //
+      try {
+         $permission = Permission::findOrFail($id);
+         return view('admin.permissions.edit', compact('permission'));
+      } catch (\Exception $e) {
+         Log::error('Error en edit de permisos: ' . $e->getMessage());
+         return redirect()->route('admin.permissions.index')
+            ->with('message', 'Error al cargar el formulario de edición')
+            ->with('icon', 'error');
+      }
    }
 
    /**
@@ -175,7 +183,65 @@ class PermissionController extends Controller
     */
    public function update(Request $request, string $id)
    {
-      //
+      try {
+         $permission = Permission::findOrFail($id);
+
+         // Modificar las reglas para permitir que el permiso mantenga su nombre actual
+         $rules = [
+            'name' => [
+               'required',
+               'string',
+               'max:255',
+               'unique:permissions,name,' . $id, // Ignorar el nombre actual en la validación unique
+               'regex:/^[a-z]+\.[a-z]+$/',
+               function ($attribute, $value, $fail) {
+                  $module = explode('.', $value)[0];
+                  if (!Schema::hasTable($module)) {
+                     $fail(__($this->messages['name.table_exists'], ['module' => $module]));
+                  }
+               },
+            ]
+         ];
+
+         // Validar los datos
+         $validatedData = $request->validate($rules, $this->messages);
+
+         // Verificar si el permiso está en uso y el nombre ha cambiado
+         if ($permission->name !== strtolower($validatedData['name'])) {
+            if ($permission->roles->count() > 0 || $permission->users->count() > 0) {
+               return redirect()->back()
+                  ->with('message', 'No se puede modificar el nombre del permiso porque está en uso')
+                  ->with('icons', 'error')
+                  ->withInput();
+            }
+         }
+
+         // Actualizar el permiso
+         $permission->update([
+            'name' => strtolower($validatedData['name'])
+         ]);
+
+         // Registrar la acción en el log
+         Log::info('Permiso actualizado: ' . $permission->name . ' por el usuario: ' . Auth::user()->name);
+
+         return redirect()->route('admin.permissions.index')
+            ->with('message', 'Permiso actualizado correctamente')
+            ->with('icons', 'success');
+
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('message', 'Error de validación')
+            ->with('icons', 'error');
+
+      } catch (\Exception $e) {
+         Log::error('Error al actualizar permiso: ' . $e->getMessage());
+         return redirect()->back()
+            ->with('message', 'Error al actualizar el permiso')
+            ->with('icons', 'error')
+            ->withInput();
+      }
    }
 
    /**
