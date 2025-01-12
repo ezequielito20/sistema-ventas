@@ -144,7 +144,22 @@ class PermissionController extends Controller
     */
    public function show(string $id)
    {
-      //
+      try {
+         $permission = Permission::with(['roles', 'users'])->findOrFail($id);
+         
+         return response()->json([
+            'name' => $permission->name,
+            'guard_name' => $permission->guard_name,
+            'roles' => $permission->roles->pluck('name'),
+            'users' => $permission->users->pluck('name'),
+            'created_at' => $permission->created_at->format('d/m/Y H:i:s'),
+            'updated_at' => $permission->updated_at->format('d/m/Y H:i:s')
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al mostrar permiso: ' . $e->getMessage());
+         return response()->json(['error' => 'Error al obtener los detalles del permiso'], 500);
+      }
    }
 
    /**
@@ -168,7 +183,35 @@ class PermissionController extends Controller
     */
    public function destroy(string $id)
    {
-      //
+      try {
+         $permission = Permission::findOrFail($id);
+
+         // Verificar si el permiso está en uso
+         if ($permission->roles->count() > 0 || $permission->users->count() > 0) {
+            return response()->json([
+               'message' => 'No se puede eliminar el permiso porque está en uso',
+               'icons' => 'error'
+            ], 422);
+         }
+
+         // Eliminar el permiso
+         $permission->delete();
+
+         // Registrar la acción en el log
+         Log::info('Permiso eliminado: ' . $permission->name . ' por el usuario: ' . Auth::user()->name);
+
+         return response()->json([
+            'message' => 'Permiso eliminado correctamente',
+            'icons' => 'success'
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al eliminar permiso: ' . $e->getMessage());
+         return response()->json([
+            'message' => 'Error al eliminar el permiso',
+            'icons' => 'error'
+         ], 500);
+      }
    }
 
    public function report()

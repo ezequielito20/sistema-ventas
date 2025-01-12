@@ -173,7 +173,7 @@
                     if (result.isConfirmed) {
                         // Enviar solicitud de eliminación
                         $.ajax({
-                            url: `/admin/permissions/delete/${permissionId}`,
+                            url: `/permissions/delete/${permissionId}`,
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -202,7 +202,7 @@
             // Ver detalles del permiso
             $('.show-permission').click(function() {
                 const permissionId = $(this).data('id');
-                $.get(`/admin/permissions/${permissionId}`, function(permission) {
+                $.get(`/permissions/${permissionId}`, function(permission) {
                     Swal.fire({
                         title: 'Detalles del Permiso',
                         html: `
