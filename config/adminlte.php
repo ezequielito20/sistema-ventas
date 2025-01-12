@@ -335,7 +335,7 @@ return [
       //     'icon' => 'fas fa-fw fa-user',
       // ],
       [
-         'text' => 'Configuración',
+         'text' => 'Config empresa',
          'url' => 'settings',
          'icon' => 'fas fa-fw fa-cog',
          'classes' => 'bg-blue text-white',

@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
-
+            PermissionSeeder::class,
         ]);
 
         // Create default admin role
