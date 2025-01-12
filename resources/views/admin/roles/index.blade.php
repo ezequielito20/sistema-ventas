@@ -9,7 +9,7 @@
             <a href="{{ route('admin.roles.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-            <a href="{{ route('admin.roles.create') }}" class="btn btn-primary" >
+            <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle mr-2"></i>Crear Nuevo Rol
             </a>
         </div>
@@ -52,8 +52,9 @@
                                         data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{{ route('admin.roles.permissions', $role->id) }}" class="btn btn-warning btn-sm"
-                                        data-toggle="tooltip" title="Asignar Permisos">
+                                    <a href="#" class="btn btn-warning btn-sm assign-permissions"
+                                        data-id="{{ $role->id }}" data-name="{{ $role->name }}" data-toggle="tooltip"
+                                        title="Asignar Permisos">
                                         <i class="fas fa-key"></i>
                                     </a>
                                     <button type="button" class="btn btn-danger btn-sm delete-role"
@@ -129,12 +130,104 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal de Asignación de Permisos --}}
+    <div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="permissionsModalLabel">
+                        <i class="fas fa-key mr-2"></i>
+                        Asignar Permisos al Rol: <span id="roleName" class="font-weight-bold"></span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="search-box">
+                                <input type="text" id="searchPermission" class="form-control"
+                                    placeholder="Buscar permisos...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="permissionsForm">
+                        @csrf
+                        <input type="hidden" id="roleId" name="role_id">
+
+                        <div class="row permissions-container">
+                            @php
+                                $groupedPermissions = $permissions->groupBy(function ($permission) {
+                                    return explode('.', $permission->name)[0];
+                                });
+                            @endphp
+
+                            @foreach ($groupedPermissions as $group => $permissions)
+                                <div class="col-md-6 mb-4 permission-group">
+                                    <div class="card card-outline card-warning h-100">
+                                        <div class="card-header">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h3 class="card-title text-capitalize">
+                                                    <i class="fas fa-folder mr-2"></i>{{ $group }}
+                                                </h3>
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" class="custom-control-input group-selector"
+                                                        id="group_{{ $group }}" data-group="{{ $group }}">
+                                                    <label class="custom-control-label" for="group_{{ $group }}">
+                                                        Seleccionar todo
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                @foreach ($permissions as $permission)
+                                                    <div class="col-md-12 permission-item"
+                                                        data-group="{{ $group }}">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox"
+                                                                class="custom-control-input permission-checkbox"
+                                                                id="permission_{{ $permission->id }}"
+                                                                name="permissions[]" value="{{ $permission->id }}"
+                                                                data-group="{{ $group }}">
+                                                            <label class="custom-control-label"
+                                                                for="permission_{{ $permission->id }}">
+                                                                {{ $permission->description }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" id="savePermissions">
+                        <i class="fas fa-save mr-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap4.min.css">
+
     <style>
         .card {
             border-radius: 0.75rem;
@@ -173,6 +266,78 @@
             background-color: #f8f9fa;
             border: 1px solid #ced4da;
             border-radius: 0.25rem;
+        }
+
+        /* Estilos para el modal de permisos */
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .search-box input {
+            padding-right: 40px;
+            border-radius: 20px;
+        }
+
+        .permission-group .card {
+            transition: all 0.3s ease;
+        }
+
+        .permission-group .card:hover {
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .permission-item {
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .permission-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .custom-switch .custom-control-label::before {
+            width: 2.5rem;
+        }
+
+        .custom-switch .custom-control-label::after {
+            width: calc(1.5rem - 4px);
+        }
+
+        .modal-xl {
+            max-width: 1200px;
+        }
+
+        .permissions-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .permissions-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .permissions-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .permissions-container::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 4px;
+        }
+
+        .permissions-container::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
         }
     </style>
 @stop
@@ -348,6 +513,102 @@
                     }
                 });
             });
+
+            // Scripts para el modal de permisos
+            $('.assign-permissions').click(function() {
+                const roleId = $(this).data('id');
+                const roleName = $(this).data('name');
+
+                $('#roleId').val(roleId);
+                $('#roleName').text(roleName);
+
+                // Limpiar checkboxes
+                $('.permission-checkbox').prop('checked', false);
+
+                // Cargar permisos actuales del rol
+                $.get(`/roles/${roleId}/permissions`, function(data) {
+                    data.permissions.forEach(function(permission) {
+                        $(`#permission_${permission.id}`).prop('checked', true);
+                    });
+
+                    // Actualizar estados de los selectores de grupo
+                    updateGroupSelectors();
+                });
+
+                $('#permissionsModal').modal('show');
+            });
+
+            // Búsqueda de permisos
+            $('#searchPermission').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+
+                $('.permission-item').each(function() {
+                    const text = $(this).text().toLowerCase();
+                    $(this).toggle(text.includes(searchTerm));
+                });
+            });
+
+            // Selector de grupo
+            $('.group-selector').change(function() {
+                const group = $(this).data('group');
+                const checked = $(this).prop('checked');
+
+                $(`.permission-checkbox[data-group="${group}"]`).prop('checked', checked);
+            });
+
+            // Actualizar selector de grupo cuando cambian los permisos individuales
+            $('.permission-checkbox').change(function() {
+                updateGroupSelectors();
+            });
+
+            // Guardar cambios
+            $('#savePermissions').click(function() {
+                const roleId = $('#roleId').val();
+                const permissions = $('.permission-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                $.ajax({
+                    url: `/roles/${roleId}/permissions`,
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        permissions: permissions
+                    },
+                    success: function(response) {
+                        $('#permissionsModal').modal('hide');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Los permisos han sido actualizados correctamente',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        // Recargar la tabla de roles
+                        window.LaravelDataTables['rolesTable'].ajax.reload();
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema al actualizar los permisos'
+                        });
+                    }
+                });
+            });
+
+            function updateGroupSelectors() {
+                $('.group-selector').each(function() {
+                    const group = $(this).data('group');
+                    const totalPermissions = $(`.permission-checkbox[data-group="${group}"]`).length;
+                    const checkedPermissions = $(`.permission-checkbox[data-group="${group}"]:checked`)
+                        .length;
+
+                    $(this).prop('checked', totalPermissions === checkedPermissions);
+                });
+            }
         });
     </script>
 @stop

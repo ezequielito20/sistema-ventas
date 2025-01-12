@@ -9,6 +9,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
@@ -21,7 +22,9 @@ class RoleController extends Controller
          ->orderBy('created_at', 'desc')
          ->get();
 
-      return view('admin.roles.index', compact('roles'));
+      $permissions = Permission::all();
+
+      return view('admin.roles.index', compact('roles', 'permissions'));
    }
 
    /**
@@ -254,5 +257,71 @@ class RoleController extends Controller
       ->get();
       $pdf = PDF::loadView('admin.roles.report', compact('roles', 'company'));
       return $pdf->stream('reporte-roles.pdf');
+   }
+
+   /**
+    * Obtener los permisos actuales del rol
+    */
+   public function permissions($id)
+   {
+      try {
+         $role = Role::findOrFail($id);
+         return response()->json([
+            'status' => 'success',
+            'permissions' => $role->permissions
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Error al obtener los permisos del rol'
+         ], 500);
+      }
+   }
+
+   /**
+    * Asignar permisos al rol
+    */
+   public function assignPermissions(Request $request, $id)
+   {
+      try {
+         DB::beginTransaction();
+
+         $role = Role::findOrFail($id);
+
+         // Verificar si es un rol del sistema
+         if (in_array($role->name, ['admin', 'superadmin', 'administrator', 'root'])) {
+            throw new \Exception('No se pueden modificar los permisos de roles del sistema');
+         }
+
+         // Validar los permisos recibidos
+         $permissions = $request->input('permissions', []);
+         $validPermissions = Permission::whereIn('id', $permissions)->pluck('id')->toArray();
+
+         // Sincronizar los permisos
+         $role->syncPermissions($validPermissions);
+
+         DB::commit();
+
+         return response()->json([
+            'status' => 'success',
+            'message' => 'Permisos actualizados correctamente'
+         ]);
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         
+         // Si es un error específico de roles del sistema
+         if (str_contains($e->getMessage(), 'roles del sistema')) {
+            return response()->json([
+               'status' => 'error',
+               'message' => $e->getMessage()
+            ], 403);
+         }
+
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Error al actualizar los permisos: ' . $e->getMessage()
+         ], 500);
+      }
    }
 }

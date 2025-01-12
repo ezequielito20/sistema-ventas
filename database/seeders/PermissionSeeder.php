@@ -37,7 +37,7 @@ class PermissionSeeder extends Seeder
          'roles.report' => 'Generar reportes de roles',
          'roles.show' => 'Ver detalles de roles',
          'roles.permissions' => 'Asignar permisos a roles',
-
+         'roles.assign.permissions' => 'Asignar permisos a roles',
          // Permisos
          'permissions.index' => 'Ver listado de permisos',
          'permissions.create' => 'Crear permisos',
