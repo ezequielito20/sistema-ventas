@@ -52,6 +52,10 @@
                                         data-toggle="tooltip" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <a href="{{ route('admin.roles.permissions', $role->id) }}" class="btn btn-warning btn-sm"
+                                        data-toggle="tooltip" title="Asignar Permisos">
+                                        <i class="fas fa-key"></i>
+                                    </a>
                                     <button type="button" class="btn btn-danger btn-sm delete-role"
                                         data-id="{{ $role->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>

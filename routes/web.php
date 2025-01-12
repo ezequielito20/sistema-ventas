@@ -53,6 +53,7 @@ Route::get('/roles/edit/{id}', [RoleController::class, 'edit'])->name('admin.rol
 Route::put('/roles/edit/{id}', [RoleController::class, 'update'])->name('admin.roles.update')->middleware('auth');
 Route::delete('/roles/delete/{id}', [RoleController::class, 'destroy'])->name('admin.roles.destroy')->middleware('auth');
 Route::get('/roles/{id}', [RoleController::class, 'show'])->name('admin.roles.show')->middleware('auth');
+Route::get('/roles/{id}/permissions', [RoleController::class, 'permissions'])->name('admin.roles.permissions')->middleware('auth');
 
 // Users
 Route::get('/users', [UserController::class, 'index'])->name('admin.users.index')->middleware('auth');
