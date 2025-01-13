@@ -89,6 +89,7 @@
                         <th>Nombre</th>
                         <th>Guard</th>
                         <th>Roles Asignados</th>
+                        <th>Usuarios con este permiso</th>
                         <th>Fecha Creación</th>
                         <th>Acciones</th>
                     </tr>
@@ -106,6 +107,12 @@
                             <td style="text-align: center;">
                                 <span class="badge badge-success">
                                     {{ $permission->roles->count() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-info">
+                                    {{ $permission->users_count }}
+                                    <i class="fas fa-users ml-1"></i>
                                 </span>
                             </td>
                             <td>{{ $permission->created_at->format('d/m/Y H:i') }}</td>

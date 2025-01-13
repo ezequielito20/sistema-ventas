@@ -20,7 +20,19 @@ class PermissionController extends Controller
          // Obtener todos los permisos ordenados por nombre
          $permissions = Permission::with(['roles', 'users'])
             ->orderBy('name', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($permission) {
+               // Obtener usuarios que tienen el permiso a través de roles
+               $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
+                  $query->whereHas('permissions', function ($q) use ($permission) {
+                     $q->where('permissions.id', $permission->id);
+                  });
+               })->count();
+
+               // Añadir el conteo de usuarios al objeto de permiso
+               $permission->users_count = $usersViaRoles;
+               return $permission;
+            });
 
          // Calcular estadísticas para los widgets
          $totalPermissions = $permissions->count();
