@@ -234,7 +234,7 @@
                             <div class="card">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
-                                        <i class="fas fa-chart-bar mr-2"></i>
+                                        <i class="fas fa-box mr-2"></i>
                                         Resumen de Productos Distribuidos
                                     </h6>
                                 </div>
@@ -244,13 +244,21 @@
                                             <thead>
                                                 <tr>
                                                     <th>Producto</th>
-                                                    <th>Cantidad Total</th>
-                                                    <th>Última Distribución</th>
+                                                    <th class="text-center">Cantidad</th>
+                                                    <th class="text-right">Precio Unitario</th>
+                                                    <th class="text-right">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="productDetails">
                                                 <!-- Los detalles se cargarán dinámicamente -->
                                             </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="3" class="text-right"><strong>Total General:</strong>
+                                                    </td>
+                                                    <td class="text-right"><strong id="grandTotal">0.00</strong></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </div>
@@ -421,31 +429,39 @@
             // Función para actualizar el gráfico si lo necesitas
             function updateSupplierDetails(stats) {
                 const detailsContainer = document.getElementById('productDetails');
-                let detailsHTML = '';
+                    alert(detailsContainer)
 
-                if (stats.productDetails && Object.keys(stats.productDetails).length > 0) {
-                    Object.entries(stats.productDetails).forEach(([month, products]) => {
-                        products.forEach(product => {
-                            detailsHTML += `
-                                <tr>
-                                    <td>${product.product_name}</td>
-                                    <td class="text-center">
-                                        <span class="badge badge-primary">${product.total_quantity}</span>
-                                    </td>
-                                    <td class="text-muted">${month}</td>
-                                </tr>`;
-                        });
+                let detailsHTML = '';
+                let grandTotal = 0;
+
+                if (stats.productDetails && stats.productDetails.length > 0) {
+                    stats.productDetails.forEach(product => {
+                        const subtotal = product.total_purchased * product.purchase_price;
+                        grandTotal += subtotal;
+
+                        detailsHTML += `
+                            <tr>
+                                <td>${product.product_name}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary">${product.total_purchased}</span>
+                                    <small class="text-muted">(Stock: ${product.stock})</small>
+                                </td>
+                                <td class="text-right">${currency.symbol} ${number_format(product.purchase_price, 2)}</td>
+                                <td class="text-right">${currency.symbol} ${number_format(subtotal, 2)}</td>
+                            </tr>`;
                     });
                 } else {
                     detailsHTML = `
                         <tr>
-                            <td colspan="3" class="text-center text-muted">
-                                No hay productos distribuidos por este proveedor
+                            <td colspan="4" class="text-center text-muted">
+                                No hay productos registrados para este proveedor
                             </td>
                         </tr>`;
                 }
 
                 detailsContainer.innerHTML = detailsHTML;
+                document.getElementById('grandTotal').innerHTML =
+                    `${currency.symbol} ${number_format(grandTotal, 2)}`;
             }
         });
     </script>

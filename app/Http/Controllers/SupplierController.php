@@ -167,14 +167,25 @@ class SupplierController extends Controller
    {
       try {
          $supplier = Supplier::findOrFail($id);
-
-         // Verificar que el proveedor pertenece a la compañía del usuario
-         if ($supplier->company_id !== Auth::user()->company_id) {
-            return response()->json([
-               'icons' => 'error',
-               'message' => 'No tiene permiso para ver este proveedor'
-            ], 403);
-         }
+         
+         // Obtener productos del proveedor con sus detalles
+         $productDetails = DB::table('products')
+            ->select(
+               'products.name as product_name',
+               'products.purchase_price',
+               'products.stock',
+               DB::raw('SUM(COALESCE(pd.quantity, 0)) as total_purchased')
+            )
+            ->leftJoin('purchase_details as pd', function($join) {
+               $join->on('products.id', '=', 'pd.product_id')
+                  ->join('purchases', 'pd.purchase_id', '=', 'purchases.id')
+                  ->whereRaw('MONTH(purchases.purchase_date) = ?', [now()->month])
+                  ->whereRaw('YEAR(purchases.purchase_date) = ?', [now()->year]);
+            })
+            ->where('products.supplier_id', $id)
+            ->groupBy('products.id', 'products.name', 'products.purchase_price', 'products.stock')
+            ->orderBy('products.name')
+            ->get();
 
          return response()->json([
             'icons' => 'success',
@@ -187,15 +198,12 @@ class SupplierController extends Controller
                'supplier_phone' => $supplier->supplier_phone,
                'created_at' => $supplier->created_at->format('d/m/Y H:i'),
                'updated_at' => $supplier->updated_at->format('d/m/Y H:i'),
-               'stats' => [
-                  'months' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-                  'products' => [10, 15, 8, 20, 12, 18]
-               ]
+            ],
+            'stats' => [
+               'productDetails' => $productDetails
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al mostrar proveedor: ' . $e->getMessage());
-
          return response()->json([
             'icons' => 'error',
             'message' => 'Error al cargar los datos del proveedor'
@@ -401,42 +409,5 @@ class SupplierController extends Controller
       $pdf = PDF::loadView('admin.suppliers.report', compact('suppliers', 'company'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-proveedores.pdf');
-   }
-
-   private function getSupplierStats($supplierId)
-   {
-      $stats = [];
-      $months = [];
-      $productDetails = [];
-      
-      // Obtener los últimos 6 meses
-      for ($i = 5; $i >= 0; $i--) {
-         $date = now()->subMonths($i);
-         $months[] = $date->format('M Y');
-         
-         // Obtener productos distribuidos por mes con detalles
-         $monthProducts = DB::table('purchase_details as pd')
-            ->select(
-               'products.name as product_name',
-               DB::raw('SUM(pd.quantity) as total_quantity')
-            )
-            ->join('purchases as p', 'pd.purchase_id', '=', 'p.id')
-            ->join('products', 'pd.product_id', '=', 'products.id')
-            ->where('pd.supplier_id', $supplierId)
-            ->whereMonth('p.purchase_date', $date->month)
-            ->whereYear('p.purchase_date', $date->year)
-            ->groupBy('products.id', 'products.name')
-            ->orderByDesc('total_quantity')
-            ->get();
-            
-         $productDetails[$date->format('M Y')] = $monthProducts;
-         $stats[] = $monthProducts->sum('total_quantity');
-      }
-      
-      return [
-         'months' => $months,
-         'products' => $stats,
-         'productDetails' => $productDetails
-      ];
    }
 }
