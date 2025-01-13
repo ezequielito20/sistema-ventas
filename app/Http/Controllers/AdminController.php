@@ -31,6 +31,7 @@ class AdminController extends Controller
    public function index()
    {
       $companyId = Auth::user()->company->id;
+      $company = $this->company;
       $currency = $this->currencies;
       // Obtener conteos básicos
       $usersCount = User::where('company_id', $companyId)->count();
@@ -405,6 +406,7 @@ class AdminController extends Controller
 
       return view('admin.index', compact(
          'currency',
+         'company',
          'usersCount',
          'rolesCount',
          'usersByRole',
