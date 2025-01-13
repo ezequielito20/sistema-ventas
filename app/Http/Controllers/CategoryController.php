@@ -13,19 +13,31 @@ use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
-         $company = Company::find(Auth::user()->company_id);
+         $company = $this->company;
          $categories = Category::where('company_id', $company->id)->orderBy('name', 'asc')->get();
          $totalCategories = $categories->count();
 
          return view('admin.categories.index', compact(
             'categories',
-            'totalCategories'
+            'totalCategories',
+            'company'
          ));
       } catch (\Exception $e) {
          Log::error('Error loading categories: ' . $e->getMessage());
@@ -41,7 +53,8 @@ class CategoryController extends Controller
    public function create()
    {
       try {
-         return view('admin.categories.create');
+         $company = $this->company;
+         return view('admin.categories.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error loading create category form: ' . $e->getMessage());
          return redirect()->route('admin.categories.index')
@@ -115,8 +128,9 @@ class CategoryController extends Controller
     */
    public function edit($id)
    {
-      $category = Category::findOrFail($id);
-      return view('admin.categories.edit', compact('category'));
+      $company = $this->company;
+      $category = Category::where('id', $id)->where('company_id', $company->id)->first();
+      return view('admin.categories.edit', compact('category', 'company'));
    }
 
    /**
@@ -233,7 +247,7 @@ class CategoryController extends Controller
 
    public function report()
    {
-      $company = Company::find(Auth::user()->company_id);
+      $company = $this->company;
       $categories = Category::withCount('products')->where('company_id', $company->id)
       ->orderBy('products_count', 'desc')
       ->orderBy('name', 'asc')

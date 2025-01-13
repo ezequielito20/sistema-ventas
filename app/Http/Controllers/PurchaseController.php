@@ -34,7 +34,8 @@ class PurchaseController extends Controller
    public function index()
    {
       try {
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
          $cashCount = CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
@@ -60,6 +61,7 @@ class PurchaseController extends Controller
          return view('admin.purchases.index', compact(
             'purchases',
             'currency',
+            'company',
             'totalPurchases',
             'totalAmount',
             'monthlyPurchases',
@@ -81,7 +83,8 @@ class PurchaseController extends Controller
    {
       try {
          // Obtener productos y proveedores de la compañía actual
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
          $products = Product::where('company_id', $companyId)
             ->get();
@@ -89,7 +92,7 @@ class PurchaseController extends Controller
          $suppliers = Supplier::where('company_id', $companyId)
             ->get();
 
-         return view('admin.purchases.create', compact('products', 'suppliers', 'currency'));
+         return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en PurchaseController@create: ' . $e->getMessage());
          return redirect()->route('admin.purchases.index')
@@ -200,7 +203,8 @@ class PurchaseController extends Controller
    public function edit($id)
    {
       try {
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
 
          // Obtener la compra con sus detalles y productos
@@ -226,7 +230,7 @@ class PurchaseController extends Controller
          $products = Product::where('company_id', $companyId)->get();
          $suppliers = Supplier::where('company_id', $companyId)->get();
 
-         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency'));
+         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en PurchaseController@edit: ' . $e->getMessage());
          return redirect()->route('admin.purchases.index')

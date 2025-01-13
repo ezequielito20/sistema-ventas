@@ -29,7 +29,7 @@ Route::get('/create-company/{country}', [CompanyController::class, 'search_count
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
 
 // Configuración de empresa
-Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create')->middleware(['auth', 'can:companies.create']);
+Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
 Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store')->middleware(['auth', 'can:companies.store']);
 Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);

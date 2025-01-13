@@ -38,7 +38,7 @@ class SupplierController extends Controller
             ->get();
 
          $currency = $this->currencies;
-
+         $company = $this->company;
          // Estadísticas para los widgets
          $totalSuppliers = $suppliers->count();
 
@@ -58,7 +58,8 @@ class SupplierController extends Controller
             'activeSuppliers',
             'recentSuppliers',
             'inactiveSuppliers',
-            'currency'
+            'currency',
+            'company'
          ))
             ->with('message', 'Proveedores cargados correctamente')
             ->with('icons', 'success');
@@ -79,7 +80,8 @@ class SupplierController extends Controller
    public function create()
    {
       try {
-         return view('admin.suppliers.create');
+         $company = $this->company;
+         return view('admin.suppliers.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error en SupplierController@create: ' . $e->getMessage());
          return redirect()->route('admin.suppliers.index')
@@ -216,6 +218,7 @@ class SupplierController extends Controller
    public function edit($id)
    {
       try {
+         $company = $this->company;
          // Buscar el proveedor
          $supplier = Supplier::findOrFail($id);
 
@@ -232,7 +235,7 @@ class SupplierController extends Controller
          }
 
          // Retornar vista con datos del proveedor
-         return view('admin.suppliers.edit', compact('supplier'));
+         return view('admin.suppliers.edit', compact('supplier', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en SupplierController@edit: ' . $e->getMessage(), [
             'user_id' => Auth::user()->id,

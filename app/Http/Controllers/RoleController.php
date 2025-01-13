@@ -13,14 +13,27 @@ use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       $roles = Role::with('permissions')
          ->orderBy('name', 'asc')
          ->get();
+
+      $company = $this->company;
 
       // Agrupar permisos por módulo con nombres amigables
       $permissions = Permission::all()->map(function($permission) {
@@ -128,7 +141,7 @@ class RoleController extends Controller
          return explode('.', $permission->name)[0];
       });
 
-      return view('admin.roles.index', compact('roles', 'permissions'));
+      return view('admin.roles.index', compact('roles', 'permissions', 'company'));
    }
 
    /**
@@ -136,7 +149,8 @@ class RoleController extends Controller
     */
    public function create()
    {
-      return view('admin.roles.create');
+      $company = $this->company;
+      return view('admin.roles.create', compact('company'));
    }
 
    /**
@@ -212,8 +226,9 @@ class RoleController extends Controller
     */
    public function edit($id)
    {
-      $role = Role::findOrFail($id);
-      return view('admin.roles.edit', compact('role'));
+      $company = $this->company;
+      $role = Role::where('id', $id)->where('company_id', $company->id)->first();
+      return view('admin.roles.edit', compact('role', 'company'));
    }
 
    /**

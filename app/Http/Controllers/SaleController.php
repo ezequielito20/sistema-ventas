@@ -35,9 +35,10 @@ class SaleController extends Controller
    public function index()
    {
       try {
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
-         $cashCount = CashCount::where('company_id', $this->company->id)
+         $cashCount = CashCount::where('company_id', $companyId)
             ->whereNull('closing_date')
             ->first();
 
@@ -68,7 +69,8 @@ class SaleController extends Controller
             'monthlySales',
             'averageTicket',
             'currency',
-            'cashCount'
+            'cashCount',
+            'company'
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de ventas: ' . $e->getMessage());
@@ -84,7 +86,8 @@ class SaleController extends Controller
    public function create()
    {
       try {
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
 
          // Obtener productos y clientes de la compañía actual
@@ -95,7 +98,7 @@ class SaleController extends Controller
             // ->where('status', true)
             ->get();
 
-         return view('admin.sales.create', compact('products', 'customers', 'currency'));
+         return view('admin.sales.create', compact('products', 'customers', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@create: ' . $e->getMessage());
          return redirect()->back()
@@ -214,7 +217,8 @@ class SaleController extends Controller
    public function edit($id)
    {
       try {
-         $companyId = Auth::user()->company_id;
+         $company = $this->company;
+         $companyId = $company->id;
          $currency = $this->currencies;
 
          // Obtener la venta con sus detalles y productos
@@ -247,7 +251,7 @@ class SaleController extends Controller
             ->get();
          $customers = Customer::where('company_id', $companyId)->get();
 
-         return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails', 'currency'));
+         return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@edit: ' . $e->getMessage());
          return redirect()->route('admin.sales.index')

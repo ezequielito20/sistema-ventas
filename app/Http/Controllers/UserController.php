@@ -15,15 +15,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
-      $users = User::where('company_id', Auth::user()->company_id)
+      $company = Auth::user()->company;
+      $users = User::where('company_id', $company->id)
       ->orderBy('name', 'asc')
       ->get();
-      return view('admin.users.index', compact('users'));
+      return view('admin.users.index', compact('users', 'company'));
    }
 
    /**
@@ -32,6 +44,7 @@ class UserController extends Controller
    public function create()
    {
       try {
+         $company = $this->company;
          // Obtener las empresas disponibles
          $companies = Company::select('id', 'name')
             ->where('id', Auth::user()->company_id)
@@ -41,7 +54,7 @@ class UserController extends Controller
          // Obtener los roles disponibles (excluyendo roles del sistema si el usuario no es admin)
          $roles = Role::all();
 
-         return view('admin.users.create', compact('companies', 'roles'));
+         return view('admin.users.create', compact('companies', 'roles', 'company'));
       } catch (\Exception $e) {
          return redirect()->route('admin.users.index')
             ->with('message', 'Error al cargar el formulario de creación: ' . $e->getMessage())
@@ -184,7 +197,7 @@ class UserController extends Controller
       try {
          // Obtener usuario con sus roles
          $user = User::with('roles')->findOrFail($id);
-
+         $company = $this->company;
          // Verificar que el usuario pertenezca a la misma empresa
          if ($user->company_id !== Auth::user()->company_id) {
             throw new \Exception('No tiene permisos para editar este usuario');
@@ -201,7 +214,7 @@ class UserController extends Controller
             return $query->whereNotIn('name', ['admin', 'superadmin']);
          })->get();
 
-         return view('admin.users.edit', compact('user', 'companies', 'roles'));
+         return view('admin.users.edit', compact('user', 'companies', 'roles', 'company'));
       } catch (\Exception $e) {
          return redirect()->route('admin.users.index')
             ->with('message', 'Error al cargar el usuario: ' . $e->getMessage())

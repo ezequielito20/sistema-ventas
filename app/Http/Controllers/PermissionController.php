@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -11,12 +12,24 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
+         $company = $this->company;
          // Obtener todos los permisos ordenados por nombre
          $permissions = Permission::with(['roles', 'users'])
             ->orderBy('name', 'asc')
@@ -59,6 +72,7 @@ class PermissionController extends Controller
             'activePermissions',
             'rolesCount',
             'unusedPermissions',
+            'company',
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de permisos: ' . $e->getMessage());
@@ -108,7 +122,8 @@ class PermissionController extends Controller
    public function create()
    {
       try {
-         return view('admin.permissions.create');
+         $company = $this->company;
+         return view('admin.permissions.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error en create de permisos: ' . $e->getMessage());
          return redirect()->route('admin.permissions.index')
@@ -181,8 +196,9 @@ class PermissionController extends Controller
    public function edit(string $id)
    {
       try {
+         $company = $this->company;
          $permission = Permission::findOrFail($id);
-         return view('admin.permissions.edit', compact('permission'));
+         return view('admin.permissions.edit', compact('permission', 'company'));
       } catch (\Exception $e) {
          Log::error('Error en edit de permisos: ' . $e->getMessage());
          return redirect()->route('admin.permissions.index')

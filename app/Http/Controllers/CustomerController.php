@@ -36,6 +36,7 @@ class CustomerController extends Controller
          // Obtener todos los clientes
          $customers = Customer::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
+         $company = $this->company;
 
          // Estadísticas básicas
          $totalCustomers = $customers->count();
@@ -69,7 +70,8 @@ class CustomerController extends Controller
             'activeCustomers',
             'newCustomers',
             'totalRevenue',
-            'currency'
+            'currency',
+            'company'
          ));
 
       } catch (\Exception $e) {
@@ -86,8 +88,9 @@ class CustomerController extends Controller
     */
    public function create()
    {
-      try {
-         return view('admin.customers.create');
+      try { 
+         $company = $this->company;
+         return view('admin.customers.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error en CustomerController@create: ' . $e->getMessage());
          return redirect()->route('admin.customers.index')
@@ -261,11 +264,12 @@ class CustomerController extends Controller
    public function edit($id)
    {
       try {
+         $company = $this->company;
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
 
          // Retornar vista con datos del cliente
-         return view('admin.customers.edit', compact('customer'));
+         return view('admin.customers.edit', compact('customer', 'company'));
 
       } catch (\Exception $e) {
          Log::error('Error en CustomerController@edit: ' . $e->getMessage(), [

@@ -41,7 +41,7 @@ class ProductController extends Controller
             ->get();
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
-
+         $company = $this->company;
          // Calcular estadísticas
          $totalProducts = $products->count();
          $lowStockProducts = $products->filter->hasLowStock()->count();
@@ -57,7 +57,8 @@ class ProductController extends Controller
             'totalProducts',
             'lowStockProducts',
             'totalValue',
-            'currency'
+            'currency',
+            'company'
          ));
       } catch (\Exception $e) {
          Log::error('Error loading products: ' . $e->getMessage());
@@ -75,7 +76,8 @@ class ProductController extends Controller
       try {
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
-         return view('admin.products.create', compact('categories', 'currency'));
+         $company = $this->company;
+         return view('admin.products.create', compact('categories', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error loading create product form: ' . $e->getMessage());
          return redirect()->back()
@@ -205,7 +207,8 @@ class ProductController extends Controller
          $product = Product::find($id);
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
-         return view('admin.products.edit', compact('product', 'categories', 'currency'));
+         $company = $this->company;
+         return view('admin.products.edit', compact('product', 'categories', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error loading edit product form: ' . $e->getMessage());
          return redirect()->back()

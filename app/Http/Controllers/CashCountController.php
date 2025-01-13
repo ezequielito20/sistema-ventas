@@ -33,6 +33,7 @@ class CashCountController extends Controller
    public function index()
    {
       $currency = $this->currencies;
+      $company = $this->company;
       // Obtener el arqueo actual si existe
       $currentCashCount = CashCount::where('company_id', $this->company->id)
          ->whereNull('closing_date')
@@ -128,6 +129,7 @@ class CashCountController extends Controller
          'currentBalance',
          'chartData',
          'currency',
+         'company',
          'totalProducts',
          'totalPurchasedProducts'
       ));
@@ -138,6 +140,7 @@ class CashCountController extends Controller
     */
    public function create()
    {
+      $company = $this->company;
       // Verificar si ya existe una caja abierta
       $existingOpenCashCount = CashCount::where('company_id', $this->company->id)
          ->whereNull('closing_date')
@@ -149,7 +152,8 @@ class CashCountController extends Controller
       }
 
       return view('admin.cash-counts.create', [
-         'currency' => $this->currencies
+         'currency' => $this->currencies,
+         'company',
       ]);
    }
 
@@ -293,7 +297,7 @@ class CashCountController extends Controller
       try {
          // Buscar la caja por ID
          $cashCount = CashCount::findOrFail($id);
-         
+         $company = $this->company;
          // Verificar que la caja pertenezca a la compañía actual
          if ($cashCount->company_id !== $this->company->id) {
             return redirect()->route('admin.cash-counts.index')
@@ -303,7 +307,8 @@ class CashCountController extends Controller
 
          return view('admin.cash-counts.edit', [
             'cashCount' => $cashCount,
-            'currency' => $this->currencies
+            'currency' => $this->currencies,
+            'company',
          ]);
       } catch (\Exception $e) {
          return redirect()->route('admin.cash-counts.index')

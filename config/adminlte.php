@@ -338,22 +338,26 @@ return [
          'text' => 'Config empresa',
          'url' => 'settings',
          'icon' => 'fas fa-fw fa-cog',
+         'can' => 'companies.edit',
          'classes' => 'bg-blue text-white',
       ],
       [
          'text' => 'Roles y Permisos',
          'icon' => 'fas fa-fw fa-user-shield',
+         'can' => ['roles.index', 'permissions.index'],
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Roles',
                'url' => 'roles',
+               'can' => 'roles.index',
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],
             [
                'text' => 'Permisos',
                'url' => 'permissions',
+               'can' => 'permissions.index',
                'icon' => 'fas fa-fw fa-key',
                'classes' => 'bg-white text-black'
             ]
@@ -362,11 +366,13 @@ return [
       [
          'text' => 'Usuarios',
          'icon' => 'fas fa-fw fa-users',
+         'can' => 'users.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Usuarios',
                'url' => 'users',
+               'can' => 'users.index',
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],
@@ -381,11 +387,13 @@ return [
       [
          'text' => 'Categorías',
          'icon' => 'fas fa-fw fa-tags',
+         'can' => 'categories.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Categorías',
                'url' => 'categories',
+               'can' => 'categories.index',
                'icon' => 'fas fa-fw fa-list',
                'classes' => 'bg-white text-black'
             ],
@@ -394,12 +402,14 @@ return [
       [
          'text' => 'Productos',
          'icon' => 'fas fa-fw fa-boxes',
+         'can' => 'products.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Productos',
                'url' => 'products',
                'icon' => 'fas fa-fw fa-list',
+               'can' => 'products.index',
                'classes' => 'bg-white text-black'
             ],
          ],
@@ -407,65 +417,75 @@ return [
       [
          'text' => 'Proveedores',
          'icon' => 'fas fa-fw fa-truck',
+         'can' => 'suppliers.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Proveedores',
                'url' => 'suppliers',
                'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
+               'classes' => 'bg-white text-black',
+               'can' => 'suppliers.index',
             ],
          ],
       ],
       [
          'text' => 'Compras',
          'icon' => 'fas fa-fw fa-shopping-cart',
+         'can' => 'purchases.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Compras',
                'url' => 'purchases',
                'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
+               'classes' => 'bg-white text-black',
+               'can' => 'purchases.index',
             ],
          ],
       ],
       [
          'text' => 'Ventas',
          'icon' => 'fas fa-fw fa-receipt',
+         'can' => 'sales.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Ventas',
                'url' => 'sales',
                'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
+               'classes' => 'bg-white text-black',
+               'can' => 'sales.index',
             ],
          ],
       ],
       [
          'text' => 'Clientes',
          'icon' => 'fas fa-fw fa-users',
+         'can' => 'customers.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Clientes',
                'url' => 'customers',
                'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
+               'classes' => 'bg-white text-black',
+               'can' => 'customers.index',
             ],
          ],
       ],
       [
          'text' => 'Arqueo de Caja',
          'icon' => 'fas fa-fw fa-cash-register',
+         'can' => 'cash-counts.index',
          'classes' => 'bg-blue text-white',
          'submenu' => [
             [
                'text' => 'Lista de Arqueos',
                'url' => 'cash-counts',
                'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
+               'classes' => 'bg-white text-black',
+               'can' => 'cash-counts.index',
             ],
          ],
       ],
