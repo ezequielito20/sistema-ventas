@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
+use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
@@ -400,5 +401,42 @@ class SupplierController extends Controller
       $pdf = PDF::loadView('admin.suppliers.report', compact('suppliers', 'company'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-proveedores.pdf');
+   }
+
+   private function getSupplierStats($supplierId)
+   {
+      $stats = [];
+      $months = [];
+      $productDetails = [];
+      
+      // Obtener los últimos 6 meses
+      for ($i = 5; $i >= 0; $i--) {
+         $date = now()->subMonths($i);
+         $months[] = $date->format('M Y');
+         
+         // Obtener productos distribuidos por mes con detalles
+         $monthProducts = DB::table('purchase_details as pd')
+            ->select(
+               'products.name as product_name',
+               DB::raw('SUM(pd.quantity) as total_quantity')
+            )
+            ->join('purchases as p', 'pd.purchase_id', '=', 'p.id')
+            ->join('products', 'pd.product_id', '=', 'products.id')
+            ->where('pd.supplier_id', $supplierId)
+            ->whereMonth('p.purchase_date', $date->month)
+            ->whereYear('p.purchase_date', $date->year)
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->get();
+            
+         $productDetails[$date->format('M Y')] = $monthProducts;
+         $stats[] = $monthProducts->sum('total_quantity');
+      }
+      
+      return [
+         'months' => $months,
+         'products' => $stats,
+         'productDetails' => $productDetails
+      ];
    }
 }

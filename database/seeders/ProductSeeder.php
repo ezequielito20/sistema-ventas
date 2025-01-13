@@ -28,7 +28,7 @@ class ProductSeeder extends Seeder
                ->create([
                   'category_id' => $category->id,
                   'company_id' => 1,
-                  'supplier_id' => $randomSupplier->id,
+                  'supplier_id' => $randomSupplier->id ?? $suppliers->first()->id,
                ]);
          }
       }

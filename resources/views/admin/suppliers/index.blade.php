@@ -228,18 +228,31 @@
                         </div>
                     </div>
 
-                    {{-- Estadísticas y gráficos --}}
+                    {{-- Estadísticas del Proveedor --}}
                     <div class="row mt-3">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
-                                        <i class="fas fa-chart-line mr-2"></i>
-                                        Estadísticas
+                                        <i class="fas fa-chart-bar mr-2"></i>
+                                        Resumen de Productos Distribuidos
                                     </h6>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="supplierStatsChart" style="height: 200px;"></canvas>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Producto</th>
+                                                    <th>Cantidad Total</th>
+                                                    <th>Última Distribución</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="productDetails">
+                                                <!-- Los detalles se cargarán dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -343,7 +356,7 @@
 
                             // Si tienes un gráfico, actualizarlo aquí
                             if (supplier.stats) {
-                                updateSupplierChart(supplier.stats);
+                                updateSupplierDetails(supplier.stats);
                             }
 
                             // Mostrar el modal
@@ -406,32 +419,33 @@
             });
 
             // Función para actualizar el gráfico si lo necesitas
-            function updateSupplierChart(stats) {
-                if (window.supplierChart) {
-                    window.supplierChart.destroy();
+            function updateSupplierDetails(stats) {
+                const detailsContainer = document.getElementById('productDetails');
+                let detailsHTML = '';
+
+                if (stats.productDetails && Object.keys(stats.productDetails).length > 0) {
+                    Object.entries(stats.productDetails).forEach(([month, products]) => {
+                        products.forEach(product => {
+                            detailsHTML += `
+                                <tr>
+                                    <td>${product.product_name}</td>
+                                    <td class="text-center">
+                                        <span class="badge badge-primary">${product.total_quantity}</span>
+                                    </td>
+                                    <td class="text-muted">${month}</td>
+                                </tr>`;
+                        });
+                    });
+                } else {
+                    detailsHTML = `
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                No hay productos distribuidos por este proveedor
+                            </td>
+                        </tr>`;
                 }
 
-                const ctx = document.getElementById('supplierStatsChart').getContext('2d');
-                window.supplierChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: stats.months,
-                        datasets: [{
-                            label: 'Productos',
-                            data: stats.products,
-                            borderColor: '#007bff',
-                            tension: 0.1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
+                detailsContainer.innerHTML = detailsHTML;
             }
         });
     </script>
