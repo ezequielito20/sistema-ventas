@@ -309,6 +309,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+        // Primero, definimos la función number_format
+        function number_format(number, decimals = 2) {
+            return number.toLocaleString('es-PE', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
         $(document).ready(function() {
             // Inicializar DataTable
             $('#suppliersTable').DataTable({
@@ -362,11 +370,45 @@
                             $('#supplierName').text(supplier.supplier_name);
                             $('#supplierPhone').text(supplier.supplier_phone);
 
-                            console.log(response.stats);
-                            
+
                             // Si tienes un gráfico, actualizarlo aquí
                             if (response.stats) {
-                                updateSupplierDetails(supplier.stats);
+                                const detailsContainer = document.getElementById(
+                                    'productDetails');
+
+                                let detailsHTML = '';
+                                let grandTotal = 0;
+
+                                if (response.stats && response.stats.length > 0) {
+                                    response.stats.forEach(product => {
+
+                                        const subtotal = product.stock * product
+                                            .purchase_price;
+                                        grandTotal += subtotal;
+
+                                        detailsHTML += `
+                            <tr>
+                                <td>${product.name}</td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary">${product.stock}</span>
+                                </td>
+                                <td class="text-right">{{ $currency->symbol }} ${number_format(product.purchase_price)}</td>
+                                <td class="text-right">{{ $currency->symbol }} ${number_format(subtotal)}</td>
+                            </tr>`;
+                                    });
+                                } else {
+                                    detailsHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                No hay productos registrados para este proveedor
+                            </td>
+                        </tr>`;
+                                }
+
+                                detailsContainer.innerHTML = detailsHTML;
+                                document.getElementById('grandTotal').innerHTML =
+                                    `{{ $currency->symbol }} ${number_format(grandTotal)}`;
+
                             }
 
                             // Mostrar el modal
@@ -428,43 +470,8 @@
                 });
             });
 
-            // Función para actualizar el gráfico si lo necesitas
-            function updateSupplierDetails(stats = []) {
-                alert(stats)
-                const detailsContainer = document.getElementById('productDetails');
 
-                let detailsHTML = '';
-                let grandTotal = 0;
 
-                if (stats.productDetails && stats.productDetails.length > 0) {
-                    stats.productDetails.forEach(product => {
-                        const subtotal = product.total_purchased * product.purchase_price;
-                        grandTotal += subtotal;
-
-                        detailsHTML += `
-                            <tr>
-                                <td>${product.product_name}</td>
-                                <td class="text-center">
-                                    <span class="badge badge-primary">${product.total_purchased}</span>
-                                    <small class="text-muted">(Stock: ${product.stock})</small>
-                                </td>
-                                <td class="text-right">{{currency.symbol}} ${number_format(product.purchase_price, 2)}</td>
-                                <td class="text-right">{{currency.symbol}} ${number_format(subtotal, 2)}</td>
-                            </tr>`;
-                    });
-                } else {
-                    detailsHTML = `
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">
-                                No hay productos registrados para este proveedor
-                            </td>
-                        </tr>`;
-                }
-
-                detailsContainer.innerHTML = detailsHTML;
-                document.getElementById('grandTotal').innerHTML =
-                    `{{currency.symbol}} ${number_format(grandTotal, 2)}`;
-            }
         });
     </script>
 @stop
