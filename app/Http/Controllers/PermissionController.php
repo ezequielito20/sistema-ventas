@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -37,17 +38,20 @@ class PermissionController extends Controller
             return $permission->roles->count() === 0 && $permission->users->count() === 0;
          })->count();
 
+         
+         
+
          return view('admin.permissions.index', compact(
             'permissions',
             'totalPermissions',
             'activePermissions',
             'rolesCount',
-            'unusedPermissions'
+            'unusedPermissions',
          ));
       } catch (\Exception $e) {
          Log::error('Error en index de permisos: ' . $e->getMessage());
          return redirect()->back()
-            ->with('message', 'Error al cargar los permisos')
+            ->with('message', 'Error al cargar los permisos: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
@@ -186,23 +190,25 @@ class PermissionController extends Controller
          // Validación personalizada
          $validated = $request->validate([
             'name' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:permissions,name,' . $id,
-                'regex:/^[a-z]+\.[a-z]+$/',
-                function ($attribute, $value, $fail) {
-                    $module = explode('.', $value)[0];
-                    if (!Schema::hasTable($module)) {
-                        $fail('El módulo "' . $module . '" no es válido porque no existe una tabla correspondiente en la base de datos.');
-                    }
-                },
-                function ($attribute, $value, $fail) use ($permission) {
-                    if ($permission->name !== strtolower($value) && 
-                        ($permission->roles->count() > 0 || $permission->users->count() > 0)) {
-                        $fail('No se puede modificar el nombre del permiso porque está en uso por roles o usuarios.');
-                    }
-                }
+               'required',
+               'string',
+               'max:255',
+               'unique:permissions,name,' . $id,
+               'regex:/^[a-z]+\.[a-z]+$/',
+               function ($attribute, $value, $fail) {
+                  $module = explode('.', $value)[0];
+                  if (!Schema::hasTable($module)) {
+                     $fail('El módulo "' . $module . '" no es válido porque no existe una tabla correspondiente en la base de datos.');
+                  }
+               },
+               function ($attribute, $value, $fail) use ($permission) {
+                  if (
+                     $permission->name !== strtolower($value) &&
+                     ($permission->roles->count() > 0 || $permission->users->count() > 0)
+                  ) {
+                     $fail('No se puede modificar el nombre del permiso porque está en uso por roles o usuarios.');
+                  }
+               }
             ]
          ], [
             'name.required' => 'El nombre del permiso es obligatorio.',
