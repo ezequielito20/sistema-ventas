@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
-use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
@@ -181,24 +182,10 @@ class SupplierController extends Controller
    {
       try {
          $supplier = Supplier::findOrFail($id);
-         
-         // Obtener productos del proveedor con sus detalles
-         $productDetails = DB::table('products')
-            ->select(
-               'products.name as product_name',
-               'products.purchase_price',
-               'products.stock',
-               DB::raw('SUM(COALESCE(pd.quantity, 0)) as total_purchased')
-            )
-            ->leftJoin('purchase_details as pd', function($join) {
-               $join->on('products.id', '=', 'pd.product_id')
-                  ->join('purchases', 'pd.purchase_id', '=', 'purchases.id')
-                  ->whereRaw('MONTH(purchases.purchase_date) = ?', [now()->month])
-                  ->whereRaw('YEAR(purchases.purchase_date) = ?', [now()->year]);
-            })
-            ->where('products.supplier_id', $id)
-            ->groupBy('products.id', 'products.name', 'products.purchase_price', 'products.stock')
-            ->orderBy('products.name')
+
+         // Obtener productos del proveedor usando el modelo Product
+         $productDetails = Product::where('supplier_id', $id)
+            ->orderBy('name')
             ->get();
 
          return response()->json([
@@ -213,9 +200,7 @@ class SupplierController extends Controller
                'created_at' => $supplier->created_at->format('d/m/Y H:i'),
                'updated_at' => $supplier->updated_at->format('d/m/Y H:i'),
             ],
-            'stats' => [
-               'productDetails' => $productDetails
-            ]
+            'stats' => $productDetails
          ]);
       } catch (\Exception $e) {
          return response()->json([

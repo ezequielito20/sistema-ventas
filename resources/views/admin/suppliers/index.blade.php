@@ -362,8 +362,10 @@
                             $('#supplierName').text(supplier.supplier_name);
                             $('#supplierPhone').text(supplier.supplier_phone);
 
+                            console.log(response.stats);
+                            
                             // Si tienes un gráfico, actualizarlo aquí
-                            if (supplier.stats) {
+                            if (response.stats) {
                                 updateSupplierDetails(supplier.stats);
                             }
 
@@ -427,9 +429,9 @@
             });
 
             // Función para actualizar el gráfico si lo necesitas
-            function updateSupplierDetails(stats) {
+            function updateSupplierDetails(stats = []) {
+                alert(stats)
                 const detailsContainer = document.getElementById('productDetails');
-                    alert(detailsContainer)
 
                 let detailsHTML = '';
                 let grandTotal = 0;
@@ -446,8 +448,8 @@
                                     <span class="badge badge-primary">${product.total_purchased}</span>
                                     <small class="text-muted">(Stock: ${product.stock})</small>
                                 </td>
-                                <td class="text-right">${currency.symbol} ${number_format(product.purchase_price, 2)}</td>
-                                <td class="text-right">${currency.symbol} ${number_format(subtotal, 2)}</td>
+                                <td class="text-right">{{currency.symbol}} ${number_format(product.purchase_price, 2)}</td>
+                                <td class="text-right">{{currency.symbol}} ${number_format(subtotal, 2)}</td>
                             </tr>`;
                     });
                 } else {
@@ -461,7 +463,7 @@
 
                 detailsContainer.innerHTML = detailsHTML;
                 document.getElementById('grandTotal').innerHTML =
-                    `${currency.symbol} ${number_format(grandTotal, 2)}`;
+                    `{{currency.symbol}} ${number_format(grandTotal, 2)}`;
             }
         });
     </script>
