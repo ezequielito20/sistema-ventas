@@ -14,9 +14,20 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
-   /**
-    * Display a listing of the resource.
-    */
+   public $currencies;
+   protected $company;
+
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       try {
@@ -24,6 +35,8 @@ class SupplierController extends Controller
          $suppliers = Supplier::where('company_id', Auth::user()->company_id)
             ->orderBy('company_name', 'asc')
             ->get();
+
+         $currency = $this->currencies;
 
          // Estadísticas para los widgets
          $totalSuppliers = $suppliers->count();
@@ -43,7 +56,8 @@ class SupplierController extends Controller
             'totalSuppliers',
             'activeSuppliers',
             'recentSuppliers',
-            'inactiveSuppliers'
+            'inactiveSuppliers',
+            'currency'
          ))
             ->with('message', 'Proveedores cargados correctamente')
             ->with('icons', 'success');

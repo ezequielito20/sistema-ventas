@@ -246,7 +246,7 @@
                                                     <th>Producto</th>
                                                     <th class="text-center">Cantidad</th>
                                                     <th class="text-right">Precio Unitario</th>
-                                                    <th class="text-right">Total</th>
+                                                    <th class="text-right">Sub Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="productDetails">
