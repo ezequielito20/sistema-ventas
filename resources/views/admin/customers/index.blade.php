@@ -96,15 +96,12 @@
             <div class="card-tools">
                 <div class="d-flex">
                     <div class="btn-group mr-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary active filter-btn" data-filter="all">
-                            Todos
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="active">
-                            Activo
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="inactive">
-                            Inactivo
-                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary active filter-btn"
+                            data-filter="all">Todos</button>
+                        <button type="button" class="btn btn-sm btn-outline-success filter-btn"
+                            data-filter="active">Activo</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn"
+                            data-filter="inactive">Inactivo</button>
                     </div>
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                         <i class="fas fa-minus"></i>
@@ -170,15 +167,9 @@
                             </td>
                             <td>
                                 @if ($customer->sales->count() > 0)
-                                    <span class="badge badge-success">
-                                        <i class="fas fa-check-circle mr-1"></i>
-                                        Activo
-                                    </span>
+                                    <span class="badge badge-success">Activo</span>
                                 @else
-                                    <span class="badge badge-danger">
-                                        <i class="fas fa-times-circle mr-1"></i>
-                                        Inactivo
-                                    </span>
+                                    <span class="badge badge-danger">Inactivo</span>
                                 @endif
                             </td>
                             <td>
@@ -362,7 +353,7 @@
     </style>
 @stop
 
-@push('js')
+@section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
@@ -405,8 +396,10 @@
 
                 if (filter === 'all') {
                     table.column(4).search('').draw();
-                } else {
-                    table.column(4).search(filter).draw();
+                } else if (filter === 'active') {
+                    table.column(4).search('^Activo$', true, false).draw();
+                } else if (filter === 'inactive') {
+                    table.column(4).search('^Inactivo$', true, false).draw();
                 }
             });
 
@@ -551,4 +544,4 @@
             });
         });
     </script>
-@endpush
+@stop

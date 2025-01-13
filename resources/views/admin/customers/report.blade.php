@@ -147,8 +147,12 @@
                     <td style="text-align: right">
                         {{ $currency->symbol }} {{ number_format($customer->total_sales_amount, 2) }}
                     </td>
-                    <td class="{{ $customer->isActive() ? 'status-active' : 'status-inactive' }}">
-                        {{ $customer->status }}
+                    <td>
+                        @if ($customer->sales->count() > 0)
+                            <span style="color: green">Activo</span>
+                        @else
+                            <span style="color: red">Inactivo</span>
+                        @endif
                     </td>
                 </tr>
             @endforeach
