@@ -81,6 +81,8 @@ class PermissionSeeder extends Seeder
          // Ventas
          'sales.index' => 'Ver listado de ventas',
          'sales.create' => 'Crear ventas',
+         'sales.edit' => 'Editar ventas',
+         'sales.update' => 'Actualizar ventas',
          'sales.show' => 'Ver detalles de ventas',
          'sales.destroy' => 'Eliminar ventas',
          'sales.report' => 'Generar reportes de ventas',

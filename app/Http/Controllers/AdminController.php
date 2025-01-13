@@ -2,34 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Purchase;
 use App\Models\PurchaseDetail;
+use Nnjeim\World\Models\Country;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class AdminController extends Controller
 {
    public $currencies;
    protected $company;
-
+   
    public function __construct()
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
          $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->id)
+            ->where('country_id', $this->company->country)
             ->first();
          return $next($request);
       });
    }
    public function index()
    {
-      $companyId = Auth::user()->company_id;
+      $companyId = Auth::user()->company->id;
       $currency = $this->currencies;
       // Obtener conteos básicos
       $usersCount = User::where('company_id', $companyId)->count();

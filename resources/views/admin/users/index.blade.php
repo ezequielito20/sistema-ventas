@@ -133,11 +133,6 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @if ($user->id !== auth()->id())
-                                        <button type="button" class="btn btn-warning btn-sm reset-password"
-                                            data-id="{{ $user->id }}" data-toggle="tooltip"
-                                            title="Resetear Contraseña">
-                                            <i class="fas fa-key"></i>
-                                        </button>
                                         <button type="button" class="btn btn-danger btn-sm delete-user"
                                             data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
                                             <i class="fas fa-trash"></i>

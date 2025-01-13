@@ -223,7 +223,7 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info shadow">
                 <div class="inner">
-                    <h3>${{ number_format($supplierInventoryValue->sum('total_value'), 2) }}</h3>
+                    <h2>{{ $currency->symbol }}{{ number_format($supplierInventoryValue->sum('total_value'), 2) }}</h2>
                     <p>Valor Total de Inventario</p>
                 </div>
                 <div class="icon">

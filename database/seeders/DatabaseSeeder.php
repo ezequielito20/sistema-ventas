@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
 
       $company = Company::create([
          'id' => 1,
-         'country' => 'Colombia',
+         'country' => '48',
          'name' => 'Empresa de prueba',
          'business_type' => 'Comercial',
          'nit' => '1234567890',

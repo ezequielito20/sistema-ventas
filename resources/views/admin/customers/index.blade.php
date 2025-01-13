@@ -12,9 +12,9 @@
             <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-            <button class="btn btn-outline-primary mr-2" id="exportCustomers">
+            {{-- <button class="btn btn-outline-primary mr-2" id="exportCustomers">
                 <i class="fas fa-file-export mr-2"></i>Exportar
-            </button>
+            </button> --}}
             <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle mr-2"></i>Nuevo Cliente
             </a>
@@ -100,10 +100,10 @@
                             Todos
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="active">
-                            Activos
+                            Activo
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="inactive">
-                            Inactivos
+                            Inactivo
                         </button>
                     </div>
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -169,7 +169,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if ($customer->isActive())
+                                @if ($customer->sales->count() > 0)
                                     <span class="badge badge-success">
                                         <i class="fas fa-check-circle mr-1"></i>
                                         Activo
@@ -506,7 +506,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/customers/${id}`,
+                            url: `/customers/delete/${id}`,
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -516,7 +516,7 @@
                                     Swal.fire({
                                         title: '¡Eliminado!',
                                         text: response.message,
-                                        icon: response.icon
+                                        icon: response.icons
                                     }).then(() => {
                                         location.reload();
                                     });

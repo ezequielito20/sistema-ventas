@@ -98,11 +98,12 @@ Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.
 Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware(['auth', 'can:purchases.index']);
 Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware(['auth', 'can:purchases.create']);
 Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware(['auth', 'can:purchases.create']);
+Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware(['auth', 'can:purchases.edit']);
+Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware(['auth', 'can:purchases.edit']);
 Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware(['auth', 'can:purchases.destroy']);
 Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware(['auth', 'can:purchases.details']);
 Route::get('/purchases/product-details/{code}', [PurchaseController::class, 'getProductDetails'])->name('admin.purchases.product-details')->middleware(['auth', 'can:purchases.product-details']);
 Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'getProductByCode'])->name('admin.purchases.product-by-code')->middleware(['auth', 'can:purchases.product-by-code']);
-Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware(['auth', 'can:purchases.edit']);
 
 // Customers
 Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware(['auth', 'can:customers.index']);
@@ -117,6 +118,8 @@ Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
 Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
 Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware(['auth', 'can:sales.create']);
+Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sales.edit')->middleware(['auth', 'can:sales.edit']);
+Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware(['auth', 'can:sales.edit']);
 Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware(['auth', 'can:sales.destroy']);
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware(['auth', 'can:sales.details']);
 Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware(['auth', 'can:sales.product-details']);
