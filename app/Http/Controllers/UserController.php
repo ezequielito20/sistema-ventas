@@ -15,20 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
-   public $currencies;
-   protected $company;
-
-   public function __construct()
-   {
-      $this->middleware(function ($request, $next) {
-         $this->company = Auth::user()->company;
-         $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->country)
-            ->first();
-
-         return $next($request);
-      });
-   }
+   
    public function index()
    {
       $company = Auth::user()->company;
@@ -44,7 +31,8 @@ class UserController extends Controller
    public function create()
    {
       try {
-         $company = $this->company;
+         $company = Auth::user()->company;
+
          // Obtener las empresas disponibles
          $companies = Company::select('id', 'name')
             ->where('id', Auth::user()->company_id)
@@ -197,7 +185,8 @@ class UserController extends Controller
       try {
          // Obtener usuario con sus roles
          $user = User::with('roles')->findOrFail($id);
-         $company = $this->company;
+         $company = Auth::user()->company;
+
          // Verificar que el usuario pertenezca a la misma empresa
          if ($user->company_id !== Auth::user()->company_id) {
             throw new \Exception('No tiene permisos para editar este usuario');
