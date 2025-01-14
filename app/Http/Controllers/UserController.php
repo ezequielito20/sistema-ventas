@@ -18,7 +18,17 @@ class UserController extends Controller
    public $currencies;
    protected $company;
 
-   
+   public function __construct()
+   {
+      $this->middleware(function ($request, $next) {
+         $this->company = Auth::user()->company;
+         $this->currencies = DB::table('currencies')
+            ->where('country_id', $this->company->country)
+            ->first();
+
+         return $next($request);
+      });
+   }
    public function index()
    {
       $company = Auth::user()->company;
