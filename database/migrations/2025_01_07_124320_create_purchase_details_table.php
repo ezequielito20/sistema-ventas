@@ -14,11 +14,11 @@ return new class extends Migration
       Schema::create('purchase_details', function (Blueprint $table) {
          $table->id();
 
-         $table->integer('quantity');
+         $table->integer('quantity')->nullable()->comment('Cantidad de productos en la compra');
 
-         $table->foreignId('purchase_id')->constrained('purchases')->onDelete('cascade');
-         $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-         $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+         $table->foreignId('purchase_id')->nullable()->constrained('purchases')->onDelete('cascade')->comment('ID de la compra asociada');
+         $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('cascade')->comment('ID del proveedor asociado');
+         $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade')->comment('ID del producto asociado');
 
          $table->timestamps();
       });

@@ -14,20 +14,20 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
 
-            $table->string('country');
-            $table->string('name');
-            $table->string('business_type');
-            $table->string('nit')->unique();  
-            $table->string('phone');
-            $table->string('email')->unique();
-            $table->integer('tax_amount');
-            $table->string('tax_name');
-            $table->string('currency', 20);
-            $table->text('address');
-            $table->string('city');
-            $table->string('state'); 
-            $table->string('postal_code');
-            $table->text('logo');
+            $table->string('country')->nullable()->comment('País de la empresa');
+            $table->string('name')->nullable()->comment('Nombre de la empresa');
+            $table->string('business_type')->nullable()->comment('Tipo de negocio de la empresa');
+            $table->string('nit')->unique()->nullable()->comment('Número de Identificación Tributaria (NIT)');
+            $table->string('phone')->nullable()->comment('Número de teléfono de la empresa');
+            $table->string('email')->unique()->nullable()->comment('Correo electrónico de la empresa');
+            $table->integer('tax_amount')->nullable()->comment('Monto del impuesto aplicado');
+            $table->string('tax_name')->nullable()->comment('Nombre del impuesto');
+            $table->string('currency', 20)->nullable()->comment('Moneda utilizada por la empresa');
+            $table->text('address')->nullable()->comment('Dirección de la empresa');
+            $table->string('city')->nullable()->comment('Ciudad donde se ubica la empresa');
+            $table->string('state')->nullable()->comment('Estado donde se ubica la empresa');
+            $table->string('postal_code')->nullable()->comment('Código postal de la empresa');
+            $table->text('logo')->nullable()->comment('Ruta del logo de la empresa');
 
             $table->timestamps();
         });

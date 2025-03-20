@@ -65,7 +65,7 @@
                                 {{-- NIT --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="nit_number" class="font-weight-bold required">
+                                        <label for="nit_number" class="font-weight-bold ">
                                             Número de NIT
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -77,7 +77,7 @@
                                             <input type="text"
                                                 class="form-control form-control-lg @error('nit_number') is-invalid @enderror"
                                                 id="nit_number" name="nit_number" value="{{ old('nit_number') }}"
-                                                placeholder="Ingrese el NIT" required>
+                                                placeholder="Ingrese el NIT" >
                                             @error('nit_number')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -88,7 +88,7 @@
                                 {{-- Teléfono --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="phone" class="font-weight-bold required">
+                                        <label for="phone" class="font-weight-bold ">
                                             Teléfono
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -100,7 +100,7 @@
                                             <input type="tel"
                                                 class="form-control form-control-lg @error('phone') is-invalid @enderror"
                                                 id="phone" name="phone" value="{{ old('phone') }}"
-                                                placeholder="(123) 456-7890" required>
+                                                placeholder="(123) 456-7890" >
                                             @error('phone')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -111,7 +111,7 @@
                                 {{-- Email --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="email" class="font-weight-bold required">
+                                        <label for="email" class="font-weight-bold ">
                                             Correo Electrónico
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -123,7 +123,7 @@
                                             <input type="email"
                                                 class="form-control form-control-lg @error('email') is-invalid @enderror"
                                                 id="email" name="email" value="{{ old('email') }}"
-                                                placeholder="ejemplo@correo.com" required>
+                                                placeholder="ejemplo@correo.com" >
                                             @error('email')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror

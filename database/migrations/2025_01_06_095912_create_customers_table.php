@@ -15,9 +15,9 @@ return new class extends Migration
          $table->id();
 
          $table->string('name');
-         $table->string('nit_number');
-         $table->string('phone');
-         $table->string('email');
+         $table->string('nit_number')->nullable();
+         $table->string('phone')->nullable();
+         $table->string('email')->nullable();
 
          $table->foreignId('company_id')->constrained('companies');
          

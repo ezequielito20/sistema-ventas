@@ -14,10 +14,9 @@ return new class extends Migration
       Schema::create('purchase_tmps', function (Blueprint $table) {
          $table->id();
 
-         $table->integer('quantity');
-         $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-
-         $table->string('session_id');
+         $table->integer('quantity')->nullable()->comment('Cantidad de productos en la compra');
+         $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade')->comment('ID del producto asociado');
+         $table->string('session_id')->nullable()->comment('ID de la sesión de compra');
 
          $table->timestamps();
       });

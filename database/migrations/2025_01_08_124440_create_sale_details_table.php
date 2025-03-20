@@ -14,10 +14,9 @@ return new class extends Migration
       Schema::create('sale_details', function (Blueprint $table) {
          $table->id();
 
-         $table->integer('quantity');
-
-         $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
-         $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+         $table->integer('quantity')->nullable()->comment('Cantidad de productos vendidos');
+         $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('cascade')->comment('ID de la venta asociada');
+         $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade')->comment('ID del producto asociado');
 
          $table->timestamps();
       });

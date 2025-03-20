@@ -14,11 +14,11 @@ return new class extends Migration
       Schema::create('cash_movements', function (Blueprint $table) {
          $table->id();
 
-         $table->enum('type', ['income', 'expense']);
-         $table->decimal('amount', 10, 2);
-         $table->string('description')->nullable();
+         $table->enum('type', ['income', 'expense'])->nullable()->comment('Tipo de movimiento: ingreso o gasto');
+         $table->decimal('amount', 10, 2)->nullable()->comment('Monto del movimiento de caja');
+         $table->string('description')->nullable()->comment('Descripción del movimiento de caja');
          
-         $table->foreignId('cash_count_id')->constrained('cash_counts')->onDelete('cascade');
+         $table->foreignId('cash_count_id')->nullable()->constrained('cash_counts')->onDelete('cascade')->comment('ID del conteo de caja asociado');
          $table->timestamps();
       });
    }

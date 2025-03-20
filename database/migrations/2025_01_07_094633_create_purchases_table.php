@@ -14,11 +14,11 @@ return new class extends Migration
       Schema::create('purchases', function (Blueprint $table) {
          $table->id();
 
-         $table->date('purchase_date');
-         $table->string('payment_receipt')->nullable();
-         $table->decimal('total_price', 10, 2);
+         $table->date('purchase_date')->nullable()->comment('Fecha de la compra');
+         $table->string('payment_receipt')->nullable()->comment('Recibo de pago de la compra');
+         $table->decimal('total_price', 10, 2)->nullable()->comment('Precio total de la compra');
 
-         $table->unsignedBigInteger('company_id');
+         $table->unsignedBigInteger('company_id')->nullable()->comment('ID de la empresa asociada a la compra');
 
          $table->timestamps();
 

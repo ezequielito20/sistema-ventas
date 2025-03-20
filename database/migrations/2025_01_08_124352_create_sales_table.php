@@ -14,11 +14,11 @@ return new class extends Migration
       Schema::create('sales', function (Blueprint $table) {
          $table->id();
 
-         $table->date('sale_date');
-         $table->decimal('total_price', 10, 2);
+         $table->date('sale_date')->nullable()->comment('Fecha de la venta');
+         $table->decimal('total_price', 10, 2)->nullable()->comment('Precio total de la venta');
 
-         $table->unsignedBigInteger('company_id');
-         $table->foreignId('customer_id')->constrained('customers');
+         $table->unsignedBigInteger('company_id')->nullable()->comment('ID de la empresa asociada a la venta');
+         $table->foreignId('customer_id')->nullable()->constrained('customers')->comment('ID del cliente asociado a la venta');
 
          $table->timestamps();
       });

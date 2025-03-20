@@ -13,22 +13,22 @@ return new class extends Migration
    {
       Schema::create('products', function (Blueprint $table) {
          $table->id();
-         $table->string('code')->comment('Código único del producto');
-         $table->string('name')->comment('Nombre del producto');
+         $table->string('code')->nullable()->comment('Código único del producto');
+         $table->string('name')->nullable()->comment('Nombre del producto');
          $table->text('description')->nullable()->comment('Descripción detallada del producto');
          $table->text('image')->nullable()->comment('Ruta de la imagen del producto');
-         $table->integer('stock')->comment('Cantidad actual en inventario');
-         $table->integer('min_stock')->comment('Stock mínimo permitido');
-         $table->integer('max_stock')->comment('Stock máximo permitido');
-         $table->decimal('purchase_price', 8, 2)->comment('Precio de compra del producto');
-         $table->decimal('sale_price', 8, 2)->comment('Precio de venta al público');
-         $table->date('entry_date')->comment('Fecha de ingreso al inventario');
+         $table->integer('stock')->nullable()->comment('Cantidad actual en inventario');
+         $table->integer('min_stock')->nullable()->comment('Stock mínimo permitido');
+         $table->integer('max_stock')->nullable()->comment('Stock máximo permitido');
+         $table->decimal('purchase_price', 8, 2)->nullable()->comment('Precio de compra del producto');
+         $table->decimal('sale_price', 8, 2)->nullable()->comment('Precio de venta al público');
+         $table->date('entry_date')->nullable()->comment('Fecha de ingreso al inventario');
 
-         $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+         $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('cascade');
 
          $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
 
-         $table->unsignedBigInteger('company_id');
+         $table->unsignedBigInteger('company_id')->nullable();
 
          $table->timestamps();
       });

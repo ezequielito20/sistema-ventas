@@ -14,13 +14,13 @@ return new class extends Migration
       Schema::create('suppliers', function (Blueprint $table) {
          $table->id();
 
-         $table->string('company_name');
-         $table->string('company_address');
-         $table->string('company_phone');
-         $table->string('company_email');
+         $table->string('company_name')->nullable()->comment('Nombre de la empresa proveedora');
+         $table->string('company_address')->nullable()->comment('Dirección de la empresa proveedora');
+         $table->string('company_phone')->nullable()->comment('Teléfono de la empresa proveedora');
+         $table->string('company_email')->nullable()->comment('Correo electrónico de la empresa proveedora');
 
-         $table->string('supplier_name');
-         $table->string('supplier_phone');
+         $table->string('supplier_name')->nullable()->comment('Nombre del proveedor');
+         $table->string('supplier_phone')->nullable()->comment('Teléfono del proveedor');
 
          $table->unsignedBigInteger('company_id');
 

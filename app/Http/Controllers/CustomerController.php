@@ -111,20 +111,20 @@ class CustomerController extends Controller
          $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-]+$/u'],
             'nit_number' => [
-               'required',
+               // 'required',
                'string',
                'max:20',
                // 'regex:/^\d{3}-\d{6}-\d{3}-\d{1}$/',
                Rule::unique('customers', 'nit_number'),
             ],
             'phone' => [
-               'required',
+               // 'required',
                'string',
                'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
                Rule::unique('customers', 'phone'),
             ],
             'email' => [
-               'required',
+               // 'required',
                'string',
                'email',
                'max:255',
@@ -132,10 +132,25 @@ class CustomerController extends Controller
             ]
          ], [
             'name.regex' => 'El nombre solo debe contener letras y espacios',
+            'name.required' => 'El nombre es obligatorio',
+            'name.string' => 'El nombre debe ser texto',
+            'name.max' => 'El nombre no debe exceder los 255 caracteres',
+            
+            'nit_number.required' => 'El NIT es obligatorio',
+            'nit_number.string' => 'El NIT debe ser texto',
+            'nit_number.max' => 'El NIT no debe exceder los 20 caracteres',
             'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
-            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
             'nit_number.unique' => 'Este NIT ya está registrado',
+            
+            'phone.required' => 'El teléfono es obligatorio',
+            'phone.string' => 'El teléfono debe ser texto',
+            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
             'phone.unique' => 'Este teléfono ya está registrado',
+            
+            'email.required' => 'El correo electrónico es obligatorio',
+            'email.string' => 'El correo electrónico debe ser texto',
+            'email.email' => 'Debe ingresar un correo electrónico válido',
+            'email.max' => 'El correo no debe exceder los 255 caracteres',
             'email.unique' => 'Este correo ya está registrado'
          ]);
 
@@ -320,17 +335,26 @@ class CustomerController extends Controller
                'unique:customers,email,' . $id,
             ],
          ], [
-            'name.required' => 'El nombre es obligatorio.',
-            'name.regex' => 'El nombre solo debe contener letras y espacios.',
-            'nit_number.required' => 'El NIT es obligatorio.',
+            'name.required' => 'El nombre es obligatorio',
+            'name.regex' => 'El nombre solo debe contener letras y espacios',
+            'name.string' => 'El nombre debe ser texto',
+            'name.max' => 'El nombre no debe exceder los 255 caracteres',
+            
+            'nit_number.required' => 'El NIT es obligatorio',
+            'nit_number.string' => 'El NIT debe ser texto',
+            'nit_number.max' => 'El NIT no debe exceder los 20 caracteres',
             'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
-            'nit_number.unique' => 'Este NIT ya está registrado.',
-            'phone.required' => 'El teléfono es obligatorio.',
-            'phone.regex' => 'El formato del teléfono debe ser (123) 456-7890.',
-            'phone.unique' => 'Este teléfono ya está registrado.',
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'Ingrese un correo electrónico válido.',
-            'email.unique' => 'Este correo electrónico ya está registrado.'
+            'nit_number.unique' => 'Este NIT ya está registrado',
+            
+            'phone.required' => 'El teléfono es obligatorio',
+            'phone.string' => 'El teléfono debe ser texto',
+            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
+            'phone.unique' => 'Este teléfono ya está registrado',
+            
+            'email.required' => 'El correo electrónico es obligatorio',
+            'email.email' => 'Debe ingresar un correo electrónico válido',
+            'email.max' => 'El correo no debe exceder los 255 caracteres',
+            'email.unique' => 'Este correo ya está registrado'
          ]);
 
          // Actualizar el cliente
