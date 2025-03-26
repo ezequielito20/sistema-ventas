@@ -114,8 +114,7 @@ class CustomerController extends Controller
             'phone' => [
                'nullable',
                'string',
-               'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
-               Rule::unique('customers', 'phone'),
+               'max:20',
             ],
             'email' => [
                'nullable',
@@ -130,37 +129,19 @@ class CustomerController extends Controller
                'min:0',
             ],
          ], [
-            'name.regex' => 'El nombre solo debe contener letras y espacios',
-            'name.required' => 'El nombre es obligatorio',
-            'name.string' => 'El nombre debe ser texto',
-            'name.max' => 'El nombre no debe exceder los 255 caracteres',
-            
-            'nit_number.required' => 'El NIT es obligatorio',
-            'nit_number.string' => 'El NIT debe ser texto',
-            'nit_number.max' => 'El NIT no debe exceder los 20 caracteres',
-            'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
-            'nit_number.unique' => 'Este NIT ya está registrado',
-            
-            'phone.required' => 'El teléfono es obligatorio',
-            'phone.string' => 'El teléfono debe ser texto',
-            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
-            'phone.unique' => 'Este teléfono ya está registrado',
-            
-            'email.required' => 'El correo electrónico es obligatorio',
-            'email.string' => 'El correo electrónico debe ser texto',
-            'email.email' => 'Debe ingresar un correo electrónico válido',
-            'email.max' => 'El correo no debe exceder los 255 caracteres',
-            'email.unique' => 'Este correo ya está registrado',
-            'total_debt.numeric' => 'La deuda debe ser un valor numérico',
+            'name.required' => 'El nombre del cliente es obligatorio',
+            'name.regex' => 'El nombre solo debe contener letras, espacios y guiones',
+            'nit_number.unique' => 'Este NIT ya está registrado para otro cliente',
+            'nit_number.regex' => 'El formato del NIT no es válido (ej: 123-456789-123-1)',
+            'email.email' => 'El formato del correo electrónico no es válido',
+            'email.unique' => 'Este correo electrónico ya está registrado para otro cliente',
             'total_debt.min' => 'La deuda no puede ser un valor negativo',
          ]);
 
          if ($validator->fails()) {
             return redirect()->back()
                ->withErrors($validator)
-               ->withInput()
-               ->with('message', 'Error de validación')
-               ->with('icons', 'error');
+               ->withInput();
          }
 
          // Formatear datos
@@ -186,6 +167,13 @@ class CustomerController extends Controller
          ]);
 
          DB::commit();
+
+         // Determinar la redirección basada en el botón presionado
+         if ($request->input('action') === 'save_and_new') {
+            return redirect()->route('admin.customers.create')
+               ->with('message', '¡Cliente creado exitosamente! Puedes crear otro cliente.')
+               ->with('icons', 'success');
+         }
 
          return redirect()->route('admin.customers.index')
             ->with('message', '¡Cliente creado exitosamente!')

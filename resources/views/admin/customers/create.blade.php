@@ -135,9 +135,13 @@
 
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-lg btn-primary">
+                                <button type="submit" class="btn btn-lg btn-primary mr-2" name="action" value="save">
                                     <i class="fas fa-save mr-2"></i>
                                     Guardar Cliente
+                                </button>
+                                <button type="submit" class="btn btn-lg btn-success" name="action" value="save_and_new">
+                                    <i class="fas fa-plus-circle mr-2"></i>
+                                    Guardar y Crear Otro
                                 </button>
                             </div>
                         </div>
