@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\CashCount;
 use App\Models\SaleDetail;
+use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -112,14 +113,16 @@ class SaleController extends Controller
     */
    public function store(Request $request)
    {
-      // dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'sale_date' => 'required|date',
-            // 'payment_type' => 'required|in:cash,card,transfer',
             'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.subtotal' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
          ]);
 
@@ -145,6 +148,7 @@ class SaleController extends Controller
             'total_price' => $validated['total_price'],
             'company_id' => Auth::user()->company_id,
             'customer_id' => $validated['customer_id'],
+            'cash_count_id' => $currentCashCount->id,
          ]);
 
          // Actualizar la deuda del cliente
@@ -152,28 +156,31 @@ class SaleController extends Controller
          $customer->save();
 
          // Procesar cada producto en la venta
-         foreach ($request->items as $key => $item) {
-            // Obtener el producto
-            $product = Product::where('id', $key)
-               ->where('company_id', Auth::user()->company_id)
-               ->firstOrFail();
-
-            // Verificar stock disponible
-            if ($product->stock < $item['quantity']) {
-               throw new \Exception("Stock insuficiente para el producto: {$product->name}");
-            }
-
-            // Crear el detalle de la venta
+         foreach ($request->items as $item) {
+            // Crear el detalle de venta
             SaleDetail::create([
-               'quantity' => $item['quantity'],
                'sale_id' => $sale->id,
-               'product_id' => $product->id,
+               'product_id' => $item['product_id'],
+               'quantity' => $item['quantity'],
+               'unit_price' => $item['price'],
+               'subtotal' => $item['subtotal'],
             ]);
 
             // Actualizar el stock del producto
+            $product = Product::findOrFail($item['product_id']);
             $product->stock -= $item['quantity'];
             $product->save();
          }
+
+         // Registrar la transacción en la caja usando CashMovement en lugar de CashTransaction
+         CashMovement::create([
+            'cash_count_id' => $currentCashCount->id,
+            'amount' => $validated['total_price'],
+            'type' => CashMovement::TYPE_INCOME,
+            'description' => 'Venta #' . $sale->id,
+         ]);
+
+         DB::commit();
 
          // Log de la creación
          Log::info('Venta creada exitosamente', [
@@ -183,19 +190,17 @@ class SaleController extends Controller
             'total_price' => $sale->total_price
          ]);
 
-         // Registrar el movimiento en la caja
-         $currentCashCount->movements()->create([
-            'type' => 'income',
-            'amount' => $validated['total_price'],
-            'description' => 'Venta #' . $sale->id,
-            'cash_count_id' => $sale->id,
-         ]);
-
-         DB::commit();
+         // Determinar la redirección basada en el botón presionado
+         if ($request->input('action') == 'save_and_new') {
+            return redirect()->route('admin.sales.create')
+                ->with('message', '¡Venta #' . $sale->id . ' procesada exitosamente! Puedes crear otra venta.')
+                ->with('icons', 'success');
+         }
 
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta registrada exitosamente!')
             ->with('icons', 'success');
+
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear venta: ' . $e->getMessage(), [

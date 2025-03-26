@@ -170,10 +170,16 @@
                                 <i class="fas fa-times-circle mr-2"></i>
                                 Cancelar Venta
                             </button>
-                            <button type="submit" class="btn btn-primary" id="processSale">
-                                <i class="fas fa-save mr-2"></i>
-                                Procesar Venta
-                            </button>
+                            <div>
+                                <button type="submit" class="btn btn-primary mr-2" name="action" value="save">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Procesar Venta
+                                </button>
+                                <button type="submit" class="btn btn-success" name="action" value="save_and_new">
+                                    <i class="fas fa-plus-circle mr-2"></i>
+                                    Procesar y Nueva Venta
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -364,68 +370,65 @@
             // Función para agregar producto a la tabla
             function addProductToTable(product) {
                 // Verificar si el producto ya está en la tabla
-                if ($(`tr[data-product-code="${product.code}"]`).length > 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Producto ya agregado',
-                        text: 'Este producto ya está en la lista de venta'
-                    });
-                    return;
+                const existingRow = $(`#saleItems tr[data-product-id="${product.id}"]`);
+                
+                if (existingRow.length > 0) {
+                    // Si el producto ya existe, incrementar la cantidad
+                    const quantityInput = existingRow.find('.quantity-input');
+                    const currentQuantity = parseInt(quantityInput.val()) || 0;
+                    const newQuantity = currentQuantity + 1;
+                    
+                    // Verificar stock
+                    const maxStock = parseInt(quantityInput.attr('max'));
+                    if (newQuantity > maxStock) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock insuficiente',
+                            text: `Solo hay ${maxStock} unidades disponibles`,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        return;
+                    }
+                    
+                    quantityInput.val(newQuantity).trigger('input');
+                } else {
+                    // Si es un producto nuevo, agregar una nueva fila
+                    const row = `
+                        <tr data-product-id="${product.id}">
+                            <td>${product.code}</td>
+                            <td>${product.name}</td>
+                            <td>
+                                <span class="badge badge-${product.stock > 10 ? 'success' : (product.stock > 0 ? 'warning' : 'danger')}">
+                                    ${product.stock}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control quantity-input" 
+                                       value="1" min="1" max="${product.stock}" step="1">
+                            </td>
+                            <td>
+                                ${product.sale_price}
+                                <input type="hidden" class="price-input" value="${product.sale_price}">
+                            </td>
+                            <td>
+                                <span class="subtotal-display">${'{{ $currency->symbol }}'} ${product.sale_price}</span>
+                                <span class="subtotal-value d-none">${product.sale_price}</span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm remove-item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    $('#saleItems').append(row);
+                    updateTotal();
                 }
-
-                // Verificar stock
-                if (product.stock <= 0) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Sin stock',
-                        text: 'Este producto no tiene stock disponible'
-                    });
-                    return;
-                }
-
-                const row = `
-                    <tr data-product-code="${product.code}">
-                        <td>${product.code}</td>
-                        <td>${product.name}</td>
-                        <td class="text-center">
-                            <span class="badge badge-${product.stock_status_class}">${product.stock}</span>
-                        </td>
-                        <td>
-                            <input type="number" 
-                                class="form-control form-control-sm quantity-input" 
-                                name="items[${product.id}][quantity]" 
-                                value="1" 
-                                min="1" 
-                                max="${product.stock}">
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">{{ $currency->symbol }}</span>
-                                </div>
-                                <input type="number" 
-                                    class="form-control form-control-sm price-input" 
-                                    name="items[${product.id}][price]" 
-                                    value="${product.sale_price}" 
-                                    step="0.01" 
-                                    readonly>
-                            </div>
-                        </td>
-                        <td class="text-right">
-                            <span class="subtotal-value" style="display:none;">${product.sale_price}</span>
-                            <span class="subtotal-display">{{ $currency->symbol }}${product.sale_price}</span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
-                $('#saleItems').append(row);
-                updateTotal();
-
+                
                 // Notificación de éxito
                 Swal.fire({
                     icon: 'success',
@@ -562,6 +565,67 @@
                         updateTotal();
                     }
                 });
+            });
+
+            // Modificar el envío del formulario para preservar el valor del botón
+            $('form').submit(function(e) {
+                e.preventDefault();
+                
+                // Verificar si hay productos en la tabla
+                if ($('#saleItems tr').length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe agregar al menos un producto a la venta'
+                    });
+                    return false;
+                }
+                
+                // Verificar si se seleccionó un cliente
+                if (!$('#customer_id').val()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar un cliente'
+                    });
+                    return false;
+                }
+                
+                // Capturar el valor del botón que se presionó
+                const buttonAction = $(document.activeElement).val();
+                
+                // Preparar los datos de los productos
+                const items = [];
+                $('#saleItems tr').each(function() {
+                    const row = $(this);
+                    items.push({
+                        product_id: row.data('product-id'),
+                        quantity: parseFloat(row.find('.quantity-input').val()),
+                        price: parseFloat(row.find('.price-input').val()),
+                        subtotal: parseFloat(row.find('.subtotal-value').text())
+                    });
+                });
+                
+                // Crear campos ocultos para los items
+                $('#itemsContainer').remove(); // Eliminar contenedor previo si existe
+                const container = $('<div id="itemsContainer"></div>');
+                
+                // Agregar cada item como un campo oculto
+                items.forEach((item, index) => {
+                    container.append(`<input type="hidden" name="items[${index}][product_id]" value="${item.product_id}">`);
+                    container.append(`<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`);
+                    container.append(`<input type="hidden" name="items[${index}][price]" value="${item.price}">`);
+                    container.append(`<input type="hidden" name="items[${index}][subtotal]" value="${item.subtotal}">`);
+                });
+                
+                // Agregar el valor del botón presionado
+                container.append(`<input type="hidden" name="action" value="${buttonAction}">`);
+                
+                // Agregar el contenedor al formulario
+                $(this).append(container);
+                
+                // Continuar con el envío del formulario
+                this.submit();
             });
         });
     </script>
