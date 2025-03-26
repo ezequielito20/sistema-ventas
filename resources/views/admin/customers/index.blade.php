@@ -12,14 +12,14 @@
             <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
-            <a href="{{ route('admin.customers.debt-report') }}" class="btn btn-danger mr-2" target="_blank">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
-            </a>
             {{-- <button class="btn btn-outline-primary mr-2" id="exportCustomers">
                 <i class="fas fa-file-export mr-2"></i>Exportar
             </button> --}}
             <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle mr-2"></i>Nuevo Cliente
+            </a>
+            <a href="#" class="btn btn-danger mr-2" id="debtReportBtn">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
             </a>
         </div>
     </div>
@@ -313,6 +313,21 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para el reporte de deudas -->
+    <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <!-- El contenido se cargará mediante AJAX -->
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando reporte...</p>
                 </div>
             </div>
         </div>
@@ -692,6 +707,44 @@
                         container.find('.badge').show();
                     }
                     container.find('.edit-debt-btn').show();
+                });
+            });
+
+            // Cargar el reporte de deudas en el modal
+            $('#debtReportBtn').click(function(e) {
+                e.preventDefault();
+                
+                // Mostrar el modal con el spinner de carga
+                $('#debtReportModal').modal('show');
+                
+                // Cargar el contenido del reporte mediante AJAX
+                $.ajax({
+                    url: "{{ route('admin.customers.debt-report') }}",
+                    method: 'GET',
+                    success: function(response) {
+                        // Reemplazar el contenido del modal con la respuesta
+                        $('#debtReportModal .modal-content').html(response);
+                    },
+                    error: function(xhr) {
+                        // Mostrar mensaje de error
+                        $('#debtReportModal .modal-content').html(`
+                            <div class="modal-header bg-danger">
+                                <h5 class="modal-title text-white">Error</h5>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Error al cargar el reporte: ${xhr.responseJSON?.message || 'Error desconocido'}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            </div>
+                        `);
+                    }
                 });
             });
         });

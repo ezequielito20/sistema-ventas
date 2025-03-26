@@ -547,4 +547,38 @@ class CustomerController extends Controller
                ->with('icons', 'error');
        }
    }
+
+   /**
+    * Muestra un modal con el reporte de deudas de clientes
+    */
+   public function debtReportModal()
+   {
+       try {
+           // Obtener clientes con deudas pendientes
+           $customers = Customer::where('company_id', $this->company->id)
+               ->where('total_debt', '>', 0)
+               ->with('lastSale')
+               ->orderBy('total_debt', 'desc')
+               ->get();
+               
+           $company = $this->company;
+           $currency = $this->currencies;
+           $totalDebt = $customers->sum('total_debt');
+           
+           // Devolver la vista parcial para el modal
+           return view('admin.customers.reports.debt-report-modal', compact(
+               'customers', 
+               'company', 
+               'currency',
+               'totalDebt'
+           ));
+           
+       } catch (\Exception $e) {
+           Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
+           return response()->json([
+               'success' => false,
+               'message' => 'Error al generar el reporte de deudas: ' . $e->getMessage()
+           ], 500);
+       }
+   }
 }
