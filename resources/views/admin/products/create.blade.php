@@ -26,7 +26,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="code">Código <span class="text-danger">*</span></label>
+                                    <label for="code">Código <span class="text-danger"></span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
@@ -34,7 +34,7 @@
                                             </span>
                                         </div>
                                         <input type="text" class="form-control @error('code') is-invalid @enderror"
-                                            id="code" name="code" value="{{ old('code') }}" required>
+                                            id="code" name="code" value="{{ old('code') }}" >
                                     </div>
                                     @error('code')
                                         <span class="invalid-feedback" role="alert">
@@ -45,9 +45,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="category_id">Categoría <span class="text-danger">*</span></label>
+                                    <label for="category_id">Categoría <span class="text-danger"></span></label>
                                     <select class="form-control select2 @error('category_id') is-invalid @enderror"
-                                        id="category_id" name="category_id" required>
+                                        id="category_id" name="category_id" >
                                         <option value="">Seleccionar categoría</option>
                                         @foreach ($categories as $category)
                                             <option value="{{ $category->id }}"
@@ -68,9 +68,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">Nombre del Producto <span class="text-danger">*</span></label>
+                                    <label for="name">Nombre del Producto <span class="text-danger"></span></label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
-                                        name="name" value="{{ old('name') }}" required>
+                                        name="name" value="{{ old('name') }}" >
                                     @error('name')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -81,7 +81,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="entry_date">Fecha de Ingreso <span class="text-danger">*</span></label>
+                                    <label for="entry_date">Fecha de Ingreso <span class="text-danger"></span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
@@ -90,7 +90,7 @@
                                         </div>
                                         <input type="date" class="form-control @error('entry_date') is-invalid @enderror"
                                             id="entry_date" name="entry_date" value="{{ old('entry_date', date('Y-m-d')) }}"
-                                            max="{{ date('Y-m-d') }}" required>
+                                            max="{{ date('Y-m-d') }}" >
                                     </div>
                                     @error('entry_date')
                                         <span class="invalid-feedback" role="alert">
@@ -183,9 +183,9 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="stock">Stock Actual <span class="text-danger">*</span></label>
+                                    <label for="stock">Stock Actual <span class="text-danger"></span></label>
                                     <input type="number" class="form-control @error('stock') is-invalid @enderror"
-                                        id="stock" name="stock" value="{{ old('stock', 0) }}" required>
+                                        id="stock" name="stock" value="{{ old('stock', 0) }}" >
                                     @error('stock')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -195,9 +195,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="min_stock">Stock Mínimo <span class="text-danger">*</span></label>
+                                    <label for="min_stock">Stock Mínimo <span class="text-danger"></span></label>
                                     <input type="number" class="form-control @error('min_stock') is-invalid @enderror"
-                                        id="min_stock" name="min_stock" value="{{ old('min_stock', 0) }}" required>
+                                        id="min_stock" name="min_stock" value="{{ old('min_stock', 0) }}" >
                                     @error('min_stock')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -207,9 +207,9 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="max_stock">Stock Máximo <span class="text-danger">*</span></label>
+                                    <label for="max_stock">Stock Máximo <span class="text-danger"></span></label>
                                     <input type="number" class="form-control @error('max_stock') is-invalid @enderror"
-                                        id="max_stock" name="max_stock" value="{{ old('max_stock', 0) }}" required>
+                                        id="max_stock" name="max_stock" value="{{ old('max_stock', 0) }}" >
                                     @error('max_stock')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -233,7 +233,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="purchase_price">Precio de Compra <span
-                                            class="text-danger">*</span></label>
+                                            class="text-danger"></span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">{{$currency->symbol}}</span>
@@ -241,7 +241,7 @@
                                         <input type="number"
                                             class="form-control @error('purchase_price') is-invalid @enderror"
                                             id="purchase_price" name="purchase_price"
-                                            value="{{ old('purchase_price', 0) }}" step="0.01" required>
+                                            value="{{ old('purchase_price', 0) }}" step="0.01" >
                                     </div>
                                     @error('purchase_price')
                                         <span class="invalid-feedback" role="alert">
@@ -252,7 +252,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="sale_price">Precio de Venta <span class="text-danger">*</span></label>
+                                    <label for="sale_price">Precio de Venta <span class="text-danger"></span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">{{$currency->symbol}}</span>
@@ -260,7 +260,7 @@
                                         <input type="number"
                                             class="form-control @error('sale_price') is-invalid @enderror"
                                             id="sale_price" name="sale_price" value="{{ old('sale_price', 0) }}"
-                                            step="0.01" required>
+                                            step="0.01" >
                                     </div>
                                     @error('sale_price')
                                         <span class="invalid-feedback" role="alert">

@@ -14,12 +14,13 @@ return new class extends Migration
       Schema::create('customers', function (Blueprint $table) {
          $table->id();
 
-         $table->string('name');
-         $table->string('nit_number')->nullable();
-         $table->string('phone')->nullable();
-         $table->string('email')->nullable();
+         $table->string('name')->nullable()->comment('Nombre del cliente');
+         $table->string('nit_number')->nullable()->comment('Número de NIT del cliente');
+         $table->string('phone')->nullable()->comment('Teléfono del cliente');
+         $table->string('email')->nullable()->comment('Correo electrónico del cliente');
+         $table->decimal('total_debt', 10, 2)->default(0)->comment('Deuda total del cliente');
 
-         $table->foreignId('company_id')->constrained('companies');
+         $table->foreignId('company_id')->nullable()->constrained('companies')->comment('ID de la empresa asociada al cliente');
          
          $table->timestamps();
       });

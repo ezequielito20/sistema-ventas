@@ -40,7 +40,7 @@
                                 {{-- Nombre Completo --}}
                                 <div class="col-md-6">
                                     <div class="form-group position-relative">
-                                        <label for="name" class="font-weight-bold required">
+                                        <label for="name" class="font-weight-bold ">
                                             Nombre Completo
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -52,7 +52,7 @@
                                             <input type="text"
                                                 class="form-control form-control-lg @error('name') is-invalid @enderror"
                                                 id="name" name="name" value="{{ old('name', $customer->name) }}"
-                                                placeholder="Ingrese el nombre completo" required autofocus>
+                                                placeholder="Ingrese el nombre completo"  autofocus>
                                             <div class="valid-feedback">
                                                 ¡Se ve bien!
                                             </div>
@@ -66,7 +66,7 @@
                                 {{-- NIT --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="nit_number" class="font-weight-bold required">
+                                        <label for="nit_number" class="font-weight-bold ">
                                             Número de NIT
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -79,7 +79,7 @@
                                                 class="form-control form-control-lg @error('nit_number') is-invalid @enderror"
                                                 id="nit_number" name="nit_number"
                                                 value="{{ old('nit_number', $customer->nit_number) }}"
-                                                placeholder="Ingrese el NIT" required>
+                                                placeholder="Ingrese el NIT" >
                                             @error('nit_number')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -90,7 +90,7 @@
                                 {{-- Teléfono --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="phone" class="font-weight-bold required">
+                                        <label for="phone" class="font-weight-bold ">
                                             Teléfono
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -102,7 +102,7 @@
                                             <input type="tel"
                                                 class="form-control form-control-lg @error('phone') is-invalid @enderror"
                                                 id="phone" name="phone" value="{{ old('phone', $customer->phone) }}"
-                                                placeholder="(123) 456-7890" required>
+                                                placeholder="(123) 456-7890" >
                                             @error('phone')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -113,7 +113,7 @@
                                 {{-- Email --}}
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="email" class="font-weight-bold required">
+                                        <label for="email" class="font-weight-bold ">
                                             Correo Electrónico
                                         </label>
                                         <div class="input-group input-group-lg">
@@ -125,8 +125,31 @@
                                             <input type="email"
                                                 class="form-control form-control-lg @error('email') is-invalid @enderror"
                                                 id="email" name="email" value="{{ old('email', $customer->email) }}"
-                                                placeholder="ejemplo@correo.com" required>
+                                                placeholder="ejemplo@correo.com" >
                                             @error('email')
+                                                <span class="invalid-feedback">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Deuda Total --}}
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="total_debt" class="font-weight-bold">
+                                            Deuda Total
+                                        </label>
+                                        <div class="input-group input-group-lg">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-primary text-white">
+                                                    <i class="fas fa-money-bill-wave"></i>
+                                                </span>
+                                            </div>
+                                            <input type="number" step="0.01" min="0"
+                                                class="form-control form-control-lg @error('total_debt') is-invalid @enderror"
+                                                id="total_debt" name="total_debt" value="{{ old('total_debt', $customer->total_debt) }}"
+                                                placeholder="0.00">
+                                            @error('total_debt')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
                                         </div>
@@ -152,7 +175,7 @@
 
 @section('css')
     <style>
-        .required:after {
+        .:after {
             content: ' *';
             color: #dc3545;
             font-weight: bold;

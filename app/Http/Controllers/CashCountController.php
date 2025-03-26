@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreCashCountRequest;
 use App\Http\Requests\UpdateCashCountRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class CashCountController extends Controller
 {
@@ -140,21 +141,19 @@ class CashCountController extends Controller
     */
    public function create()
    {
-      $company = $this->company;
-      // Verificar si ya existe una caja abierta
-      $existingOpenCashCount = CashCount::where('company_id', $this->company->id)
-         ->whereNull('closing_date')
-         ->first();
-
-      if ($existingOpenCashCount) {
+      try {
+         $company = Auth::user()->company;
+         $currency = DB::table('currencies')
+            ->where('country_id', $company->country)
+            ->first();
+            
+         return view('admin.cash-counts.create', compact('company', 'currency'));
+      } catch (\Exception $e) {
+         Log::error('Error en CashCountController@create: ' . $e->getMessage());
          return redirect()->route('admin.cash-counts.index')
-            ->with('error', 'Ya existe una caja abierta. Debe cerrar la caja actual antes de abrir una nueva.');
+            ->with('message', 'Error al cargar el formulario de creación')
+            ->with('icons', 'error');
       }
-
-      return view('admin.cash-counts.create', [
-         'currency' => $this->currencies,
-         'company',
-      ]);
    }
 
    /**

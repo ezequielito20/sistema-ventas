@@ -117,6 +117,7 @@
                         <th>Contacto</th>
                         <th>NIT</th>
                         <th>Total en Compras</th>
+                        <th>Deuda Total</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -163,6 +164,32 @@
                                     </div>
                                 @else
                                     <span class="text-muted">Sin ventas</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($customer->total_debt > 0)
+                                    <div>
+                                        <span class="text-danger font-weight-bold debt-value" 
+                                              data-customer-id="{{ $customer->id }}" 
+                                              data-original-value="{{ $customer->total_debt }}">
+                                            {{ $currency->symbol }}
+                                            <span class="debt-amount">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <br>
+                                        <small class="text-muted">
+                                            Pendiente de pago
+                                        </small>
+                                    </div>
+                                @else
+                                    <div>
+                                        <span class="badge badge-success">Sin deuda</span>
+                                        <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
                                 @endif
                             </td>
                             <td>
@@ -540,6 +567,128 @@
                 }).then((result) => {
                     const format = result.isConfirmed ? 'excel' : 'pdf';
                     window.location.href = `/customers/export/${format}`;
+                });
+            });
+
+            // Edición inline de deuda
+            $('.edit-debt-btn').click(function() {
+                const container = $(this).closest('td');
+                const debtValue = container.find('.debt-value');
+                const customerId = debtValue.data('customer-id');
+                const originalValue = debtValue.data('original-value');
+                const debtAmount = container.find('.debt-amount');
+                
+                // Si ya está en modo edición, no hacer nada
+                if (container.find('.debt-input').length > 0) {
+                    return;
+                }
+                
+                // Crear el input para editar
+                const currentValue = originalValue;
+                const inputGroup = `
+                    <div class="input-group input-group-sm debt-editor">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">${'{{ $currency->symbol }}'}</span>
+                        </div>
+                        <input type="number" class="form-control debt-input" value="${currentValue}" step="0.01" min="0">
+                        <div class="input-group-append">
+                            <button class="btn btn-success save-debt-btn" type="button">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-danger cancel-debt-btn" type="button">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Ocultar el texto y mostrar el input
+                debtValue.hide();
+                $(this).hide();
+                container.find('.text-muted').hide();
+                container.find('.badge').hide();
+                container.prepend(inputGroup);
+                
+                // Enfocar el input
+                container.find('.debt-input').focus();
+                
+                // Guardar cambios
+                container.find('.save-debt-btn').click(function() {
+                    const newValue = container.find('.debt-input').val();
+                    
+                    // Validar que sea un número válido
+                    if (isNaN(newValue) || newValue < 0) {
+                        alert('Por favor ingrese un valor válido');
+                        return;
+                    }
+                    
+                    // Enviar actualización mediante AJAX
+                    $.ajax({
+                        url: `/admin/customers/${customerId}/update-debt`,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            total_debt: newValue
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Actualizar la vista
+                                if (newValue > 0) {
+                                    debtAmount.text(parseFloat(newValue).toFixed(2));
+                                    debtValue.show();
+                                    container.find('.text-muted').show();
+                                    container.find('.badge').hide();
+                                } else {
+                                    debtValue.hide();
+                                    container.find('.text-muted').hide();
+                                    container.find('.badge').show();
+                                }
+                                
+                                // Actualizar el valor original
+                                debtValue.data('original-value', newValue);
+                                
+                                // Mostrar mensaje de éxito
+                                Swal.fire({
+                                    title: '¡Éxito!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.message,
+                                    icon: 'error'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Hubo un problema al actualizar la deuda',
+                                icon: 'error'
+                            });
+                        },
+                        complete: function() {
+                            // Eliminar el editor y mostrar el botón de edición
+                            container.find('.debt-editor').remove();
+                            container.find('.edit-debt-btn').show();
+                        }
+                    });
+                });
+                
+                // Cancelar edición
+                container.find('.cancel-debt-btn').click(function() {
+                    // Eliminar el editor y mostrar los elementos originales
+                    container.find('.debt-editor').remove();
+                    if (originalValue > 0) {
+                        debtValue.show();
+                        container.find('.text-muted').show();
+                    } else {
+                        container.find('.badge').show();
+                    }
+                    container.find('.edit-debt-btn').show();
                 });
             });
         });

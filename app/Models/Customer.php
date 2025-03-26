@@ -127,4 +127,23 @@ class Customer extends Model
    {
       return $this->sales->sum('total_price');
    }
+
+   /**
+    * Obtiene el total de deuda pendiente del cliente
+    *
+    * @return float
+    */
+   public function getTotalDebtAttribute()
+   {
+      // Simplemente devuelve el valor almacenado en la columna total_debt
+      return $this->attributes['total_debt'] ?? 0;
+   }
+
+   /**
+    * Formatea la deuda total para mostrar
+    */
+   public function getFormattedTotalDebtAttribute()
+   {
+      return $this->total_debt > 0 ? $this->total_debt : 0;
+   }
 }

@@ -113,6 +113,7 @@ Route::get('/customers/edit/{id}', [CustomerController::class, 'edit'])->name('a
 Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name('admin.customers.update')->middleware(['auth', 'can:customers.edit']);
 Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware(['auth', 'can:customers.destroy']);
 Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware(['auth', 'can:customers.show']);
+Route::post('/admin/customers/{customer}/update-debt', [CustomerController::class, 'updateDebt'])->name('admin.customers.update-debt');
 
 // Sales
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);

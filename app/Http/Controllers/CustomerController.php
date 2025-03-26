@@ -33,8 +33,10 @@ class CustomerController extends Controller
    public function index()
    {
       try {
-         // Obtener todos los clientes
-         $customers = Customer::where('company_id', $this->company->id)->get();
+         // Obtener todos los clientes con sus ventas
+         $customers = Customer::with('sales')
+            ->where('company_id', $this->company->id)
+            ->get();
          $currency = $this->currencies;
          $company = $this->company;
 
@@ -111,25 +113,30 @@ class CustomerController extends Controller
          $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\-]+$/u'],
             'nit_number' => [
-               // 'required',
+               'nullable',
                'string',
                'max:20',
                // 'regex:/^\d{3}-\d{6}-\d{3}-\d{1}$/',
                Rule::unique('customers', 'nit_number'),
             ],
             'phone' => [
-               // 'required',
+               'nullable',
                'string',
                'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
                Rule::unique('customers', 'phone'),
             ],
             'email' => [
-               // 'required',
+               'nullable',
                'string',
                'email',
                'max:255',
                Rule::unique('customers', 'email'),
-            ]
+            ],
+            'total_debt' => [
+               'nullable',
+               'numeric',
+               'min:0',
+            ],
          ], [
             'name.regex' => 'El nombre solo debe contener letras y espacios',
             'name.required' => 'El nombre es obligatorio',
@@ -151,7 +158,9 @@ class CustomerController extends Controller
             'email.string' => 'El correo electrónico debe ser texto',
             'email.email' => 'Debe ingresar un correo electrónico válido',
             'email.max' => 'El correo no debe exceder los 255 caracteres',
-            'email.unique' => 'Este correo ya está registrado'
+            'email.unique' => 'Este correo ya está registrado',
+            'total_debt.numeric' => 'La deuda debe ser un valor numérico',
+            'total_debt.min' => 'La deuda no puede ser un valor negativo',
          ]);
 
          if ($validator->fails()) {
@@ -165,9 +174,10 @@ class CustomerController extends Controller
          // Formatear datos
          $customerData = [
             'name' => ucwords(strtolower($request->name)),
-            'nit_number' => $request->nit_number,
-            'phone' => $request->phone,
-            'email' => strtolower($request->email),
+            'nit_number' => $request->filled('nit_number') ? $request->nit_number : null,
+            'phone' => $request->filled('phone') ? $request->phone : null,
+            'email' => $request->filled('email') ? strtolower($request->email) : null,
+            'total_debt' => $request->filled('total_debt') ? $request->total_debt : 0,
             'company_id' => Auth::user()->company_id,
             'created_at' => now(),
             'updated_at' => now()
@@ -316,23 +326,28 @@ class CustomerController extends Controller
                'regex:/^[\pL\s\-]+$/u'
             ],
             'nit_number' => [
-               'required',
+               'nullable',
                'string',
                'max:20',
                // 'regex:/^\d{3}-\d{6}-\d{3}-\d{1}$/',
                'unique:customers,nit_number,' . $id,
             ],
             'phone' => [
-               'required',
+               'nullable',
                'string',
                'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
                'unique:customers,phone,' . $id,
             ],
             'email' => [
-               'required',
+               'nullable',
                'email',
                'max:255',
                'unique:customers,email,' . $id,
+            ],
+            'total_debt' => [
+               'nullable',
+               'numeric',
+               'min:0',
             ],
          ], [
             'name.required' => 'El nombre es obligatorio',
@@ -354,7 +369,9 @@ class CustomerController extends Controller
             'email.required' => 'El correo electrónico es obligatorio',
             'email.email' => 'Debe ingresar un correo electrónico válido',
             'email.max' => 'El correo no debe exceder los 255 caracteres',
-            'email.unique' => 'Este correo ya está registrado'
+            'email.unique' => 'Este correo ya está registrado',
+            'total_debt.numeric' => 'La deuda debe ser un valor numérico',
+            'total_debt.min' => 'La deuda no puede ser un valor negativo',
          ]);
 
          // Actualizar el cliente
@@ -446,5 +463,51 @@ class CustomerController extends Controller
       $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
       $pdf = PDF::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
       return $pdf->stream('reporte-clientes.pdf');
+   }
+
+   /**
+    * Actualiza la deuda de un cliente directamente
+    */
+   public function updateDebt(Request $request, $id)
+   {
+      try {
+         // Validar la solicitud
+         $validated = $request->validate([
+            'total_debt' => 'required|numeric|min:0',
+         ]);
+
+         // Buscar el cliente
+         $customer = Customer::findOrFail($id);
+         
+         // Guardar el valor anterior para el log
+         $previousDebt = $customer->total_debt;
+         
+         // Actualizar la deuda
+         $customer->total_debt = $validated['total_debt'];
+         $customer->save();
+         
+         // Log de la actualización
+         Log::info('Deuda de cliente actualizada', [
+            'user_id' => Auth::id(),
+            'customer_id' => $customer->id,
+            'previous_debt' => $previousDebt,
+            'new_debt' => $customer->total_debt
+         ]);
+         
+         return response()->json([
+            'success' => true,
+            'message' => 'Deuda actualizada correctamente',
+         ]);
+      } catch (\Exception $e) {
+         Log::error('Error al actualizar deuda: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id
+         ]);
+         
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al actualizar la deuda: ' . $e->getMessage(),
+         ], 500);
+      }
    }
 }

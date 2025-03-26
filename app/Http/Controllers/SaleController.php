@@ -136,6 +136,9 @@ class SaleController extends Controller
                ->with('icons', 'error');
          }
 
+         // Obtener el cliente
+         $customer = Customer::findOrFail($validated['customer_id']);
+
          // Crear la venta principal
          $sale = Sale::create([
             'sale_date' => $validated['sale_date'],
@@ -143,6 +146,10 @@ class SaleController extends Controller
             'company_id' => Auth::user()->company_id,
             'customer_id' => $validated['customer_id'],
          ]);
+
+         // Actualizar la deuda del cliente
+         $customer->total_debt = $customer->total_debt + $validated['total_price'];
+         $customer->save();
 
          // Procesar cada producto en la venta
          foreach ($request->items as $key => $item) {
@@ -168,12 +175,12 @@ class SaleController extends Controller
             $product->save();
          }
 
-         // Log de la acción
+         // Log de la creación
          Log::info('Venta creada exitosamente', [
-            'user_id' => Auth::user()->id,
+            'user_id' => Auth::id(),
             'sale_id' => $sale->id,
-            'company_id' => Auth::user()->company_id,
-            'total' => $validated['total_price'],
+            'customer_id' => $sale->customer_id,
+            'total_price' => $sale->total_price
          ]);
 
          // Registrar el movimiento en la caja
@@ -192,13 +199,13 @@ class SaleController extends Controller
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear venta: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'company_id' => Auth::user()->company_id,
-            'data' => $request->all()
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
          ]);
 
          return redirect()->back()
-            ->with('message', 'Error al registrar la venta: ' . $e->getMessage())
+            ->withInput()
+            ->with('message', 'Hubo un problema al registrar la venta: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
@@ -294,6 +301,24 @@ class SaleController extends Controller
             })->toArray()
          ];
 
+         // Si el cliente cambió o el precio cambió, actualizar las deudas
+         if ($sale->customer_id != $validated['customer_id'] || $sale->total_price != $validated['total_price']) {
+            // Restar la deuda del cliente anterior
+            $oldCustomer = Customer::findOrFail($sale->customer_id);
+            $oldCustomer->total_debt = max(0, $oldCustomer->total_debt - $sale->total_price);
+            $oldCustomer->save();
+
+            // Sumar la deuda al nuevo cliente
+            $newCustomer = Customer::findOrFail($validated['customer_id']);
+            $newCustomer->total_debt = $newCustomer->total_debt + $validated['total_price'];
+            $newCustomer->save();
+         } else if ($sale->total_price != $validated['total_price']) {
+            // Solo cambió el precio, actualizar la deuda del mismo cliente
+            $customer = Customer::findOrFail($sale->customer_id);
+            $customer->total_debt = $customer->total_debt - $sale->total_price + $validated['total_price'];
+            $customer->save();
+         }
+
          // Actualizar datos principales de la venta
          $sale->sale_date = $validated['sale_date'];
          $sale->customer_id = $validated['customer_id'];
@@ -385,15 +410,10 @@ class SaleController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al actualizar venta: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'sale_id' => $id,
-            'request_data' => $request->all()
-         ]);
-
+         Log::error('Error al actualizar venta: ' . $e->getMessage());
          return redirect()->back()
             ->withInput()
-            ->with('message', 'Error al actualizar la venta: ' . $e->getMessage())
+            ->with('message', 'Hubo un problema al actualizar la venta: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
@@ -404,70 +424,40 @@ class SaleController extends Controller
    public function destroy($id)
    {
       try {
-         // Buscar la venta
-         $sale = Sale::findOrFail($id);
-
-         // Verificar que la venta pertenece a la compañía del usuario
-         if ($sale->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de eliminación no autorizada de venta', [
-               'user_id' => Auth::user()->id,
-               'sale_id' => $id
-            ]);
-
-            return redirect()->back()
-               ->with('message', 'No tienes permisos para eliminar esta venta')
-               ->with('icons', 'error');
-         }
-
-         // Iniciar transacción
          DB::beginTransaction();
 
-         // Guardar información para el log antes de eliminar
-         $saleInfo = [
-            'id' => $sale->id,
-            'sale_date' => $sale->sale_date,
-            'total_price' => $sale->total_price,
-            'company_id' => $sale->company_id,
-            'customer_id' => $sale->customer_id
-         ];
+         // Buscar la venta
+         $sale = Sale::where('company_id', Auth::user()->company_id)
+            ->findOrFail($id);
 
-         // Revertir el stock de los productos
-         foreach ($sale->saleDetails as $detail) {
-            $product = $detail->product;
-            $product->stock += $detail->quantity; // Sumamos al stock porque es una venta
-            $product->save();
-         }
+         // Restar la deuda del cliente
+         $customer = Customer::findOrFail($sale->customer_id);
+         $customer->total_debt = max(0, $customer->total_debt - $sale->total_price);
+         $customer->save();
 
-         // Eliminar la venta (los detalles se eliminarán en cascada)
+         // Eliminar la venta
          $sale->delete();
 
          DB::commit();
 
-         // Registrar la eliminación en el log
-         Log::info('Venta eliminada exitosamente', [
-            'user_id' => Auth::user()->id,
-            'company_id' => Auth::user()->company_id,
-            'sale_info' => $saleInfo
-         ]);
-
-         // Retornar respuesta exitosa
          return response()->json([
             'success' => true,
             'message' => '¡Venta eliminada exitosamente!',
             'icons' => 'success'
          ]);
-      } catch (\Exception $e) {
-         // Revertir transacción en caso de error
-         DB::rollBack();
 
+      } catch (\Exception $e) {
+         DB::rollBack();
          Log::error('Error al eliminar venta: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
+            'user_id' => Auth::id(),
             'sale_id' => $id
          ]);
 
-         return redirect()->back()
-            ->with('message', 'Hubo un problema al eliminar la venta. Por favor, inténtelo de nuevo.')
-            ->with('icons', 'error');
+         return response()->json([
+            'success' => false,
+            'message' => 'Hubo un problema al eliminar la venta: ' . $e->getMessage(),
+            'icons' => 'error'
+         ], 500);
       }
    }
 
