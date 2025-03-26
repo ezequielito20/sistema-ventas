@@ -40,47 +40,39 @@ class CustomerController extends Controller
          $currency = $this->currencies;
          $company = $this->company;
 
-         // Estadísticas básicas
+         // Calcular estadísticas
          $totalCustomers = $customers->count();
-         
-         // Calcular crecimiento de clientes
-         $lastMonthCustomers = Customer::whereMonth('created_at', '=', Carbon::now()->subMonth()->month)->count();
-         $customerGrowth = $lastMonthCustomers > 0 
-            ? round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1)
-            : 0;
-
-         // Nuevos clientes este mes
-         $newCustomers = $customers->filter(function($customer) {
+         $activeCustomers = $customers->filter(function ($customer) {
+            return $customer->sales->count() > 0;
+         })->count();
+         $newCustomers = $customers->filter(function ($customer) {
             return $customer->created_at->isCurrentMonth();
          })->count();
-
-         // Calcular clientes activos (los que han realizado al menos una compra)
-         $activeCustomers = Customer::where('company_id', $this->company->id)
-            ->whereHas('sales')
-            ->count();
-
-         // Calcular ingresos totales sumando todas las ventas
-         $totalRevenue = DB::table('sales')
-            ->join('customers', 'sales.customer_id', '=', 'customers.id')
-            ->where('customers.company_id', $this->company->id)
-            ->sum('total_price');
+         $customerGrowth = $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100) : 0;
+         
+         // Calcular la deuda total de todos los clientes
+         $totalDebt = $customers->sum('total_debt');
+         
+         // Calcular ingresos totales
+         $totalRevenue = $customers->sum(function ($customer) {
+            return $customer->sales->sum('total_price');
+         });
 
          return view('admin.customers.index', compact(
             'customers',
             'totalCustomers',
-            'customerGrowth',
             'activeCustomers',
             'newCustomers',
+            'customerGrowth',
             'totalRevenue',
+            'totalDebt',
             'currency',
             'company'
          ));
-
       } catch (\Exception $e) {
          Log::error('Error en CustomerController@index: ' . $e->getMessage());
-         
-         return redirect()->back()
-            ->with('message', 'Hubo un problema al cargar los clientes')
+         return redirect()->route('admin.dashboard')
+            ->with('message', 'Error al cargar la lista de clientes: ' . $e->getMessage())
             ->with('icons', 'error');
       }
    }
@@ -509,5 +501,50 @@ class CustomerController extends Controller
             'message' => 'Error al actualizar la deuda: ' . $e->getMessage(),
          ], 500);
       }
+   }
+
+   /**
+    * Genera un reporte PDF de clientes con deudas pendientes
+    */
+   public function debtReport()
+   {
+       try {
+           // Obtener clientes con deudas pendientes
+           $customers = Customer::where('company_id', $this->company->id)
+               ->where('total_debt', '>', 0)
+               ->orderBy('total_debt', 'desc')
+               ->get();
+               
+           $company = $this->company;
+           $currency = $this->currencies;
+           $totalDebt = $customers->sum('total_debt');
+           
+           // Generar PDF
+           $pdf = PDF::loadView('admin.customers.reports.debt-report', compact(
+               'customers', 
+               'company', 
+               'currency',
+               'totalDebt'
+           ));
+           
+           // Configurar PDF
+           $pdf->setPaper('a4', 'portrait');
+           
+           // Log de la generación del reporte
+           Log::info('Reporte de deudas generado', [
+               'user_id' => Auth::id(),
+               'total_customers' => $customers->count(),
+               'total_debt' => $totalDebt
+           ]);
+           
+           // Descargar PDF
+           return $pdf->download('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
+           
+       } catch (\Exception $e) {
+           Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
+           return redirect()->route('admin.customers.index')
+               ->with('message', 'Error al generar el reporte de deudas: ' . $e->getMessage())
+               ->with('icons', 'error');
+       }
    }
 }

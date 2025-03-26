@@ -12,6 +12,9 @@
             <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
+            <a href="{{ route('admin.customers.debt-report') }}" class="btn btn-danger mr-2" target="_blank">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
+            </a>
             {{-- <button class="btn btn-outline-primary mr-2" id="exportCustomers">
                 <i class="fas fa-file-export mr-2"></i>Exportar
             </button> --}}

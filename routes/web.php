@@ -114,6 +114,8 @@ Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name(
 Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware(['auth', 'can:customers.destroy']);
 Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware(['auth', 'can:customers.show']);
 Route::post('/admin/customers/{customer}/update-debt', [CustomerController::class, 'updateDebt'])->name('admin.customers.update-debt');
+Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerController::class, 'debtReport'])
+    ->name('admin.customers.debt-report');
 
 // Sales
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
@@ -146,3 +148,7 @@ Route::get('/permissions/edit/{id}', [PermissionController::class, 'edit'])->nam
 Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->name('admin.permissions.update')->middleware(['auth', 'can:permissions.edit']);
 Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware(['auth', 'can:permissions.destroy']);
 Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware(['auth', 'can:permissions.show']);
+
+// Agregar esta ruta para el reporte de deudas
+Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerController::class, 'debtReport'])
+    ->name('admin.customers.debt-report');
