@@ -64,7 +64,7 @@
                                         </div>
                                         <select name="customer_id" id="customer_id"
                                             class="form-control select2 @error('customer_id') is-invalid @enderror"
-                                            style="width: calc(100% - 90px);" required>
+                                            style="width: 100%;" required>
                                             <option value="">Seleccione un cliente</option>
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
@@ -72,12 +72,17 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="input-group-append" style="white-space: nowrap;">
+                                        <div class="input-group-append">
                                             <a href="{{ route('admin.customers.create') }}" class="btn btn-success">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
                                     </div>
+                                    @error('customer_id')
+                                        <span class="invalid-feedback d-block" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -262,17 +267,58 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
     <style>
-        .select2-container .select2-selection--single {
+        /* Mejorar el estilo del Select2 */
+        .select2-container--bootstrap4 .select2-selection--single {
             height: 38px !important;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 38px !important;
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            line-height: 1.5;
+            padding-left: 0;
+            padding-right: 0;
+            color: #495057;
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 36px !important;
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
+            background-color: #007bff;
+        }
+
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option {
+            padding: 0.375rem 0.75rem;
+        }
+
+        .select2-container--bootstrap4 .select2-dropdown {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* Ajustar el ancho del select2 para dejar espacio al botón */
+        .input-group .select2-container {
+            flex: 1 1 auto;
+            width: auto !important;
+        }
+
+        /* Mantener los botones juntos */
+        .input-group-append .btn {
+            margin-left: -1px;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
         }
 
         .required::after {
@@ -310,25 +356,6 @@
                 white-space: nowrap;
             }
         }
-
-        /* Asegurar que los botones no se envuelvan */
-        .input-group-append {
-            display: flex;
-            flex-wrap: nowrap;
-        }
-
-        /* Ajustar el ancho del select2 para dejar espacio a los botones */
-        .select2-container {
-            flex: 1 1 auto;
-            width: auto !important;
-            max-width: calc(100% - 90px) !important;
-        }
-
-        /* Mantener los botones juntos */
-        .input-group-append .btn {
-            margin-left: -1px;
-            flex-shrink: 0;
-        }
     </style>
 @stop
 
@@ -339,16 +366,67 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar Select2
-            $('.select2').select2({
+            // Inicializar Select2 con opciones mejoradas
+            $('#customer_id').select2({
                 theme: 'bootstrap4',
-                placeholder: 'Seleccione un cliente'
+                placeholder: 'Seleccione un cliente',
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: true,
+                dropdownParent: $('#customer_id').parent(),
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+                language: {
+                    noResults: function() {
+                        return "No se encontraron resultados";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    }
+                },
+                templateResult: formatCustomer,
+                templateSelection: formatCustomerSelection
             });
             
             // Si hay un cliente preseleccionado, asegurarse de que Select2 lo muestre correctamente
             @if(isset($selectedCustomerId))
                 $('#customer_id').trigger('change');
             @endif
+
+            // Función para formatear las opciones en el dropdown
+            function formatCustomer(customer) {
+                if (!customer.id) {
+                    return customer.text;
+                }
+                
+                // Extraer nombre y deuda del texto
+                const parts = customer.text.split(' - ');
+                const name = parts[0];
+                const debt = parts[1];
+                
+                // Crear un elemento HTML con formato mejorado
+                const $container = $(
+                    `<div class="d-flex justify-content-between align-items-center py-1">
+                        <div>
+                            <strong>${name}</strong>
+                        </div>
+                        <div class="text-right">
+                            <span class="badge badge-${debt.includes('0.00') ? 'success' : 'danger'}">${debt}</span>
+                        </div>
+                    </div>`
+                );
+                
+                return $container;
+            }
+            
+            // Función para formatear la opción seleccionada
+            function formatCustomerSelection(customer) {
+                if (!customer.id) {
+                    return customer.text;
+                }
+                return customer.text;
+            }
 
             // Inicializar DataTable
             $('#productsTable').DataTable({

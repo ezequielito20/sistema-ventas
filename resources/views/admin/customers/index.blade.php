@@ -442,13 +442,19 @@
                 $(this).addClass('active');
 
                 const filter = $(this).data('filter');
-
-                if (filter === 'all') {
-                    table.column(4).search('').draw();
-                } else if (filter === 'active') {
-                    table.column(4).search('^Activo$', true, false).draw();
+                
+                // Limpiar filtros previos
+                table.search('').columns().search('').draw();
+                
+                if (filter === 'active') {
+                    // Filtrar clientes activos (los que tienen ventas)
+                    table.column(5).search('Activo').draw();
                 } else if (filter === 'inactive') {
-                    table.column(4).search('^Inactivo$', true, false).draw();
+                    // Filtrar clientes inactivos (los que no tienen ventas)
+                    table.column(5).search('Inactivo').draw();
+                } else {
+                    // Mostrar todos
+                    table.draw();
                 }
             });
 
