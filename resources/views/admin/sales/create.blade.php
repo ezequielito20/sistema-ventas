@@ -710,6 +710,25 @@
                 // Continuar con el envío del formulario
                 this.submit();
             });
+
+            // Manejar el botón de cancelar venta - retroceder a la vista anterior
+            $('#cancelSale').click(function() {
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    text: "Se perderán todos los datos ingresados en esta venta",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, cancelar venta',
+                    cancelButtonText: 'No, continuar editando'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Retroceder a la página anterior
+                        window.history.back();
+                    }
+                });
+            });
         });
     </script>
 @stop

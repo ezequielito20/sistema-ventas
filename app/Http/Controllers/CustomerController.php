@@ -36,6 +36,7 @@ class CustomerController extends Controller
          // Obtener todos los clientes con sus ventas
          $customers = Customer::with('sales')
             ->where('company_id', $this->company->id)
+            ->orderBy('name') 
             ->get();
          $currency = $this->currencies;
          $company = $this->company;
