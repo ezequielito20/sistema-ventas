@@ -84,7 +84,7 @@ class SaleController extends Controller
    /**
     * Show the form for creating a new resource.
     */
-   public function create()
+   public function create(Request $request)
    {
       try {
          $company = $this->company;
@@ -93,13 +93,16 @@ class SaleController extends Controller
 
          // Obtener productos y clientes de la compañía actual
          $products = Product::where('company_id', $companyId)
-            // ->where('status', true)
+            ->where('stock', '>', 0)
             ->get();
          $customers = Customer::where('company_id', $companyId)
-            // ->where('status', true)
+            ->orderBy('name', 'asc') // Ordenar alfabéticamente por nombre
             ->get();
 
-         return view('admin.sales.create', compact('products', 'customers', 'currency', 'company'));
+         // Obtener el customer_id de la URL si existe
+         $selectedCustomerId = $request->input('customer_id');
+
+         return view('admin.sales.create', compact('products', 'customers', 'currency', 'selectedCustomerId'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@create: ' . $e->getMessage());
          return redirect()->back()

@@ -216,6 +216,10 @@
                                         data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                        class="btn btn-success btn-sm" data-toggle="tooltip" title="Nueva venta">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

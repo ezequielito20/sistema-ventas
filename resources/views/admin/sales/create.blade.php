@@ -67,8 +67,8 @@
                                             style="width: calc(100% - 90px);" required>
                                             <option value="">Seleccione un cliente</option>
                                             @foreach ($customers as $customer)
-                                                <option value="{{ $customer->id }}">
-                                                    {{ $customer->name }} - {{ $customer->nit_number }}
+                                                <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
+                                                    {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -344,6 +344,11 @@
                 theme: 'bootstrap4',
                 placeholder: 'Seleccione un cliente'
             });
+            
+            // Si hay un cliente preseleccionado, asegurarse de que Select2 lo muestre correctamente
+            @if(isset($selectedCustomerId))
+                $('#customer_id').trigger('change');
+            @endif
 
             // Inicializar DataTable
             $('#productsTable').DataTable({
