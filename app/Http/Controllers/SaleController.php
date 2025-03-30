@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SaleController extends Controller
 {
@@ -35,50 +36,61 @@ class SaleController extends Controller
 
    public function index()
    {
-      try {
-         $company = $this->company;
-         $companyId = $company->id;
-         $currency = $this->currencies;
-         $cashCount = CashCount::where('company_id', $companyId)
-            ->whereNull('closing_date')
-            ->first();
-
-         // Obtener ventas con sus relaciones
-         $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
-            ->where('company_id', $companyId)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-         // Calcular productos únicos vendidos
-         $totalSales = $sales->flatMap(function ($sale) {
-            return $sale->saleDetails->pluck('product_id');
-         })->unique()->count();
-         $totalAmount = $sales->sum('total_price');
-         $monthlySales = $sales->filter(function ($sale) {
-            return $sale->sale_date->isCurrentMonth();
-         })->count();
-
-         // Calcular ticket promedio
-         $averageTicket = $sales->count() > 0
-            ? $totalAmount / $sales->count()
-            : 0;
-
-         return view('admin.sales.index', compact(
-            'sales',
-            'totalSales',
-            'totalAmount',
-            'monthlySales',
-            'averageTicket',
-            'currency',
-            'cashCount',
-            'company'
-         ));
-      } catch (\Exception $e) {
-         Log::error('Error en index de ventas: ' . $e->getMessage());
-         return redirect()->back()
-            ->with('message', 'Error al cargar las ventas')
-            ->with('icons', 'error');
-      }
+      // Obtener la fecha de inicio y fin de la semana actual
+      $startOfWeek = Carbon::now()->startOfWeek();
+      $endOfWeek = Carbon::now()->endOfWeek();
+      
+      // Obtener todas las ventas
+      $sales = Sale::where('company_id', $this->company->id)
+                  ->with(['customer', 'saleDetails', 'saleDetails.product'])
+                  ->orderBy('sale_date', 'desc')
+                  ->get();
+      
+      // Calcular ventas de esta semana
+      $salesThisWeek = Sale::where('company_id', $this->company->id)
+                          ->whereBetween('sale_date', [$startOfWeek, $endOfWeek])
+                          ->get();
+      
+      // 1. Total de ventas en dinero esta semana
+      $totalSalesAmountThisWeek = $salesThisWeek->sum('total_price');
+      
+      // 2. Ingresos netos (ganancias) esta semana - asumiendo un margen promedio del 35%
+      $profitMargin = 0.35; // 35% de margen de ganancia
+      $totalProfitThisWeek = $totalSalesAmountThisWeek * $profitMargin;
+      
+      // 3. Cantidad de ventas esta semana
+      $salesCountThisWeek = $salesThisWeek->count();
+      
+      // Otros cálculos existentes
+      $totalSales = $sales->sum(function ($sale) {
+          return $sale->saleDetails->count();
+      });
+      
+      $totalAmount = $sales->sum('total_price');
+      
+      $monthlySales = Sale::where('company_id', $this->company->id)
+                          ->whereMonth('sale_date', Carbon::now()->month)
+                          ->count();
+      
+      $averageTicket = $sales->count() > 0 ? $totalAmount / $sales->count() : 0;
+      
+      $currency = $this->currencies;
+      $cashCount = CashCount::where('company_id', $this->company->id)
+                          ->whereNull('closing_date')
+                          ->exists();
+      
+      return view('admin.sales.index', compact(
+          'sales', 
+          'totalSales', 
+          'totalAmount', 
+          'monthlySales', 
+          'averageTicket', 
+          'currency', 
+          'cashCount',
+          'totalSalesAmountThisWeek',
+          'totalProfitThisWeek',
+          'salesCountThisWeek'
+      ));
    }
 
    /**

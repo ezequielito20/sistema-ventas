@@ -28,8 +28,8 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
                 <div class="inner">
-                    <h3>{{ $totalSales }}</h3>
-                    <p>Productos Unicos Vendidos</p>
+                    <h3>{{ $currency->symbol }} {{ number_format($totalSalesAmountThisWeek, 2) }}</h3>
+                    <p>Ventas esta semana</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-shopping-bag"></i>
@@ -39,22 +39,22 @@
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h3>{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</h3>
-                    <p>Total Ingresos</p>
+                    <h3>{{ $currency->symbol }} {{ number_format($totalProfitThisWeek, 2) }}</h3>
+                    <p>Ganancias esta semana</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-cash-register"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-6">
             <div class="small-box bg-warning">
                 <div class="inner">
-                    <h3>{{ $monthlySales }}</h3>
-                    <p>Ventas este mes</p>
+                    <h3>{{ $salesCountThisWeek }}</h3>
+                    <p>Cantidad de ventas esta semana</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-calendar-alt"></i>
+                    <i class="fas fa-receipt"></i>
                 </div>
             </div>
         </div>
