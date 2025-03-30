@@ -89,6 +89,45 @@
         </div>
     </div>
 
+    {{-- Configuración de tipo de cambio --}}
+    <div class="card card-outline card-info mb-3 shadow-sm">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-money-bill-wave mr-2"></i>
+                Configuración de Tipo de Cambio
+            </h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">1 USD = </span>
+                        </div>
+                        <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
+                        <div class="input-group-append">
+                            <span class="input-group-text">VES</span>
+                            <button type="button" id="updateExchangeRate" class="btn btn-primary">
+                                <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        El tipo de cambio se utiliza para calcular las deudas en bolívares (VES).
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Tabla de Clientes con Filtros Avanzados --}}
     <div class="card card-outline card-primary shadow-sm">
         <div class="card-header">
@@ -121,6 +160,7 @@
                         <th>NIT</th>
                         <th>Total en Compras</th>
                         <th>Deuda Total</th>
+                        <th>Deuda en Bs</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -193,6 +233,15 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                     </div>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($customer->total_debt > 0)
+                                    <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
+                                        Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                    </span>
+                                @else
+                                    <span class="badge badge-success">Sin deuda</span>
                                 @endif
                             </td>
                             <td>
@@ -415,6 +464,43 @@
                 }
             });
 
+            // Cargar el tipo de cambio guardado en localStorage (si existe)
+            const savedRate = localStorage.getItem('exchangeRate');
+            if (savedRate) {
+                $('#exchangeRate').val(savedRate);
+                updateBsValues(savedRate);
+            }
+            
+            // Actualizar valores en Bs cuando se cambia el tipo de cambio
+            $('#updateExchangeRate').click(function() {
+                const rate = parseFloat($('#exchangeRate').val());
+                if (rate > 0) {
+                    // Guardar en localStorage para futuras visitas
+                    localStorage.setItem('exchangeRate', rate);
+                    updateBsValues(rate);
+                    
+                    // Mostrar mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Tipo de cambio actualizado',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            });
+            
+            // Función para actualizar todos los valores en Bs
+            function updateBsValues(rate) {
+                // Actualizar cada fila
+                $('.bs-debt').each(function() {
+                    const debtUsd = parseFloat($(this).data('debt'));
+                    const debtBs = debtUsd * rate;
+                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+            }
+
             // Animación de contadores
             $('.counter').each(function() {
                 const $this = $(this);
@@ -448,10 +534,10 @@
                 
                 if (filter === 'active') {
                     // Filtrar clientes activos (los que tienen ventas)
-                    table.column(5).search('Activo').draw();
+                    table.column(6).search('Activo').draw();
                 } else if (filter === 'inactive') {
                     // Filtrar clientes inactivos (los que no tienen ventas)
-                    table.column(5).search('Inactivo').draw();
+                    table.column(6).search('Inactivo').draw();
                 } else {
                     // Mostrar todos
                     table.draw();
