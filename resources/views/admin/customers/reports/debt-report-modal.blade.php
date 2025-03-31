@@ -1,44 +1,56 @@
-<div class="modal-header">
-    <h5 class="modal-title" id="debtReportModalLabel">Reporte de Deudas</h5>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal-header bg-gradient-dark text-white">
+    <h5 class="modal-title font-weight-bold" id="debtReportModalLabel">
+        <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
+    </h5>
+    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
 <div class="modal-body">
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="modalExchangeRate">Tipo de Cambio (1 USD =)</label>
-                <div class="input-group">
-                    <input type="number" id="modalExchangeRate" class="form-control" step="0.01" min="0.01" value="1.00">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="button" id="updateModalExchangeRate">
-                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
-                        </button>
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <h4 class="mb-0 font-weight-bold">{{ $company->name }}</h4>
+                        <span class="badge badge-info ml-2">{{ date('d/m/Y') }}</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="far fa-clock mr-1"></i>Generado: {{ date('H:i:s') }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-md-end align-items-center">
+                        <div class="form-group mb-0 mr-3">
+                            <label for="modalExchangeRate" class="small text-muted mb-1">Tipo de Cambio (1 USD =)</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" id="modalExchangeRate" class="form-control" step="0.01" min="0.01" value="1.00">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" id="updateModalExchangeRate">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.customers.debt-report.download') }}" class="btn btn-sm btn-danger" target="_blank">
+                            <i class="fas fa-file-pdf mr-1"></i>Descargar PDF
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="alert alert-info">
-                <strong>Deuda Total:</strong> {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
-                <span class="modal-bs-debt" data-debt="{{ $totalDebt }}">
-                    Bs. {{ number_format($totalDebt, 2) }}
-                </span>
-            </div>
-        </div>
     </div>
     
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="alert alert-info d-flex justify-content-between align-items-center">
         <div>
-            <h4 class="mb-0">{{ $company->name }}</h4>
-            <p class="text-muted mb-0">Fecha: {{ date('d/m/Y H:i:s') }}</p>
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Resumen:</strong> {{ $customers->count() }} clientes con deudas pendientes
         </div>
-        <div class="d-flex align-items-center">
-            
-            <a href="{{ route('admin.customers.debt-report.download') }}" class="btn btn-sm btn-outline-danger" target="_blank">
-                <i class="fas fa-file-pdf mr-1"></i>Descargar PDF
-            </a>
+        <div class="text-right">
+            <div class="font-weight-bold">Deuda Total: {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}</div>
+            <div class="modal-bs-debt" data-debt="{{ $totalDebt }}">
+                Bs. {{ number_format($totalDebt, 2) }}
+            </div>
         </div>
     </div>
 
