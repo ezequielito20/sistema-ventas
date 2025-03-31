@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\DebtPayment;
 
 class CustomerController extends Controller
 {
@@ -36,7 +37,7 @@ class CustomerController extends Controller
          // Obtener todos los clientes con sus ventas
          $customers = Customer::with('sales')
             ->where('company_id', $this->company->id)
-            ->orderBy('name') 
+            ->orderBy('name')
             ->get();
          $currency = $this->currencies;
          $company = $this->company;
@@ -50,10 +51,10 @@ class CustomerController extends Controller
             return $customer->created_at->isCurrentMonth();
          })->count();
          $customerGrowth = $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100) : 0;
-         
+
          // Calcular la deuda total de todos los clientes
          $totalDebt = $customers->sum('total_debt');
-         
+
          // Calcular ingresos totales
          $totalRevenue = $customers->sum(function ($customer) {
             return $customer->sales->sum('total_price');
@@ -83,7 +84,7 @@ class CustomerController extends Controller
     */
    public function create()
    {
-      try { 
+      try {
          $company = $this->company;
          return view('admin.customers.create', compact('company'));
       } catch (\Exception $e) {
@@ -179,7 +180,6 @@ class CustomerController extends Controller
          return redirect()->route('admin.customers.index')
             ->with('message', '¡Cliente creado exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error en CustomerController@store: ' . $e->getMessage());
@@ -197,7 +197,7 @@ class CustomerController extends Controller
    public function show($id)
    {
       try {
-         $customer = Customer::with(['sales' => function($query) {
+         $customer = Customer::with(['sales' => function ($query) {
             $query->orderBy('sale_date', 'asc');
          }])->findOrFail($id);
 
@@ -220,13 +220,12 @@ class CustomerController extends Controller
                'stats' => $stats
             ]
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al mostrar cliente: ' . $e->getMessage(), [
             'user_id' => Auth::id(),
             'customer_id' => $id
          ]);
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los datos del cliente'
@@ -241,11 +240,11 @@ class CustomerController extends Controller
    {
       $months = collect([]);
       $values = collect([]);
-      
+
       // Agrupar ventas por mes
-      $salesByMonth = $sales->groupBy(function($sale) {
+      $salesByMonth = $sales->groupBy(function ($sale) {
          return $sale->sale_date->format('Y-m');
-      })->map(function($monthSales) {
+      })->map(function ($monthSales) {
          return $monthSales->sum('total_price');
       });
 
@@ -253,7 +252,7 @@ class CustomerController extends Controller
       for ($i = 5; $i >= 0; $i--) {
          $date = now()->subMonths($i);
          $monthKey = $date->format('Y-m');
-         
+
          $months->push($date->format('M'));
          $values->push($salesByMonth[$monthKey] ?? 0);
       }
@@ -276,7 +275,6 @@ class CustomerController extends Controller
 
          // Retornar vista con datos del cliente
          return view('admin.customers.edit', compact('customer', 'company'));
-
       } catch (\Exception $e) {
          Log::error('Error en CustomerController@edit: ' . $e->getMessage(), [
             'user_id' => Auth::id(),
@@ -301,9 +299,9 @@ class CustomerController extends Controller
          // Validación personalizada
          $validated = $request->validate([
             'name' => [
-               'required', 
-               'string', 
-               'max:255', 
+               'required',
+               'string',
+               'max:255',
                'regex:/^[\pL\s\-]+$/u'
             ],
             'nit_number' => [
@@ -335,18 +333,18 @@ class CustomerController extends Controller
             'name.regex' => 'El nombre solo debe contener letras y espacios',
             'name.string' => 'El nombre debe ser texto',
             'name.max' => 'El nombre no debe exceder los 255 caracteres',
-            
+
             'nit_number.required' => 'El NIT es obligatorio',
             'nit_number.string' => 'El NIT debe ser texto',
             'nit_number.max' => 'El NIT no debe exceder los 20 caracteres',
             'nit_number.regex' => 'El formato del NIT debe ser: XXX-XXXXXX-XXX-X',
             'nit_number.unique' => 'Este NIT ya está registrado',
-            
+
             'phone.required' => 'El teléfono es obligatorio',
             'phone.string' => 'El teléfono debe ser texto',
             'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
             'phone.unique' => 'Este teléfono ya está registrado',
-            
+
             'email.required' => 'El correo electrónico es obligatorio',
             'email.email' => 'Debe ingresar un correo electrónico válido',
             'email.max' => 'El correo no debe exceder los 255 caracteres',
@@ -369,14 +367,12 @@ class CustomerController extends Controller
          return redirect()->route('admin.customers.index')
             ->with('message', '¡Cliente actualizado exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Illuminate\Validation\ValidationException $e) {
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
             ->with('message', 'Por favor, corrija los errores en el formulario.')
             ->with('icons', 'error');
-
       } catch (\Exception $e) {
          Log::error('Error al actualizar cliente: ' . $e->getMessage(), [
             'user_id' => Auth::id(),
@@ -422,7 +418,6 @@ class CustomerController extends Controller
             'message' => '¡Cliente eliminado exitosamente!',
             'icons' => 'success'
          ]);
-
       } catch (\Exception $e) {
          Log::error('Error al eliminar cliente: ' . $e->getMessage(), [
             'user_id' => Auth::id(),
@@ -459,14 +454,14 @@ class CustomerController extends Controller
 
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
-         
+
          // Guardar el valor anterior para el log
          $previousDebt = $customer->total_debt;
-         
+
          // Actualizar la deuda
          $customer->total_debt = $validated['total_debt'];
          $customer->save();
-         
+
          // Log de la actualización
          Log::info('Deuda de cliente actualizada', [
             'user_id' => Auth::id(),
@@ -474,7 +469,7 @@ class CustomerController extends Controller
             'previous_debt' => $previousDebt,
             'new_debt' => $customer->total_debt
          ]);
-         
+
          return response()->json([
             'success' => true,
             'message' => 'Deuda actualizada correctamente',
@@ -484,7 +479,7 @@ class CustomerController extends Controller
             'user_id' => Auth::id(),
             'customer_id' => $id
          ]);
-         
+
          return response()->json([
             'success' => false,
             'message' => 'Error al actualizar la deuda: ' . $e->getMessage(),
@@ -497,44 +492,43 @@ class CustomerController extends Controller
     */
    public function debtReport()
    {
-       try {
-           // Obtener clientes con deudas pendientes
-           $customers = Customer::where('company_id', $this->company->id)
-               ->where('total_debt', '>', 0)
-               ->orderBy('total_debt', 'desc')
-               ->get();
-               
-           $company = $this->company;
-           $currency = $this->currencies;
-           $totalDebt = $customers->sum('total_debt');
-           
-           // Generar PDF
-           $pdf = PDF::loadView('admin.customers.reports.debt-report', compact(
-               'customers', 
-               'company', 
-               'currency',
-               'totalDebt'
-           ));
-           
-           // Configurar PDF
-           $pdf->setPaper('a4', 'portrait');
-           
-           // Log de la generación del reporte
-           Log::info('Reporte de deudas generado', [
-               'user_id' => Auth::id(),
-               'total_customers' => $customers->count(),
-               'total_debt' => $totalDebt
-           ]);
-           
-           // Descargar PDF
-           return $pdf->download('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
-           
-       } catch (\Exception $e) {
-           Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
-           return redirect()->route('admin.customers.index')
-               ->with('message', 'Error al generar el reporte de deudas: ' . $e->getMessage())
-               ->with('icons', 'error');
-       }
+      try {
+         // Obtener clientes con deudas pendientes
+         $customers = Customer::where('company_id', $this->company->id)
+            ->where('total_debt', '>', 0)
+            ->orderBy('total_debt', 'desc')
+            ->get();
+
+         $company = $this->company;
+         $currency = $this->currencies;
+         $totalDebt = $customers->sum('total_debt');
+
+         // Generar PDF
+         $pdf = PDF::loadView('admin.customers.reports.debt-report', compact(
+            'customers',
+            'company',
+            'currency',
+            'totalDebt'
+         ));
+
+         // Configurar PDF
+         $pdf->setPaper('a4', 'portrait');
+
+         // Log de la generación del reporte
+         Log::info('Reporte de deudas generado', [
+            'user_id' => Auth::id(),
+            'total_customers' => $customers->count(),
+            'total_debt' => $totalDebt
+         ]);
+
+         // Descargar PDF
+         return $pdf->download('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
+      } catch (\Exception $e) {
+         Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
+         return redirect()->route('admin.customers.index')
+            ->with('message', 'Error al generar el reporte de deudas: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 
    /**
@@ -542,32 +536,222 @@ class CustomerController extends Controller
     */
    public function debtReportModal()
    {
-       try {
-           // Obtener clientes con deudas pendientes
-           $customers = Customer::where('company_id', $this->company->id)
-               ->where('total_debt', '>', 0)
-               ->with('lastSale')
-               ->orderBy('total_debt', 'desc')
-               ->get();
-               
-           $company = $this->company;
-           $currency = $this->currencies;
-           $totalDebt = $customers->sum('total_debt');
-           
-           // Devolver la vista parcial para el modal
-           return view('admin.customers.reports.debt-report-modal', compact(
-               'customers', 
-               'company', 
-               'currency',
-               'totalDebt'
-           ));
-           
-       } catch (\Exception $e) {
-           Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
-           return response()->json([
-               'success' => false,
-               'message' => 'Error al generar el reporte de deudas: ' . $e->getMessage()
-           ], 500);
-       }
+      try {
+         // Obtener clientes con deudas pendientes
+         $customers = Customer::where('company_id', $this->company->id)
+            ->where('total_debt', '>', 0)
+            ->with('lastSale')
+            ->orderBy('total_debt', 'desc')
+            ->get();
+
+         $company = $this->company;
+         $currency = $this->currencies;
+         $totalDebt = $customers->sum('total_debt');
+
+         // Devolver la vista parcial para el modal
+         return view('admin.customers.reports.debt-report-modal', compact(
+            'customers',
+            'company',
+            'currency',
+            'totalDebt'
+         ));
+      } catch (\Exception $e) {
+         Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al generar el reporte de deudas: ' . $e->getMessage()
+         ], 500);
+      }
+   }
+
+   public function registerDebtPayment(Request $request, Customer $customer)
+   {
+      $request->validate([
+         'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
+         'notes' => 'nullable|string|max:500',
+      ]);
+
+      $previousDebt = $customer->total_debt;
+      $paymentAmount = $request->payment_amount;
+      $remainingDebt = $previousDebt - $paymentAmount;
+
+      // Registrar el pago
+      DebtPayment::create([
+         'company_id' => $this->company->id,
+         'customer_id' => $customer->id,
+         'previous_debt' => $previousDebt,
+         'payment_amount' => $paymentAmount,
+         'remaining_debt' => $remainingDebt,
+         'notes' => $request->notes,
+         'user_id' => Auth::id(),
+      ]);
+
+      // Actualizar la deuda total del cliente
+      $customer->update([
+         'total_debt' => $remainingDebt
+      ]);
+
+      return response()->json([
+         'success' => true,
+         'message' => 'Pago registrado correctamente',
+         'new_debt' => $remainingDebt,
+         'formatted_new_debt' => number_format($remainingDebt, 2)
+      ]);
+   }
+
+   public function paymentHistory(Request $request)
+   {
+      $query = DebtPayment::where('company_id', $this->company->id)
+         ->with(['customer', 'user']);
+
+      // Aplicar filtros
+      if ($request->has('customer_id') && $request->customer_id) {
+         $query->where('customer_id', $request->customer_id);
+      }
+
+      if ($request->has('date_from') && $request->date_from) {
+         $query->whereDate('created_at', '>=', $request->date_from);
+      }
+
+      if ($request->has('date_to') && $request->date_to) {
+         $query->whereDate('created_at', '<=', $request->date_to);
+      }
+
+      $payments = $query->orderBy('created_at', 'desc')->paginate(15);
+
+      // Estadísticas
+      $totalPayments = $query->sum('payment_amount');
+      $paymentsCount = $query->count();
+      $averagePayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0;
+      $totalRemainingDebt = Customer::where('company_id', $this->company->id)->sum('total_debt');
+
+      // Datos para gráficos
+      $weekdayData = DebtPayment::where('company_id', $this->company->id)
+         ->selectRaw('DAYOFWEEK(created_at) as day_of_week, SUM(payment_amount) as total')
+         ->groupBy('day_of_week')
+         ->orderBy('day_of_week')
+         ->get()
+         ->pluck('total', 'day_of_week')
+         ->toArray();
+
+      $weekdayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      $weekdayDataArray = [];
+
+      for ($i = 1; $i <= 7; $i++) {
+         $weekdayDataArray[] = $weekdayData[$i] ?? 0;
+      }
+
+      // Datos mensuales
+      $monthlyData = DebtPayment::where('company_id', $this->company->id)
+         ->whereYear('created_at', date('Y'))
+         ->selectRaw('MONTH(created_at) as month, SUM(payment_amount) as total')
+         ->groupBy('month')
+         ->orderBy('month')
+         ->get()
+         ->pluck('total', 'month')
+         ->toArray();
+
+      $monthlyLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      $monthlyDataArray = [];
+
+      for ($i = 1; $i <= 12; $i++) {
+         $monthlyDataArray[] = $monthlyData[$i] ?? 0;
+      }
+
+      $customers = Customer::where('company_id', $this->company->id)->orderBy('name')->get();
+      $currency = $this->currencies;
+
+      return view('admin.customers.payment-history', [
+         'payments' => $payments,
+         'customers' => $customers,
+         'totalPayments' => $totalPayments,
+         'paymentsCount' => $paymentsCount,
+         'averagePayment' => $averagePayment,
+         'totalRemainingDebt' => $totalRemainingDebt,
+         'weekdayLabels' => $weekdayLabels,
+         'weekdayData' => $weekdayDataArray,
+         'monthlyLabels' => $monthlyLabels,
+         'monthlyData' => $monthlyDataArray,
+         'currency' => $currency,
+      ]);
+   }
+
+   /**
+    * Exporta el historial de pagos a Excel
+    */
+   public function exportPaymentHistory(Request $request)
+   {
+      try {
+         $query = DebtPayment::where('company_id', $this->company->id)
+            ->with(['customer', 'user']);
+         
+         // Aplicar filtros
+         if ($request->has('customer_id') && $request->customer_id) {
+            $query->where('customer_id', $request->customer_id);
+         }
+         
+         if ($request->has('date_from') && $request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+         }
+         
+         if ($request->has('date_to') && $request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+         }
+         
+         $payments = $query->orderBy('created_at', 'desc')->get();
+         
+         // Crear un archivo Excel
+         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+         $sheet = $spreadsheet->getActiveSheet();
+         
+         // Establecer el título
+         $sheet->setCellValue('A1', 'HISTORIAL DE PAGOS DE DEUDAS');
+         $sheet->mergeCells('A1:G1');
+         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+         $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+         
+         // Establecer encabezados
+         $sheet->setCellValue('A3', 'FECHA');
+         $sheet->setCellValue('B3', 'CLIENTE');
+         $sheet->setCellValue('C3', 'DEUDA ANTERIOR');
+         $sheet->setCellValue('D3', 'MONTO PAGADO');
+         $sheet->setCellValue('E3', 'DEUDA RESTANTE');
+         $sheet->setCellValue('F3', 'REGISTRADO POR');
+         $sheet->setCellValue('G3', 'NOTAS');
+         
+         $sheet->getStyle('A3:G3')->getFont()->setBold(true);
+         $sheet->getStyle('A3:G3')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFCCCCCC');
+         
+         // Llenar datos
+         $row = 4;
+         foreach ($payments as $payment) {
+            $sheet->setCellValue('A' . $row, $payment->created_at->format('d/m/Y H:i:s'));
+            $sheet->setCellValue('B' . $row, $payment->customer->name);
+            $sheet->setCellValue('C' . $row, $payment->previous_debt);
+            $sheet->setCellValue('D' . $row, $payment->payment_amount);
+            $sheet->setCellValue('E' . $row, $payment->remaining_debt);
+            $sheet->setCellValue('F' . $row, $payment->user->name);
+            $sheet->setCellValue('G' . $row, $payment->notes);
+            $row++;
+         }
+         
+         // Autoajustar columnas
+         foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+         }
+         
+         // Crear el archivo Excel
+         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+         $fileName = 'historial_pagos_' . date('Y-m-d') . '.xlsx';
+         $tempFile = tempnam(sys_get_temp_dir(), $fileName);
+         $writer->save($tempFile);
+         
+         return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+      } catch (\Exception $e) {
+         Log::error('Error al exportar historial de pagos: ' . $e->getMessage());
+         return redirect()->route('admin.customers.payment-history')
+            ->with('message', 'Error al exportar el historial de pagos: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 }

@@ -16,7 +16,7 @@ use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\PermissionController;
 
 Route::get('/', function () {
-   return view('welcome');
+    return view('welcome');
 });
 
 Auth::routes();
@@ -118,6 +118,12 @@ Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerControl
     ->name('admin.customers.debt-report');
 Route::get('/admin/customers/debt-report/download', [App\Http\Controllers\CustomerController::class, 'debtReport'])
     ->name('admin.customers.debt-report.download');
+Route::post('/admin/customers/{customer}/register-payment', [App\Http\Controllers\CustomerController::class, 'registerDebtPayment'])
+    ->name('admin.customers.register-payment');
+Route::get('/admin/customers/payment-history', [App\Http\Controllers\CustomerController::class, 'paymentHistory'])
+    ->name('admin.customers.payment-history');
+Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\CustomerController::class, 'exportPaymentHistory'])
+    ->name('admin.customers.payment-history.export');
 
 // Sales
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);

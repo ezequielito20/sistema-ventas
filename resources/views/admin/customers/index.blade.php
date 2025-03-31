@@ -12,14 +12,17 @@
             <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a>
+            <a href="#" class="btn btn-danger mr-2" id="debtReportBtn">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
+            </a>
+            <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning mr-2">
+                <i class="fas fa-history mr-2"></i>Historial de Pagos
+            </a>
             {{-- <button class="btn btn-outline-primary mr-2" id="exportCustomers">
                 <i class="fas fa-file-export mr-2"></i>Exportar
             </button> --}}
             <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle mr-2"></i>Nuevo Cliente
-            </a>
-            <a href="#" class="btn btn-danger mr-2" id="debtReportBtn">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
             </a>
         </div>
     </div>
@@ -385,6 +388,74 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal para registrar pagos de deuda -->
+    <div class="modal fade" id="debtPaymentModal" tabindex="-1" role="dialog" aria-labelledby="debtPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="debtPaymentModalLabel">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Registrar Pago de Deuda
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="debtPaymentForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="payment_customer_id" name="customer_id">
+                        
+                        <div class="form-group">
+                            <label for="customer_name">Cliente:</label>
+                            <input type="text" class="form-control" id="customer_name" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="current_debt">Deuda Actual:</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">{{ $currency->symbol }}</span>
+                                </div>
+                                <input type="text" class="form-control" id="current_debt" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="payment_amount">Monto del Pago:</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">{{ $currency->symbol }}</span>
+                                </div>
+                                <input type="number" class="form-control" id="payment_amount" name="payment_amount" step="0.01" min="0.01" required>
+                            </div>
+                            <small class="form-text text-muted">El monto no puede ser mayor que la deuda actual.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remaining_debt">Deuda Restante:</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">{{ $currency->symbol }}</span>
+                                </div>
+                                <input type="text" class="form-control" id="remaining_debt" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="payment_notes">Notas:</label>
+                            <textarea class="form-control" id="payment_notes" name="notes" rows="3" placeholder="Detalles adicionales sobre este pago..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i>Registrar Pago
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -684,162 +755,130 @@
                 });
             });
 
-            // Edición inline de deuda
-            $('.edit-debt-btn').click(function() {
-                const container = $(this).closest('td');
-                const debtValue = container.find('.debt-value');
-                const customerId = debtValue.data('customer-id');
-                const originalValue = debtValue.data('original-value');
-                const debtAmount = container.find('.debt-amount');
-                
-                // Si ya está en modo edición, no hacer nada
-                if (container.find('.debt-input').length > 0) {
-                    return;
-                }
-                
-                // Crear el input para editar
-                const currentValue = originalValue;
-                const inputGroup = `
-                    <div class="input-group input-group-sm debt-editor">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">${'{{ $currency->symbol }}'}</span>
-                        </div>
-                        <input type="number" class="form-control debt-input" value="${currentValue}" step="0.01" min="0">
-                        <div class="input-group-append">
-                            <button class="btn btn-success save-debt-btn" type="button">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-danger cancel-debt-btn" type="button">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Ocultar el texto y mostrar el input
-                debtValue.hide();
-                $(this).hide();
-                container.find('.text-muted').hide();
-                container.find('.badge').hide();
-                container.prepend(inputGroup);
-                
-                // Enfocar el input
-                container.find('.debt-input').focus();
-                
-                // Guardar cambios
-                container.find('.save-debt-btn').click(function() {
-                    const newValue = container.find('.debt-input').val();
-                    
-                    // Validar que sea un número válido
-                    if (isNaN(newValue) || newValue < 0) {
-                        alert('Por favor ingrese un valor válido');
-                        return;
-                    }
-                    
-                    // Enviar actualización mediante AJAX
-                    $.ajax({
-                        url: `/admin/customers/${customerId}/update-debt`,
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            total_debt: newValue
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // Actualizar la vista
-                                if (newValue > 0) {
-                                    debtAmount.text(parseFloat(newValue).toFixed(2));
-                                    debtValue.show();
-                                    container.find('.text-muted').show();
-                                    container.find('.badge').hide();
-                                } else {
-                                    debtValue.hide();
-                                    container.find('.text-muted').hide();
-                                    container.find('.badge').show();
-                                }
-                                
-                                // Actualizar el valor original
-                                debtValue.data('original-value', newValue);
-                                
-                                // Mostrar mensaje de éxito
-                                Swal.fire({
-                                    title: '¡Éxito!',
-                                    text: response.message,
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: response.message,
-                                    icon: 'error'
-                                });
-                            }
-                        },
-                        error: function() {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Hubo un problema al actualizar la deuda',
-                                icon: 'error'
-                            });
-                        },
-                        complete: function() {
-                            // Eliminar el editor y mostrar el botón de edición
-                            container.find('.debt-editor').remove();
-                            container.find('.edit-debt-btn').show();
-                        }
-                    });
+            // Botón de reporte de deudas
+            $('#debtReportBtn').click(function() {
+                // Mostrar un indicador de carga
+                Swal.fire({
+                    title: 'Cargando reporte...',
+                    html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
                 });
-                
-                // Cancelar edición
-                container.find('.cancel-debt-btn').click(function() {
-                    // Eliminar el editor y mostrar los elementos originales
-                    container.find('.debt-editor').remove();
-                    if (originalValue > 0) {
-                        debtValue.show();
-                        container.find('.text-muted').show();
-                    } else {
-                        container.find('.badge').show();
+
+                // Cargar el reporte mediante AJAX
+                $.ajax({
+                    url: '{{ route("admin.customers.debt-report") }}',
+                    type: 'GET',
+                    success: function(response) {
+                        // Cerrar el indicador de carga
+                        Swal.close();
+                        
+                        // Crear un modal dinámico
+                        if (!$('#debtReportModal').length) {
+                            $('body').append('<div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content"></div></div></div>');
+                        }
+                        
+                        // Llenar el modal con la respuesta
+                        $('#debtReportModal .modal-content').html(response);
+                        
+                        // Mostrar el modal
+                        $('#debtReportModal').modal('show');
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
                     }
-                    container.find('.edit-debt-btn').show();
                 });
             });
 
-            // Cargar el reporte de deudas en el modal
-            $('#debtReportBtn').click(function(e) {
+            // Manejar el botón de editar deuda
+            $('.edit-debt-btn').click(function() {
+                const $debtValue = $(this).closest('td').find('.debt-value');
+                const customerId = $debtValue.data('customer-id');
+                const currentDebt = parseFloat($debtValue.data('original-value'));
+                const customerName = $(this).closest('tr').find('td:first-child strong').text();
+                
+                // Llenar el modal con los datos del cliente
+                $('#payment_customer_id').val(customerId);
+                $('#customer_name').val(customerName);
+                $('#current_debt').val(currentDebt.toFixed(2));
+                $('#payment_amount').val('').attr('max', currentDebt);
+                $('#remaining_debt').val('');
+                $('#payment_notes').val('');
+                
+                // Mostrar el modal
+                $('#debtPaymentModal').modal('show');
+            });
+            
+            // Calcular deuda restante al cambiar el monto del pago
+            $('#payment_amount').on('input', function() {
+                const currentDebt = parseFloat($('#current_debt').val());
+                const paymentAmount = parseFloat($(this).val()) || 0;
+                
+                if (paymentAmount > currentDebt) {
+                    $(this).val(currentDebt);
+                    const remainingDebt = 0;
+                    $('#remaining_debt').val(remainingDebt.toFixed(2));
+                } else {
+                    const remainingDebt = currentDebt - paymentAmount;
+                    $('#remaining_debt').val(remainingDebt.toFixed(2));
+                }
+            });
+            
+            // Manejar el envío del formulario de pago
+            $('#debtPaymentForm').submit(function(e) {
                 e.preventDefault();
                 
-                // Mostrar el modal con el spinner de carga
-                $('#debtReportModal').modal('show');
+                const customerId = $('#payment_customer_id').val();
+                const paymentAmount = parseFloat($('#payment_amount').val());
+                const notes = $('#payment_notes').val();
                 
-                // Cargar el contenido del reporte mediante AJAX
                 $.ajax({
-                    url: "{{ route('admin.customers.debt-report') }}",
-                    method: 'GET',
+                    url: `/admin/customers/${customerId}/register-payment`,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        payment_amount: paymentAmount,
+                        notes: notes
+                    },
                     success: function(response) {
-                        // Reemplazar el contenido del modal con la respuesta
-                        $('#debtReportModal .modal-content').html(response);
+                        // Actualizar la deuda en la tabla
+                        const $debtValue = $(`.debt-value[data-customer-id="${customerId}"]`);
+                        $debtValue.data('original-value', response.new_debt);
+                        $debtValue.find('.debt-amount').text(response.formatted_new_debt);
+                        
+                        // Actualizar la deuda en Bs
+                        const $bsDebt = $debtValue.closest('tr').find('.bs-debt');
+                        $bsDebt.data('debt', response.new_debt);
+                        
+                        // Recalcular el valor en Bs con el tipo de cambio actual
+                        const rate = parseFloat($('#exchangeRate').val());
+                        const debtBs = response.new_debt * rate;
+                        $bsDebt.html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        
+                        // Cerrar el modal
+                        $('#debtPaymentModal').modal('hide');
+                        
+                        // Mostrar mensaje de éxito
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pago registrado',
+                            text: 'El pago ha sido registrado correctamente',
+                            confirmButtonText: 'Aceptar'
+                        });
                     },
                     error: function(xhr) {
-                        // Mostrar mensaje de error
-                        $('#debtReportModal .modal-content').html(`
-                            <div class="modal-header bg-danger">
-                                <h5 class="modal-title text-white">Error</h5>
-                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    Error al cargar el reporte: ${xhr.responseJSON?.message || 'Error desconocido'}
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                            </div>
-                        `);
+                        let errorMessage = 'Ha ocurrido un error al registrar el pago';
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            errorMessage = Object.values(xhr.responseJSON.errors)[0][0];
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage,
+                            confirmButtonText: 'Aceptar'
+                        });
                     }
                 });
             });
