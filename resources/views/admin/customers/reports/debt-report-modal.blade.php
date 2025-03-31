@@ -1,32 +1,41 @@
-<div class="modal-header bg-danger">
-    <h5 class="modal-title text-white">
-        <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas de Clientes
-    </h5>
-    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+<div class="modal-header">
+    <h5 class="modal-title" id="debtReportModalLabel">Reporte de Deudas</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
         <span aria-hidden="true">&times;</span>
     </button>
 </div>
 <div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="modalExchangeRate">Tipo de Cambio (1 USD =)</label>
+                <div class="input-group">
+                    <input type="number" id="modalExchangeRate" class="form-control" step="0.01" min="0.01" value="1.00">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" id="updateModalExchangeRate">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-info">
+                <strong>Deuda Total:</strong> {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
+                <span class="modal-bs-debt" data-debt="{{ $totalDebt }}">
+                    Bs. {{ number_format($totalDebt, 2) }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h4 class="mb-0">{{ $company->name }}</h4>
             <p class="text-muted mb-0">Fecha: {{ date('d/m/Y H:i:s') }}</p>
         </div>
         <div class="d-flex align-items-center">
-            <div class="mr-3">
-                <div class="input-group input-group-sm">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">1 USD = </span>
-                    </div>
-                    <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
-                    <div class="input-group-append">
-                        <span class="input-group-text">VES</span>
-                        <button type="button" id="updateExchangeRate" class="btn btn-primary">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            
             <a href="{{ route('admin.customers.debt-report.download') }}" class="btn btn-sm btn-outline-danger" target="_blank">
                 <i class="fas fa-file-pdf mr-1"></i>Descargar PDF
             </a>
@@ -91,50 +100,14 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+    <a href="{{ route('admin.customers.report') }}" target="_blank" class="btn btn-primary">
+        <i class="fas fa-file-pdf mr-1"></i>Generar PDF
+    </a>
 </div>
 
 <script>
+    // Este script se ejecutará cuando el modal se cargue
     $(document).ready(function() {
-        // Cargar el tipo de cambio guardado en localStorage (si existe)
-        const savedRate = localStorage.getItem('exchangeRate');
-        if (savedRate) {
-            $('#exchangeRate').val(savedRate);
-            updateBsValues(savedRate);
-        }
-        
-        // Actualizar valores en Bs cuando se cambia el tipo de cambio
-        $('#updateExchangeRate').click(function() {
-            const rate = parseFloat($('#exchangeRate').val());
-            if (rate > 0) {
-                // Guardar en localStorage para futuras visitas
-                localStorage.setItem('exchangeRate', rate);
-                updateBsValues(rate);
-                
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Tipo de cambio actualizado',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
-        });
-        
-        // Función para actualizar todos los valores en Bs
-        function updateBsValues(rate) {
-            // Actualizar cada fila
-            $('.bs-debt').each(function() {
-                const debtUsd = parseFloat($(this).data('debt'));
-                const debtBs = debtUsd * rate;
-                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            });
-            
-            // Actualizar el total
-            const totalDebtUsd = {{ $totalDebt }};
-            const totalDebtBs = totalDebtUsd * rate;
-            $('#totalBsDebt').html('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        }
+        console.log('Modal cargado, esperando valor de tipo de cambio');
     });
 </script> 

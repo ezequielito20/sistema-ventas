@@ -525,6 +525,9 @@
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Variable global para almacenar el tipo de cambio actual
+        let currentExchangeRate = 1.0;
+
         $(document).ready(function() {
             // Inicializar DataTable
             const table = $('#customersTable').DataTable({
@@ -538,14 +541,16 @@
             // Cargar el tipo de cambio guardado en localStorage (si existe)
             const savedRate = localStorage.getItem('exchangeRate');
             if (savedRate) {
-                $('#exchangeRate').val(savedRate);
-                updateBsValues(savedRate);
+                currentExchangeRate = parseFloat(savedRate);
+                $('#exchangeRate').val(currentExchangeRate);
+                updateBsValues(currentExchangeRate);
             }
             
             // Actualizar valores en Bs cuando se cambia el tipo de cambio
             $('#updateExchangeRate').click(function() {
                 const rate = parseFloat($('#exchangeRate').val());
                 if (rate > 0) {
+                    currentExchangeRate = rate;
                     // Guardar en localStorage para futuras visitas
                     localStorage.setItem('exchangeRate', rate);
                     updateBsValues(rate);
@@ -564,13 +569,103 @@
             
             // Función para actualizar todos los valores en Bs
             function updateBsValues(rate) {
-                // Actualizar cada fila
                 $('.bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
                     const debtBs = debtUsd * rate;
                     $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                 });
             }
+            
+            // Botón de reporte de deudas
+            $('#debtReportBtn').click(function() {
+                // Mostrar un indicador de carga
+                Swal.fire({
+                    title: 'Cargando reporte...',
+                    html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+
+                // Cargar el reporte mediante AJAX
+                $.ajax({
+                    url: '{{ route("admin.customers.debt-report") }}',
+                    type: 'GET',
+                    success: function(response) {
+                        // Cerrar el indicador de carga
+                        Swal.close();
+                        
+                        // Crear un modal dinámico
+                        if (!$('#debtReportModal').length) {
+                            $('body').append('<div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content"></div></div></div>');
+                        }
+                        
+                        // Llenar el modal con la respuesta
+                        $('#debtReportModal .modal-content').html(response);
+                        
+                        // Mostrar el modal
+                        $('#debtReportModal').modal('show');
+                        
+                        // Pasar el tipo de cambio actual al modal
+                        $('#debtReportModal').data('exchangeRate', currentExchangeRate);
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
+                    }
+                });
+            });
+
+            // Escuchar el evento de modal mostrado
+            $(document).on('shown.bs.modal', '#debtReportModal', function() {
+                console.log('Modal mostrado, estableciendo tipo de cambio:', currentExchangeRate);
+                
+                // Establecer el valor del tipo de cambio en el modal
+                $('#modalExchangeRate').val(currentExchangeRate);
+                
+                // Actualizar los valores en Bs en el modal
+                updateModalBsValues(currentExchangeRate);
+            });
+            
+            // Función para actualizar los valores en Bs en el modal
+            function updateModalBsValues(rate) {
+                $('.modal-bs-debt').each(function() {
+                    const debtUsd = parseFloat($(this).data('debt'));
+                    const debtBs = debtUsd * rate;
+                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+            }
+            
+            // Escuchar el evento de clic en el botón de actualizar en el modal
+            $(document).on('click', '#updateModalExchangeRate', function() {
+                const rate = parseFloat($('#modalExchangeRate').val());
+                if (rate > 0) {
+                    console.log('Actualizando tipo de cambio desde el modal:', rate);
+                    
+                    // Actualizar la variable global
+                    currentExchangeRate = rate;
+                    
+                    // Actualizar el input en la tabla principal
+                    $('#exchangeRate').val(rate);
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem('exchangeRate', rate);
+                    
+                    // Actualizar valores en Bs en el modal
+                    updateModalBsValues(rate);
+                    
+                    // Actualizar valores en Bs en la tabla principal
+                    updateBsValues(rate);
+                    
+                    // Mostrar mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Tipo de cambio actualizado',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            });
 
             // Animación de contadores
             $('.counter').each(function() {
@@ -755,41 +850,6 @@
                 });
             });
 
-            // Botón de reporte de deudas
-            $('#debtReportBtn').click(function() {
-                // Mostrar un indicador de carga
-                Swal.fire({
-                    title: 'Cargando reporte...',
-                    html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
-                    showConfirmButton: false,
-                    allowOutsideClick: false
-                });
-
-                // Cargar el reporte mediante AJAX
-                $.ajax({
-                    url: '{{ route("admin.customers.debt-report") }}',
-                    type: 'GET',
-                    success: function(response) {
-                        // Cerrar el indicador de carga
-                        Swal.close();
-                        
-                        // Crear un modal dinámico
-                        if (!$('#debtReportModal').length) {
-                            $('body').append('<div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content"></div></div></div>');
-                        }
-                        
-                        // Llenar el modal con la respuesta
-                        $('#debtReportModal .modal-content').html(response);
-                        
-                        // Mostrar el modal
-                        $('#debtReportModal').modal('show');
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
-                    }
-                });
-            });
-
             // Manejar el botón de editar deuda
             $('.edit-debt-btn').click(function() {
                 const $debtValue = $(this).closest('td').find('.debt-value');
@@ -832,6 +892,14 @@
                 const paymentAmount = parseFloat($('#payment_amount').val());
                 const notes = $('#payment_notes').val();
                 
+                // Mostrar indicador de carga
+                Swal.fire({
+                    title: 'Procesando pago...',
+                    html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+                
                 $.ajax({
                     url: `/admin/customers/${customerId}/register-payment`,
                     type: 'POST',
@@ -841,6 +909,8 @@
                         notes: notes
                     },
                     success: function(response) {
+                        console.log('Respuesta del servidor:', response);
+                        
                         // Actualizar la deuda en la tabla
                         const $debtValue = $(`.debt-value[data-customer-id="${customerId}"]`);
                         $debtValue.data('original-value', response.new_debt);
@@ -867,6 +937,8 @@
                         });
                     },
                     error: function(xhr) {
+                        console.error('Error en la solicitud:', xhr);
+                        
                         let errorMessage = 'Ha ocurrido un error al registrar el pago';
                         
                         if (xhr.responseJSON && xhr.responseJSON.errors) {

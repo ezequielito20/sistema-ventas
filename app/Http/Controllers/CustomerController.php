@@ -591,11 +591,23 @@ class CustomerController extends Controller
          'total_debt' => $remainingDebt
       ]);
 
+      // Verificar que la actualización se haya realizado correctamente
+      $customer->refresh();
+      
+      // Registrar en el log para depuración
+      Log::info('Pago de deuda registrado', [
+         'customer_id' => $customer->id,
+         'previous_debt' => $previousDebt,
+         'payment_amount' => $paymentAmount,
+         'remaining_debt' => $remainingDebt,
+         'new_total_debt' => $customer->total_debt
+      ]);
+
       return response()->json([
          'success' => true,
          'message' => 'Pago registrado correctamente',
-         'new_debt' => $remainingDebt,
-         'formatted_new_debt' => number_format($remainingDebt, 2)
+         'new_debt' => $customer->total_debt,
+         'formatted_new_debt' => number_format($customer->total_debt, 2)
       ]);
    }
 
@@ -752,6 +764,50 @@ class CustomerController extends Controller
          return redirect()->route('admin.customers.payment-history')
             ->with('message', 'Error al exportar el historial de pagos: ' . $e->getMessage())
             ->with('icons', 'error');
+      }
+   }
+
+   public function deletePayment(DebtPayment $payment)
+   {
+      try {
+         DB::beginTransaction();
+
+         // Obtener el cliente y el monto del pago
+         $customer = $payment->customer;
+         $paymentAmount = $payment->payment_amount;
+
+         // Restaurar la deuda al cliente
+         $customer->total_debt += $paymentAmount;
+         $customer->save();
+
+         // Eliminar el registro del pago
+         $payment->delete();
+
+         DB::commit();
+
+         // Obtener estadísticas actualizadas
+         $totalPayments = DebtPayment::where('company_id', $this->company->id)->sum('payment_amount');
+         $paymentsCount = DebtPayment::where('company_id', $this->company->id)->count();
+         $averagePayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0;
+
+         return response()->json([
+            'success' => true,
+            'message' => 'Pago eliminado correctamente',
+            'statistics' => [
+                'totalPayments' => number_format($totalPayments, 2),
+                'paymentsCount' => $paymentsCount,
+                'averagePayment' => number_format($averagePayment, 2)
+            ]
+         ]);
+
+      } catch (\Exception $e) {
+         DB::rollBack();
+         Log::error('Error al eliminar pago de deuda: ' . $e->getMessage());
+         
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar el pago: ' . $e->getMessage()
+         ], 500);
       }
    }
 }

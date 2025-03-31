@@ -124,6 +124,8 @@ Route::get('/admin/customers/payment-history', [App\Http\Controllers\CustomerCon
     ->name('admin.customers.payment-history');
 Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\CustomerController::class, 'exportPaymentHistory'])
     ->name('admin.customers.payment-history.export');
+Route::delete('/admin/customers/payment-history/{payment}', [App\Http\Controllers\CustomerController::class, 'deletePayment'])
+    ->name('admin.customers.payment.delete');
 
 // Sales
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);

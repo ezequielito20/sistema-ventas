@@ -15,7 +15,8 @@ class Customer extends Model
       'nit_number',
       'phone',
       'email',
-      'company_id'
+      'company_id',
+      'total_debt',
    ];
 
    protected $casts = [

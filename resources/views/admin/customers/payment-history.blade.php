@@ -134,6 +134,7 @@
                         <th>Deuda Restante</th>
                         <th>Registrado por</th>
                         <th>Notas</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -159,6 +160,15 @@
                             </td>
                             <td>
                                 {{ $payment->notes ?? 'Sin notas' }}
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm delete-payment" 
+                                        data-payment-id="{{ $payment->id }}"
+                                        data-customer-name="{{ $payment->customer->name }}"
+                                        data-payment-amount="{{ $payment->payment_amount }}"
+                                        data-customer-id="{{ $payment->customer_id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -206,96 +216,177 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar Select2
-            $('.select2').select2({
-                theme: 'bootstrap4',
-            });
-            
             // Inicializar DataTable
             $('#paymentsTable').DataTable({
                 responsive: true,
                 autoWidth: false,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
-                },
-                paging: false,
-                searching: true,
-                info: false
+                }
             });
-            
-            // Gráfico de pagos por día de la semana
-            const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
-            const weekdayChart = new Chart(weekdayCtx, {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($weekdayLabels) !!},
-                    datasets: [{
-                        label: 'Monto de Pagos',
-                        data: {!! json_encode($weekdayData) !!},
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '{{ $currency->symbol }} ' + value.toFixed(2);
+
+            // Inicializar gráficos si existen los elementos
+            if (document.getElementById('weekdayChart')) {
+                const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+                const weekdayChart = new Chart(weekdayCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($weekdayLabels) !!},
+                        datasets: [{
+                            label: 'Pagos por día de la semana',
+                            data: {!! json_encode($weekdayData) !!},
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                    }
                                 }
                             }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
-            
-            // Gráfico de pagos por mes
-            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-            const monthlyChart = new Chart(monthlyCtx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($monthlyLabels) !!},
-                    datasets: [{
-                        label: 'Monto de Pagos',
-                        data: {!! json_encode($monthlyData) !!},
-                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '{{ $currency->symbol }} ' + value.toFixed(2);
+                });
+            }
+
+            if (document.getElementById('monthlyChart')) {
+                const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+                const monthlyChart = new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($monthlyLabels) !!},
+                        datasets: [{
+                            label: 'Pagos por mes',
+                            data: {!! json_encode($monthlyData) !!},
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                    }
                                 }
                             }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                });
+            }
+
+            // Manejar la eliminación de pagos
+            $(document).on('click', '.delete-payment', function() {
+                const paymentId = $(this).data('payment-id');
+                const customerName = $(this).data('customer-name');
+                const paymentAmount = $(this).data('payment-amount');
+                const $button = $(this);
+
+                console.log('Botón de eliminar clickeado:', {
+                    paymentId: paymentId,
+                    customerName: customerName,
+                    paymentAmount: paymentAmount
+                });
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `
+                        <p>Vas a eliminar el pago de <strong>${paymentAmount} {{ $currency->symbol }}</strong> del cliente <strong>${customerName}</strong>.</p>
+                        <p>Esta acción restaurará la deuda al cliente.</p>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar indicador de carga
+                        Swal.fire({
+                            title: 'Eliminando pago...',
+                            html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                            showConfirmButton: false,
+                            allowOutsideClick: false
+                        });
+
+                        // Enviar solicitud de eliminación
+                        $.ajax({
+                            url: `/admin/customers/payment-history/${paymentId}`,
+                            type: 'DELETE',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            },
+                            success: function(response) {
+                                console.log('Respuesta del servidor:', response);
+                                
+                                // Eliminar la fila de la tabla
+                                $button.closest('tr').fadeOut(300, function() {
+                                    $(this).remove();
+                                });
+
+                                // Mostrar mensaje de éxito
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Pago eliminado',
+                                    text: 'El pago ha sido eliminado y la deuda ha sido restaurada',
+                                    confirmButtonText: 'Aceptar'
+                                });
+
+                                // Actualizar estadísticas si las hay en la página
+                                if (response.statistics) {
+                                    $('#totalPayments').text(response.statistics.totalPayments);
+                                    $('#paymentsCount').text(response.statistics.paymentsCount);
+                                    $('#averagePayment').text(response.statistics.averagePayment);
+                                }
+                            },
+                            error: function(xhr) {
+                                console.error('Error en la solicitud:', xhr);
+                                
+                                let errorMessage = 'Ha ocurrido un error al eliminar el pago';
+                                
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: errorMessage,
+                                    confirmButtonText: 'Aceptar'
+                                });
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>
