@@ -160,7 +160,7 @@
                     <tr>
                         <th>Cliente</th>
                         <th>Contacto</th>
-                        <th>NIT</th>
+                        <th>C.I</th>
                         <th>Total en Compras</th>
                         <th>Deuda Total</th>
                         <th>Deuda en Bs</th>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura #{{ $sale->id }}</title>
+    <title>Factura #{{ $sale->getFormattedInvoiceNumber() }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -167,7 +167,7 @@
                 <strong>{{ $company->name }}</strong><br>
                 {{ $company->address }}<br>
                 Tel: {{ $company->phone }}<br>
-                Email: {{ $company->email }}
+                Ig: {{ $company->ig }}
             </div>
         </div>
 
@@ -176,8 +176,8 @@
         </div>
 
         <div class="invoice-details">
-            <strong>NIT:</strong> {{ $company->nit }}<br>
-            <strong>N° Factura:</strong> {{ str_pad($sale->id, 8, '0', STR_PAD_LEFT) }}<br>
+            <!-- <strong>RIF:</strong> {{ $company->nit }}<br> -->
+            <strong>N° Factura:</strong> {{ $sale->getFormattedInvoiceNumber() }}<br>
             <strong class="original margin-top-10" style="margin-top: 40px; display: block;">ORIGINAL</strong>
         </div>
     </div>
@@ -193,17 +193,17 @@
                 <span class="customer-value">{{ $customer->name }}</span>
             </div>
             <div class="customer-item">
-                <span class="customer-label">NIT:</span>
+                <span class="customer-label">C.I.:</span>
                 <span class="customer-value">{{ $customer->nit_number }}</span>
             </div>
             <div class="customer-item">
                 <span class="customer-label">Teléfono:</span>
                 <span class="customer-value">{{ $customer->phone }}</span>
             </div>
-            <div class="customer-item">
+            <!-- <div class="customer-item">
                 <span class="customer-label">Email:</span>
                 <span class="customer-value">{{ $customer->email }}</span>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -255,7 +255,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <p>Gracias por su compra</p>
+        <p>¡Gracias por ser parte de este proyecto!</p>
         <small>Este documento es una representación impresa de una factura electrónica</small>
     </div>
 </body>

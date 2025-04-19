@@ -42,21 +42,38 @@ class ProductController extends Controller
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
          $company = $this->company;
+         
          // Calcular estadísticas
          $totalProducts = $products->count();
          $lowStockProducts = $products->filter->hasLowStock()->count();
-         // Calcula el valor total del inventario multiplicando el stock por el precio de compra
-         // de cada producto y sumando todos los resultados
-         $totalValue = $products->sum(function ($product) {
+         
+         // Calcula el valor total del inventario basado en precio de compra
+         $totalPurchaseValue = $products->sum(function ($product) {
             return $product->stock * $product->purchase_price;
          });
+
+         // Calcula el valor total del inventario basado en precio de venta
+         $totalSaleValue = $products->sum(function ($product) {
+            return $product->stock * $product->sale_price;
+         });
+
+         // Calcula la ganancia potencial
+         $potentialProfit = $totalSaleValue - $totalPurchaseValue;
+
+         // Calcula el porcentaje de ganancia
+         $profitPercentage = $totalPurchaseValue > 0 
+            ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100 
+            : 0;
 
          return view('admin.products.index', compact(
             'products',
             'categories',
             'totalProducts',
             'lowStockProducts',
-            'totalValue',
+            'totalPurchaseValue',
+            'totalSaleValue',
+            'potentialProfit',
+            'profitPercentage',
             'currency',
             'company'
          ));

@@ -54,4 +54,18 @@ class Sale extends Model
     {
         return $this->hasMany(SaleDetail::class);
     }
+
+    /**
+     * Obtiene el número de factura formateado basado en la empresa
+     */
+    public function getFormattedInvoiceNumber()
+    {
+        // Obtener todas las ventas de la misma empresa ordenadas por ID
+        $salesCount = Sale::where('company_id', $this->company_id)
+                         ->where('id', '<=', $this->id)
+                         ->count();
+        
+        // Formatear el número con ceros a la izquierda (8 dígitos)
+        return str_pad($salesCount, 8, '0', STR_PAD_LEFT);
+    }
 }

@@ -27,7 +27,8 @@ class Company extends Model
       'state',
       'postal_code',
       'logo',
-      'nit'
+      'nit',
+      'ig'
    ];
 
    protected $casts = [

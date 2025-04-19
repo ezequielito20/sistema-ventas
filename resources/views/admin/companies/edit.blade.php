@@ -209,6 +209,26 @@
                                             @enderror
                                         </div>
                                     </div>
+
+                                    {{-- Instagram field --}}
+                                    <div class="form-group">
+                                        <label for="ig">Usuario de Instagram</label>
+                                        <div class="input-group mb-3">
+                                            <input type="text" id="ig" name="ig"
+                                                class="form-control @error('ig') is-invalid @enderror"
+                                                value="{{ $company->ig }}" placeholder="Usuario de Instagram">
+                                            <div class="input-group-append">
+                                                <div class="input-group-text">
+                                                    <span class="fab fa-instagram"></span>
+                                                </div>
+                                            </div>
+                                            @error('ig')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="col-md-6">

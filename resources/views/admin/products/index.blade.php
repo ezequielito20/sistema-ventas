@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
+        <!-- <div class="col-lg-3 col-6">
             <div class="small-box bg-warning">
                 <div class="inner">
                     <h3>{{ $lowStockProducts }}</h3>
@@ -40,26 +40,37 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
             </div>
+        </div> -->
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h2>{{ $currency->symbol }} {{ number_format($totalPurchaseValue, 2) }}</h2>
+                    <p>Valor de Compra del Inventario</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
         </div>
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success">
                 <div class="inner">
-                    <h2>{{ $currency->symbol }} {{ number_format($totalValue, 2) }}</h2>
-                    <p>Valor del Inventario</p>
+                    <h2>{{ $currency->symbol }} {{ number_format($totalSaleValue, 2) }}</h2>
+                    <p>Valor de Venta del Inventario</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-money-bill"></i>
+                    <i class="fas fa-cash-register"></i>
                 </div>
             </div>
         </div>
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary">
                 <div class="inner">
-                    <h3>{{ $categories->count() }}</h3>
-                    <p>Categorías</p>
+                    <h2>{{ $currency->symbol }} {{ number_format($potentialProfit, 2) }}</h2>
+                    <p>Ganancia Potencial ({{ number_format($profitPercentage, 2) }}%)</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-tags"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
             </div>
         </div>

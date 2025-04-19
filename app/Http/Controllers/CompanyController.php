@@ -58,7 +58,8 @@ class CompanyController extends Controller
                 'city' => 'required|string|max:255',
                 'state' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:255',
-                'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048'
+                'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                'ig' => 'nullable|string|max:255'
             ], [
                 'country.required' => 'El país es requerido',
                 'country.string' => 'El país debe ser texto',
@@ -102,7 +103,9 @@ class CompanyController extends Controller
                 'logo.required' => 'El logo es requerido',
                 'logo.image' => 'El archivo debe ser una imagen',
                 'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
-                'logo.max' => 'El archivo no debe pesar más de 2MB'
+                'logo.max' => 'El archivo no debe pesar más de 2MB',
+                'ig.string' => 'El usuario de Instagram debe ser texto',
+                'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres'
             ]);
 
             // Handle logo upload
@@ -126,7 +129,8 @@ class CompanyController extends Controller
                 'city' => $validated['city'],
                 'state' => $validated['state'],
                 'postal_code' => $validated['postal_code'],
-                'logo' => $logoPath
+                'logo' => $logoPath,
+                'ig' => $validated['ig'] ?? null
             ]);
 
             // Crear el rol de administrador si no existe
@@ -237,7 +241,8 @@ class CompanyController extends Controller
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ig' => 'nullable|string|max:255'
         ], [
             'country.required' => 'El país es requerido',
             'country.string' => 'El país debe ser texto',
@@ -280,7 +285,9 @@ class CompanyController extends Controller
             'postal_code.max' => 'El código postal no debe exceder 255 caracteres',
             'logo.image' => 'El archivo debe ser una imagen',
             'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
-            'logo.max' => 'El archivo no debe pesar más de 2MB'
+            'logo.max' => 'El archivo no debe pesar más de 2MB',
+            'ig.string' => 'El usuario de Instagram debe ser texto',
+            'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres'
         ]);
 
         try {
