@@ -14,6 +14,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -30,7 +31,8 @@ Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])-
 
 // Configuración de empresa
 Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
-Route::post('/create-company/create', [CompanyController::class, 'store'])->name('admin.company.store')->middleware(['auth', 'can:companies.store']);
+Route::post('/create-company', [CompanyController::class, 'store'])->name('admin.company.store');
+
 Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
 

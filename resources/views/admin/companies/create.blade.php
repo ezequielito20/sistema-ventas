@@ -43,7 +43,7 @@
                     {{-- Card Body --}}
                     <div
                         class="card-body card-body">
-                        <form action="{{ url('create-company/create') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('admin.company.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             <div class="row">
