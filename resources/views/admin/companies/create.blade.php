@@ -11,6 +11,11 @@
 @section('adminlte_css')
     @stack('css')
     @yield('css')
+    <style>
+        .swal2-popup {
+            font-size: 1.2em;
+        }
+    </style>
 @stop
 
 @section('classes_body'){{ ($auth_type ?? 'login') . '-page' }}@stop
@@ -366,9 +371,53 @@
 @stop
 
 @section('adminlte_js')
-    @stack('js')
-    @yield('js')
+    {{-- Incluir SweetAlert2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Scripts específicos de la vista --}}
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('error'))
+                Swal.fire({
+                    title: '¡Error!',
+                    text: '{{ session('error') }}',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#d33',
+                    customClass: {
+                        confirmButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: true,
+                    background: '#fff',
+                    showCloseButton: true,
+                    timer: 10000,
+                    timerProgressBar: true,
+                    toast: false,
+                    position: 'center'
+                });
+            @endif
+
+            @if(session('message'))
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: '{{ session('message') }}',
+                    icon: 'success',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#28a745',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    },
+                    buttonsStyling: true,
+                    background: '#fff',
+                    showCloseButton: true,
+                    timer: 10000,
+                    timerProgressBar: true,
+                    toast: false,
+                    position: 'center'
+                });
+            @endif
+        });
+
         $(document).ready(function() {
             $('#country').change(function() {
                 var id_country = $(this).val();
@@ -438,4 +487,8 @@
             });
         });
     </script>
+
+    {{-- Incluir otros scripts si los hay --}}
+    @stack('js')
+    @yield('js')
 @stop

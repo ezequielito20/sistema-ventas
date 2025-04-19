@@ -167,16 +167,27 @@ class CompanyController extends Controller
                     ->withInput();
             }
 
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-
-            // Eliminar el logo si se subió
+            
             if (isset($logoPath) && Storage::disk('public')->exists($logoPath)) {
                 Storage::disk('public')->delete($logoPath);
             }
 
             return redirect()->route('admin.company.create')
-                ->with('message', 'Error al crear la empresa: ' . $e->getMessage())
+                ->with('error', $e->validator->errors()->first())
+                ->with('icons', 'error')
+                ->withInput();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if (isset($logoPath) && Storage::disk('public')->exists($logoPath)) {
+                Storage::disk('public')->delete($logoPath);
+            }
+
+            return redirect()->route('admin.company.create')
+                ->with('error', 'Error al crear la empresa: ' . $e->getMessage())
                 ->with('icons', 'error')
                 ->withInput();
         }
