@@ -13,16 +13,26 @@
     @else
         class="brand-link {{ config('adminlte.classes_brand') }}" @endif>
 
+    {{-- Logo --}}
+    @if(auth()->check() && auth()->user()->company && auth()->user()->company->logo)
+        <img src="{{ asset('storage/' . auth()->user()->company->logo) }}"
+             alt="{{ config('adminlte.logo_img_alt', 'Company Logo') }}"
+             class="{{ config('adminlte.logo_img_class', 'brand-image img-circle elevation-3') }}"
+             style="opacity:.8">
+    @else
+        <img src="{{ asset(config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png')) }}"
+             alt="{{ config('adminlte.logo_img_alt', 'AdminLTE') }}"
+             class="{{ config('adminlte.logo_img_class', 'brand-image img-circle elevation-3') }}"
+             style="opacity:.8">
+    @endif
 
-    {{-- Small brand logo --}}
-    <img src="{{ asset('storage/' . $company->logo) ?? asset(config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png')) }}"
-         alt="{{ config('adminlte.logo_img_alt', 'AdminLTE') }}"
-         class="{{ config('adminlte.logo_img_class', 'brand-image img-circle elevation-3') }}"
-         style="opacity:.8">
-
-    {{-- Brand text --}}
-    <span class="brand-text font-weight-light {{ config('adminlte.classes_brand_text') }}">
-        {!! config('adminlte.logo', '<b>Admin</b>LTE') !!}
+    {{-- Company Name / System Name --}}
+    <span class="{{ config('adminlte.classes_brand_text') }}">
+        @if(auth()->check() && auth()->user()->company)
+            <b>{{ auth()->user()->company->name }}</b>
+        @else
+            {!! config('adminlte.logo', '<b>Admin</b>LTE') !!}
+        @endif
     </span>
 
 </a>
