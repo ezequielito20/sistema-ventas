@@ -84,9 +84,27 @@
                 Lista de Productos
             </h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
+                <div class="d-flex">
+                    <div class="input-group input-group-sm mr-2" style="width: 250px;">
+                        <input type="text" id="productSearch" class="form-control float-right" placeholder="Buscar producto...">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-default">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="btn-group mr-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary active filter-btn"
+                            data-filter="all">Todos</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn"
+                            data-filter="low">Stock Bajo</button>
+                        <button type="button" class="btn btn-sm btn-outline-success filter-btn"
+                            data-filter="normal">Stock Normal</button>
+                    </div>
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
             </div>
         </div>
         <div class="card-body">
@@ -317,6 +335,7 @@
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap4.min.css">
     <style>
         .small-box {
             transition: transform .3s;
@@ -406,12 +425,19 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable
-            $('#productsTable').DataTable({
+            // Inicializar DataTable con opciones mejoradas
+            const table = $('#productsTable').DataTable({
                 responsive: true,
                 "language": {
                     "emptyTable": "No hay información",
@@ -432,13 +458,38 @@
                         "previous": "Anterior"
                     }
                 },
-                order: [
-                    []
-                ], // Ordenar por nombre por defecto
+                dom: 'Bfrtip',  // Añadir botones de exportación
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ]
             });
 
-            // Inicializar tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+            // Conectar el campo de búsqueda personalizado con la búsqueda del DataTable
+            $('#productSearch').on('keyup', function() {
+                table.search(this.value).draw();
+            });
+
+            // Filtros de producto por estado de stock
+            $('.filter-btn').click(function() {
+                $('.filter-btn').removeClass('active');
+                $(this).addClass('active');
+
+                const filter = $(this).data('filter');
+                
+                // Limpiar filtros previos
+                table.search('').columns().search('').draw();
+                
+                if (filter === 'low') {
+                    // Filtrar productos con stock bajo
+                    table.column(3).search('Bajo').draw();
+                } else if (filter === 'normal') {
+                    // Filtrar productos con stock normal
+                    table.column(3).search('Normal|Óptimo', true).draw();
+                } else {
+                    // Mostrar todos
+                    table.draw();
+                }
+            });
 
             // Mostrar detalles del producto
             $('.show-product').click(function() {
