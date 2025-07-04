@@ -3,10 +3,13 @@
 @section('title', 'Nueva Venta')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Nueva Venta</h1>
-        <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Nueva Venta</h1>
+        <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-2 d-md-inline d-none"></i>
+            <i class="fas fa-arrow-left d-md-none"></i>
+            <span class="d-md-inline d-none">Volver al listado</span>
+            <span class="d-md-none">Volver</span>
         </a>
     </div>
 @stop
@@ -27,7 +30,7 @@
                     <div class="card-body">
                         <div class="row">
                             <!-- Código de Producto -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4 mb-3">
                                 <div class="form-group">
                                     <label for="product_code" class="required">Código de Producto</label>
                                     <div class="input-group">
@@ -53,7 +56,7 @@
                             </div>
 
                             <!-- Cliente -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4 mb-3">
                                 <div class="form-group">
                                     <label for="customer_id" class="required">Cliente</label>
                                     <div class="input-group">
@@ -87,7 +90,7 @@
                             </div>
 
                             <!-- Fecha de venta -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4 mb-3">
                                 <div class="form-group">
                                     <label for="sale_date" class="required">Fecha de Venta</label>
                                     <div class="input-group">
@@ -170,21 +173,31 @@
                     </div>
 
                     <div class="card-footer">
-                        <div class="d-flex justify-content-between">
+                        <div class="btn-group-sales w-100">
                             <button type="button" class="btn btn-danger" id="cancelSale">
-                                <i class="fas fa-times-circle mr-2"></i>
-                                Cancelar Venta
+                                <i class="fas fa-times-circle mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-times-circle d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Cancelar Venta</span>
+                                <span class="d-lg-none d-md-inline d-none">Cancelar</span>
+                                <span class="d-md-none d-sm-inline d-none">Cancel</span>
+                                <span class="d-sm-none">X</span>
                             </button>
-                            <div>
-                                <button type="submit" class="btn btn-primary mr-2" name="action" value="save">
-                                    <i class="fas fa-save mr-2"></i>
-                                    Procesar Venta
-                                </button>
-                                <button type="submit" class="btn btn-success" name="action" value="save_and_new">
-                                    <i class="fas fa-plus-circle mr-2"></i>
-                                    Procesar y Nueva Venta
-                                </button>
-                            </div>
+                            <button type="submit" class="btn btn-primary" name="action" value="save">
+                                <i class="fas fa-save mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-save d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Procesar Venta</span>
+                                <span class="d-lg-none d-md-inline d-none">Procesar</span>
+                                <span class="d-md-none d-sm-inline d-none">Proc</span>
+                                <span class="d-sm-none">✓</span>
+                            </button>
+                            <button type="submit" class="btn btn-success" name="action" value="save_and_new">
+                                <i class="fas fa-plus-circle mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-plus-circle d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Procesar y Nueva Venta</span>
+                                <span class="d-lg-none d-md-inline d-none">Proc y Nuevo</span>
+                                <span class="d-md-none d-sm-inline d-none">Proc+</span>
+                                <span class="d-sm-none">✓+</span>
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -354,6 +367,111 @@
             #productsTable td,
             #productsTable th {
                 white-space: nowrap;
+            }
+            
+            /* Hacer los botones más grandes en móviles */
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Mejorar el espaciado en los formularios */
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            /* Ajustar el tamaño de los inputs en móviles */
+            .form-control {
+                font-size: 16px; /* Previene zoom en iOS */
+            }
+        }
+
+        /* Estilos adicionales para responsividad */
+        @media screen and (max-width: 576px) {
+            /* Hacer que los inputs del formulario sean más grandes */
+            .input-group-text {
+                min-width: 45px;
+                justify-content: center;
+            }
+            
+            /* Mejorar la tabla de productos en móviles */
+            .table-responsive {
+                border: none;
+            }
+            
+            .table td, .table th {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Botones de acción en la tabla más pequeños */
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            /* Ajustar botones del footer para que se mantengan en línea */
+            .card-footer .btn {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Estilos para el grupo de botones de ventas */
+        .btn-group-sales {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-group-sales .btn {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Separar el botón cancelar de los otros dos */
+        .btn-group-sales .btn:first-child {
+            margin-right: auto;
+        }
+
+        .btn-group-sales .btn:not(:first-child) {
+            margin-left: 0.25rem;
+        }
+
+        /* Distribución responsive de botones - SIEMPRE EN LÍNEA */
+        @media screen and (max-width: 768px) {
+            .btn-group-sales {
+                gap: 0.25rem;
+            }
+            
+            .btn-group-sales .btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.5rem;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .btn-group-sales .btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.4rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .btn-group-sales .btn {
+                font-size: 0.7rem;
+                padding: 0.375rem 0.25rem;
+            }
+        }
+
+        /* Mejoras para tablets */
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            .col-md-4 {
+                margin-bottom: 1rem;
             }
         }
     </style>

@@ -539,10 +539,10 @@
                             
                             // Actualizar código postal y moneda
                             if (response.postal_code) {
-                                $('input[name="postal_code"]').val(response.postal_code);
+                            $('input[name="postal_code"]').val(response.postal_code);
                             }
                             if (response.currency_code) {
-                                $('input[name="currency"]').val(response.currency_code);
+                            $('input[name="currency"]').val(response.currency_code);
                             }
                         },
                         error: function(xhr, status, error) {

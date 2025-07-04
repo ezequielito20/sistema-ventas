@@ -3,26 +3,23 @@
 @section('title', 'Gestión de Clientes')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <div class="mb-3 mb-md-0">
             <h1 class="text-dark font-weight-bold">Gestión de Clientes</h1>
-            <p class="mb-0">Administra y visualiza todos tus clientes en un solo lugar</p>
+            <p class="mb-0 d-none d-md-block">Administra y visualiza todos tus clientes en un solo lugar</p>
         </div>
-        <div class="d-flex">
-            <a href="{{ route('admin.customers.report') }}" class="btn btn-info mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-2"></i>Reporte
+        <div class="btn-group-mobile">
+            <a href="{{ route('admin.customers.report') }}" class="btn btn-info btn-sm" target="_blank">
+                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Reporte</span><i class="fas fa-file-pdf d-md-none"></i>
             </a>
-            <a href="#" class="btn btn-danger mr-2" id="debtReportBtn">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>Reporte de Deudas
+            <a href="#" class="btn btn-danger btn-sm" id="debtReportBtn">
+                <i class="fas fa-file-invoice-dollar mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Deudas</span><i class="fas fa-file-invoice-dollar d-md-none"></i>
             </a>
-            <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning mr-2">
-                <i class="fas fa-history mr-2"></i>Historial de Pagos
+            <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-history mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Pagos</span><i class="fas fa-history d-md-none"></i>
             </a>
-            {{-- <button class="btn btn-outline-primary mr-2" id="exportCustomers">
-                <i class="fas fa-file-export mr-2"></i>Exportar
-            </button> --}}
-            <a href="{{ route('admin.customers.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Nuevo Cliente
+            <a href="{{ route('admin.customers.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Nuevo</span><i class="fas fa-plus-circle d-md-none"></i>
             </a>
         </div>
     </div>
@@ -31,17 +28,17 @@
 @section('content')
     {{-- Widgets de Estadísticas con Animación --}}
     <div class="row">
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
             <div class="small-box bg-gradient-info shadow-sm">
                 <div class="inner">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="counter">{{ $totalCustomers }}</h3>
-                            <p>Total Clientes</p>
+                            <h3 class="counter mb-1">{{ $totalCustomers }}</h3>
+                            <p class="mb-0 small">Total Clientes</p>
                         </div>
                         <div class="d-flex align-items-center">
                             @if ($customerGrowth > 0)
-                                <span class="badge badge-success">
+                                <span class="badge badge-success badge-sm">
                                     <i class="fas fa-arrow-up mr-1"></i>
                                     {{ $customerGrowth }}%
                                 </span>
@@ -55,11 +52,11 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
             <div class="small-box bg-gradient-success shadow-sm">
                 <div class="inner">
-                    <h3>{{ $activeCustomers }}/{{ $totalCustomers }}</h3>
-                    <p>Clientes Activos</p>
+                    <h3 class="mb-1">{{ $activeCustomers }}/{{ $totalCustomers }}</h3>
+                    <p class="mb-0 small">Clientes Activos</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-user-check"></i>
@@ -67,11 +64,11 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
             <div class="small-box bg-gradient-warning shadow-sm">
                 <div class="inner">
-                    <h3>{{ $newCustomers }}</h3>
-                    <p>Nuevos este mes</p>
+                    <h3 class="mb-1">{{ $newCustomers }}</h3>
+                    <p class="mb-0 small">Nuevos este mes</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-user-plus"></i>
@@ -79,11 +76,11 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
             <div class="small-box bg-gradient-purple shadow-sm">
                 <div class="inner">
-                    <h3>{{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}</h3>
-                    <p>Ingresos Totales</p>
+                    <h3 class="mb-1 text-truncate">{{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}</h3>
+                    <p class="mb-0 small">Ingresos Totales</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-money-bill-wave"></i>
@@ -97,7 +94,8 @@
         <div class="card-header">
             <h3 class="card-title">
                 <i class="fas fa-money-bill-wave mr-2"></i>
-                Configuración de Tipo de Cambio
+                <span class="d-none d-md-inline">Configuración de Tipo de Cambio</span>
+                <span class="d-md-none">Tipo de Cambio</span>
             </h3>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -107,24 +105,28 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3 mb-md-0">
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text">1 USD = </span>
                         </div>
                         <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
                         <div class="input-group-append">
-                            <span class="input-group-text">VES</span>
-                            <button type="button" id="updateExchangeRate" class="btn btn-primary">
-                                <i class="fas fa-sync-alt mr-1"></i>Actualizar
-                            </button>
+                            <span class="input-group-text d-none d-sm-inline">VES</span>
                         </div>
                     </div>
+                    <button type="button" class="btn btn-primary btn-sm mt-2 w-100 d-md-none update-exchange-rate">
+                        <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                    </button>
+                    <button type="button" class="btn btn-primary d-none d-md-inline-block ml-2 update-exchange-rate">
+                        <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                    </button>
                 </div>
                 <div class="col-md-6">
                     <div class="alert alert-info mb-0">
                         <i class="fas fa-info-circle mr-2"></i>
-                        El tipo de cambio se utiliza para calcular las deudas en bolívares (VES).
+                        <span class="d-none d-md-inline">El tipo de cambio se utiliza para calcular las deudas en bolívares (VES).</span>
+                        <span class="d-md-none">Para calcular deudas en VES.</span>
                     </div>
                 </div>
             </div>
@@ -139,8 +141,8 @@
                 Lista de Clientes
             </h3>
             <div class="card-tools">
-                <div class="d-flex">
-                    <div class="btn-group mr-2">
+                <div class="d-flex align-items-center">
+                    <div class="btn-group-mobile mr-2">
                         <button type="button" class="btn btn-sm btn-outline-primary active filter-btn"
                             data-filter="all">Todos</button>
                         <button type="button" class="btn btn-sm btn-outline-success filter-btn"
@@ -155,129 +157,260 @@
             </div>
         </div>
         <div class="card-body">
-            <table id="customersTable" class="table table-striped table-hover">
-                <thead class="bg-primary text-white">
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Contacto</th>
-                        <th>C.I</th>
-                        <th>Total en Compras</th>
-                        <th>Deuda Total</th>
-                        <th>Deuda en Bs</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($customers as $customer)
+            {{-- Vista de tabla para pantallas grandes --}}
+            <div class="d-none d-lg-block">
+                <table id="customersTable" class="table table-striped table-hover">
+                    <thead class="bg-primary text-white">
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="customer-avatar mr-2">
-                                        <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center"
-                                            style="width: 40px; height: 40px; font-size: 1.2em;">
-                                            {{ strtoupper(substr($customer->name, 0, 1)) }}
+                            <th>Cliente</th>
+                            <th>Contacto</th>
+                            <th>C.I</th>
+                            <th>Total en Compras</th>
+                            <th>Deuda Total</th>
+                            <th>Deuda en Bs</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($customers as $customer)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="customer-avatar mr-2">
+                                            <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center"
+                                                style="width: 40px; height: 40px; font-size: 1.2em;">
+                                                {{ strtoupper(substr($customer->name, 0, 1)) }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>{{ $customer->name }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope mr-1"></i>
+                                                {{ $customer->email }}
+                                            </small>
                                         </div>
                                     </div>
-                                    <div>
-                                        <strong>{{ $customer->name }}</strong>
-                                        <br>
-                                        <small class="text-muted">
-                                            <i class="fas fa-envelope mr-1"></i>
-                                            {{ $customer->email }}
-                                        </small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <i class="fas fa-phone mr-1"></i>
-                                {{ $customer->phone }}
-                            </td>
-                            <td>
-                                <span class="badge badge-info">
-                                    {{ $customer->nit_number }}
-                                </span>
-                            </td>
-                            <td>
-                                @if ($customer->sales->count() > 0)
-                                    <div>
-                                        {{ $currency->symbol }}
-                                        {{ number_format($customer->sales->sum('total_price'), 2) }}
-                                        <br>
-                                        <small class="text-muted">
-                                            {{ $customer->sales->count() }} venta(s)
-                                        </small>
-                                    </div>
-                                @else
-                                    <span class="text-muted">Sin ventas</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($customer->total_debt > 0)
-                                    <div>
-                                        <span class="text-danger font-weight-bold debt-value" 
-                                              data-customer-id="{{ $customer->id }}" 
-                                              data-original-value="{{ $customer->total_debt }}">
-                                            {{ $currency->symbol }}
-                                            <span class="debt-amount">{{ number_format($customer->formatted_total_debt, 2) }}</span>
-                                        </span>
-                                        <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <br>
-                                        <small class="text-muted">
-                                            Pendiente de pago
-                                        </small>
-                                    </div>
-                                @else
-                                    <div>
-                                        <span class="badge badge-success">Sin deuda</span>
-                                        <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($customer->total_debt > 0)
-                                    <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
-                                        Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                </td>
+                                <td>
+                                    <i class="fas fa-phone mr-1"></i>
+                                    {{ $customer->phone }}
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">
+                                        {{ $customer->nit_number }}
                                     </span>
-                                @else
-                                    <span class="badge badge-success">Sin deuda</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($customer->sales->count() > 0)
-                                    <span class="badge badge-success">Activo</span>
-                                @else
-                                    <span class="badge badge-danger">Inactivo</span>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-customer"
-                                        data-id="{{ $customer->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-customer"
-                                        data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
-                                        class="btn btn-success btn-sm" data-toggle="tooltip" title="Nueva venta">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </a>
+                                </td>
+                                <td>
+                                    @if ($customer->sales->count() > 0)
+                                        <div>
+                                            {{ $currency->symbol }}
+                                            {{ number_format($customer->sales->sum('total_price'), 2) }}
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ $customer->sales->count() }} venta(s)
+                                            </small>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">Sin ventas</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($customer->total_debt > 0)
+                                        <div>
+                                            <span class="text-danger font-weight-bold debt-value" 
+                                                  data-customer-id="{{ $customer->id }}" 
+                                                  data-original-value="{{ $customer->total_debt }}">
+                                                {{ $currency->symbol }}
+                                                <span class="debt-amount">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <br>
+                                            <small class="text-muted">
+                                                Pendiente de pago
+                                            </small>
+                                        </div>
+                                    @else
+                                        <div>
+                                            <span class="badge badge-success">Sin deuda</span>
+                                            <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($customer->total_debt > 0)
+                                        <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
+                                            Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                        </span>
+                                    @else
+                                        <span class="badge badge-success">Sin deuda</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($customer->sales->count() > 0)
+                                        <span class="badge badge-success">Activo</span>
+                                    @else
+                                        <span class="badge badge-danger">Inactivo</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-info btn-sm show-customer"
+                                            data-id="{{ $customer->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-customer"
+                                            data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                            class="btn btn-success btn-sm" data-toggle="tooltip" title="Nueva venta">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Vista de tarjetas para móviles --}}
+            <div class="d-lg-none">
+                {{-- Barra de búsqueda para móviles --}}
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="mobileSearch" placeholder="Buscar cliente...">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="mobileCustomersContainer">
+                    @foreach ($customers as $customer)
+                        <div class="col-12 mb-3 customer-card" data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="customer-avatar mr-3">
+                                                <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center"
+                                                    style="width: 45px; height: 45px; font-size: 1.3em;">
+                                                    {{ strtoupper(substr($customer->name, 0, 1)) }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 font-weight-bold">{{ $customer->name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-envelope mr-1"></i>
+                                                    {{ $customer->email }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            @if ($customer->sales->count() > 0)
+                                                <span class="badge badge-success">Activo</span>
+                                            @else
+                                                <span class="badge badge-danger">Inactivo</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Teléfono:</small>
+                                            <div class="font-weight-bold">
+                                                <i class="fas fa-phone mr-1"></i>
+                                                {{ $customer->phone }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">C.I:</small>
+                                            <div>
+                                                <span class="badge badge-info">
+                                                    {{ $customer->nit_number }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Total Compras:</small>
+                                            <div class="font-weight-bold">
+                                                @if ($customer->sales->count() > 0)
+                                                    {{ $currency->symbol }}
+                                                    {{ number_format($customer->sales->sum('total_price'), 2) }}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {{ $customer->sales->count() }} venta(s)
+                                                    </small>
+                                                @else
+                                                    <span class="text-muted">Sin ventas</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Deuda:</small>
+                                            <div>
+                                                @if ($customer->total_debt > 0)
+                                                    <span class="text-danger font-weight-bold debt-value" 
+                                                          data-customer-id="{{ $customer->id }}" 
+                                                          data-original-value="{{ $customer->total_debt }}">
+                                                        {{ $currency->symbol }}
+                                                        <span class="debt-amount">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                                    </span>
+                                                    <br>
+                                                    <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
+                                                        Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-success">Sin deuda</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="btn-group-mobile">
+                                        <button type="button" class="btn btn-info btn-sm show-customer"
+                                            data-id="{{ $customer->id }}">
+                                            <i class="fas fa-eye d-md-none"></i><span class="d-none d-md-inline">Ver</span>
+                                        </button>
+                                        <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                                            class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit d-md-none"></i><span class="d-none d-md-inline">Editar</span>
+                                        </a>
+                                        @if ($customer->total_debt > 0)
+                                            <button class="btn btn-outline-primary btn-sm edit-debt-btn">
+                                                <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
+                                            </button>
+                                        @endif
+                                        <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                            class="btn btn-success btn-sm">
+                                            <i class="fas fa-cart-plus d-md-none"></i><span class="d-none d-md-inline">Venta</span>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-customer"
+                                            data-id="{{ $customer->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                     @endforeach
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -519,6 +652,107 @@
         .card:hover {
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+
+        /* Estilos responsive adicionales */
+        @media (max-width: 768px) {
+            .small-box .inner h3 {
+                font-size: 1.5rem;
+            }
+            
+            .small-box .inner p {
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .small-box .inner h3 {
+                font-size: 1.25rem;
+            }
+            
+            .customer-card .btn {
+                font-size: 0.8rem;
+                padding: 0.375rem 0.5rem;
+            }
+        }
+
+        /* Mantener botones en línea en móviles */
+        .btn-group-mobile {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .btn-group-mobile .btn {
+            flex: 1;
+            min-width: auto;
+            font-size: 0.875rem;
+            padding: 0.375rem 0.5rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 576px) {
+            .btn-group-mobile .btn {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.4rem;
+                min-width: 40px;
+            }
+            
+            /* Para los botones de acción en las tarjetas, permitir que se ajusten mejor */
+            .customer-card .btn-group-mobile .btn {
+                flex: 0 1 auto;
+                min-width: 35px;
+            }
+        }
+
+        /* Estilos específicos para filtros */
+        .filter-btn {
+            border-radius: 0.25rem !important;
+        }
+
+        .filter-btn.active {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Estilos para las tarjetas de móvil */
+        .customer-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .customer-card .card {
+            border-left: 4px solid #007bff;
+        }
+
+        .customer-card[data-status="inactive"] .card {
+            border-left-color: #dc3545;
+        }
+
+        .customer-card[data-status="active"] .card {
+            border-left-color: #28a745;
+        }
+
+        /* Mejoras en la tabla para tablets */
+        @media (min-width: 769px) and (max-width: 1199px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Ocultar columnas menos importantes en tablets */
+        @media (min-width: 992px) and (max-width: 1199px) {
+            .table th:nth-child(6),
+            .table td:nth-child(6) {
+                display: none;
+            }
+        }
     </style>
 @stop
 
@@ -547,7 +781,7 @@
             }
             
             // Actualizar valores en Bs cuando se cambia el tipo de cambio
-            $('#updateExchangeRate').click(function() {
+            $('.update-exchange-rate').click(function() {
                 const rate = parseFloat($('#exchangeRate').val());
                 if (rate > 0) {
                     currentExchangeRate = rate;
@@ -695,23 +929,60 @@
 
                 const filter = $(this).data('filter');
                 
-                // Limpiar filtros previos
-                table.search('').columns().search('').draw();
-                
-                if (filter === 'active') {
-                    // Filtrar clientes activos (los que tienen ventas)
-                    table.column(6).search('Activo').draw();
-                } else if (filter === 'inactive') {
-                    // Filtrar clientes inactivos (los que no tienen ventas)
-                    table.column(6).search('Inactivo').draw();
-                } else {
-                    // Mostrar todos
-                    table.draw();
+                // Filtrar tabla (vista desktop)
+                if (table) {
+                    // Limpiar filtros previos
+                    table.search('').columns().search('').draw();
+                    
+                    if (filter === 'active') {
+                        // Filtrar clientes activos (los que tienen ventas)
+                        table.column(6).search('Activo').draw();
+                    } else if (filter === 'inactive') {
+                        // Filtrar clientes inactivos (los que no tienen ventas)
+                        table.column(6).search('Inactivo').draw();
+                    } else {
+                        // Mostrar todos
+                        table.draw();
+                    }
                 }
+                
+                // Filtrar tarjetas móviles
+                $('.customer-card').each(function() {
+                    const cardStatus = $(this).data('status');
+                    
+                    if (filter === 'all') {
+                        $(this).show();
+                    } else if (filter === 'active' && cardStatus === 'active') {
+                        $(this).show();
+                    } else if (filter === 'inactive' && cardStatus === 'inactive') {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
             });
 
             // Tooltips
             $('[data-toggle="tooltip"]').tooltip();
+
+            // Búsqueda en vista móvil
+            $('#mobileSearch').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                
+                $('.customer-card').each(function() {
+                    const customerName = $(this).find('h6').text().toLowerCase();
+                    const customerEmail = $(this).find('small').text().toLowerCase();
+                    const customerPhone = $(this).find('.fa-phone').parent().text().toLowerCase();
+                    
+                    if (customerName.includes(searchTerm) || 
+                        customerEmail.includes(searchTerm) || 
+                        customerPhone.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
 
             // Ver detalles del cliente
             $('.show-customer').click(function() {
