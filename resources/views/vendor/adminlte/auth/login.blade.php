@@ -4,6 +4,49 @@
     <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
 @stop
 
+@section('adminlte_js')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Evitar que el navegador complete automáticamente las contraseñas guardadas
+    const passwordField = document.querySelector('input[name="password"]');
+    const emailField = document.querySelector('input[name="email"]');
+    
+    // Limpiar el campo de contraseña al cargar la página
+    if (passwordField) {
+        passwordField.value = '';
+        
+        // Evitar el autocompletado después de un breve delay
+        setTimeout(function() {
+            passwordField.value = '';
+        }, 100);
+        
+        // Limpiar cuando el campo obtiene el foco
+        passwordField.addEventListener('focus', function() {
+            this.value = '';
+        });
+    }
+    
+    // Prevenir el pegado de contraseñas en texto plano
+    if (passwordField) {
+        passwordField.addEventListener('paste', function(e) {
+            // Permitir el pegado pero asegurar que se mantenga oculto
+            setTimeout(function() {
+                passwordField.type = 'password';
+            }, 1);
+        });
+    }
+    
+    // Evitar la inspección del campo de contraseña
+    if (passwordField) {
+        passwordField.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+});
+</script>
+@stop
+
 @php( $login_url = View::getSection('login_url') ?? config('adminlte.login_url', 'login') )
 @php( $register_url = View::getSection('register_url') ?? config('adminlte.register_url', 'register') )
 @php( $password_reset_url = View::getSection('password_reset_url') ?? config('adminlte.password_reset_url', 'password/reset') )
@@ -21,13 +64,20 @@
 @section('auth_header', 'Iniciar sesión')
 
 @section('auth_body')
-    <form action="{{ $login_url }}" method="post">
+    <form action="{{ $login_url }}" method="post" autocomplete="on" novalidate>
         @csrf
 
         {{-- Email field --}}
         <div class="input-group mb-3">
-            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                   value="{{ old('email') }}" placeholder="Correo electrónico" autofocus>
+            <input type="email" 
+                   name="email" 
+                   class="form-control @error('email') is-invalid @enderror"
+                   value="{{ old('email') }}" 
+                   placeholder="Correo electrónico" 
+                   autocomplete="username"
+                   autocapitalize="none"
+                   spellcheck="false"
+                   autofocus>
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -44,8 +94,14 @@
 
         {{-- Password field --}}
         <div class="input-group mb-3">
-            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                   placeholder="Contraseña">
+            <input type="password" 
+                   name="password" 
+                   class="form-control @error('password') is-invalid @enderror"
+                   placeholder="Contraseña"
+                   autocomplete="current-password"
+                   autocapitalize="none"
+                   spellcheck="false"
+                   data-lpignore="true">
 
             <div class="input-group-append">
                 <div class="input-group-text">
