@@ -3,10 +3,13 @@
 @section('title', 'Nueva Compra')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Nueva Compra</h1>
-        <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Nueva Compra</h1>
+        <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-2 d-md-inline d-none"></i>
+            <i class="fas fa-arrow-left d-md-none"></i>
+            <span class="d-md-inline d-none">Volver al listado</span>
+            <span class="d-md-none">Volver</span>
         </a>
     </div>
 @stop
@@ -28,7 +31,7 @@
                         <div class="row">
 
                             <!-- Código de Producto -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-6 mb-3">
                                 <div class="form-group">
                                     <label for="product_code" class="required">Código de Producto</label>
                                     <div class="input-group">
@@ -39,7 +42,7 @@
                                         </div>
                                         <input type="text" name="product_code" id="product_code"
                                             class="form-control @error('product_code') is-invalid @enderror"
-                                            placeholder="Ingrese el código del producto" value="{{ old('product_code') }}">
+                                            placeholder="Escanee o ingrese el código" value="{{ old('product_code') }}">
                                         <div class="input-group-append">
                                             <button type="button" class="btn btn-info" id="addProduct" data-toggle="modal"
                                                 data-target="#searchProductModal">
@@ -57,7 +60,7 @@
                             </div>
 
                             <!-- Fecha de compra -->
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-6 mb-3">
                                 <div class="form-group">
                                     <label for="purchase_date" class="required">Fecha de Compra</label>
                                     <div class="input-group">
@@ -123,10 +126,30 @@
                     </div>
 
                     <div class="card-footer">
-                        <div class="d-flex justify-content-end">
+                        <div class="btn-group-purchases w-100">
+                            <button type="button" class="btn btn-danger" id="cancelPurchase">
+                                <i class="fas fa-times-circle mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-times-circle d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Cancelar Compra</span>
+                                <span class="d-lg-none d-md-inline d-none">Cancelar</span>
+                                <span class="d-md-none d-sm-inline d-none">Cancel</span>
+                                <span class="d-sm-none">X</span>
+                            </button>
                             <button type="submit" class="btn btn-primary" id="submitPurchase">
-                                <i class="fas fa-save mr-2"></i>
-                                Registrar Compra
+                                <i class="fas fa-save mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-save d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Registrar Compra</span>
+                                <span class="d-lg-none d-md-inline d-none">Registrar</span>
+                                <span class="d-md-none d-sm-inline d-none">Reg</span>
+                                <span class="d-sm-none">✓</span>
+                            </button>
+                            <button type="submit" class="btn btn-success" name="action" value="save_and_new">
+                                <i class="fas fa-plus-circle mr-1 d-lg-inline d-none"></i>
+                                <i class="fas fa-plus-circle d-lg-none"></i>
+                                <span class="d-lg-inline d-none">Registrar y Nueva Compra</span>
+                                <span class="d-lg-none d-md-inline d-none">Reg y Nuevo</span>
+                                <span class="d-md-none d-sm-inline d-none">Reg+</span>
+                                <span class="d-sm-none">✓+</span>
                             </button>
                         </div>
                     </div>
@@ -217,6 +240,7 @@
 @section('css')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .modal-xl {
             max-width: 95% !important;
@@ -288,15 +312,68 @@
         .card {
             box-shadow: 0 0 1px rgba(0, 0, 0, .125), 0 1px 3px rgba(0, 0, 0, .2);
         }
+
+        /* Estilos para el grupo de botones de compras */
+        .btn-group-purchases {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-group-purchases .btn {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Separar el botón cancelar de los otros dos */
+        .btn-group-purchases .btn:first-child {
+            margin-right: auto;
+        }
+
+        .btn-group-purchases .btn:not(:first-child) {
+            margin-left: 0.25rem;
+        }
+
+        /* Distribución responsive de botones - SIEMPRE EN LÍNEA */
+        @media screen and (max-width: 768px) {
+            .btn-group-purchases {
+                gap: 0.25rem;
+            }
+            
+            .btn-group-purchases .btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.5rem;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            .btn-group-purchases .btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.4rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .btn-group-purchases .btn {
+                font-size: 0.7rem;
+                padding: 0.375rem 0.25rem;
+            }
+        }
     </style>
 @stop
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Inicializar DataTable primero
             $('#productsTable').DataTable({
                 responsive: true,
                 scrollX: true,
@@ -317,6 +394,68 @@
                     } // El resto menos prioritario
                 ]
             });
+            
+            // Verificar si solo hay un producto disponible y agregarlo automáticamente
+            // Hacerlo después de que DataTable esté inicializado
+            setTimeout(function() {
+                checkAndAddSingleProduct();
+            }, 100);
+            
+            // Función para verificar si solo hay un producto disponible
+            function checkAndAddSingleProduct() {
+                // Contar productos disponibles desde la tabla del modal
+                const availableProducts = $('#productsTable tbody tr').length;
+                console.log('Productos disponibles:', availableProducts);
+                
+                if (availableProducts === 1) {
+                    // Solo hay un producto, obtener sus datos directamente de la fila
+                    const productRow = $('#productsTable tbody tr:first');
+                    const productCode = productRow.find('td:eq(0)').text().trim();
+                    const productName = productRow.find('td:eq(2) span').text().trim();
+                    const productImage = productRow.find('td:eq(2) img').attr('src');
+                    const productStock = productRow.find('td:eq(4) .badge').text().trim();
+                    const productPriceText = productRow.find('td:eq(5)').text().trim();
+                    const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                    
+                    console.log('Datos extraídos:', {
+                        code: productCode,
+                        name: productName,
+                        image: productImage,
+                        stock: productStock,
+                        priceText: productPriceText,
+                        price: productPrice
+                    });
+                    
+                    // Crear objeto producto con los datos disponibles
+                    const product = {
+                        code: productCode,
+                        name: productName,
+                        image: productImage,
+                        stock: productStock,
+                        purchase_price: productPrice,
+                        id: productCode // Usar el código como ID temporal
+                    };
+                    
+                    console.log('Producto extraído:', product);
+                    
+                    setTimeout(function() {
+                        // Agregar el producto a la tabla silenciosamente (sin alerta porque es automático)
+                        addProductToTable(product, false);
+                        
+                        // Enfocar el campo de fecha para continuar con la compra
+                        $('#purchase_date').focus();
+                    }, 500); // Pequeño delay para asegurar que la página esté completamente cargada
+                } else if (availableProducts === 0) {
+                    // No hay productos en inventario
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin productos disponibles',
+                        text: 'No hay productos disponibles en el inventario para realizar compras',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+                // Si hay más de un producto, no hacer nada (comportamiento normal)
+            }
 
             // Manejar la adición de productos
             $('#addProduct').click(function() {
@@ -408,14 +547,40 @@
             });
 
             // Función para agregar producto a la tabla
-            function addProductToTable(product) {
+            // showAlert = true: muestra alerta cuando el usuario agrega manualmente
+            // showAlert = false: no muestra alerta cuando se agrega automáticamente
+            function addProductToTable(product, showAlert = true) {
+                // Verificar si el producto ya está en la tabla
+                if ($(`tr[data-product-code="${product.code}"]`).length > 0) {
+                    if (showAlert) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Producto ya agregado',
+                            text: 'Este producto ya está en la lista de compra'
+                        });
+                    }
+                    return;
+                }
+
+                // Asegurar que tenemos una imagen válida
+                let imageUrl = product.image;
+                if (!imageUrl || imageUrl === '') {
+                    imageUrl = '/img/no-image.png';
+                } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                    imageUrl = '/' + imageUrl;
+                }
+                
+                console.log('Imagen procesada:', imageUrl);
+
+                // Asegurar que tenemos un precio válido
+                const price = product.purchase_price || product.price || 0;
 
                 const row = `
                     <tr data-product-code="${product.code}">
                         <td>${product.code}</td>
                         <td>${product.name}</td>
                         <td>
-                            <img src="/${product.image}" alt="${product.name}" class="img-thumbnail" style="max-height: 50px;">
+                            <img src="${imageUrl}" alt="${product.name}" class="img-thumbnail" style="max-height: 50px;">
                         </td>
                         <td>${product.stock}</td>
                         
@@ -434,12 +599,12 @@
                                 <input type="number" 
                                     class="form-control price-input" 
                                     name="items[${product.id}][price]" 
-                                    value="${product.purchase_price || product.price}" 
+                                    value="${price}" 
                                     step="0.01">
                             </div>
                         </td>
                         <td class="text-right">
-                            {{$currency->symbol}} <span class="subtotal">${product.purchase_price || product.price}</span>
+                            {{$currency->symbol}} <span class="subtotal">${price}</span>
                         </td>
                         <td>
                             <button type="button" class="btn btn-danger btn-sm remove-item">
@@ -452,16 +617,21 @@
                 $('#purchaseItems').append(row);
                 updateTotal();
 
-                // Notificación de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Producto agregado',
-                    text: 'El producto se agregó a la lista de compra',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                // Mostrar notificación solo si showAlert es true
+                if (showAlert) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Producto agregado!',
+                        text: `${product.name} se agregó a la lista de compra`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        background: '#e8f5e8',
+                        color: '#2e7d32'
+                    });
+                }
             }
 
             // Actualizar subtotal cuando cambie cantidad o precio
@@ -491,6 +661,25 @@
                 $('#totalAmountInput').val(total.toFixed(2));
                 console.log('Total actualizado:', total); // Debug
             }
+
+            // Manejar el botón de cancelar compra
+            $('#cancelPurchase').click(function() {
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    text: "Se perderán todos los datos ingresados en esta compra",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, cancelar compra',
+                    cancelButtonText: 'No, continuar editando'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Retroceder a la página anterior
+                        window.history.back();
+                    }
+                });
+            });
 
             // Cuando se hace clic en "Registrar Compra"
             $('#registrarCompra').click(function(e) {

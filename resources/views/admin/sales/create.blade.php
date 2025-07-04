@@ -281,6 +281,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         /* Mejorar el estilo del Select2 */
         .select2-container--bootstrap4 .select2-selection--single {
@@ -478,6 +479,7 @@
 @stop
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
@@ -506,6 +508,62 @@
                 templateResult: formatCustomer,
                 templateSelection: formatCustomerSelection
             });
+            
+            // Función para verificar si solo hay un producto disponible
+            function checkAndAddSingleProduct() {
+                // Contar productos disponibles desde la tabla del modal
+                const availableProducts = $('#productsTable tbody tr').length;
+                console.log('Productos disponibles:', availableProducts);
+                
+                if (availableProducts === 1) {
+                    // Solo hay un producto, obtener sus datos directamente de la fila
+                    const productRow = $('#productsTable tbody tr:first');
+                    const productCode = productRow.find('td:eq(0)').text().trim();
+                    const productName = productRow.find('td:eq(3)').text().trim();
+                    const productImage = productRow.find('td:eq(2) img').attr('src');
+                    const productStock = productRow.find('td:eq(5) .badge').text().trim();
+                    const productPriceText = productRow.find('td:eq(6)').text().trim();
+                    const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                    
+                    console.log('Datos extraídos:', {
+                        code: productCode,
+                        name: productName,
+                        image: productImage,
+                        stock: productStock,
+                        priceText: productPriceText,
+                        price: productPrice
+                    });
+                    
+                    // Crear objeto producto con los datos disponibles
+                    const product = {
+                        code: productCode,
+                        name: productName,
+                        image: productImage,
+                        stock: parseInt(productStock),
+                        sale_price: productPrice,
+                        id: productCode // Usar el código como ID temporal
+                    };
+                    
+                    console.log('Producto extraído:', product);
+                    
+                    setTimeout(function() {
+                        // Agregar el producto a la tabla silenciosamente (sin alerta porque es automático)
+                        addProductToTable(product, false);
+                        
+                        // No abrir automáticamente el select de clientes
+                        // El usuario puede seleccionar el cliente cuando lo desee
+                    }, 500); // Pequeño delay para asegurar que la página esté completamente cargada
+                } else if (availableProducts === 0) {
+                    // No hay productos en inventario
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin productos disponibles',
+                        text: 'No hay productos disponibles en el inventario para realizar ventas',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+                // Si hay más de un producto, no hacer nada (comportamiento normal)
+            }
             
             // Si hay un cliente preseleccionado, asegurarse de que Select2 lo muestre correctamente
             @if(isset($selectedCustomerId))
@@ -567,9 +625,17 @@
                     }
                 ]
             });
+            
+            // Verificar si solo hay un producto disponible y agregarlo automáticamente
+            // Hacerlo después de que DataTable esté inicializado
+            setTimeout(function() {
+                checkAndAddSingleProduct();
+            }, 100);
 
             // Función para agregar producto a la tabla
-            function addProductToTable(product) {
+            // showAlert = true: muestra alerta cuando el usuario agrega manualmente
+            // showAlert = false: no muestra alerta cuando se agrega automáticamente
+            function addProductToTable(product, showAlert = true) {
                 // Verificar si el producto ya está en la tabla
                 const existingRow = $(`#saleItems tr[data-product-id="${product.id}"]`);
                 
@@ -582,21 +648,33 @@
                     // Verificar stock
                     const maxStock = parseInt(quantityInput.attr('max'));
                     if (newQuantity > maxStock) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Stock insuficiente',
-                            text: `Solo hay ${maxStock} unidades disponibles`,
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
+                        if (showAlert) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock insuficiente',
+                                text: `Solo hay ${maxStock} unidades disponibles`,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
                         return;
                     }
                     
                     quantityInput.val(newQuantity).trigger('input');
                 } else {
                     // Si es un producto nuevo, agregar una nueva fila
+                    // Asegurar que tenemos una imagen válida
+                    let imageUrl = product.image;
+                    if (!imageUrl || imageUrl === '') {
+                        imageUrl = '/img/no-image.png';
+                    } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                        imageUrl = '/' + imageUrl;
+                    }
+                    
+                    console.log('Imagen procesada:', imageUrl);
+                    
                     const row = `
                         <tr data-product-id="${product.id}">
                             <td>${product.code}</td>
@@ -615,7 +693,7 @@
                                 <input type="hidden" class="price-input" value="${product.sale_price}">
                             </td>
                             <td>
-                                <span class="subtotal-display">${'{{ $currency->symbol }}'} ${product.sale_price}</span>
+                                <span class="subtotal-display">{{ $currency->symbol }} ${product.sale_price}</span>
                                 <span class="subtotal-value d-none">${product.sale_price}</span>
                             </td>
                             <td>
@@ -630,16 +708,21 @@
                     updateTotal();
                 }
                 
-                // Notificación de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Producto agregado',
-                    text: 'El producto se agregó a la lista de venta',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                // Mostrar notificación solo si showAlert es true
+                if (showAlert) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Producto agregado!',
+                        text: `${product.name} se agregó a la lista de venta`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        background: '#e8f5e8',
+                        color: '#2e7d32'
+                    });
+                }
             }
 
             // Buscar producto por código

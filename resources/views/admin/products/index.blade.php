@@ -3,14 +3,18 @@
 @section('title', 'Gestión de Productos')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Gestión de Productos</h1>
-        <div>
-            <a href="{{ route('admin.products.report') }}" class="btn btn-info mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-2"></i>Reporte
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Productos</h1>
+        <div class="d-flex">
+            <a href="{{ route('admin.products.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
+                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                <span class="d-md-inline d-none">Reporte</span>
+                <i class="fas fa-file-pdf d-md-none"></i>
             </a>
-            <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Nuevo Producto
+            <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                <span class="d-md-inline d-none">Nuevo Producto</span>
+                <i class="fas fa-plus-circle d-md-none"></i>
             </a>
         </div>
     </div>
@@ -19,55 +23,53 @@
 @section('content')
     {{-- Widgets de Estadísticas --}}
     <div class="row">
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="small-box bg-info shadow-sm">
                 <div class="inner">
-                    <h3>{{ $totalProducts }}</h3>
-                    <p>Total Productos</p>
+                    <h3 class="mb-1">{{ $totalProducts }}</h3>
+                    <p class="mb-0 small">Total Productos</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-box"></i>
                 </div>
             </div>
         </div>
-        <!-- <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="small-box bg-info shadow-sm">
                 <div class="inner">
-                    <h3>{{ $lowStockProducts }}</h3>
-                    <p>Stock Bajo</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-            </div>
-        </div> -->
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h2>{{ $currency->symbol }} {{ number_format($totalPurchaseValue, 2) }}</h2>
-                    <p>Valor de Compra del Inventario</p>
+                    <h3 class="mb-1 text-truncate">{{ $currency->symbol }} {{ number_format($totalPurchaseValue, 2) }}</h3>
+                    <p class="mb-0 small">
+                        <span class="d-md-inline d-none">Valor de Compra del Inventario</span>
+                        <span class="d-md-none">Valor Compra</span>
+                    </p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="small-box bg-success shadow-sm">
                 <div class="inner">
-                    <h2>{{ $currency->symbol }} {{ number_format($totalSaleValue, 2) }}</h2>
-                    <p>Valor de Venta del Inventario</p>
+                    <h3 class="mb-1 text-truncate">{{ $currency->symbol }} {{ number_format($totalSaleValue, 2) }}</h3>
+                    <p class="mb-0 small">
+                        <span class="d-md-inline d-none">Valor de Venta del Inventario</span>
+                        <span class="d-md-none">Valor Venta</span>
+                    </p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-cash-register"></i>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-primary">
+        <div class="col-lg-3 col-md-6 col-6 mb-3">
+            <div class="small-box bg-primary shadow-sm">
                 <div class="inner">
-                    <h2>{{ $currency->symbol }} {{ number_format($potentialProfit, 2) }}</h2>
-                    <p>Ganancia Potencial ({{ number_format($profitPercentage, 2) }}%)</p>
+                    <h3 class="mb-1 text-truncate">{{ $currency->symbol }} {{ number_format($potentialProfit, 2) }}</h3>
+                    <p class="mb-0 small">
+                        <span class="d-md-inline d-none">Ganancia Potencial ({{ number_format($profitPercentage, 2) }}%)</span>
+                        <span class="d-md-none">Ganancia ({{ number_format($profitPercentage, 2) }}%)</span>
+                    </p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-chart-line"></i>
@@ -79,27 +81,34 @@
     {{-- Tabla de Productos --}}
     <div class="card card-outline card-primary">
         <div class="card-header">
-            <h3 class="card-title">
-                <i class="fas fa-boxes mr-2"></i>
-                Lista de Productos
-            </h3>
-            <div class="card-tools">
-                <div class="d-flex">
-                    <div class="input-group input-group-sm mr-2" style="width: 250px;">
-                        <input type="text" id="productSearch" class="form-control float-right" placeholder="Buscar producto...">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                <h3 class="card-title mb-2 mb-md-0">
+                    <i class="fas fa-boxes mr-2"></i>
+                    Lista de Productos
+                </h3>
+                
+                <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center">
+                    <div class="input-group input-group-sm mb-2 mb-md-0 mr-md-2" style="width: 100%; max-width: 250px;">
+                        <input type="text" id="productSearch" class="form-control" placeholder="Buscar producto...">
                         <div class="input-group-append">
                             <button type="button" class="btn btn-default">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="btn-group mr-2">
+                    <div class="btn-group-mobile mb-2 mb-md-0 mr-md-2">
                         <button type="button" class="btn btn-sm btn-outline-primary active filter-btn"
                             data-filter="all">Todos</button>
                         <button type="button" class="btn btn-sm btn-outline-danger filter-btn"
-                            data-filter="low">Stock Bajo</button>
+                            data-filter="low">
+                            <span class="d-md-inline d-none">Stock Bajo</span>
+                            <span class="d-md-none">Bajo</span>
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-success filter-btn"
-                            data-filter="normal">Stock Normal</button>
+                            data-filter="normal">
+                            <span class="d-md-inline d-none">Stock Normal</span>
+                            <span class="d-md-none">Normal</span>
+                        </button>
                     </div>
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                         <i class="fas fa-minus"></i>
@@ -108,73 +117,161 @@
             </div>
         </div>
         <div class="card-body">
-            <table id="productsTable" class="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th style="width: 120px">Categoría</th>
-                        <th>Stock</th>
-                        <th>Precio Compra</th>
-                        <th>Precio Venta</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($products as $product)
+            {{-- Vista de tabla para pantallas grandes --}}
+            <div class="d-none d-lg-block">
+                <table id="productsTable" class="table table-striped table-hover">
+                    <thead>
                         <tr>
-                            <td><small><strong>{{ $product->code }}</strong></small></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
-                                        alt="{{ $product->name }}" class="product-thumbnail mr-2">
-                                    {{ $product->name }}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="">
-                                    <i class=""></i>
-                                    {{ $product->category->name }}
-                                </span>
-                            </td>
-                            <td>
-                                <span
-                                    class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
-                                    <i class="fas fa-boxes mr-1"></i>
-                                    {{ $product->stock }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="text-primary">
-                                    <strong>{{ $currency->symbol }}
-                                        {{ number_format($product->purchase_price, 2) }}</strong>
-                                </span>
-                            </td>
-                            <td>
-                                <span class="text-success">
-                                    <strong>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</strong>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-product"
-                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.products.edit', $product->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-product"
-                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th style="width: 120px">Categoría</th>
+                            <th>Stock</th>
+                            <th>Precio Compra</th>
+                            <th>Precio Venta</th>
+                            <th>Acciones</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($products as $product)
+                            <tr>
+                                <td><small><strong>{{ $product->code }}</strong></small></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                            alt="{{ $product->name }}" class="product-thumbnail mr-2">
+                                        {{ $product->name }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="">
+                                        <i class=""></i>
+                                        {{ $product->category->name }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                        <i class="fas fa-boxes mr-1"></i>
+                                        {{ $product->stock }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-primary">
+                                        <strong>{{ $currency->symbol }}
+                                            {{ number_format($product->purchase_price, 2) }}</strong>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-success">
+                                        <strong>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</strong>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-info btn-sm show-product"
+                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ route('admin.products.edit', $product->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-product"
+                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Vista de tarjetas para móviles --}}
+            <div class="d-lg-none">
+                {{-- Barra de búsqueda para móviles --}}
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="mobileSearch" placeholder="Buscar producto...">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row" id="mobileProductsContainer">
+                    @foreach ($products as $product)
+                        <div class="col-12 mb-3 product-card" data-stock-status="{{ $product->stock_status_label }}">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="product-image mr-3">
+                                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                    alt="{{ $product->name }}" class="rounded"
+                                                    style="width: 60px; height: 60px; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 font-weight-bold product-name">{{ $product->name }}</h6>
+                                                <small class="text-muted product-code">
+                                                    <i class="fas fa-barcode mr-1"></i>
+                                                    {{ $product->code }}
+                                                </small>
+                                                <br>
+                                                <small class="text-muted product-category">
+                                                    <i class="fas fa-tag mr-1"></i>
+                                                    {{ $product->category->name }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                                <i class="fas fa-boxes mr-1"></i>
+                                                {{ $product->stock }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Precio Compra:</small>
+                                            <div class="font-weight-bold text-primary">
+                                                {{ $currency->symbol }} {{ number_format($product->purchase_price, 2) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Precio Venta:</small>
+                                            <div class="font-weight-bold text-success">
+                                                {{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="btn-group-mobile">
+                                        <button type="button" class="btn btn-info btn-sm show-product"
+                                            data-id="{{ $product->id }}">
+                                            <i class="fas fa-eye d-md-none"></i>
+                                            <span class="d-none d-md-inline">Ver</span>
+                                        </button>
+                                        <a href="{{ route('admin.products.edit', $product->id) }}"
+                                            class="btn btn-warning btn-sm">
+                                            <i class="fas fa-edit d-md-none"></i>
+                                            <span class="d-none d-md-inline">Editar</span>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-product"
+                                            data-id="{{ $product->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -418,6 +515,92 @@
             width: 120px;
             max-width: 120px;
         }
+
+        /* Estilos responsive para botones */
+        .btn-group-mobile {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-group-mobile .btn {
+            flex: 1;
+            min-width: auto;
+        }
+
+        /* Estilos para tarjetas de productos */
+        .product-card {
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-card .card {
+            border: 1px solid #e3e6f0;
+            transition: all 0.3s ease;
+        }
+
+        .product-card .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .product-image img {
+            border: 2px solid #e3e6f0;
+            transition: all 0.3s ease;
+        }
+
+        .product-image img:hover {
+            border-color: #007bff;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 576px) {
+            .btn-group-mobile {
+                flex-direction: row;
+                gap: 0.25rem;
+                justify-content: center;
+            }
+            
+            .btn-group-mobile .btn {
+                flex: 1;
+                min-width: auto;
+            }
+
+            .small-box .inner h3 {
+                font-size: 1.2rem;
+            }
+
+            .small-box .inner p {
+                font-size: 0.75rem;
+            }
+
+            .small-box .icon {
+                font-size: 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-tools {
+                width: 100%;
+            }
+            
+            .card-tools .d-flex {
+                width: 100%;
+            }
+            
+            .input-group {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .btn-group-mobile .btn {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
     </style>
 @stop
 
@@ -469,7 +652,7 @@
                 table.search(this.value).draw();
             });
 
-            // Filtros de producto por estado de stock
+            // Filtros de producto por estado de stock para desktop
             $('.filter-btn').click(function() {
                 $('.filter-btn').removeClass('active');
                 $(this).addClass('active');
@@ -489,6 +672,52 @@
                     // Mostrar todos
                     table.draw();
                 }
+            });
+
+            // Búsqueda para vista móvil
+            $('#mobileSearch').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                
+                $('.product-card').each(function() {
+                    const productName = $(this).find('.product-name').text().toLowerCase();
+                    const productCode = $(this).find('.product-code').text().toLowerCase();
+                    const productCategory = $(this).find('.product-category').text().toLowerCase();
+                    
+                    if (productName.includes(searchTerm) || 
+                        productCode.includes(searchTerm) || 
+                        productCategory.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Los filtros de la vista móvil ahora usan los mismos botones del header
+            // Actualizar filtros para que también funcionen en móvil
+            $('.filter-btn').click(function() {
+                const filter = $(this).data('filter');
+                
+                // Filtrar tarjetas móviles también
+                $('.product-card').each(function() {
+                    const stockStatus = $(this).data('stock-status');
+                    
+                    if (filter === 'all') {
+                        $(this).show();
+                    } else if (filter === 'low') {
+                        if (stockStatus === 'Bajo') {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    } else if (filter === 'normal') {
+                        if (stockStatus === 'Normal' || stockStatus === 'Óptimo') {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    }
+                });
             });
 
             // Mostrar detalles del producto

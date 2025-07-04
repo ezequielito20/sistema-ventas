@@ -3,14 +3,18 @@
 @section('title', 'Gestión de Categorías')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Gestión de Categorías</h1>
-        <div>
-            <a href="{{ route('admin.categories.report') }}" class="btn btn-info mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-2"></i>Reporte
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Categorías</h1>
+        <div class="btn-group-mobile">
+            <a href="{{ route('admin.categories.report') }}" class="btn btn-info btn-sm" target="_blank">
+                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                <span class="d-md-inline d-none">Reporte</span>
+                <i class="fas fa-file-pdf d-md-none"></i>
             </a>
-            <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Nueva Categoría
+            <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                <span class="d-md-inline d-none">Nueva Categoría</span>
+                <i class="fas fa-plus-circle d-md-none"></i>
             </a>
         </div>
     </div>
@@ -25,41 +29,111 @@
             </h3>
         </div>
         <div class="card-body">
-            <table id="categoriesTable" class="table table-striped table-hover table-sm">
-                <thead class="bg-primary text-white">
-                    <tr class="text-center">
-                        <th style="width: 10%">#</th>
-                        <th style="width: 30%">Nombre</th>
-                        <th style="width: 40%">Descripción</th>
-                        <th style="width: 20%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($categories as $category)
+            {{-- Vista de tabla para pantallas grandes --}}
+            <div class="d-none d-lg-block">
+                <table id="categoriesTable" class="table table-striped table-hover table-sm">
+                    <thead class="bg-primary text-white">
                         <tr class="text-center">
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $category->name }}</td>
-                            <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-success btn-sm show-category"
-                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                        class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-category"
-                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
+                            <th style="width: 10%">#</th>
+                            <th style="width: 30%">Nombre</th>
+                            <th style="width: 40%">Descripción</th>
+                            <th style="width: 20%">Acciones</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($categories as $category)
+                            <tr class="text-center">
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $category->name }}</td>
+                                <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-success btn-sm show-category"
+                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                            class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-category"
+                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Vista de tarjetas para móviles --}}
+            <div class="d-lg-none">
+                {{-- Barra de búsqueda para móviles --}}
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="mobileSearch" placeholder="Buscar categoría...">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row" id="mobileCategoriesContainer">
+                    @foreach ($categories as $category)
+                        <div class="col-12 mb-3 category-card">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-start justify-content-between mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="category-avatar mr-3">
+                                                <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center"
+                                                    style="width: 45px; height: 45px; font-size: 1.3em;">
+                                                    {{ strtoupper(substr($category->name, 0, 1)) }}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 font-weight-bold category-name">{{ $category->name }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-tag mr-1"></i>
+                                                    Categoría #{{ $loop->iteration }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">Descripción:</small>
+                                        <div class="category-description">
+                                            {{ Str::limit($category->description, 80) ?? 'Sin descripción' }}
+                                        </div>
+                                    </div>
+
+                                    <div class="btn-group-mobile">
+                                        <button type="button" class="btn btn-success btn-sm show-category"
+                                            data-id="{{ $category->id }}">
+                                            <i class="fas fa-eye d-md-none"></i>
+                                            <span class="d-none d-md-inline">Ver</span>
+                                        </button>
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                            class="btn btn-info btn-sm">
+                                            <i class="fas fa-edit d-md-none"></i>
+                                            <span class="d-none d-md-inline">Editar</span>
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm delete-category"
+                                            data-id="{{ $category->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -160,6 +234,75 @@
             border: 1px solid #ced4da;
             border-radius: 0.25rem;
         }
+
+        /* Estilos responsive para categorías */
+        .btn-group-mobile {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .btn-group-mobile .btn {
+            flex: 1;
+            min-width: auto;
+            font-size: 0.875rem;
+            padding: 0.375rem 0.5rem;
+            white-space: nowrap;
+        }
+
+        /* Estilos para las tarjetas de categorías */
+        .category-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .category-card .card {
+            border-left: 4px solid #007bff;
+        }
+
+        .category-avatar {
+            transition: transform .3s ease-in-out;
+        }
+
+        .category-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        /* Media queries responsive */
+        @media (max-width: 768px) {
+            .btn-group-mobile .btn {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-group-mobile .btn {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.4rem;
+                min-width: 35px;
+            }
+
+            .category-card .btn-group-mobile .btn {
+                flex: 0 1 auto;
+                min-width: 35px;
+            }
+        }
+
+        /* Mejoras para tablets */
+        @media (min-width: 769px) and (max-width: 1199px) {
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 @stop
 
@@ -170,6 +313,23 @@
         $(document).ready(function() {
             // Inicialización de tooltips
             $('[data-toggle="tooltip"]').tooltip();
+
+            // Búsqueda en vista móvil
+            $('#mobileSearch').on('keyup', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                
+                $('.category-card').each(function() {
+                    const categoryName = $(this).find('.category-name').text().toLowerCase();
+                    const categoryDescription = $(this).find('.category-description').text().toLowerCase();
+                    
+                    if (categoryName.includes(searchTerm) || 
+                        categoryDescription.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
 
             // Inicialización de DataTables
             $('#categoriesTable').DataTable({
