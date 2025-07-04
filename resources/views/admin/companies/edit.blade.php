@@ -443,10 +443,14 @@
     </script>
     <script>
         $(document).ready(function() {
+            // Valores iniciales de la empresa
+            const initialCountryId = '{{ $company->country }}';
+            const initialStateId = '{{ $company->state }}';
+            const initialCityId = '{{ $company->city }}';
+
             // Cargar estados iniciales basados en el país de la compañía
-            let countryId = $('#country').val();
-            if (countryId) {
-                loadInitialStates(countryId);
+            if (initialCountryId) {
+                loadInitialStates(initialCountryId);
             }
 
             // Función para cargar estados iniciales
@@ -456,21 +460,32 @@
                     type: 'GET',
                     success: function(response) {
                         let stateSelect = $('#state');
-                        stateSelect.empty().append('<option value="">Estado</option>');
+                        stateSelect.empty().append('<option value="">Seleccione un estado</option>');
                         
                         if (response.states && response.states.length > 0) {
                             response.states.forEach(function(state) {
+                                let selected = (state.id == initialStateId) ? 'selected' : '';
                                 stateSelect.append(
-                                    `<option value="${state.id}" 
-                                        ${state.id == {{ $company->state }} ? 'selected' : ''}>
-                                        ${state.name}
-                                    </option>`
+                                    `<option value="${state.id}" ${selected}>${state.name}</option>`
                                 );
                             });
                             
                             // Después de cargar los estados, cargar las ciudades del estado seleccionado
-                            loadInitialCities({{ $company->state }});
+                            if (initialStateId) {
+                                loadInitialCities(initialStateId);
+                            }
                         }
+                        
+                        // Actualizar código postal y moneda
+                        if (response.postal_code) {
+                            $('input[name="postal_code"]').val(response.postal_code);
+                        }
+                        if (response.currency_code) {
+                            $('input[name="currency"]').val(response.currency_code);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar estados:', error);
                     }
                 });
             }
@@ -482,25 +497,32 @@
                     type: 'GET',
                     success: function(response) {
                         let citySelect = $('#city');
-                        citySelect.empty().append('<option value="">Ciudad</option>');
+                        citySelect.empty().append('<option value="">Seleccione una ciudad</option>');
                         
                         if (response.cities && response.cities.length > 0) {
                             response.cities.forEach(function(city) {
+                                let selected = (city.id == initialCityId) ? 'selected' : '';
                                 citySelect.append(
-                                    `<option value="${city.id}" 
-                                        ${city.id == {{ $company->city }} ? 'selected' : ''}>
-                                        ${city.name}
-                                    </option>`
+                                    `<option value="${city.id}" ${selected}>${city.name}</option>`
                                 );
                             });
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al cargar ciudades:', error);
                     }
                 });
             }
 
-            // Mantener el código existente para los cambios dinámicos
+            // Evento para cambio de país
             $('#country').change(function() {
                 var id_country = $(this).val();
+
+                // Limpiar selects dependientes
+                $('#state').empty().append('<option value="">Seleccione un estado</option>');
+                $('#city').empty().append('<option value="">Seleccione una ciudad</option>');
+                $('input[name="postal_code"]').val('');
+                $('input[name="currency"]').val('');
 
                 if (id_country) {
                     $.ajax({
@@ -508,7 +530,6 @@
                         type: 'GET',
                         success: function(response) {
                             let stateSelect = $('#state');
-                            stateSelect.empty().append('<option value="">Estado</option>');
                             
                             if(response.states && response.states.length > 0) {
                                 response.states.forEach(function(state) {
@@ -516,20 +537,27 @@
                                 });
                             }
                             
-                            $('input[name="postal_code"]').val(response.postal_code);
-                            $('input[name="currency"]').val(response.currency_code);
+                            // Actualizar código postal y moneda
+                            if (response.postal_code) {
+                                $('input[name="postal_code"]').val(response.postal_code);
+                            }
+                            if (response.currency_code) {
+                                $('input[name="currency"]').val(response.currency_code);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al cargar estados:', error);
                         }
                     });
-                } else {
-                    $('#state').empty().append('<option value="">Estado</option>');
-                    $('#city').empty().append('<option value="">Ciudad</option>');
-                    $('input[name="postal_code"]').val('');
-                    $('input[name="currency"]').val('');
                 }
             });
 
+            // Evento para cambio de estado
             $('#state').change(function() {
                 var id_state = $(this).val();
+                
+                // Limpiar select de ciudades
+                $('#city').empty().append('<option value="">Seleccione una ciudad</option>');
                 
                 if (id_state) {
                     $.ajax({
@@ -537,17 +565,17 @@
                         type: 'GET',
                         success: function(response) {
                             let citySelect = $('#city');
-                            citySelect.empty().append('<option value="">Ciudad</option>');
                             
                             if(response.cities && response.cities.length > 0) {
                                 response.cities.forEach(function(city) {
                                     citySelect.append('<option value="' + city.id + '">' + city.name + '</option>');
                                 });
                             }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error al cargar ciudades:', error);
                         }
                     });
-                } else {
-                    $('#city').empty().append('<option value="">Ciudad</option>');
                 }
             });
         });

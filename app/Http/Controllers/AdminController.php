@@ -51,10 +51,10 @@ class AdminController extends Controller
 
       // Usuarios por mes (últimos 6 meses)
       $usersPerMonth = User::where('company_id', $companyId)
-         ->select(DB::raw('DATE_FORMAT(created_at, "%M %Y") as month'), DB::raw('count(*) as count'))
+         ->select(DB::raw('TO_CHAR(created_at, \'Month YYYY\') as month'), DB::raw('count(*) as count'), DB::raw('MIN(created_at) as date_order'))
          ->whereDate('created_at', '>=', now()->subMonths(6))
-         ->groupBy('month')
-         ->orderBy('created_at')
+         ->groupBy(DB::raw('TO_CHAR(created_at, \'Month YYYY\')'))
+         ->orderBy('date_order')
          ->get();
 
       // Productos por categoría
@@ -98,13 +98,14 @@ class AdminController extends Controller
       // Proveedores agregados por mes (últimos 6 meses)
       $suppliersPerMonth = DB::table('suppliers')
          ->select(
-            DB::raw('DATE_FORMAT(created_at, "%M %Y") as month'),
-            DB::raw('count(*) as count')
+            DB::raw('TO_CHAR(created_at, \'Month YYYY\') as month'),
+            DB::raw('count(*) as count'),
+            DB::raw('MIN(created_at) as date_order')
          )
          ->where('company_id', $companyId)
          ->whereDate('created_at', '>=', now()->subMonths(6))
-         ->groupBy('month')
-         ->orderBy('created_at')
+         ->groupBy(DB::raw('TO_CHAR(created_at, \'Month YYYY\')'))
+         ->orderBy('date_order')
          ->get();
 
       // Proveedores con productos bajo stock mínimo
@@ -117,16 +118,18 @@ class AdminController extends Controller
          ->where('suppliers.company_id', $companyId)
          ->whereRaw('products.stock <= products.min_stock')
          ->groupBy('suppliers.id', 'suppliers.company_name')
-         ->having('low_stock_products', '>', 0)
+         ->havingRaw('COUNT(DISTINCT products.id) > 0')
          ->orderByDesc('low_stock_products')
          ->get();
 
       // Compras mensuales (usando total_price en lugar de total)
-      $monthlyPurchases = Purchase::whereMonth('created_at', now()->month)
+      $monthlyPurchases = Purchase::where('company_id', $companyId)
+         ->whereMonth('created_at', now()->month)
          ->sum('total_price');
 
       // Crecimiento mensual
-      $lastMonthPurchases = Purchase::whereMonth('created_at', now()->subMonth()->month)
+      $lastMonthPurchases = Purchase::where('company_id', $companyId)
+         ->whereMonth('created_at', now()->subMonth()->month)
          ->sum('total_price');
 
       $purchaseGrowth = $lastMonthPurchases > 0 ?
@@ -139,6 +142,8 @@ class AdminController extends Controller
             DB::raw('SUM(purchase_details.quantity) as total_quantity')
          )
          ->join('products', 'purchase_details.product_id', '=', 'products.id')
+         ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+         ->where('purchases.company_id', $companyId)
          ->groupBy('products.id', 'products.name')
          ->orderByDesc('total_quantity')
          ->first();
@@ -174,6 +179,7 @@ class AdminController extends Controller
 
          // Suma del total de compras por mes
          $monthlyTotal = DB::table('purchases')
+            ->where('company_id', $companyId)
             ->whereMonth('created_at', $date->month)
             ->whereYear('created_at', $date->year)
             ->sum('total_price');
@@ -201,7 +207,9 @@ class AdminController extends Controller
          ->get();
 
       // Productos con stock bajo
-      $lowStockCount = Product::where('stock', '<=', DB::raw('min_stock'))->count();
+      $lowStockCount = Product::where('company_id', $companyId)
+         ->whereRaw('stock <= min_stock')
+         ->count();
 
       // Nuevas variables para la sección de clientes
 
@@ -301,7 +309,7 @@ class AdminController extends Controller
       // Ventas por categoría
       $salesByCategory = DB::table('sale_details as sd')
          ->select(
-            DB::raw('COALESCE(cat.name, "Sin Categoría") as name'),
+            DB::raw('COALESCE(cat.name, \'Sin Categoría\') as name'),
             DB::raw('COUNT(sd.id) as total_sales'),
             DB::raw('SUM(sd.quantity) as total_quantity'),
             DB::raw('SUM(sd.quantity * p.sale_price) as total_revenue')
@@ -310,7 +318,7 @@ class AdminController extends Controller
          ->leftJoin('categories as cat', 'p.category_id', '=', 'cat.id')
          ->join('sales as s', 'sd.sale_id', '=', 's.id')
          ->where('s.company_id', $companyId)
-         ->groupBy('cat.id', DB::raw('COALESCE(cat.name, "Sin Categoría")'))
+         ->groupBy('cat.id', 'cat.name')
          ->orderByDesc('total_revenue')
          ->get();
 

@@ -51,7 +51,7 @@
                 <img src="{{ asset('assets/img/logotipo.jpg') }}" alt="Logo" 
                 {{-- height="50" --}}
                 width="80%">
-                <span><b>Sistema de ventas!!!!!!!!!!</b></span>
+                <span><b>Sistema de ventas</b></span>
             </a>
         </div>
 

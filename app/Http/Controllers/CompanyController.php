@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\City;
+use App\Models\State;
 use App\Models\Company;
+use App\Models\Country;
+use App\Models\Currency;
 use Nnjeim\World\World;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,10 +32,10 @@ class CompanyController extends Controller
      */
     public function create()
     {
-        $countries = DB::table('countries')->get();
-        $states = DB::table('states')->get();
-        $cities = DB::table('cities')->get();
-        $currencies = DB::table('currencies')->get();
+        $countries = Country::all();
+        $states = State::all();
+        $cities = City::all();
+        $currencies = Currency::all();
         return view('admin.companies.create', compact('countries', 'states', 'cities', 'currencies'));
     }
 
@@ -166,7 +170,7 @@ class CompanyController extends Controller
                     ->with('icons', 'success');
             } else {
                 return redirect()->route('admin.company.create')
-                    ->with('message', 'Error al crear la empresa: ' . $e->getMessage())
+                    ->with('message', 'Error al iniciar sesión después de crear la empresa.')
                     ->with('icons', 'error')
                     ->withInput();
             }
@@ -210,10 +214,10 @@ class CompanyController extends Controller
      */
     public function edit()
     {
-        $countries = DB::table('countries')->get();
-        $states = DB::table('states')->get();
-        $cities = DB::table('cities')->get();
-        $currencies = DB::table('currencies')->get();
+        $countries = Country::all();
+        $states = State::all();
+        $cities = City::all();
+        $currencies = Currency::all();
         $company = Auth::user()->company;
         return view('admin.companies.edit', compact('countries', 'states', 'cities', 'currencies', 'company'));
     }
@@ -334,17 +338,14 @@ class CompanyController extends Controller
     {
         try {
             // Get country and related states
-            $country = DB::table('countries')->where('id', $id_country)->first();
-            $states = DB::table('states')
-                ->where('country_id', $id_country)
+            $country = Country::find($id_country);
+            $states = State::where('country_id', $id_country)
                 ->select('id', 'name')
                 ->orderBy('name')
                 ->get();
 
             // Get currency for this country
-            $currency = DB::table('currencies')
-                ->where('country_id', $id_country)
-                ->first();
+            $currency = Currency::where('country_id', $id_country)->first();
 
             return response()->json([
                 'states' => $states,
@@ -364,12 +365,9 @@ class CompanyController extends Controller
     {
         try {
             // Get cities and state information
-            $state = DB::table('states')
-                ->where('id', $id_state)
-                ->first();
+            $state = State::find($id_state);
 
-            $cities = DB::table('cities')
-                ->where('state_id', $id_state)
+            $cities = City::where('state_id', $id_state)
                 ->select('id', 'name')
                 ->orderBy('name')
                 ->get();

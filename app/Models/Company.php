@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\User;
-use Nnjeim\World\Models\Country;
+use App\Models\City;
+use App\Models\State;
+use App\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,8 +54,18 @@ class Company extends Model
       return $this->hasMany(Customer::class);
    }
 
-   public function country(): BelongsTo
+   public function countryModel(): BelongsTo
    {
-      return $this->belongsTo(Country::class, 'country', 'name');
+      return $this->belongsTo(Country::class, 'country', 'id');
+   }
+
+   public function stateModel(): BelongsTo
+   {
+      return $this->belongsTo(State::class, 'state', 'id');
+   }
+
+   public function cityModel(): BelongsTo
+   {
+      return $this->belongsTo(City::class, 'city', 'id');
    }
 }
