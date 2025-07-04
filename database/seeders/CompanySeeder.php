@@ -16,7 +16,20 @@ class CompanySeeder extends Seeder
     {
         Company::create([
             'id' => 1,
-            'name' => 'Empresa Principal',
+            'country' => '162',
+            'name' => 'Test Company',
+            'business_type' => 'Commercial',
+            'nit' => '1234567890',
+            'phone' => '+1-555-0123',
+            'email' => 'superAdmin@gmail.com',
+            'tax_amount' => 8,
+            'tax_name' => 'Sales Tax',
+            'currency' => 'USD - $',
+            'address' => '123 Main Street',
+            'city' => '538',        // New York City ID (primera ciudad de Estados Unidos en el seeder)
+            'state' => '30032',     // New York State ID
+            'postal_code' => '10001',
+            'logo' => 'logo.png',
         ]);
         
         $this->adjustAutoIncrement('companies');

@@ -11,6 +11,7 @@ use Database\Seeders\CityTableSeeder;
 use Database\Seeders\StateTableSeeder;
 use Database\Seeders\ParishTableSeeder;
 use Database\Seeders\CountryTableSeeder;
+use Database\Seeders\CompanySeeder;
 use Spatie\Permission\Models\Permission;
 use Database\Seeders\MunicipalityTableSeeder;
 
@@ -23,36 +24,22 @@ class DatabaseSeeder extends Seeder
    {
       // User::factory(10)->create();
 
-      $company = Company::create([
-         'id' => 1,
-         'country' => '162',
-         'name' => 'Test Company',
-         'business_type' => 'Commercial',
-         'nit' => '1234567890',
-         'phone' => '+1-555-0123',
-         'email' => 'superAdmin@gmail.com',
-         'tax_amount' => 8,
-         'tax_name' => 'Sales Tax',
-         'currency' => 'USD - $',
-         'address' => '123 Main Street',
-         'city' => '538',        // New York City ID (primera ciudad de Estados Unidos en el seeder)
-         'state' => '30032', // New York State ID
-         'postal_code' => '10001',
-         'logo' => 'logo.png',
-      ]);
-
-      User::factory()->create([
-         'name' => 'superAdmin',
-         'email' => 'superAdmin@gmail.com',
-         'password' => Hash::make('12345'),
-         'company_id' => 1,
-      ]);
+      // Primero ejecutar los seeders de ubicación y empresa
       $this->call([CountryTableSeeder::class]);
       $this->call([StateTableSeeder::class]);
       // $this->call([MunicipalityTableSeeder::class]);
       // $this->call([ParishTableSeeder::class]);
       $this->call([CityTableSeeder::class]);
       $this->call([CurrencySeeder::class]);
+      $this->call([CompanySeeder::class]);
+
+      // Luego crear el usuario que depende de la empresa
+      User::factory()->create([
+         'name' => 'superAdmin',
+         'email' => 'superAdmin@gmail.com',
+         'password' => Hash::make('12345'),
+         'company_id' => 1,
+      ]);
 
       $this->call([
          // WorldSeeder::class, // Comentado hasta recibir el seeder personalizado
