@@ -302,14 +302,14 @@
                                     <div class="row mb-2" style="border: 1px solid #ccc; padding: 10px;">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="file">Logo de la empresa</label>
+                                                <label for="file">Logo de la empresa (opcional)</label>
                                                 <div class="input-group mb-3">
                                                     <div class="custom-file">
                                                         <input type="file" 
                                                         value="{{ old('logo') }}"
                                                         accept=".jpg,.jpeg,.png"
                                                         class="custom-file-input" id="file"
-                                                            name="logo" accept="image/*" required>
+                                                            name="logo" accept="image/*">
                                                         <label class="custom-file-label" for="logo">Seleccionar
                                                             archivo</label>
                                                     </div>

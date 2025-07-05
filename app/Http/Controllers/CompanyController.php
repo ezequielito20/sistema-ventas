@@ -62,7 +62,7 @@ class CompanyController extends Controller
                 'city' => 'required|string|max:255',
                 'state' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:255',
-                'logo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'ig' => 'nullable|string|max:255'
             ], [
                 'country.required' => 'El país es requerido',
@@ -104,7 +104,7 @@ class CompanyController extends Controller
                 'postal_code.required' => 'El código postal es requerido',
                 'postal_code.string' => 'El código postal debe ser texto',
                 'postal_code.max' => 'El código postal no debe exceder 255 caracteres',
-                'logo.required' => 'El logo es requerido',
+
                 'logo.image' => 'El archivo debe ser una imagen',
                 'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
                 'logo.max' => 'El archivo no debe pesar más de 2MB',
