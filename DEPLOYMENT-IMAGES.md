@@ -176,29 +176,50 @@ composer require league/flysystem-aws-s3-v3
 - **Manejo de errores mejorado**: Mejor feedback al usuario
 - **Limpieza automática**: Eliminación de imágenes en caso de error
 
-### 4. Comando de Diagnóstico
+### 4. Comandos de Diagnóstico y Corrección
 
 ```bash
+# Diagnóstico del sistema
 php artisan storage:diagnose [--test]
+
+# Corrección automática para producción
+php artisan images:fix-production [--test] [--force]
 ```
 
 ## Deployment en Producción
 
-### Paso 1: Preparación
+### Método Recomendado: Comando Artisan
+
+El comando `images:fix-production` es la forma más segura y eficiente de corregir problemas de imágenes en Laravel Cloud:
 
 ```bash
-# Conectar a producción
-# Navegar al directorio del proyecto
-cd /path/to/your/project
+# Ejecutar corrección automática
+php artisan images:fix-production
+
+# Con pruebas incluidas
+php artisan images:fix-production --test
+
+# Forzar ejecución en entorno no-producción (solo para pruebas)
+php artisan images:fix-production --force
 ```
 
-### Paso 2: Ejecutar Script de Deployment
+**¿Qué hace este comando?**
+1. ✅ Verifica el entorno de producción
+2. ✅ Muestra la configuración actual
+3. ✅ Limpia y regenera cachés
+4. ✅ Verifica conectividad con R2
+5. ✅ Optimiza para producción
+6. ✅ Ejecuta pruebas (si se solicita)
+7. ✅ Muestra resumen detallado
+
+### Método Alternativo: Script de Deployment
 
 ```bash
+# Si prefieres usar script
 ./deploy-images.sh
 ```
 
-### Paso 3: Verificación Manual
+### Verificación Manual
 
 ```bash
 # Verificar configuración
