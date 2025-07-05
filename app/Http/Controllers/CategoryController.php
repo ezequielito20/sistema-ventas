@@ -50,10 +50,17 @@ class CategoryController extends Controller
    /**
     * Show the form for creating a new resource.
     */
-   public function create()
+   public function create(Request $request)
    {
       try {
          $company = $this->company;
+         
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'categories/create')) {
+            session(['categories_referrer' => $referrerUrl]);
+         }
+         
          return view('admin.categories.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error loading create category form: ' . $e->getMessage());
@@ -108,7 +115,18 @@ class CategoryController extends Controller
 
          DB::commit();
 
-         // Registro exitoso
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('categories_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('categories_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', 'Categoría creada exitosamente')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de categorías
          return redirect()->route('admin.categories.index')
             ->with('message', 'Categoría creada exitosamente')
             ->with('icons', 'success');
@@ -126,10 +144,17 @@ class CategoryController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit($id)
+   public function edit(Request $request, $id)
    {
       $company = $this->company;
       $category = Category::where('id', $id)->where('company_id', $company->id)->first();
+      
+      // Capturar la URL de referencia para redirección posterior
+      $referrerUrl = $request->header('referer');
+      if ($referrerUrl && !str_contains($referrerUrl, 'categories/edit')) {
+         session(['categories_referrer' => $referrerUrl]);
+      }
+      
       return view('admin.categories.edit', compact('category', 'company'));
    }
 
@@ -180,6 +205,18 @@ class CategoryController extends Controller
 
          DB::commit();
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('categories_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('categories_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', 'Categoría actualizada exitosamente')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de categorías
          return redirect()->route('admin.categories.index')
             ->with('message', 'Categoría actualizada exitosamente')
             ->with('icons', 'success');

@@ -5,16 +5,38 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Nueva Compra</h1>
-        <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left mr-2 d-md-inline d-none"></i>
-            <i class="fas fa-arrow-left d-md-none"></i>
-            <span class="d-md-inline d-none">Volver al listado</span>
-            <span class="d-md-none">Volver</span>
-        </a>
+        <button onclick="window.history.back()" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver
+        </button>
     </div>
 @stop
 
 @section('content')
+    <!-- Mostrar mensajes de error -->
+    @if(session('message'))
+        <div class="alert alert-{{ session('icons') == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+            {{ session('message') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>¡Errores encontrados!</strong>
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-12">
             <div class="card card-primary card-outline">
@@ -192,7 +214,9 @@
                                         <td class="align-middle">{{ $product->code }}</td>
                                         <td class="align-middle">
                                             <button type="button" class="btn btn-primary btn-sm select-product"
-                                                data-code="{{ $product->code }}" data-dismiss="modal">
+                                                data-code="{{ $product->code }}" 
+                                                data-id="{{ $product->id }}" 
+                                                data-dismiss="modal">
                                                 <i class="fas fa-plus-circle"></i>
                                             </button>
                                         </td>
@@ -411,30 +435,43 @@
                     // Solo hay un producto, obtener sus datos directamente de la fila
                     const productRow = $('#productsTable tbody tr:first');
                     const productCode = productRow.find('td:eq(0)').text().trim();
+                    const productId = productRow.find('button.select-product').data('id');
                     const productName = productRow.find('td:eq(2) span').text().trim();
                     const productImage = productRow.find('td:eq(2) img').attr('src');
                     const productStock = productRow.find('td:eq(4) .badge').text().trim();
                     const productPriceText = productRow.find('td:eq(5)').text().trim();
                     const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
                     
-                    console.log('Datos extraídos:', {
-                        code: productCode,
-                        name: productName,
-                        image: productImage,
-                        stock: productStock,
-                        priceText: productPriceText,
-                        price: productPrice
+                                    console.log('Datos extraídos:', {
+                    id: productId,
+                    code: productCode,
+                    name: productName,
+                    image: productImage,
+                    stock: productStock,
+                    priceText: productPriceText,
+                    price: productPrice
+                });
+                
+                // Verificar que tenemos un ID válido
+                if (!productId || productId === '' || productId === null) {
+                    console.error('ID de producto no válido:', productId);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo obtener el ID del producto'
                     });
-                    
-                    // Crear objeto producto con los datos disponibles
-                    const product = {
-                        code: productCode,
-                        name: productName,
-                        image: productImage,
-                        stock: productStock,
-                        purchase_price: productPrice,
-                        id: productCode // Usar el código como ID temporal
-                    };
+                    return;
+                }
+                
+                // Crear objeto producto con los datos disponibles
+                const product = {
+                    id: productId,
+                    code: productCode,
+                    name: productName,
+                    image: productImage,
+                    stock: productStock,
+                    purchase_price: productPrice
+                };
                     
                     console.log('Producto extraído:', product);
                     
@@ -497,6 +534,7 @@
                             method: 'GET',
                             success: function(response) {
                                 if (response.success) {
+                                    console.log('Producto encontrado por código:', response.product);
                                     addProductToTable(response.product);
                                     $('#product_code').val(''); // Limpiar el input
                                 } else {
@@ -514,7 +552,8 @@
             // Evento para el botón de seleccionar producto
             $(document).on('click', '.select-product', function() {
                 const productCode = $(this).data('code');
-                console.log('Código del producto:', productCode); // Debug
+                const productId = $(this).data('id');
+                console.log('Código del producto:', productCode, 'ID:', productId); // Debug
 
                 // Verificar si el producto ya está en la tabla
                 if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
@@ -533,6 +572,8 @@
                     success: function(response) {
                         console.log('Respuesta del servidor:', response); // Debug
                         if (response.success) {
+                            // Asegurar que el producto tenga el ID correcto
+                            response.product.id = productId;
                             addProductToTable(response.product);
                         } else {
                             Swal.fire('Error', response.message, 'error');
@@ -550,6 +591,21 @@
             // showAlert = true: muestra alerta cuando el usuario agrega manualmente
             // showAlert = false: no muestra alerta cuando se agrega automáticamente
             function addProductToTable(product, showAlert = true) {
+                console.log('Agregando producto a la tabla:', product);
+                
+                // Verificar que el producto tenga un ID válido
+                if (!product.id || product.id === '' || product.id === null) {
+                    console.error('Producto sin ID válido:', product);
+                    if (showAlert) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'El producto no tiene un ID válido'
+                        });
+                    }
+                    return;
+                }
+                
                 // Verificar si el producto ya está en la tabla
                 if ($(`tr[data-product-code="${product.code}"]`).length > 0) {
                     if (showAlert) {
@@ -576,7 +632,7 @@
                 const price = product.purchase_price || product.price || 0;
 
                 const row = `
-                    <tr data-product-code="${product.code}">
+                    <tr data-product-code="${product.code}" data-product-id="${product.id}">
                         <td>${product.code}</td>
                         <td>${product.name}</td>
                         <td>
@@ -681,58 +737,35 @@
                 });
             });
 
-            // Cuando se hace clic en "Registrar Compra"
-            $('#registrarCompra').click(function(e) {
+            // Manejar el envío del formulario
+            $('form').on('submit', function(e) {
                 e.preventDefault();
-
-                // Recolectar todos los items de la tabla
-                let items = [];
-                $('#purchaseTable tbody tr').each(function() {
-                    items.push({
-                        code: $(this).find('td:eq(0)').text(),
-                        quantity: parseInt($(this).find('input.quantity').val()),
-                        price: parseFloat($(this).find('input.price').val()),
-                        subtotal: parseFloat($(this).find('td:eq(4)').text().replace('$',
-                            ''))
+                
+                // Verificar que hay productos en la tabla
+                if ($('#purchaseItems tr').length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin productos',
+                        text: 'Debe agregar al menos un producto a la compra'
                     });
-                });
+                    return;
+                }
 
-                // Crear el formulario
-                let formData = new FormData();
-                formData.append('purchase_date', $('#purchase_date').val());
-                formData.append('total', $('#total').text());
+                // Verificar que la fecha esté completa
+                if (!$('#purchase_date').val()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Fecha requerida',
+                        text: 'Debe seleccionar una fecha de compra'
+                    });
+                    return;
+                }
 
-                // Agregar los items
-                items.forEach((item, index) => {
-                    formData.append(`items[${index}][code]`, item.code);
-                    formData.append(`items[${index}][quantity]`, item.quantity);
-                    formData.append(`items[${index}][price]`, item.price);
-                });
+                // Deshabilitar botones para evitar doble envío
+                $('#submitPurchase, button[name="action"]').prop('disabled', true);
 
-                // Enviar el formulario
-                $.ajax({
-                    url: '{{ route('admin.purchases.store') }}',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                            title: '¡Éxito!',
-                            text: 'Compra registrada correctamente',
-                            icon: 'success'
-                        }).then((result) => {
-                            window.location.href =
-                                '{{ route('admin.purchases.index') }}';
-                        });
-                    },
-                    error: function(xhr) {
-                        Swal.fire('Error', 'Hubo un error al registrar la compra', 'error');
-                    }
-                });
+                // Enviar el formulario normalmente
+                this.submit();
             });
         });
     </script>

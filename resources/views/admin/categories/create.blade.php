@@ -44,9 +44,9 @@
                         </div>
                     </div>
                     <div class="card-footer text-right">
-                        <a href="{{ url()->previous() }}" class="btn btn-secondary">
+                        <button onclick="window.history.back()" class="btn btn-secondary">
                             <i class="fas fa-arrow-left mr-2"></i>Volver
-                        </a>
+                        </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save mr-2"></i>Guardar
                         </button>

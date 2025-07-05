@@ -77,10 +77,17 @@ class SupplierController extends Controller
    /**
     * Show the form for creating a new resource.
     */
-   public function create()
+   public function create(Request $request)
    {
       try {
          $company = $this->company;
+         
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'suppliers/create')) {
+            session(['suppliers_referrer' => $referrerUrl]);
+         }
+         
          return view('admin.suppliers.create', compact('company'));
       } catch (\Exception $e) {
          Log::error('Error en SupplierController@create: ' . $e->getMessage());
@@ -153,7 +160,18 @@ class SupplierController extends Controller
             'company_id' => Auth::user()->company_id
          ]);
 
-         // Redireccionar con mensaje de éxito
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('suppliers_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('suppliers_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', '¡Proveedor creado exitosamente!')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de proveedores
          return redirect()->route('admin.suppliers.index')
             ->with('message', '¡Proveedor creado exitosamente!')
             ->with('icons', 'success');
@@ -215,7 +233,7 @@ class SupplierController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit($id)
+   public function edit(Request $request, $id)
    {
       try {
          $company = $this->company;
@@ -232,6 +250,12 @@ class SupplierController extends Controller
             return redirect()->route('admin.suppliers.index')
                ->with('message', 'No tiene permiso para editar este proveedor')
                ->with('icons', 'error');
+         }
+
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'suppliers/edit')) {
+            session(['suppliers_referrer' => $referrerUrl]);
          }
 
          // Retornar vista con datos del proveedor
@@ -321,7 +345,18 @@ class SupplierController extends Controller
             'company_id' => Auth::user()->company_id
          ]);
 
-         // Redireccionar con mensaje de éxito
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('suppliers_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('suppliers_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', '¡Proveedor actualizado exitosamente!')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de proveedores
          return redirect()->route('admin.suppliers.index')
             ->with('message', '¡Proveedor actualizado exitosamente!')
             ->with('icons', 'success');

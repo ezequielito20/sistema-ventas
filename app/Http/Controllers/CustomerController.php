@@ -649,7 +649,7 @@ class CustomerController extends Controller
 
       // Datos para gráficos
       $weekdayData = DebtPayment::where('company_id', $this->company->id)
-         ->selectRaw('DAYOFWEEK(created_at) as day_of_week, SUM(payment_amount) as total')
+         ->selectRaw('EXTRACT(DOW FROM created_at) as day_of_week, SUM(payment_amount) as total')
          ->groupBy('day_of_week')
          ->orderBy('day_of_week')
          ->get()
@@ -659,14 +659,15 @@ class CustomerController extends Controller
       $weekdayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
       $weekdayDataArray = [];
 
-      for ($i = 1; $i <= 7; $i++) {
+      // PostgreSQL DOW: 0=Domingo, 1=Lunes, ..., 6=Sábado
+      for ($i = 0; $i <= 6; $i++) {
          $weekdayDataArray[] = $weekdayData[$i] ?? 0;
       }
 
       // Datos mensuales
       $monthlyData = DebtPayment::where('company_id', $this->company->id)
          ->whereYear('created_at', date('Y'))
-         ->selectRaw('MONTH(created_at) as month, SUM(payment_amount) as total')
+         ->selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(payment_amount) as total')
          ->groupBy('month')
          ->orderBy('month')
          ->get()

@@ -79,7 +79,7 @@ class PurchaseController extends Controller
    /**
     * Show the form for creating a new resource.
     */
-   public function create()
+   public function create(Request $request)
    {
       try {
          // Obtener productos y proveedores de la compañía actual
@@ -91,6 +91,12 @@ class PurchaseController extends Controller
 
          $suppliers = Supplier::where('company_id', $companyId)
             ->get();
+
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'purchases/create')) {
+            session(['purchases_referrer' => $referrerUrl]);
+         }
 
          return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company'));
       } catch (\Exception $e) {
@@ -106,7 +112,6 @@ class PurchaseController extends Controller
     */
    public function store(Request $request)
    {
-      // dd($request->all());
       try {
          // Validación de los datos
          $validated = $request->validate([
@@ -179,15 +184,41 @@ class PurchaseController extends Controller
 
          DB::commit();
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('purchases_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('purchases_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', '¡Compra registrada exitosamente!')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de compras
          return redirect()->route('admin.purchases.index')
             ->with('message', '¡Compra registrada exitosamente!')
             ->with('icons', 'success');
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         Log::error('Error de validación en compra: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'company_id' => Auth::user()->company_id,
+            'data' => $request->all(),
+            'errors' => $e->errors()
+         ]);
+
+         return redirect()->back()
+            ->withInput()
+            ->withErrors($e->errors())
+            ->with('message', 'Error de validación: ' . $e->getMessage())
+            ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear compra: ' . $e->getMessage(), [
             'user_id' => Auth::user()->id,
             'company_id' => Auth::user()->company_id,
-            'data' => $request->all()
+            'data' => $request->all(),
+            'trace' => $e->getTraceAsString()
          ]);
 
          return redirect()->back()
@@ -200,7 +231,7 @@ class PurchaseController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit($id)
+   public function edit(Request $request, $id)
    {
       try {
          $company = $this->company;
@@ -229,6 +260,12 @@ class PurchaseController extends Controller
          // Obtener productos y proveedores
          $products = Product::where('company_id', $companyId)->get();
          $suppliers = Supplier::where('company_id', $companyId)->get();
+
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'purchases/edit')) {
+            session(['purchases_referrer' => $referrerUrl]);
+         }
 
          return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company'));
       } catch (\Exception $e) {
@@ -351,6 +388,18 @@ class PurchaseController extends Controller
 
          DB::commit();
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('purchases_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('purchases_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', '¡Compra actualizada exitosamente!')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de compras
          return redirect()->route('admin.purchases.index')
             ->with('message', '¡Compra actualizada exitosamente!')
             ->with('icons', 'success');

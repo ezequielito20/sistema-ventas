@@ -70,9 +70,9 @@
                         </div>
                     </div>
                     <div class="card-footer text-right">
-                        <a href="{{ route('admin.categories.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times mr-2"></i>Cancelar
-                        </a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Volver
+                        </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save mr-2"></i>Actualizar
                         </button>

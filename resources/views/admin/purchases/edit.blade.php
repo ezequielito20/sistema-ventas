@@ -5,9 +5,9 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Editar Compra #{{ $purchase->id }}</h1>
-        <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
-        </a>
+        <button onclick="window.history.back()" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>Volver
+        </button>
     </div>
 @stop
 

@@ -88,12 +88,19 @@ class ProductController extends Controller
    /**
     * Show the form for creating a new resource.
     */
-   public function create()
+   public function create(Request $request)
    {
       try {
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
          $company = $this->company;
+         
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'products/create')) {
+            session(['products_referrer' => $referrerUrl]);
+         }
+         
          return view('admin.products.create', compact('categories', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error loading create product form: ' . $e->getMessage());
@@ -159,6 +166,18 @@ class ProductController extends Controller
 
          DB::commit();
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('products_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('products_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', 'Producto creado exitosamente')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de productos
          return redirect()->route('admin.products.index')
             ->with('message', 'Producto creado exitosamente')
             ->with('icons', 'success');
@@ -218,13 +237,20 @@ class ProductController extends Controller
    /**
     * Show the form for editing the specified resource.
     */
-   public function edit($id)
+   public function edit(Request $request, $id)
    {
       try {
          $product = Product::find($id);
          $categories = Category::where('company_id', $this->company->id)->get();
          $currency = $this->currencies;
          $company = $this->company;
+         
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'products/edit')) {
+            session(['products_referrer' => $referrerUrl]);
+         }
+         
          return view('admin.products.edit', compact('product', 'categories', 'currency', 'company'));
       } catch (\Exception $e) {
          Log::error('Error loading edit product form: ' . $e->getMessage());
@@ -295,6 +321,18 @@ class ProductController extends Controller
 
          DB::commit();
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('products_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('products_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', 'Producto actualizado exitosamente')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de productos
          return redirect()->route('admin.products.index')
             ->with('message', 'Producto actualizado exitosamente')
             ->with('icons', 'success');
