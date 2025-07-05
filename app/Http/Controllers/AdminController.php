@@ -10,7 +10,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use Nnjeim\World\Models\Country;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
@@ -35,12 +35,12 @@ class AdminController extends Controller
       $currency = $this->currencies;
       // Obtener conteos básicos
       $usersCount = User::where('company_id', $companyId)->count();
-      $rolesCount = Role::count();
+      $rolesCount = Role::byCompany($companyId)->count();
       $categoriesCount = Category::where('company_id', $companyId)->count();
       $productsCount = Product::where('company_id', $companyId)->count();
 
       // Usuarios por rol
-      $usersByRole = Role::withCount(['users' => function ($query) use ($companyId) {
+      $usersByRole = Role::byCompany($companyId)->withCount(['users' => function ($query) use ($companyId) {
          $query->where('company_id', $companyId);
       }])->get()->map(function ($role) {
          return [

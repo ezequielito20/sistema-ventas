@@ -139,11 +139,12 @@ class CompanyController extends Controller
                 'ig' => $validated['ig'] ?? null
             ]);
 
-            // Crear el rol de administrador si no existe
-            $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(
-                ['name' => 'administrador'],
-                ['guard_name' => 'web']
-            );
+            // Crear el rol de administrador específico para esta empresa
+            $adminRole = \App\Models\Role::create([
+                'name' => 'administrador',
+                'guard_name' => 'web',
+                'company_id' => $company->id
+            ]);
 
             // Asignar todos los permisos disponibles al rol administrador
             $allPermissions = \Spatie\Permission\Models\Permission::all();

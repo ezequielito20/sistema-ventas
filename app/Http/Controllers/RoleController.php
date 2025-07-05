@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 
@@ -30,6 +30,7 @@ class RoleController extends Controller
    public function index()
    {
       $roles = Role::with('permissions')
+         ->byCompany($this->company->id)
          ->orderBy('name', 'asc')
          ->get();
 
@@ -164,7 +165,10 @@ class RoleController extends Controller
             'required',
             'string',
             'max:255',
-            'unique:roles,name',
+            Rule::unique('roles', 'name')->where(function ($query) {
+               return $query->where('guard_name', 'web')
+                           ->where('company_id', $this->company->id);
+            }),
             // Asegura que el nombre solo contenga letras, números, espacios y guiones
             'regex:/^[a-zA-Z0-9\s-]+$/',
          ]
@@ -192,6 +196,7 @@ class RoleController extends Controller
          $role = Role::create([
             'name' => $roleName,
             'guard_name' => 'web',
+            'company_id' => $this->company->id,
             'created_at' => now(),
             'updated_at' => now(),
          ]);
@@ -227,7 +232,9 @@ class RoleController extends Controller
    public function edit($id)
    {
       $company = $this->company;
-      $role = Role::where('id', $id)->where('company_id', $company->id)->first();
+      $role = Role::where('id', $id)
+                  ->where('company_id', $company->id)
+                  ->firstOrFail();
       return view('admin.roles.edit', compact('role', 'company'));
    }
 
@@ -236,7 +243,9 @@ class RoleController extends Controller
     */
    public function update(Request $request, $id)
    {
-      $role = Role::findOrFail($id);
+      $role = Role::where('id', $id)
+                  ->where('company_id', $this->company->id)
+                  ->firstOrFail();
 
       // Validación mejorada del request
       $validated = $request->validate([
@@ -244,7 +253,10 @@ class RoleController extends Controller
             'required',
             'string',
             'max:255',
-            Rule::unique('roles')->ignore($role->id),
+            Rule::unique('roles', 'name')->ignore($role->id)->where(function ($query) {
+               return $query->where('guard_name', 'web')
+                           ->where('company_id', $this->company->id);
+            }),
             // Asegura que el nombre solo contenga letras, números, espacios y guiones
             'regex:/^[a-zA-Z0-9\s-]+$/',
          ]
@@ -309,7 +321,9 @@ class RoleController extends Controller
    public function destroy($id)
    {
       try {
-         $role = Role::findOrFail($id);
+         $role = Role::where('id', $id)
+                     ->where('company_id', $this->company->id)
+                     ->firstOrFail();
 
          // Verificar si es un rol del sistema
          if (in_array($role->name, ['admin', 'user', 'superadmin'])) {
@@ -347,7 +361,10 @@ class RoleController extends Controller
    public function show($id)
    {
       try {
-         $role = Role::with('permissions', 'users')->findOrFail($id);
+         $role = Role::with('permissions', 'users')
+                     ->where('id', $id)
+                     ->where('company_id', $this->company->id)
+                     ->firstOrFail();
 
          return response()->json([
             'status' => 'success',
@@ -372,6 +389,7 @@ class RoleController extends Controller
    {
       $company = Company::find(Auth::user()->company_id);
       $roles = Role::with('permissions')
+      ->byCompany($company->id)
       ->orderBy('name', 'asc')
       ->get();
       $pdf = PDF::loadView('admin.roles.report', compact('roles', 'company'));
@@ -384,7 +402,9 @@ class RoleController extends Controller
    public function permissions($id)
    {
       try {
-         $role = Role::findOrFail($id);
+         $role = Role::where('id', $id)
+                     ->where('company_id', $this->company->id)
+                     ->firstOrFail();
          return response()->json([
             'status' => 'success',
             'permissions' => $role->permissions
@@ -405,7 +425,9 @@ class RoleController extends Controller
       try {
          DB::beginTransaction();
 
-         $role = Role::findOrFail($id);
+         $role = Role::where('id', $id)
+                     ->where('company_id', $this->company->id)
+                     ->firstOrFail();
 
          // Verificar si es un rol del sistema
          if (in_array($role->name, ['admin', 'superadmin', 'administrator', 'root'])) {
