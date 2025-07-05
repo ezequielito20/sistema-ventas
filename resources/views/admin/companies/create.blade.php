@@ -249,7 +249,6 @@
                                             <div class="input-group mb-3">
                                                 <input type="text" name="postal_code" 
                                                        class="form-control @error('postal_code') is-invalid @enderror"
-                                                       readonly
                                                        value="{{ old('postal_code') }}"
                                                        placeholder="Código postal">
                                                 <div class="input-group-append">
