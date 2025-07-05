@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ImageUrlService;
 
 class Product extends Model
 {
@@ -156,6 +158,14 @@ class Product extends Model
          return (($this->sale_price - $this->purchase_price) / $this->purchase_price) * 100;
       }
       return 0;
+   }
+
+   /**
+    * Get the image URL.
+    */
+   public function getImageUrlAttribute()
+   {
+      return ImageUrlService::getImageUrl($this->image);
    }
 
    /**

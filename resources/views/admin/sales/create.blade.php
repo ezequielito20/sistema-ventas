@@ -245,7 +245,7 @@
                                             </button>
                                         </td>
                                         <td class="align-middle">
-                                            <img src="{{ asset($product->image) }}" alt="N/I" class="img-thumbnail"
+                                            <img src="{{ $product->image_url }}" alt="N/I" class="img-thumbnail"
                                                 width="50">
                                         </td>
                                         <td class="align-middle">{{ $product->name }}</td>
@@ -689,7 +689,7 @@
                     // Asegurar que tenemos una imagen válida
                     let imageUrl = product.image;
                     if (!imageUrl || imageUrl === '') {
-                        imageUrl = '/img/no-image.png';
+                        imageUrl = '/img/no-image.svg';
                     } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
                         imageUrl = '/' + imageUrl;
                     }

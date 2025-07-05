@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Company;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use App\Services\ImageUrlService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +30,11 @@ class AppServiceProvider extends ServiceProvider
                 $company = Company::find(Auth::user()->company_id);
                 $view->with('company', $company);
             }
+        });
+
+        // Blade directive para URLs de imágenes
+        Blade::directive('imageUrl', function ($expression) {
+            return "<?php echo App\Services\ImageUrlService::getImageUrl($expression); ?>";
         });
     }
 }

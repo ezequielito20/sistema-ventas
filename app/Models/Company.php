@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ImageUrlService;
 
 class Company extends Model
 {
@@ -38,6 +40,14 @@ class Company extends Model
       'created_at' => 'datetime',
       'updated_at' => 'datetime',
    ];
+
+   /**
+    * Get the logo URL.
+    */
+   public function getLogoUrlAttribute()
+   {
+      return ImageUrlService::getImageUrl($this->logo);
+   }
 
    public function users(): HasMany
    {

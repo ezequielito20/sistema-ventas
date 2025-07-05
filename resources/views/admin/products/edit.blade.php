@@ -231,7 +231,7 @@
                         @if($product->image)
                             <div id="current-image-container" 
                                 style="display: block; margin: 10px auto; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 300px;">
-                                <img src="{{ asset( $product->image) }}" 
+                                <img src="{{ $product->image_url }}" 
                                      alt="Imagen del producto"
                                      style="width: 100%; height: auto; border-radius: 8px;">
                             </div>

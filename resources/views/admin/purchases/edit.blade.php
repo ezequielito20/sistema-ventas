@@ -105,7 +105,7 @@
                                                         <td>{{ $detail->product->code }}</td>
                                                         <td>{{ $detail->product->name }}</td>
                                                         <td>
-                                                            <img src="{{ $detail->product->image ? asset($detail->product->image) : asset('img/no-image.png') }}"
+                                                            <img src="{{ $detail->product->image_url }}"
                                                                 alt="{{ $detail->product->name }}" class="img-thumbnail"
                                                                 style="max-height: 50px;">
                                                         </td>
@@ -222,7 +222,7 @@
                                         </td>
                                         <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                <img src="{{ $product->image_url }}"
                                                     alt="{{ $product->name }}" class="img-thumbnail mr-2"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                                 <span>{{ $product->name }}</span>
@@ -467,7 +467,7 @@
                         <td>${product.code}</td>
                         <td>${product.name}</td>
                         <td>
-                            <img src="/${product.image ? product.image : '/img/no-image.png'}"
+                            <img src="${product.image ? '/' + product.image : '/img/no-image.svg'}"
                                 alt="${product.name}"
                                 class="img-thumbnail"
                                 style="max-height: 50px;">

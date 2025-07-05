@@ -362,7 +362,7 @@
                                             <div class="text-center">
                                                 <output id="list">
                                                     @if($company->logo)
-                                                        <img src="{{ asset('storage/' . $company->logo) }}" 
+                                                        <img src="{{ $company->logo_url }}" 
                                                              class="thumb thumbnail img-fluid rounded" 
                                                              style="max-height: 208px;" 
                                                              alt="Logo actual">

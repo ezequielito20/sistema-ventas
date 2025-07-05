@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ImageUrlService;
 
 class ProductController extends Controller
 {
@@ -157,8 +158,9 @@ class ProductController extends Controller
 
          // Procesar imagen si existe
          if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
+            $disk = ImageUrlService::getStorageDisk();
+            $path = $request->file('image')->store('products', $disk);
+            $data['image'] = $path;
          }
 
          // Crear producto
@@ -187,7 +189,7 @@ class ProductController extends Controller
 
          // Eliminar imagen si se subió
          if (isset($path)) {
-            Storage::disk('public')->delete($path);
+            Storage::disk($disk)->delete($path);
          }
 
          return redirect()->back()
@@ -308,13 +310,15 @@ class ProductController extends Controller
 
          // Procesar nueva imagen si existe
          if ($request->hasFile('image')) {
+            $disk = ImageUrlService::getStorageDisk();
+            
             // Eliminar imagen anterior si existe
-            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-               Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            if ($product->image && Storage::disk($disk)->exists($product->image)) {
+               Storage::disk($disk)->delete($product->image);
             }
 
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
+            $path = $request->file('image')->store('products', $disk);
+            $data['image'] = $path;
          }
 
          $product->update($data);
@@ -342,7 +346,7 @@ class ProductController extends Controller
 
          // Eliminar nueva imagen si se subió
          if (isset($path)) {
-            Storage::disk('public')->delete($path);
+            Storage::disk($disk)->delete($path);
          }
 
          return redirect()->back()
@@ -362,8 +366,9 @@ class ProductController extends Controller
          DB::beginTransaction();
 
          // Eliminar imagen si existe
-         if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+         $disk = ImageUrlService::getStorageDisk();
+         if ($product->image && Storage::disk($disk)->exists($product->image)) {
+            Storage::disk($disk)->delete($product->image);
          }
 
          $product->delete();
