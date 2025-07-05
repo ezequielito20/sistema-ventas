@@ -15,6 +15,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImageProxyController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +26,9 @@ Auth::routes();
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
+
+// Ruta para servir imágenes a través de proxy
+Route::get('/image/{path}', [ImageProxyController::class, 'serve'])->name('image.proxy');
 
 Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');

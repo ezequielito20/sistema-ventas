@@ -159,7 +159,8 @@ class ProductController extends Controller
          // Procesar imagen si existe
          if ($request->hasFile('image')) {
             try {
-               $path = ImageUrlService::storeUploadedFile($request->file('image'), 'products');
+               $imageService = app(ImageUrlService::class);
+               $path = $imageService->storeUploadedFile($request->file('image'), 'products');
                $data['image'] = $path;
             } catch (\Exception $e) {
                Log::error('Error uploading image during product creation: ' . $e->getMessage());

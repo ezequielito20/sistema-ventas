@@ -4,176 +4,238 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class ImageUrlService
 {
     /**
-     * Get the correct URL for an image based on the environment and storage configuration
+     * Obtener URL de imagen con fallback a diferentes métodos
      */
-    public static function getImageUrl(?string $imagePath, string $fallbackImage = 'img/no-image.svg'): string
+    public function getImageUrl(?string $imagePath): string
     {
         if (!$imagePath) {
-            return asset($fallbackImage);
+            return $this->getDefaultImageUrl();
         }
 
-        // Si el entorno es producción y usamos el disco privado (Cloudflare R2)
-        if (app()->environment('production') && config('filesystems.default') === 'private') {
-            // Para Laravel Cloud con Cloudflare R2, construir la URL directamente
-            $awsUrl = config('filesystems.disks.private.url');
-            if ($awsUrl) {
-                return rtrim($awsUrl, '/') . '/' . ltrim($imagePath, '/');
-            }
-            
-            // Construir URL automáticamente para Laravel Cloud R2
-            $bucket = config('filesystems.disks.private.bucket');
-            $endpoint = config('filesystems.disks.private.endpoint');
-            
-            if ($bucket && $endpoint) {
-                // URL pública para Cloudflare R2: endpoint/bucket/path
-                return rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($imagePath, '/');
-            }
-            
-            Log::warning('R2 configuration incomplete for image: ' . $imagePath);
-            return asset($fallbackImage);
-        }
-
-        // Para desarrollo local
-        if (str_starts_with($imagePath, 'storage/')) {
-            return asset($imagePath);
-        }
-
-        // Fallback para disco público
-        return asset('storage/' . $imagePath);
-    }
-
-    /**
-     * Get the correct storage disk based on environment with production-first logic
-     */
-    public static function getStorageDisk(): string
-    {
-        $defaultDisk = config('filesystems.default');
-        
-        // En producción, usar siempre el disco privado (R2)
-        if (app()->environment('production')) {
-            // Verificar que las credenciales están configuradas
-            $privateConfig = config('filesystems.disks.private');
-            if ($privateConfig && $privateConfig['key'] && $privateConfig['secret'] && $privateConfig['bucket']) {
-                return 'private';
-            } else {
-                Log::error('Production environment but R2 credentials not properly configured');
-                throw new \Exception('Storage not configured for production environment');
-            }
-        }
-        
-        // En desarrollo, usar disco público por simplicidad
-        return $defaultDisk === 'local' ? 'public' : $defaultDisk;
-    }
-
-    /**
-     * Test if the storage disk is working properly - optimized for production
-     */
-    public static function testStorageDisk(): bool
-    {
         try {
-            $disk = self::getStorageDisk();
-            $testFile = 'test_' . time() . '.txt';
+            $disk = Storage::disk('private');
             
-            // Intentar escribir un archivo de prueba
-            $success = Storage::disk($disk)->put($testFile, 'test content');
-            
-            if (!$success) {
-                Log::error('Failed to write test file to storage disk: ' . $disk);
-                return false;
+            // Verificar que el archivo existe
+            if (!$disk->exists($imagePath)) {
+                Log::warning("Imagen no encontrada: {$imagePath}");
+                return $this->getDefaultImageUrl();
             }
+
+            // Método 1: Intentar URL firmada (válida por 24 horas)
+            $signedUrl = $this->getSignedUrl($imagePath);
+            if ($signedUrl) {
+                return $signedUrl;
+            }
+
+            // Método 2: URL directa (puede no funcionar en producción)
+            $directUrl = $this->getDirectUrl($imagePath);
             
-            // Verificar que existe
-            $exists = Storage::disk($disk)->exists($testFile);
+            // Método 3: Usar ruta proxy como fallback
+            return route('image.proxy', ['path' => base64_encode($imagePath)]);
             
-            // Limpiarlo
-            Storage::disk($disk)->delete($testFile);
-            
-            return $exists;
         } catch (\Exception $e) {
-            Log::error('Storage disk test failed: ' . $e->getMessage());
-            return false;
+            Log::error("Error obteniendo URL de imagen: {$e->getMessage()}", [
+                'image_path' => $imagePath,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return $this->getDefaultImageUrl();
         }
     }
 
     /**
-     * Store an uploaded file with proper error handling for production
+     * Obtener URL firmada (válida por 24 horas)
      */
-    public static function storeUploadedFile($file, string $directory = 'products'): string
+    private function getSignedUrl(string $imagePath): ?string
     {
-        if (!$file || !$file->isValid()) {
-            throw new \Exception('Invalid file uploaded');
-        }
-
         try {
-            $disk = self::getStorageDisk();
+            $disk = Storage::disk('private');
             
-            // Generar nombre único para el archivo
+            // Verificar si el método existe
+            if (!method_exists($disk, 'temporaryUrl')) {
+                return null;
+            }
+            
+            // Usar cache para evitar generar URLs constantemente
+            $cacheKey = 'signed_url_' . md5($imagePath);
+            
+            return Cache::remember($cacheKey, now()->addHours(20), function () use ($disk, $imagePath) {
+                return $disk->temporaryUrl($imagePath, now()->addHours(24));
+            });
+            
+        } catch (\Exception $e) {
+            Log::debug("URL firmada no disponible: {$e->getMessage()}");
+            return null;
+        }
+    }
+
+    /**
+     * Obtener URL directa
+     */
+    private function getDirectUrl(string $imagePath): string
+    {
+        $config = $this->getR2Config();
+        
+        if (!$config) {
+            return $this->getDefaultImageUrl();
+        }
+        
+        return $config['endpoint'] . '/' . $config['bucket'] . '/' . $imagePath;
+    }
+
+    /**
+     * Obtener configuración de R2
+     */
+    private function getR2Config(): ?array
+    {
+        // Intentar variables individuales primero
+        $bucket = env('AWS_BUCKET');
+        $endpoint = env('AWS_ENDPOINT');
+        
+        // Si no hay variables individuales, intentar Laravel Cloud config
+        if (!$bucket || !$endpoint) {
+            $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
+            if ($cloudConfig) {
+                $cloudDisks = json_decode($cloudConfig, true);
+                if (is_array($cloudDisks) && count($cloudDisks) > 0) {
+                    $privateDisk = collect($cloudDisks)->firstWhere('disk', 'private');
+                    if ($privateDisk) {
+                        $bucket = $privateDisk['bucket'] ?? null;
+                        $endpoint = $privateDisk['endpoint'] ?? null;
+                    }
+                }
+            }
+        }
+        
+        if (!$bucket || !$endpoint) {
+            return null;
+        }
+        
+        return [
+            'bucket' => $bucket,
+            'endpoint' => $endpoint,
+        ];
+    }
+
+    /**
+     * Obtener URL de imagen por defecto
+     */
+    private function getDefaultImageUrl(): string
+    {
+        return asset('img/no-image.svg');
+    }
+
+    /**
+     * Almacenar archivo subido
+     */
+    public function storeUploadedFile($file, string $directory = 'products'): string
+    {
+        try {
+            $disk = Storage::disk('private');
+            
+            // Generar nombre único
             $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $path = $directory . '/' . $filename;
             
-            // Intentar subir el archivo
-            $success = Storage::disk($disk)->put($path, file_get_contents($file->getRealPath()));
+            // Subir archivo con visibilidad pública
+            $disk->putFileAs($directory, $file, $filename, [
+                'visibility' => 'public',
+                'ContentType' => $file->getMimeType(),
+                'CacheControl' => 'max-age=31536000',
+            ]);
             
-            if (!$success) {
-                throw new \Exception('Failed to store file to ' . $disk . ' disk');
-            }
+            Log::info("Imagen subida exitosamente: {$path}");
             
-            // Verificar que se subió correctamente
-            if (!Storage::disk($disk)->exists($path)) {
-                throw new \Exception('File was not found after upload');
-            }
-            
-            // Configurar visibilidad pública para producción con R2
-            if (app()->environment('production') && $disk === 'private') {
-                try {
-                    Storage::disk($disk)->setVisibility($path, 'public');
-                    Log::info('File visibility set to public: ' . $path);
-                } catch (\Exception $e) {
-                    Log::warning('Could not set file visibility to public: ' . $path . ' - ' . $e->getMessage());
-                    // No lanzar excepción, el archivo se subió correctamente
-                }
-            }
-            
-            Log::info('File uploaded successfully to ' . $disk . ': ' . $path);
             return $path;
             
         } catch (\Exception $e) {
-            Log::error('Error storing uploaded file: ' . $e->getMessage());
+            Log::error("Error subiendo imagen: {$e->getMessage()}");
             throw $e;
         }
     }
 
     /**
-     * Delete an image file safely
+     * Eliminar imagen
      */
-    public static function deleteImage(?string $imagePath): bool
+    public function deleteImage(?string $imagePath): bool
     {
         if (!$imagePath) {
             return true;
         }
 
         try {
-            $disk = self::getStorageDisk();
+            $disk = Storage::disk('private');
             
-            if (Storage::disk($disk)->exists($imagePath)) {
-                $deleted = Storage::disk($disk)->delete($imagePath);
-                if ($deleted) {
-                    Log::info('Image deleted successfully: ' . $imagePath);
-                } else {
-                    Log::warning('Failed to delete image: ' . $imagePath);
-                }
-                return $deleted;
+            if ($disk->exists($imagePath)) {
+                $disk->delete($imagePath);
+                
+                // Limpiar cache de URL firmada
+                $cacheKey = 'signed_url_' . md5($imagePath);
+                Cache::forget($cacheKey);
+                
+                Log::info("Imagen eliminada: {$imagePath}");
+                return true;
             }
             
-            return true; // File doesn't exist, consider it "deleted"
+            return true;
             
         } catch (\Exception $e) {
-            Log::error('Error deleting image: ' . $imagePath . ' - ' . $e->getMessage());
+            Log::error("Error eliminando imagen: {$e->getMessage()}");
             return false;
         }
+    }
+
+    /**
+     * Probar conectividad del storage
+     */
+    public function testStorageDisk(): array
+    {
+        $results = [];
+        
+        try {
+            $disk = Storage::disk('private');
+            
+            // Test 1: Verificar conexión
+            $results['connection'] = $disk->exists('.') ? 'OK' : 'FAIL';
+            
+            // Test 2: Verificar escritura
+            $testFile = 'test_' . time() . '.txt';
+            $disk->put($testFile, 'test content', 'public');
+            $results['write'] = $disk->exists($testFile) ? 'OK' : 'FAIL';
+            
+            // Test 3: Verificar lectura
+            $content = $disk->get($testFile);
+            $results['read'] = ($content === 'test content') ? 'OK' : 'FAIL';
+            
+            // Test 4: Verificar URL firmada
+            try {
+                if (method_exists($disk, 'temporaryUrl')) {
+                    $signedUrl = $disk->temporaryUrl($testFile, now()->addMinutes(5));
+                    $results['signed_url'] = !empty($signedUrl) ? 'OK' : 'FAIL';
+                } else {
+                    $results['signed_url'] = 'NOT_AVAILABLE';
+                }
+            } catch (\Exception $e) {
+                $results['signed_url'] = 'ERROR: ' . $e->getMessage();
+            }
+            
+            // Test 5: Verificar eliminación
+            $disk->delete($testFile);
+            $results['delete'] = !$disk->exists($testFile) ? 'OK' : 'FAIL';
+            
+            // Test 6: Configuración
+            $config = $this->getR2Config();
+            $results['config'] = $config ? 'OK' : 'FAIL';
+            
+        } catch (\Exception $e) {
+            $results['error'] = $e->getMessage();
+        }
+        
+        return $results;
     }
 } 
