@@ -26,16 +26,15 @@ class ImageUrlService
                 return $this->getDefaultImageUrl();
             }
 
-            // Método 1: Intentar URL firmada (válida por 24 horas)
-            $signedUrl = $this->getSignedUrl($imagePath);
-            if ($signedUrl) {
-                return $signedUrl;
+            // En producción, usar URLs firmadas (sabemos que funcionan)
+            if (app()->environment('production')) {
+                $signedUrl = $this->getSignedUrl($imagePath);
+                if ($signedUrl) {
+                    return $signedUrl;
+                }
             }
 
-            // Método 2: URL directa (puede no funcionar en producción)
-            $directUrl = $this->getDirectUrl($imagePath);
-            
-            // Método 3: Usar ruta proxy como fallback
+            // En desarrollo o como fallback, usar proxy
             return route('image.proxy', ['path' => base64_encode($imagePath)]);
             
         } catch (\Exception $e) {
