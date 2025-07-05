@@ -158,9 +158,13 @@ class ProductController extends Controller
 
          // Procesar imagen si existe
          if ($request->hasFile('image')) {
-            $disk = ImageUrlService::getStorageDisk();
-            $path = $request->file('image')->store('products', $disk);
-            $data['image'] = $path;
+            try {
+               $path = ImageUrlService::storeUploadedFile($request->file('image'), 'products');
+               $data['image'] = $path;
+            } catch (\Exception $e) {
+               Log::error('Error uploading image during product creation: ' . $e->getMessage());
+               throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
+            }
          }
 
          // Crear producto
@@ -189,7 +193,7 @@ class ProductController extends Controller
 
          // Eliminar imagen si se subió
          if (isset($path)) {
-            Storage::disk($disk)->delete($path);
+            ImageUrlService::deleteImage($path);
          }
 
          return redirect()->back()
@@ -214,7 +218,7 @@ class ProductController extends Controller
                'code' => $product->code,
                'name' => $product->name,
                'description' => $product->description ?? 'Sin descripción',
-               'image' => $product->image ? Storage::url($product->image) : null,
+               'image' => ImageUrlService::getImageUrl($product->image),
                'stock' => $product->stock,
                'min_stock' => $product->min_stock,
                'max_stock' => $product->max_stock,
@@ -310,15 +314,20 @@ class ProductController extends Controller
 
          // Procesar nueva imagen si existe
          if ($request->hasFile('image')) {
-            $disk = ImageUrlService::getStorageDisk();
-            
-            // Eliminar imagen anterior si existe
-            if ($product->image && Storage::disk($disk)->exists($product->image)) {
-               Storage::disk($disk)->delete($product->image);
-            }
+            try {
+               // Eliminar imagen anterior si existe
+               if ($product->image) {
+                  ImageUrlService::deleteImage($product->image);
+               }
 
-            $path = $request->file('image')->store('products', $disk);
-            $data['image'] = $path;
+               // Subir nueva imagen usando el servicio mejorado
+               $path = ImageUrlService::storeUploadedFile($request->file('image'), 'products');
+               $data['image'] = $path;
+               
+            } catch (\Exception $e) {
+               Log::error('Error uploading image: ' . $e->getMessage());
+               throw new \Exception('Error al subir la imagen: ' . $e->getMessage());
+            }
          }
 
          $product->update($data);
@@ -346,7 +355,7 @@ class ProductController extends Controller
 
          // Eliminar nueva imagen si se subió
          if (isset($path)) {
-            Storage::disk($disk)->delete($path);
+            ImageUrlService::deleteImage($path);
          }
 
          return redirect()->back()
@@ -366,9 +375,8 @@ class ProductController extends Controller
          DB::beginTransaction();
 
          // Eliminar imagen si existe
-         $disk = ImageUrlService::getStorageDisk();
-         if ($product->image && Storage::disk($disk)->exists($product->image)) {
-            Storage::disk($disk)->delete($product->image);
+         if ($product->image) {
+            ImageUrlService::deleteImage($product->image);
          }
 
          $product->delete();
