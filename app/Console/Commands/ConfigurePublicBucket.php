@@ -31,22 +31,49 @@ class ConfigurePublicBucket extends Command
         $this->newLine();
         
         try {
-            // Obtener configuración directamente del .env
+            // Obtener configuración - primero intentar variables individuales, luego Laravel Cloud
             $bucket = env('AWS_BUCKET');
             $accessKey = env('AWS_ACCESS_KEY_ID');
             $secretKey = env('AWS_SECRET_ACCESS_KEY');
             $endpoint = env('AWS_ENDPOINT');
             $region = env('AWS_DEFAULT_REGION', 'auto');
             
+            // Si no hay variables individuales, intentar Laravel Cloud config
             if (!$bucket || !$accessKey || !$secretKey || !$endpoint) {
-                $this->error('❌ Configuración de R2 incompleta en variables de entorno');
-                $this->line('Variables requeridas: AWS_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT');
+                $this->line('🔍 Variables AWS individuales no encontradas, buscando configuración de Laravel Cloud...');
+                
+                $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
+                if ($cloudConfig) {
+                    $cloudDisks = json_decode($cloudConfig, true);
+                    
+                    if (is_array($cloudDisks) && count($cloudDisks) > 0) {
+                        $privateDisk = collect($cloudDisks)->firstWhere('disk', 'private');
+                        
+                        if ($privateDisk) {
+                            $bucket = $privateDisk['bucket'] ?? null;
+                            $accessKey = $privateDisk['access_key_id'] ?? null;
+                            $secretKey = $privateDisk['access_key_secret'] ?? null;
+                            $endpoint = $privateDisk['endpoint'] ?? null;
+                            $region = $privateDisk['default_region'] ?? 'auto';
+                            
+                            $this->line('   ✅ Configuración de Laravel Cloud encontrada');
+                        }
+                    }
+                }
+            }
+            
+            if (!$bucket || !$accessKey || !$secretKey || !$endpoint) {
+                $this->error('❌ Configuración de R2 incompleta');
+                $this->line('No se encontraron las credenciales en:');
+                $this->line('- Variables AWS individuales (AWS_BUCKET, AWS_ACCESS_KEY_ID, etc.)');
+                $this->line('- Configuración de Laravel Cloud (LARAVEL_CLOUD_DISK_CONFIG)');
                 return 1;
             }
             
             $this->info('📋 Configuración encontrada:');
             $this->line("   Bucket: {$bucket}");
             $this->line("   Endpoint: {$endpoint}");
+            $this->line("   Region: {$region}");
             $this->newLine();
             
             // Crear cliente S3
@@ -173,8 +200,25 @@ class ConfigurePublicBucket extends Command
             return;
         }
         
+        // Obtener configuración (igual que en handle())
         $bucket = env('AWS_BUCKET');
         $endpoint = env('AWS_ENDPOINT');
+        
+        // Si no hay variables individuales, intentar Laravel Cloud config
+        if (!$bucket || !$endpoint) {
+            $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
+            if ($cloudConfig) {
+                $cloudDisks = json_decode($cloudConfig, true);
+                if (is_array($cloudDisks) && count($cloudDisks) > 0) {
+                    $privateDisk = collect($cloudDisks)->firstWhere('disk', 'private');
+                    if ($privateDisk) {
+                        $bucket = $privateDisk['bucket'] ?? null;
+                        $endpoint = $privateDisk['endpoint'] ?? null;
+                    }
+                }
+            }
+        }
+        
         $testUrl = $endpoint . '/' . $bucket . '/' . $product->image;
         
         $this->line("📦 Producto de prueba: {$product->name}");

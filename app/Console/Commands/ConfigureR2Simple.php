@@ -34,9 +34,32 @@ class ConfigureR2Simple extends Command
         $bucket = env('AWS_BUCKET');
         $endpoint = env('AWS_ENDPOINT');
         
+        // Si no hay variables individuales, intentar Laravel Cloud config
+        if (!$bucket || !$endpoint) {
+            $this->line('🔍 Variables AWS individuales no encontradas, buscando configuración de Laravel Cloud...');
+            
+            $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
+            if ($cloudConfig) {
+                $cloudDisks = json_decode($cloudConfig, true);
+                
+                if (is_array($cloudDisks) && count($cloudDisks) > 0) {
+                    $privateDisk = collect($cloudDisks)->firstWhere('disk', 'private');
+                    
+                    if ($privateDisk) {
+                        $bucket = $privateDisk['bucket'] ?? null;
+                        $endpoint = $privateDisk['endpoint'] ?? null;
+                        
+                        $this->line('   ✅ Configuración de Laravel Cloud encontrada');
+                    }
+                }
+            }
+        }
+        
         if (!$bucket || !$endpoint) {
             $this->error('❌ Configuración incompleta');
-            $this->line('Variables requeridas: AWS_BUCKET, AWS_ENDPOINT');
+            $this->line('No se encontraron las credenciales en:');
+            $this->line('- Variables AWS individuales (AWS_BUCKET, AWS_ENDPOINT)');
+            $this->line('- Configuración de Laravel Cloud (LARAVEL_CLOUD_DISK_CONFIG)');
             return 1;
         }
         
@@ -162,8 +185,24 @@ class ConfigureR2Simple extends Command
             return;
         }
         
+        // Obtener configuración (igual que en handle())
         $bucket = env('AWS_BUCKET');
         $endpoint = env('AWS_ENDPOINT');
+        
+        // Si no hay variables individuales, intentar Laravel Cloud config
+        if (!$bucket || !$endpoint) {
+            $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
+            if ($cloudConfig) {
+                $cloudDisks = json_decode($cloudConfig, true);
+                if (is_array($cloudDisks) && count($cloudDisks) > 0) {
+                    $privateDisk = collect($cloudDisks)->firstWhere('disk', 'private');
+                    if ($privateDisk) {
+                        $bucket = $privateDisk['bucket'] ?? null;
+                        $endpoint = $privateDisk['endpoint'] ?? null;
+                    }
+                }
+            }
+        }
         
         $this->line("📦 Producto encontrado: {$product->name}");
         $this->line("🖼️  Imagen: {$product->image}");
