@@ -127,8 +127,8 @@ class ConfigureR2CloudflarePublic extends Command
                         // Configurar como público
                         $disk->setVisibility($file, 'public');
                         
-                        // Intentar configurar headers específicos
-                        $this->setFileHeaders($disk, $file);
+                        // Intentar resubir el archivo con headers públicos
+                        $this->reuploadFileAsPublic($disk, $file);
                         
                         $this->line("   ✅ {$file}");
                     } catch (\Exception $e) {
@@ -145,23 +145,33 @@ class ConfigureR2CloudflarePublic extends Command
     }
     
     /**
+     * Resubir archivo como público
+     */
+    private function reuploadFileAsPublic($disk, string $file): void
+    {
+        try {
+            // Leer el contenido del archivo
+            $content = $disk->get($file);
+            
+            // Resubir con opciones públicas
+            $disk->put($file, $content, [
+                'visibility' => 'public',
+                'ContentType' => $this->getMimeType($file),
+                'CacheControl' => 'max-age=31536000',
+            ]);
+            
+        } catch (\Exception $e) {
+            // Fallar silenciosamente
+        }
+    }
+    
+    /**
      * Configurar headers específicos para archivos
      */
     private function setFileHeaders($disk, string $file): void
     {
-        try {
-            // Intentar configurar headers específicos para hacer el archivo público
-            $disk->getAdapter()->getClient()->putObject([
-                'Bucket' => $disk->getAdapter()->getBucket(),
-                'Key' => $file,
-                'CopySource' => $disk->getAdapter()->getBucket() . '/' . $file,
-                'ACL' => 'public-read',
-                'MetadataDirective' => 'REPLACE',
-                'ContentType' => $this->getMimeType($file),
-            ]);
-        } catch (\Exception $e) {
-            // Fallar silenciosamente
-        }
+        // Método removido - causaba el error
+        // Ahora usamos reuploadFileAsPublic
     }
     
     /**
