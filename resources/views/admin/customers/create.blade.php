@@ -21,6 +21,9 @@
                 <form action="{{ route('admin.customers.store') }}" method="POST" id="customerForm" class="needs-validation"
                     novalidate>
                     @csrf
+                    @if(request('return_to'))
+                        <input type="hidden" name="return_to" value="{{ request('return_to') }}">
+                    @endif
                     <div class="card card-primary card-outline shadow-sm">
                         <div class="card-header">
                             <h3 class="card-title">

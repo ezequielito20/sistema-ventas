@@ -114,6 +114,12 @@ class SaleController extends Controller
          // Obtener el customer_id de la URL si existe
          $selectedCustomerId = $request->input('customer_id');
 
+         // Capturar la URL de referencia para redirección posterior
+         $referrerUrl = $request->header('referer');
+         if ($referrerUrl && !str_contains($referrerUrl, 'sales/create')) {
+            session(['sales_referrer' => $referrerUrl]);
+         }
+
          return view('admin.sales.create', compact('products', 'customers', 'currency', 'selectedCustomerId'));
       } catch (\Exception $e) {
          Log::error('Error en SaleController@create: ' . $e->getMessage());
@@ -212,6 +218,18 @@ class SaleController extends Controller
                 ->with('icons', 'success');
          }
 
+         // Verificar si hay una URL de referencia guardada
+         $referrerUrl = session('sales_referrer');
+         if ($referrerUrl) {
+            // Limpiar la session
+            session()->forget('sales_referrer');
+            
+            return redirect($referrerUrl)
+                ->with('message', '¡Venta registrada exitosamente!')
+                ->with('icons', 'success');
+         }
+
+         // Fallback: redirigir a la lista de ventas
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta registrada exitosamente!')
             ->with('icons', 'success');

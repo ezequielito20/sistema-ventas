@@ -5,12 +5,10 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Nueva Venta</h1>
-        <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left mr-2 d-md-inline d-none"></i>
-            <i class="fas fa-arrow-left d-md-none"></i>
-            <span class="d-md-inline d-none">Volver al listado</span>
-            <span class="d-md-none">Volver</span>
-        </a>
+        <button onclick="window.history.back()" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Volver
+        </button>
     </div>
 @stop
 
@@ -76,7 +74,7 @@
                                             @endforeach
                                         </select>
                                         <div class="input-group-append">
-                                            <a href="{{ route('admin.customers.create') }}" class="btn btn-success">
+                                            <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn btn-success">
                                                 <i class="fas fa-plus"></i>
                                             </a>
                                         </div>
@@ -563,7 +561,23 @@
             
             // Si hay un cliente preseleccionado, asegurarse de que Select2 lo muestre correctamente
             @if(isset($selectedCustomerId))
-                $('#customer_id').trigger('change');
+                $('#customer_id').val('{{ $selectedCustomerId }}').trigger('change');
+                
+                // Mostrar una notificación de que el cliente fue seleccionado automáticamente
+                // setTimeout(function() {
+                //     Swal.fire({
+                //         icon: 'success',
+                //         title: '¡Cliente seleccionado!',
+                //         text: 'El cliente recién creado ha sido seleccionado automáticamente',
+                //         toast: true,
+                //         position: 'top-end',
+                //         showConfirmButton: false,
+                //         timer: 4000,
+                //         timerProgressBar: true,
+                //         background: '#e8f5e8',
+                //         color: '#2e7d32'
+                //     });
+                // }, 1000);
             @endif
 
             // Función para formatear las opciones en el dropdown

@@ -170,10 +170,20 @@ class CustomerController extends Controller
 
          DB::commit();
 
-         // Determinar la redirección basada en el botón presionado
+         // Determinar la redirección basada en el botón presionado o el parámetro return_to
+         $returnTo = $request->input('return_to');
+         
          if ($request->input('action') === 'save_and_new') {
-            return redirect()->route('admin.customers.create')
+            $redirectRoute = $returnTo ? route('admin.customers.create') . "?return_to={$returnTo}" : route('admin.customers.create');
+            return redirect($redirectRoute)
                ->with('message', '¡Cliente creado exitosamente! Puedes crear otro cliente.')
+               ->with('icons', 'success');
+         }
+
+         // Si viene de la vista de ventas, redirigir allí con el cliente seleccionado
+         if ($returnTo === 'sales.create') {
+            return redirect()->route('admin.sales.create', ['customer_id' => $customer->id])
+               ->with('message', '¡Cliente creado exitosamente! Ya está seleccionado en la venta.')
                ->with('icons', 'success');
          }
 
