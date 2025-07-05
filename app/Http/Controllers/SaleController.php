@@ -216,6 +216,18 @@ class SaleController extends Controller
             ->with('message', '¡Venta registrada exitosamente!')
             ->with('icons', 'success');
 
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         Log::error('Error de validación en venta: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all(),
+            'validation_errors' => $e->errors()
+         ]);
+
+         return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('message', 'Error de validación en los datos de la venta')
+            ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al crear venta: ' . $e->getMessage(), [
@@ -556,7 +568,8 @@ class SaleController extends Controller
             'name' => $product->name,
             'stock' => $product->stock,
             'sale_price' => $product->sale_price,
-            'stock_status_class' => $product->stock > 10 ? 'success' : 'warning'
+            'stock_status_class' => $product->stock > 10 ? 'success' : 'warning',
+            'image' => $product->image
          ];
 
          return response()->json([

@@ -241,6 +241,7 @@
                                         <td class="align-middle text-center">
                                             <button type="button" class="btn btn-primary btn-sm select-product"
                                                 data-code="{{ $product->code }}"
+                                                data-id="{{ $product->id }}"
                                                 {{ $product->stock <= 0 ? 'disabled' : '' }}>
                                                 <i class="fas fa-plus-circle"></i>
                                             </button>
@@ -513,7 +514,6 @@
             function checkAndAddSingleProduct() {
                 // Contar productos disponibles desde la tabla del modal
                 const availableProducts = $('#productsTable tbody tr').length;
-                console.log('Productos disponibles:', availableProducts);
                 
                 if (availableProducts === 1) {
                     // Solo hay un producto, obtener sus datos directamente de la fila
@@ -525,26 +525,22 @@
                     const productPriceText = productRow.find('td:eq(6)').text().trim();
                     const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
                     
-                    console.log('Datos extraídos:', {
-                        code: productCode,
-                        name: productName,
-                        image: productImage,
-                        stock: productStock,
-                        priceText: productPriceText,
-                        price: productPrice
-                    });
+                    // Obtener el ID real del producto desde el botón
+                    const productId = productRow.find('button.select-product').data('id');
+                    
+                    console.log('ID extraído del botón:', productId, 'tipo:', typeof productId);
                     
                     // Crear objeto producto con los datos disponibles
                     const product = {
+                        id: productId, // ID real del producto
                         code: productCode,
                         name: productName,
                         image: productImage,
                         stock: parseInt(productStock),
-                        sale_price: productPrice,
-                        id: productCode // Usar el código como ID temporal
+                        sale_price: productPrice
                     };
                     
-                    console.log('Producto extraído:', product);
+                    console.log('Objeto producto creado:', product);
                     
                     setTimeout(function() {
                         // Agregar el producto a la tabla silenciosamente (sin alerta porque es automático)
@@ -673,10 +669,10 @@
                         imageUrl = '/' + imageUrl;
                     }
                     
-                    console.log('Imagen procesada:', imageUrl);
+
                     
                     const row = `
-                        <tr data-product-id="${product.id}">
+                        <tr data-product-id="${product.id}" data-product-code="${product.code}">
                             <td>${product.code}</td>
                             <td>${product.name}</td>
                             <td>
@@ -689,7 +685,7 @@
                                        value="1" min="1" max="${product.stock}" step="1">
                             </td>
                             <td>
-                                ${product.sale_price}
+                                {{ $currency->symbol }} ${product.sale_price}
                                 <input type="hidden" class="price-input" value="${product.sale_price}">
                             </td>
                             <td>
@@ -753,11 +749,15 @@
             // Seleccionar producto desde el modal
             $('.select-product').click(function() {
                 const code = $(this).data('code');
+                const productId = $(this).data('id');
+                
                 $.ajax({
                     url: `/sales/product-details/${code}`,
                     method: 'GET',
                     success: function(response) {
                         if (response.success) {
+                            // Asegurar que el producto tenga el ID correcto
+                            response.product.id = productId;
                             addProductToTable(response.product);
                             $('#searchProductModal').modal('hide');
                         } else {
@@ -851,8 +851,8 @@
                 });
             });
 
-            // Modificar el envío del formulario para preservar el valor del botón
-            $('form').submit(function(e) {
+            // Manejar envío del formulario
+            $('form').on('submit', function(e) {
                 e.preventDefault();
                 
                 // Verificar si hay productos en la tabla
@@ -875,20 +875,25 @@
                     return false;
                 }
                 
-                // Capturar el valor del botón que se presionó
-                const buttonAction = $(document.activeElement).val();
-                
                 // Preparar los datos de los productos
                 const items = [];
                 $('#saleItems tr').each(function() {
                     const row = $(this);
+                    const productId = row.data('product-id');
+                    console.log('Fila del producto:', {
+                        productId: productId,
+                        typeof: typeof productId,
+                        dataAttributes: row.data()
+                    });
                     items.push({
-                        product_id: row.data('product-id'),
+                        product_id: productId,
                         quantity: parseFloat(row.find('.quantity-input').val()),
                         price: parseFloat(row.find('.price-input').val()),
                         subtotal: parseFloat(row.find('.subtotal-value').text())
                     });
                 });
+                
+                console.log('Items finales que se enviarán:', items);
                 
                 // Crear campos ocultos para los items
                 $('#itemsContainer').remove(); // Eliminar contenedor previo si existe
@@ -902,14 +907,24 @@
                     container.append(`<input type="hidden" name="items[${index}][subtotal]" value="${item.subtotal}">`);
                 });
                 
-                // Agregar el valor del botón presionado
-                container.append(`<input type="hidden" name="action" value="${buttonAction}">`);
-                
                 // Agregar el contenedor al formulario
                 $(this).append(container);
                 
-                // Continuar con el envío del formulario
-                this.submit();
+                // Remover el event listener temporalmente para evitar bucles
+                $(this).off('submit');
+                
+                // Enviar el formulario
+                $(this).submit();
+            });
+            
+            // Manejar clics en botones específicos para capturar la acción
+            $('button[type="submit"]').on('click', function(e) {
+                // Remover cualquier input de action previo
+                $('input[name="action"]').remove();
+                
+                // Agregar el valor de action correspondiente al botón presionado
+                const actionValue = $(this).val();
+                $(this).closest('form').append(`<input type="hidden" name="action" value="${actionValue}">`);
             });
 
             // Manejar el botón de cancelar venta - retroceder a la vista anterior
