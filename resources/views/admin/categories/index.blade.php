@@ -31,41 +31,41 @@
         <div class="card-body">
             {{-- Vista de tabla para pantallas grandes --}}
             <div class="d-none d-lg-block">
-                <table id="categoriesTable" class="table table-striped table-hover table-sm">
-                    <thead class="bg-primary text-white">
+            <table id="categoriesTable" class="table table-striped table-hover table-sm">
+                <thead class="bg-primary text-white">
+                    <tr class="text-center">
+                        <th style="width: 10%">#</th>
+                        <th style="width: 30%">Nombre</th>
+                        <th style="width: 40%">Descripción</th>
+                        <th style="width: 20%">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($categories as $category)
                         <tr class="text-center">
-                            <th style="width: 10%">#</th>
-                            <th style="width: 30%">Nombre</th>
-                            <th style="width: 40%">Descripción</th>
-                            <th style="width: 20%">Acciones</th>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $category->name }}</td>
+                            <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-success btn-sm show-category"
+                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                        class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-category"
+                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($categories as $category)
-                            <tr class="text-center">
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $category->name }}</td>
-                                <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-success btn-sm show-category"
-                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                            class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-category"
-                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                    @endforeach
+                </tbody>
+            </table>
             </div>
 
             {{-- Vista de tarjetas para móviles --}}

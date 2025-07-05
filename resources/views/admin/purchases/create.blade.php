@@ -370,21 +370,45 @@
             
             .btn-group-purchases .btn {
                 font-size: 0.8rem;
-                padding: 0.5rem 0.5rem;
+                padding: 0.75rem 0.75rem;
             }
         }
 
         @media screen and (max-width: 576px) {
             .btn-group-purchases .btn {
                 font-size: 0.75rem;
-                padding: 0.4rem 0.4rem;
+                padding: 0.6rem 0.6rem;
+                min-width: 70px;
             }
         }
 
         @media screen and (max-width: 480px) {
             .btn-group-purchases .btn {
                 font-size: 0.7rem;
-                padding: 0.375rem 0.25rem;
+                padding: 0.5rem 0.5rem;
+                min-width: 60px;
+            }
+        }
+
+        /* Estilos para pantallas grandes - botones menos anchos */
+        @media screen and (min-width: 992px) {
+            .btn-group-purchases {
+                justify-content: flex-end;
+            }
+            
+            .btn-group-purchases .btn {
+                flex: none;
+                padding: 0.5rem 1.5rem;
+            }
+            
+            .btn-group-purchases .btn:not(:first-child) {
+                min-width: 160px;
+                max-width: 200px;
+            }
+            
+            .btn-group-purchases .btn:first-child {
+                min-width: 140px;
+                max-width: 180px;
             }
         }
     </style>

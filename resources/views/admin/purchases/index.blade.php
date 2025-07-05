@@ -91,9 +91,9 @@
         <div class="card-header">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                 <h3 class="card-title mb-2 mb-md-0">
-                    <i class="fas fa-shopping-cart mr-2"></i>
-                    Lista de Compras
-                </h3>
+                <i class="fas fa-shopping-cart mr-2"></i>
+                Lista de Compras
+            </h3>
                 
                 <div class="d-flex align-items-center">
                     <div class="input-group input-group-sm mr-2" style="width: 250px;">
@@ -104,80 +104,80 @@
                             </button>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
                 </div>
             </div>
         </div>
         <div class="card-body">
             {{-- Vista de tabla para pantallas grandes --}}
             <div class="d-none d-lg-block">
-                <table id="purchasesTable" class="table table-striped table-hover">
-                    <thead class="bg-primary text-white">
-                        <tr>
-                            <th>#</th>
-                            <th>Recibo de pago</th>
-                            <th>Fecha</th>
-                            <th>Total Productos</th>
-                            <th>Monto Total</th>
-                            <th>Detalle de la Compra</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($purchases as $purchase)
-                            <tr style="text-align: center">
-                                <td>{{ $loop->iteration }}</td>
-                                <td><strong>{{ $purchase->payment_receipt }}</strong></td>
-                                <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
-                                <td>
-                                    <div class="d-flex flex-column align-items-center">
-                                        <div class="mb-1">
-                                            <span class="badge badge-info">
-                                                <i class="fas fa-boxes mr-1"></i>
-                                                {{ $purchase->details->count() }} únicos
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="badge badge-primary">
-                                                <i class="fas fa-cubes mr-1"></i>
-                                                {{ $purchase->details->sum('quantity') }} totales
-                                            </span>
-                                        </div>
+            <table id="purchasesTable" class="table table-striped table-hover">
+                <thead class="bg-primary text-white">
+                    <tr>
+                        <th>#</th>
+                        <th>Recibo de pago</th>
+                        <th>Fecha</th>
+                        <th>Total Productos</th>
+                        <th>Monto Total</th>
+                        <th>Detalle de la Compra</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($purchases as $purchase)
+                        <tr style="text-align: center">
+                            <td>{{ $loop->iteration }}</td>
+                            <td><strong>{{ $purchase->payment_receipt }}</strong></td>
+                            <td>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</td>
+                            <td>
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1">
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-boxes mr-1"></i>
+                                            {{ $purchase->details->count() }} únicos
+                                        </span>
                                     </div>
-                                </td>
-                                <td>{{ $currency->symbol }} {{ number_format($purchase->total_price, 2) }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-primary btn-sm view-details"
-                                        data-id="{{ $purchase->id }}" data-toggle="modal" data-target="#purchaseDetailsModal">
-                                        <i class="fas fa-list"></i> Ver Detalle
+                                    <div>
+                                        <span class="badge badge-primary">
+                                            <i class="fas fa-cubes mr-1"></i>
+                                            {{ $purchase->details->sum('quantity') }} totales
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ $currency->symbol }} {{ number_format($purchase->total_price, 2) }}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm view-details"
+                                    data-id="{{ $purchase->id }}" data-toggle="modal" data-target="#purchaseDetailsModal">
+                                    <i class="fas fa-list"></i> Ver Detalle
+                                </button>
+                            </td>
+                            <td>
+                                @if ($purchase->payment_receipt)
+                                    <span class="badge badge-success">Completado</span>
+                                @else
+                                    <span class="badge badge-warning">Pendiente</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
+                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
                                     </button>
-                                </td>
-                                <td>
-                                    @if ($purchase->payment_receipt)
-                                        <span class="badge badge-success">Completado</span>
-                                    @else
-                                        <span class="badge badge-warning">Pendiente</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-purchase"
-                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
             </div>
 
             {{-- Vista de tarjetas para móviles --}}

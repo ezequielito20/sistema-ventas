@@ -94,9 +94,9 @@
         <div class="card-header">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                 <h3 class="card-title mb-2 mb-md-0">
-                    <i class="fas fa-shopping-bag mr-2"></i>
-                    Lista de Ventas
-                </h3>
+                <i class="fas fa-shopping-bag mr-2"></i>
+                Lista de Ventas
+            </h3>
                 
                 <div class="d-flex align-items-center">
                     <div class="input-group input-group-sm mr-2" style="width: 250px;">
@@ -107,76 +107,76 @@
                             </button>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
+                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                </button>
                 </div>
             </div>
         </div>
         <div class="card-body">
             {{-- Vista de tabla para pantallas grandes --}}
             <div class="d-none d-lg-block">
-                <table id="salesTable" class="table table-striped table-hover">
-                    <thead class="bg-primary text-white">
-                        <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Total Productos</th>
-                            <th>Monto Total</th>
-                            <th>Detalle de la Venta</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($sales as $sale)
-                            <tr style="text-align: center">
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $sale->customer->name }}</td>
-                                <td>{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</td>
-                                <td>
-                                    <div class="d-flex flex-column align-items-center">
-                                        <div class="mb-1">
-                                            <span class="badge badge-info">
-                                                <i class="fas fa-boxes mr-1"></i>
-                                                {{ $sale->saleDetails->count() }} únicos
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="badge badge-primary">
-                                                <i class="fas fa-cubes mr-1"></i>
-                                                {{ $sale->saleDetails->sum('quantity') }} totales
-                                            </span>
-                                        </div>
+            <table id="salesTable" class="table table-striped table-hover">
+                <thead class="bg-primary text-white">
+                    <tr>
+                        <th>#</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Total Productos</th>
+                        <th>Monto Total</th>
+                        <th>Detalle de la Venta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($sales as $sale)
+                        <tr style="text-align: center">
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $sale->customer->name }}</td>
+                            <td>{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</td>
+                            <td>
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1">
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-boxes mr-1"></i>
+                                            {{ $sale->saleDetails->count() }} únicos
+                                        </span>
                                     </div>
-                                </td>
-                                <td>{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
-                                <td>
-                                    <button type="button" class="btn btn-primary btn-sm view-details"
-                                        data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
-                                        <i class="fas fa-list"></i> Ver Detalle
+                                    <div>
+                                        <span class="badge badge-primary">
+                                            <i class="fas fa-cubes mr-1"></i>
+                                            {{ $sale->saleDetails->sum('quantity') }} totales
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm view-details"
+                                    data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                    <i class="fas fa-list"></i> Ver Detalle
+                                </button>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm"
+                                        data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-sale"
+                                        data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
                                     </button>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm"
-                                            data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-sale"
-                                            data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                        <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
-                                            target="_blank" data-toggle="tooltip" title="Imprimir">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
+                                        target="_blank" data-toggle="tooltip" title="Imprimir">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
             </div>
 
             {{-- Vista de tarjetas para móviles --}}

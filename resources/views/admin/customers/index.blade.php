@@ -103,22 +103,25 @@
                 </button>
             </div>
         </div>
-        <div class="card-body">
+                <div class="card-body">
             <div class="row">
                 <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">1 USD = </span>
+                    <div class="d-flex align-items-start">
+                        <div class="input-group flex-grow-1">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">1 USD = </span>
+                            </div>
+                            <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
+                            <div class="input-group-append">
+                                <span class="input-group-text d-none d-sm-inline">VES</span>
+                            </div>
                         </div>
-                        <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
-                        <div class="input-group-append">
-                            <span class="input-group-text d-none d-sm-inline">VES</span>
-                        </div>
+                        <button type="button" class="btn btn-primary d-none d-md-inline-block ml-2 update-exchange-rate">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                        </button>
                     </div>
+                    <!-- Botón para móviles debajo del input -->
                     <button type="button" class="btn btn-primary btn-sm mt-2 w-100 d-md-none update-exchange-rate">
-                        <i class="fas fa-sync-alt mr-1"></i>Actualizar
-                    </button>
-                    <button type="button" class="btn btn-primary d-none d-md-inline-block ml-2 update-exchange-rate">
                         <i class="fas fa-sync-alt mr-1"></i>Actualizar
                     </button>
                 </div>

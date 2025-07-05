@@ -83,9 +83,9 @@
         <div class="card-header">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                 <h3 class="card-title mb-2 mb-md-0">
-                    <i class="fas fa-boxes mr-2"></i>
-                    Lista de Productos
-                </h3>
+                <i class="fas fa-boxes mr-2"></i>
+                Lista de Productos
+            </h3>
                 
                 <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center">
                     <div class="input-group input-group-sm mb-2 mb-md-0 mr-md-2" style="width: 100%; max-width: 250px;">
@@ -119,73 +119,73 @@
         <div class="card-body">
             {{-- Vista de tabla para pantallas grandes --}}
             <div class="d-none d-lg-block">
-                <table id="productsTable" class="table table-striped table-hover">
-                    <thead>
+            <table id="productsTable" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th style="width: 120px">Categoría</th>
+                        <th>Stock</th>
+                        <th>Precio Compra</th>
+                        <th>Precio Venta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($products as $product)
                         <tr>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th style="width: 120px">Categoría</th>
-                            <th>Stock</th>
-                            <th>Precio Compra</th>
-                            <th>Precio Venta</th>
-                            <th>Acciones</th>
+                            <td><small><strong>{{ $product->code }}</strong></small></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                        alt="{{ $product->name }}" class="product-thumbnail mr-2">
+                                    {{ $product->name }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="">
+                                    <i class=""></i>
+                                    {{ $product->category->name }}
+                                </span>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                    <i class="fas fa-boxes mr-1"></i>
+                                    {{ $product->stock }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-primary">
+                                    <strong>{{ $currency->symbol }}
+                                        {{ number_format($product->purchase_price, 2) }}</strong>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-success">
+                                    <strong>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</strong>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info btn-sm show-product"
+                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="{{ route('admin.products.edit', $product->id) }}"
+                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-product"
+                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($products as $product)
-                            <tr>
-                                <td><small><strong>{{ $product->code }}</strong></small></td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
-                                            alt="{{ $product->name }}" class="product-thumbnail mr-2">
-                                        {{ $product->name }}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="">
-                                        <i class=""></i>
-                                        {{ $product->category->name }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span
-                                        class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
-                                        <i class="fas fa-boxes mr-1"></i>
-                                        {{ $product->stock }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="text-primary">
-                                        <strong>{{ $currency->symbol }}
-                                            {{ number_format($product->purchase_price, 2) }}</strong>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="text-success">
-                                        <strong>{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</strong>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm show-product"
-                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="{{ route('admin.products.edit', $product->id) }}"
-                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-product"
-                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                    @endforeach
+                </tbody>
+            </table>
             </div>
 
             {{-- Vista de tarjetas para móviles --}}

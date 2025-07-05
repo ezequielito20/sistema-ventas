@@ -420,17 +420,14 @@
         /* Estilos para el grupo de botones de ventas */
         .btn-group-sales {
             display: flex;
-            gap: 0.25rem;
+            gap: 0.5rem;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-end;
         }
 
         .btn-group-sales .btn {
-            flex: 1;
-            min-width: 0;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            min-width: auto;
         }
 
         /* Separar el botón cancelar de los otros dos */
@@ -438,8 +435,19 @@
             margin-right: auto;
         }
 
-        .btn-group-sales .btn:not(:first-child) {
-            margin-left: 0.25rem;
+        /* En pantallas grandes, hacer los botones más compactos */
+        @media screen and (min-width: 992px) {
+            .btn-group-sales .btn {
+                padding: 0.5rem 1.5rem;
+                font-size: 0.9rem;
+                min-width: 160px;
+                max-width: 200px;
+            }
+            
+            .btn-group-sales .btn:first-child {
+                min-width: 140px;
+                max-width: 180px;
+            }
         }
 
         /* Distribución responsive de botones - SIEMPRE EN LÍNEA */
@@ -450,21 +458,24 @@
             
             .btn-group-sales .btn {
                 font-size: 0.8rem;
-                padding: 0.5rem 0.5rem;
+                padding: 0.5rem 0.75rem;
+                min-width: 80px;
             }
         }
 
         @media screen and (max-width: 576px) {
             .btn-group-sales .btn {
                 font-size: 0.75rem;
-                padding: 0.4rem 0.4rem;
+                padding: 0.4rem 0.6rem;
+                min-width: 70px;
             }
         }
 
         @media screen and (max-width: 480px) {
             .btn-group-sales .btn {
                 font-size: 0.7rem;
-                padding: 0.375rem 0.25rem;
+                padding: 0.375rem 0.5rem;
+                min-width: 60px;
             }
         }
 
