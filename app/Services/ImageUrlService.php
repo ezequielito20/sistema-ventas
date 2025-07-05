@@ -24,10 +24,12 @@ class ImageUrlService
                 return rtrim($awsUrl, '/') . '/' . ltrim($imagePath, '/');
             }
             
-            // Fallback: construir URL manualmente usando configuración del bucket
+            // Construir URL automáticamente para Laravel Cloud R2
             $bucket = config('filesystems.disks.private.bucket');
             $endpoint = config('filesystems.disks.private.endpoint');
+            
             if ($bucket && $endpoint) {
+                // URL pública para Cloudflare R2: endpoint/bucket/path
                 return rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($imagePath, '/');
             }
             
@@ -123,6 +125,17 @@ class ImageUrlService
             // Verificar que se subió correctamente
             if (!Storage::disk($disk)->exists($path)) {
                 throw new \Exception('File was not found after upload');
+            }
+            
+            // Configurar visibilidad pública para producción con R2
+            if (app()->environment('production') && $disk === 'private') {
+                try {
+                    Storage::disk($disk)->setVisibility($path, 'public');
+                    Log::info('File visibility set to public: ' . $path);
+                } catch (\Exception $e) {
+                    Log::warning('Could not set file visibility to public: ' . $path . ' - ' . $e->getMessage());
+                    // No lanzar excepción, el archivo se subió correctamente
+                }
             }
             
             Log::info('File uploaded successfully to ' . $disk . ': ' . $path);
