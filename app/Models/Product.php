@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Services\ImageUrlService;
 
 class Product extends Model
 {
@@ -159,12 +160,26 @@ class Product extends Model
    }
 
    /**
+    * Get the image URL using ImageUrlService.
+    */
+   public function getImageUrlAttribute()
+   {
+      if (!$this->image) {
+         return asset('img/no-image.svg');
+      }
+      
+      $imageUrlService = new ImageUrlService();
+      return $imageUrlService->getImageUrl($this->image);
+   }
+
+   /**
     * Get the supplier that owns the product.
     */
    public function supplier(): BelongsTo
    {
       return $this->belongsTo(Supplier::class);
    }
+
    /**
     * Get the category that owns the product.
     */

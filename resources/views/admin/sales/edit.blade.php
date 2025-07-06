@@ -237,7 +237,7 @@
                                             </button>
                                         </td>
                                         <td class="align-middle">
-                                            <img src="{{ asset($product->image) }}" alt="N/I" class="img-thumbnail"
+                                            <img src="{{ $product->image_url }}" alt="N/I" class="img-thumbnail"
                                                 width="50">
                                         </td>
                                         <td class="align-middle">{{ $product->name }}</td>

@@ -137,7 +137,7 @@
                             <td><small><strong>{{ $product->code }}</strong></small></td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                                                    <img src="{{ $product->image_url }}"
                                         alt="{{ $product->name }}" class="product-thumbnail mr-2">
                                     {{ $product->name }}
                                 </div>
@@ -210,7 +210,7 @@
                                     <div class="d-flex align-items-start justify-content-between mb-2">
                                         <div class="d-flex align-items-center">
                                             <div class="product-image mr-3">
-                                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                <img src="{{ $product->image_url }}"
                                                     alt="{{ $product->name }}" class="rounded"
                                                     style="width: 60px; height: 60px; object-fit: cover;">
                                             </div>
@@ -294,7 +294,7 @@
                         <div class="row">
                             {{-- Imagen del producto --}}
                             <div class="col-md-3 ">
-                                <img src="{{ asset($product->image) }}" alt="Imagen del producto"
+                                                                    <img src="{{ $product->image_url }}" alt="Imagen del producto"
                                     style="width: 100%; height: 100%; 
                             border-radius: 8px;">
                                 <p id="noImage" class="text-muted mt-3" style="display: none;">Sin imagen</p>

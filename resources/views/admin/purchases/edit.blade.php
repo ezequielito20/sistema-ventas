@@ -222,7 +222,7 @@
                                         </td>
                                         <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ $product->image ? asset($product->image) : asset('img/no-image.png') }}"
+                                                <img src="{{ $product->image_url }}"
                                                     alt="{{ $product->name }}" class="img-thumbnail mr-2"
                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                                 <span>{{ $product->name }}</span>
