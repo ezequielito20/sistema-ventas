@@ -81,7 +81,7 @@
                             {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                         </td>
                         <td class="text-right text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
-                            Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                            Bs. {{ number_format($customer->total_debt, 2) }}
                         </td>
                         <td>
                             @if($customer->lastSale)
@@ -102,7 +102,7 @@
                         {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
                     </td>
                     <td class="text-right text-danger" id="totalBsDebt">
-                        Bs. {{ number_format($totalDebt * 70, 2) }}
+                        Bs. {{ number_format($totalDebt, 2) }}
                     </td>
                     <td></td>
                 </tr>

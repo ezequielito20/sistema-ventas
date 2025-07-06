@@ -111,7 +111,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">1 USD = </span>
                             </div>
-                            <input type="number" id="exchangeRate" class="form-control" value="70.00" step="0.01" min="0">
+                            <input type="number" id="exchangeRate" class="form-control" value="120.00" step="0.01" min="0">
                             <div class="input-group-append">
                                 <span class="input-group-text d-none d-sm-inline">VES</span>
                             </div>
@@ -248,7 +248,7 @@
                                 <td>
                                     @if ($customer->total_debt > 0)
                                         <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
-                                            Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                            Bs. {{ number_format($customer->total_debt, 2) }}
                                         </span>
                                     @else
                                         <span class="badge badge-success">Sin deuda</span>
@@ -376,7 +376,7 @@
                                                     </span>
                                                     <br>
                                                     <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
-                                                        Bs. {{ number_format($customer->total_debt * 70, 2) }}
+                                                        Bs. {{ number_format($customer->total_debt, 2) }}
                                                     </span>
                                                 @else
                                                     <span class="badge badge-success">Sin deuda</span>
@@ -781,6 +781,10 @@
                 currentExchangeRate = parseFloat(savedRate);
                 $('#exchangeRate').val(currentExchangeRate);
                 updateBsValues(currentExchangeRate);
+            } else {
+                // Si no hay valor guardado, usar el valor por defecto del input
+                currentExchangeRate = parseFloat($('#exchangeRate').val());
+                updateBsValues(currentExchangeRate);
             }
             
             // Actualizar valores en Bs cuando se cambia el tipo de cambio
@@ -864,10 +868,28 @@
             
             // Función para actualizar los valores en Bs en el modal
             function updateModalBsValues(rate) {
+                // Actualizar el resumen total
                 $('.modal-bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
                     const debtBs = debtUsd * rate;
                     $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+                
+                // Actualizar cada fila de la tabla en el modal
+                $('#debtReportModal .bs-debt').each(function() {
+                    const debtUsd = parseFloat($(this).data('debt'));
+                    const debtBs = debtUsd * rate;
+                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+                
+                // Actualizar el total de la tabla
+                $('#totalBsDebt').each(function() {
+                    const totalDebtElement = $('#debtReportModal .modal-bs-debt');
+                    if (totalDebtElement.length > 0) {
+                        const totalDebtUsd = parseFloat(totalDebtElement.data('debt'));
+                        const totalDebtBs = totalDebtUsd * rate;
+                        $(this).html('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                    }
                 });
             }
             
