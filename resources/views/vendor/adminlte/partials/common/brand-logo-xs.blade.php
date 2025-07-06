@@ -15,7 +15,7 @@
 
     {{-- Logo --}}
     @if(auth()->check() && auth()->user()->company && auth()->user()->company->logo)
-        <img src="{{ asset('storage/' . auth()->user()->company->logo) }}"
+                    <img src="{{ auth()->user()->company->logo_url }}"
              alt="{{ config('adminlte.logo_img_alt', 'Company Logo') }}"
              class="{{ config('adminlte.logo_img_class', 'brand-image img-circle elevation-3') }}"
              style="opacity:.8">

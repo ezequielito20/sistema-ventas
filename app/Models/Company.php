@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Services\ImageUrlService;
 
 class Company extends Model
 {
@@ -67,5 +68,18 @@ class Company extends Model
    public function cityModel(): BelongsTo
    {
       return $this->belongsTo(City::class, 'city', 'id');
+   }
+
+   /**
+    * Get the logo URL using ImageUrlService.
+    */
+   public function getLogoUrlAttribute()
+   {
+      if (!$this->logo) {
+         return asset('assets/img/logotipo.jpg'); // Default logo
+      }
+      
+      $imageUrlService = new ImageUrlService();
+      return $imageUrlService->getImageUrl($this->logo);
    }
 }

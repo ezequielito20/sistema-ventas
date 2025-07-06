@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Services\ImageUrlService;
@@ -116,8 +117,14 @@ class CompanyController extends Controller
             // Handle logo upload
             $logoPath = null;
             if ($request->hasFile('logo')) {
-                $disk = ImageUrlService::getStorageDisk();
-                $logoPath = $request->file('logo')->store('company_logos', $disk);
+                try {
+                    $disk = config('app.env') === 'production' ? 'public' : 'public';
+                    $logoPath = $request->file('logo')->store('company_logos', $disk);
+                    Log::info('Logo uploaded successfully', ['path' => $logoPath, 'disk' => $disk]);
+                } catch (\Exception $e) {
+                    Log::error('Error uploading logo: ' . $e->getMessage());
+                    throw new \Exception('Error al subir el logo: ' . $e->getMessage());
+                }
             }
 
             // Create new company
@@ -182,7 +189,7 @@ class CompanyController extends Controller
             DB::rollBack();
             
             if (isset($logoPath)) {
-                $disk = ImageUrlService::getStorageDisk();
+                $disk = config('app.env') === 'production' ? 'public' : 'public';
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
@@ -197,7 +204,7 @@ class CompanyController extends Controller
             DB::rollBack();
 
             if (isset($logoPath)) {
-                $disk = ImageUrlService::getStorageDisk();
+                $disk = config('app.env') === 'production' ? 'public' : 'public';
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
@@ -306,16 +313,23 @@ class CompanyController extends Controller
         try {
             // Maneja la actualización del logo si se proporciona uno nuevo
             if ($request->hasFile('logo')) {
-                $disk = ImageUrlService::getStorageDisk();
-                
-                // Elimina el logo anterior si existe
-                if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
-                    Storage::disk($disk)->delete($company->logo);
+                try {
+                    $disk = config('app.env') === 'production' ? 'public' : 'public';
+                    
+                    // Elimina el logo anterior si existe
+                    if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
+                        Storage::disk($disk)->delete($company->logo);
+                        Log::info('Old logo deleted', ['path' => $company->logo]);
+                    }
+                    
+                    // Guarda el nuevo logo
+                    $logoPath = $request->file('logo')->store('company_logos', $disk);
+                    $validated['logo'] = $logoPath;
+                    Log::info('New logo uploaded', ['path' => $logoPath, 'disk' => $disk]);
+                } catch (\Exception $e) {
+                    Log::error('Error handling logo upload: ' . $e->getMessage());
+                    throw new \Exception('Error al procesar el logo: ' . $e->getMessage());
                 }
-                
-                // Guarda el nuevo logo
-                $logoPath = $request->file('logo')->store('company_logos', $disk);
-                $validated['logo'] = $logoPath;
             }
 
             // Actualiza la compañía con los datos validados
@@ -332,8 +346,17 @@ class CompanyController extends Controller
                 ->with('message', 'Empresa actualizada correctamente.')
                 ->with('icons', 'success');
         } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Error updating company: ' . $e->getMessage(), [
+                'company_id' => $id,
+                'user_id' => Auth::id(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return redirect()->route('admin.company.edit')
-                ->with('message', 'Hubo un problema al actualizar la empresa.')
+                ->with('message', 'Hubo un problema al actualizar la empresa: ' . $e->getMessage())
                 ->with('icons', 'error');
         }
     }

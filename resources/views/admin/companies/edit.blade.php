@@ -13,7 +13,7 @@
 
         <div class="{{ $auth_type ?? 'login' }}-logo">
             <a href="">
-                <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo de la empresa" width="120px">
+                <img src="{{ $company->logo_url }}" alt="Logo de la empresa" width="120px">
 
             </a>
         </div>
@@ -362,7 +362,7 @@
                                             <div class="text-center">
                                                 <output id="list">
                                                     @if($company->logo)
-                                                        <img src="{{ asset('storage/' . $company->logo) }}" 
+                                                        <img src="{{ $company->logo_url }}" 
                                                              class="thumb thumbnail img-fluid rounded" 
                                                              style="max-height: 208px;" 
                                                              alt="Logo actual">
