@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -39,8 +39,8 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-         // Obtener los roles disponibles (excluyendo roles del sistema si el usuario no es admin)
-         $roles = Role::all();
+         // Obtener los roles disponibles de la empresa
+         $roles = Role::byCompany(Auth::user()->company_id)->get();
 
          return view('admin.users.create', compact('companies', 'roles', 'company'));
       } catch (\Exception $e) {
@@ -104,11 +104,8 @@ class UserController extends Controller
          // Asignar el rol
          $role = Role::findOrFail($validated['role']);
 
-         // Verificar que no se asigne un rol de sistema si no es admin
-         $systemRoles = ['admin', 'superadmin'];
-         if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
-            throw new \Exception('No tiene permisos para asignar roles del sistema');
-         }
+         // Los roles del sistema no se crean en empresas específicas, 
+         // por lo que esta validación ya no es necesaria
 
          $user->assignRole($role);
 
@@ -198,10 +195,8 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-         // Obtener roles disponibles
-         $roles = Role::when(!Auth::user()->hasRole('admin'), function ($query) {
-            return $query->whereNotIn('name', ['admin', 'superadmin']);
-         })->get();
+         // Obtener roles disponibles de la empresa
+         $roles = Role::byCompany(Auth::user()->company_id)->get();
 
          return view('admin.users.edit', compact('user', 'companies', 'roles', 'company'));
       } catch (\Exception $e) {
@@ -276,11 +271,8 @@ class UserController extends Controller
          // Actualizar rol
          $role = Role::findOrFail($validated['role']);
 
-         // Verificar que no se asigne un rol de sistema si no es admin
-         $systemRoles = ['admin', 'superadmin'];
-         if (in_array($role->name, $systemRoles) && !Auth::user()->hasRole('admin')) {
-            throw new \Exception('No tiene permisos para asignar roles del sistema');
-         }
+         // Los roles del sistema no se crean en empresas específicas, 
+         // por lo que esta validación ya no es necesaria
 
          // Sincronizar roles (elimina roles anteriores y asigna el nuevo)
          $user->syncRoles([$role]);

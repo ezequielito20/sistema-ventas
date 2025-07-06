@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use App\Services\ImageUrlService;
 
 class CompanyController extends Controller
 {
@@ -115,7 +116,8 @@ class CompanyController extends Controller
             // Handle logo upload
             $logoPath = null;
             if ($request->hasFile('logo')) {
-                $logoPath = $request->file('logo')->store('company_logos', 'public');
+                $disk = ImageUrlService::getStorageDisk();
+                $logoPath = $request->file('logo')->store('company_logos', $disk);
             }
 
             // Create new company
@@ -137,11 +139,12 @@ class CompanyController extends Controller
                 'ig' => $validated['ig'] ?? null
             ]);
 
-            // Crear el rol de administrador si no existe
-            $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(
-                ['name' => 'administrador'],
-                ['guard_name' => 'web']
-            );
+            // Crear el rol de administrador específico para esta empresa
+            $adminRole = \App\Models\Role::create([
+                'name' => 'administrador',
+                'guard_name' => 'web',
+                'company_id' => $company->id
+            ]);
 
             // Asignar todos los permisos disponibles al rol administrador
             $allPermissions = \Spatie\Permission\Models\Permission::all();
@@ -178,8 +181,11 @@ class CompanyController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             
-            if (isset($logoPath) && Storage::disk('public')->exists($logoPath)) {
-                Storage::disk('public')->delete($logoPath);
+            if (isset($logoPath)) {
+                $disk = ImageUrlService::getStorageDisk();
+                if (Storage::disk($disk)->exists($logoPath)) {
+                    Storage::disk($disk)->delete($logoPath);
+                }
             }
 
             return redirect()->route('admin.company.create')
@@ -190,8 +196,11 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            if (isset($logoPath) && Storage::disk('public')->exists($logoPath)) {
-                Storage::disk('public')->delete($logoPath);
+            if (isset($logoPath)) {
+                $disk = ImageUrlService::getStorageDisk();
+                if (Storage::disk($disk)->exists($logoPath)) {
+                    Storage::disk($disk)->delete($logoPath);
+                }
             }
 
             return redirect()->route('admin.company.create')
@@ -297,12 +306,15 @@ class CompanyController extends Controller
         try {
             // Maneja la actualización del logo si se proporciona uno nuevo
             if ($request->hasFile('logo')) {
+                $disk = ImageUrlService::getStorageDisk();
+                
                 // Elimina el logo anterior si existe
-                if ($company->logo) {
-                    Storage::delete('public/' . $company->logo);
+                if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
+                    Storage::disk($disk)->delete($company->logo);
                 }
+                
                 // Guarda el nuevo logo
-                $logoPath = $request->file('logo')->store('logos', 'public');
+                $logoPath = $request->file('logo')->store('company_logos', $disk);
                 $validated['logo'] = $logoPath;
             }
 
