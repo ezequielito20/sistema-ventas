@@ -15,6 +15,9 @@ class ImageUrlService
             return asset($fallbackImage);
         }
 
+        // Normalizar el path - remover 'storage/' si está presente
+        $imagePath = self::normalizePath($imagePath);
+
         // En desarrollo local
         if (app()->environment('local')) {
             // Si el disco por defecto es S3, usar el bucket (para testing)
@@ -93,5 +96,18 @@ class ImageUrlService
     {
         // En desarrollo usar público local, en producción usar S3
         return app()->environment('local') ? 'public' : 's3';
+    }
+
+    /**
+     * Normalize image path - remove 'storage/' prefix if present
+     */
+    private static function normalizePath(string $imagePath): string
+    {
+        // Remover 'storage/' del inicio si está presente
+        if (str_starts_with($imagePath, 'storage/')) {
+            return substr($imagePath, 8); // Remover 'storage/'
+        }
+        
+        return $imagePath;
     }
 } 
