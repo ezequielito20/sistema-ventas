@@ -214,7 +214,7 @@ class SaleController extends Controller
          // Determinar la redirección basada en el botón presionado
          if ($request->input('action') == 'save_and_new') {
             return redirect()->route('admin.sales.create')
-                ->with('message', '¡Venta #' . $sale->id . ' procesada exitosamente! Puedes crear otra venta.')
+                ->with('message', '¡Venta procesada exitosamente! Puedes crear otra venta.')
                 ->with('icons', 'success');
          }
 
