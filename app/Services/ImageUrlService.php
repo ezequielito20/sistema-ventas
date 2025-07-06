@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ImageUrlService
 {
@@ -47,12 +48,25 @@ class ImageUrlService
             $defaultDisk = config('filesystems.default');
             $disk = Storage::disk($defaultDisk);
             
+            // Debug: Log información
+            Log::info("ImageUrlService Debug", [
+                'imagePath' => $imagePath,
+                'defaultDisk' => $defaultDisk,
+                'diskConfig' => config("filesystems.disks.{$defaultDisk}")
+            ]);
+            
             // Verificar que el archivo existe
             if ($disk->exists($imagePath)) {
+                Log::info("File exists, generating temporaryUrl");
                 // Generar URL firmada válida por 24 horas
-                return $disk->temporaryUrl($imagePath, now()->addHours(24));
+                $url = $disk->temporaryUrl($imagePath, now()->addHours(24));
+                Log::info("Generated URL: " . $url);
+                return $url;
+            } else {
+                Log::warning("File does not exist: " . $imagePath);
             }
         } catch (\Exception $e) {
+            Log::error("Error in temporaryUrl: " . $e->getMessage());
             // Si falla temporaryUrl, continuar con otros métodos
         }
 
