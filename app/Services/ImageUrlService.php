@@ -39,7 +39,21 @@ class ImageUrlService
      */
     private static function getProductionImageUrl(string $imagePath, string $fallbackImage): string
     {
-        // Método 1: Usar Laravel Cloud disk config si está disponible
+        // Método 1: Usar URLs firmadas (temporaryUrl) - Funciona siempre
+        try {
+            $defaultDisk = config('filesystems.default');
+            $disk = Storage::disk($defaultDisk);
+            
+            // Verificar que el archivo existe
+            if ($disk->exists($imagePath)) {
+                // Generar URL firmada válida por 24 horas
+                return $disk->temporaryUrl($imagePath, now()->addHours(24));
+            }
+        } catch (\Exception $e) {
+            // Si falla temporaryUrl, continuar con otros métodos
+        }
+
+        // Método 2: Usar Laravel Cloud disk config para URLs directas
         $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
         if ($cloudConfig) {
             $disks = json_decode($cloudConfig, true);
@@ -52,7 +66,7 @@ class ImageUrlService
             }
         }
 
-        // Método 2: Usar configuración manual de S3
+        // Método 3: Usar configuración manual de S3
         $defaultDisk = config('filesystems.default');
         $diskConfig = config("filesystems.disks.{$defaultDisk}");
         
@@ -60,22 +74,12 @@ class ImageUrlService
             return rtrim($diskConfig['endpoint'], '/') . '/' . $diskConfig['bucket'] . '/' . ltrim($imagePath, '/');
         }
 
-        // Método 3: Intentar con variables de entorno directas
+        // Método 4: Intentar con variables de entorno directas
         $endpoint = env('AWS_ENDPOINT');
         $bucket = env('AWS_BUCKET');
         
         if ($endpoint && $bucket) {
             return rtrim($endpoint, '/') . '/' . $bucket . '/' . ltrim($imagePath, '/');
-        }
-
-        // Método 4: Usar Storage facade si el disco está configurado
-        try {
-            $disk = Storage::disk($defaultDisk);
-            if (method_exists($disk, 'url')) {
-                return $disk->url($imagePath);
-            }
-        } catch (\Exception $e) {
-            // Continuar con fallback
         }
 
         // Fallback
