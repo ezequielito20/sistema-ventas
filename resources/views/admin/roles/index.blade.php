@@ -473,13 +473,53 @@
                                 }
                             },
                             error: function(xhr) {
-                                const response = xhr.responseJSON;
-                                Swal.fire(
-                                    'Error',
-                                    response.message ||
-                                    'No se pudo eliminar el rol',
-                                    'error'
-                                );
+                                let errorMessage = 'No se pudo eliminar el rol';
+                                let detailsHtml = '';
+                                
+                                try {
+                                    const response = xhr.responseJSON;
+                                    if (response && response.message) {
+                                        errorMessage = response.message;
+                                        
+                                        // Agregar detalles si están disponibles
+                                        if (response.details) {
+                                            let details = [];
+                                            
+                                            if (response.details.error_type) {
+                                                details.push(`Tipo: ${response.details.error_type}`);
+                                            }
+                                            
+                                            if (response.details.users_count) {
+                                                details.push(`Usuarios asignados: ${response.details.users_count}`);
+                                            }
+                                            
+                                            if (response.details.role_name) {
+                                                details.push(`Rol: ${response.details.role_name}`);
+                                            }
+                                            
+                                            if (details.length > 0) {
+                                                detailsHtml = '<br><small class="text-muted"><strong>Información:</strong><br>' + 
+                                                             details.join('<br>') + '</small>';
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Error al procesar respuesta de error:', e);
+                                    if (xhr.status) {
+                                        errorMessage += ` (Código: ${xhr.status})`;
+                                    }
+                                }
+                                
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error al Eliminar Rol',
+                                    html: errorMessage + detailsHtml,
+                                    confirmButtonText: 'Entendido',
+                                    customClass: {
+                                        confirmButton: 'btn btn-danger'
+                                    },
+                                    buttonsStyling: false
+                                });
                             }
                         });
                     }
@@ -517,12 +557,43 @@
                             Swal.close();
                             $('#showRoleModal').modal('show');
                         } else {
-                            Swal.fire('Error', 'No se pudieron obtener los datos del rol',
-                                'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error al Obtener Datos',
+                                text: 'No se pudieron obtener los datos del rol',
+                                confirmButtonText: 'Entendido',
+                                customClass: {
+                                    confirmButton: 'btn btn-danger'
+                                },
+                                buttonsStyling: false
+                            });
                         }
                     },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudieron obtener los datos del rol', 'error');
+                    error: function(xhr) {
+                        let errorMessage = 'No se pudieron obtener los datos del rol';
+                        
+                        try {
+                            const response = xhr.responseJSON;
+                            if (response && response.message) {
+                                errorMessage = response.message;
+                            }
+                        } catch (e) {
+                            console.error('Error al procesar respuesta:', e);
+                            if (xhr.status) {
+                                errorMessage += ` (Código: ${xhr.status})`;
+                            }
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al Obtener Datos',
+                            text: errorMessage,
+                            confirmButtonText: 'Entendido',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false
+                        });
                     }
                 });
             });
@@ -539,14 +610,56 @@
                 $('.permission-checkbox').prop('checked', false);
 
                 // Cargar permisos actuales del rol
-                $.get(`/roles/${roleId}/permissions`, function(data) {
-                    data.permissions.forEach(function(permission) {
-                        $(`#permission_${permission.id}`).prop('checked', true);
-                    });
+                $.get(`/roles/${roleId}/permissions`)
+                    .done(function(data) {
+                        if (data.status === 'success') {
+                            data.permissions.forEach(function(permission) {
+                                $(`#permission_${permission.id}`).prop('checked', true);
+                            });
 
-                    // Actualizar estados de los selectores de grupo
-                    updateGroupSelectors();
-                });
+                            // Actualizar estados de los selectores de grupo
+                            updateGroupSelectors();
+                            
+                            // Mostrar información adicional del rol si está disponible
+                            if (data.role_info && data.role_info.is_system_role) {
+                                $('#roleName').append(' <small class="badge badge-warning">Rol del Sistema</small>');
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error al Cargar Permisos',
+                                text: data.message || 'No se pudieron cargar los permisos del rol'
+                            });
+                        }
+                    })
+                    .fail(function(xhr) {
+                        let errorMessage = 'No se pudieron cargar los permisos del rol';
+                        
+                        try {
+                            const response = xhr.responseJSON;
+                            if (response && response.message) {
+                                errorMessage = response.message;
+                            }
+                        } catch (e) {
+                            console.error('Error al procesar respuesta:', e);
+                            if (xhr.status) {
+                                errorMessage += ` (Código: ${xhr.status})`;
+                            }
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al Cargar Permisos',
+                            text: errorMessage,
+                            confirmButtonText: 'Cerrar',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false
+                        }).then(() => {
+                            $('#permissionsModal').modal('hide');
+                        });
+                    });
 
                 $('#permissionsModal').modal('show');
             });
@@ -651,11 +764,63 @@
                         // Recargar la tabla de roles
                         window.LaravelDataTables['rolesTable'].ajax.reload();
                     },
-                    error: function() {
+                    error: function(xhr) {
+                        let errorMessage = 'Hubo un problema al actualizar los permisos';
+                        let detailsHtml = '';
+                        
+                        try {
+                            const response = xhr.responseJSON;
+                            if (response && response.message) {
+                                errorMessage = response.message;
+                                
+                                // Agregar detalles adicionales si están disponibles
+                                if (response.details) {
+                                    let details = [];
+                                    
+                                    if (response.details.error_type) {
+                                        details.push(`Tipo: ${response.details.error_type}`);
+                                    }
+                                    
+                                    if (response.details.debug_info) {
+                                        const debug = response.details.debug_info;
+                                        if (debug.role_id && debug.role_id !== 'N/A') {
+                                            details.push(`ID del rol: ${debug.role_id}`);
+                                        }
+                                        if (debug.company_id && debug.company_id !== 'N/A') {
+                                            details.push(`ID de empresa: ${debug.company_id}`);
+                                        }
+                                        if (debug.permissions_received !== undefined) {
+                                            details.push(`Permisos recibidos: ${debug.permissions_received}`);
+                                        }
+                                        if (debug.user_authenticated !== undefined) {
+                                            details.push(`Usuario autenticado: ${debug.user_authenticated ? 'Sí' : 'No'}`);
+                                        }
+                                    }
+                                    
+                                    if (details.length > 0) {
+                                        detailsHtml = '<br><small class="text-muted"><strong>Detalles:</strong><br>' + 
+                                                     details.join('<br>') + '</small>';
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error al procesar respuesta de error:', e);
+                            // Fallback a mensaje genérico si no se puede parsear la respuesta
+                            if (xhr.status) {
+                                errorMessage += ` (Código: ${xhr.status})`;
+                            }
+                        }
+                        
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: 'Hubo un problema al actualizar los permisos'
+                            title: 'Error al Actualizar Permisos',
+                            html: errorMessage + detailsHtml,
+                            confirmButtonText: 'Entendido',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false,
+                            allowOutsideClick: false
                         });
                     }
                 });
