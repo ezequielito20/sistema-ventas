@@ -602,6 +602,12 @@
                         </div>
                         
                         <div class="form-group">
+                            <label for="payment_date">Fecha del Pago:</label>
+                            <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                            <small class="form-text text-muted">La fecha no puede ser mayor a hoy.</small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label for="remaining_debt">Deuda Restante:</label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
@@ -1194,10 +1200,26 @@
 
             // Manejar el botón de editar deuda
             $('.edit-debt-btn').click(function() {
-                const $debtValue = $(this).closest('td').find('.debt-value');
-                const customerId = $debtValue.data('customer-id');
-                const currentDebt = parseFloat($debtValue.data('original-value'));
-                const customerName = $(this).closest('tr').find('td:first-child strong').text();
+                let $debtValue, customerId, currentDebt, customerName;
+                
+                // Verificar si estamos en la vista de escritorio (tabla) o móvil (tarjetas)
+                if ($(this).closest('td').length > 0) {
+                    // Vista de escritorio (tabla)
+                    $debtValue = $(this).closest('td').find('.debt-value');
+                    customerId = $debtValue.data('customer-id');
+                    currentDebt = parseFloat($debtValue.data('original-value'));
+                    customerName = $(this).closest('tr').find('td:first-child strong').text();
+                } else {
+                    // Vista móvil (tarjetas)
+                    $debtValue = $(this).closest('.customer-card').find('.debt-value');
+                    customerId = $debtValue.data('customer-id');
+                    currentDebt = parseFloat($debtValue.data('original-value'));
+                    customerName = $(this).closest('.customer-card').find('h6').text();
+                }
+                
+                // Obtener la fecha actual en formato YYYY-MM-DD
+                const today = new Date();
+                const todayString = today.toISOString().split('T')[0];
                 
                 // Llenar el modal con los datos del cliente
                 $('#payment_customer_id').val(customerId);
@@ -1206,6 +1228,7 @@
                 $('#payment_amount').val('').attr('max', currentDebt);
                 $('#remaining_debt').val('');
                 $('#payment_notes').val('');
+                $('#payment_date').val(todayString).attr('max', todayString);
                 
                 // Mostrar el modal
                 $('#debtPaymentModal').modal('show');
@@ -1232,7 +1255,22 @@
                 
                 const customerId = $('#payment_customer_id').val();
                 const paymentAmount = parseFloat($('#payment_amount').val());
+                const paymentDate = $('#payment_date').val();
                 const notes = $('#payment_notes').val();
+                
+                // Validar que la fecha no sea mayor a hoy
+                const today = new Date();
+                const selectedDate = new Date(paymentDate);
+                
+                if (selectedDate > today) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Fecha inválida',
+                        text: 'La fecha del pago no puede ser mayor a hoy',
+                        confirmButtonText: 'Aceptar'
+                    });
+                    return;
+                }
                 
                 // Mostrar indicador de carga
                 Swal.fire({
@@ -1248,24 +1286,36 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         payment_amount: paymentAmount,
+                        payment_date: paymentDate,
                         notes: notes
                     },
                     success: function(response) {
                         console.log('Respuesta del servidor:', response);
                         
-                        // Actualizar la deuda en la tabla
-                        const $debtValue = $(`.debt-value[data-customer-id="${customerId}"]`);
-                        $debtValue.data('original-value', response.new_debt);
-                        $debtValue.find('.debt-amount').text(response.formatted_new_debt);
+                        // Actualizar la deuda en todas las vistas (tabla y tarjetas)
+                        const $debtValues = $(`.debt-value[data-customer-id="${customerId}"]`);
+                        $debtValues.each(function() {
+                            $(this).data('original-value', response.new_debt);
+                            $(this).find('.debt-amount').text(response.formatted_new_debt);
+                        });
                         
-                        // Actualizar la deuda en Bs
-                        const $bsDebt = $debtValue.closest('tr').find('.bs-debt');
-                        $bsDebt.data('debt', response.new_debt);
+                        // Actualizar la deuda en Bs para todas las vistas
+                        const $bsDebts = $(`.bs-debt[data-debt]`).filter(function() {
+                            return $(this).data('debt') !== undefined;
+                        });
                         
-                        // Recalcular el valor en Bs con el tipo de cambio actual
-                        const rate = parseFloat($('#exchangeRate').val());
-                        const debtBs = response.new_debt * rate;
-                        $bsDebt.html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        $bsDebts.each(function() {
+                            // Verificar si esta deuda pertenece al cliente actual
+                            const $relatedDebtValue = $(this).closest('tr, .customer-card').find(`.debt-value[data-customer-id="${customerId}"]`);
+                            if ($relatedDebtValue.length > 0) {
+                                $(this).data('debt', response.new_debt);
+                                
+                                // Recalcular el valor en Bs con el tipo de cambio actual
+                                const rate = parseFloat($('#exchangeRate').val());
+                                const debtBs = response.new_debt * rate;
+                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                            }
+                        });
                         
                         // Cerrar el modal
                         $('#debtPaymentModal').modal('hide');

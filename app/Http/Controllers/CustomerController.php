@@ -578,15 +578,17 @@ class CustomerController extends Controller
    {
       $request->validate([
          'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
+         'payment_date' => 'required|date|before_or_equal:today',
          'notes' => 'nullable|string|max:500',
       ]);
 
       $previousDebt = $customer->total_debt;
       $paymentAmount = $request->payment_amount;
+      $paymentDate = $request->payment_date;
       $remainingDebt = $previousDebt - $paymentAmount;
 
-      // Registrar el pago
-      DebtPayment::create([
+      // Registrar el pago con la fecha especificada
+      $debtPayment = DebtPayment::create([
          'company_id' => $this->company->id,
          'customer_id' => $customer->id,
          'previous_debt' => $previousDebt,
@@ -595,6 +597,11 @@ class CustomerController extends Controller
          'notes' => $request->notes,
          'user_id' => Auth::id(),
       ]);
+
+      // Actualizar las fechas created_at y updated_at con la fecha proporcionada
+      $debtPayment->created_at = Carbon::parse($paymentDate);
+      $debtPayment->updated_at = Carbon::parse($paymentDate);
+      $debtPayment->save();
 
       // Actualizar la deuda total del cliente
       $customer->update([
@@ -609,6 +616,7 @@ class CustomerController extends Controller
          'customer_id' => $customer->id,
          'previous_debt' => $previousDebt,
          'payment_amount' => $paymentAmount,
+         'payment_date' => $paymentDate,
          'remaining_debt' => $remainingDebt,
          'new_total_debt' => $customer->total_debt
       ]);
