@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap4.min.css">
-    <style>
+<style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --success-gradient: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
@@ -424,8 +424,8 @@
             border-radius: 25px !important;
             margin-right: 0.5rem !important;
             margin-bottom: 0.5rem !important;
-        }
-    </style>
+    }
+</style>
 @stop
 
 @section('content')
@@ -482,35 +482,35 @@
         <div class="desktop-view">
             <div class="card main-card">
                 <div class="card-header card-header-custom">
-                    <h3 class="card-title">
+            <h3 class="card-title">
                         <i class="fas fa-table mr-2"></i>
                         Lista de Usuarios
-                    </h3>
-                    <div class="card-tools">
+            </h3>
+            <div class="card-tools">
                         <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </div>
-                </div>
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table id="usersTable" class="table table-modern table-hover mb-0">
                             <thead>
-                                <tr class="text-center">
-                                    <th>#</th>
+                    <tr class="text-center">
+                        <th>#</th>
                                     <th>Usuario</th>
-                                    <th>Email</th>
-                                    <th>Empresa</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Último Acceso</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($users as $user)
-                                    <tr class="text-center">
-                                        <td>{{ $loop->iteration }}</td>
+                        <th>Email</th>
+                        <th>Empresa</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Último Acceso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($users as $user)
+                        <tr class="text-center">
+                            <td>{{ $loop->iteration }}</td>
                                         <td>
                                             <div class="d-flex align-items-center justify-content-center">
                                                 <div class="user-avatar mr-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
@@ -521,51 +521,51 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>{{ $user->company->name ?? 'N/A' }}</td>
-                                        <td>
-                                            @foreach ($user->roles as $role)
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->company->name ?? 'N/A' }}</td>
+                            <td>
+                                @foreach ($user->roles as $role)
                                                 <span class="badge badge-modern badge-info-modern">{{ $role->name }}</span>
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @if ($user->email_verified_at)
+                                @endforeach
+                            </td>
+                            <td>
+                                @if ($user->email_verified_at)
                                                 <span class="badge badge-modern badge-success-modern">Verificado</span>
-                                            @else
+                                @else
                                                 <span class="badge badge-modern badge-warning-modern">Pendiente</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($user->last_login)
-                                                <span data-toggle="tooltip" title="{{ $user->last_login }}">
-                                                    {{ $user->last_login->diffForHumans() }}
-                                                </span>
-                                            @else
-                                                <span class="text-muted">Nunca</span>
-                                            @endif
-                                        </td>
-                                        <td>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($user->last_login)
+                                    <span data-toggle="tooltip" title="{{ $user->last_login }}">
+                                        {{ $user->last_login->diffForHumans() }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">Nunca</span>
+                                @endif
+                            </td>
+                            <td>
                                             <div class="action-buttons justify-content-center">
                                                 <button type="button" class="action-btn btn-success-modern show-user"
-                                                    data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
+                                        data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn btn-info-modern"
-                                                    data-toggle="tooltip" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                @if ($user->id !== auth()->id())
+                                        data-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @if ($user->id !== auth()->id())
                                                     <button type="button" class="action-btn btn-danger-modern delete-user"
-                                                        data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
                     </div>
                 </div>
             </div>
@@ -864,7 +864,7 @@
                             },
                             error: function(xhr) {
                                 const response = xhr.responseJSON;
-                                Swal.fire({
+                Swal.fire({
                                     title: 'Error',
                                     text: response?.message || 'No se pudo eliminar el usuario',
                                     icon: 'error',

@@ -98,7 +98,7 @@
                                            class="form-control @error('password') is-invalid @enderror" 
                                            required>
                                     <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <button class="btn btn-outline-secondary password-toggle-btn" type="button" id="togglePassword" title="Mostrar/Ocultar contraseña">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -127,6 +127,11 @@
                                            id="password_confirmation" 
                                            class="form-control"
                                            required>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary password-toggle-btn" type="button" id="togglePasswordConfirmation" title="Mostrar/Ocultar confirmación">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -196,9 +201,9 @@
                         </div>
                     </div>
 
-                    {{-- Enviar email de verificación --}}
+                    {{-- Opciones adicionales --}}
                     <div class="row mt-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="custom-control custom-switch">
                                 <input type="checkbox" 
                                        class="custom-control-input" 
@@ -206,7 +211,19 @@
                                        name="send_verification_email" 
                                        checked>
                                 <label class="custom-control-label" for="sendVerificationEmail">
+                                    <i class="fas fa-envelope mr-1"></i>
                                     Enviar email de verificación al usuario
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" 
+                                       class="custom-control-input" 
+                                       id="syncPasswordVisibility">
+                                <label class="custom-control-label" for="syncPasswordVisibility">
+                                    <i class="fas fa-sync mr-1"></i>
+                                    Sincronizar visibilidad de contraseñas
                                 </label>
                             </div>
                         </div>
@@ -270,23 +287,155 @@
     .strength-weak { background-color: #dc3545; }
     .strength-medium { background-color: #ffc107; }
     .strength-strong { background-color: #28a745; }
+    
+    /* Password toggle button styling */
+    .password-toggle-btn {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+    
+    .password-toggle-btn:hover {
+        background-color: #f8f9fa;
+        color: #495057;
+        transform: scale(1.05);
+    }
+    
+    .password-toggle-btn:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+    
+    .password-toggle-btn i {
+        transition: all 0.3s ease;
+    }
+    
+    .input-group-append .btn {
+        border-left: none;
+    }
 </style>
 @stop
 
 @section('js')
 <script>
 $(document).ready(function() {
+    // Toggle password visibility with smooth animation
+    function togglePasswordVisibility(inputId, buttonId) {
+        const passwordInput = $(inputId);
+        const button = $(buttonId);
+        const icon = button.find('i');
+        
+        // Add animation effect
+        icon.addClass('fa-spin');
+        
+        setTimeout(() => {
+            if (passwordInput.attr('type') === 'password') {
+                passwordInput.attr('type', 'text');
+                icon.removeClass('fa-eye fa-spin').addClass('fa-eye-slash');
+                button.attr('title', 'Ocultar contraseña');
+                button.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+            } else {
+                passwordInput.attr('type', 'password');
+                icon.removeClass('fa-eye-slash fa-spin').addClass('fa-eye');
+                button.attr('title', 'Mostrar contraseña');
+                button.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+            }
+        }, 150);
+    }
+
     // Toggle password visibility
     $('#togglePassword').click(function() {
-        const passwordInput = $('#password');
-        const icon = $(this).find('i');
+        togglePasswordVisibility('#password', '#togglePassword');
         
-        if (passwordInput.attr('type') === 'password') {
-            passwordInput.attr('type', 'text');
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        // Sync with confirmation if enabled
+        if ($('#syncPasswordVisibility').is(':checked')) {
+            setTimeout(() => {
+                const passwordType = $('#password').attr('type');
+                $('#password_confirmation').attr('type', passwordType);
+                
+                const confirmIcon = $('#togglePasswordConfirmation i');
+                const confirmButton = $('#togglePasswordConfirmation');
+                
+                if (passwordType === 'text') {
+                    confirmIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    confirmButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                    confirmButton.attr('title', 'Ocultar confirmación');
+                } else {
+                    confirmIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    confirmButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+                    confirmButton.attr('title', 'Mostrar confirmación');
+                }
+            }, 150);
+        }
+    });
+
+    // Toggle password confirmation visibility
+    $('#togglePasswordConfirmation').click(function() {
+        togglePasswordVisibility('#password_confirmation', '#togglePasswordConfirmation');
+        
+        // Sync with main password if enabled
+        if ($('#syncPasswordVisibility').is(':checked')) {
+            setTimeout(() => {
+                const confirmType = $('#password_confirmation').attr('type');
+                $('#password').attr('type', confirmType);
+                
+                const passwordIcon = $('#togglePassword i');
+                const passwordButton = $('#togglePassword');
+                
+                if (confirmType === 'text') {
+                    passwordIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    passwordButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                    passwordButton.attr('title', 'Ocultar contraseña');
+                } else {
+                    passwordIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    passwordButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+                    passwordButton.attr('title', 'Mostrar contraseña');
+                }
+            }, 150);
+        }
+    });
+
+    // Synchronize password visibility (optional feature)
+    $('#syncPasswordVisibility').change(function() {
+        if ($(this).is(':checked')) {
+            // Show feedback message
+            const label = $('label[for="syncPasswordVisibility"]');
+            const originalText = label.html();
+            label.html('<i class="fas fa-check text-success mr-1"></i>Sincronización activada');
+            
+            // Sync current state
+            const passwordType = $('#password').attr('type');
+            $('#password_confirmation').attr('type', passwordType);
+            
+            const passwordIcon = $('#togglePassword i');
+            const confirmIcon = $('#togglePasswordConfirmation i');
+            const confirmButton = $('#togglePasswordConfirmation');
+            
+            if (passwordType === 'text') {
+                confirmIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+                confirmButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                confirmButton.attr('title', 'Ocultar confirmación');
+            } else {
+                confirmIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+                confirmButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+                confirmButton.attr('title', 'Mostrar confirmación');
+            }
+            
+            // Reset label after 2 seconds
+            setTimeout(() => {
+                label.html(originalText);
+            }, 2000);
         } else {
-            passwordInput.attr('type', 'password');
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            // Show deactivation feedback
+            const label = $('label[for="syncPasswordVisibility"]');
+            const originalText = label.html();
+            label.html('<i class="fas fa-times text-warning mr-1"></i>Sincronización desactivada');
+            
+            setTimeout(() => {
+                label.html(originalText);
+            }, 2000);
         }
     });
 
