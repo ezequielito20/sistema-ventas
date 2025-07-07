@@ -6,23 +6,29 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Ventas</h1>
         <div class="d-flex">
-            <a href="{{ route('admin.sales.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Reporte</span>
-                <i class="fas fa-file-pdf d-md-none"></i>
-            </a>
+            @can('sales.report')
+                <a href="{{ route('admin.sales.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
+                    <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Reporte</span>
+                    <i class="fas fa-file-pdf d-md-none"></i>
+                </a>
+            @endcan
             @if ($cashCount)
-                <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                    <span class="d-md-inline d-none">Nueva Venta</span>
-                    <i class="fas fa-plus-circle d-md-none"></i>
-                </a>
+                @can('sales.create')
+                    <a href="{{ route('admin.sales.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                        <span class="d-md-inline d-none">Nueva Venta</span>
+                        <i class="fas fa-plus-circle d-md-none"></i>
+                    </a>
+                @endcan
             @else
-                <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger btn-sm">
-                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                    <span class="d-md-inline d-none">Abrir caja</span>
-                    <i class="fas fa-plus-circle d-md-none"></i>
-                </a>
+                @can('cash-counts.create')
+                    <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                        <span class="d-md-inline d-none">Abrir caja</span>
+                        <i class="fas fa-plus-circle d-md-none"></i>
+                    </a>
+                @endcan
             @endif
         </div>
     </div>
@@ -159,18 +165,24 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm"
-                                        data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-sale"
-                                        data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
-                                        target="_blank" data-toggle="tooltip" title="Imprimir">
-                                        <i class="fas fa-print"></i>
-                                    </a>
+                                    @can('sales.edit')
+                                        <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm"
+                                            data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('sales.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-sale"
+                                            data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
+                                    @can('sales.print')
+                                        <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
+                                            target="_blank" data-toggle="tooltip" title="Imprimir">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -234,17 +246,23 @@
                                         </button>
                                         
                                         <div class="btn-group-mobile">
-                                            <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-danger btn-sm delete-sale"
-                                                data-id="{{ $sale->id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                            <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
-                                                target="_blank">
-                                                <i class="fas fa-print"></i>
-                                            </a>
+                                            @can('sales.edit')
+                                                <a href="{{ route('admin.sales.edit', $sale->id) }}" class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            @can('sales.destroy')
+                                                <button type="button" class="btn btn-danger btn-sm delete-sale"
+                                                    data-id="{{ $sale->id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endcan
+                                            @can('sales.print')
+                                                <a href="{{ route('admin.sales.print', $sale->id) }}" class="btn btn-info btn-sm"
+                                                    target="_blank">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>
@@ -304,9 +322,11 @@
                     </table>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-info print-details">
-                        <i class="fas fa-print mr-2"></i>Imprimir
-                    </button>
+                    @can('sales.print')
+                        <button type="button" class="btn btn-info print-details">
+                            <i class="fas fa-print mr-2"></i>Imprimir
+                        </button>
+                    @endcan
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                 </div>
             </div>

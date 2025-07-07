@@ -6,16 +6,20 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Productos</h1>
         <div class="d-flex">
-            <a href="{{ route('admin.products.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Reporte</span>
-                <i class="fas fa-file-pdf d-md-none"></i>
-            </a>
-            <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Nuevo Producto</span>
-                <i class="fas fa-plus-circle d-md-none"></i>
-            </a>
+            @can('products.report')
+                <a href="{{ route('admin.products.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
+                    <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Reporte</span>
+                    <i class="fas fa-file-pdf d-md-none"></i>
+                </a>
+            @endcan
+            @can('products.create')
+                <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Nuevo Producto</span>
+                    <i class="fas fa-plus-circle d-md-none"></i>
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -168,18 +172,24 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-product"
-                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.products.edit', $product->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-product"
-                                        data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('products.show')
+                                        <button type="button" class="btn btn-info btn-sm show-product"
+                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('products.edit')
+                                        <a href="{{ route('admin.products.edit', $product->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('products.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-product"
+                                            data-id="{{ $product->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -251,20 +261,26 @@
                                     </div>
 
                                     <div class="btn-group-mobile">
-                                        <button type="button" class="btn btn-info btn-sm show-product"
-                                            data-id="{{ $product->id }}">
-                                            <i class="fas fa-eye d-md-none"></i>
-                                            <span class="d-none d-md-inline">Ver</span>
-                                        </button>
-                                        <a href="{{ route('admin.products.edit', $product->id) }}"
-                                            class="btn btn-warning btn-sm">
-                                            <i class="fas fa-edit d-md-none"></i>
-                                            <span class="d-none d-md-inline">Editar</span>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-product"
-                                            data-id="{{ $product->id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @can('products.show')
+                                            <button type="button" class="btn btn-info btn-sm show-product"
+                                                data-id="{{ $product->id }}">
+                                                <i class="fas fa-eye d-md-none"></i>
+                                                <span class="d-none d-md-inline">Ver</span>
+                                            </button>
+                                        @endcan
+                                        @can('products.edit')
+                                            <a href="{{ route('admin.products.edit', $product->id) }}"
+                                                class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit d-md-none"></i>
+                                                <span class="d-none d-md-inline">Editar</span>
+                                            </a>
+                                        @endcan
+                                        @can('products.destroy')
+                                            <button type="button" class="btn btn-danger btn-sm delete-product"
+                                                data-id="{{ $product->id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>

@@ -8,19 +8,27 @@
         <div class="d-flex gap-2">
 
             @if ($currentCashCount)
-                <button type="button" class="btn btn-success mr-2" data-toggle="modal" data-target="#newMovementModal">
-                    <i class="fas fa-money-bill-wave mr-2"></i>Nuevo Movimiento
-                </button>
-                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#closeCashModal">
-                    <i class="fas fa-cash-register mr-2"></i>Cerrar Caja
-                </button>
+                @can('cash-counts.store-movement')
+                    <button type="button" class="btn btn-success mr-2" data-toggle="modal" data-target="#newMovementModal">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Nuevo Movimiento
+                    </button>
+                @endcan
+                @can('cash-counts.close')
+                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#closeCashModal">
+                        <i class="fas fa-cash-register mr-2"></i>Cerrar Caja
+                    </button>
+                @endcan
             @else
-                <a href="{{ route('admin.cash-counts.report') }}" class="btn btn-info mr-2" target="_blank">
-                    <i class="fas fa-file-pdf mr-2"></i>Reporte
-                </a>
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#openCashModal">
-                    <i class="fas fa-cash-register mr-2"></i>Abrir Caja
-                </button>
+                @can('cash-counts.report')
+                    <a href="{{ route('admin.cash-counts.report') }}" class="btn btn-info mr-2" target="_blank">
+                        <i class="fas fa-file-pdf mr-2"></i>Reporte
+                    </a>
+                @endcan
+                @can('cash-counts.create')
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#openCashModal">
+                        <i class="fas fa-cash-register mr-2"></i>Abrir Caja
+                    </button>
+                @endcan
             @endif
         </div>
     </div>
@@ -156,20 +164,26 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm view-movements"
-                                        data-id="{{ $cashCount->id }}" data-toggle="tooltip" title="Ver movimientos">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                    @can('cash-counts.show')
+                                        <button type="button" class="btn btn-info btn-sm view-movements"
+                                            data-id="{{ $cashCount->id }}" data-toggle="tooltip" title="Ver movimientos">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
                                     @if (!$cashCount->closing_date)
-                                        <a href="{{ route('admin.cash-counts.edit', $cashCount->id) }}"
-                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        @can('cash-counts.edit')
+                                            <a href="{{ route('admin.cash-counts.edit', $cashCount->id) }}"
+                                                class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endcan
                                     @endif
-                                    <button type="button" class="btn btn-danger btn-sm delete-cash-count"
-                                        data-id="{{ $cashCount->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('cash-counts.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-cash-count"
+                                            data-id="{{ $cashCount->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

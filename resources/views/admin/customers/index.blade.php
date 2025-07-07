@@ -9,18 +9,26 @@
             <p class="mb-0 d-none d-md-block">Administra y visualiza todos tus clientes en un solo lugar</p>
         </div>
         <div class="btn-group-mobile">
-            <a href="{{ route('admin.customers.report') }}" class="btn btn-info btn-sm" target="_blank">
-                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Reporte</span><i class="fas fa-file-pdf d-md-none"></i>
-            </a>
-            <a href="#" class="btn btn-danger btn-sm" id="debtReportBtn">
-                <i class="fas fa-file-invoice-dollar mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Deudas</span><i class="fas fa-file-invoice-dollar d-md-none"></i>
-            </a>
-            <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning btn-sm">
-                <i class="fas fa-history mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Pagos</span><i class="fas fa-history d-md-none"></i>
-            </a>
-            <a href="{{ route('admin.customers.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Nuevo</span><i class="fas fa-plus-circle d-md-none"></i>
-            </a>
+            @can('customers.report')
+                <a href="{{ route('admin.customers.report') }}" class="btn btn-info btn-sm" target="_blank">
+                    <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Reporte</span><i class="fas fa-file-pdf d-md-none"></i>
+                </a>
+            @endcan
+            @can('customers.debt-report')
+                <a href="#" class="btn btn-danger btn-sm" id="debtReportBtn">
+                    <i class="fas fa-file-invoice-dollar mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Deudas</span><i class="fas fa-file-invoice-dollar d-md-none"></i>
+                </a>
+            @endcan
+            @can('customers.payment-history')
+                <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-history mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Pagos</span><i class="fas fa-history d-md-none"></i>
+                </a>
+            @endcan
+            @can('customers.create')
+                <a href="{{ route('admin.customers.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Nuevo</span><i class="fas fa-plus-circle d-md-none"></i>
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -111,19 +119,23 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">1 USD = </span>
                             </div>
-                            <input type="number" id="exchangeRate" class="form-control" value="120.00" step="0.01" min="0">
+                            <input type="number" id="exchangeRate" class="form-control" value="120.00" step="0.01" min="0" @cannot('customers.edit') readonly @endcannot>
                             <div class="input-group-append">
                                 <span class="input-group-text d-none d-sm-inline">VES</span>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary d-none d-md-inline-block ml-2 update-exchange-rate">
-                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
-                        </button>
+                        @can('customers.edit')
+                            <button type="button" class="btn btn-primary d-none d-md-inline-block ml-2 update-exchange-rate">
+                                <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                            </button>
+                        @endcan
                     </div>
                     <!-- Botón para móviles debajo del input -->
-                    <button type="button" class="btn btn-primary btn-sm mt-2 w-100 d-md-none update-exchange-rate">
-                        <i class="fas fa-sync-alt mr-1"></i>Actualizar
-                    </button>
+                    @can('customers.edit')
+                        <button type="button" class="btn btn-primary btn-sm mt-2 w-100 d-md-none update-exchange-rate">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                        </button>
+                    @endcan
                 </div>
                 <div class="col-md-6">
                     <div class="alert alert-info mb-0">
@@ -228,9 +240,11 @@
                                                 {{ $currency->symbol }}
                                                 <span class="debt-amount">{{ number_format($customer->formatted_total_debt, 2) }}</span>
                                             </span>
-                                            <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
+                                            @can('customers.edit')
+                                                <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            @endcan
                                             <br>
                                             <small class="text-muted">
                                                 Pendiente de pago
@@ -239,9 +253,11 @@
                                     @else
                                         <div>
                                             <span class="badge badge-success">Sin deuda</span>
-                                            <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
+                                            @can('customers.edit')
+                                                <button class="btn btn-sm btn-outline-primary edit-debt-btn ml-2">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            @endcan
                                         </div>
                                     @endif
                                 </td>
@@ -263,22 +279,30 @@
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-info btn-sm show-customer"
-                                            data-id="{{ $customer->id }}" data-toggle="tooltip" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-customer"
-                                            data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                        <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
-                                            class="btn btn-success btn-sm" data-toggle="tooltip" title="Nueva venta">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </a>
+                                        @can('customers.show')
+                                            <button type="button" class="btn btn-info btn-sm show-customer"
+                                                data-id="{{ $customer->id }}" data-toggle="tooltip" title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        @endcan
+                                        @can('customers.edit')
+                                            <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                                                class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        @endcan
+                                        @can('customers.destroy')
+                                            <button type="button" class="btn btn-danger btn-sm delete-customer"
+                                                data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
+                                        @can('sales.create')
+                                            <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                                class="btn btn-success btn-sm" data-toggle="tooltip" title="Nueva venta">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </a>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -386,27 +410,37 @@
                                     </div>
 
                                     <div class="btn-group-mobile">
-                                        <button type="button" class="btn btn-info btn-sm show-customer"
-                                            data-id="{{ $customer->id }}">
-                                            <i class="fas fa-eye d-md-none"></i><span class="d-none d-md-inline">Ver</span>
-                                        </button>
-                                        <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                            class="btn btn-warning btn-sm">
-                                            <i class="fas fa-edit d-md-none"></i><span class="d-none d-md-inline">Editar</span>
-                                        </a>
-                                        @if ($customer->total_debt > 0)
-                                            <button class="btn btn-outline-primary btn-sm edit-debt-btn">
-                                                <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
+                                        @can('customers.show')
+                                            <button type="button" class="btn btn-info btn-sm show-customer"
+                                                data-id="{{ $customer->id }}">
+                                                <i class="fas fa-eye d-md-none"></i><span class="d-none d-md-inline">Ver</span>
                                             </button>
+                                        @endcan
+                                        @can('customers.edit')
+                                            <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                                                class="btn btn-warning btn-sm">
+                                                <i class="fas fa-edit d-md-none"></i><span class="d-none d-md-inline">Editar</span>
+                                            </a>
+                                        @endcan
+                                        @if ($customer->total_debt > 0)
+                                            @can('customers.register-payment')
+                                                <button class="btn btn-outline-primary btn-sm edit-debt-btn">
+                                                    <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
+                                                </button>
+                                            @endcan
                                         @endif
-                                        <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
-                                            class="btn btn-success btn-sm">
-                                            <i class="fas fa-cart-plus d-md-none"></i><span class="d-none d-md-inline">Venta</span>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-customer"
-                                            data-id="{{ $customer->id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @can('sales.create')
+                                            <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                                class="btn btn-success btn-sm">
+                                                <i class="fas fa-cart-plus d-md-none"></i><span class="d-none d-md-inline">Venta</span>
+                                            </a>
+                                        @endcan
+                                        @can('customers.destroy')
+                                            <button type="button" class="btn btn-danger btn-sm delete-customer"
+                                                data-id="{{ $customer->id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
@@ -755,6 +789,18 @@
             .table td:nth-child(6) {
                 display: none;
             }
+        }
+
+        /* Estilos para el input del tipo de cambio deshabilitado */
+        #exchangeRate[readonly] {
+            background-color: #e9ecef;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #exchangeRate[readonly]:focus {
+            box-shadow: none;
+            border-color: #ced4da;
         }
     </style>
 @stop

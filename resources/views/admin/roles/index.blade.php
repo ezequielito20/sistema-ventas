@@ -6,12 +6,16 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Roles</h1>
         <div>
-            <a href="{{ route('admin.roles.report') }}" class="btn btn-info mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-2"></i>Reporte
-            </a>
-            <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Crear Nuevo Rol
-            </a>
+            @can('roles.report')
+                <a href="{{ route('admin.roles.report') }}" class="btn btn-info mr-2" target="_blank">
+                    <i class="fas fa-file-pdf mr-2"></i>Reporte
+                </a>
+            @endcan
+            @can('roles.create')
+                <a href="{{ route('admin.roles.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-2"></i>Crear Nuevo Rol
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -44,23 +48,31 @@
                             <td>{{ $role->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-success btn-sm show-role"
-                                        data-id="{{ $role->id }}" data-toggle="tooltip" title="Mostrar">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm"
-                                        data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a type="button" class="btn btn-warning btn-sm assign-permissions"
-                                        data-id="{{ $role->id }}" data-name="{{ $role->name }}" data-toggle="tooltip"
-                                        title="Asignar Permisos">
-                                        <i class="fas fa-key"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-role"
-                                        data-id="{{ $role->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('roles.show')
+                                        <button type="button" class="btn btn-success btn-sm show-role"
+                                            data-id="{{ $role->id }}" data-toggle="tooltip" title="Mostrar">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('roles.edit')
+                                        <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm"
+                                            data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('roles.assign-permissions')
+                                        <a type="button" class="btn btn-warning btn-sm assign-permissions"
+                                            data-id="{{ $role->id }}" data-name="{{ $role->name }}" data-toggle="tooltip"
+                                            title="Asignar Permisos">
+                                            <i class="fas fa-key"></i>
+                                        </a>
+                                    @endcan
+                                    @can('roles.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-role"
+                                            data-id="{{ $role->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

@@ -6,12 +6,16 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1 class="text-dark font-weight-bold">Gestión de Proveedores</h1>
         <div>
-            <a href="{{ route('admin.suppliers.report') }}" class="btn btn-info mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-2"></i>Reporte
-            </a>
-            <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Nuevo Proveedor
-            </a>
+            @can('suppliers.report')
+                <a href="{{ route('admin.suppliers.report') }}" class="btn btn-info mr-2" target="_blank">
+                    <i class="fas fa-file-pdf mr-2"></i>Reporte
+                </a>
+            @endcan
+            @can('suppliers.create')
+                <a href="{{ route('admin.suppliers.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-2"></i>Nuevo Proveedor
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -135,18 +139,24 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-supplier"
-                                        data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.suppliers.edit', $supplier->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-supplier"
-                                        data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('suppliers.show')
+                                        <button type="button" class="btn btn-info btn-sm show-supplier"
+                                            data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('suppliers.edit')
+                                        <a href="{{ route('admin.suppliers.edit', $supplier->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('suppliers.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-supplier"
+                                            data-id="{{ $supplier->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

@@ -9,9 +9,11 @@
             {{-- <a href="{{ route('admin.permissions.report') }}" class="btn btn-info mr-2" target="_blank">
                 <i class="fas fa-file-pdf mr-2"></i>Reporte
             </a> --}}
-            <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus-circle mr-2"></i>Nuevo Permiso
-            </a>
+            @can('permissions.create')
+                <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-2"></i>Nuevo Permiso
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -118,18 +120,24 @@
                             <td>{{ $permission->created_at->format('d/m/Y H:i') }}</td>
                             <td>
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm show-permission"
-                                        data-id="{{ $permission->id }}" data-toggle="tooltip" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.permissions.edit', $permission->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-permission"
-                                        data-id="{{ $permission->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('permissions.show')
+                                        <button type="button" class="btn btn-info btn-sm show-permission"
+                                            data-id="{{ $permission->id }}" data-toggle="tooltip" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('permissions.edit')
+                                        <a href="{{ route('admin.permissions.edit', $permission->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('permissions.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-permission"
+                                            data-id="{{ $permission->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

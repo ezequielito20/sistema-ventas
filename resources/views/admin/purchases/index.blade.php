@@ -6,23 +6,29 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Compras</h1>
         <div class="d-flex">
-            <a href="{{ route('admin.purchases.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
-                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Reporte</span>
-                <i class="fas fa-file-pdf d-md-none"></i>
-            </a>
+            @can('purchases.report')
+                <a href="{{ route('admin.purchases.report') }}" class="btn btn-info btn-sm mr-2" target="_blank">
+                    <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Reporte</span>
+                    <i class="fas fa-file-pdf d-md-none"></i>
+                </a>
+            @endcan
             @if ($cashCount)
-                <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                    <span class="d-md-inline d-none">Nueva Compra</span>
-                    <i class="fas fa-plus-circle d-md-none"></i>
-                </a>
+                @can('purchases.create')
+                    <a href="{{ route('admin.purchases.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                        <span class="d-md-inline d-none">Nueva Compra</span>
+                        <i class="fas fa-plus-circle d-md-none"></i>
+                    </a>
+                @endcan
             @else
-                <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger btn-sm">
-                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                    <span class="d-md-inline d-none">Abrir caja</span>
-                    <i class="fas fa-plus-circle d-md-none"></i>
-                </a>
+                @can('cash-counts.create')
+                    <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                        <span class="d-md-inline d-none">Abrir caja</span>
+                        <i class="fas fa-plus-circle d-md-none"></i>
+                    </a>
+                @endcan
             @endif
         </div>
     </div>
@@ -164,14 +170,18 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                        class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-purchase"
-                                        data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('purchases.edit')
+                                        <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
+                                            class="btn btn-warning btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('purchases.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                            data-id="{{ $purchase->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -249,13 +259,17 @@
                                         </div>
                                         
                                         <div class="btn-group-mobile">
-                                            <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-danger btn-sm delete-purchase"
-                                                data-id="{{ $purchase->id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            @can('purchases.edit')
+                                                <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            @can('purchases.destroy')
+                                                <button type="button" class="btn btn-danger btn-sm delete-purchase"
+                                                    data-id="{{ $purchase->id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>

@@ -13,14 +13,18 @@
             </div>
             <div class="col-12 col-lg-4">
                 <div class="d-flex flex-column flex-sm-row justify-content-lg-end">
-                    <a href="{{ route('admin.users.report') }}" class="btn btn-info btn-sm mb-2 mb-sm-0 mr-sm-2" target="_blank">
-                        <i class="fas fa-file-pdf mr-1"></i>
-                        <span class="d-none d-sm-inline">Reporte</span>
-                    </a>
-                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-user-plus mr-1"></i>
-                        <span class="d-none d-sm-inline">Nuevo Usuario</span>
-                    </a>
+                    @can('users.report')
+                        <a href="{{ route('admin.users.report') }}" class="btn btn-info btn-sm mb-2 mb-sm-0 mr-sm-2" target="_blank">
+                            <i class="fas fa-file-pdf mr-1"></i>
+                            <span class="d-none d-sm-inline">Reporte</span>
+                        </a>
+                    @endcan
+                    @can('users.create')
+                        <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus mr-1"></i>
+                            <span class="d-none d-sm-inline">Nuevo Usuario</span>
+                        </a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -546,19 +550,25 @@
                             </td>
                             <td>
                                             <div class="action-buttons justify-content-center">
-                                                <button type="button" class="action-btn btn-success-modern show-user"
-                                        data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                                <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn btn-info-modern"
-                                        data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @if ($user->id !== auth()->id())
-                                                    <button type="button" class="action-btn btn-danger-modern delete-user"
-                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
+                                                @can('users.show')
+                                                    <button type="button" class="action-btn btn-success-modern show-user"
+                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
                                         </button>
+                                                @endcan
+                                                @can('users.edit')
+                                                    <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn btn-info-modern"
+                                            data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                                @endcan
+                                    @if ($user->id !== auth()->id())
+                                                    @can('users.destroy')
+                                                        <button type="button" class="action-btn btn-danger-modern delete-user"
+                                                data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                                    @endcan
                                     @endif
                                 </div>
                             </td>
@@ -631,19 +641,25 @@
                             <div class="info-item">
                                 <span class="info-label">Acciones:</span>
                                 <div class="action-buttons">
-                                    <button type="button" class="action-btn btn-success-modern show-user"
-                                        data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn btn-info-modern"
-                                        data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @if ($user->id !== auth()->id())
-                                        <button type="button" class="action-btn btn-danger-modern delete-user"
-                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
+                                    @can('users.show')
+                                        <button type="button" class="action-btn btn-success-modern show-user"
+                                            data-id="{{ $user->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
                                         </button>
+                                    @endcan
+                                    @can('users.edit')
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn btn-info-modern"
+                                            data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @if ($user->id !== auth()->id())
+                                        @can('users.destroy')
+                                            <button type="button" class="action-btn btn-danger-modern delete-user"
+                                                data-id="{{ $user->id }}" data-toggle="tooltip" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
                                     @endif
                                 </div>
                             </div>

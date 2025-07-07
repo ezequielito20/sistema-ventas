@@ -6,16 +6,20 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Gestión de Categorías</h1>
         <div class="btn-group-mobile">
-            <a href="{{ route('admin.categories.report') }}" class="btn btn-info btn-sm" target="_blank">
-                <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Reporte</span>
-                <i class="fas fa-file-pdf d-md-none"></i>
-            </a>
-            <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
-                <span class="d-md-inline d-none">Nueva Categoría</span>
-                <i class="fas fa-plus-circle d-md-none"></i>
-            </a>
+            @can('categories.report')
+                <a href="{{ route('admin.categories.report') }}" class="btn btn-info btn-sm" target="_blank">
+                    <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Reporte</span>
+                    <i class="fas fa-file-pdf d-md-none"></i>
+                </a>
+            @endcan
+            @can('categories.create')
+                <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus-circle mr-1 d-md-inline d-none"></i>
+                    <span class="d-md-inline d-none">Nueva Categoría</span>
+                    <i class="fas fa-plus-circle d-md-none"></i>
+                </a>
+            @endcan
         </div>
     </div>
 @stop
@@ -48,18 +52,24 @@
                             <td>{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-success btn-sm show-category"
-                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                        class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-danger btn-sm delete-category"
-                                        data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @can('categories.show')
+                                        <button type="button" class="btn btn-success btn-sm show-category"
+                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('categories.edit')
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                            class="btn btn-info btn-sm" data-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('categories.destroy')
+                                        <button type="button" class="btn btn-danger btn-sm delete-category"
+                                            data-id="{{ $category->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -113,20 +123,26 @@
                                     </div>
 
                                     <div class="btn-group-mobile">
-                                        <button type="button" class="btn btn-success btn-sm show-category"
-                                            data-id="{{ $category->id }}">
-                                            <i class="fas fa-eye d-md-none"></i>
-                                            <span class="d-none d-md-inline">Ver</span>
-                                        </button>
-                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                            class="btn btn-info btn-sm">
-                                            <i class="fas fa-edit d-md-none"></i>
-                                            <span class="d-none d-md-inline">Editar</span>
-                                        </a>
-                                        <button type="button" class="btn btn-danger btn-sm delete-category"
-                                            data-id="{{ $category->id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @can('categories.show')
+                                            <button type="button" class="btn btn-success btn-sm show-category"
+                                                data-id="{{ $category->id }}">
+                                                <i class="fas fa-eye d-md-none"></i>
+                                                <span class="d-none d-md-inline">Ver</span>
+                                            </button>
+                                        @endcan
+                                        @can('categories.edit')
+                                            <a href="{{ route('admin.categories.edit', $category->id) }}"
+                                                class="btn btn-info btn-sm">
+                                                <i class="fas fa-edit d-md-none"></i>
+                                                <span class="d-none d-md-inline">Editar</span>
+                                            </a>
+                                        @endcan
+                                        @can('categories.destroy')
+                                            <button type="button" class="btn btn-danger btn-sm delete-category"
+                                                data-id="{{ $category->id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
                                     </div>
                                 </div>
                             </div>
