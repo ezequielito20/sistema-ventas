@@ -531,8 +531,8 @@ class CustomerController extends Controller
             'total_debt' => $totalDebt
          ]);
 
-         // Descargar PDF
-         return $pdf->download('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
+         // Mostrar PDF en el navegador
+         return $pdf->stream('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
       } catch (\Exception $e) {
          Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
          return redirect()->route('admin.customers.index')

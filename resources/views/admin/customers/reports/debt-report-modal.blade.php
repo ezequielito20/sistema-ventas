@@ -33,7 +33,7 @@
                             </div>
                         </div>
                         <a href="{{ route('admin.customers.debt-report.download') }}" class="btn btn-sm btn-danger" target="_blank">
-                            <i class="fas fa-file-pdf mr-1"></i>Descargar PDF
+                            <i class="fas fa-file-pdf mr-1"></i>Ver PDF
                         </a>
                     </div>
                 </div>
