@@ -503,10 +503,10 @@ class CustomerController extends Controller
    public function debtReport()
    {
       try {
-         // Obtener clientes con deudas pendientes
+         // Obtener clientes con deudas pendientes ordenados alfabéticamente
          $customers = Customer::where('company_id', $this->company->id)
             ->where('total_debt', '>', 0)
-            ->orderBy('total_debt', 'desc')
+            ->orderBy('name', 'asc')
             ->get();
 
          $company = $this->company;
