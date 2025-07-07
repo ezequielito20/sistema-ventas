@@ -60,7 +60,7 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     @endcan
-                                    @can('roles.assign-permissions')
+                                    @can('roles.edit')
                                         <a type="button" class="btn btn-warning btn-sm assign-permissions"
                                             data-id="{{ $role->id }}" data-name="{{ $role->name }}" data-toggle="tooltip"
                                             title="Asignar Permisos">
