@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
@@ -321,36 +322,96 @@ class RoleController extends Controller
    public function destroy($id)
    {
       try {
-         $role = Role::where('id', $id)
-                     ->where('company_id', $this->company->id)
-                     ->firstOrFail();
-
-         // Verificar si es un rol del sistema
-         if (in_array($role->name, ['admin', 'user', 'superadmin'])) {
+         // Validar ID
+         if (!is_numeric($id) || $id <= 0) {
+            Log::warning('Intento de eliminar rol con ID inválido', ['id' => $id, 'user_id' => Auth::id()]);
             return response()->json([
                'status' => 'error',
-               'message' => 'No se pueden eliminar roles del sistema'
+               'message' => 'ID de rol inválido: ' . $id,
+               'details' => ['error_type' => 'validation_error']
+            ], 400);
+         }
+
+         $role = Role::where('id', $id)
+                     ->where('company_id', $this->company->id)
+                     ->first();
+
+         if (!$role) {
+            Log::warning('Intento de eliminar rol inexistente', [
+               'role_id' => $id,
+               'company_id' => $this->company->id,
+               'user_id' => Auth::id()
+            ]);
+            return response()->json([
+               'status' => 'error',
+               'message' => 'Rol no encontrado (ID: ' . $id . ', Empresa: ' . $this->company->id . ')',
+               'details' => ['error_type' => 'not_found']
+            ], 404);
+         }
+
+         // Verificar si es un rol del sistema
+         $systemRoles = ['admin', 'user', 'superadmin'];
+         if (in_array($role->name, $systemRoles)) {
+            Log::warning('Intento de eliminar rol del sistema', [
+               'role_id' => $id,
+               'role_name' => $role->name,
+               'user_id' => Auth::id()
+            ]);
+            return response()->json([
+               'status' => 'error',
+               'message' => 'No se pueden eliminar roles del sistema (' . $role->name . ')',
+               'details' => ['error_type' => 'system_role', 'role_name' => $role->name]
             ], 403);
          }
 
          // Verificar si el rol tiene usuarios asignados
-         if ($role->users()->count() > 0) {
+         $usersCount = $role->users()->count();
+         if ($usersCount > 0) {
+            Log::warning('Intento de eliminar rol con usuarios asignados', [
+               'role_id' => $id,
+               'role_name' => $role->name,
+               'users_count' => $usersCount,
+               'user_id' => Auth::id()
+            ]);
             return response()->json([
                'status' => 'error',
-               'message' => 'No se puede eliminar un rol que tiene usuarios asignados'
+               'message' => 'No se puede eliminar un rol que tiene ' . $usersCount . ' usuario(s) asignado(s)',
+               'details' => ['error_type' => 'has_users', 'users_count' => $usersCount]
             ], 403);
          }
 
          $role->delete();
 
+         Log::info('Rol eliminado exitosamente', [
+            'role_id' => $id,
+            'role_name' => $role->name,
+            'user_id' => Auth::id()
+         ]);
+
          return response()->json([
             'status' => 'success',
-            'message' => 'Rol eliminado exitosamente'
+            'message' => 'Rol "' . $role->name . '" eliminado exitosamente'
          ]);
       } catch (\Exception $e) {
+         Log::error('Error al eliminar rol', [
+            'error_message' => $e->getMessage(),
+            'error_line' => $e->getLine(),
+            'role_id' => $id,
+            'company_id' => $this->company ? $this->company->id : 'N/A',
+            'user_id' => Auth::id(),
+            'stack_trace' => $e->getTraceAsString()
+         ]);
+
          return response()->json([
             'status' => 'error',
-            'message' => 'Error al eliminar el rol'
+            'message' => 'Error interno al eliminar el rol: ' . $e->getMessage(),
+            'details' => [
+               'error_type' => class_basename($e),
+               'debug_info' => [
+                  'role_id' => $id,
+                  'company_id' => $this->company ? $this->company->id : 'N/A'
+               ]
+            ]
          ], 500);
       }
    }
@@ -361,10 +422,32 @@ class RoleController extends Controller
    public function show($id)
    {
       try {
+         // Validar ID
+         if (!is_numeric($id) || $id <= 0) {
+            return response()->json([
+               'status' => 'error',
+               'message' => 'ID de rol inválido: ' . $id,
+               'details' => ['error_type' => 'validation_error']
+            ], 400);
+         }
+
          $role = Role::with('permissions', 'users')
                      ->where('id', $id)
                      ->where('company_id', $this->company->id)
-                     ->firstOrFail();
+                     ->first();
+
+         if (!$role) {
+            Log::warning('Intento de acceder a rol inexistente', [
+               'role_id' => $id,
+               'company_id' => $this->company->id,
+               'user_id' => Auth::id()
+            ]);
+            return response()->json([
+               'status' => 'error',
+               'message' => 'Rol no encontrado (ID: ' . $id . ', Empresa: ' . $this->company->id . ')',
+               'details' => ['error_type' => 'not_found']
+            ], 404);
+         }
 
          return response()->json([
             'status' => 'success',
@@ -374,13 +457,28 @@ class RoleController extends Controller
                'created_at' => $role->created_at->format('d/m/Y H:i'),
                'updated_at' => $role->updated_at->format('d/m/Y H:i'),
                'users_count' => $role->users->count(),
-               'permissions_count' => $role->permissions->count()
+               'permissions_count' => $role->permissions->count(),
+               'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin'])
             ]
          ]);
       } catch (\Exception $e) {
+         Log::error('Error al obtener datos del rol', [
+            'error_message' => $e->getMessage(),
+            'role_id' => $id,
+            'company_id' => $this->company ? $this->company->id : 'N/A',
+            'user_id' => Auth::id()
+         ]);
+
          return response()->json([
             'status' => 'error',
-            'message' => 'Error al obtener los datos del rol'
+            'message' => 'Error interno al obtener los datos del rol: ' . $e->getMessage(),
+            'details' => [
+               'error_type' => class_basename($e),
+               'debug_info' => [
+                  'role_id' => $id,
+                  'company_id' => $this->company ? $this->company->id : 'N/A'
+               ]
+            ]
          ], 500);
       }
    }
@@ -402,17 +500,92 @@ class RoleController extends Controller
    public function permissions($id)
    {
       try {
+         // Validar ID
+         if (!is_numeric($id) || $id <= 0) {
+            return response()->json([
+               'status' => 'error',
+               'message' => 'ID de rol inválido: ' . $id,
+               'details' => ['error_type' => 'validation_error']
+            ], 400);
+         }
+
+         // Verificar que la empresa existe
+         if (!$this->company || !$this->company->id) {
+            Log::error('No se pudo determinar la empresa del usuario', [
+               'user_id' => Auth::id(),
+               'role_id' => $id
+            ]);
+            return response()->json([
+               'status' => 'error',
+               'message' => 'No se pudo determinar la empresa del usuario autenticado',
+               'details' => ['error_type' => 'company_not_found']
+            ], 500);
+         }
+
          $role = Role::where('id', $id)
                      ->where('company_id', $this->company->id)
-                     ->firstOrFail();
+                     ->first();
+
+         if (!$role) {
+            Log::warning('Intento de obtener permisos de rol inexistente', [
+               'role_id' => $id,
+               'company_id' => $this->company->id,
+               'user_id' => Auth::id()
+            ]);
+            return response()->json([
+               'status' => 'error',
+               'message' => 'Rol no encontrado (ID: ' . $id . ', Empresa: ' . $this->company->id . ')',
+               'details' => ['error_type' => 'not_found']
+            ], 404);
+         }
+
+         // Obtener permisos con información adicional
+         $permissions = $role->permissions->map(function($permission) {
+            return [
+               'id' => $permission->id,
+               'name' => $permission->name,
+               'guard_name' => $permission->guard_name,
+               'created_at' => $permission->created_at->format('d/m/Y H:i')
+            ];
+         });
+
+         Log::info('Permisos de rol obtenidos exitosamente', [
+            'role_id' => $id,
+            'role_name' => $role->name,
+            'permissions_count' => $permissions->count(),
+            'user_id' => Auth::id()
+         ]);
+
          return response()->json([
             'status' => 'success',
-            'permissions' => $role->permissions
+            'permissions' => $permissions,
+            'role_info' => [
+               'id' => $role->id,
+               'name' => $role->name,
+               'is_system_role' => in_array($role->name, ['admin', 'superadmin', 'administrator', 'root'])
+            ]
          ]);
       } catch (\Exception $e) {
+         Log::error('Error al obtener permisos del rol', [
+            'error_message' => $e->getMessage(),
+            'error_line' => $e->getLine(),
+            'role_id' => $id,
+            'company_id' => $this->company ? $this->company->id : 'N/A',
+            'user_id' => Auth::id(),
+            'stack_trace' => $e->getTraceAsString()
+         ]);
+
          return response()->json([
             'status' => 'error',
-            'message' => 'Error al obtener los permisos del rol'
+            'message' => 'Error interno al obtener los permisos del rol: ' . $e->getMessage(),
+            'details' => [
+               'error_type' => class_basename($e),
+               'debug_info' => [
+                  'role_id' => $id,
+                  'company_id' => $this->company ? $this->company->id : 'N/A',
+                  'user_authenticated' => Auth::check()
+               ]
+            ]
          ], 500);
       }
    }
@@ -425,44 +598,137 @@ class RoleController extends Controller
       try {
          DB::beginTransaction();
 
+         // Validar que el ID sea válido
+         if (!is_numeric($id) || $id <= 0) {
+            throw new \Exception('ID de rol inválido: ' . $id);
+         }
+
+         // Verificar que la empresa existe
+         if (!$this->company || !$this->company->id) {
+            throw new \Exception('No se pudo determinar la empresa del usuario autenticado');
+         }
+
+         // Buscar el rol
          $role = Role::where('id', $id)
                      ->where('company_id', $this->company->id)
-                     ->firstOrFail();
+                     ->first();
+
+         if (!$role) {
+            throw new \Exception('Rol no encontrado (ID: ' . $id . ', Empresa: ' . $this->company->id . ')');
+         }
 
          // Verificar si es un rol del sistema
-         if (in_array($role->name, ['admin', 'superadmin', 'administrator', 'root'])) {
-            throw new \Exception('No se pueden modificar los permisos de roles del sistema');
+         $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+         if (in_array($role->name, $systemRoles)) {
+            throw new \Exception('No se pueden modificar los permisos de roles del sistema (' . $role->name . ')');
          }
 
          // Validar los permisos recibidos
          $permissions = $request->input('permissions', []);
-         $validPermissions = Permission::whereIn('id', $permissions)->pluck('id')->toArray();
+         
+         // Log para debugging
+         Log::info('Asignando permisos al rol', [
+            'role_id' => $id,
+            'role_name' => $role->name,
+            'company_id' => $this->company->id,
+            'permissions_received' => $permissions,
+            'permissions_count' => count($permissions)
+         ]);
 
-         // Sincronizar los permisos
-         $role->syncPermissions($validPermissions);
+         // Verificar que los permisos sean válidos
+         if (!is_array($permissions)) {
+            throw new \Exception('Los permisos deben ser un array. Tipo recibido: ' . gettype($permissions));
+         }
+
+         // Filtrar permisos válidos
+         $validPermissions = [];
+         if (!empty($permissions)) {
+            $validPermissions = Permission::whereIn('id', $permissions)->pluck('id')->toArray();
+            
+            // Verificar si se encontraron permisos válidos
+            $invalidPermissions = array_diff($permissions, $validPermissions);
+            if (!empty($invalidPermissions)) {
+               Log::warning('Permisos inválidos encontrados', [
+                  'invalid_permissions' => $invalidPermissions,
+                  'valid_permissions' => $validPermissions
+               ]);
+            }
+         }
+
+         // Verificar que el rol puede ser modificado
+         if (!$role->exists) {
+            throw new \Exception('El rol no existe en la base de datos');
+         }
+
+         // Intentar sincronizar los permisos
+         try {
+            $role->syncPermissions($validPermissions);
+         } catch (\Exception $syncError) {
+            throw new \Exception('Error al sincronizar permisos: ' . $syncError->getMessage());
+         }
 
          DB::commit();
 
+         // Log de éxito
+         Log::info('Permisos asignados exitosamente', [
+            'role_id' => $id,
+            'role_name' => $role->name,
+            'permissions_assigned' => count($validPermissions),
+            'company_id' => $this->company->id
+         ]);
+
          return response()->json([
             'status' => 'success',
-            'message' => 'Permisos actualizados correctamente'
+            'message' => 'Permisos actualizados correctamente',
+            'details' => [
+               'role_name' => $role->name,
+               'permissions_assigned' => count($validPermissions),
+               'total_permissions_received' => count($permissions)
+            ]
          ]);
 
       } catch (\Exception $e) {
          DB::rollBack();
          
-         // Si es un error específico de roles del sistema
-         if (str_contains($e->getMessage(), 'roles del sistema')) {
-            return response()->json([
-               'status' => 'error',
-               'message' => $e->getMessage()
-            ], 403);
+         // Log detallado del error
+         Log::error('Error al asignar permisos al rol', [
+            'error_message' => $e->getMessage(),
+            'error_line' => $e->getLine(),
+            'error_file' => $e->getFile(),
+            'role_id' => $id ?? 'N/A',
+            'company_id' => $this->company ? $this->company->id : 'N/A',
+            'user_id' => Auth::id() ?? 'N/A',
+            'request_data' => $request->all(),
+            'stack_trace' => $e->getTraceAsString()
+         ]);
+
+         // Determinar el tipo de error y el código de respuesta
+         $statusCode = 500;
+         $errorMessage = $e->getMessage();
+
+         if (str_contains($errorMessage, 'roles del sistema')) {
+            $statusCode = 403;
+         } elseif (str_contains($errorMessage, 'no encontrado')) {
+            $statusCode = 404;
+         } elseif (str_contains($errorMessage, 'inválido')) {
+            $statusCode = 400;
          }
 
          return response()->json([
             'status' => 'error',
-            'message' => 'Error al actualizar los permisos: ' . $e->getMessage()
-         ], 500);
+            'message' => $errorMessage,
+            'details' => [
+               'error_type' => class_basename($e),
+               'error_code' => $e->getCode(),
+               'debug_info' => [
+                  'role_id' => $id ?? 'N/A',
+                  'company_id' => $this->company->id ?? 'N/A',
+                  'user_authenticated' => Auth::check(),
+                  'request_method' => $request->method(),
+                  'permissions_received' => is_array($request->input('permissions')) ? count($request->input('permissions', [])) : 'Invalid format'
+               ]
+            ]
+         ], $statusCode);
       }
    }
 }
