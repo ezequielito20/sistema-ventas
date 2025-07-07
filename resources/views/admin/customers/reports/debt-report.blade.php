@@ -88,7 +88,7 @@
                 <th>#</th>
                 <th>Cliente</th>
                 <th>Contacto</th>
-                <th>Cédula</th>
+                {{-- <th>Cédula</th> --}}
                 <th>Deuda Total</th>
                 {{-- <th>Última Compra</th> --}}
             </tr>
@@ -102,7 +102,7 @@
                         {{ $customer->phone ?? '' }}<br>
                         {{ $customer->email ?? '' }}
                     </td>
-                    <td>{{ $customer->nit_number ?? '' }}</td>
+                    {{-- <td>{{ $customer->nit_number ?? '' }}</td> --}}
                     <td class="text-right text-danger">
                         {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                     </td>
