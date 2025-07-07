@@ -220,6 +220,7 @@
             $('#paymentsTable').DataTable({
                 responsive: true,
                 autoWidth: false,
+                order: [[0, 'desc']], // Ordenar por la primera columna (Fecha) en orden descendente
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 }
