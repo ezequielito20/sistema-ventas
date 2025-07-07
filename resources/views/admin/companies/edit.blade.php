@@ -108,11 +108,11 @@
 
                                     {{-- NIT field --}}
                                     <div class="form-group">
-                                        <label for="nit">NIT</label>
+                                        <label for="nit">Cédula</label>
                                         <div class="input-group mb-3">
                                             <input type="text" id="nit" name="nit"
                                                 class="form-control @error('nit') is-invalid @enderror"
-                                                value="{{ $company->nit }}" placeholder="NIT" required>
+                                                value="{{ $company->nit }}" placeholder="Cédula" required>
                                             <div class="input-group-append">
                                                 <div class="input-group-text">
                                                     <span class="fas fa-id-card"></span>

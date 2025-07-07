@@ -67,7 +67,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="nit_number" class="font-weight-bold ">
-                                            Número de NIT
+                                            Número de Cédula
                                         </label>
                                         <div class="input-group input-group-lg">
                                             <div class="input-group-prepend">
@@ -79,7 +79,7 @@
                                                 class="form-control form-control-lg @error('nit_number') is-invalid @enderror"
                                                 id="nit_number" name="nit_number"
                                                 value="{{ old('nit_number', $customer->nit_number) }}"
-                                                placeholder="Ingrese el NIT" >
+                                                placeholder="Ingrese la Cédula" >
                                             @error('nit_number')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror

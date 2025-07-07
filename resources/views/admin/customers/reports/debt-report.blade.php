@@ -88,9 +88,9 @@
                 <th>#</th>
                 <th>Cliente</th>
                 <th>Contacto</th>
-                <th>NIT</th>
+                <th>Cédula</th>
                 <th>Deuda Total</th>
-                <th>Última Compra</th>
+                {{-- <th>Última Compra</th> --}}
             </tr>
         </thead>
         <tbody>
@@ -99,20 +99,20 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $customer->name }}</td>
                     <td>
-                        {{ $customer->phone ?? 'N/A' }}<br>
-                        {{ $customer->email ?? 'N/A' }}
+                        {{ $customer->phone ?? '' }}<br>
+                        {{ $customer->email ?? '' }}
                     </td>
-                    <td>{{ $customer->nit_number ?? 'N/A' }}</td>
+                    <td>{{ $customer->nit_number ?? '' }}</td>
                     <td class="text-right text-danger">
                         {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                     </td>
-                    <td>
+                    {{-- <td>
                         @if($customer->lastSale)
                             {{ $customer->lastSale->sale_date->format('d/m/Y') }}
                         @else
-                            N/A
+                            
                         @endif
-                    </td>
+                    </td> --}}
                 </tr>
             @empty
                 <tr>

@@ -116,7 +116,7 @@
                                     <div class="input-group mb-3">
                                         <input type="text" name="nit"
                                             class="form-control @error('nit') is-invalid @enderror"
-                                            value="{{ old('nit') }}" placeholder="NIT" required>
+                                            value="{{ old('nit') }}" placeholder="Cédula" required>
                                         <div class="input-group-append">
                                             <div class="input-group-text">
                                                 <span class="fas fa-id-card"></span>

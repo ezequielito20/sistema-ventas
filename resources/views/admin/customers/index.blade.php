@@ -490,7 +490,7 @@
                                             <td id="customerPhone"></td>
                                         </tr>
                                         <tr>
-                                            <th>NIT:</th>
+                                            <th>Cédula:</th>
                                             <td id="customerNit"></td>
                                         </tr>
                                     </table>

@@ -129,7 +129,7 @@
             <tr style="text-align: center">
                 <th style="width: 5%">#</th>
                 <th style="width: 20%">Nombre</th>
-                <th style="width: 15%">NIT/CI</th>
+                <th style="width: 15%">CI</th>
                 <th style="width: 15%">Teléfono</th>
                 <th style="width: 20%">Email</th>
                 <th style="width: 15%">Total Ventas</th>
