@@ -14,12 +14,12 @@
                     <i class="fas fa-file-pdf mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Reporte</span><i class="fas fa-file-pdf d-md-none"></i>
                 </a>
             @endcan
-            @can('customers.debt-report')
+            @can('customers.report')
                 <a href="#" class="btn btn-danger btn-sm" id="debtReportBtn">
                     <i class="fas fa-file-invoice-dollar mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Deudas</span><i class="fas fa-file-invoice-dollar d-md-none"></i>
                 </a>
             @endcan
-            @can('customers.payment-history')
+            @can('customers.report')
                 <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-warning btn-sm">
                     <i class="fas fa-history mr-1 d-md-inline d-none"></i><span class="d-md-inline d-none">Pagos</span><i class="fas fa-history d-md-none"></i>
                 </a>
