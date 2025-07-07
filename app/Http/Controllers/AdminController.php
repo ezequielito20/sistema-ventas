@@ -187,6 +187,24 @@ class AdminController extends Controller
          $purchaseMonthlyData[] = $monthlyTotal ?? 0;
       }
 
+      // Datos para gráficos mensuales de ventas
+      $salesMonthlyLabels = [];
+      $salesMonthlyData = [];
+
+      for ($i = 5; $i >= 0; $i--) {
+         $date = now()->subMonths($i);
+         $salesMonthlyLabels[] = $date->format('M Y');
+
+         // Suma del total de ventas por mes
+         $monthlySalesTotal = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->whereMonth('sale_date', $date->month)
+            ->whereYear('sale_date', $date->year)
+            ->sum('total_price');
+
+         $salesMonthlyData[] = $monthlySalesTotal ?? 0;
+      }
+
       // Top 5 productos más comprados
       $topProducts = DB::table('purchase_details as pd')
          ->select(
@@ -330,6 +348,13 @@ class AdminController extends Controller
          ->whereDate('sale_date', now())
          ->sum('total_price');
 
+      // Ventas de la semana actual (desde el lunes)
+      $startOfWeek = now()->startOfWeek(); // Lunes
+      $weeklySales = DB::table('sales')
+         ->where('company_id', $companyId)
+         ->whereBetween('sale_date', [$startOfWeek, now()])
+         ->sum('total_price');
+
       // 2. Promedio de venta por cliente
       $averageCustomerSpend = DB::table('sales')
          ->where('company_id', $companyId)
@@ -349,6 +374,11 @@ class AdminController extends Controller
          ->orderByDesc('total_profit')
          ->limit(5)
          ->get();
+
+      // 4. Total por cobrar (deudas pendientes)
+      $totalPendingDebt = DB::table('customers')
+         ->where('company_id', $companyId)
+         ->sum('total_debt');
 
       // Estadísticas de Arqueo de Caja
       $currentCashCount = DB::table('cash_counts')
@@ -384,6 +414,36 @@ class AdminController extends Controller
                ->where('type', 'expense')
                ->sum('amount')
          ) : 0;
+
+      // Calcular ventas y compras desde que está abierta la caja
+      $salesSinceCashOpen = 0;
+      $purchasesSinceCashOpen = 0;
+      $debtSinceCashOpen = 0;
+
+      if ($currentCashCount) {
+         $cashOpenDate = $currentCashCount->opening_date;
+         
+         // Ventas desde que se abrió la caja
+         $salesSinceCashOpen = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $cashOpenDate)
+            ->sum('total_price');
+            
+         // Compras desde que se abrió la caja
+         $purchasesSinceCashOpen = DB::table('purchases')
+            ->where('company_id', $companyId)
+            ->where('purchase_date', '>=', $cashOpenDate)
+            ->sum('total_price');
+            
+         // Deudas generadas desde que se abrió la caja
+         // Calculamos basándose en las ventas realizadas desde la apertura que aún están pendientes
+         $debtSinceCashOpen = DB::table('customers')
+            ->join('sales', 'customers.id', '=', 'sales.customer_id')
+            ->where('customers.company_id', $companyId)
+            ->where('sales.sale_date', '>=', $cashOpenDate)
+            ->where('customers.total_debt', '>', 0) // Solo clientes con deuda pendiente
+            ->sum('sales.total_price');
+      }
 
       // Datos para el gráfico de ingresos vs egresos (últimos 7 días)
       $lastDays = collect(range(6, 0))->map(function ($days) {
@@ -434,6 +494,8 @@ class AdminController extends Controller
          'lowStockCount',
          'purchaseMonthlyLabels',
          'purchaseMonthlyData',
+         'salesMonthlyLabels',
+         'salesMonthlyData',
          'topProducts',
          'totalCustomers',
          'customerGrowth',
@@ -448,12 +510,17 @@ class AdminController extends Controller
          'topCustomers',
          'salesByCategory',
          'todaySales',
+         'weeklySales',
          'averageCustomerSpend',
          'mostProfitableProducts',
+         'totalPendingDebt',
          'currentCashCount',
          'todayIncome',
          'todayExpenses',
          'currentBalance',
+         'salesSinceCashOpen',
+         'purchasesSinceCashOpen',
+         'debtSinceCashOpen',
          'chartData'
       ));
    }

@@ -7,8 +7,184 @@
 @stop
 
 @section('content')
-    <div class="row">
-        {{-- Widget de Usuarios --}}
+    {{-- Sección de Arqueo de Caja --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4 class="text-primary">
+                <i class="fas fa-cash-register mr-2"></i>
+                Información de Arqueo de Caja
+            </h4>
+        </div>
+
+        {{-- Widget de Balance General --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-success shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($currentBalance, 2) }}</h3>
+                    <p>Balance Actual</p>
+                    <span class="text-sm">
+                        Desde:
+                        {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m/Y H:i') : 'No hay caja abierta' }}
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Ventas vs Compras --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-info shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($salesSinceCashOpen, 2) }}</h3>
+                    <p>Ventas desde Apertura</p>
+                    <span class="text-sm">
+                        Compras: {{ $currency->symbol }}{{ number_format($purchasesSinceCashOpen, 2) }}
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Movimientos por Hora --}}
+        {{-- <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-warning shadow">
+                <div class="inner">
+                    @php
+                        $hoursOpen = $currentCashCount ? now()->diffInHours($currentCashCount->opening_date) + 1 : 1;
+                        $movementsPerHour = $totalMovements / $hoursOpen;
+                    @endphp
+                    <h3>{{ number_format($movementsPerHour, 1) }}</h3>
+                    <p>Movimientos por Hora</p>
+                    <span class="text-sm">
+                        Total hoy: {{ $totalMovements }} movimientos
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div> --}}
+
+        {{-- Widget de Días Críticos --}}
+        {{-- <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-danger shadow">
+                <div class="inner">
+                    @php
+                        $criticalDays = collect($chartData['income'])
+                            ->zip($chartData['expenses'])
+                            ->filter(function ($pair) {
+                                return $pair[1] > $pair[0];
+                            })
+                            ->count();
+                    @endphp
+                    <h3>{{ $criticalDays }}</h3>
+                    <p>Días con Déficit</p>
+                    <span class="text-sm">
+                        Últimos 7 días
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div> --}}
+
+        {{-- Widget de Dinero por Cobrar en este Arqueo --}}
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-gradient-warning shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($debtSinceCashOpen, 2) }}</h3>
+                    <p>Por Cobrar en Arqueo</p>
+                    <span class="text-sm">
+                        Ventas pendientes desde apertura
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <a href="{{ route('admin.customers.index') }}" class="small-box-footer">
+                    Ver deudas <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- Sección de Ventas --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4 class="text-primary">
+                <i class="fas fa-cash-register mr-2"></i>
+                Información de Ventas
+            </h4>
+        </div>
+
+        {{-- Widget de Ventas de la Semana --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-success shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($weeklySales, 2) }}</h3>
+                    <p>Ventas de la Semana</p>
+                    <span class="text-sm">
+                        Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Promedio por Cliente --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-info shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($averageCustomerSpend, 2) }}</h3>
+                    <p>Promedio de Venta por Cliente</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Productos Rentables --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-warning shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}</h3>
+                    <p>Ganancia Total Teórica</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Widget de Total por Cobrar --}}
+        <div class="col-lg-4 col-6">
+            <div class="small-box bg-danger shadow">
+                <div class="inner">
+                    <h3>{{ $currency->symbol }}{{ number_format($totalPendingDebt, 2) }}</h3>
+                    <p>Total por Cobrar</p>
+                    <span class="text-sm">
+                        Deudas pendientes de clientes
+                    </span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <a href="{{ route('admin.customers.index') }}" class="small-box-footer">
+                    Ver clientes <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {{-- <div class="row">
         <div class="col-lg-3 col-12">
             <div class="small-box bg-info shadow zoomP">
                 <div class="inner">
@@ -24,7 +200,6 @@
             </div>
         </div>
 
-        {{-- Widget de Roles --}}
         <div class="col-lg-3 col-12">
             <div class="small-box bg-success shadow zoomP">
                 <div class="inner">
@@ -40,7 +215,6 @@
             </div>
         </div>
 
-        {{-- Widget de Categorías --}}
         <div class="col-lg-3 col-12">
             <div class="small-box bg-warning shadow zoomP">
                 <div class="inner">
@@ -56,7 +230,6 @@
             </div>
         </div>
 
-        {{-- Widget de Productos --}}
         <div class="col-lg-3 col-12">
             <div class="small-box bg-danger shadow zoomP">
                 <div class="inner">
@@ -71,10 +244,10 @@
                 </a>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     {{-- Gráficos o estadísticas adicionales --}}
-    <div class="row">
+    {{-- <div class="row">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-primary">
@@ -104,11 +277,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     {{-- Nueva fila para gráficos de productos --}}
-    <div class="row">
-        {{-- Gráfico de productos por categoría --}}
+    {{-- <div class="row">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-danger">
@@ -124,7 +296,6 @@
             </div>
         </div>
 
-        {{-- Tabla de resumen de productos --}}
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-danger">
@@ -161,9 +332,10 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
+
     {{-- Información de Proveedores --}}
-    <div class="row mt-4">
+    {{-- <div class="row mt-4">
         <div class="col-12">
             <h4 class="text-primary">
                 <i class="fas fa-truck mr-2"></i>
@@ -171,7 +343,6 @@
             </h4>
         </div>
 
-        {{-- Widget de Total Proveedores --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary shadow">
                 <div class="inner">
@@ -187,7 +358,6 @@
             </div>
         </div>
 
-        {{-- Widget de Proveedores con Stock Bajo --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-warning shadow">
                 <div class="inner">
@@ -203,7 +373,6 @@
             </div>
         </div>
 
-        {{-- Widget de Proveedores Nuevos --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success shadow">
                 <div class="inner">
@@ -219,7 +388,6 @@
             </div>
         </div>
 
-        {{-- Widget de Valor Total de Inventario --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info shadow">
                 <div class="inner">
@@ -234,11 +402,10 @@
                 </a>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     {{-- Tablas y Gráficos Detallados --}}
-    <div class="row mt-4">
-        {{-- Top 5 Proveedores --}}
+    {{-- <div class="row mt-4">
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-primary">
@@ -272,7 +439,6 @@
             </div>
         </div>
 
-        {{-- Proveedores con Stock Bajo --}}
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-warning">
@@ -305,7 +471,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     {{-- Sección de Compras --}}
     <div class="row mt-4">
@@ -355,7 +521,7 @@
         </div>
 
         {{-- Widget de Proveedor Principal --}}
-        <div class="col-lg-3 col-6">
+        {{-- <div class="col-lg-3 col-6">
             <div class="small-box bg-warning shadow">
                 <div class="inner">
                     <h3>{{ $currency->symbol }}{{ number_format($topSupplier->total_amount ?? 0, 2) }}</h3>
@@ -369,10 +535,10 @@
                     Ver ranking <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
-        </div>
+        </div> --}}
 
         {{-- Widget de Productos en Stock Bajo --}}
-        <div class="col-lg-3 col-6">
+        {{-- <div class="col-lg-3 col-6">
             <div class="small-box bg-danger shadow">
                 <div class="inner">
                     <h3>{{ $lowStockCount }}</h3>
@@ -386,12 +552,28 @@
                     Ver productos <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
+        </div> --}}
+    </div>
+
+    {{-- Gráfico de Ventas Mensuales --}}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-success">
+                    <h3 class="card-title text-white">
+                        <i class="fas fa-chart-area mr-2"></i>
+                        Tendencia de Ventas Mensuales
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesTrendsChart" style="min-height: 350px;"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
     {{-- Gráficos de Compras --}}
     <div class="row mt-4">
-        {{-- Gráfico de Tendencia de Compras --}}
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-header bg-primary">
@@ -406,8 +588,7 @@
             </div>
         </div>
 
-        {{-- Top Productos por Volumen --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card shadow">
                 <div class="card-header bg-success">
                     <h3 class="card-title text-white">
@@ -444,7 +625,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 
     {{-- Información de Clientes --}}
@@ -497,7 +678,7 @@
         </div>
 
         {{-- Widget de Clientes Verificados --}}
-        <div class="col-lg-4 col-6">
+        {{-- <div class="col-lg-4 col-6">
             <div class="small-box bg-gradient-info shadow" style="min-height: 180px;">
                 <div class="inner">
                     <h3>{{ $verifiedCustomers ?? 0 }}</h3>
@@ -513,56 +694,7 @@
                     Ver listado <i class="fas fa-arrow-circle-right"></i>
                 </a>
             </div>
-        </div>
-    </div>
-
-    {{-- Sección de Ventas --}}
-    <div class="row mt-4">
-        <div class="col-12">
-            <h4 class="text-primary">
-                <i class="fas fa-cash-register mr-2"></i>
-                Información de Ventas
-            </h4>
-        </div>
-
-        {{-- Widget de Ventas del Día --}}
-        <div class="col-lg-4 col-6">
-            <div class="small-box bg-success shadow">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }}{{ number_format($todaySales, 2) }}</h3>
-                    <p>Ventas del Día</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-cash-register"></i>
-                </div>
-            </div>
-        </div>
-
-        {{-- Widget de Promedio por Cliente --}}
-        <div class="col-lg-4 col-6">
-            <div class="small-box bg-info shadow">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }}{{ number_format($averageCustomerSpend, 2) }}</h3>
-                    <p>Promedio de Venta por Cliente</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-            </div>
-        </div>
-
-        {{-- Widget de Productos Rentables --}}
-        <div class="col-lg-4 col-6">
-            <div class="small-box bg-warning shadow">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }}{{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}</h3>
-                    <p>Ganancia Total</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-            </div>
-        </div>
+        </div> --}}
     </div>
 
     {{-- Top 10 Productos Más Vendidos --}}
@@ -641,7 +773,7 @@
             </div>
         </div>
 
-        <div class="col-md-6">
+        {{-- <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-info">
                     <h3 class="card-title">
@@ -653,99 +785,11 @@
                     <canvas id="salesByCategoryChart" style="min-height: 250px;"></canvas>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 
     {{-- ---------------------------------------------- --}}
-    {{-- Sección de Arqueo de Caja --}}
-    <div class="row mt-4">
-        <div class="col-12">
-            <h4 class="text-primary">
-                <i class="fas fa-cash-register mr-2"></i>
-                Información de Arqueo de Caja
-            </h4>
-        </div>
-
-        {{-- Widget de Balance General --}}
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-gradient-success shadow">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }}{{ number_format($currentBalance, 2) }}</h3>
-                    <p>Balance Actual</p>
-                    <span class="text-sm">
-                        Desde:
-                        {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m/Y H:i') : 'No hay caja abierta' }}
-                    </span>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-balance-scale"></i>
-                </div>
-            </div>
-        </div>
-
-        {{-- Widget de Eficiencia de Caja --}}
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-gradient-info shadow">
-                <div class="inner">
-                    @php
-                        $efficiency = $todayIncome > 0 ? (($todayIncome - $todayExpenses) / $todayIncome) * 100 : 0;
-                    @endphp
-                    <h3>{{ number_format($efficiency, 1) }}%</h3>
-                    <p>Eficiencia de Caja</p>
-                    <span class="text-sm">
-                        Basado en ingresos vs egresos del día
-                    </span>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-            </div>
-        </div>
-
-        {{-- Widget de Movimientos por Hora --}}
-        {{-- <div class="col-lg-3 col-6">
-            <div class="small-box bg-gradient-warning shadow">
-                <div class="inner">
-                    @php
-                        $hoursOpen = $currentCashCount ? now()->diffInHours($currentCashCount->opening_date) + 1 : 1;
-                        $movementsPerHour = $totalMovements / $hoursOpen;
-                    @endphp
-                    <h3>{{ number_format($movementsPerHour, 1) }}</h3>
-                    <p>Movimientos por Hora</p>
-                    <span class="text-sm">
-                        Total hoy: {{ $totalMovements }} movimientos
-                    </span>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-        </div> --}}
-
-        {{-- Widget de Días Críticos --}}
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-gradient-danger shadow">
-                <div class="inner">
-                    @php
-                        $criticalDays = collect($chartData['income'])
-                            ->zip($chartData['expenses'])
-                            ->filter(function ($pair) {
-                                return $pair[1] > $pair[0];
-                            })
-                            ->count();
-                    @endphp
-                    <h3>{{ $criticalDays }}</h3>
-                    <p>Días con Déficit</p>
-                    <span class="text-sm">
-                        Últimos 7 días
-                    </span>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     {{-- Gráficos de Análisis --}}
     <div class="row mt-4">
@@ -765,7 +809,7 @@
         </div>
 
         {{-- Tabla de Días Críticos --}}
-        <div class="col-md-4">
+        {{-- <div class="col-md-4">
             <div class="card shadow">
                 <div class="card-header bg-danger">
                     <h3 class="card-title">
@@ -799,7 +843,7 @@
                     </table>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
 
 @stop
@@ -912,6 +956,63 @@
                     plugins: {
                         legend: {
                             display: false
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de tendencia de ventas mensuales
+            new Chart(document.getElementById('salesTrendsChart'), {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($salesMonthlyLabels) !!},
+                    datasets: [{
+                        label: 'Total de Ventas',
+                        data: {!! json_encode($salesMonthlyData) !!},
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#28a745',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Ventas: {{ $currency->symbol }}' + context.raw
+                                        .toLocaleString('es-PE');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
                         }
                     }
                 }
