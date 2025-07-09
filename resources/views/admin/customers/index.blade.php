@@ -608,6 +608,12 @@
                         </div>
                         
                         <div class="form-group">
+                            <label for="payment_time">Hora del Pago:</label>
+                            <input type="time" class="form-control" id="payment_time" name="payment_time" required>
+                            <small class="form-text text-muted">Hora en que se realizó el pago.</small>
+                        </div>
+                        
+                        <div class="form-group">
                             <label for="remaining_debt">Deuda Restante:</label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
@@ -1229,6 +1235,7 @@
                 $('#remaining_debt').val('');
                 $('#payment_notes').val('');
                 $('#payment_date').val(todayString).attr('max', todayString);
+                $('#payment_time').val(today.toTimeString().slice(0, 5)); // Establecer hora actual
                 
                 // Mostrar el modal
                 $('#debtPaymentModal').modal('show');
@@ -1256,6 +1263,7 @@
                 const customerId = $('#payment_customer_id').val();
                 const paymentAmount = parseFloat($('#payment_amount').val());
                 const paymentDate = $('#payment_date').val();
+                const paymentTime = $('#payment_time').val();
                 const notes = $('#payment_notes').val();
                 
                 // Validar que la fecha no sea mayor a hoy
@@ -1287,6 +1295,7 @@
                         _token: '{{ csrf_token() }}',
                         payment_amount: paymentAmount,
                         payment_date: paymentDate,
+                        payment_time: paymentTime,
                         notes: notes
                     },
                     success: function(response) {
