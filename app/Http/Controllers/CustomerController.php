@@ -442,10 +442,17 @@ class CustomerController extends Controller
       }
    }
 
-   public function report()
+   public function report(Request $request)
    {
       $company = $this->company;
       $currency = $this->currencies;
+      
+      // Si hay filtros, generar reporte de deudas filtrado
+      if ($request->has('search') || $request->has('debt_range') || $request->has('exchange_rate')) {
+         return $this->debtReport($request);
+      }
+      
+      // Reporte normal de todos los clientes
       $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
       $pdf = PDF::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
       return $pdf->stream('reporte-clientes.pdf');
@@ -500,25 +507,56 @@ class CustomerController extends Controller
    /**
     * Genera un reporte PDF de clientes con deudas pendientes
     */
-   public function debtReport()
+   public function debtReport(Request $request)
    {
       try {
-         // Obtener clientes con deudas pendientes ordenados alfabéticamente
-         $customers = Customer::where('company_id', $this->company->id)
-            ->where('total_debt', '>', 0)
-            ->orderBy('name', 'asc')
-            ->get();
+         // Obtener clientes con deudas pendientes
+         $query = Customer::where('company_id', $this->company->id)
+            ->where('total_debt', '>', 0);
+
+         // Aplicar filtros si existen
+         if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+               $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+            });
+         }
+
+         if ($request->has('debt_range') && $request->debt_range) {
+            $debtRange = $request->debt_range;
+            switch($debtRange) {
+               case '0-50':
+                  $query->whereBetween('total_debt', [0, 50]);
+                  break;
+               case '50-100':
+                  $query->whereBetween('total_debt', [50.01, 100]);
+                  break;
+               case '100-500':
+                  $query->whereBetween('total_debt', [100.01, 500]);
+                  break;
+               case '500+':
+                  $query->where('total_debt', '>', 500);
+                  break;
+            }
+         }
+
+         $customers = $query->orderBy('name', 'asc')->get();
 
          $company = $this->company;
          $currency = $this->currencies;
          $totalDebt = $customers->sum('total_debt');
+         $exchangeRate = $request->get('exchange_rate', 1);
 
          // Generar PDF
          $pdf = PDF::loadView('admin.customers.reports.debt-report', compact(
             'customers',
             'company',
             'currency',
-            'totalDebt'
+            'totalDebt',
+            'exchangeRate'
          ));
 
          // Configurar PDF
@@ -528,11 +566,22 @@ class CustomerController extends Controller
          Log::info('Reporte de deudas generado', [
             'user_id' => Auth::id(),
             'total_customers' => $customers->count(),
-            'total_debt' => $totalDebt
+            'total_debt' => $totalDebt,
+            'filters' => $request->only(['search', 'debt_range', 'exchange_rate'])
          ]);
 
+         // Nombre del archivo con filtros aplicados
+         $fileName = 'reporte-deudas-clientes-' . date('Y-m-d');
+         if ($request->search) {
+            $fileName .= '-busqueda';
+         }
+         if ($request->debt_range) {
+            $fileName .= '-filtrado';
+         }
+         $fileName .= '.pdf';
+
          // Mostrar PDF en el navegador
-         return $pdf->stream('reporte-deudas-clientes-' . date('Y-m-d') . '.pdf');
+         return $pdf->stream($fileName);
       } catch (\Exception $e) {
          Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
          return redirect()->route('admin.customers.index')

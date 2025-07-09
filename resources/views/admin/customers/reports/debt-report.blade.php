@@ -70,6 +70,19 @@
         .text-right {
             text-align: right;
         }
+        .filters-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+        .filters-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
@@ -82,15 +95,47 @@
         <div class="report-date">Generado el: {{ date('d/m/Y H:i:s') }}</div>
     </div>
     
+    @if(request()->has('search') || request()->has('debt_range') || isset($exchangeRate))
+        <div class="filters-info">
+            <h4>Filtros Aplicados:</h4>
+            @if(request()->has('search') && request()->search)
+                <p><strong>Búsqueda:</strong> "{{ request()->search }}"</p>
+            @endif
+            @if(request()->has('debt_range') && request()->debt_range)
+                <p><strong>Rango de deuda:</strong> 
+                    @switch(request()->debt_range)
+                        @case('0-50')
+                            {{ $currency->symbol }} 0 - 50
+                            @break
+                        @case('50-100')
+                            {{ $currency->symbol }} 50 - 100
+                            @break
+                        @case('100-500')
+                            {{ $currency->symbol }} 100 - 500
+                            @break
+                        @case('500+')
+                            {{ $currency->symbol }} 500+
+                            @break
+                    @endswitch
+                </p>
+            @endif
+            @if(isset($exchangeRate) && $exchangeRate != 1)
+                <p><strong>Tipo de cambio aplicado:</strong> 1 USD = {{ number_format($exchangeRate, 2) }} Bs</p>
+            @endif
+        </div>
+    @endif
+    
     <table>
         <thead>
             <tr>
                 <th>#</th>
                 <th>Cliente</th>
                 <th>Contacto</th>
-                {{-- <th>Cédula</th> --}}
+                <th>Cédula</th>
                 <th>Deuda Total</th>
-                {{-- <th>Última Compra</th> --}}
+                @if(isset($exchangeRate) && $exchangeRate != 1)
+                    <th>Deuda en Bs</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -102,21 +147,19 @@
                         {{ $customer->phone ?? '' }}<br>
                         {{ $customer->email ?? '' }}
                     </td>
-                    {{-- <td>{{ $customer->nit_number ?? '' }}</td> --}}
+                    <td>{{ $customer->nit_number ?? '' }}</td>
                     <td class="text-right text-danger">
                         {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                     </td>
-                    {{-- <td>
-                        @if($customer->lastSale)
-                            {{ $customer->lastSale->sale_date->format('d/m/Y') }}
-                        @else
-                            
-                        @endif
-                    </td> --}}
+                    @if(isset($exchangeRate) && $exchangeRate != 1)
+                        <td class="text-right text-danger">
+                            Bs. {{ number_format($customer->total_debt * $exchangeRate, 2) }}
+                        </td>
+                    @endif
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align: center;">No hay clientes con deudas pendientes</td>
+                    <td colspan="{{ isset($exchangeRate) && $exchangeRate != 1 ? '6' : '5' }}" style="text-align: center;">No hay clientes con deudas pendientes</td>
                 </tr>
             @endforelse
             <tr class="total-row">
@@ -124,7 +167,11 @@
                 <td class="text-right text-danger">
                     {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
                 </td>
-                <td></td>
+                @if(isset($exchangeRate) && $exchangeRate != 1)
+                    <td class="text-right text-danger">
+                        Bs. {{ number_format($totalDebt * $exchangeRate, 2) }}
+                    </td>
+                @endif
             </tr>
         </tbody>
     </table>
