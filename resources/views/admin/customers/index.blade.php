@@ -498,47 +498,46 @@
                             </div>
                         </div>
 
-                        {{-- Estadísticas del Cliente --}}
+                        {{-- Historial de Ventas --}}
                         <div class="col-md-6">
                             <div class="card shadow-sm">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
-                                        <i class="fas fa-chart-pie mr-2"></i>
-                                        Estadísticas
+                                        <i class="fas fa-shopping-cart mr-2"></i>
+                                        Historial de Ventas
                                     </h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-6 text-center border-right">
-                                            <h4 class="mb-0" id="totalPurchases">0</h4>
-                                            <small class="text-muted">Total Ventas</small>
-                                        </div>
-                                        <div class="col-6 text-center">
-                                            <h4 class="mb-0" id="totalSpent">{{ $currency->symbol }}0</h4>
-                                            <small class="text-muted">Gasto Total</small>
-                                        </div>
+                                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover">
+                                            <thead class="thead-light sticky-top bg-light">
+                                                <tr>
+                                                    <th>Fecha</th>
+                                                    <th>Productos</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="salesHistoryTable">
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">
+                                                        <i class="fas fa-info-circle mr-1"></i>
+                                                        No hay ventas registradas
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <small class="text-muted">
+                                            <span id="salesCount">0</span> ventas mostradas
+                                        </small>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Historial de Ventas --}}
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-chart-line mr-2"></i>
-                                        Historial de Ventas
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="purchaseHistoryChart" style="height: 200px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -814,11 +813,42 @@
             box-shadow: none;
             border-color: #ced4da;
         }
+
+        /* Estilos para la tabla de historial de ventas */
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        /* Personalizar scrollbar para la tabla */
+        .table-responsive::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Para Firefox */
+        .table-responsive {
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
     </style>
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Variable global para almacenar el tipo de cambio actual
         let currentExchangeRate = 1.0;
@@ -1068,82 +1098,67 @@
                 });
             });
 
-            // Ver detalles del cliente
-            $('.show-customer').click(function() {
-                const customerId = $(this).data('id');
+                                        // Ver detalles del cliente
+                            $('.show-customer').click(function() {
+                                const customerId = $(this).data('id');
 
-                $.ajax({
-                    url: `/customers/${customerId}`,
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            const customer = response.customer;
+                                $.ajax({
+                                    url: `/customers/${customerId}`,
+                                    method: 'GET',
+                                    success: function(response) {
+                                        if (response.success) {
+                                            const customer = response.customer;
 
-                            // Información personal
-                            $('#customerName').text(customer.name);
-                            $('#customerEmail').text(customer.email);
-                            $('#customerPhone').text(customer.phone);
-                            $('#customerNit').text(customer.nit_number);
+                                            // Información personal
+                                            $('#customerName').text(customer.name);
+                                            $('#customerEmail').text(customer.email);
+                                            $('#customerPhone').text(customer.phone);
+                                            $('#customerNit').text(customer.nit_number);
 
-                            // Estadísticas
-                            $('#totalPurchases').text(customer.stats.total_purchases);
-                            $('#totalSpent').text('{{ $currency->symbol }}' + customer.stats
-                                .total_spent
-                                .toLocaleString('es-PE', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }));
+                                            // Llenar tabla de historial de ventas
+                                            const salesTable = $('#salesHistoryTable');
+                                            salesTable.empty();
+                                            
+                                            if (customer.sales && customer.sales.length > 0) {
+                                                customer.sales.forEach(function(sale) {
+                                                    const row = `
+                                                        <tr>
+                                                            <td>${sale.date}</td>
+                                                            <td>${sale.total_products}</td>
+                                                            <td class="text-success font-weight-bold">
+                                                                {{ $currency->symbol }}${parseFloat(sale.total_amount).toLocaleString('es-PE', {
+                                                                    minimumFractionDigits: 2,
+                                                                    maximumFractionDigits: 2
+                                                                })}
+                                                            </td>
+                                                        </tr>
+                                                    `;
+                                                    salesTable.append(row);
+                                                });
+                                                
+                                                // Actualizar contador
+                                                $('#salesCount').text(customer.sales.length);
+                                            } else {
+                                                salesTable.html(`
+                                                    <tr>
+                                                        <td colspan="3" class="text-center text-muted">
+                                                            <i class="fas fa-info-circle mr-1"></i>
+                                                            No hay ventas registradas
+                                                        </td>
+                                                    </tr>
+                                                `);
+                                                $('#salesCount').text('0');
+                                            }
 
-                            // Gráfico de historial
-                            const ctx = document.getElementById('purchaseHistoryChart')
-                                .getContext('2d');
-                            if (window.purchaseChart) {
-                                window.purchaseChart.destroy();
-                            }
-                            window.purchaseChart = new Chart(ctx, {
-                                type: 'line',
-                                data: {
-                                    labels: customer.stats.purchase_history.labels,
-                                    datasets: [{
-                                        label: 'Ventas por Mes',
-                                        data: customer.stats.purchase_history
-                                            .values,
-                                        borderColor: '#007bff',
-                                        tension: 0.1,
-                                        fill: false
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    plugins: {
-                                        legend: {
-                                            position: 'bottom'
+                                            $('#showCustomerModal').modal('show');
                                         }
                                     },
-                                    scales: {
-                                        y: {
-                                            beginAtZero: true,
-                                            ticks: {
-                                                callback: function(value) {
-                                                    return '{{ $currency->symbol }}' +
-                                                        value
-                                                        .toLocaleString('es-PE');
-                                                }
-                                            }
-                                        }
+                                    error: function() {
+                                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente',
+                                            'error');
                                     }
-                                }
+                                });
                             });
-
-                            $('#showCustomerModal').modal('show');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente',
-                            'error');
-                    }
-                });
-            });
 
             // Eliminar cliente
             $('.delete-customer').click(function() {

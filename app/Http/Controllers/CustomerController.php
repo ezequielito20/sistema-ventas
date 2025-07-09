@@ -208,8 +208,8 @@ class CustomerController extends Controller
    {
       try {
          $customer = Customer::with(['sales' => function ($query) {
-            $query->orderBy('sale_date', 'asc');
-         }])->findOrFail($id);
+            $query->orderBy('sale_date', 'desc');
+         }, 'sales.saleDetails'])->findOrFail($id);
 
          // Obtener estadísticas del cliente
          $stats = [
@@ -217,6 +217,17 @@ class CustomerController extends Controller
             'total_spent' => $customer->sales->sum('total_price'),
             'purchase_history' => $this->getPurchaseHistory($customer->sales)
          ];
+
+         // Obtener las ventas individuales con detalles
+         $salesData = $customer->sales->map(function ($sale) {
+            return [
+               'id' => $sale->id,
+               'date' => $sale->sale_date->format('d/m/Y'),
+               'total_products' => $sale->saleDetails->sum('quantity'),
+               'total_amount' => $sale->total_price,
+               'invoice_number' => $sale->getFormattedInvoiceNumber()
+            ];
+         });
 
          return response()->json([
             'success' => true,
@@ -227,7 +238,8 @@ class CustomerController extends Controller
                'nit_number' => $customer->nit_number,
                'created_at' => $customer->created_at->format('d/m/Y H:i'),
                'updated_at' => $customer->updated_at->format('d/m/Y H:i'),
-               'stats' => $stats
+               'stats' => $stats,
+               'sales' => $salesData
             ]
          ]);
       } catch (\Exception $e) {
