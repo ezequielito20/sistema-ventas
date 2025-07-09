@@ -2135,6 +2135,7 @@
         }
 
         .products-stats {
+            color: black;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -2677,6 +2678,9 @@
                 text-align: left;
             }
         }
+        .products-stats .stat-value {
+            color: black;
+        }
     </style>
 @stop
 
@@ -3136,21 +3140,15 @@
 
             // Gráfico de tendencia de ventas mensuales
             new Chart(document.getElementById('salesTrendsChart'), {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: {!! json_encode($salesMonthlyLabels) !!},
+                    labels: {!! json_encode($dailySalesLabels) !!},
                     datasets: [{
-                        label: 'Total de Ventas',
-                        data: {!! json_encode($salesMonthlyData) !!},
+                        label: 'Productos Vendidos',
+                        data: {!! json_encode($dailySalesData) !!},
+                        backgroundColor: 'rgba(40, 167, 69, 0.5)',
                         borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#28a745',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -3164,8 +3162,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return 'Ventas: {{ $currency->symbol }}' + context.raw
-                                        .toLocaleString('es-PE');
+                                    return 'Vendidos: ' + context.raw + ' unidades';
                                 }
                             }
                         }
@@ -3175,7 +3172,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
+                                    return value + ' unidades';
                                 }
                             },
                             grid: {

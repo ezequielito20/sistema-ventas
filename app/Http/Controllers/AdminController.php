@@ -472,6 +472,21 @@ class AdminController extends Controller
             ->sum('cash_movements.amount');
       }
 
+      // Datos para gráfico de productos vendidos por día en el mes actual
+      $daysInMonth = now()->daysInMonth;
+      $dailySalesLabels = [];
+      $dailySalesData = [];
+      for ($d = 1; $d <= $daysInMonth; $d++) {
+         $date = now()->copy()->startOfMonth()->addDays($d - 1);
+         $dailySalesLabels[] = $date->format('d/m');
+         $totalProductsSold = DB::table('sale_details as sd')
+            ->join('sales as s', 'sd.sale_id', '=', 's.id')
+            ->where('s.company_id', $companyId)
+            ->whereDate('s.sale_date', $date->format('Y-m-d'))
+            ->sum('sd.quantity');
+         $dailySalesData[] = $totalProductsSold;
+      }
+
       return view('admin.index', compact(
          'currency',
          'company',
@@ -521,7 +536,10 @@ class AdminController extends Controller
          'salesSinceCashOpen',
          'purchasesSinceCashOpen',
          'debtSinceCashOpen',
-         'chartData'
+         'chartData',
+         // NUEVOS DATOS PARA EL GRÁFICO DE PRODUCTOS VENDIDOS POR DÍA
+         'dailySalesLabels',
+         'dailySalesData'
       ));
    }
 }
