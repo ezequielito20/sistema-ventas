@@ -175,8 +175,8 @@
                 </tbody>
             </table>
             
-            <div class="mt-3">
-                {{ $payments->links() }}
+            <div class="mt-3 d-flex justify-content-center">
+                {{ $payments->appends(request()->query())->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -209,6 +209,83 @@
 @section('css')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+    <style>
+        /* Estilos para el paginador de Laravel */
+        .pagination {
+            margin-bottom: 0;
+        }
+        
+        .pagination .page-link {
+            color: #007bff;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            padding: 0.375rem 0.75rem;
+            margin-left: -1px;
+            line-height: 1.25;
+            text-decoration: none;
+        }
+        
+        .pagination .page-link:hover {
+            z-index: 2;
+            color: #0056b3;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        
+        .pagination .page-item.active .page-link {
+            z-index: 3;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+        }
+        
+        .pagination .page-item:first-child .page-link {
+            margin-left: 0;
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .pagination .page-item:last-child .page-link {
+            border-top-right-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        /* Asegurar que DataTables no interfiera con nuestro paginador */
+        .dataTables_paginate {
+            display: none !important;
+        }
+        
+        /* Estilos adicionales para mejorar la apariencia */
+        .pagination .page-link {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .pagination .page-item.active .page-link {
+            box-shadow: 0 2px 4px rgba(0,123,255,0.25);
+        }
+        
+        /* Asegurar que el paginador sea visible */
+        .pagination {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
+        
+        /* Mejorar el espaciado */
+        .card-body .table-responsive + .mt-3 {
+            margin-top: 1.5rem !important;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
 @stop
 
 @section('js')
@@ -220,9 +297,18 @@
             $('#paymentsTable').DataTable({
                 responsive: true,
                 autoWidth: false,
+                paging: false, // Desactivar paginación de DataTables
+                info: false, // Desactivar información de registros
+                searching: true, // Mantener la búsqueda
+                ordering: true, // Mantener el ordenamiento
                 order: [[0, 'desc']], // Ordenar por la primera columna (Fecha) en orden descendente
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                },
+                dom: 'rt', // Solo mostrar la tabla y el campo de búsqueda
+                initComplete: function() {
+                    // Asegurar que el paginador de Laravel sea visible
+                    $('.pagination').show();
                 }
             });
 
