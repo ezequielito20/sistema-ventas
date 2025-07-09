@@ -274,11 +274,23 @@
 
             // Capitalizar automáticamente el nombre
             $('#name').on('input', function() {
-                let words = $(this).val().split(' ');
+                const input = $(this);
+                const cursorPosition = input[0].selectionStart;
+                const originalValue = input.val();
+                
+                let words = originalValue.split(' ');
                 words = words.map(word => {
                     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
                 });
-                $(this).val(words.join(' '));
+                const newValue = words.join(' ');
+                
+                // Solo actualizar si el valor cambió
+                if (originalValue !== newValue) {
+                    input.val(newValue);
+                    
+                    // Restaurar la posición del cursor
+                    input[0].setSelectionRange(cursorPosition, cursorPosition);
+                }
             });
 
             // Mostrar tooltip con el formato requerido
