@@ -465,77 +465,81 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        {{-- Información Personal --}}
-                        <div class="col-md-6">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-user mr-2"></i>
-                                        Información Personal
-                                    </h6>
+                    {{-- Historial de Ventas --}}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas fa-shopping-cart mr-2"></i>
+                                Historial de Ventas - <span id="customerName"></span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {{-- Filtros --}}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Rango de Fechas:</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="date" class="form-control form-control-sm" id="dateFrom" placeholder="Desde">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">hasta</span>
+                                        </div>
+                                        <input type="date" class="form-control form-control-sm" id="dateTo" placeholder="Hasta">
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <th>Nombre:</th>
-                                            <td id="customerName"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Email:</th>
-                                            <td id="customerEmail"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Teléfono:</th>
-                                            <td id="customerPhone"></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Cédula:</th>
-                                            <td id="customerNit"></td>
-                                        </tr>
-                                    </table>
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Rango de Monto:</label>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">{{ $currency->symbol }}</span>
+                                        </div>
+                                        <input type="number" class="form-control form-control-sm" id="amountFrom" placeholder="Mínimo" step="0.01" min="0">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">-</span>
+                                        </div>
+                                        <input type="number" class="form-control form-control-sm" id="amountTo" placeholder="Máximo" step="0.01" min="0">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {{-- Historial de Ventas --}}
-                        <div class="col-md-6">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-shopping-cart mr-2"></i>
-                                        Historial de Ventas
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                                        <table class="table table-sm table-hover">
-                                            <thead class="thead-light sticky-top bg-light">
-                                                <tr>
-                                                    <th>Fecha</th>
-                                                    <th>Productos</th>
-                                                    <th>Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="salesHistoryTable">
-                                                <tr>
-                                                    <td colspan="3" class="text-center text-muted">
-                                                        <i class="fas fa-info-circle mr-1"></i>
-                                                        No hay ventas registradas
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="mt-2 text-center">
-                                        <small class="text-muted">
-                                            <span id="salesCount">0</span> ventas mostradas
-                                        </small>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="applyFilters">
+                                            <i class="fas fa-filter mr-1"></i>Aplicar Filtros
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearFilters">
+                                            <i class="fas fa-times mr-1"></i>Limpiar
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-sm table-hover">
+                                    <thead class="thead-light sticky-top bg-light">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Productos</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesHistoryTable">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">
+                                                <i class="fas fa-info-circle mr-1"></i>
+                                                No hay ventas registradas
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <small class="text-muted">
+                                    <span id="salesCount">0</span> ventas mostradas
+                                </small>
                             </div>
                         </div>
                     </div>
+                </div>
 
 
                 </div>
@@ -845,6 +849,31 @@
             scrollbar-width: thin;
             scrollbar-color: #c1c1c1 #f1f1f1;
         }
+
+        /* Estilos para los filtros */
+        .input-group-sm .form-control {
+            font-size: 0.875rem;
+        }
+
+        .input-group-sm .input-group-text {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        #applyFilters, #clearFilters {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* Mejorar apariencia de los inputs de filtro */
+        #dateFrom, #dateTo, #amountFrom, #amountTo {
+            border-radius: 0.2rem;
+        }
+
+        #dateFrom:focus, #dateTo:focus, #amountFrom:focus, #amountTo:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
     </style>
 @stop
 
@@ -1098,7 +1127,10 @@
                 });
             });
 
-                                        // Ver detalles del cliente
+                                        // Variable global para almacenar las ventas del cliente actual
+                            let currentCustomerSales = [];
+
+                            // Ver detalles del cliente
                             $('.show-customer').click(function() {
                                 const customerId = $(this).data('id');
 
@@ -1109,46 +1141,20 @@
                                         if (response.success) {
                                             const customer = response.customer;
 
-                                            // Información personal
+                                            // Mostrar nombre del cliente en el encabezado
                                             $('#customerName').text(customer.name);
-                                            $('#customerEmail').text(customer.email);
-                                            $('#customerPhone').text(customer.phone);
-                                            $('#customerNit').text(customer.nit_number);
+
+                                            // Guardar las ventas globalmente para filtrado
+                                            currentCustomerSales = customer.sales || [];
 
                                             // Llenar tabla de historial de ventas
-                                            const salesTable = $('#salesHistoryTable');
-                                            salesTable.empty();
-                                            
-                                            if (customer.sales && customer.sales.length > 0) {
-                                                customer.sales.forEach(function(sale) {
-                                                    const row = `
-                                                        <tr>
-                                                            <td>${sale.date}</td>
-                                                            <td>${sale.total_products}</td>
-                                                            <td class="text-success font-weight-bold">
-                                                                {{ $currency->symbol }}${parseFloat(sale.total_amount).toLocaleString('es-PE', {
-                                                                    minimumFractionDigits: 2,
-                                                                    maximumFractionDigits: 2
-                                                                })}
-                                                            </td>
-                                                        </tr>
-                                                    `;
-                                                    salesTable.append(row);
-                                                });
-                                                
-                                                // Actualizar contador
-                                                $('#salesCount').text(customer.sales.length);
-                                            } else {
-                                                salesTable.html(`
-                                                    <tr>
-                                                        <td colspan="3" class="text-center text-muted">
-                                                            <i class="fas fa-info-circle mr-1"></i>
-                                                            No hay ventas registradas
-                                                        </td>
-                                                    </tr>
-                                                `);
-                                                $('#salesCount').text('0');
-                                            }
+                                            displaySales(currentCustomerSales);
+
+                                            // Limpiar filtros
+                                            $('#dateFrom').val('');
+                                            $('#dateTo').val('');
+                                            $('#amountFrom').val('');
+                                            $('#amountTo').val('');
 
                                             $('#showCustomerModal').modal('show');
                                         }
@@ -1158,6 +1164,95 @@
                                             'error');
                                     }
                                 });
+                            });
+
+                            // Función para mostrar las ventas
+                            function displaySales(sales) {
+                                const salesTable = $('#salesHistoryTable');
+                                salesTable.empty();
+                                
+                                if (sales && sales.length > 0) {
+                                    sales.forEach(function(sale) {
+                                        const row = `
+                                            <tr>
+                                                <td>${sale.date}</td>
+                                                <td>${sale.total_products}</td>
+                                                <td class="text-success font-weight-bold">
+                                                    {{ $currency->symbol }}${parseFloat(sale.total_amount).toLocaleString('es-PE', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        `;
+                                        salesTable.append(row);
+                                    });
+                                    
+                                    // Actualizar contador
+                                    $('#salesCount').text(sales.length);
+                                } else {
+                                    salesTable.html(`
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">
+                                                <i class="fas fa-info-circle mr-1"></i>
+                                                No hay ventas que coincidan con los filtros
+                                            </td>
+                                        </tr>
+                                    `);
+                                    $('#salesCount').text('0');
+                                }
+                            }
+
+                            // Función para filtrar ventas
+                            function filterSales() {
+                                const dateFrom = $('#dateFrom').val();
+                                const dateTo = $('#dateTo').val();
+                                const amountFrom = parseFloat($('#amountFrom').val()) || 0;
+                                const amountTo = parseFloat($('#amountTo').val()) || Infinity;
+
+                                let filteredSales = currentCustomerSales.filter(function(sale) {
+                                    // Convertir fecha de venta a objeto Date para comparación
+                                    const saleDate = new Date(sale.date.split('/').reverse().join('-'));
+                                    
+                                    // Filtro de fecha
+                                    let dateMatch = true;
+                                    if (dateFrom) {
+                                        const fromDate = new Date(dateFrom);
+                                        dateMatch = dateMatch && saleDate >= fromDate;
+                                    }
+                                    if (dateTo) {
+                                        const toDate = new Date(dateTo);
+                                        dateMatch = dateMatch && saleDate <= toDate;
+                                    }
+                                    
+                                    // Filtro de monto
+                                    const amountMatch = sale.total_amount >= amountFrom && sale.total_amount <= amountTo;
+                                    
+                                    return dateMatch && amountMatch;
+                                });
+
+                                displaySales(filteredSales);
+                            }
+
+                            // Aplicar filtros
+                            $('#applyFilters').click(function() {
+                                filterSales();
+                            });
+
+                            // Limpiar filtros
+                            $('#clearFilters').click(function() {
+                                $('#dateFrom').val('');
+                                $('#dateTo').val('');
+                                $('#amountFrom').val('');
+                                $('#amountTo').val('');
+                                displaySales(currentCustomerSales);
+                            });
+
+                            // Aplicar filtros al presionar Enter en los inputs
+                            $('#dateFrom, #dateTo, #amountFrom, #amountTo').keypress(function(e) {
+                                if (e.which === 13) {
+                                    filterSales();
+                                }
                             });
 
             // Eliminar cliente
