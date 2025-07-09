@@ -8,9 +8,9 @@
             <h1 class="text-dark font-weight-bold">Crear Nuevo Cliente</h1>
             <p class="mb-0">Ingrese la información del cliente en el formulario</p>
         </div>
-        <a href="{{ url()->previous() == url()->current() ? route('admin.customers.index') : url()->previous() }}" class="btn btn-secondary">
+        <button onclick="window.history.back()" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-2"></i>Volver
-        </a>
+        </button>
     </div>
 @stop
 
@@ -231,6 +231,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Guardar la URL original cuando se carga la página por primera vez
+            if (!sessionStorage.getItem('customers_original_referrer')) {
+                const referrer = document.referrer;
+                if (referrer && !referrer.includes('/customers/create')) {
+                    sessionStorage.setItem('customers_original_referrer', referrer);
+                }
+            }
+            
             // Inicializar máscaras
             $('#phone').inputmask('(999) 999-9999');
             // $('#nit_number').inputmask('999-999999-999-9');
@@ -273,6 +281,25 @@
                 $(this).closest('.form-group').addClass('focused');
             }).on('blur', function() {
                 $(this).closest('.form-group').removeClass('focused');
+            });
+
+            // Función para navegar de vuelta a la vista original
+            function goBack() {
+                // Verificar si hay una URL de referencia guardada en sessionStorage
+                const originalReferrer = sessionStorage.getItem('customers_original_referrer');
+                
+                if (originalReferrer && originalReferrer !== window.location.href) {
+                    // Si tenemos una URL original guardada, ir allí
+                    window.location.href = originalReferrer;
+                } else {
+                    // Comportamiento normal del botón volver
+                    window.history.back();
+                }
+            }
+
+            // Event listener para el botón volver
+            $('button[onclick="window.history.back()"]').removeAttr('onclick').click(function() {
+                goBack();
             });
         });
     </script>

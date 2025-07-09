@@ -496,6 +496,14 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Guardar la URL original cuando se carga la página por primera vez
+            if (!sessionStorage.getItem('sales_original_referrer')) {
+                const referrer = document.referrer;
+                if (referrer && !referrer.includes('/sales/create')) {
+                    sessionStorage.setItem('sales_original_referrer', referrer);
+                }
+            }
+            
             // Inicializar Select2 con opciones mejoradas
             $('#customer_id').select2({
                 theme: 'bootstrap4',
@@ -966,9 +974,28 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // Retroceder a la página anterior
-                        window.history.back();
+                        goBack();
                     }
                 });
+            });
+
+            // Función para navegar de vuelta a la vista original
+            function goBack() {
+                // Verificar si hay una URL de referencia guardada en sessionStorage
+                const originalReferrer = sessionStorage.getItem('sales_original_referrer');
+                
+                if (originalReferrer && originalReferrer !== window.location.href) {
+                    // Si tenemos una URL original guardada, ir allí
+                    window.location.href = originalReferrer;
+                } else {
+                    // Comportamiento normal del botón volver
+                    window.history.back();
+                }
+            }
+
+            // Event listener para el botón volver
+            $('button[onclick="window.history.back()"]').removeAttr('onclick').click(function() {
+                goBack();
             });
         });
     </script>
