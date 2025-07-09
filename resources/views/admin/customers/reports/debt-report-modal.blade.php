@@ -55,16 +55,14 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group mb-0">
-                        <label for="debtRangeFilter" class="small text-muted mb-1">
+                        <label class="small text-muted mb-1">
                             <i class="fas fa-filter mr-1"></i>Filtrar por deuda
                         </label>
-                        <select id="debtRangeFilter" class="form-control">
-                            <option value="">Todas las deudas</option>
-                            <option value="0-50">{{ $currency->symbol }} 0 - 50</option>
-                            <option value="50-100">{{ $currency->symbol }} 50 - 100</option>
-                            <option value="100-500">{{ $currency->symbol }} 100 - 500</option>
-                            <option value="500+">{{ $currency->symbol }} 500+</option>
-                        </select>
+                        <div class="d-flex align-items-center">
+                            <input type="number" id="debtMinFilter" class="form-control form-control-sm mr-2" placeholder="Mín $" min="0" style="width: 80px;">
+                            <span class="mx-1">-</span>
+                            <input type="number" id="debtMaxFilter" class="form-control form-control-sm" placeholder="Máx $" min="0" style="width: 80px;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -193,7 +191,8 @@
         // Función para aplicar filtros
         function applyFilters() {
             let searchTerm = $('#searchFilter').val().toLowerCase();
-            let debtRange = $('#debtRangeFilter').val();
+            let debtMin = parseFloat($('#debtMinFilter').val()) || 0;
+            let debtMax = parseFloat($('#debtMaxFilter').val()) || Infinity;
             
             $('.customer-row').each(function() {
                 let row = $(this);
@@ -215,22 +214,11 @@
                 }
                 
                 // Filtro por rango de deuda
-                if (debtRange && showRow) {
+                if (showRow) {
                     let debt = parseFloat(row.data('debt'));
                     
-                    switch(debtRange) {
-                        case '0-50':
-                            showRow = debt >= 0 && debt <= 50;
-                            break;
-                        case '50-100':
-                            showRow = debt > 50 && debt <= 100;
-                            break;
-                        case '100-500':
-                            showRow = debt > 100 && debt <= 500;
-                            break;
-                        case '500+':
-                            showRow = debt > 500;
-                            break;
+                    if (debt < debtMin || debt > debtMax) {
+                        showRow = false;
                     }
                 }
                 
@@ -249,12 +237,14 @@
         // Función para actualizar los enlaces del PDF con los filtros
         function updatePdfLinks() {
             let searchTerm = $('#searchFilter').val();
-            let debtRange = $('#debtRangeFilter').val();
+            let debtMin = $('#debtMinFilter').val();
+            let debtMax = $('#debtMaxFilter').val();
             let exchangeRate = $('#modalExchangeRate').val();
             
             let params = new URLSearchParams();
             if (searchTerm) params.append('search', searchTerm);
-            if (debtRange) params.append('debt_range', debtRange);
+            if (debtMin) params.append('debt_min', debtMin);
+            if (debtMax) params.append('debt_max', debtMax);
             if (exchangeRate) params.append('exchange_rate', exchangeRate);
             
             let queryString = params.toString();
@@ -270,7 +260,7 @@
             applyFilters();
         });
         
-        $('#debtRangeFilter').on('change', function() {
+        $('#debtMinFilter, #debtMaxFilter').on('input change', function() {
             applyFilters();
         });
         

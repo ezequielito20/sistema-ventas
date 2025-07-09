@@ -95,28 +95,21 @@
         <div class="report-date">Generado el: {{ date('d/m/Y H:i:s') }}</div>
     </div>
     
-    @if(request()->has('search') || request()->has('debt_range') || isset($exchangeRate))
+    @if(request()->has('search') || request()->has('debt_min') || request()->has('debt_max') || isset($exchangeRate))
         <div class="filters-info">
             <h4>Filtros Aplicados:</h4>
             @if(request()->has('search') && request()->search)
                 <p><strong>Búsqueda:</strong> "{{ request()->search }}"</p>
             @endif
-            @if(request()->has('debt_range') && request()->debt_range)
-                <p><strong>Rango de deuda:</strong> 
-                    @switch(request()->debt_range)
-                        @case('0-50')
-                            {{ $currency->symbol }} 0 - 50
-                            @break
-                        @case('50-100')
-                            {{ $currency->symbol }} 50 - 100
-                            @break
-                        @case('100-500')
-                            {{ $currency->symbol }} 100 - 500
-                            @break
-                        @case('500+')
-                            {{ $currency->symbol }} 500+
-                            @break
-                    @endswitch
+            @if(request()->has('debt_min') || request()->has('debt_max'))
+                <p><strong>Rango de deuda:</strong>
+                    @if(request()->filled('debt_min') && request()->filled('debt_max'))
+                        {{ $currency->symbol }} {{ request()->debt_min }} - {{ $currency->symbol }} {{ request()->debt_max }}
+                    @elseif(request()->filled('debt_min'))
+                        Desde {{ $currency->symbol }} {{ request()->debt_min }}
+                    @elseif(request()->filled('debt_max'))
+                        Hasta {{ $currency->symbol }} {{ request()->debt_max }}
+                    @endif
                 </p>
             @endif
             @if(isset($exchangeRate) && $exchangeRate != 1)

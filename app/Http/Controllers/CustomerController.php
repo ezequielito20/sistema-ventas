@@ -543,6 +543,13 @@ class CustomerController extends Controller
             }
          }
 
+         if ($request->filled('debt_min')) {
+            $query->where('total_debt', '>=', floatval($request->debt_min));
+         }
+         if ($request->filled('debt_max')) {
+            $query->where('total_debt', '<=', floatval($request->debt_max));
+         }
+
          $customers = $query->orderBy('name', 'asc')->get();
 
          $company = $this->company;
