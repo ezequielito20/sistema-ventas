@@ -828,6 +828,7 @@
             const table = $('#customersTable').DataTable({
                 responsive: true,
                 autoWidth: false,
+                stateSave: true, // Guarda la página y el estado del paginador
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 }
