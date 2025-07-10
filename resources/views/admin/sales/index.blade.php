@@ -20,27 +20,27 @@
                 </div>
                 <div class="col-lg-4">
                     <div class="header-actions">
-                        @can('sales.report')
+            @can('sales.report')
                             <a href="{{ route('admin.sales.report') }}" class="btn btn-modern btn-report" target="_blank">
                                 <i class="fas fa-file-pdf"></i>
                                 <span>Reporte</span>
-                            </a>
-                        @endcan
-                        @if ($cashCount)
-                            @can('sales.create')
+                </a>
+            @endcan
+            @if ($cashCount)
+                @can('sales.create')
                                 <a href="{{ route('admin.sales.create') }}" class="btn btn-modern btn-primary-modern">
                                     <i class="fas fa-plus-circle"></i>
                                     <span>Nueva Venta</span>
-                                </a>
-                            @endcan
-                        @else
-                            @can('cash-counts.create')
+                    </a>
+                @endcan
+            @else
+                @can('cash-counts.create')
                                 <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-modern btn-danger-modern">
                                     <i class="fas fa-cash-register"></i>
                                     <span>Abrir Caja</span>
-                                </a>
-                            @endcan
-                        @endif
+                    </a>
+                @endcan
+            @endif
                     </div>
                 </div>
             </div>
@@ -56,8 +56,8 @@
                 <div class="stats-card stats-card-primary">
                     <div class="stats-card-body">
                         <div class="stats-icon">
-                            <i class="fas fa-shopping-bag"></i>
-                        </div>
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
                         <div class="stats-content">
                             <h3 class="stats-value">{{ $currency->symbol }}
                                 {{ number_format($totalSalesAmountThisWeek, 2) }}</h3>
@@ -65,9 +65,9 @@
                             <div class="stats-trend">
                                 <i class="fas fa-arrow-up"></i>
                                 <span>+12.5%</span>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+                </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
                             <path
@@ -88,8 +88,8 @@
                 <div class="stats-card stats-card-success">
                     <div class="stats-card-body">
                         <div class="stats-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
+                    <i class="fas fa-chart-line"></i>
+                </div>
                         <div class="stats-content">
                             <h3 class="stats-value">{{ $currency->symbol }} {{ number_format($totalProfitThisWeek, 2) }}
                             </h3>
@@ -97,9 +97,9 @@
                             <div class="stats-trend">
                                 <i class="fas fa-arrow-up"></i>
                                 <span>+8.3%</span>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+                </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
                             <path
@@ -120,17 +120,17 @@
                 <div class="stats-card stats-card-warning">
                     <div class="stats-card-body">
                         <div class="stats-icon">
-                            <i class="fas fa-receipt"></i>
-                        </div>
+                    <i class="fas fa-receipt"></i>
+                </div>
                         <div class="stats-content">
                             <h3 class="stats-value">{{ $salesCountThisWeek }}</h3>
                             <p class="stats-label">Ventas realizadas</p>
                             <div class="stats-trend">
                                 <i class="fas fa-arrow-up"></i>
                                 <span>+5.2%</span>
-                            </div>
-                        </div>
-                    </div>
+            </div>
+        </div>
+                </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
                             <path
@@ -196,11 +196,11 @@
             <div class="modern-card-actions">
                 <div class="search-container">
                     <div class="search-box">
-                        <i class="fas fa-search"></i>
+                                <i class="fas fa-search"></i>
                         <input type="text" id="salesSearch" placeholder="Buscar por cliente o fecha...">
                         <div class="search-suggestions" id="searchSuggestions"></div>
+                        </div>
                     </div>
-                </div>
 
                 <div class="view-toggles">
                     <button type="button" class="view-toggle active" data-view="table">
@@ -208,7 +208,7 @@
                     </button>
                     <button type="button" class="view-toggle" data-view="cards">
                         <i class="fas fa-th-large"></i>
-                    </button>
+                </button>
                 </div>
             </div>
         </div>
@@ -260,15 +260,15 @@
                                         <span>Acciones</span>
                                     </div>
                                 </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($sales as $sale)
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($sales as $sale)
                                 <tr class="table-row">
                                     <td>
                                         <div class="row-number">
                                             {{ $loop->iteration }}
-                                        </div>
+                                    </div>
                                     </td>
                                     <td>
                                         <div class="customer-info">
@@ -278,9 +278,9 @@
                                             <div class="customer-details">
                                                 <span class="customer-name">{{ $sale->customer->name }}</span>
                                                 <span class="customer-email">{{ $sale->customer->email }}</span>
-                                            </div>
-                                        </div>
-                                    </td>
+                                    </div>
+                                </div>
+                            </td>
                                     <td>
                                         <div class="date-info">
                                             <span
@@ -313,34 +313,34 @@
                                             data-target="#saleDetailsModal">
                                             <i class="fas fa-list"></i>
                                             <span>Ver Detalle</span>
-                                        </button>
-                                    </td>
-                                    <td>
+                                </button>
+                            </td>
+                            <td>
                                         <div class="action-buttons">
-                                            @can('sales.edit')
+                                    @can('sales.edit')
                                                 <button type="button" class="btn-action btn-edit" data-toggle="tooltip"
                                                     title="Editar">
-                                                    <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit"></i>
                                                 </button>
-                                            @endcan
-                                            @can('sales.destroy')
+                                    @endcan
+                                    @can('sales.destroy')
                                                 <button type="button" class="btn-action btn-delete delete-sale"
-                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            @endcan
-                                            @can('sales.print')
+                                            data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
+                                    @can('sales.print')
                                                 <button type="button" class="btn-action btn-print" data-toggle="tooltip"
                                                     title="Imprimir">
-                                                    <i class="fas fa-print"></i>
+                                            <i class="fas fa-print"></i>
                                                 </button>
-                                            @endcan
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
                 </div>
             </div>
 
@@ -352,22 +352,22 @@
                             <div class="sale-card-header">
                                 <div class="sale-number">
                                     #{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}
-                                </div>
+                                        </div>
                                 <div class="sale-status">
                                     <span class="status-dot active"></span>
                                     <span class="status-text">Completada</span>
-                                </div>
-                            </div>
-
+                                        </div>
+                                    </div>
+                                    
                             <div class="sale-card-body">
                                 <div class="customer-section">
                                     <div class="customer-avatar-large">
                                         <i class="fas fa-user-circle"></i>
-                                    </div>
+                                            </div>
                                     <div class="customer-info-card">
                                         <h4 class="customer-name">{{ $sale->customer->name }}</h4>
                                         <p class="customer-email">{{ $sale->customer->email }}</p>
-                                    </div>
+                                        </div>
                                 </div>
 
                                 <div class="sale-details">
@@ -402,38 +402,38 @@
                                             <span>Total</span>
                                         </div>
                                         <div class="detail-value total-amount">
-                                            {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
+                                                {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
+                                        </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
                             <div class="sale-card-footer">
                                 <button type="button" class="btn-card-primary view-details"
-                                    data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                            data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
                                     <i class="fas fa-list"></i>
                                     <span>Ver Detalle</span>
-                                </button>
-
+                                        </button>
+                                        
                                 <div class="card-actions">
-                                    @can('sales.edit')
+                                            @can('sales.edit')
                                         <button type="button" class="btn-card-action edit" data-toggle="tooltip"
                                             title="Editar">
-                                            <i class="fas fa-edit"></i>
+                                                    <i class="fas fa-edit"></i>
                                         </button>
-                                    @endcan
-                                    @can('sales.destroy')
+                                            @endcan
+                                            @can('sales.destroy')
                                         <button type="button" class="btn-card-action delete delete-sale"
                                             data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    @endcan
-                                    @can('sales.print')
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endcan
+                                            @can('sales.print')
                                         <button type="button" class="btn-card-action print" data-toggle="tooltip"
                                             title="Imprimir">
-                                            <i class="fas fa-print"></i>
+                                                    <i class="fas fa-print"></i>
                                         </button>
-                                    @endcan
+                                            @endcan
                                 </div>
                             </div>
                         </div>
@@ -470,8 +470,8 @@
                         </div>
                         <button type="button" class="modal-close-btn" data-dismiss="modal" aria-label="Close">
                             <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    </button>
+                </div>
                 </div>
 
                 {{-- Cuerpo del modal --}}
@@ -479,17 +479,17 @@
                     {{-- Información del cliente y venta --}}
                     <div class="sale-info-section">
                         <div class="row">
-                            <div class="col-md-6">
+                        <div class="col-md-6">
                                 <div class="info-card customer-info-card">
                                     <div class="info-card-header">
                                         <div class="info-icon customer-icon">
                                             <i class="fas fa-user-circle"></i>
-                                        </div>
+                        </div>
                                         <h6 class="info-title">Información del Cliente</h6>
-                                    </div>
+                        </div>
                                     <div class="info-card-content" id="customerInfo">
                                         <!-- Se llena dinámicamente -->
-                                    </div>
+                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -557,13 +557,13 @@
                                                 <span>Subtotal</span>
                                             </div>
                                         </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="saleDetailsTableBody">
-                                    <!-- Los detalles se cargarán aquí dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
+                            </tr>
+                        </thead>
+                        <tbody id="saleDetailsTableBody">
+                            <!-- Los detalles se cargarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
 
                         {{-- Total destacado --}}
                         <div class="total-section">
@@ -583,12 +583,12 @@
                 {{-- Footer moderno --}}
                 <div class="modal-footer-modern">
                     <div class="footer-actions">
-                        @can('sales.print')
+                    @can('sales.print')
                             <button type="button" class="btn-modal-action btn-print print-details">
                                 <i class="fas fa-print"></i>
                                 <span>Imprimir</span>
-                            </button>
-                        @endcan
+                        </button>
+                    @endcan
                         <button type="button" class="btn-modal-action btn-secondary" data-dismiss="modal">
                             <i class="fas fa-times"></i>
                             <span>Cerrar</span>
@@ -1665,7 +1665,7 @@
         .pagination-numbers {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+                gap: 0.25rem;
             margin: 0 0.5rem;
         }
 
@@ -1681,7 +1681,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
+                justify-content: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -1937,8 +1937,8 @@
         .modal-subtitle {
             color: rgba(255, 255, 255, 0.9);
             margin: 0;
-            font-size: 0.9rem;
-        }
+                font-size: 0.9rem;
+            }
 
         .modal-close-btn {
             background: rgba(255, 255, 255, 0.2);
@@ -2060,7 +2060,7 @@
         }
 
         .modern-details-table {
-            width: 100%;
+                width: 100%;
             border-collapse: collapse;
             background: white;
         }
@@ -2426,10 +2426,10 @@
             // Búsqueda avanzada
             $('#salesSearch').on('keyup', function() {
                 const searchTerm = $(this).val().toLowerCase();
-
+                
                 // Búsqueda en DataTable
                 table.search(this.value).draw();
-
+                
                 // Búsqueda optimizada en tarjetas
                 if ($('.view-toggle.active').data('view') === 'cards') {
                     $('.modern-sale-card').each(function() {
@@ -2440,11 +2440,11 @@
                         if (customerName.includes(searchTerm) ||
                             customerEmail.includes(searchTerm) ||
                             saleDate.includes(searchTerm)) {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
-                    });
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
                 }
             });
 
@@ -2480,9 +2480,10 @@
                             let total = 0;
 
                             // Actualizar información del cliente y fecha
+                            const customerPhone = response.sale.customer_phone || '-';
                             $('#customerInfo').html(`
                                 <strong>Cliente:</strong> ${response.sale.customer_name}<br>
-                                <strong>Email:</strong> ${response.sale.customer_email}
+                                <strong>Teléfono:</strong> ${customerPhone}
                             `);
                             $('#saleDate').text(response.sale.date);
 
@@ -2614,7 +2615,7 @@
                     $(this).closest('.modern-sale-card').find('.view-details').data('id');
 
                 if (saleId) {
-                    window.location.href = `/admin/sales/${saleId}/edit`;
+                    window.location.href = `/sales/edit/${saleId}`;
                 }
             });
 

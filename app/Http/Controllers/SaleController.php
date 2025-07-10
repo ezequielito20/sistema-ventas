@@ -636,6 +636,7 @@ class SaleController extends Controller
                'date' => $sale->sale_date->format('d/m/Y'),
                'customer_name' => $sale->customer->name,
                'customer_email' => $sale->customer->email,
+               'customer_phone' => $sale->customer->phone,
                'total_price' => $sale->total_price
             ],
             'details' => $details
