@@ -59,7 +59,8 @@
                             <i class="fas fa-shopping-bag"></i>
                         </div>
                         <div class="stats-content">
-                            <h3 class="stats-value">{{ $currency->symbol }} {{ number_format($totalSalesAmountThisWeek, 2) }}</h3>
+                            <h3 class="stats-value">{{ $currency->symbol }}
+                                {{ number_format($totalSalesAmountThisWeek, 2) }}</h3>
                             <p class="stats-label">Ventas esta semana</p>
                             <div class="stats-trend">
                                 <i class="fas fa-arrow-up"></i>
@@ -69,14 +70,20 @@
                     </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
-                            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
-                            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+                            <path
+                                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                                opacity=".25"></path>
+                            <path
+                                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                                opacity=".5"></path>
+                            <path
+                                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z">
+                            </path>
                         </svg>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card stats-card-success">
                     <div class="stats-card-body">
@@ -84,7 +91,8 @@
                             <i class="fas fa-chart-line"></i>
                         </div>
                         <div class="stats-content">
-                            <h3 class="stats-value">{{ $currency->symbol }} {{ number_format($totalProfitThisWeek, 2) }}</h3>
+                            <h3 class="stats-value">{{ $currency->symbol }} {{ number_format($totalProfitThisWeek, 2) }}
+                            </h3>
                             <p class="stats-label">Ganancias esta semana</p>
                             <div class="stats-trend">
                                 <i class="fas fa-arrow-up"></i>
@@ -94,14 +102,20 @@
                     </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
-                            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
-                            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+                            <path
+                                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                                opacity=".25"></path>
+                            <path
+                                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                                opacity=".5"></path>
+                            <path
+                                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z">
+                            </path>
                         </svg>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card stats-card-warning">
                     <div class="stats-card-body">
@@ -119,14 +133,20 @@
                     </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
-                            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
-                            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+                            <path
+                                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                                opacity=".25"></path>
+                            <path
+                                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                                opacity=".5"></path>
+                            <path
+                                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z">
+                            </path>
                         </svg>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="stats-card stats-card-info">
                     <div class="stats-card-body">
@@ -144,9 +164,15 @@
                     </div>
                     <div class="stats-wave">
                         <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
-                            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
-                            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
-                            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+                            <path
+                                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                                opacity=".25"></path>
+                            <path
+                                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                                opacity=".5"></path>
+                            <path
+                                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z">
+                            </path>
                         </svg>
                     </div>
                 </div>
@@ -166,7 +192,7 @@
                     <p>Gestiona y visualiza todas las ventas registradas</p>
                 </div>
             </div>
-            
+
             <div class="modern-card-actions">
                 <div class="search-container">
                     <div class="search-box">
@@ -175,7 +201,7 @@
                         <div class="search-suggestions" id="searchSuggestions"></div>
                     </div>
                 </div>
-                
+
                 <div class="view-toggles">
                     <button type="button" class="view-toggle active" data-view="table">
                         <i class="fas fa-table"></i>
@@ -257,8 +283,10 @@
                                     </td>
                                     <td>
                                         <div class="date-info">
-                                            <span class="date-main">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</span>
-                                            <span class="date-time">{{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}</span>
+                                            <span
+                                                class="date-main">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</span>
+                                            <span
+                                                class="date-time">{{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -275,12 +303,14 @@
                                     </td>
                                     <td>
                                         <div class="price-info">
-                                            <span class="price-amount">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                            <span class="price-amount">{{ $currency->symbol }}
+                                                {{ number_format($sale->total_price, 2) }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <button type="button" class="btn-modern btn-primary view-details"
-                                            data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                            data-id="{{ $sale->id }}" data-toggle="modal"
+                                            data-target="#saleDetailsModal">
                                             <i class="fas fa-list"></i>
                                             <span>Ver Detalle</span>
                                         </button>
@@ -288,7 +318,8 @@
                                     <td>
                                         <div class="action-buttons">
                                             @can('sales.edit')
-                                                <button type="button" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
+                                                <button type="button" class="btn-action btn-edit" data-toggle="tooltip"
+                                                    title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
@@ -299,7 +330,8 @@
                                                 </button>
                                             @endcan
                                             @can('sales.print')
-                                                <button type="button" class="btn-action btn-print" data-toggle="tooltip" title="Imprimir">
+                                                <button type="button" class="btn-action btn-print" data-toggle="tooltip"
+                                                    title="Imprimir">
                                                     <i class="fas fa-print"></i>
                                                 </button>
                                             @endcan
@@ -326,7 +358,7 @@
                                     <span class="status-text">Completada</span>
                                 </div>
                             </div>
-                            
+
                             <div class="sale-card-body">
                                 <div class="customer-section">
                                     <div class="customer-avatar-large">
@@ -337,7 +369,7 @@
                                         <p class="customer-email">{{ $sale->customer->email }}</p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="sale-details">
                                     <div class="detail-row">
                                         <div class="detail-label">
@@ -348,7 +380,7 @@
                                             {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}
                                         </div>
                                     </div>
-                                    
+
                                     <div class="detail-row">
                                         <div class="detail-label">
                                             <i class="fas fa-boxes"></i>
@@ -356,12 +388,14 @@
                                         </div>
                                         <div class="detail-value">
                                             <div class="product-badges">
-                                                <span class="mini-badge unique">{{ $sale->saleDetails->count() }} únicos</span>
-                                                <span class="mini-badge total">{{ $sale->saleDetails->sum('quantity') }} totales</span>
+                                                <span class="mini-badge unique">{{ $sale->saleDetails->count() }}
+                                                    únicos</span>
+                                                <span class="mini-badge total">{{ $sale->saleDetails->sum('quantity') }}
+                                                    totales</span>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="detail-row total-row">
                                         <div class="detail-label">
                                             <i class="fas fa-dollar-sign"></i>
@@ -373,17 +407,18 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="sale-card-footer">
                                 <button type="button" class="btn-card-primary view-details"
                                     data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
                                     <i class="fas fa-list"></i>
                                     <span>Ver Detalle</span>
                                 </button>
-                                
+
                                 <div class="card-actions">
                                     @can('sales.edit')
-                                        <button type="button" class="btn-card-action edit" data-toggle="tooltip" title="Editar">
+                                        <button type="button" class="btn-card-action edit" data-toggle="tooltip"
+                                            title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                     @endcan
@@ -394,7 +429,8 @@
                                         </button>
                                     @endcan
                                     @can('sales.print')
-                                        <button type="button" class="btn-card-action print" data-toggle="tooltip" title="Imprimir">
+                                        <button type="button" class="btn-card-action print" data-toggle="tooltip"
+                                            title="Imprimir">
                                             <i class="fas fa-print"></i>
                                         </button>
                                     @endcan
@@ -407,60 +443,157 @@
         </div>
     </div>
 
-    {{-- Modal para mostrar detalles --}}
+    {{-- Modal moderno para mostrar detalles --}}
     <div class="modal fade" id="saleDetailsModal" tabindex="-1" role="dialog" aria-labelledby="saleDetailsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="saleDetailsModalLabel">
-                        <i class="fas fa-receipt mr-2"></i>Detalle de la Venta
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6 class="font-weight-bold">Información del Cliente</h6>
-                            <p id="customerInfo"></p>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <h6 class="font-weight-bold">Fecha de Venta</h6>
-                            <p id="saleDate"></p>
+            <div class="modal-content modern-modal">
+                {{-- Header moderno con gradiente --}}
+                <div class="modal-header-modern">
+                    <div class="modal-header-background">
+                        <div class="modal-header-gradient"></div>
+                        <div class="modal-header-pattern">
+                            <div class="pattern-circle"></div>
+                            <div class="pattern-circle"></div>
+                            <div class="pattern-circle"></div>
                         </div>
                     </div>
-                    <table class="table table-striped">
-                        <thead class="bg-light">
-                            <tr>
-                                <th>Código</th>
-                                <th>Producto</th>
-                                <th>Categoría</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-right">Precio Unit.</th>
-                                <th class="text-right">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="saleDetailsTableBody">
-                            <!-- Los detalles se cargarán aquí dinámicamente -->
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="5" class="text-right"><strong>Total:</strong></td>
-                                <td class="text-right"><strong>{{ $currency->symbol }}<span
-                                            id="modalTotal">0.00</span></strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    @can('sales.print')
-                        <button type="button" class="btn btn-info print-details">
-                            <i class="fas fa-print mr-2"></i>Imprimir
+                    <div class="modal-header-content">
+                        <div class="modal-title-section">
+                            <div class="modal-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="modal-title-text">
+                                <h4 class="modal-title-main" id="saleDetailsModalLabel">Detalle de la Venta</h4>
+                                <p class="modal-subtitle">Información completa de la transacción</p>
+                            </div>
+                        </div>
+                        <button type="button" class="modal-close-btn" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times"></i>
                         </button>
-                    @endcan
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+
+                {{-- Cuerpo del modal --}}
+                <div class="modal-body-modern">
+                    {{-- Información del cliente y venta --}}
+                    <div class="sale-info-section">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-card customer-info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-icon customer-icon">
+                                            <i class="fas fa-user-circle"></i>
+                                        </div>
+                                        <h6 class="info-title">Información del Cliente</h6>
+                                    </div>
+                                    <div class="info-card-content" id="customerInfo">
+                                        <!-- Se llena dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-card date-info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-icon date-icon">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <h6 class="info-title">Fecha de Venta</h6>
+                                    </div>
+                                    <div class="info-card-content" id="saleDate">
+                                        <!-- Se llena dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tabla de productos moderna --}}
+                    <div class="products-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5 class="section-title">Productos Vendidos</h5>
+                        </div>
+                        
+                        <div class="modern-table-wrapper">
+                            <table class="modern-details-table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-barcode"></i>
+                                                <span>Código</span>
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-box"></i>
+                                                <span>Producto</span>
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-tags"></i>
+                                                <span>Categoría</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-center">
+                                            <div class="th-content">
+                                                <i class="fas fa-sort-numeric-up"></i>
+                                                <span>Cantidad</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-right">
+                                            <div class="th-content">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                <span>Precio Unit.</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-right">
+                                            <div class="th-content">
+                                                <i class="fas fa-calculator"></i>
+                                                <span>Subtotal</span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="saleDetailsTableBody">
+                                    <!-- Los detalles se cargarán aquí dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Total destacado --}}
+                        <div class="total-section">
+                            <div class="total-card">
+                                <div class="total-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="total-content">
+                                    <span class="total-label">Total de la Venta</span>
+                                    <span class="total-amount">{{ $currency->symbol }}<span id="modalTotal">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Footer moderno --}}
+                <div class="modal-footer-modern">
+                    <div class="footer-actions">
+                        @can('sales.print')
+                            <button type="button" class="btn-modal-action btn-print print-details">
+                                <i class="fas fa-print"></i>
+                                <span>Imprimir</span>
+                            </button>
+                        @endcan
+                        <button type="button" class="btn-modal-action btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                            <span>Cerrar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -506,7 +639,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
         }
 
         .header-content {
@@ -520,7 +653,7 @@
         .header-icon {
             width: 60px;
             height: 60px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -535,11 +668,11 @@
             font-size: 2rem;
             font-weight: 700;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header-subtitle {
-            color: rgba(255,255,255,0.9);
+            color: rgba(255, 255, 255, 0.9);
             margin: 0;
             font-size: 1rem;
         }
@@ -553,8 +686,8 @@
         }
 
         .btn-modern {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: var(--border-radius);
@@ -568,9 +701,9 @@
         }
 
         .btn-modern:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             color: white;
             text-decoration: none;
         }
@@ -655,21 +788,29 @@
             font-weight: 700;
             color: var(--dark-color);
             margin: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .stats-label {
-            color: #718096;
+            color: #4a5568;
             font-size: 0.9rem;
             margin: 0.25rem 0;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .stats-trend {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            color: var(--success-color);
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--success-color);
+            text-shadow: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .stats-wave {
@@ -695,6 +836,91 @@
 
         .stats-card-info .stats-wave path {
             fill: var(--info-color);
+        }
+
+        /* Mejores contrastes para cada tipo de tarjeta */
+        .stats-card-success {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 1px solid #9ae6b4;
+        }
+
+        .stats-card-success .stats-value {
+            color: #22543d;
+            font-weight: 800;
+        }
+
+        .stats-card-success .stats-label {
+            color: #2f855a;
+            font-weight: 700;
+        }
+
+        .stats-card-success .stats-trend {
+            background: rgba(34, 84, 61, 0.1);
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .stats-card-primary {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border: 1px solid #90cdf4;
+        }
+
+        .stats-card-primary .stats-value {
+            color: #1a365d;
+            font-weight: 800;
+        }
+
+        .stats-card-primary .stats-label {
+            color: #2c5282;
+            font-weight: 700;
+        }
+
+        .stats-card-primary .stats-trend {
+            background: rgba(26, 54, 93, 0.1);
+            color: #1a365d;
+            border: 1px solid #90cdf4;
+        }
+
+        .stats-card-warning {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fbbf24;
+        }
+
+        .stats-card-warning .stats-value {
+            color: #92400e;
+            font-weight: 800;
+        }
+
+        .stats-card-warning .stats-label {
+            color: #b45309;
+            font-weight: 700;
+        }
+
+        .stats-card-warning .stats-trend {
+            background: rgba(146, 64, 14, 0.1);
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
+
+        .stats-card-info {
+            background: linear-gradient(135deg, #f0f9ff 0%, #bfdbfe 100%);
+            border: 1px solid #60a5fa;
+        }
+
+        .stats-card-info .stats-value {
+            color: #1e3a8a;
+            font-weight: 800;
+        }
+
+        .stats-card-info .stats-label {
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+
+        .stats-card-info .stats-trend {
+            background: rgba(30, 58, 138, 0.1);
+            color: #1e3a8a;
+            border: 1px solid #60a5fa;
         }
 
         /* Tarjeta Moderna */
@@ -807,7 +1033,7 @@
         .view-toggle.active {
             background: white;
             color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .modern-card-body {
@@ -1013,7 +1239,7 @@
 
         .btn-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* Vista de Tarjetas */
@@ -1226,7 +1452,7 @@
 
         .btn-card-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* Responsive Design */
@@ -1317,6 +1543,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -1341,6 +1568,7 @@
             0% {
                 background-position: -200% 0;
             }
+
             100% {
                 background-position: 200% 0;
             }
@@ -1417,7 +1645,7 @@
             font-weight: 600;
             transition: all 0.3s ease;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .pagination-btn:hover:not(.disabled) {
@@ -1454,7 +1682,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .pagination-number:hover {
@@ -1584,7 +1812,7 @@
                 gap: 0.25rem;
             }
 
-            .records-info > span {
+            .records-info>span {
                 font-size: 0.8rem;
             }
         }
@@ -1596,6 +1824,437 @@
 
         .pagination-number:active {
             transform: scale(0.95);
+        }
+
+        /* ===== MODAL MODERNO ===== */
+        .modern-modal {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Header del Modal */
+        .modal-header-modern {
+            position: relative;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+            height: 120px;
+        }
+
+        .modal-header-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+        }
+
+        .modal-header-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+
+        .modal-header-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+
+        .pattern-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pattern-circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            right: 20px;
+        }
+
+        .pattern-circle:nth-child(2) {
+            width: 60px;
+            height: 60px;
+            top: 20px;
+            right: -30px;
+        }
+
+        .pattern-circle:nth-child(3) {
+            width: 40px;
+            height: 40px;
+            top: 70px;
+            right: 80px;
+        }
+
+        .modal-header-content {
+            position: relative;
+            z-index: 2;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .modal-title-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-title-main {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .modal-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Cuerpo del Modal */
+        .modal-body-modern {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .sale-info-section {
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .customer-icon {
+            background: var(--gradient-info);
+        }
+
+        .date-icon {
+            background: var(--gradient-success);
+        }
+
+        .info-title {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .info-card-content {
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        /* Sección de Productos */
+        .products-section {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .section-title {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        /* Tabla Moderna del Modal */
+        .modern-table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .modern-details-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .modern-details-table thead th {
+            padding: 1rem;
+            text-align: left;
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .modern-details-table thead th .th-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modern-details-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .modern-details-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .modern-details-table tbody td {
+            padding: 1rem;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .modern-details-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Sección de Total */
+        .total-section {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .total-card {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 2px solid #9ae6b4;
+            color: #1a202c;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.2);
+            min-width: 280px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .total-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(56, 161, 105, 0.05) 100%);
+            z-index: 1;
+        }
+
+        .total-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .total-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .total-label {
+            font-size: 0.9rem;
+            color: #22543d;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1a365d;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer del Modal */
+        .modal-footer-modern {
+            background: #f8fafc;
+            border: none;
+            padding: 1.5rem 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .footer-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn-modal-action {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-modal-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+        }
+
+        .btn-modal-action.btn-print {
+            background: var(--gradient-info);
+            color: white;
+        }
+
+        .btn-modal-action.btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-modal-action.btn-secondary:hover {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+
+        /* Responsive del Modal */
+        @media (max-width: 768px) {
+            .modal-header-content {
+                padding: 1rem;
+            }
+
+            .modal-title-main {
+                font-size: 1.2rem;
+            }
+
+            .modal-body-modern {
+                padding: 1rem;
+            }
+
+            .info-card {
+                padding: 1rem;
+            }
+
+            .products-section {
+                padding: 1rem;
+            }
+
+            .total-card {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .footer-actions {
+                flex-direction: column;
+            }
+
+            .btn-modal-action {
+                justify-content: center;
+            }
         }
     </style>
 @stop
@@ -1633,7 +2292,7 @@
                 const totalRecords = info.recordsTotal;
                 const startRecord = info.start + 1;
                 const endRecord = info.end;
-                
+
                 // Usar template strings más eficientes
                 const paginationHTML = `
                     <div class="modern-pagination-wrapper">
@@ -1677,7 +2336,7 @@
                         </div>
                     </div>
                 `;
-                
+
                 $('.modern-pagination-container').html(paginationHTML);
             }
 
@@ -1686,25 +2345,26 @@
                 let html = '';
                 let startPage = Math.max(1, currentPage - 2);
                 let endPage = Math.min(totalPages, currentPage + 2);
-                
+
                 if (startPage > 1) {
                     html += `<button class="pagination-number" data-page="1">1</button>`;
                     if (startPage > 2) {
                         html += `<span class="pagination-ellipsis">...</span>`;
                     }
                 }
-                
+
                 for (let i = startPage; i <= endPage; i++) {
-                    html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                    html +=
+                        `<button class="pagination-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
                 }
-                
+
                 if (endPage < totalPages) {
                     if (endPage < totalPages - 1) {
                         html += `<span class="pagination-ellipsis">...</span>`;
                     }
                     html += `<button class="pagination-number" data-page="${totalPages}">${totalPages}</button>`;
                 }
-                
+
                 return html;
             }
 
@@ -1729,7 +2389,7 @@
                     const info = table.page.info();
                     const startIndex = info.start;
                     const endIndex = info.end;
-                    
+
                     $('.modern-sale-card').each(function(index) {
                         if (index >= startIndex && index < endIndex) {
                             $(this).show();
@@ -1748,10 +2408,10 @@
             // Alternar entre vistas
             $('.view-toggle').click(function() {
                 const view = $(this).data('view');
-                
+
                 $('.view-toggle').removeClass('active');
                 $(this).addClass('active');
-                
+
                 if (view === 'table') {
                     $('#tableView').show();
                     $('#cardsView').hide();
@@ -1766,19 +2426,19 @@
             // Búsqueda avanzada
             $('#salesSearch').on('keyup', function() {
                 const searchTerm = $(this).val().toLowerCase();
-                
+
                 // Búsqueda en DataTable
                 table.search(this.value).draw();
-                
-                                // Búsqueda optimizada en tarjetas
+
+                // Búsqueda optimizada en tarjetas
                 if ($('.view-toggle.active').data('view') === 'cards') {
                     $('.modern-sale-card').each(function() {
                         const customerName = $(this).find('.customer-name').text().toLowerCase();
                         const customerEmail = $(this).find('.customer-email').text().toLowerCase();
                         const saleDate = $(this).find('.detail-value').first().text().toLowerCase();
-                        
-                        if (customerName.includes(searchTerm) || 
-                            customerEmail.includes(searchTerm) || 
+
+                        if (customerName.includes(searchTerm) ||
+                            customerEmail.includes(searchTerm) ||
                             saleDate.includes(searchTerm)) {
                             $(this).show();
                         } else {
@@ -1805,11 +2465,11 @@
             $(document).on('click', '.view-details', function() {
                 const saleId = $(this).data('id');
                 const button = $(this);
-                
+
                 // Indicador de carga simple
                 button.html('<i class="fas fa-spinner fa-spin"></i> <span>Cargando...</span>');
                 button.prop('disabled', true);
-                
+
                 $('#saleDetailsTableBody').empty();
 
                 $.ajax({
@@ -1849,7 +2509,8 @@
                         } else {
                             Swal.fire({
                                 title: 'Error',
-                                text: response.message || 'Error al cargar los detalles',
+                                text: response.message ||
+                                    'Error al cargar los detalles',
                                 icon: 'error',
                                 confirmButtonColor: '#667eea'
                             });
@@ -1949,9 +2610,9 @@
 
             // Editar venta
             $(document).on('click', '.btn-edit', function() {
-                const saleId = $(this).closest('tr').find('.view-details').data('id') || 
-                              $(this).closest('.modern-sale-card').find('.view-details').data('id');
-                
+                const saleId = $(this).closest('tr').find('.view-details').data('id') ||
+                    $(this).closest('.modern-sale-card').find('.view-details').data('id');
+
                 if (saleId) {
                     window.location.href = `/admin/sales/${saleId}/edit`;
                 }
