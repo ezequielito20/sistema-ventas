@@ -329,12 +329,12 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @endcan
-                                    @can('sales.print')
+                                    {{-- @can('sales.print')
                                                 <button type="button" class="btn-action btn-print" data-toggle="tooltip"
                                                     title="Imprimir">
                                             <i class="fas fa-print"></i>
                                                 </button>
-                                    @endcan
+                                    @endcan --}}
                                 </div>
                             </td>
                         </tr>
