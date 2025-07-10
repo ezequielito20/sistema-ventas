@@ -402,6 +402,11 @@
                                                     <span class="text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
                                                         Bs. {{ number_format($customer->total_debt, 2) }}
                                                     </span>
+                                                    @can('customers.register-payment')
+                                                        <button class="btn btn-outline-primary btn-sm edit-debt-btn mt-2">
+                                                            <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
+                                                        </button>
+                                                    @endcan
                                                 @else
                                                     <span class="badge badge-success">Sin deuda</span>
                                                 @endif
@@ -423,11 +428,9 @@
                                             </a>
                                         @endcan
                                         @if ($customer->total_debt > 0)
-                                            @can('customers.register-payment')
-                                                <button class="btn btn-outline-primary btn-sm edit-debt-btn">
-                                                    <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
-                                                </button>
-                                            @endcan
+                                            <button class="btn btn-outline-primary btn-sm edit-debt-btn">
+                                                <i class="fas fa-dollar-sign d-md-none"></i><span class="d-none d-md-inline">Pagar</span>
+                                            </button>
                                         @endif
                                         @can('sales.create')
                                             <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
@@ -466,14 +469,14 @@
                 </div>
                 <div class="modal-body">
                     {{-- Historial de Ventas --}}
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
                                 <i class="fas fa-shopping-cart mr-2"></i>
                                 Historial de Ventas - <span id="customerName"></span>
-                            </h6>
-                        </div>
-                        <div class="card-body">
+                                    </h6>
+                                </div>
+                                <div class="card-body">
                             {{-- Filtros --}}
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -482,24 +485,24 @@
                                         <input type="date" class="form-control form-control-sm" id="dateFrom" placeholder="Desde">
                                         <div class="input-group-append">
                                             <span class="input-group-text">hasta</span>
-                                        </div>
-                                        <input type="date" class="form-control form-control-sm" id="dateTo" placeholder="Hasta">
-                                    </div>
                                 </div>
-                                <div class="col-md-6">
+                                        <input type="date" class="form-control form-control-sm" id="dateTo" placeholder="Hasta">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
                                     <label class="small text-muted mb-1">Rango de Monto:</label>
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">{{ $currency->symbol }}</span>
-                                        </div>
+                                </div>
                                         <input type="number" class="form-control form-control-sm" id="amountFrom" placeholder="Mínimo" step="0.01" min="0">
                                         <div class="input-group-append">
                                             <span class="input-group-text">-</span>
                                         </div>
                                         <input type="number" class="form-control form-control-sm" id="amountTo" placeholder="Máximo" step="0.01" min="0">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -509,10 +512,10 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary" id="clearFilters">
                                             <i class="fas fa-times mr-1"></i>Limpiar
                                         </button>
-                                    </div>
-                                </div>
                             </div>
-                            
+                        </div>
+                    </div>
+
                             <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                                 <table class="table table-sm table-hover">
                                     <thead class="thead-light sticky-top bg-light">
@@ -531,15 +534,15 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                            </div>
+                                </div>
                             <div class="mt-2 text-center">
                                 <small class="text-muted">
                                     <span id="salesCount">0</span> ventas mostradas
                                 </small>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
 
                 </div>
@@ -1130,19 +1133,19 @@
                                         // Variable global para almacenar las ventas del cliente actual
                             let currentCustomerSales = [];
 
-                            // Ver detalles del cliente
-                            $('.show-customer').click(function() {
-                                const customerId = $(this).data('id');
+            // Ver detalles del cliente
+            $('.show-customer').click(function() {
+                const customerId = $(this).data('id');
 
-                                $.ajax({
-                                    url: `/customers/${customerId}`,
-                                    method: 'GET',
-                                    success: function(response) {
-                                        if (response.success) {
-                                            const customer = response.customer;
+                $.ajax({
+                    url: `/customers/${customerId}`,
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const customer = response.customer;
 
                                             // Mostrar nombre del cliente en el encabezado
-                                            $('#customerName').text(customer.name);
+                            $('#customerName').text(customer.name);
 
                                             // Guardar las ventas globalmente para filtrado
                                             currentCustomerSales = customer.sales || [];
@@ -1253,7 +1256,7 @@
                                 if (e.which === 13) {
                                     filterSales();
                                 }
-                            });
+            });
 
             // Eliminar cliente
             $('.delete-customer').click(function() {
