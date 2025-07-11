@@ -132,7 +132,18 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($customers as $index => $customer)
+            @php
+                $orderedCustomers = $customers;
+                $order = request('order');
+                if ($order === 'name_asc') {
+                    $orderedCustomers = $customers->sortBy(function($c) { return strtolower($c->name); });
+                } elseif ($order === 'debt_desc') {
+                    $orderedCustomers = $customers->sortByDesc('total_debt');
+                } elseif ($order === 'debt_asc') {
+                    $orderedCustomers = $customers->sortBy('total_debt');
+                }
+            @endphp
+            @forelse($orderedCustomers as $index => $customer)
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $customer->name }}</td>
