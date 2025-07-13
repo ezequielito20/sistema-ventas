@@ -193,7 +193,6 @@
         <div class="exchange-filters-content redesigned">
             <div class="exchange-block redesigned-left">
                 <div class="rate-row redesigned-rate-row">
-                    <div class="rate-label">Tipo de Cambio Actual</div>
                     <span class="currency-symbol">1 USD =</span>
                     <input type="number" id="exchangeRate" class="rate-input" value="120.00" step="0.01" min="0" @cannot('customers.edit') readonly @endcannot>
                     <span class="currency-code">VES</span>
@@ -207,7 +206,7 @@
             </div>
             <div class="filters-block redesigned-right">
                 <div class="filters-search-row">
-                    <div class="filters-btns mb-0">
+                    <div class="filters-btns filters-btns-scroll mb-0">
                         <button type="button" class="filter-btn filter-btn-all active" data-filter="all">
                             <i class="fas fa-list"></i>
                             <span>Todos</span>
@@ -348,8 +347,9 @@
     .filters-search-row {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1.1rem;
         width: 100%;
+        justify-content: flex-start;
     }
     .filters-btns {
         display: flex;
@@ -358,9 +358,11 @@
         flex-wrap: wrap;
     }
     .redesigned-search-group {
+        max-width: 260px;
+        min-width: 120px;
         width: 100%;
-        max-width: 320px;
-        margin-left: 1.5rem;
+        margin-left: 0.7rem;
+        flex: 0 0 auto;
     }
     .search-container {
         position: relative;
@@ -1430,10 +1432,12 @@
 
         .search-input {
             width: 100%;
+            min-width: 0;
+            max-width: 260px;
             padding: 0.75rem 1rem 0.75rem 2.5rem;
             border: 2px solid #e9ecef;
             border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
+            font-size: 1rem;
             transition: var(--transition);
         }
 
@@ -2915,6 +2919,92 @@
                 height: 38px !important;
             }
         }
+        @media (max-width: 576px) {
+            /* ...otros estilos responsivos... */
+            .update-rate-btn span {
+                display: none !important;
+            }
+            .filters-search-row {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.5rem !important;
+            }
+            .redesigned-search-group {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+        }
+        /* --- FILTROS: BOTONES RESPONSIVOS Y CENTRADOS --- */
+        .filters-btns-scroll {
+            display: flex;
+            gap: 0.7rem;
+            flex-wrap: nowrap;
+        }
+        .redesigned-search-group {
+            max-width: 260px;
+            min-width: 120px;
+            width: 100%;
+            margin-left: 0.7rem;
+            flex: 0 0 auto;
+        }
+        .search-container {
+             position: relative;
+             display: flex;
+             align-items: center;
+             width: 100%;
+         }
+        .search-input {
+            width: 100%;
+            min-width: 0;
+            max-width: 260px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .search-clear {
+            position: absolute;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: var(--transition);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e0e0e0;
+        }
+        .search-clear:hover {
+            background: #bdbdbd;
+            color: #222;
+        }
+        @media (max-width: 576px) {
+            .filters-btns-scroll {
+                gap: 0.2rem;
+                flex-wrap: wrap;
+                width: 100%;
+            }
+            .filters-btns-scroll .filter-btn {
+                flex: 1 1 0;
+                min-width: 0;
+                font-size: 0.97rem;
+                padding: 0.4rem 0.2rem;
+                margin-bottom: 0.2rem;
+                text-align: center;
+            }
+        }
 @stop
 
 @section('js')
@@ -2928,6 +3018,8 @@
                 responsive: true,
                 autoWidth: false,
                 stateSave: true, // Guarda la página y el estado del paginador
+                searching: false,
+                lengthChange: false,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 }
