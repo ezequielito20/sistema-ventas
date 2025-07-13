@@ -2828,6 +2828,93 @@
                 height: auto;
             }
         }
+        @media (max-width: 576px) {
+            .card-actions {
+                padding: 0.75rem 0.5rem;
+            }
+            .action-buttons {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 0.4rem !important;
+                overflow-x: auto;
+                justify-content: flex-start;
+                align-items: center;
+                padding-bottom: 0.2rem;
+                scrollbar-width: none; /* Firefox */
+            }
+            .action-buttons::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
+            }
+            .action-btn {
+                min-width: 44px;
+                min-height: 44px;
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+                padding: 0;
+                border-radius: 12px !important;
+                justify-content: center;
+            }
+            .action-btn span {
+                display: none !important;
+            }
+            .action-btn:active {
+                transform: scale(0.93);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+            }
+        }
+        @media (max-width: 576px) {
+            .redesigned-rate-row {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                flex-wrap: nowrap !important;
+                justify-content: flex-start !important;
+            }
+            .update-rate-btn {
+                margin-left: 0.5rem !important;
+                width: auto !important;
+                min-width: 44px;
+                height: 44px !important;
+                padding: 0 1.2rem !important;
+                align-self: auto !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .rate-input {
+                width: 90px !important;
+                min-width: 70px;
+                height: 44px !important;
+                padding: 0.5rem !important;
+                font-size: 1.1rem !important;
+            }
+            .currency-symbol, .currency-code {
+                font-size: 1rem !important;
+            }
+            .filters-search-row {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 0.5rem !important;
+                flex-wrap: nowrap !important;
+                justify-content: flex-start !important;
+            }
+            .filters-btns {
+                flex-direction: row !important;
+                gap: 0.3rem !important;
+                flex-wrap: nowrap !important;
+            }
+            .redesigned-search-group {
+                margin-left: 0.5rem !important;
+                max-width: 140px !important;
+                min-width: 80px !important;
+            }
+            .search-input {
+                font-size: 0.95rem !important;
+                padding: 0.5rem 1rem 0.5rem 2.2rem !important;
+                height: 38px !important;
+            }
+        }
 @stop
 
 @section('js')
