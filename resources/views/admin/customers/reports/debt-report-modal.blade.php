@@ -27,16 +27,13 @@
         <div class="col-lg-7">
             <div class="card rate-card">
                 <div class="card-body d-flex align-items-center gap-2 debt-rate-row-redesigned">
-                    <div class="rate-label mr-2">Tipo de Cambio:</div>
-                    <input type="number" id="modalExchangeRate" class="form-control rate-input-compact mx-2" step="0.01" min="0.01" value="{{ $exchangeRate ?? 1 }}" style="max-width: 110px; text-align: center; font-weight: 600;">
+                    <div class="rate-label mr-2">Conversión:</div>
+                    <span class="currency-code mx-2">1 USD</span>
+                    <input type="number" id="modalExchangeRate" class="form-control rate-input-compact mx-2" step="0.01" min="0.01" value="{{ $exchangeRate ?? 1 }}" style="text-align: center; font-weight: 600;">
                     <button class="btn btn-primary update-rate-btn mx-2" type="button" id="updateModalExchangeRate" data-toggle="tooltip" title="Actualizar tipo de cambio">
                         <i class="fas fa-sync-alt"></i>
                         <span class="d-none d-md-inline">Actualizar</span>
                     </button>
-                    <span class="currency-code mx-2" style="font-weight: 600; color: #667eea;">1 USD</span>
-                    <a href="{{ route('admin.customers.debt-report.download') }}" id="viewPdfBtn" class="btn btn-danger btn-sm ml-auto" target="_blank" data-toggle="tooltip" title="Descargar PDF">
-                        <i class="fas fa-file-pdf"></i> VER PDF
-                    </a>
                 </div>
             </div>
         </div>
@@ -447,48 +444,139 @@
     .debt-modal-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.7rem;
-        padding: 1.2rem 1rem 1rem 1rem;
+        gap: 0.5rem;
+        padding: 1rem 0.7rem 0.7rem 0.7rem;
     }
-    .debt-modal-body {
-        padding: 0.7rem 0.2rem 0.7rem 0.2rem;
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+    .header-content .modal-title {
+        font-size: 1.15rem;
+    }
+    .header-subtitle {
+        font-size: 0.93rem;
     }
     .company-card, .rate-card, .filter-card, .summary-card {
-        margin-bottom: 0.7rem;
-        padding: 0.7rem 0.5rem;
+        margin-bottom: 0.5rem;
+        padding: 0.6rem 0.3rem;
+        border-radius: 0.6rem;
     }
-    .summary-info {
-        gap: 0.5rem;
+    .company-card .company-name {
+        font-size: 1.05rem;
     }
-    .summary-title {
-        font-size: 1rem;
+    .company-meta {
+        font-size: 0.85rem;
     }
-    .summary-value {
-        font-size: 1.2rem;
-    }
-    .summary-totals {
-        min-width: 120px;
-    }
-    .debt-table-responsive {
-        padding: 0.5rem 0.2rem 0.5rem 0.2rem;
-    }
-    .debt-modal-footer {
-        padding: 1rem 1rem 1rem 1rem;
-        gap: 0.7rem;
+    .rate-card .rate-label {
+        font-size: 0.97rem;
+        margin-bottom: 0.2rem;
     }
     .debt-rate-row-redesigned {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.18rem;
+        padding: 0.1rem 0;
+        width: 100%;
+    }
+    .rate-label {
+        font-size: 0.97rem;
+        min-width: 60px;
+        margin-bottom: 0;
+        margin-right: 0.12rem;
+    }
+    .currency-code {
+        width: auto;
+        min-width: 36px;
+        font-size: 0.97rem;
+        text-align: right;
+        margin: 0 0.08rem 0 0;
+        display: block;
+        font-weight: 600;
+        color: #667eea;
     }
     .rate-input-compact {
-        width: 100%;
+        width: 28%;
         max-width: 100%;
+        font-size: 1.02rem;
+        padding: 0.3rem 0.4rem;
+        margin-bottom: 0;
+    }
+    .update-rate-btn {
+        width: 14%;
+        min-width: 32px;
+        max-width: 38px;
+        margin: 0;
+        padding: 0.3rem 0.4rem;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .update-rate-btn span {
+        display: none;
+    }
+    #viewPdfBtn {
+        width: 100%;
+        margin-top: 0.3rem;
+        font-size: 0.97rem;
+        display: block;
+        text-align: center;
+    }
+    .summary-card {
+        padding: 0.7rem 0.3rem;
+        border-radius: 0.7rem;
+    }
+    .summary-flex-better {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.7rem;
+        min-height: unset;
+    }
+    .summary-info-block {
+        min-width: 0;
+        flex: 1 1 0;
+        margin-bottom: 0.5rem;
+    }
+    .summary-title {
+        font-size: 1.02rem;
+    }
+    .summary-value {
+        font-size: 1.3rem;
+    }
+    .summary-totals-block {
+        min-width: 0;
+        flex: 1 1 0;
+        align-items: flex-start;
     }
     .summary-totals-row {
         flex-direction: column;
-        align-items: flex-end;
+        align-items: flex-start;
         gap: 0.4rem;
+        margin-top: 0.1rem;
+    }
+    .summary-badge-big {
+        font-size: 1.08rem;
+        padding: 0.5rem 1.2rem;
+        border-radius: 14px;
+        margin-bottom: 0.2rem;
+    }
+    .summary-total-label {
+        font-size: 0.98rem;
+        margin-bottom: 0.1rem;
+        text-align: left;
+    }
+    .debt-table-responsive {
+        padding: 0.3rem 0.1rem 0.3rem 0.1rem;
+    }
+    .debt-table thead th, .debt-table td {
+        font-size: 0.93rem;
+        padding: 0.35rem 0.3rem;
+    }
+    .debt-modal-footer {
+        padding: 0.7rem 0.7rem 0.7rem 0.7rem;
+        gap: 0.5rem;
     }
 }
 @media (max-width: 767px) {
