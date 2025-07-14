@@ -625,13 +625,15 @@ class CustomerController extends Controller
          $company = $this->company;
          $currency = $this->currencies;
          $totalDebt = $customers->sum('total_debt');
+         $exchangeRate = request('exchange_rate', 1); // <-- Nuevo: toma el valor de la request o 1
 
          // Devolver la vista parcial para el modal
          return view('admin.customers.reports.debt-report-modal', compact(
             'customers',
             'company',
             'currency',
-            'totalDebt'
+            'totalDebt',
+            'exchangeRate' // <-- Nuevo: pasa a la vista
          ));
       } catch (\Exception $e) {
          Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());

@@ -3087,6 +3087,9 @@
                 $.ajax({
                     url: '{{ route("admin.customers.debt-report") }}',
                     type: 'GET',
+                    data: {
+                        exchange_rate: currentExchangeRate // <-- Enviar el valor actual de la tasa de cambio
+                    },
                     success: function(response) {
                         // Cerrar el indicador de carga
                         Swal.close();
