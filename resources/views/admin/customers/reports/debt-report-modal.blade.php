@@ -34,6 +34,10 @@
                         <i class="fas fa-sync-alt"></i>
                         <span class="d-none d-md-inline">Actualizar</span>
                     </button>
+                    <a href="{{ route('admin.customers.debt-report.download') }}" target="_blank" class="btn btn-pdf-modal mx-2" id="viewPdfBtn" data-toggle="tooltip" title="Ver PDF de deudores">
+                        <i class="fas fa-file-pdf"></i>
+                        <span class="d-none d-md-inline">PDF</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -355,9 +359,10 @@
 .debt-rate-row-redesigned {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
     justify-content: flex-start;
+    width: 100%;
 }
 .rate-input-compact {
     max-width: 110px;
@@ -439,6 +444,33 @@
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
+    .debt-rate-row-redesigned {
+        gap: 0.3rem;
+    }
+    .rate-label, .currency-code {
+        font-size: 0.97rem;
+        min-width: unset;
+        margin-bottom: 0;
+        margin-right: 0.08rem;
+    }
+    .rate-input-compact {
+        min-width: 60px;
+        max-width: 80px;
+        font-size: 1.01rem;
+        padding: 0.3rem 0.4rem;
+        margin-bottom: 0;
+    }
+    .update-rate-btn, .btn-pdf-modal {
+        min-width: 80px;
+        max-width: 120px;
+        padding: 0.3rem 0.7rem;
+        font-size: 1.01rem;
+        margin: 0;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }
 @media (max-width: 576px) {
     .debt-modal-header {
@@ -474,47 +506,35 @@
         margin-bottom: 0.2rem;
     }
     .debt-rate-row-redesigned {
-        flex-direction: row;
-        align-items: center;
-        gap: 0.18rem;
+        gap: 0.13rem;
         padding: 0.1rem 0;
-        width: 100%;
+        flex-wrap: nowrap;
     }
-    .rate-label {
-        font-size: 0.97rem;
-        min-width: 60px;
+    .rate-label, .currency-code {
+        font-size: 0.95rem;
+        min-width: unset;
         margin-bottom: 0;
-        margin-right: 0.12rem;
-    }
-    .currency-code {
-        width: auto;
-        min-width: 36px;
-        font-size: 0.97rem;
-        text-align: right;
-        margin: 0 0.08rem 0 0;
-        display: block;
-        font-weight: 600;
-        color: #667eea;
+        margin-right: 0.05rem;
     }
     .rate-input-compact {
-        width: 28%;
-        max-width: 100%;
-        font-size: 1.02rem;
-        padding: 0.3rem 0.4rem;
+        min-width: 48px;
+        max-width: 60px;
+        font-size: 0.97rem;
+        padding: 0.2rem 0.3rem;
         margin-bottom: 0;
     }
-    .update-rate-btn {
-        width: 14%;
-        min-width: 32px;
-        max-width: 38px;
+    .update-rate-btn, .btn-pdf-modal {
+        min-width: 38px;
+        max-width: 60px;
+        padding: 0.2rem 0.3rem;
+        font-size: 0.97rem;
         margin: 0;
-        padding: 0.3rem 0.4rem;
-        font-size: 1.05rem;
+        white-space: nowrap;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    .update-rate-btn span {
+    .update-rate-btn span, .btn-pdf-modal span {
         display: none;
     }
     #viewPdfBtn {
@@ -587,6 +607,40 @@
 @media (max-width: 767px) {
     #updateModalExchangeRate span {
         display: none !important;
+    }
+}
+.btn-pdf-modal {
+    background: linear-gradient(90deg, #ff5858 0%, #f857a6 100%);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.7rem;
+    padding: 0.45rem 1.1rem;
+    font-size: 1.08rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(248,87,166,0.08);
+    transition: background 0.18s, box-shadow 0.18s;
+}
+.btn-pdf-modal:hover, .btn-pdf-modal:focus {
+    background: linear-gradient(90deg, #f857a6 0%, #ff5858 100%);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(248,87,166,0.13);
+    text-decoration: none;
+}
+@media (max-width: 576px) {
+    .btn-pdf-modal {
+        width: 14%;
+        min-width: 32px;
+        max-width: 38px;
+        padding: 0.3rem 0.4rem;
+        font-size: 1.05rem;
+        justify-content: center;
+        gap: 0;
+    }
+    .btn-pdf-modal span {
+        display: none;
     }
 }
 </style>
