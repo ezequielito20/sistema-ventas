@@ -562,7 +562,25 @@ class CustomerController extends Controller
             $query->where('total_debt', '<=', floatval($request->debt_max));
          }
 
-         $customers = $query->orderBy('name', 'asc')->get();
+         // Aplicar ordenamiento según el parámetro order
+         $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
+         switch($order) {
+            case 'name_asc':
+               $query->orderBy('name', 'asc');
+               break;
+            case 'name_desc':
+               $query->orderBy('name', 'desc');
+               break;
+            case 'debt_asc':
+               $query->orderBy('total_debt', 'asc');
+               break;
+            case 'debt_desc':
+            default:
+               $query->orderBy('total_debt', 'desc');
+               break;
+         }
+
+         $customers = $query->get();
 
          $company = $this->company;
          $currency = $this->currencies;
@@ -586,7 +604,7 @@ class CustomerController extends Controller
             'user_id' => Auth::id(),
             'total_customers' => $customers->count(),
             'total_debt' => $totalDebt,
-            'filters' => $request->only(['search', 'debt_range', 'exchange_rate'])
+            'filters' => $request->only(['search', 'debt_range', 'debt_min', 'debt_max', 'order', 'exchange_rate'])
          ]);
 
          // Nombre del archivo con filtros aplicados
@@ -594,8 +612,11 @@ class CustomerController extends Controller
          if ($request->search) {
             $fileName .= '-busqueda';
          }
-         if ($request->debt_range) {
-            $fileName .= '-filtrado';
+         if ($request->filled('debt_min') || $request->filled('debt_max')) {
+            $fileName .= '-filtrado-deuda';
+         }
+         if ($request->order && $request->order !== 'debt_desc') {
+            $fileName .= '-ordenado';
          }
          $fileName .= '.pdf';
 

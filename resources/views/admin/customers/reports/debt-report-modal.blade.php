@@ -647,6 +647,66 @@
 
 <script>
     $(document).ready(function() {
+        // Función para actualizar el enlace del PDF con los filtros aplicados
+        function updatePdfLinks() {
+            let searchTerm = $('#searchFilter').val();
+            let debtMin = $('#debtMinFilter').val();
+            let debtMax = $('#debtMaxFilter').val();
+            let order = $('#orderFilter').val();
+            let exchangeRate = $('#modalExchangeRate').val();
+            
+            // Construir la URL base
+            let pdfUrl = '{{ route("admin.customers.debt-report.download") }}';
+            let params = [];
+            
+            // Agregar parámetros solo si tienen valor
+            if (searchTerm && searchTerm.trim() !== '') {
+                params.push('search=' + encodeURIComponent(searchTerm.trim()));
+            }
+            if (debtMin && debtMin !== '') {
+                params.push('debt_min=' + encodeURIComponent(debtMin));
+            }
+            if (debtMax && debtMax !== '') {
+                params.push('debt_max=' + encodeURIComponent(debtMax));
+            }
+            if (order && order !== 'debt_desc') { // Solo agregar si no es el valor por defecto
+                params.push('order=' + encodeURIComponent(order));
+            }
+            if (exchangeRate && exchangeRate !== '{{ $exchangeRate ?? 1 }}') {
+                params.push('exchange_rate=' + encodeURIComponent(exchangeRate));
+            }
+            
+            // Construir la URL final
+            if (params.length > 0) {
+                pdfUrl += '?' + params.join('&');
+            }
+            
+            // Actualizar el enlace del botón PDF
+            $('#viewPdfBtn').attr('href', pdfUrl);
+        }
+
+        // Función para actualizar los iconos de ordenamiento
+        function updateSortIcons() {
+            const order = $('#orderFilter').val();
+            
+            // Remover todas las clases de iconos
+            $('.sort-icon').removeClass('fa-sort-up fa-sort-down fa-sort');
+            
+            // Aplicar el icono correcto según el orden
+            if (order === 'name_asc') {
+                $('.sort-icon[data-sort="name"]').addClass('fa-sort-up');
+            } else if (order === 'name_desc') {
+                $('.sort-icon[data-sort="name"]').addClass('fa-sort-down');
+            } else if (order === 'debt_asc') {
+                $('.sort-icon[data-sort="debt"]').addClass('fa-sort-up');
+            } else if (order === 'debt_desc') {
+                $('.sort-icon[data-sort="debt"]').addClass('fa-sort-down');
+            } else {
+                // Estado por defecto
+                $('.sort-icon').addClass('fa-sort');
+            }
+        }
+
         // Función para actualizar los números de fila SOLO en el modal
         function updateRowNumbersModal() {
             $('.customer-row-modal:visible').each(function(index) {
@@ -746,6 +806,12 @@
             sortRowsModal();
             updateRowNumbersModal();
             updateSortIcons();
+            updatePdfLinks();
+        });
+
+        // Actualizar enlace PDF cuando cambie el tipo de cambio
+        $('#modalExchangeRate').on('input change', function() {
+            updatePdfLinks();
         });
         // Inicializar iconos de ordenamiento
         updateSortIcons();

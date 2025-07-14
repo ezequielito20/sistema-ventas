@@ -115,6 +115,26 @@
             @if(isset($exchangeRate) && $exchangeRate != 1)
                 <p><strong>Tipo de cambio aplicado:</strong> 1 USD = {{ number_format($exchangeRate, 2) }} Bs</p>
             @endif
+            @if(request()->has('order'))
+                <p><strong>Ordenamiento:</strong>
+                    @switch(request()->order)
+                        @case('name_asc')
+                            Nombre (A-Z)
+                            @break
+                        @case('name_desc')
+                            Nombre (Z-A)
+                            @break
+                        @case('debt_asc')
+                            Deuda (Menor a mayor)
+                            @break
+                        @case('debt_desc')
+                            Deuda (Mayor a menor)
+                            @break
+                        @default
+                            Deuda (Mayor a menor)
+                    @endswitch
+                </p>
+            @endif
         </div>
     @endif
     
@@ -132,18 +152,7 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                $orderedCustomers = $customers;
-                $order = request('order');
-                if ($order === 'name_asc') {
-                    $orderedCustomers = $customers->sortBy(function($c) { return strtolower($c->name); });
-                } elseif ($order === 'debt_desc') {
-                    $orderedCustomers = $customers->sortByDesc('total_debt');
-                } elseif ($order === 'debt_asc') {
-                    $orderedCustomers = $customers->sortBy('total_debt');
-                }
-            @endphp
-            @forelse($orderedCustomers as $index => $customer)
+            @forelse($customers as $index => $customer)
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $customer->name }}</td>
