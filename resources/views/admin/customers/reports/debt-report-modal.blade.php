@@ -530,53 +530,58 @@
     }
     .summary-flex-better {
         flex-direction: column;
-        align-items: stretch;
-        gap: 0.7rem;
+        align-items: center;
+        gap: 0.5rem;
         min-height: unset;
+        text-align: center;
+        padding: 0.2rem 0;
     }
     .summary-info-block {
         min-width: 0;
         flex: 1 1 0;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .summary-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
     }
     .summary-title {
-        font-size: 1.02rem;
+        font-size: 1.01rem;
+        margin-bottom: 0.1rem;
     }
     .summary-value {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-left: 0.2rem;
     }
     .summary-totals-block {
         min-width: 0;
         flex: 1 1 0;
-        align-items: flex-start;
+        align-items: center;
+        margin-top: 0.2rem;
+    }
+    .summary-total-label {
+        font-size: 0.99rem;
+        margin-bottom: 0.1rem;
+        text-align: center;
     }
     .summary-totals-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.4rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         margin-top: 0.1rem;
     }
     .summary-badge-big {
-        font-size: 1.08rem;
-        padding: 0.5rem 1.2rem;
+        font-size: 1.13rem;
+        padding: 0.5rem 1.1rem;
         border-radius: 14px;
-        margin-bottom: 0.2rem;
-    }
-    .summary-total-label {
-        font-size: 0.98rem;
-        margin-bottom: 0.1rem;
-        text-align: left;
-    }
-    .debt-table-responsive {
-        padding: 0.3rem 0.1rem 0.3rem 0.1rem;
-    }
-    .debt-table thead th, .debt-table td {
-        font-size: 0.93rem;
-        padding: 0.35rem 0.3rem;
-    }
-    .debt-modal-footer {
-        padding: 0.7rem 0.7rem 0.7rem 0.7rem;
-        gap: 0.5rem;
+        margin-bottom: 0;
     }
 }
 @media (max-width: 767px) {
