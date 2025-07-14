@@ -217,7 +217,7 @@
                         </button>
                         <button type="button" class="filter-btn filter-btn-inactive" data-filter="inactive">
                             <i class="fas fa-times-circle"></i>
-                            <span>Inactivos</span>
+                            <span class="d-inline d-sm-none">Inact...</span><span class="d-none d-sm-inline">Inactivos</span>
                         </button>
                     </div>
                     <div class="search-group redesigned-search-group ml-3">
@@ -2993,14 +2993,20 @@
         @media (max-width: 576px) {
             .filters-btns-scroll {
                 gap: 0.2rem;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 width: 100%;
+                overflow-x: hidden;
+                padding-bottom: 0.2rem;
+                scrollbar-width: none; /* Firefox */
+            }
+            .filters-btns-scroll::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
             }
             .filters-btns-scroll .filter-btn {
                 flex: 1 1 0;
                 min-width: 0;
-                font-size: 0.97rem;
-                padding: 0.4rem 0.2rem;
+                font-size: 0.85rem;
+                padding: 0.35rem 0.3rem;
                 margin-bottom: 0.2rem;
                 text-align: center;
             }
