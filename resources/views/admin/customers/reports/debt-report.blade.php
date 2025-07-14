@@ -95,56 +95,12 @@
         <div class="report-date">Generado el: {{ date('d/m/Y H:i:s') }}</div>
     </div>
     
-    @if(request()->has('search') || request()->has('debt_min') || request()->has('debt_max') || isset($exchangeRate))
-        <div class="filters-info">
-            <h4>Filtros Aplicados:</h4>
-            @if(request()->has('search') && request()->search)
-                <p><strong>Búsqueda:</strong> "{{ request()->search }}"</p>
-            @endif
-            @if(request()->has('debt_min') || request()->has('debt_max'))
-                <p><strong>Rango de deuda:</strong>
-                    @if(request()->filled('debt_min') && request()->filled('debt_max'))
-                        {{ $currency->symbol }} {{ request()->debt_min }} - {{ $currency->symbol }} {{ request()->debt_max }}
-                    @elseif(request()->filled('debt_min'))
-                        Desde {{ $currency->symbol }} {{ request()->debt_min }}
-                    @elseif(request()->filled('debt_max'))
-                        Hasta {{ $currency->symbol }} {{ request()->debt_max }}
-                    @endif
-                </p>
-            @endif
-            @if(isset($exchangeRate) && $exchangeRate != 1)
-                <p><strong>Tipo de cambio aplicado:</strong> 1 USD = {{ number_format($exchangeRate, 2) }} Bs</p>
-            @endif
-            @if(request()->has('order'))
-                <p><strong>Ordenamiento:</strong>
-                    @switch(request()->order)
-                        @case('name_asc')
-                            Nombre (A-Z)
-                            @break
-                        @case('name_desc')
-                            Nombre (Z-A)
-                            @break
-                        @case('debt_asc')
-                            Deuda (Menor a mayor)
-                            @break
-                        @case('debt_desc')
-                            Deuda (Mayor a menor)
-                            @break
-                        @default
-                            Deuda (Mayor a menor)
-                    @endswitch
-                </p>
-            @endif
-        </div>
-    @endif
-    
     <table>
         <thead>
             <tr>
                 <th>#</th>
                 <th>Cliente</th>
                 <th>Contacto</th>
-                <th>Cédula</th>
                 <th>Deuda Total</th>
                 @if(isset($exchangeRate) && $exchangeRate != 1)
                     <th>Deuda en Bs</th>
@@ -160,7 +116,6 @@
                         {{ $customer->phone ?? '' }}<br>
                         {{ $customer->email ?? '' }}
                     </td>
-                    <td>{{ $customer->nit_number ?? '' }}</td>
                     <td class="text-right text-danger">
                         {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                     </td>
@@ -172,11 +127,11 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ isset($exchangeRate) && $exchangeRate != 1 ? '6' : '5' }}" style="text-align: center;">No hay clientes con deudas pendientes</td>
+                    <td colspan="{{ isset($exchangeRate) && $exchangeRate != 1 ? '5' : '4' }}" style="text-align: center;">No hay clientes con deudas pendientes</td>
                 </tr>
             @endforelse
             <tr class="total-row">
-                <td colspan="4" style="text-align: right;">TOTAL DEUDA PENDIENTE:</td>
+                <td colspan="3" style="text-align: right;">TOTAL DEUDA PENDIENTE:</td>
                 <td class="text-right text-danger">
                     {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
                 </td>
