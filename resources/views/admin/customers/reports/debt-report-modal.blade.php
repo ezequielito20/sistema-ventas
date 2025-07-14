@@ -101,8 +101,7 @@
                     <th class="sortable-header" data-sort="name" style="cursor: pointer;" title="Haz clic para ordenar por nombre">
                         Cliente <i class="fas fa-sort ml-1 sort-icon" data-sort="name"></i>
                     </th>
-                    <th>Contacto</th>
-                    <th>Cédula</th>
+                    <th class="d-none d-md-table-cell">Contacto</th>
                     <th class="sortable-header" data-sort="debt" style="cursor: pointer;" title="Haz clic para ordenar por deuda">
                         Deuda Total <i class="fas fa-sort ml-1 sort-icon" data-sort="debt"></i>
                     </th>
@@ -120,11 +119,10 @@
                         data-debt="{{ $customer->total_debt }}">
                         <td class="row-number">{{ $index + 1 }}</td>
                         <td>{{ $customer->name }}</td>
-                        <td>
+                        <td class="d-none d-md-table-cell">
                             {{ $customer->phone ?? '' }}<br>
                             <small class="text-muted">{{ $customer->email ?? '' }}</small>
                         </td>
-                        <td>{{ $customer->nit_number ?? '' }}</td>
                         <td class="text-right text-danger font-weight-bold">
                             {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                         </td>
@@ -134,18 +132,18 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center">No hay clientes con deudas pendientes</td>
+                        <td colspan="5" class="text-center">No hay clientes con deudas pendientes</td>
                     </tr>
                 @endforelse
                 <tr class="bg-light font-weight-bold" id="totalRow">
-                    <td colspan="4" class="text-right">TOTAL DEUDA PENDIENTE:</td>
+                    <td colspan="3" class="text-right d-none d-md-table-cell">TOTAL DEUDA PENDIENTE:</td>
+                    <td colspan="2" class="text-right d-md-none">TOTAL DEUDA PENDIENTE:</td>
                     <td class="text-right text-danger" id="totalDebtTable">
                         {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
                     </td>
                     <td class="text-right text-danger" id="totalBsDebtTable">
                         Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}
                     </td>
-                    <td></td>
                 </tr>
             </tbody>
         </table>
