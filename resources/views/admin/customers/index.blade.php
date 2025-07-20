@@ -3116,28 +3116,20 @@
             background: #bdbdbd;
             color: #222;
         }
-        @media (max-width: 576px) {
+        /* Estilos responsivos para botones de filtro */
+        @media (max-width: 575px) {
             .filters-btns-scroll {
-                gap: 0.2rem;
+                gap: 0.5rem;
                 flex-wrap: nowrap;
                 width: 100%;
-                overflow-x: hidden;
-                padding-bottom: 0.2rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
                 scrollbar-width: none; /* Firefox */
             }
             .filters-btns-scroll::-webkit-scrollbar {
                 display: none; /* Chrome/Safari */
             }
-            .filters-btns-scroll .filter-btn {
-                flex: 1 1 0;
-                min-width: 0;
-                font-size: 0.85rem;
-                padding: 0.35rem 0.3rem;
-                margin-bottom: 0.2rem;
-                text-align: center;
-            }
-        }
-        @media (max-width: 575px) {
+            
             .filter-btn {
                 min-width: 44px;
                 width: 44px;
@@ -3147,6 +3139,8 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-shrink: 0;
+                margin: 0;
             }
             
             .filter-btn i {
@@ -3361,17 +3355,21 @@
             // Variable para mantener el filtro actual
             let currentFilter = 'all';
             
-            // Filtros de estado
-            $('.filter-btn').click(function() {
+            // Filtros de estado - versión mejorada para móvil
+            $(document).on('click touchstart', '.filter-btn', function(e) {
+                e.stopPropagation();
+                
                 $('.filter-btn').removeClass('active');
                 $(this).addClass('active');
 
                 currentFilter = $(this).data('filter');
+                console.log('Filtro clickeado:', currentFilter, 'Botón:', $(this).text().trim(), 'Evento:', e.type);
                 applyFiltersAndSearch();
             });
             
             // Función para aplicar filtros y búsqueda
             function applyFiltersAndSearch() {
+                console.log('applyFiltersAndSearch ejecutada - Filtro actual:', currentFilter);
                 const searchTerm = $('#mobileSearch').val();
                 
                 // Filtrar tabla (vista desktop)
@@ -3404,10 +3402,18 @@
                 }
                 
                 // Filtrar tarjetas móviles
+                let visibleCount = 0;
                 $('.customer-card').each(function() {
-                    const cardStatus = $(this).data('status');
-                    const isDefaulter = $(this).data('defaulter') === 'true';
+                    const $card = $(this);
+                    const cardStatus = $card.data('status');
+                    const dataDefaulter = $card.data('defaulter');
+                    const isDefaulter = dataDefaulter === true || dataDefaulter === 'true';
                     let shouldShow = false;
+                    
+                    // Debug para móvil
+                    if (currentFilter === 'defaulters') {
+                        console.log('Móvil - Tarjeta:', $card.find('.customer-name').text(), 'isDefaulter:', isDefaulter, 'data-defaulter:', dataDefaulter, 'tipo:', typeof dataDefaulter);
+                    }
                     
                     // Aplicar filtro de estado
                     if (currentFilter === 'all') {
@@ -3422,17 +3428,29 @@
                     
                     // Aplicar búsqueda si hay término de búsqueda
                     if (shouldShow && searchTerm) {
-                        const customerName = $(this).find('.customer-name').text().toLowerCase();
-                        const customerEmail = $(this).find('.customer-email').text().toLowerCase();
-                        const customerPhone = $(this).find('.info-value').text().toLowerCase();
+                        const customerName = $card.find('.customer-name').text().toLowerCase();
+                        const customerEmail = $card.find('.customer-email').text().toLowerCase();
+                        const customerPhone = $card.find('.info-value').text().toLowerCase();
                         
                         shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
                                    customerEmail.includes(searchTerm.toLowerCase()) || 
                                    customerPhone.includes(searchTerm.toLowerCase());
                     }
                     
-                    $(this).toggle(shouldShow);
+                    // Mostrar/ocultar tarjeta
+                    if (shouldShow) {
+                        $card.show();
+                        visibleCount++;
+                    } else {
+                        $card.hide();
+                    }
                 });
+                
+                // Debug para móvil - contar tarjetas
+                if (currentFilter === 'defaulters') {
+                    const totalCards = $('.customer-card').length;
+                    console.log(`Móvil - Tarjetas visibles: ${visibleCount}/${totalCards} (Filtro: ${currentFilter})`);
+                }
             }
 
 
