@@ -365,129 +365,59 @@ return [
       ],
       [
          'text' => 'Usuarios',
+         'url' => 'users',
          'icon' => 'fas fa-fw fa-users',
          'can' => 'users.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Usuarios',
-               'url' => 'users',
-               'can' => 'users.index',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
-            ],
-            // [
-            //    'text' => 'Crear Usuario',
-            //    'url' => 'users/create',
-            //    'icon' => 'fas fa-fw fa-user-plus',
-            //    'classes' => 'bg-white text-black'
-            // ]
-         ],
       ],
       [
          'text' => 'Categorías',
+         'url' => 'categories',
          'icon' => 'fas fa-fw fa-tags',
          'can' => 'categories.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Categorías',
-               'url' => 'categories',
-               'can' => 'categories.index',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black'
-            ],
-         ],
       ],
       [
          'text' => 'Productos',
+         'url' => 'products',
          'icon' => 'fas fa-fw fa-boxes',
          'can' => 'products.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Productos',
-               'url' => 'products',
-               'icon' => 'fas fa-fw fa-list',
-               'can' => 'products.index',
-               'classes' => 'bg-white text-black'
-            ],
-         ],
       ],
       [
          'text' => 'Proveedores',
+         'url' => 'suppliers',
          'icon' => 'fas fa-fw fa-truck',
          'can' => 'suppliers.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Proveedores',
-               'url' => 'suppliers',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black',
-               'can' => 'suppliers.index',
-            ],
-         ],
       ],
       [
          'text' => 'Compras',
+         'url' => 'purchases',
          'icon' => 'fas fa-fw fa-shopping-cart',
          'can' => 'purchases.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Compras',
-               'url' => 'purchases',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black',
-               'can' => 'purchases.index',
-            ],
-         ],
       ],
       [
          'text' => 'Ventas',
+         'url' => 'sales',
          'icon' => 'fas fa-fw fa-receipt',
          'can' => 'sales.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Ventas',
-               'url' => 'sales',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black',
-               'can' => 'sales.index',
-            ],
-         ],
       ],
       [
          'text' => 'Clientes',
+         'url' => 'customers',
          'icon' => 'fas fa-fw fa-users',
          'can' => 'customers.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Clientes',
-               'url' => 'customers',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black',
-               'can' => 'customers.index',
-            ],
-         ],
       ],
       [
          'text' => 'Arqueo de Caja',
+         'url' => 'cash-counts',
          'icon' => 'fas fa-fw fa-cash-register',
          'can' => 'cash-counts.index',
          'classes' => 'bg-blue text-white',
-         'submenu' => [
-            [
-               'text' => 'Lista de Arqueos',
-               'url' => 'cash-counts',
-               'icon' => 'fas fa-fw fa-list',
-               'classes' => 'bg-white text-black',
-               'can' => 'cash-counts.index',
-            ],
-         ],
       ],
       // ['header' => 'labels'],
       // [
