@@ -1906,7 +1906,21 @@
                 responsive: true,
                 scrollX: true,
                 language: {
-                    url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ productos",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 productos",
+                    "infoFiltered": "(filtrado de _MAX_ productos totales)",
+                    "lengthMenu": "Mostrar _MENU_ productos",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar:",
+                    "zeroRecords": "No se encontraron coincidencias",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
                 },
                 columnDefs: [{
                         responsivePriority: 1,

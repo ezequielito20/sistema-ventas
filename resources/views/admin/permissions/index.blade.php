@@ -161,9 +161,7 @@
                 order: [
                     [1, 'asc']
                 ], // Ordenar por nombre
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
-                }
+                language: window.DataTablesSpanishConfig
             });
 
             // Eliminar permiso

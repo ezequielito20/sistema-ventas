@@ -2499,7 +2499,7 @@
                 ordering: true,
                 order: [[0, 'desc']],
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                    url: "javascript:void(0)",
                 },
                 dom: 'rt', // Solo tabla y procesamiento
                 initComplete: function() {

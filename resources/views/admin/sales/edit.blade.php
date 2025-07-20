@@ -361,9 +361,7 @@
                 responsive: true,
                 scrollX: true,
                 autoWidth: false,
-                language: {
-                    url: "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-                },
+                language: window.DataTablesSpanishConfig,
                 columnDefs: [{
                     responsivePriority: 1,
                     targets: [0, 1, 2]
