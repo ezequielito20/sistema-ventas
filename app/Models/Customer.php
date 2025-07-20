@@ -184,6 +184,28 @@ class Customer extends Model
    }
 
    /**
+    * Obtiene la fecha de apertura del arqueo de caja anterior
+    */
+   public function getPreviousCashCountOpeningDate()
+   {
+      $currentCashCount = \App\Models\CashCount::where('company_id', $this->company_id)
+         ->whereNull('closing_date')
+         ->first();
+      
+      if (!$currentCashCount) {
+         return now();
+      }
+      
+      // Buscar el arqueo anterior (el último cerrado antes del actual)
+      $previousCashCount = \App\Models\CashCount::where('company_id', $this->company_id)
+         ->where('closing_date', '<', $currentCashCount->opening_date)
+         ->orderBy('closing_date', 'desc')
+         ->first();
+      
+      return $previousCashCount ? $previousCashCount->opening_date : $currentCashCount->opening_date;
+   }
+
+   /**
     * Determina si el cliente tiene deudas de arqueos anteriores
     */
    public function hasPreviousCashCountDebts()
