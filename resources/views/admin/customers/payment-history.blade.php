@@ -3,37 +3,108 @@
 @section('title', 'Historial de Pagos')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="text-dark font-weight-bold">Historial de Pagos de Deudas</h1>
-            <p class="mb-0">Registro histórico de todos los pagos de deudas realizados por los clientes</p>
-        </div>
-        <div>
-            <a href="{{ route('admin.customers.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left mr-1"></i>Volver a Clientes
-            </a>
-            {{-- Comentar o eliminar este botón hasta que implementes la funcionalidad
-            <a href="{{ route('admin.customers.payment-history.export') }}" class="btn btn-success">
-                <i class="fas fa-file-excel mr-1"></i>Exportar a Excel
-            </a>
-            --}}
+    <div class="hero-section mb-4">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-8 col-md-7 col-12">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            <i class="fas fa-history-gradient"></i>
+                            Historial de Pagos
+                        </h1>
+                        <p class="hero-subtitle">Registro histórico de todos los pagos de deudas realizados por los clientes</p>
+                        <div class="hero-stats"></div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-5 col-12">
+                    <div class="hero-action-buttons d-flex justify-content-lg-end justify-content-center align-items-center gap-3 flex-wrap">
+                        <a href="{{ route('admin.customers.index') }}" class="hero-btn hero-btn-secondary" data-toggle="tooltip" title="Volver a Clientes">
+                            <i class="fas fa-arrow-left"></i>
+                            <span class="d-none d-md-inline">Volver a Clientes</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+    .hero-action-buttons {
+        gap: 1rem !important;
+    }
+    .hero-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.85);
+        color: var(--primary-color);
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 0.7rem 1.2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        transition: all 0.2s;
+        cursor: pointer;
+        min-width: 44px;
+        min-height: 44px;
+        position: relative;
+        text-decoration: none;
+        outline: none;
+    }
+    .hero-btn i {
+        font-size: 1.3rem;
+        color: var(--primary-color);
+        margin-right: 0.2rem;
+    }
+    .hero-btn-secondary { color: #f5576c; }
+    .hero-btn-secondary i { color: #f5576c; }
+    .hero-btn:hover, .hero-btn:focus {
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px) scale(1.04);
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+    .hero-btn:active {
+        transform: scale(0.97);
+    }
+    .hero-btn span {
+        font-size: 1rem;
+        font-weight: 600;
+        color: inherit;
+        white-space: nowrap;
+    }
+    @media (max-width: 991px) {
+        .hero-action-buttons {
+            justify-content: center !important;
+        }
+    }
+    @media (max-width: 767px) {
+        .hero-btn span {
+            display: none !important;
+        }
+        .hero-btn {
+            padding: 0.7rem !important;
+            min-width: 44px;
+        }
+    }
+    </style>
 @stop
 
 @section('content')
-    {{-- Filtros --}}
-    <div class="card card-outline card-info mb-4">
-        <div class="card-header">
-            <h3 class="card-title">Filtros</h3>
-        </div>
-        <div class="card-body">
-            <form id="filterForm" method="GET">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="customer_filter">Cliente</label>
-                            <select class="form-control select2" id="customer_filter" name="customer_id">
+    {{-- Filtros con diseño moderno --}}
+    <div class="exchange-filters-card mb-4">
+        <div class="exchange-filters-content redesigned">
+            <div class="filters-block redesigned-right">
+                <form id="filterForm" method="GET">
+                    <div class="filters-search-row">
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-user"></i>
+                                Cliente
+                            </label>
+                            <select class="form-control select2-modern" id="customer_filter" name="customer_id">
                                 <option value="">Todos los clientes</option>
                                 @foreach($customers as $customer)
                                     <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
@@ -42,151 +113,203 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_from">Fecha desde</label>
-                            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request('date_from') }}">
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                Fecha desde
+                            </label>
+                            <input type="date" class="form-control input-modern" id="date_from" name="date_from" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-calendar-check"></i>
+                                Fecha hasta
+                            </label>
+                            <input type="date" class="form-control input-modern" id="date_to" name="date_to" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary modern-btn">
+                                <i class="fas fa-search"></i>
+                                <span>Filtrar</span>
+                            </button>
+                            <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-secondary modern-btn">
+                                <i class="fas fa-undo"></i>
+                                <span>Reiniciar</span>
+                            </a>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="date_to">Fecha hasta</label>
-                            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request('date_to') }}">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search mr-1"></i>Filtrar
-                                </button>
-                                <a href="{{ route('admin.customers.payment-history') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-undo mr-1"></i>Reiniciar
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {{-- Estadísticas --}}
-    <div class="row">
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }} {{ number_format($totalPayments, 2) }}</h3>
-                    <p>Total Pagos Recibidos</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $paymentsCount }}</h3>
-                    <p>Número de Pagos</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }} {{ number_format($averagePayment, 2) }}</h3>
-                    <p>Pago Promedio</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-calculator"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>{{ $currency->symbol }} {{ number_format($totalRemainingDebt, 2) }}</h3>
-                    <p>Deuda Total Restante</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
-    {{-- Tabla de Historial --}}
-    <div class="card">
-        <div class="card-body">
-            <table id="paymentsTable" class="table table-striped table-hover">
-                <thead class="bg-primary text-white">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Deuda Anterior</th>
-                        <th>Monto Pagado</th>
-                        <th>Deuda Restante</th>
-                        <th>Registrado por</th>
-                        <th>Notas</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($payments as $payment)
+    {{-- Estadísticas con diseño de tarjetas modernas --}}
+    <div class="stats-grid mb-4">
+        <div class="stat-card stat-card-primary">
+            <div class="stat-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3 class="stat-number">{{ $currency->symbol }} {{ number_format($totalPayments, 2) }}</h3>
+                </div>
+                <p class="stat-label">Total Pagos Recibidos</p>
+                <div class="stat-progress">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-card-success">
+            <div class="stat-icon">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3 class="stat-number">{{ $paymentsCount }}</h3>
+                </div>
+                <p class="stat-label">Número de Pagos</p>
+                <div class="stat-progress">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-card-warning">
+            <div class="stat-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3 class="stat-number">{{ $currency->symbol }} {{ number_format($averagePayment, 2) }}</h3>
+                </div>
+                <p class="stat-label">Pago Promedio</p>
+                <div class="stat-progress">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-card-purple">
+            <div class="stat-icon">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3 class="stat-number">{{ $currency->symbol }} {{ number_format($totalRemainingDebt, 2) }}</h3>
+                </div>
+                <p class="stat-label">Deuda Total Restante</p>
+                <div class="stat-progress">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Tabla de Historial con diseño moderno --}}
+    <div class="customers-container">
+        <div class="table-view d-none d-lg-block">
+            <div class="table-container">
+                <table id="paymentsTable" class="customers-table">
+                    <thead>
                         <tr>
-                            <td>{{ $payment->created_at->format('d/m/Y H:i') }}</td>
-                            <td>
-                                <strong>{{ $payment->customer->name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ $payment->customer->email }}</small>
-                            </td>
-                            <td class="text-danger">
-                                {{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}
-                            </td>
-                            <td class="text-success font-weight-bold">
-                                {{ $currency->symbol }} {{ number_format($payment->payment_amount, 2) }}
-                            </td>
-                            <td class="text-danger">
-                                {{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}
-                            </td>
-                            <td>
-                                {{ $payment->user->name }}
-                            </td>
-                            <td>
-                                {{ $payment->notes ?? 'Sin notas' }}
-                            </td>
-                            <td class="text-center">
-                                <button class="btn btn-danger btn-sm delete-payment" 
-                                        data-payment-id="{{ $payment->id }}"
-                                        data-customer-name="{{ $payment->customer->name }}"
-                                        data-payment-amount="{{ $payment->payment_amount }}"
-                                        data-customer-id="{{ $payment->customer_id }}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
+                            <th class="th-customer">Fecha</th>
+                            <th class="th-contact">Cliente</th>
+                            <th class="th-id">Deuda Anterior</th>
+                            <th class="th-sales">Monto Pagado</th>
+                            <th class="th-debt">Deuda Restante</th>
+                            <th class="th-debt-bs">Registrado por</th>
+                            <th class="th-status">Notas</th>
+                            <th class="th-actions">Acciones</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            
-            <div class="mt-3 d-flex justify-content-center">
-                {{ $payments->appends(request()->query())->links('pagination::bootstrap-4') }}
+                    </thead>
+                    <tbody>
+                        @foreach($payments as $payment)
+                            <tr class="customer-row">
+                                <td class="td-customer">
+                                    <div class="customer-info">
+                                        <div class="customer-avatar">
+                                            <div class="avatar-circle">
+                                                <i class="fas fa-calendar"></i>
+                                            </div>
+                                        </div>
+                                        <div class="customer-details">
+                                            <div class="customer-name">{{ $payment->created_at->format('d/m/Y') }}</div>
+                                            <div class="customer-email">
+                                                <i class="fas fa-clock"></i>
+                                                {{ $payment->created_at->format('H:i') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="td-contact">
+                                    <div class="contact-info">
+                                        <i class="fas fa-user"></i>
+                                        <span>{{ $payment->customer->name }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-id">
+                                    <span class="id-badge debt-badge">{{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}</span>
+                                </td>
+                                <td class="td-sales">
+                                    <div class="sales-info">
+                                        <div class="sales-amount payment-amount">{{ $currency->symbol }} {{ number_format($payment->payment_amount, 2) }}</div>
+                                        <div class="sales-count">Pago registrado</div>
+                                    </div>
+                                </td>
+                                <td class="td-debt">
+                                    <div class="debt-info">
+                                        <div class="debt-amount debt-value">
+                                            {{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}
+                                        </div>
+                                        <div class="debt-status">Deuda restante</div>
+                                    </div>
+                                </td>
+                                <td class="td-debt-bs">
+                                    <div class="user-info">
+                                        <i class="fas fa-user-cog"></i>
+                                        <span>{{ $payment->user->name }}</span>
+                                    </div>
+                                </td>
+                                <td class="td-status">
+                                    <span class="status-badge status-active">
+                                        <i class="fas fa-sticky-note"></i>
+                                        {{ $payment->notes ?? 'Sin notas' }}
+                                    </span>
+                                </td>
+                                <td class="td-actions">
+                                    <div class="action-buttons">
+                                        <button class="action-btn action-btn-delete delete-payment" 
+                                                data-payment-id="{{ $payment->id }}"
+                                                data-customer-name="{{ $payment->customer->name }}"
+                                                data-payment-amount="{{ $payment->payment_amount }}"
+                                                data-customer-id="{{ $payment->customer_id }}"
+                                                data-toggle="tooltip" title="Eliminar Pago">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+        </div>
+        
+        <div class="pagination-container">
+            {{ $payments->appends(request()->query())->links('pagination::bootstrap-4') }}
         </div>
     </div>
 
-    {{-- Gráficos --}}
+    {{-- Gráficos con diseño moderno --}}
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Pagos por Día de la Semana</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Pagos por Día de la Semana
+                    </h3>
                 </div>
                 <div class="card-body">
                     <canvas id="weekdayChart" height="250"></canvas>
@@ -196,7 +319,10 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Pagos por Mes</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        Pagos por Mes
+                    </h3>
                 </div>
                 <div class="card-body">
                     <canvas id="monthlyChart" height="250"></canvas>
@@ -210,80 +336,1188 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
     <style>
-        /* Estilos para el paginador de Laravel */
-        .pagination {
-            margin-bottom: 0;
+        /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
+        :root {
+            --primary-color: #667eea;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-color: #f093fb;
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-color: #4facfe;
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-color: #43e97b;
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-color: #fa709a;
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --purple-color: #a8edea;
+            --purple-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        .pagination .page-link {
-            color: #007bff;
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-            padding: 0.375rem 0.75rem;
-            margin-left: -1px;
-            line-height: 1.25;
-            text-decoration: none;
+
+        /* Header hero */
+        .hero-header {
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow: hidden;
         }
-        
-        .pagination .page-link:hover {
+
+        .hero-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
             z-index: 2;
-            color: #0056b3;
-            background-color: #e9ecef;
-            border-color: #dee2e6;
         }
-        
-        .pagination .page-item.active .page-link {
-            z-index: 3;
-            color: #fff;
-            background-color: #007bff;
-            border-color: #007bff;
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-        
-        .pagination .page-item.disabled .page-link {
-            color: #6c757d;
-            background-color: #fff;
-            border-color: #dee2e6;
-            cursor: not-allowed;
+
+        .title-icon {
+            font-size: 3rem;
+            animation: bounce 2s infinite;
         }
-        
-        .pagination .page-item:first-child .page-link {
-            margin-left: 0;
-            border-top-left-radius: 0.25rem;
-            border-bottom-left-radius: 0.25rem;
+
+        .hero-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin: 0.5rem 0 0 0;
         }
-        
-        .pagination .page-item:last-child .page-link {
-            border-top-right-radius: 0.25rem;
-            border-bottom-right-radius: 0.25rem;
-        }
-        
-        /* Asegurar que DataTables no interfiera con nuestro paginador */
-        .dataTables_paginate {
-            display: none !important;
-        }
-        
-        /* Estilos adicionales para mejorar la apariencia */
-        .pagination .page-link {
-            font-size: 0.875rem;
+
+        .btn-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
             font-weight: 500;
         }
-        
-        .pagination .page-item.active .page-link {
-            box-shadow: 0 2px 4px rgba(0,123,255,0.25);
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
         }
-        
-        /* Asegurar que el paginador sea visible */
+
+        /* Decoraciones flotantes */
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 60px;
+            height: 60px;
+            top: 60%;
+            right: 20%;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            width: 40px;
+            height: 40px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        .shape-4 {
+            width: 100px;
+            height: 100px;
+            top: 30%;
+            right: 10%;
+            animation-delay: 1s;
+        }
+
+        /* Filtros */
+        .filter-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .filter-header h3 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .select2-modern, .input-modern {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .select2-modern:focus, .input-modern:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        .select2-modern option {
+            background: var(--dark-color);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-modern {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .stat-primary::before { background: var(--gradient-primary); }
+        .stat-success::before { background: var(--gradient-success); }
+        .stat-warning::before { background: var(--gradient-warning); }
+        .stat-danger::before { background: var(--gradient-danger); }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .stat-primary .stat-icon { background: var(--gradient-primary); }
+        .stat-success .stat-icon { background: var(--gradient-success); }
+        .stat-warning .stat-icon { background: var(--gradient-warning); }
+        .stat-danger .stat-icon { background: var(--gradient-danger); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        /* Tabla moderna */
+        .table-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            color: white;
+            width: 300px;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .table-modern {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .th-modern {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .td-modern {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .table-row-modern {
+            transition: all 0.3s ease;
+        }
+
+        .table-row-modern:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Celdas especializadas */
+        .date-cell {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .date-main {
+            font-weight: 600;
+            color: white;
+        }
+
+        .date-time {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .customer-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: white;
+        }
+
+        .customer-email {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .amount-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .amount-debt {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .amount-payment {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
+
+        .amount-remaining {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: var(--gradient-success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .notes-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .actions-cell {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn-action:hover {
+            background: rgba(239, 68, 68, 0.4);
+            transform: scale(1.1);
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark-color);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-action:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Paginación */
+        .pagination-container {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
         .pagination {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
+            display: flex;
+            gap: 0.5rem;
         }
+
+        .page-link {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .page-item.active .page-link {
+            background: var(--gradient-primary);
+            border-color: transparent;
+        }
+
+        /* Gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .chart-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chart-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .chart-header h3 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .chart-body {
+            padding: 2rem;
+        }
+
+        /* Animaciones */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+        }
+
+        /* Ocultar elementos de DataTables */
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            display: none !important;
+        }
+
+        /* ===== ESTILOS ESPECÍFICOS PARA PAYMENT HISTORY ===== */
         
-        /* Mejorar el espaciado */
-        .card-body .table-responsive + .mt-3 {
-            margin-top: 1.5rem !important;
-            padding-top: 1rem;
-            border-top: 1px solid #e9ecef;
+        /* ===== HERO SECTION ===== */
+        .hero-section {
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hero-title i {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== EXCHANGE RATE CARD ===== */
+        .exchange-filters-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem 2rem 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .exchange-filters-content {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .filters-block.redesigned-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            flex: 2 1 500px;
+            min-width: 260px;
+            max-width: 700px;
+            padding-left: 2rem;
+        }
+
+        .filters-search-row {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .select2-modern, .input-modern {
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius-sm);
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .select2-modern:focus, .input-modern:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .modern-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary.modern-btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-secondary.modern-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .stat-card-primary::before { background: var(--primary-gradient); }
+        .stat-card-success::before { background: var(--success-gradient); }
+        .stat-card-warning::before { background: var(--warning-gradient); }
+        .stat-card-purple::before { background: var(--purple-gradient); }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-primary .stat-icon { background: var(--primary-gradient); }
+        .stat-card-success .stat-icon { background: var(--success-gradient); }
+        .stat-card-warning .stat-icon { background: var(--warning-gradient); }
+        .stat-card-purple .stat-icon { background: var(--purple-gradient); }
+
+        .stat-content {
+            position: relative;
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-progress {
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            transition: width 1s ease-in-out;
+        }
+
+        /* ===== CUSTOMERS CONTAINER ===== */
+        .customers-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* ===== TABLE VIEW ===== */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .customers-table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .customers-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f8f9fa;
+            vertical-align: middle;
+        }
+
+        .customers-table tr:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .customer-row {
+            transition: var(--transition);
+        }
+
+        .customer-row:hover {
+            transform: scale(1.01);
+            box-shadow: var(--shadow);
+        }
+
+        /* Customer Info */
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .customer-avatar {
+            flex-shrink: 0;
+        }
+
+        .avatar-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .avatar-circle:hover {
+            transform: scale(1.1);
+        }
+
+        .customer-details {
+            flex: 1;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .customer-email {
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+        }
+
+        /* ID Badge */
+        .id-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .debt-badge {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        /* Sales Info */
+        .sales-info {
+            text-align: center;
+        }
+
+        .sales-amount {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .payment-amount {
+            color: #28a745;
+        }
+
+        .sales-count {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        /* Debt Info */
+        .debt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .debt-amount {
+            font-weight: 600;
+            color: #dc3545;
+        }
+
+        .debt-status {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* User Info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .action-btn-delete {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Pagination */
+        .pagination-container {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-link {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .page-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border-color: transparent;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 1.5rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .filters-search-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filter-actions {
+                justify-content: center;
+            }
         }
     </style>
 @stop
@@ -293,26 +1527,31 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable
+            // Inicializar DataTable con configuración moderna
             $('#paymentsTable').DataTable({
                 responsive: true,
                 autoWidth: false,
-                paging: false, // Desactivar paginación de DataTables
-                info: false, // Desactivar información de registros
-                searching: true, // Mantener la búsqueda
-                ordering: true, // Mantener el ordenamiento
-                order: [[0, 'desc']], // Ordenar por la primera columna (Fecha) en orden descendente
+                paging: false,
+                info: false,
+                searching: false, // Usamos nuestro propio buscador
+                ordering: true,
+                order: [[0, 'desc']],
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 },
-                dom: 'rt', // Solo mostrar la tabla y el campo de búsqueda
+                dom: 'rt',
                 initComplete: function() {
-                    // Asegurar que el paginador de Laravel sea visible
                     $('.pagination').show();
                 }
             });
 
-            // Inicializar gráficos si existen los elementos
+            // Inicializar Select2
+            $('.select2-modern').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('body')
+            });
+
+            // Inicializar gráficos con colores modernos
             if (document.getElementById('weekdayChart')) {
                 const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
                 const weekdayChart = new Chart(weekdayCtx, {
@@ -322,28 +1561,57 @@
                         datasets: [{
                             label: 'Pagos por día de la semana',
                             data: {!! json_encode($weekdayData) !!},
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
                         }]
                     },
                     options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: {
+                                        size: 12
                                     }
                                 }
-                            }
-                        },
-                        plugins: {
+                            },
                             tooltip: {
+                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
                                 callbacks: {
                                     label: function(context) {
                                         return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
                                     }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    callback: function(value) {
+                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
                                 }
                             }
                         }
@@ -360,29 +1628,61 @@
                         datasets: [{
                             label: 'Pagos por mes',
                             data: {!! json_encode($monthlyData) !!},
-                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 2,
-                            tension: 0.3
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
                         }]
                     },
                     options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: {
+                                        size: 12
                                     }
                                 }
-                            }
-                        },
-                        plugins: {
+                            },
                             tooltip: {
+                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                titleColor: 'white',
+                                bodyColor: 'white',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
                                 callbacks: {
                                     label: function(context) {
                                         return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
                                     }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    callback: function(value) {
+                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
                                 }
                             }
                         }
@@ -390,34 +1690,43 @@
                 });
             }
 
-            // Manejar la eliminación de pagos
-            $(document).on('click', '.delete-payment', function() {
+            // Animaciones para las tarjetas de estadísticas
+            $('.stat-card').each(function(index) {
+                $(this).css({
+                    'animation-delay': (index * 0.1) + 's'
+                });
+            });
+
+            // Manejar la eliminación de pagos con diseño moderno
+            $(document).on('click', '.btn-delete', function() {
                 const paymentId = $(this).data('payment-id');
                 const customerName = $(this).data('customer-name');
                 const paymentAmount = $(this).data('payment-amount');
                 const $button = $(this);
 
-                console.log('Botón de eliminar clickeado:', {
-                    paymentId: paymentId,
-                    customerName: customerName,
-                    paymentAmount: paymentAmount
-                });
-
                 Swal.fire({
                     title: '¿Estás seguro?',
                     html: `
-                        <p>Vas a eliminar el pago de <strong>${paymentAmount} {{ $currency->symbol }}</strong> del cliente <strong>${customerName}</strong>.</p>
-                        <p>Esta acción restaurará la deuda al cliente.</p>
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🗑️</div>
+                            <p>Vas a eliminar el pago de <strong style="color: #10b981;">${paymentAmount} {{ $currency->symbol }}</strong></p>
+                            <p>del cliente <strong style="color: #667eea;">${customerName}</strong></p>
+                            <p style="color: #ef4444; font-weight: 600;">Esta acción restaurará la deuda al cliente.</p>
+                        </div>
                     `,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        popup: 'swal-modern',
+                        confirmButton: 'btn btn-danger btn-modern',
+                        cancelButton: 'btn btn-secondary btn-modern'
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Mostrar indicador de carga
                         Swal.fire({
                             title: 'Eliminando pago...',
                             html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
@@ -425,7 +1734,6 @@
                             allowOutsideClick: false
                         });
 
-                        // Enviar solicitud de eliminación
                         $.ajax({
                             url: `/admin/customers/payment-history/${paymentId}`,
                             type: 'DELETE',
@@ -433,31 +1741,27 @@
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(response) {
-                                console.log('Respuesta del servidor:', response);
-                                
-                                // Eliminar la fila de la tabla
                                 $button.closest('tr').fadeOut(300, function() {
                                     $(this).remove();
                                 });
 
-                                // Mostrar mensaje de éxito
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Pago eliminado',
+                                    title: '¡Pago eliminado!',
                                     text: 'El pago ha sido eliminado y la deuda ha sido restaurada',
-                                    confirmButtonText: 'Aceptar'
+                                    confirmButtonText: 'Aceptar',
+                                    customClass: {
+                                        popup: 'swal-modern'
+                                    }
                                 });
 
-                                // Actualizar estadísticas si las hay en la página
                                 if (response.statistics) {
-                                    $('#totalPayments').text(response.statistics.totalPayments);
-                                    $('#paymentsCount').text(response.statistics.paymentsCount);
-                                    $('#averagePayment').text(response.statistics.averagePayment);
+                                    $('.stat-value').each(function() {
+                                        $(this).addClass('animate-value');
+                                    });
                                 }
                             },
                             error: function(xhr) {
-                                console.error('Error en la solicitud:', xhr);
-                                
                                 let errorMessage = 'Ha ocurrido un error al eliminar el pago';
                                 
                                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -468,13 +1772,26 @@
                                     icon: 'error',
                                     title: 'Error',
                                     text: errorMessage,
-                                    confirmButtonText: 'Aceptar'
+                                    confirmButtonText: 'Aceptar',
+                                    customClass: {
+                                        popup: 'swal-modern'
+                                    }
                                 });
                             }
                         });
                     }
                 });
             });
+
+            // Efectos hover adicionales
+            $('.stat-card').hover(
+                function() {
+                    $(this).find('.stat-icon').addClass('pulse');
+                },
+                function() {
+                    $(this).find('.stat-icon').removeClass('pulse');
+                }
+            );
         });
     </script>
 @stop 
