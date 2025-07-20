@@ -3636,13 +3636,13 @@
                     $debtValue = $(this).closest('td').find('.debt-value');
                     customerId = $debtValue.data('customer-id');
                     currentDebt = parseFloat($debtValue.data('original-value'));
-                    customerName = $(this).closest('tr').find('td:first-child strong').text();
+                    customerName = $(this).closest('tr').find('.customer-name').text();
                 } else {
                     // Vista móvil (tarjetas)
                     $debtValue = $(this).closest('.customer-card').find('.debt-value');
                     customerId = $debtValue.data('customer-id');
                     currentDebt = parseFloat($debtValue.data('original-value'));
-                    customerName = $(this).closest('.customer-card').find('h6').text();
+                    customerName = $(this).closest('.customer-card').find('.customer-name').text();
                 }
                 
                 // Obtener la fecha actual en formato YYYY-MM-DD
