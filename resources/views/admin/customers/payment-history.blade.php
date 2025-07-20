@@ -208,6 +208,7 @@
 
     {{-- Tabla de Historial con diseño moderno --}}
     <div class="customers-container">
+        {{-- Vista de tabla para pantallas grandes --}}
         <div class="table-view d-none d-lg-block">
             <div class="table-container">
                 <table id="paymentsTable" class="customers-table">
@@ -295,9 +296,101 @@
                 </table>
             </div>
         </div>
+
+        {{-- Vista de tarjetas para móviles --}}
+        <div class="cards-view d-lg-none">
+            <div class="cards-container" id="mobilePaymentsContainer">
+                @foreach($payments as $payment)
+                    <div class="payment-card">
+                        <div class="card-header">
+                            <div class="payment-avatar">
+                                <div class="avatar-circle">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                            </div>
+                            <div class="payment-info">
+                                <h6 class="payment-date">{{ $payment->created_at->format('d/m/Y') }}</h6>
+                                <div class="payment-time">
+                                    <i class="fas fa-clock"></i>
+                                    {{ $payment->created_at->format('H:i') }}
+                                </div>
+                            </div>
+                            <div class="payment-amount-display">
+                                <span class="amount-badge payment-badge">
+                                    {{ $currency->symbol }} {{ number_format($payment->payment_amount, 2) }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-user"></i>
+                                        Cliente
+                                    </div>
+                                    <div class="info-value">{{ $payment->customer->name }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-arrow-up text-danger"></i>
+                                        Deuda Anterior
+                                    </div>
+                                    <div class="info-value debt-value">
+                                        {{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-balance-scale"></i>
+                                        Deuda Restante
+                                    </div>
+                                    <div class="info-value debt-remaining">
+                                        {{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-user-cog"></i>
+                                        Registrado por
+                                    </div>
+                                    <div class="info-value">{{ $payment->user->name }}</div>
+                                </div>
+                                <div class="info-item full-width">
+                                    <div class="info-label">
+                                        <i class="fas fa-sticky-note"></i>
+                                        Notas
+                                    </div>
+                                    <div class="info-value notes-value">
+                                        {{ $payment->notes ?? 'Sin notas' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <div class="action-buttons">
+                                <button class="action-btn action-btn-delete delete-payment" 
+                                        data-payment-id="{{ $payment->id }}"
+                                        data-customer-name="{{ $payment->customer->name }}"
+                                        data-payment-amount="{{ $payment->payment_amount }}"
+                                        data-customer-id="{{ $payment->customer_id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
         
         <div class="pagination-container">
-            {{ $payments->appends(request()->query())->links('pagination::bootstrap-4') }}
+            <div class="pagination-info">
+                Mostrando {{ $payments->firstItem() ?? 0 }} a {{ $payments->lastItem() ?? 0 }} de {{ $payments->total() }} registros
+            </div>
+            <div class="pagination-wrapper">
+                {{ $payments->appends(request()->query())->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 
@@ -1010,6 +1103,45 @@
             display: none !important;
         }
 
+        /* Asegurar que la paginación de Laravel sea visible */
+        .pagination {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Estilos adicionales para la paginación de Laravel */
+        .pagination .page-item {
+            list-style: none;
+            margin: 0;
+        }
+
+        .pagination .page-link {
+            position: relative;
+            display: block;
+            text-decoration: none;
+        }
+
+        /* Mejorar la apariencia de los números de página */
+        .pagination .page-item:not(.active):not(.disabled) .page-link {
+            background: white;
+            color: var(--dark-color);
+        }
+
+        .pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Estilos para el texto de información de paginación */
+        .pagination-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
         /* ===== ESTILOS ESPECÍFICOS PARA PAYMENT HISTORY ===== */
         
         /* ===== HERO SECTION ===== */
@@ -1102,6 +1234,13 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .filter-group:first-child {
+            flex: 1.5;
+            min-width: 200px;
         }
 
         .filter-label {
@@ -1119,12 +1258,59 @@
             padding: 0.75rem 1rem;
             font-size: 0.9rem;
             transition: var(--transition);
+            width: 100%;
         }
 
         .select2-modern:focus, .input-modern:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Estilos para Select2 */
+        .select2-container--bootstrap4 {
+            width: 100% !important;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: auto;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition);
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .select2-container--bootstrap4 .select2-selection__rendered {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .select2-container--bootstrap4 .select2-selection__arrow {
+            height: 100%;
+            right: 1rem;
+        }
+
+        .select2-dropdown {
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow);
+        }
+
+        .select2-results__option {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary-color);
         }
 
         .filter-actions {
@@ -1462,37 +1648,341 @@
             box-shadow: var(--shadow-hover);
         }
 
+        /* ===== CARDS VIEW (MOBILE) ===== */
+        .cards-container {
+            padding: 1.5rem;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .payment-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .payment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .payment-card .card-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #f8f9fa;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .payment-avatar {
+            flex-shrink: 0;
+        }
+
+        .payment-info {
+            flex: 1;
+        }
+
+        .payment-date {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .payment-time {
+            color: #666;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-amount-display {
+            flex-shrink: 0;
+        }
+
+        .amount-badge {
+            background: var(--success-gradient);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .payment-badge {
+            background: var(--success-gradient);
+        }
+
+        .payment-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .debt-value {
+            color: #dc3545;
+        }
+
+        .debt-remaining {
+            color: #fd7e14;
+        }
+
+        .notes-value {
+            font-weight: normal;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .payment-card .card-actions {
+            padding: 1.5rem;
+            border-top: 1px solid #f8f9fa;
+            background: #f8f9fa;
+        }
+
+        .payment-card .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .payment-card .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            min-width: 120px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .payment-card .action-btn-delete {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .payment-card .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            filter: brightness(1.1);
+        }
+
+        .payment-card .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .payment-card .action-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .payment-card .action-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            filter: none;
+        }
+
+        /* Responsive para tarjetas */
+        @media (max-width: 576px) {
+            .cards-container {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .payment-card .card-header {
+                padding: 1rem;
+            }
+
+            .payment-card .card-body {
+                padding: 1rem;
+            }
+
+            .payment-card .card-actions {
+                padding: 1rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .payment-card .action-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+                min-width: 100px;
+            }
+
+            .payment-card .action-btn span {
+                font-size: 0.85rem;
+            }
+
+            .payment-card .action-btn i {
+                font-size: 0.9rem;
+            }
+        }
+
         /* Pagination */
         .pagination-container {
             padding: 1.5rem 2rem;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            gap: 1rem;
+        }
+
+        .pagination-wrapper {
+            display: flex;
             justify-content: center;
+            width: 100%;
         }
 
         .pagination {
             display: flex;
             gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .page-item {
+            margin: 0;
         }
 
         .page-link {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            background: white;
+            border: 2px solid #e9ecef;
+            color: var(--dark-color);
             padding: 0.75rem 1rem;
-            border-radius: 10px;
+            border-radius: var(--border-radius-sm);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            font-weight: 500;
+            min-width: 44px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .page-link:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--primary-color);
+            border-color: var(--primary-color);
             color: white;
             text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         .page-item.active .page-link {
             background: var(--primary-gradient);
             border-color: transparent;
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .page-item.disabled .page-link {
+            background: #f8f9fa;
+            border-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .page-item.disabled .page-link:hover {
+            background: #f8f9fa;
+            border-color: #e9ecef;
+            color: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Estilos específicos para los botones de navegación */
+        .page-item:first-child .page-link,
+        .page-item:last-child .page-link {
+            font-weight: 600;
+        }
+
+        /* Responsive para paginación */
+        @media (max-width: 576px) {
+            .pagination-container {
+                padding: 1rem;
+                gap: 0.75rem;
+            }
+
+            .pagination-info {
+                font-size: 0.8rem;
+                text-align: center;
+                line-height: 1.4;
+            }
+
+            .pagination {
+                gap: 0.3rem;
+                flex-wrap: wrap;
+            }
+
+            .page-link {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+                min-width: 40px;
+            }
+
+            /* Ocultar algunos números de página en móviles para ahorrar espacio */
+            .pagination .page-item:not(.active):not(:first-child):not(:last-child):not(.disabled) {
+                display: none;
+            }
+
+            .pagination .page-item.active,
+            .pagination .page-item:first-child,
+            .pagination .page-item:last-child,
+            .pagination .page-item.disabled {
+                display: block;
+            }
         }
 
         /* Responsive */
@@ -1515,8 +2005,91 @@
                 gap: 1rem;
             }
 
+            .filter-group {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            .filter-group:first-child {
+                flex: 1;
+                min-width: 100%;
+            }
+
             .filter-actions {
                 justify-content: center;
+                width: 100%;
+            }
+
+            .filter-actions .modern-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .exchange-filters-card {
+                padding: 1.5rem 1rem;
+            }
+
+            .filters-block.redesigned-right {
+                padding-left: 0;
+                max-width: 100%;
+            }
+
+            .filters-search-row {
+                gap: 0.75rem;
+            }
+
+            .filter-group {
+                gap: 0.4rem;
+            }
+
+            .filter-label {
+                font-size: 0.85rem;
+            }
+
+            .select2-modern, .input-modern {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .modern-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .modern-btn span {
+                font-size: 0.9rem;
+            }
+
+            /* Select2 responsive para móviles */
+            .select2-container--bootstrap4 {
+                width: 100% !important;
+                min-width: 100% !important;
+            }
+
+            .select2-container--bootstrap4 .select2-selection--single {
+                min-height: 42px;
+                padding: 0.5rem 0.8rem;
+            }
+
+            .select2-container--bootstrap4 .select2-selection__rendered {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.9rem;
+                line-height: 1.2;
+            }
+
+            .select2-container--bootstrap4 .select2-selection__arrow {
+                right: 0.8rem;
+            }
+
+            .select2-dropdown {
+                font-size: 0.9rem;
+            }
+
+            .select2-results__option {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -1698,7 +2271,7 @@
             });
 
             // Manejar la eliminación de pagos con diseño moderno
-            $(document).on('click', '.btn-delete', function() {
+            $(document).on('click', '.delete-payment', function() {
                 const paymentId = $(this).data('payment-id');
                 const customerName = $(this).data('customer-name');
                 const paymentAmount = $(this).data('payment-amount');
@@ -1727,6 +2300,11 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        // Mostrar estado de carga en el botón
+                        const originalText = $button.html();
+                        $button.html('<i class="fas fa-spinner fa-spin"></i> Eliminando...');
+                        $button.prop('disabled', true);
+
                         Swal.fire({
                             title: 'Eliminando pago...',
                             html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
@@ -1741,9 +2319,19 @@
                                 _token: '{{ csrf_token() }}'
                             },
                             success: function(response) {
-                                $button.closest('tr').fadeOut(300, function() {
-                                    $(this).remove();
-                                });
+                                // Eliminar la fila de la tabla o la tarjeta
+                                const $row = $button.closest('tr');
+                                const $card = $button.closest('.payment-card');
+                                
+                                if ($row.length > 0) {
+                                    $row.fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                } else if ($card.length > 0) {
+                                    $card.fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                }
 
                                 Swal.fire({
                                     icon: 'success',
@@ -1762,6 +2350,10 @@
                                 }
                             },
                             error: function(xhr) {
+                                // Restaurar el botón
+                                $button.html(originalText);
+                                $button.prop('disabled', false);
+
                                 let errorMessage = 'Ha ocurrido un error al eliminar el pago';
                                 
                                 if (xhr.responseJSON && xhr.responseJSON.message) {
