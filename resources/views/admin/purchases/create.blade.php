@@ -2,6 +2,10 @@
 
 @section('title', 'Nueva Compra')
 
+@section('meta')
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+@stop
+
 @section('content_header')
     <div class="modern-header">
         <div class="header-content">
@@ -179,16 +183,16 @@
                     <div class="panel-body">
                         <div class="table-container">
                             <table class="modern-table">
-                                <thead>
-                                    <tr>
+                                                                            <thead>
+                                                <tr>
                                         <th class="th-product">Producto</th>
                                         <th class="th-stock">Stock</th>
-                                        <th class="th-quantity">Cantidad</th>
+                                        <th class="th-quantity">Cant</th>
                                         <th class="th-price">Precio Unit.</th>
                                         <th class="th-subtotal">Subtotal</th>
                                         <th class="th-actions">Acción</th>
-                                    </tr>
-                                </thead>
+                                                </tr>
+                                            </thead>
                                 <tbody id="purchaseItems">
                                     <!-- Los items se agregarán dinámicamente aquí -->
                                 </tbody>
@@ -1101,6 +1105,21 @@
             }
         }
 
+        @media (max-width: 480px) {
+            .action-buttons {
+                gap: 0.25rem;
+            }
+            
+            .action-btn {
+                padding: 0.375rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .btn-text {
+                font-size: 0.75rem;
+            }
+        }
+
         /* Producto en tabla */
         .product-item {
             display: flex;
@@ -1133,7 +1152,11 @@
         }
 
         /* Controles de cantidad y precio */
-        .quantity-control, .price-control {
+        .quantity-control {
+            max-width: 80px;
+        }
+        
+        .price-control {
             max-width: 120px;
         }
 
@@ -1143,6 +1166,53 @@
             padding: 0.5rem;
             border: 2px solid #e5e7eb;
             border-radius: var(--border-radius);
+        }
+
+        /* Estilos para input numérico */
+        .quantity-input {
+            -moz-appearance: textfield;
+        }
+
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Estilos personalizados para las flechas */
+        .quantity-control {
+            position: relative;
+        }
+
+        .quantity-control::before,
+        .quantity-control::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .quantity-control::before {
+            top: 25%;
+            border-bottom: 4px solid #6b7280;
+        }
+
+        .quantity-control::after {
+            bottom: 25%;
+            border-top: 4px solid #6b7280;
+        }
+
+        .quantity-control:hover::before {
+            border-bottom-color: var(--primary-color);
+        }
+
+        .quantity-control:hover::after {
+            border-top-color: var(--primary-color);
         }
 
         .price-control .input-group-text {
@@ -1304,19 +1374,66 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .modern-header {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
             .header-content {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.75rem;
                 align-items: stretch;
+            }
+
+            .title-section {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+
+            .icon-wrapper {
+                width: 50px;
+                height: 50px;
+            }
+
+            .icon-wrapper i {
+                font-size: 1.25rem;
+            }
+
+            .main-title {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.875rem;
             }
 
             .header-actions {
                 justify-content: center;
             }
 
+            .action-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
             .form-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
+            }
+
+            .input-group-modern {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .input-actions {
+                justify-content: stretch;
+            }
+
+            .search-btn, .new-btn {
+                flex: 1;
+                justify-content: center;
             }
 
             .sidebar-panel {
@@ -1327,36 +1444,167 @@
             }
 
             .action-buttons {
+                flex-direction: column;
                 gap: 0.5rem;
             }
 
             .action-btn {
-                padding: 0.625rem 0.875rem;
-                font-size: 0.85rem;
+                flex: none;
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .summary-stats {
+                gap: 0.5rem;
+            }
+
+            .summary-item {
+                padding: 0.5rem;
+            }
+
+            .summary-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 0.875rem;
+            }
+
+            .summary-value {
+                font-size: 1.125rem;
+            }
+
+            .summary-label {
+                font-size: 0.75rem;
             }
 
             .modal-title-section {
                 flex-direction: column;
                 text-align: center;
+                gap: 0.5rem;
             }
 
             .modal-title {
                 font-size: 1.25rem;
             }
+
+            .modal-subtitle {
+                font-size: 0.8rem;
+            }
+
+            .modern-table {
+                font-size: 0.8rem;
+            }
+
+            .modern-table th,
+            .modern-table td {
+                padding: 0.5rem;
+            }
+
+            .product-item {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+
+            .product-image {
+                width: 40px;
+                height: 40px;
+            }
+
+            .quantity-control {
+                max-width: 70px;
+            }
+            
+            .price-control {
+                max-width: 100px;
+            }
+
+            .quantity-control .form-control,
+            .price-control .form-control {
+                padding: 0.375rem;
+                font-size: 0.8rem;
+            }
+
+            .quantity-control::before,
+            .quantity-control::after {
+                right: 6px;
+                border-left-width: 3px;
+                border-right-width: 3px;
+            }
+
+            .quantity-control::before {
+                border-bottom-width: 3px;
+            }
+
+            .quantity-control::after {
+                border-top-width: 3px;
+            }
         }
 
         @media (max-width: 576px) {
             .modern-header {
-                padding: 1.5rem;
+                padding: 0.75rem;
             }
 
             .main-title {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
             }
 
-            .title-section {
-                flex-direction: column;
-                text-align: center;
+            .subtitle {
+                font-size: 0.8rem;
+            }
+
+            .icon-wrapper {
+                width: 40px;
+                height: 40px;
+            }
+
+            .icon-wrapper i {
+                font-size: 1rem;
+            }
+
+            .panel-header {
+                padding: 0.75rem;
+            }
+
+            .panel-body {
+                padding: 0.75rem;
+            }
+
+            .title-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 0.875rem;
+            }
+
+            .panel-title {
+                font-size: 1.125rem;
+            }
+
+            .panel-subtitle {
+                font-size: 0.75rem;
+            }
+
+            .form-group {
+                margin-bottom: 0.75rem;
+            }
+
+            .form-label {
+                font-size: 0.875rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .form-control-modern {
+                padding: 0.625rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .search-btn, .new-btn {
+                padding: 0.625rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .form-help {
+                font-size: 0.75rem;
             }
 
             .action-buttons {
@@ -1364,22 +1612,207 @@
             }
 
             .action-btn {
-                padding: 0.5rem 0.75rem;
+                padding: 0.625rem 0.875rem;
                 font-size: 0.8rem;
             }
 
             .summary-item {
-                padding: 0.75rem;
+                padding: 0.375rem;
+                gap: 0.5rem;
             }
 
             .summary-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
+                width: 30px;
+                height: 30px;
+                font-size: 0.75rem;
             }
 
             .summary-value {
+                font-size: 1rem;
+            }
+
+            .summary-label {
+                font-size: 0.7rem;
+            }
+
+            .total-amount {
                 font-size: 1.25rem;
+            }
+
+            .empty-state {
+                padding: 1.5rem 0.75rem;
+            }
+
+            .empty-icon {
+                font-size: 2.5rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .empty-title {
+                font-size: 1rem;
+            }
+
+            .empty-description {
+                font-size: 0.8rem;
+                max-width: 280px;
+            }
+
+            .modern-table th,
+            .modern-table td {
+                padding: 0.375rem;
+                font-size: 0.75rem;
+            }
+
+            .product-image {
+                width: 35px;
+                height: 35px;
+            }
+
+            .product-name {
+                font-size: 0.8rem;
+            }
+
+            .product-code {
+                font-size: 0.7rem;
+            }
+
+            .quantity-control {
+                max-width: 60px;
+            }
+            
+            .price-control {
+                max-width: 80px;
+            }
+
+            .quantity-control .form-control,
+            .price-control .form-control {
+                padding: 0.25rem;
+                font-size: 0.75rem;
+            }
+
+            .quantity-control::before,
+            .quantity-control::after {
+                right: 4px;
+                border-left-width: 2px;
+                border-right-width: 2px;
+            }
+
+            .quantity-control::before {
+                border-bottom-width: 2px;
+            }
+
+            .quantity-control::after {
+                border-top-width: 2px;
+            }
+
+            .stock-badge {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .subtotal-text {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modern-header {
+                padding: 0.5rem;
+            }
+
+            .main-title {
+                font-size: 1.125rem;
+            }
+
+            .subtitle {
+                font-size: 0.75rem;
+            }
+
+            .icon-wrapper {
+                width: 35px;
+                height: 35px;
+            }
+
+            .icon-wrapper i {
+                font-size: 0.875rem;
+            }
+
+            .action-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .btn-text {
+                font-size: 0.75rem;
+            }
+
+            .panel-section {
+                padding: 0.5rem;
+            }
+
+            .summary-item {
+                padding: 0.25rem;
+            }
+
+            .summary-icon {
+                width: 25px;
+                height: 25px;
+                font-size: 0.625rem;
+            }
+
+            .summary-value {
+                font-size: 0.875rem;
+            }
+
+            .summary-label {
+                font-size: 0.65rem;
+            }
+
+            .total-amount {
+                font-size: 1.125rem;
+            }
+
+            .modern-table {
+                font-size: 0.7rem;
+            }
+
+            .modern-table th,
+            .modern-table td {
+                padding: 0.25rem;
+            }
+
+            .product-image {
+                width: 30px;
+                height: 30px;
+            }
+
+            .quantity-control {
+                max-width: 50px;
+            }
+            
+            .price-control {
+                max-width: 70px;
+            }
+
+            .quantity-control .form-control,
+            .price-control .form-control {
+                padding: 0.125rem;
+                font-size: 0.7rem;
+            }
+
+            .quantity-control::before,
+            .quantity-control::after {
+                right: 3px;
+                border-left-width: 2px;
+                border-right-width: 2px;
+            }
+
+            .quantity-control::before {
+                border-bottom-width: 2px;
+            }
+
+            .quantity-control::after {
+                border-top-width: 2px;
             }
         }
 
@@ -1422,6 +1855,42 @@
             border-color: var(--primary-light) !important;
             color: white !important;
         }
+
+        /* Responsive para DataTables */
+        @media (max-width: 768px) {
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter {
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                text-align: center;
+                margin-top: 0.5rem;
+            }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter {
+                font-size: 0.8rem;
+            }
+
+            .dataTables_wrapper .dataTables_info {
+                font-size: 0.75rem;
+            }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                padding: 0.125rem 0.375rem;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 @stop
 
@@ -1461,7 +1930,6 @@
             
             function checkAndAddSingleProduct() {
                 const availableProducts = $('#productsTable tbody tr').length;
-                console.log('Productos disponibles:', availableProducts);
                 
                 if (availableProducts === 1) {
                     const productRow = $('#productsTable tbody tr:first');
@@ -1473,15 +1941,7 @@
                     const productPriceText = productRow.find('td:eq(5)').text().trim();
                     const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
                     
-                    console.log('Datos extraídos:', {
-                        id: productId,
-                        code: productCode,
-                        name: productName,
-                        image: productImage,
-                        stock: productStock,
-                        priceText: productPriceText,
-                        price: productPrice
-                    });
+                    
                 
                     if (!productId || productId === '' || productId === null) {
                         console.error('ID de producto no válido:', productId);
@@ -1501,8 +1961,6 @@
                         stock: productStock,
                         purchase_price: productPrice
                     };
-                    
-                    console.log('Producto extraído:', product);
                     
                     setTimeout(function() {
                         addProductToTable(product, false);
@@ -1554,7 +2012,6 @@
                             method: 'GET',
                             success: function(response) {
                                 if (response.success) {
-                                    console.log('Producto encontrado por código:', response.product);
                                     addProductToTable(response.product);
                                     $('#product_code').val('');
                                 } else {
@@ -1573,7 +2030,6 @@
             $(document).on('click', '.select-product', function() {
                 const productCode = $(this).data('code');
                 const productId = $(this).data('id');
-                console.log('Código del producto:', productCode, 'ID:', productId);
 
                 if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
                     Swal.fire({
@@ -1588,7 +2044,6 @@
                     url: `/purchases/product-details/${productCode}`,
                     method: 'GET',
                     success: function(response) {
-                        console.log('Respuesta del servidor:', response);
                         if (response.success) {
                             response.product.id = productId;
                             addProductToTable(response.product);
@@ -1605,7 +2060,6 @@
 
             // Función para agregar producto a la tabla
             function addProductToTable(product, showAlert = true) {
-                console.log('Agregando producto a la tabla:', product);
                 
                 if (!product.id || product.id === '' || product.id === null) {
                     console.error('Producto sin ID válido:', product);
@@ -1637,7 +2091,6 @@
                     imageUrl = '/' + imageUrl;
                 }
                 
-                console.log('Imagen procesada:', imageUrl);
 
                 const price = product.purchase_price || product.price || 0;
 
@@ -1662,7 +2115,9 @@
                                 class="form-control quantity-control quantity-input" 
                                 name="items[${product.id}][quantity]" 
                                 value="1" 
-                                min="1">
+                                min="1"
+                                step="1"
+                                style="text-align: center;">
                         </td>
                         <td class="text-center">
                             <div class="input-group price-control">
@@ -1717,6 +2172,32 @@
                 updateTotal();
             });
 
+            // Manejar clics en las flechas de cantidad
+            $(document).on('click', '.quantity-control', function(e) {
+                const input = $(this).find('.quantity-input');
+                const rect = this.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                const height = rect.height;
+                
+                // Si el clic está en la mitad superior (flecha arriba)
+                if (clickY < height / 2) {
+                    const currentValue = parseInt(input.val()) || 0;
+                    input.val(currentValue + 1).trigger('input');
+                }
+                // Si el clic está en la mitad inferior (flecha abajo)
+                else {
+                    const currentValue = parseInt(input.val()) || 0;
+                    if (currentValue > 1) {
+                        input.val(currentValue - 1).trigger('input');
+                    }
+                }
+            });
+
+            // Prevenir que el clic en el input active las flechas
+            $(document).on('click', '.quantity-input', function(e) {
+                e.stopPropagation();
+            });
+
             // Eliminar producto
             $(document).on('click', '.remove-item', function() {
                 const row = $(this).closest('tr');
@@ -1750,7 +2231,6 @@
                 $('#totalQuantity').text(totalQuantity);
                 $('#productCount').text(totalProducts + ' productos');
                 
-                console.log('Total actualizado:', total);
             }
 
             // Actualizar estado vacío
