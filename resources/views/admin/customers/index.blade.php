@@ -416,7 +416,6 @@
                             <th class="th-sales">Total en Compras</th>
                             <th class="th-debt">Deuda Total</th>
                             <th class="th-debt-bs">Deuda en Bs</th>
-                            <th class="th-debt-type">Tipo de Deuda</th>
                             <th class="th-status">Estado</th>
                             <th class="th-actions">Acciones</th>
                         </tr>
@@ -467,13 +466,17 @@
                                                  data-original-value="{{ $customer->total_debt }}">
                                                 {{ $currency->symbol }}
                                                 <span class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                                @if ($customer->isDefaulter())
+                                                    <span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores">
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                    </span>
+                                                @endif
                                             </div>
                                             @can('customers.edit')
                                                 <button class="edit-debt-btn">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
-                                            <div class="debt-status">Pendiente de pago</div>
                                         </div>
                                     @else
                                         <div class="debt-info">
@@ -493,26 +496,6 @@
                                         </span>
                                     @else
                                         <span class="no-debt-badge">Sin deuda</span>
-                                    @endif
-                                </td>
-                                <td class="td-debt-type">
-                                    @if ($customer->total_debt > 0)
-                                        @if ($customer->isDefaulter())
-                                            <span class="debt-type-badge debt-type-defaulters" title="Cliente con deudas de arqueos de caja anteriores">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                                Moroso
-                                            </span>
-                                        @else
-                                            <span class="debt-type-badge debt-type-current" title="Cliente con deudas del arqueo de caja actual">
-                                                <i class="fas fa-clock"></i>
-                                                Actual
-                                            </span>
-                                        @endif
-                                    @else
-                                        <span class="debt-type-badge debt-type-none" title="Cliente sin deudas pendientes">
-                                            <i class="fas fa-check-circle"></i>
-                                            Sin deuda
-                                        </span>
                                     @endif
                                 </td>
                                 <td class="td-status">
@@ -1672,10 +1655,32 @@
         .debt-amount {
             font-weight: 600;
             color: #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .debt-amount-value {
             font-size: 1.1rem;
+        }
+
+        .debt-warning-badge {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: help;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .debt-warning-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
         }
 
         .debt-status {
@@ -1734,7 +1739,7 @@
             color: white;
         }
 
-        /* Debt Type Badge */
+        /* Debt Type Badge - Solo para móviles */
         .debt-type-badge {
             display: flex;
             align-items: center;
@@ -1790,6 +1795,13 @@
             white-space: nowrap;
             z-index: 1000;
             margin-bottom: 0.5rem;
+        }
+
+        /* Ocultar badges de tipo de deuda en pantallas grandes */
+        @media (min-width: 992px) {
+            .debt-type-badge {
+                display: none !important;
+            }
         }
 
         /* Action Buttons */
@@ -3353,7 +3365,8 @@
                         table.column(6).search('Inactivo').draw();
                     } else if (currentFilter === 'defaulters') {
                         // Filtrar clientes morosos (con deudas de arqueos anteriores)
-                        table.column(7).search('Moroso').draw();
+                        // Buscar en la columna de deuda por el icono de advertencia
+                        table.column(4).search('exclamation-triangle').draw();
                     }
                     
                     // Aplicar búsqueda si hay término de búsqueda
