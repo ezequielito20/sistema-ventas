@@ -224,19 +224,19 @@
                     <div class="filters-btns filters-btns-scroll mb-0">
                         <button type="button" class="filter-btn filter-btn-all active" data-filter="all">
                             <i class="fas fa-list"></i>
-                            <span>Todos</span>
+                            <span class="d-none d-sm-inline">Todos</span>
                         </button>
                         <button type="button" class="filter-btn filter-btn-active" data-filter="active">
                             <i class="fas fa-check-circle"></i>
-                            <span>Activos</span>
+                            <span class="d-none d-sm-inline">Activos</span>
                         </button>
                         <button type="button" class="filter-btn filter-btn-inactive" data-filter="inactive">
                             <i class="fas fa-times-circle"></i>
-                            <span class="d-inline d-sm-none">Inact...</span><span class="d-none d-sm-inline">Inactivos</span>
+                            <span class="d-none d-sm-inline">Inactivos</span>
                         </button>
-                        <button type="button" class="filter-btn filter-btn-defaulters" data-filter="defaulters" data-toggle="tooltip" title="Clientes con deudas de arqueos de caja anteriores">
+                        <button type="button" class="filter-btn filter-btn-defaulters" data-filter="defaulters">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <span class="d-inline d-sm-none">Morosos</span><span class="d-none d-sm-inline">Morosos</span>
+                            <span class="d-none d-sm-inline">Morosos</span>
                         </button>
                     </div>
                     <div class="search-group redesigned-search-group ml-3">
@@ -3135,6 +3135,27 @@
                 padding: 0.35rem 0.3rem;
                 margin-bottom: 0.2rem;
                 text-align: center;
+            }
+        }
+        @media (max-width: 575px) {
+            .filter-btn {
+                min-width: 44px;
+                width: 44px;
+                height: 44px;
+                padding: 0.5rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .filter-btn i {
+                font-size: 1.1rem;
+                margin: 0;
+            }
+            
+            .filter-btn span {
+                display: none !important;
             }
         }
 @stop
