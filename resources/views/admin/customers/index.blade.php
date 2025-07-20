@@ -3364,9 +3364,16 @@
                     } else if (currentFilter === 'inactive') {
                         table.column(6).search('Inactivo').draw();
                     } else if (currentFilter === 'defaulters') {
-                        // Filtrar clientes morosos (con deudas de arqueos anteriores)
-                        // Buscar en la columna de deuda por el icono de advertencia
-                        table.column(4).search('exclamation-triangle').draw();
+                        // Filtrar clientes morosos usando una función personalizada
+                        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                            // Verificar si la fila tiene el icono de advertencia (moroso)
+                            const row = table.row(dataIndex).node();
+                            const hasWarningIcon = $(row).find('.debt-warning-badge').length > 0;
+                            return hasWarningIcon;
+                        });
+                        table.draw();
+                        // Remover el filtro personalizado después de aplicarlo
+                        $.fn.dataTable.ext.search.pop();
                     }
                     
                     // Aplicar búsqueda si hay término de búsqueda
