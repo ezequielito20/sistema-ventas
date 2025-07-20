@@ -3024,11 +3024,16 @@
                 responsive: true,
                 autoWidth: false,
                 stateSave: true, // Guarda la página y el estado del paginador
-                searching: false,
+                searching: true, // Habilitar búsqueda para que funcione con filtros
                 lengthChange: false,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
                 }
+            });
+
+            // Conectar el campo de búsqueda con DataTables (vista desktop)
+            $('#mobileSearch').on('keyup', function() {
+                applyFiltersAndSearch();
             });
 
             // Cargar el tipo de cambio guardado en localStorage (si existe)
@@ -3206,97 +3211,84 @@
                 });
             });
 
+            // Variable para mantener el filtro actual
+            let currentFilter = 'all';
+            
             // Filtros de estado
             $('.filter-btn').click(function() {
                 $('.filter-btn').removeClass('active');
                 $(this).addClass('active');
 
-                const filter = $(this).data('filter');
+                currentFilter = $(this).data('filter');
+                applyFiltersAndSearch();
+            });
+            
+            // Función para aplicar filtros y búsqueda
+            function applyFiltersAndSearch() {
+                const searchTerm = $('#mobileSearch').val();
                 
                 // Filtrar tabla (vista desktop)
                 if (table) {
                     // Limpiar filtros previos
                     table.search('').columns().search('').draw();
                     
-                    if (filter === 'active') {
-                        // Filtrar clientes activos (los que tienen ventas)
+                    // Aplicar filtro de estado
+                    if (currentFilter === 'active') {
                         table.column(6).search('Activo').draw();
-                    } else if (filter === 'inactive') {
-                        // Filtrar clientes inactivos (los que no tienen ventas)
+                    } else if (currentFilter === 'inactive') {
                         table.column(6).search('Inactivo').draw();
-                    } else {
-                        // Mostrar todos
-                        table.draw();
+                    }
+                    
+                    // Aplicar búsqueda si hay término de búsqueda
+                    if (searchTerm) {
+                        table.search(searchTerm).draw();
                     }
                 }
                 
                 // Filtrar tarjetas móviles
                 $('.customer-card').each(function() {
                     const cardStatus = $(this).data('status');
+                    let shouldShow = false;
                     
-                    if (filter === 'all') {
-                        $(this).show();
-                    } else if (filter === 'active' && cardStatus === 'active') {
-                        $(this).show();
-                    } else if (filter === 'inactive' && cardStatus === 'inactive') {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
+                    // Aplicar filtro de estado
+                    if (currentFilter === 'all') {
+                        shouldShow = true;
+                    } else if (currentFilter === 'active' && cardStatus === 'active') {
+                        shouldShow = true;
+                    } else if (currentFilter === 'inactive' && cardStatus === 'inactive') {
+                        shouldShow = true;
                     }
+                    
+                    // Aplicar búsqueda si hay término de búsqueda
+                    if (shouldShow && searchTerm) {
+                        const customerName = $(this).find('.customer-name').text().toLowerCase();
+                        const customerEmail = $(this).find('.customer-email').text().toLowerCase();
+                        const customerPhone = $(this).find('.info-value').text().toLowerCase();
+                        
+                        shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
+                                   customerEmail.includes(searchTerm.toLowerCase()) || 
+                                   customerPhone.includes(searchTerm.toLowerCase());
+                    }
+                    
+                    $(this).toggle(shouldShow);
                 });
-            });
+            }
 
-            // Búsqueda en vista móvil mejorada
-            $('#mobileSearch').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                
-                if (searchTerm === '') {
-                    $('.customer-card').show();
-                    return;
-                }
-                
-                $('.customer-card').each(function() {
-                    const customerName = $(this).find('.customer-name').text().toLowerCase();
-                    const customerEmail = $(this).find('.customer-email').text().toLowerCase();
-                    const customerPhone = $(this).find('.info-value').text().toLowerCase();
-                    
-                    if (customerName.includes(searchTerm) || 
-                        customerEmail.includes(searchTerm) || 
-                        customerPhone.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
+
 
             // Limpiar búsqueda
             $('#clearSearch').click(function() {
                 $('#mobileSearch').val('');
-                $('.customer-card').show();
+                applyFiltersAndSearch();
             });
 
             // Tooltips
             $('[data-toggle="tooltip"]').tooltip();
+            
+            // Inicializar filtros al cargar la página
+            applyFiltersAndSearch();
 
-            // Búsqueda en vista móvil
-            $('#mobileSearch').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                
-                $('.customer-card').each(function() {
-                    const customerName = $(this).find('h6').text().toLowerCase();
-                    const customerEmail = $(this).find('small').text().toLowerCase();
-                    const customerPhone = $(this).find('.fa-phone').parent().text().toLowerCase();
-                    
-                    if (customerName.includes(searchTerm) || 
-                        customerEmail.includes(searchTerm) || 
-                        customerPhone.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
+
 
                                         // Variable global para almacenar las ventas del cliente actual
                             let currentCustomerSales = [];
