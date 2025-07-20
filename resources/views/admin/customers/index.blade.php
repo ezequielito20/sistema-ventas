@@ -3355,7 +3355,7 @@
             // Variable para mantener el filtro actual
             let currentFilter = 'all';
             
-            // Filtros de estado - versión mejorada para móvil
+            // Filtros de estado
             $(document).on('click touchstart', '.filter-btn', function(e) {
                 e.stopPropagation();
                 
@@ -3363,13 +3363,11 @@
                 $(this).addClass('active');
 
                 currentFilter = $(this).data('filter');
-                console.log('Filtro clickeado:', currentFilter, 'Botón:', $(this).text().trim(), 'Evento:', e.type);
                 applyFiltersAndSearch();
             });
             
             // Función para aplicar filtros y búsqueda
             function applyFiltersAndSearch() {
-                console.log('applyFiltersAndSearch ejecutada - Filtro actual:', currentFilter);
                 const searchTerm = $('#mobileSearch').val();
                 
                 // Filtrar tabla (vista desktop)
@@ -3402,18 +3400,12 @@
                 }
                 
                 // Filtrar tarjetas móviles
-                let visibleCount = 0;
                 $('.customer-card').each(function() {
                     const $card = $(this);
                     const cardStatus = $card.data('status');
                     const dataDefaulter = $card.data('defaulter');
                     const isDefaulter = dataDefaulter === true || dataDefaulter === 'true';
                     let shouldShow = false;
-                    
-                    // Debug para móvil
-                    if (currentFilter === 'defaulters') {
-                        console.log('Móvil - Tarjeta:', $card.find('.customer-name').text(), 'isDefaulter:', isDefaulter, 'data-defaulter:', dataDefaulter, 'tipo:', typeof dataDefaulter);
-                    }
                     
                     // Aplicar filtro de estado
                     if (currentFilter === 'all') {
@@ -3440,17 +3432,10 @@
                     // Mostrar/ocultar tarjeta
                     if (shouldShow) {
                         $card.show();
-                        visibleCount++;
                     } else {
                         $card.hide();
                     }
                 });
-                
-                // Debug para móvil - contar tarjetas
-                if (currentFilter === 'defaulters') {
-                    const totalCards = $('.customer-card').length;
-                    console.log(`Móvil - Tarjetas visibles: ${visibleCount}/${totalCards} (Filtro: ${currentFilter})`);
-                }
             }
 
 
