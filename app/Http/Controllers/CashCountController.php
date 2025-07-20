@@ -40,11 +40,11 @@ class CashCountController extends Controller
          ->whereNull('closing_date')
          ->first();
 
-      // Obtener todos los arqueos
+      // Obtener todos los arqueos con paginación
       $cashCounts = CashCount::with('movements')
          ->where('company_id', $this->company->id)
          ->orderBy('created_at', 'desc')
-         ->get();
+         ->paginate(10);
 
       // Calcular estadísticas del día
       $today = Carbon::today();
