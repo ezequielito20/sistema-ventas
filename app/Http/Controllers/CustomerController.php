@@ -60,6 +60,23 @@ class CustomerController extends Controller
             return $customer->sales->sum('total_price');
          });
 
+         // Calcular estadísticas de deudas por tipo
+         $defaultersCount = $customers->filter(function ($customer) {
+            return $customer->isDefaulter();
+         })->count();
+
+         $currentDebtorsCount = $customers->filter(function ($customer) {
+            return $customer->total_debt > 0 && !$customer->isDefaulter();
+         })->count();
+
+         $previousCashCountDebtTotal = $customers->sum(function ($customer) {
+            return $customer->getPreviousCashCountDebtAmount();
+         });
+
+         $currentCashCountDebtTotal = $customers->sum(function ($customer) {
+            return $customer->getCurrentCashCountDebtAmount();
+         });
+
          return view('admin.customers.index', compact(
             'customers',
             'totalCustomers',
@@ -68,6 +85,10 @@ class CustomerController extends Controller
             'customerGrowth',
             'totalRevenue',
             'totalDebt',
+            'defaultersCount',
+            'currentDebtorsCount',
+            'previousCashCountDebtTotal',
+            'currentCashCountDebtTotal',
             'currency',
             'company'
          ));

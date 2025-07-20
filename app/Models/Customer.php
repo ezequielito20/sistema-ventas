@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Customer extends Model
 {
@@ -94,6 +96,27 @@ class Customer extends Model
          ->whereMonth('updated_at', '<', Carbon::now()->month);
    }
 
+   /**
+    * Scope para clientes morosos (con deudas de arqueos anteriores)
+    */
+   public function scopeDefaulters($query)
+   {
+      return $query->where('total_debt', '>', 0)
+         ->whereHas('sales', function($q) {
+            $q->where('sale_date', '<', $this->getCurrentCashCountOpeningDate());
+         });
+   }
+
+   /**
+    * Scope para clientes con deudas del arqueo actual
+    */
+   public function scopeCurrentDebtors($query)
+   {
+      return $query->where('total_debt', '>', 0)
+         ->whereHas('sales', function($q) {
+            $q->where('sale_date', '>=', $this->getCurrentCashCountOpeningDate());
+         });
+   }
 
    public function sales()
    {
@@ -146,5 +169,141 @@ class Customer extends Model
    public function getFormattedTotalDebtAttribute()
    {
       return $this->total_debt > 0 ? $this->total_debt : 0;
+   }
+
+   /**
+    * Obtiene la fecha de apertura del arqueo de caja actual
+    */
+   public function getCurrentCashCountOpeningDate()
+   {
+      $currentCashCount = \App\Models\CashCount::where('company_id', $this->company_id)
+         ->whereNull('closing_date')
+         ->first();
+      
+      return $currentCashCount ? $currentCashCount->opening_date : now();
+   }
+
+   /**
+    * Determina si el cliente tiene deudas de arqueos anteriores
+    */
+   public function hasPreviousCashCountDebts()
+   {
+      if ($this->total_debt <= 0) {
+         return false;
+      }
+
+      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
+      
+      // Verificar si tiene ventas antes del arqueo actual
+      $hasSalesBeforeCurrentCashCount = $this->sales()
+         ->where('sale_date', '<', $currentCashCountOpeningDate)
+         ->exists();
+
+      if (!$hasSalesBeforeCurrentCashCount) {
+         return false;
+      }
+
+      // Verificar si tiene pagos que cubran las deudas anteriores
+      $totalPaymentsBeforeCurrentCashCount = $this->getTotalPaymentsBeforeDate($currentCashCountOpeningDate);
+      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
+
+      // Si los pagos no cubren las deudas anteriores, entonces tiene deudas de arqueos anteriores
+      return $totalPaymentsBeforeCurrentCashCount < $totalDebtsBeforeCurrentCashCount;
+   }
+
+   /**
+    * Obtiene el total de pagos realizados antes de una fecha específica
+    */
+   public function getTotalPaymentsBeforeDate($date)
+   {
+      // Buscar en la tabla debt_payments si existe
+      if (Schema::hasTable('debt_payments')) {
+         return DB::table('debt_payments')
+            ->where('customer_id', $this->id)
+            ->where('created_at', '<', $date)
+            ->sum('payment_amount');
+      }
+
+      // Si no existe la tabla debt_payments, buscar en cash_movements
+      return DB::table('cash_movements')
+         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+         ->where('cash_counts.company_id', $this->company_id)
+         ->where('cash_movements.type', 'income')
+         ->where('cash_movements.description', 'like', '%' . $this->name . '%')
+         ->where('cash_movements.created_at', '<', $date)
+         ->sum('cash_movements.amount');
+   }
+
+   /**
+    * Obtiene el total de deudas generadas antes de una fecha específica
+    */
+   public function getTotalDebtsBeforeDate($date)
+   {
+      return $this->sales()
+         ->where('sale_date', '<', $date)
+         ->sum('total_price');
+   }
+
+   /**
+    * Obtiene el monto de deuda de arqueos anteriores
+    */
+   public function getPreviousCashCountDebtAmount()
+   {
+      if (!$this->hasPreviousCashCountDebts()) {
+         return 0;
+      }
+
+      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
+      $totalPaymentsBeforeCurrentCashCount = $this->getTotalPaymentsBeforeDate($currentCashCountOpeningDate);
+      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
+
+      return $totalDebtsBeforeCurrentCashCount - $totalPaymentsBeforeCurrentCashCount;
+   }
+
+   /**
+    * Obtiene el monto de deuda del arqueo actual
+    */
+   public function getCurrentCashCountDebtAmount()
+   {
+      return $this->total_debt - $this->getPreviousCashCountDebtAmount();
+   }
+
+   /**
+    * Determina si el cliente es moroso (tiene deudas de arqueos anteriores)
+    */
+   public function isDefaulter()
+   {
+      return $this->hasPreviousCashCountDebts();
+   }
+
+   /**
+    * Obtiene el tipo de deuda del cliente
+    */
+   public function getDebtTypeAttribute()
+   {
+      if ($this->total_debt <= 0) {
+         return 'sin_deuda';
+      }
+
+      if ($this->hasPreviousCashCountDebts()) {
+         return 'moroso';
+      }
+
+      return 'actual';
+   }
+
+   /**
+    * Obtiene el texto descriptivo del tipo de deuda
+    */
+   public function getDebtTypeTextAttribute()
+   {
+      switch ($this->debt_type) {
+         case 'moroso':
+            return 'Deuda de arqueos anteriores';
+         case 'actual':
+            return 'Deuda del arqueo actual';
+         default:
+            return 'Sin deuda';
+      }
    }
 }

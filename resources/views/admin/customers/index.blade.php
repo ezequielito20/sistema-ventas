@@ -186,6 +186,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="stat-card stat-card-danger">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-header">
+                    <h3 class="stat-number">{{ $defaultersCount }}</h3>
+                </div>
+                <p class="stat-label">Clientes Morosos</p>
+                <div class="stat-progress">
+                    <div class="progress-bar" style="width: {{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- Bloque unificado de Tipo de Cambio + Filtros + Búsqueda --}}
@@ -218,6 +233,10 @@
                         <button type="button" class="filter-btn filter-btn-inactive" data-filter="inactive">
                             <i class="fas fa-times-circle"></i>
                             <span class="d-inline d-sm-none">Inact...</span><span class="d-none d-sm-inline">Inactivos</span>
+                        </button>
+                        <button type="button" class="filter-btn filter-btn-defaulters" data-filter="defaulters" data-toggle="tooltip" title="Clientes con deudas de arqueos de caja anteriores">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span class="d-inline d-sm-none">Morosos</span><span class="d-none d-sm-inline">Morosos</span>
                         </button>
                     </div>
                     <div class="search-group redesigned-search-group ml-3">
@@ -397,6 +416,7 @@
                             <th class="th-sales">Total en Compras</th>
                             <th class="th-debt">Deuda Total</th>
                             <th class="th-debt-bs">Deuda en Bs</th>
+                            <th class="th-debt-type">Tipo de Deuda</th>
                             <th class="th-status">Estado</th>
                             <th class="th-actions">Acciones</th>
                         </tr>
@@ -475,6 +495,26 @@
                                         <span class="no-debt-badge">Sin deuda</span>
                                     @endif
                                 </td>
+                                <td class="td-debt-type">
+                                    @if ($customer->total_debt > 0)
+                                        @if ($customer->isDefaulter())
+                                            <span class="debt-type-badge debt-type-defaulters" title="Cliente con deudas de arqueos de caja anteriores">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Moroso
+                                            </span>
+                                        @else
+                                            <span class="debt-type-badge debt-type-current" title="Cliente con deudas del arqueo de caja actual">
+                                                <i class="fas fa-clock"></i>
+                                                Actual
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="debt-type-badge debt-type-none" title="Cliente sin deudas pendientes">
+                                            <i class="fas fa-check-circle"></i>
+                                            Sin deuda
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="td-status">
                                     @if ($customer->sales->count() > 0)
                                         <span class="status-badge status-active">
@@ -527,7 +567,7 @@
         <div class="cards-view d-lg-none">
             <div class="cards-container" id="mobileCustomersContainer">
                 @foreach ($customers as $customer)
-                    <div class="customer-card" data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}">
+                    <div class="customer-card" data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" data-defaulter="{{ $customer->isDefaulter() ? 'true' : 'false' }}">
                         <div class="card-header">
                             <div class="customer-avatar">
                                 <div class="avatar-circle">
@@ -602,6 +642,19 @@
                                                 </div>
                                                 <div class="bs-debt" data-debt="{{ $customer->total_debt }}">
                                                     Bs. {{ number_format($customer->total_debt, 2) }}
+                                                </div>
+                                                <div class="debt-type-info">
+                                                    @if ($customer->isDefaulter())
+                                                        <span class="debt-type-badge debt-type-defaulters" title="Cliente con deudas de arqueos de caja anteriores">
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                            Moroso
+                                                        </span>
+                                                    @else
+                                                        <span class="debt-type-badge debt-type-current" title="Cliente con deudas del arqueo de caja actual">
+                                                            <i class="fas fa-clock"></i>
+                                                            Actual
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @else
@@ -1098,6 +1151,7 @@
         .stat-card-success::before { background: var(--success-gradient); }
         .stat-card-warning::before { background: var(--warning-gradient); }
         .stat-card-purple::before { background: var(--purple-gradient); }
+        .stat-card-danger::before { background: var(--danger-gradient); }
 
         .stat-card:hover {
             transform: translateY(-5px);
@@ -1120,6 +1174,7 @@
         .stat-card-success .stat-icon { background: var(--success-gradient); }
         .stat-card-warning .stat-icon { background: var(--warning-gradient); }
         .stat-card-purple .stat-icon { background: var(--purple-gradient); }
+        .stat-card-danger .stat-icon { background: var(--danger-gradient); }
 
         .stat-content {
             position: relative;
@@ -1411,6 +1466,7 @@
         .filter-btn-all.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .filter-btn-active.active { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
         .filter-btn-inactive.active { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .filter-btn-defaulters.active { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
 
         .search-group {
             flex: 1;
@@ -1676,6 +1732,64 @@
         .status-inactive {
             background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
             color: white;
+        }
+
+        /* Debt Type Badge */
+        .debt-type-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .debt-type-defaulters {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .debt-type-current {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .debt-type-none {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        /* Debt Type Info for Mobile Cards */
+        .debt-type-info {
+            margin-top: 0.5rem;
+        }
+
+        .debt-type-info .debt-type-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* Tooltip styles for debt type explanation */
+        .debt-type-badge {
+            cursor: help;
+            position: relative;
+        }
+
+        .debt-type-badge[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 0.5rem;
         }
 
         /* Action Buttons */
@@ -3237,6 +3351,9 @@
                         table.column(6).search('Activo').draw();
                     } else if (currentFilter === 'inactive') {
                         table.column(6).search('Inactivo').draw();
+                    } else if (currentFilter === 'defaulters') {
+                        // Filtrar clientes morosos (con deudas de arqueos anteriores)
+                        table.column(7).search('Moroso').draw();
                     }
                     
                     // Aplicar búsqueda si hay término de búsqueda
@@ -3248,6 +3365,7 @@
                 // Filtrar tarjetas móviles
                 $('.customer-card').each(function() {
                     const cardStatus = $(this).data('status');
+                    const isDefaulter = $(this).data('defaulter') === 'true';
                     let shouldShow = false;
                     
                     // Aplicar filtro de estado
@@ -3256,6 +3374,8 @@
                     } else if (currentFilter === 'active' && cardStatus === 'active') {
                         shouldShow = true;
                     } else if (currentFilter === 'inactive' && cardStatus === 'inactive') {
+                        shouldShow = true;
+                    } else if (currentFilter === 'defaulters' && isDefaulter) {
                         shouldShow = true;
                     }
                     
