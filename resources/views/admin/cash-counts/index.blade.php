@@ -287,6 +287,11 @@
                                                 data-toggle="tooltip" title="Ver movimientos">
                                             <i class="fas fa-eye"></i>
                                         </button>
+                                        <button class="action-btn action-btn-secondary view-history" 
+                                                data-id="{{ $cashCount->id }}"
+                                                data-toggle="tooltip" title="Historial Completo">
+                                            <i class="fas fa-history"></i>
+                                        </button>
                                     @endcan
                                     @if (!$cashCount->closing_date)
                                         @can('cash-counts.edit')
@@ -1045,6 +1050,194 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal de Historial Completo --}}
+    <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content modern-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-history"></i>
+                        Historial Completo de Caja
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Hero Section -->
+                    <div class="hero-section">
+                        <div class="hero-content">
+                            <h2 class="hero-title">
+                                <i class="fas fa-cash-register"></i>
+                                Arqueo de Caja #<span id="historyCashCountId">0000</span>
+                            </h2>
+                            <p class="hero-subtitle">
+                                Período: <span id="historyPeriod">01/01/2025 - 31/01/2025</span>
+                            </p>
+                            <div class="hero-stats">
+                                <div class="hero-stat">
+                                    <span class="hero-stat-label">Monto Inicial:</span>
+                                    <span class="hero-stat-value" id="historyInitialAmount">$0.00</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <span class="hero-stat-label">Monto Final:</span>
+                                    <span class="hero-stat-value" id="historyFinalAmount">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Principales -->
+                    <div class="stats-grid-modal">
+                        <div class="stat-card-modal">
+                            <div class="stat-icon-modal">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-number-modal" id="historyTotalSales">0</div>
+                            <div class="stat-label-modal">Ventas</div>
+                            <div class="stat-amount-modal" id="historyTotalSalesAmount">$0.00</div>
+                        </div>
+                        
+                        <div class="stat-card-modal">
+                            <div class="stat-icon-modal">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="stat-number-modal" id="historyTotalPurchases">0</div>
+                            <div class="stat-label-modal">Compras</div>
+                            <div class="stat-amount-modal" id="historyTotalPurchasesAmount">$0.00</div>
+                        </div>
+                        
+                        <div class="stat-card-modal">
+                            <div class="stat-icon-modal">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-number-modal" id="historyRealProfit">$0.00</div>
+                            <div class="stat-label-modal">Ganancias Reales</div>
+                        </div>
+                        
+                        <div class="stat-card-modal">
+                            <div class="stat-icon-modal">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-number-modal" id="historyPendingDebts">$0.00</div>
+                            <div class="stat-label-modal">Deudas Pendientes</div>
+                        </div>
+                        
+                        <div class="stat-card-modal">
+                            <div class="stat-icon-modal">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-number-modal" id="historyPaymentsReceived">$0.00</div>
+                            <div class="stat-label-modal">Pagos Recibidos</div>
+                        </div>
+                    </div>
+
+                    <!-- Deudas Pendientes -->
+                    <div class="section-container">
+                        <h5 class="section-title">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            Deudas Pendientes en este Arqueo
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Teléfono</th>
+                                        <th>Fecha Venta</th>
+                                        <th class="text-right">Monto Deuda</th>
+                                        <th class="text-right">Productos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyPendingDebtsTable">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No hay deudas pendientes</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Deudas de Arqueos Anteriores -->
+                    <div class="section-container">
+                        <h5 class="section-title">
+                            <i class="fas fa-history text-info"></i>
+                            Deudas de Arqueos Anteriores
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Teléfono</th>
+                                        <th>Fecha Venta</th>
+                                        <th class="text-right">Monto Deuda</th>
+                                        <th class="text-right">Días Pendiente</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyPreviousDebtsTable">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No hay deudas de arqueos anteriores</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pagos de Deudas Anteriores -->
+                    <div class="section-container">
+                        <h5 class="section-title">
+                            <i class="fas fa-check-circle text-success"></i>
+                            Pagos de Deudas Anteriores en este Arqueo
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Descripción</th>
+                                        <th class="text-right">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyPreviousPaymentsTable">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No hay pagos de deudas anteriores</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Final -->
+                    <div class="summary-section">
+                        <div class="summary-card">
+                            <div class="summary-header">
+                                <h5 class="summary-title">
+                                    <i class="fas fa-calculator"></i>
+                                    Resumen General
+                                </h5>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-item">
+                                    <span>Balance Final:</span>
+                                    <span id="historyFinalBalance" class="summary-value">$0.00</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Diferencia Neta:</span>
+                                    <span id="historyNetDifference" class="summary-value">$0.00</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Estado del Arqueo:</span>
+                                    <span id="historyStatus" class="summary-value">Cerrado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -1116,6 +1309,74 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .hero-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .hero-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== SECTION CONTAINER ===== */
+        .section-container {
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .section-title i {
+            font-size: 1.3rem;
+        }
+
+        /* ===== SUMMARY SECTION ===== */
+        .summary-section {
+            margin-top: 2rem;
+        }
+
+        .stat-amount-modal {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 0.5rem;
         }
 
         .hero-subtitle {
@@ -1434,6 +1695,10 @@
 
         .action-btn-delete {
             background: var(--danger-gradient);
+        }
+
+        .action-btn-secondary {
+            background: var(--secondary-gradient);
         }
 
         .action-btn:hover {
@@ -2426,6 +2691,145 @@
                     }
                 });
             });
+
+            // Ver historial completo
+            $('.view-history').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const id = $(this).data('id');
+                
+                console.log('=== CLICK EN BOTÓN HISTORIAL ===');
+                console.log('ID del cash count:', id);
+                
+                // Mostrar loader
+                Swal.fire({
+                    title: 'Cargando historial...',
+                    text: 'Preparando datos del arqueo de caja',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    customClass: {
+                        popup: 'modern-swal-popup'
+                    }
+                });
+
+                // Obtener datos del historial
+                $.get(`/cash-counts/${id}/history`, function(response) {
+                    if (response.success) {
+                        const data = response.data;
+                        const currency = response.currency;
+                        
+                        // Función para formatear números
+                        function number_format(number, decimals) {
+                            return parseFloat(number).toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                        }
+                        
+                        // Actualizar hero section
+                        $('#historyCashCountId').text(data.cashCount.id.toString().padStart(4, '0'));
+                        $('#historyPeriod').text(data.stats.opening_date + ' - ' + data.stats.closing_date);
+                        $('#historyInitialAmount').text(currency.symbol + number_format(data.stats.initial_amount, 2));
+                        $('#historyFinalAmount').text(currency.symbol + number_format(data.stats.final_amount, 2));
+                        
+                        // Actualizar estadísticas principales
+                        $('#historyTotalSales').text(data.stats.total_sales);
+                        $('#historyTotalSalesAmount').text(currency.symbol + number_format(data.stats.total_sales_amount, 2));
+                        $('#historyTotalPurchases').text(data.stats.total_purchases);
+                        $('#historyTotalPurchasesAmount').text(currency.symbol + number_format(data.stats.total_purchases_amount, 2));
+                        $('#historyRealProfit').text(currency.symbol + number_format(data.stats.real_profit, 2));
+                        $('#historyPendingDebts').text(currency.symbol + number_format(data.stats.debts_generated, 2));
+                        $('#historyPaymentsReceived').text(currency.symbol + number_format(data.stats.payments_received, 2));
+                        
+                        // Actualizar tablas
+                        updateHistoryTable('#historyPendingDebtsTable', data.pendingDebts, 'pending', currency);
+                        updateHistoryTable('#historyPreviousDebtsTable', data.previousDebts, 'previous', currency);
+                        updateHistoryTable('#historyPreviousPaymentsTable', data.previousDebtPayments, 'payments', currency);
+                        
+                        // Actualizar resumen final
+                        $('#historyFinalBalance').text(currency.symbol + number_format(data.stats.final_amount, 2));
+                        $('#historyNetDifference').text(currency.symbol + number_format(data.stats.net_difference, 2));
+                        $('#historyStatus').text(data.cashCount.closing_date ? 'Cerrado' : 'Abierto');
+                        
+                        // Cerrar loader y mostrar modal
+                        Swal.close();
+                        $('#historyModal').modal('show');
+                    } else {
+                        Swal.fire('Error', response.message || 'No se pudieron cargar los datos del historial', 'error');
+                    }
+                }).fail(function() {
+                    Swal.fire('Error', 'No se pudieron cargar los datos del historial', 'error');
+                });
+            });
+
+            // Función para actualizar tablas del historial
+            function updateHistoryTable(tableId, data, type, currency) {
+                const table = $(tableId);
+                table.empty();
+                
+                if (data && data.length > 0) {
+                    data.forEach(function(item) {
+                        let row = '';
+                        
+                        if (type === 'pending') {
+                            row = `
+                                <tr>
+                                    <td>${item.customer_name}</td>
+                                    <td>${item.customer_phone || 'No registrado'}</td>
+                                    <td>${formatDate(item.sale_date)}</td>
+                                    <td class="text-right font-weight-bold">${currency.symbol}${number_format(item.total_amount, 2)}</td>
+                                    <td class="text-right">${item.total_products}</td>
+                                </tr>
+                            `;
+                        } else if (type === 'previous') {
+                            row = `
+                                <tr>
+                                    <td>${item.customer_name}</td>
+                                    <td>${item.customer_phone || 'No registrado'}</td>
+                                    <td>${formatDate(item.sale_date)}</td>
+                                    <td class="text-right font-weight-bold">${currency.symbol}${number_format(item.total_amount, 2)}</td>
+                                    <td class="text-right">${item.days_pending}</td>
+                                </tr>
+                            `;
+                        } else if (type === 'payments') {
+                            row = `
+                                <tr>
+                                    <td>${formatDate(item.date)}</td>
+                                    <td>${item.description}</td>
+                                    <td class="text-right font-weight-bold text-success">${currency.symbol}${number_format(item.amount, 2)}</td>
+                                </tr>
+                            `;
+                        }
+                        
+                        table.append(row);
+                    });
+                } else {
+                    let message = '';
+                    if (type === 'pending') {
+                        message = 'No hay deudas pendientes';
+                    } else if (type === 'previous') {
+                        message = 'No hay deudas de arqueos anteriores';
+                    } else if (type === 'payments') {
+                        message = 'No hay pagos de deudas anteriores';
+                    }
+                    
+                    table.append(`
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">${message}</td>
+                        </tr>
+                    `);
+                }
+            }
+
+            // Función para formatear fechas
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
 
             // Ver movimientos con diseño moderno
             $('.view-movements').click(function() {

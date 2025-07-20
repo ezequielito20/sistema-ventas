@@ -151,6 +151,8 @@ Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'
 Route::get('/cash-counts/{id}', [CashCountController::class, 'show'])->name('admin.cash-counts.show')->middleware(['auth', 'can:cash-counts.show']);
 Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMovement'])->name('admin.cash-counts.store-movement')->middleware(['auth', 'can:cash-counts.store-movement']);
 Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])->name('admin.cash-counts.close')->middleware(['auth', 'can:cash-counts.close']);
+Route::get('/cash-counts/{id}/history', [CashCountController::class, 'history'])->name('admin.cash-counts.history')->middleware(['auth', 'can:cash-counts.show']);
+
 
 // Permissions
 Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware(['auth', 'can:permissions.index']);
