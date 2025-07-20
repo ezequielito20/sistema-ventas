@@ -3116,6 +3116,21 @@
             background: #bdbdbd;
             color: #222;
         }
+        /* Ocultar campo de búsqueda visual de DataTables pero mantener funcionalidad */
+        .dataTables_filter {
+            display: none !important;
+        }
+        
+        /* Ocultar también el label "Search:" si aparece */
+        .dataTables_filter label {
+            display: none !important;
+        }
+        
+        /* Ocultar el input de búsqueda nativo de DataTables */
+        .dataTables_filter input {
+            display: none !important;
+        }
+        
         /* Estilos responsivos para botones de filtro */
         @media (max-width: 575px) {
             .filters-btns-scroll {
@@ -3165,7 +3180,7 @@
                 responsive: true,
                 autoWidth: false,
                 stateSave: true, // Guarda la página y el estado del paginador
-                searching: true, // Habilitar búsqueda para que funcione con filtros
+                searching: true, // Mantener búsqueda habilitada para filtros personalizados
                 lengthChange: false,
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
