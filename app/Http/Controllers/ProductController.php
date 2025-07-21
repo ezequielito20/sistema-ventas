@@ -212,7 +212,7 @@ class ProductController extends Controller
                'code' => $product->code,
                'name' => $product->name,
                'description' => $product->description ?? 'Sin descripción',
-               'image' => $product->image ? Storage::url($product->image) : null,
+               'image' => $product->image_url,
                'stock' => $product->stock,
                'min_stock' => $product->min_stock,
                'max_stock' => $product->max_stock,

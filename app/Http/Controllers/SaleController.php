@@ -587,7 +587,7 @@ class SaleController extends Controller
             'stock' => $product->stock,
             'sale_price' => $product->sale_price,
             'stock_status_class' => $product->stock > 10 ? 'success' : 'warning',
-            'image' => $product->image
+            'image' => $product->image_url
          ];
 
          return response()->json([

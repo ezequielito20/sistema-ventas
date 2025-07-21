@@ -513,7 +513,7 @@ class PurchaseController extends Controller
             'product' => [
                'id' => $product->id,
                'code' => $product->code,
-               'image' => $product->image,
+               'image' => $product->image_url,
                'name' => $product->name,
                'price' => $product->purchase_price,
                'purchase_price' => $product->purchase_price,
@@ -548,7 +548,7 @@ class PurchaseController extends Controller
             'product' => [
                'id' => $product->id,
                'code' => $product->code,
-               'image' => $product->image,
+               'image' => $product->image_url,
                'name' => $product->name,
                'price' => $product->purchase_price,
                'purchase_price' => $product->purchase_price,
@@ -581,7 +581,7 @@ class PurchaseController extends Controller
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
-                  'image_url' => $detail->product->image,
+                  'image_url' => $detail->product->image_url,
                   // 'stock' => $detail->product->stock
                ],
                'subtotal' => $detail->quantity * $detail->product->purchase_price
