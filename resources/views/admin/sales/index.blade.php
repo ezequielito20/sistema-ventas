@@ -344,6 +344,9 @@
                 </div>
             </div>
 
+            {{-- Contenedor de paginación personalizada --}}
+            <div class="modern-pagination-container"></div>
+
             {{-- Vista de tarjetas moderna --}}
             <div class="cards-view" id="cardsView" style="display: none;">
                 <div class="modern-cards-grid">
@@ -1581,6 +1584,8 @@
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             border-radius: var(--border-radius);
             border: 1px solid #e2e8f0;
+            display: block !important;
+            visibility: visible !important;
         }
 
         .modern-pagination-wrapper {
@@ -2274,12 +2279,40 @@
             function createModernPagination() {
                 if (!table) return;
                 
+                console.log('Creando paginación moderna...');
+                
                 const info = table.page.info();
                 const totalPages = info.pages;
                 const currentPage = info.page + 1;
                 const totalRecords = info.recordsTotal;
                 const startRecord = info.start + 1;
                 const endRecord = info.end;
+
+                console.log('Info de paginación:', {
+                    totalPages,
+                    currentPage,
+                    totalRecords,
+                    startRecord,
+                    endRecord
+                });
+
+                // Solo mostrar paginación si hay más de una página
+                if (totalPages <= 1) {
+                    $('.modern-pagination-container').html(`
+                        <div class="modern-pagination-wrapper">
+                            <div class="pagination-info">
+                                <div class="records-info">
+                                    <span class="records-text">Mostrando</span>
+                                    <span class="records-numbers">${startRecord} - ${endRecord}</span>
+                                    <span class="records-text">de</span>
+                                    <span class="records-total">${totalRecords}</span>
+                                    <span class="records-text">registros</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    return;
+                }
 
                 // Usar template strings más eficientes
                 const paginationHTML = `
@@ -2315,6 +2348,7 @@
                             <div class="page-size-selector">
                                 <label for="pageSize">Mostrar:</label>
                                 <select id="pageSize" class="page-size-select">
+                                    <option value="5" ${info.length === 5 ? 'selected' : ''}>5</option>
                                     <option value="10" ${info.length === 10 ? 'selected' : ''}>10</option>
                                     <option value="25" ${info.length === 25 ? 'selected' : ''}>25</option>
                                     <option value="50" ${info.length === 50 ? 'selected' : ''}>50</option>
@@ -2326,6 +2360,7 @@
                 `;
 
                 $('.modern-pagination-container').html(paginationHTML);
+                console.log('Paginación creada exitosamente');
             }
 
             // Función auxiliar optimizada para generar números de página
@@ -2388,15 +2423,20 @@
                     }
                 },
                 pageLength: 10,
-                dom: 'rt<"modern-pagination-container">',
+                dom: 'rt',
                 deferRender: true,
                 processing: false,
                 serverSide: false,
                 drawCallback: function() {
-                    // Crear paginación personalizada (sin animaciones pesadas)
+                    // Crear paginación personalizada
                     createModernPagination();
                 }
             });
+
+            // Forzar la creación de paginación después de la inicialización
+            setTimeout(function() {
+                createModernPagination();
+            }, 500);
 
             // Manejar clicks en paginación
             $(document).on('click', '.pagination-number, .pagination-prev, .pagination-next', function() {
