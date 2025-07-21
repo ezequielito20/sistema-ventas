@@ -609,11 +609,19 @@ class SaleController extends Controller
    public function getDetails($id)
    {
       try {
+         // Verificar que la venta existe primero
+         $sale = Sale::with('customer')->find($id);
+         
+         if (!$sale) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Venta no encontrada'
+            ], 404);
+         }
+         
          $saleDetails = SaleDetail::with(['product.category', 'sale.customer'])
             ->where('sale_id', $id)
             ->get();
-
-         $sale = Sale::with('customer')->find($id);
 
          $details = $saleDetails->map(function ($detail) {
             return [
@@ -622,14 +630,14 @@ class SaleController extends Controller
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
-                  'category' => $detail->product->category->name ?? 'N/A',
+                  'category' => $detail->product->category->name ?? 'Sin categoría',
                   'image_url' => $detail->product->image,
                ],
-               'subtotal' => $detail->quantity * $detail->product_price
+               'subtotal' => $detail->quantity * $detail->product->sale_price
             ];
          });
 
-         return response()->json([
+         $response = [
             'success' => true,
             'sale' => [
                'id' => $sale->id,
@@ -640,7 +648,9 @@ class SaleController extends Controller
                'total_price' => $sale->total_price
             ],
             'details' => $details
-         ]);
+         ];
+
+         return response()->json($response);
       } catch (\Exception $e) {
          Log::error('Error en getDetails de ventas: ' . $e->getMessage());
          return response()->json([

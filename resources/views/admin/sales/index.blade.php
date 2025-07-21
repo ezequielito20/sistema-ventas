@@ -318,7 +318,7 @@
                             <td>
                                         <div class="action-buttons">
                                     @can('sales.edit')
-                                                <button type="button" class="btn-action btn-edit" data-toggle="tooltip"
+                                                <button type="button" class="btn-action btn-edit" data-id="{{ $sale->id }}" data-toggle="tooltip"
                                                     title="Editar">
                                             <i class="fas fa-edit"></i>
                                                 </button>
@@ -417,10 +417,9 @@
                                         
                                 <div class="card-actions">
                                             @can('sales.edit')
-                                        <button type="button" class="btn-card-action edit" data-toggle="tooltip"
-                                            title="Editar">
+                                                <button type="button" class="btn-card-action btn-edit" data-id="{{ $sale->id }}" data-toggle="tooltip" title="Editar">
                                                     <i class="fas fa-edit"></i>
-                                        </button>
+                                                </button>
                                             @endcan
                                             @can('sales.destroy')
                                         <button type="button" class="btn-card-action delete delete-sale"
@@ -444,8 +443,7 @@
     </div>
 
     {{-- Modal moderno para mostrar detalles --}}
-    <div class="modal fade" id="saleDetailsModal" tabindex="-1" role="dialog" aria-labelledby="saleDetailsModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="saleDetailsModal" tabindex="-1" role="dialog" aria-labelledby="saleDetailsModalLabel">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content modern-modal">
                 {{-- Header moderno con gradiente --}}
@@ -1231,6 +1229,8 @@
             background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
             color: white;
         }
+
+
 
         .btn-print {
             background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
@@ -2267,50 +2267,13 @@
 
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable con configuración optimizada
-            const table = $('#salesTable').DataTable({
-                responsive: true,
-                language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
-                },
-                pageLength: 10,
-                dom: 'rt<"modern-pagination-container">',
-                deferRender: true,
-                processing: false,
-                serverSide: false,
-                drawCallback: function() {
-                    // Crear paginación personalizada (sin animaciones pesadas)
-                    createModernPagination();
-                }
-            });
+            // Variable global para la tabla
+            let table;
 
             // Función optimizada para crear paginación moderna
             function createModernPagination() {
+                if (!table) return;
+                
                 const info = table.page.info();
                 const totalPages = info.pages;
                 const currentPage = info.page + 1;
@@ -2392,6 +2355,48 @@
 
                 return html;
             }
+
+            // Inicializar DataTable con configuración optimizada
+            table = $('#salesTable').DataTable({
+                responsive: true,
+                language: {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix":    "",
+                    "sSearch":         "Buscar:",
+                    "sUrl":            "",
+                    "sInfoThousands":  ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                    "buttons": {
+                        "copy": "Copiar",
+                        "colvis": "Visibilidad"
+                    }
+                },
+                pageLength: 10,
+                dom: 'rt<"modern-pagination-container">',
+                deferRender: true,
+                processing: false,
+                serverSide: false,
+                drawCallback: function() {
+                    // Crear paginación personalizada (sin animaciones pesadas)
+                    createModernPagination();
+                }
+            });
 
             // Manejar clicks en paginación
             $(document).on('click', '.pagination-number, .pagination-prev, .pagination-next', function() {
@@ -2542,7 +2547,7 @@
                             });
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
                         Swal.fire({
                             title: 'Error',
                             text: 'No se pudieron cargar los detalles',
@@ -2636,19 +2641,28 @@
 
             // Editar venta
             $(document).on('click', '.btn-edit', function() {
-                const saleId = $(this).closest('tr').find('.view-details').data('id') ||
-                    $(this).closest('.modern-sale-card').find('.view-details').data('id');
+                const saleId = $(this).data('id');
 
                 if (saleId) {
                     window.location.href = `/sales/edit/${saleId}`;
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo identificar la venta a editar',
+                        icon: 'error',
+                        confirmButtonColor: '#667eea'
+                    });
                 }
             });
 
-            // Optimización: Simplificar efectos hover
-            // Remover animaciones complejas para mejor rendimiento
+            // Arreglar problema de aria-hidden en el modal
+            $('#saleDetailsModal').on('show.bs.modal', function() {
+                $(this).removeAttr('aria-hidden');
+            });
 
-            // Optimización: Remover animaciones pesadas que ralentizan la carga
-            // Solo mantener efectos hover básicos para mejor rendimiento
+            $('#saleDetailsModal').on('hidden.bs.modal', function() {
+                $(this).attr('aria-hidden', 'true');
+            });
         });
     </script>
 @stop
