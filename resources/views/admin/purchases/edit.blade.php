@@ -351,7 +351,7 @@
                                 </div>
                             </div>
                             
-                            <div class="summary-divider"></div>
+
                             
                             <div class="summary-item total">
                                 <div class="summary-icon">
@@ -374,8 +374,8 @@
                                 Acciones Disponibles
                             </h4>
                         </div>
-                        <div class="action-buttons">
-                            <button type="submit" class="action-btn primary-btn" id="updatePurchase">
+                        <div class="action-buttons" style="display: flex !important; flex-direction: row !important; gap: 0.75rem; align-items: stretch;">
+                            <button type="submit" class="action-btn primary-btn" id="updatePurchase" data-tooltip="Actualizar Compra" style="flex: 1 !important; width: auto !important;">
                                 <div class="btn-content">
                                     <i class="fas fa-save"></i>
                                     <span class="btn-text">Actualizar</span>
@@ -383,7 +383,7 @@
                                 <div class="btn-glow"></div>
                             </button>
                             
-                            <button type="button" class="action-btn danger-btn" id="cancelEdit">
+                            <button type="button" class="action-btn danger-btn" id="cancelEdit" data-tooltip="Cancelar Edición" style="flex: 1 !important; width: auto !important;">
                                 <div class="btn-content">
                                     <i class="fas fa-times-circle"></i>
                                     <span class="btn-text">Cancelar</span>
@@ -610,7 +610,16 @@
         }
 
         .back-btn {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
         }
 
         .btn-content {
@@ -619,6 +628,8 @@
             gap: 0.5rem;
             position: relative;
             z-index: 1;
+            justify-content: center;
+            width: 100%;
         }
 
         .btn-glow {
@@ -1104,8 +1115,9 @@
 
         .summary-stats {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         .summary-item {
@@ -1116,24 +1128,29 @@
             background: #f8fafc;
             border-radius: var(--border-radius);
             border: 1px solid #e5e7eb;
+            flex: 1;
+            min-width: 120px;
         }
 
         .summary-item.total {
             background: linear-gradient(135deg, var(--success-color), #059669);
             color: white;
             border: none;
+            flex: 2;
+            min-width: 200px;
         }
 
         .summary-icon {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             background: var(--primary-color);
             color: white;
-            font-size: 1rem;
+            font-size: 0.875rem;
+            flex-shrink: 0;
         }
 
         .summary-item.total .summary-icon {
@@ -1145,15 +1162,17 @@
         }
 
         .summary-value {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 700;
             margin-bottom: 0.125rem;
+            line-height: 1.2;
         }
 
         .summary-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             opacity: 0.8;
+            line-height: 1.2;
         }
 
         .summary-divider {
@@ -1163,14 +1182,16 @@
         }
 
         .total-amount {
-            font-size: 1.5rem;
+            font-size: 1.375rem;
         }
 
         /* Botones de Acción */
         .action-buttons {
-            display: flex;
-            flex-direction: row;
+            display: flex !important;
+            flex-direction: row !important;
             gap: 0.75rem;
+            align-items: stretch;
+            flex-wrap: nowrap;
         }
 
         .action-btn {
@@ -1183,13 +1204,15 @@
             overflow: hidden;
             cursor: pointer;
             text-decoration: none;
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
             font-size: 0.85rem;
-            flex: 1;
+            flex: 1 !important;
             min-width: 0;
+            height: auto;
+            width: auto !important;
         }
 
         .primary-btn {
@@ -1415,6 +1438,34 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar-panel {
+                margin-top: 1rem;
+            }
+
+            .summary-stats {
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .summary-item {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .summary-item.total {
+                flex: 1 1 100%;
+                min-width: 100%;
+            }
+
+            .action-buttons {
+                gap: 0.625rem;
+                align-items: stretch;
+                flex-direction: row !important;
+                flex-wrap: nowrap;
+            }
+        }
+
         @media (max-width: 768px) {
             .modern-header {
                 padding: 1rem;
@@ -1483,31 +1534,165 @@
                 margin-top: 1rem;
                 max-height: none;
                 overflow-y: visible;
+                border-radius: var(--border-radius);
+            }
+
+            .panel-header {
+                padding: 1rem;
+            }
+
+            .title-section {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .title-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .panel-title {
+                font-size: 1.125rem;
+                margin-bottom: 0.125rem;
+            }
+
+            .panel-subtitle {
+                font-size: 0.8rem;
             }
 
             .action-buttons {
-                flex-direction: column;
+                flex-direction: row !important;
                 gap: 0.5rem;
+                align-items: stretch;
+                flex-wrap: nowrap;
             }
 
             .action-btn {
-                flex: none;
-                padding: 0.75rem 1rem;
-                font-size: 0.875rem;
+                flex: 1;
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
+                min-width: 0;
+                position: relative;
+                min-height: 44px;
+            }
+
+            .btn-text {
+                display: none;
+            }
+
+            .action-btn i {
+                font-size: 1rem;
+            }
+
+            .action-btn:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: -2rem;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.7rem;
+                white-space: nowrap;
+                z-index: 1000;
+            }
+
+            .btn-content {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar-panel {
+                margin-top: 0.75rem;
+            }
+
+            .panel-section {
+                padding: 0.75rem;
             }
 
             .summary-stats {
-                gap: 0.5rem;
+                gap: 0.25rem;
+                flex-wrap: wrap;
             }
 
             .summary-item {
-                padding: 0.5rem;
+                flex: 1;
+                min-width: 70px;
+                padding: 0.375rem;
+                gap: 0.5rem;
+                justify-content: space-between;
+            }
+
+            .summary-item.total {
+                flex: 1 1 100%;
+                min-width: 100%;
             }
 
             .summary-icon {
-                width: 35px;
-                height: 35px;
+                width: 25px;
+                height: 25px;
+                font-size: 0.625rem;
+            }
+
+            .summary-value {
+                font-size: 0.9rem;
+            }
+
+            .summary-label {
+                font-size: 0.65rem;
+            }
+
+            .total-amount {
+                font-size: 1.125rem;
+            }
+
+            .summary-content {
+                text-align: right;
+            }
+
+            .summary-item.total .summary-content {
+                text-align: right;
+            }
+
+            .action-buttons {
+                gap: 0.375rem;
+                align-items: stretch;
+                flex-direction: row !important;
+                flex-wrap: nowrap;
+            }
+
+            .action-btn {
+                padding: 0.625rem 0.375rem;
+                font-size: 0.75rem;
+                flex: 1;
+                min-height: 40px;
+            }
+
+            .section-title {
+                font-size: 0.9rem;
+                gap: 0.375rem;
+            }
+
+            .section-title i {
                 font-size: 0.875rem;
+            }
+            }
+
+            .summary-item.total {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .summary-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 0.75rem;
             }
 
             .summary-value {
