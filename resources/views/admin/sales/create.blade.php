@@ -3,233 +3,233 @@
 @section('title', 'Nueva Venta')
 
 @section('content_header')
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-        <h1 class="text-dark font-weight-bold mb-2 mb-md-0">Nueva Venta</h1>
-        <button onclick="window.history.back()" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Volver
-        </button>
+    <div class="modern-header">
+        <div class="header-gradient"></div>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="header-content">
+                        <div class="header-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="header-text">
+                            <h1 class="header-title">Nueva Venta</h1>
+                            <p class="header-subtitle">Registre una nueva transacción de venta</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="header-actions">
+                        <button onclick="window.history.back()" class="btn btn-modern btn-secondary-modern">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Volver</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @stop
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        Información de la Venta
-                    </h3>
+    <div class="modern-sale-form">
+        <form action="{{ route('admin.sales.store') }}" method="POST" enctype="multipart/form-data" id="saleForm">
+            @csrf
+            
+            <!-- Sección de Información Básica -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h3 class="section-title">Información de la Venta</h3>
                 </div>
-
-                <form action="{{ route('admin.sales.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Código de Producto -->
-                            <div class="col-12 col-md-4 mb-3">
-                                <div class="form-group">
-                                    <label for="product_code" class="required">Código de Producto</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-barcode"></i>
-                                            </span>
-                                        </div>
-                                        <input type="text" name="product_code" id="product_code"
-                                            class="form-control @error('product_code') is-invalid @enderror"
-                                            placeholder="Escanee o ingrese el código">
-                                        <div class="input-group-append">
-                                            <button type="button" class="btn btn-info" id="searchProduct"
-                                                data-toggle="modal" data-target="#searchProductModal">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                            <a href="/products/create" class="btn btn-success">
-                                                <i class="fas fa-plus"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Cliente -->
-                            <div class="col-12 col-md-4 mb-3">
-                                <div class="form-group">
-                                    <label for="customer_id" class="required">Cliente</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"></i>
-                                            </span>
-                                        </div>
-                                        <select name="customer_id" id="customer_id"
-                                            class="form-control select2 @error('customer_id') is-invalid @enderror"
-                                            style="width: 100%;" required>
-                                            <option value="">Seleccione un cliente</option>
-                                            @foreach ($customers as $customer)
-                                                <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
-                                                    {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="input-group-append">
-                                            <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn btn-success">
-                                                <i class="fas fa-plus"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    @error('customer_id')
-                                        <span class="invalid-feedback d-block" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Fecha de venta -->
-                            <div class="col-12 col-md-4 mb-3">
-                                <div class="form-group">
-                                    <label for="sale_date" class="required">Fecha de Venta</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-calendar"></i>
-                                            </span>
-                                        </div>
-                                        <input type="date" name="sale_date" id="sale_date"
-                                            class="form-control @error('sale_date') is-invalid @enderror"
-                                            value="{{ old('sale_date', date('Y-m-d')) }}" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tipo de pago -->
-                            {{-- <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="payment_type" class="required">Tipo de Pago</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-money-bill"></i>
-                                            </span>
-                                        </div>
-                                        <select name="payment_type" id="payment_type"
-                                            class="form-control @error('payment_type') is-invalid @enderror" required>
-                                            <option value="cash">Efectivo</option>
-                                            <option value="card">Tarjeta</option>
-                                            <option value="transfer">Transferencia</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div> --}}
-                        </div>
-
-                        <!-- Tabla de productos -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header bg-light">
-                                        <h3 class="card-title">
-                                            <i class="fas fa-shopping-cart mr-2"></i>
-                                            Productos en la Venta
-                                        </h3>
-                                    </div>
-                                    <div class="card-body table-responsive p-0">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Código</th>
-                                                    <th>Producto</th>
-                                                    <th>Stock</th>
-                                                    <th width="120px">Cantidad</th>
-                                                    <th>Precio Unit.</th>
-                                                    <th>Subtotal</th>
-                                                    <th width="50px">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="saleItems">
-                                                <!-- Los items se agregarán dinámicamente aquí -->
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td colspan="5" class="text-right">
-                                                        <strong>Total:</strong>
-                                                    </td>
-                                                    <td colspan="2">
-                                                        <span id="totalAmount">{{ $currency->symbol }} 0.00</span>
-                                                        <input type="hidden" name="total_price" id="totalAmountInput"
-                                                            value="0">
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div>
+                
+                <div class="form-grid">
+                    <!-- Código de Producto -->
+                    <div class="form-group-modern">
+                        <label for="product_code" class="form-label required">
+                            <i class="fas fa-barcode"></i>
+                            Código de Producto
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="text" name="product_code" id="product_code"
+                                class="form-control-modern @error('product_code') is-invalid @enderror"
+                                placeholder="Escanee o ingrese el código del producto">
+                            <div class="input-actions">
+                                <button type="button" class="btn-action btn-search" id="searchProduct"
+                                    data-toggle="modal" data-target="#searchProductModal">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="/products/create" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-footer">
-                        <div class="btn-group-sales w-100">
-                            <button type="button" class="btn btn-danger" id="cancelSale">
-                                <i class="fas fa-times-circle mr-1 d-lg-inline d-none"></i>
-                                <i class="fas fa-times-circle d-lg-none"></i>
-                                <span class="d-lg-inline d-none">Cancelar Venta</span>
-                                <span class="d-lg-none d-md-inline d-none">Cancelar</span>
-                                <span class="d-md-none d-sm-inline d-none">Cancel</span>
-                                <span class="d-sm-none">X</span>
-                            </button>
-                            <button type="submit" class="btn btn-primary" name="action" value="save">
-                                <i class="fas fa-save mr-1 d-lg-inline d-none"></i>
-                                <i class="fas fa-save d-lg-none"></i>
-                                <span class="d-lg-inline d-none">Procesar Venta</span>
-                                <span class="d-lg-none d-md-inline d-none">Procesar</span>
-                                <span class="d-md-none d-sm-inline d-none">Proc</span>
-                                <span class="d-sm-none">✓</span>
-                            </button>
-                            <button type="submit" class="btn btn-success" name="action" value="save_and_new">
-                                <i class="fas fa-plus-circle mr-1 d-lg-inline d-none"></i>
-                                <i class="fas fa-plus-circle d-lg-none"></i>
-                                <span class="d-lg-inline d-none">Procesar y Nueva Venta</span>
-                                <span class="d-lg-none d-md-inline d-none">Proc y Nuevo</span>
-                                <span class="d-md-none d-sm-inline d-none">Proc+</span>
-                                <span class="d-sm-none">✓+</span>
-                            </button>
+                    <!-- Cliente -->
+                    <div class="form-group-modern">
+                        <label for="customer_id" class="form-label required">
+                            <i class="fas fa-user"></i>
+                            Cliente
+                        </label>
+                        <div class="input-group-modern">
+                            <select name="customer_id" id="customer_id"
+                                class="form-control-modern select2 @error('customer_id') is-invalid @enderror" required>
+                                <option value="">Seleccione un cliente</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
+                                        {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="input-actions">
+                                <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                        @error('customer_id')
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    <!-- Fecha de Venta -->
+                    <div class="form-group-modern">
+                        <label for="sale_date" class="form-label required">
+                            <i class="fas fa-calendar"></i>
+                            Fecha de Venta
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="date" name="sale_date" id="sale_date"
+                                class="form-control-modern @error('sale_date') is-invalid @enderror"
+                                value="{{ old('sale_date', date('Y-m-d')) }}" required>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- Sección de Productos -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3 class="section-title">Productos en la Venta</h3>
+                </div>
+                
+                <div class="products-table-container">
+                    <div class="table-header">
+                        <div class="table-info">
+                            <span class="products-count">0 productos</span>
+                            <span class="total-amount-display">{{ $currency->symbol }} 0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-barcode"></i> Código</th>
+                                    <th><i class="fas fa-box"></i> Producto</th>
+                                    <th><i class="fas fa-warehouse"></i> Stock</th>
+                                    <th><i class="fas fa-sort-numeric-up"></i> Cantidad</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio Unit.</th>
+                                    <th><i class="fas fa-calculator"></i> Subtotal</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="saleItems">
+                                <!-- Los productos se agregarán dinámicamente aquí -->
+                            </tbody>
+                        </table>
+                        
+                        <!-- Estado vacío -->
+                        <div class="empty-state" id="emptyState">
+                            <div class="empty-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h4>No hay productos agregados</h4>
+                            <p>Agregue productos escaneando códigos o usando el buscador</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Total de la venta -->
+                    <div class="sale-total">
+                        <div class="total-card">
+                            <div class="total-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="total-content">
+                                <span class="total-label">Total de la Venta</span>
+                                <span class="total-amount" id="totalAmount">{{ $currency->symbol }} 0.00</span>
+                                <input type="hidden" name="total_price" id="totalAmountInput" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones del Formulario -->
+            <div class="form-actions">
+                <div class="action-buttons">
+                    <button type="button" class="btn-modern btn-danger-modern" id="cancelSale" title="Cancelar Venta">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn-modern btn-primary-modern" name="action" value="save" title="Procesar Venta">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn-modern btn-success-modern" name="action" value="save_and_new" title="Procesar y Nueva Venta">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Modal de Búsqueda de Productos -->
     <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white">
-                        <i class="fas fa-search mr-2"></i>
-                        Búsqueda de Productos
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-
+            <div class="modal-content modern-modal">
+                <div class="modal-header-modern">
+                    <div class="modal-header-background">
+                        <div class="modal-header-gradient"></div>
+                    </div>
+                    <div class="modal-header-content">
+                        <div class="modal-title-section">
+                            <div class="modal-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="modal-title-text">
+                                <h4 class="modal-title-main">Búsqueda de Productos</h4>
+                                <p class="modal-subtitle">Seleccione productos para agregar a la venta</p>
+                            </div>
+                        </div>
+                        <button type="button" class="modal-close-btn" data-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-body">
+                
+                <div class="modal-body-modern">
                     <div class="table-responsive">
-                        <table id="productsTable" class="table table-striped table-hover w-100 nowrap">
+                        <table id="productsTable" class="modern-table">
                             <thead>
                                 <tr>
-                                    <th style="min-width: 100px">Código</th>
-                                    <th style="min-width: 40px">Acción</th>
-                                    <th style="width: 40px">Imagen</th>
-                                    <th style="min-width: 250px">Nombre</th>
-                                    <th style="min-width: 150px">Categoría</th>
-                                    <th style="min-width: 100px">Stock</th>
-                                    <th style="min-width: 120px">Precio</th>
-                                    <th style="min-width: 100px">Estado</th>
+                                    <th><i class="fas fa-barcode"></i> Código</th>
+                                    <th><i class="fas fa-plus-circle"></i> Acción</th>
+                                    <th><i class="fas fa-image"></i> Imagen</th>
+                                    <th><i class="fas fa-box"></i> Nombre</th>
+                                    <th><i class="fas fa-tags"></i> Categoría</th>
+                                    <th><i class="fas fa-warehouse"></i> Stock</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio</th>
+                                    <th><i class="fas fa-info-circle"></i> Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -237,7 +237,7 @@
                                     <tr>
                                         <td class="align-middle">{{ $product->code }}</td>
                                         <td class="align-middle text-center">
-                                            <button type="button" class="btn btn-primary btn-sm select-product"
+                                            <button type="button" class="btn-action btn-primary select-product"
                                                 data-code="{{ $product->code }}"
                                                 data-id="{{ $product->id }}"
                                                 {{ $product->stock <= 0 ? 'disabled' : '' }}>
@@ -245,13 +245,12 @@
                                             </button>
                                         </td>
                                         <td class="align-middle">
-                                            <img src="{{ $product->image_url }}" alt="N/I" class="img-thumbnail"
-                                                width="50">
+                                            <img src="{{ $product->image_url }}" alt="N/I" class="product-thumbnail">
                                         </td>
                                         <td class="align-middle">{{ $product->name }}</td>
                                         <td class="align-middle">{{ $product->category->name }}</td>
                                         <td class="align-middle text-center">
-                                            <span class="badge badge-{{ $product->stock_status_class }}">
+                                            <span class="stock-badge badge-{{ $product->stock_status_class }}">
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
@@ -259,8 +258,7 @@
                                             {{ number_format($product->sale_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
-                                            <span
-                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span class="status-badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -281,209 +279,920 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
     <style>
-        /* Mejorar el estilo del Select2 */
-        .select2-container--bootstrap4 .select2-selection--single {
-            height: 38px !important;
-            padding: 0.375rem 0.75rem;
+        :root {
+            --primary-color: #667eea;
+            --success-color: #48bb78;
+            --danger-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+            --dark-color: #2d3748;
+            --light-color: #f7fafc;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            --gradient-danger: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            --gradient-info: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+
+        /* Header Moderno */
+        .modern-header {
+            position: relative;
+            margin: -15px -15px 20px -15px;
+            padding: 2rem 0;
+            overflow: hidden;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        .header-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
             font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Formulario Moderno */
+        .modern-sale-form {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--gradient-primary);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .form-grid {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dark-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        .input-group-modern {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .input-group-modern:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control-modern {
+            flex: 1;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--dark-color);
+        }
+
+        .form-control-modern:focus {
+            outline: none;
+        }
+
+        .form-control-modern::placeholder {
+            color: #a0aec0;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+        }
+
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-action.btn-search {
+            background: var(--gradient-info);
+            color: white;
+        }
+
+        .btn-action.btn-add {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-action.btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tabla de Productos */
+        .products-table-container {
+            padding: 2rem;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: var(--border-radius);
+        }
+
+        .table-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .products-count {
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .total-amount-display {
+            background: var(--gradient-success);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            position: relative;
+            min-height: 200px;
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .table-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .table-wrapper.has-scroll::after {
+            opacity: 1;
+        }
+
+        .modern-table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .modern-table thead {
+            background: var(--gradient-primary);
+        }
+
+        .modern-table thead th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .modern-table thead th:first-child {
+            min-width: 100px;
+        }
+
+        .modern-table thead th:nth-child(2) {
+            min-width: 200px;
+        }
+
+        .modern-table thead th:nth-child(3) {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .modern-table thead th:nth-child(4) {
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .modern-table thead th:nth-child(5) {
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .modern-table thead th:nth-child(6) {
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .modern-table thead th:last-child {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .modern-table thead th i {
+            margin-right: 0.5rem;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .modern-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .modern-table tbody td {
+            padding: 1rem 1.5rem;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .modern-table tbody td:nth-child(3) {
+            text-align: center;
+        }
+
+        .modern-table tbody td:nth-child(4) {
+            text-align: center;
+        }
+
+        .modern-table tbody td:nth-child(5) {
+            text-align: right;
+        }
+
+        .modern-table tbody td:nth-child(6) {
+            text-align: right;
+        }
+
+        .modern-table tbody td:last-child {
+            text-align: center;
+        }
+
+        .product-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .stock-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stock-badge.badge-success {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .stock-badge.badge-warning {
+            background: var(--gradient-warning);
+            color: white;
+        }
+
+        .stock-badge.badge-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Scrollbar personalizado para la tabla */
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+
+        /* Estado Vacío */
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--dark-color);
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Total de la Venta */
+        .sale-total {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .total-card {
+            background: var(--gradient-success);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+            min-width: 300px;
+        }
+
+        .total-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .total-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .total-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        /* Acciones del Formulario */
+        .form-actions {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-modern {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-modern:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-modern.btn-primary-modern {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-modern.btn-success-modern {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-modern.btn-danger-modern {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .btn-modern.btn-secondary-modern {
+            background: #e2e8f0;
+            color: var(--dark-color);
+        }
+
+        /* Tooltip para los botones */
+        .btn-modern::before {
+            content: attr(title);
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .btn-modern::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-bottom-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modern:hover::before,
+        .btn-modern:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Moderno */
+        .modern-modal {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header-modern {
+            position: relative;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+            height: 120px;
+        }
+
+        .modal-header-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+        }
+
+        .modal-header-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+
+        .modal-header-content {
+            position: relative;
+            z-index: 2;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .modal-title-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-title-main {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .modal-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .modal-body-modern {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .modern-header {
+                margin: -15px -15px 15px -15px;
+                padding: 1.5rem 0;
+            }
+
+            .header-title {
+                font-size: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .section-header {
+                padding: 1rem;
+            }
+
+            .products-table-container {
+                padding: 1rem;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .table-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .table-wrapper {
+                margin: 0 -1rem;
+                border-radius: 0;
+            }
+
+            .modern-table {
+                min-width: 700px;
+            }
+
+            .modern-table thead th {
+                padding: 0.75rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .modern-table tbody td {
+                padding: 0.75rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .action-buttons {
+                gap: 0.75rem;
+            }
+
+            .btn-modern {
+                width: 55px;
+                height: 55px;
+                font-size: 1.1rem;
+            }
+
+            .total-card {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .modal-header-content {
+                padding: 1rem;
+            }
+
+            .modal-title-main {
+                font-size: 1.2rem;
+            }
+
+            .modal-body-modern {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-modern {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+
+            .action-buttons {
+                gap: 0.5rem;
+            }
+
+            .form-control-modern {
+                font-size: 16px;
+            }
+
+            .modern-table {
+                min-width: 600px;
+            }
+
+            .modern-table thead th {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .modern-table tbody td {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .quantity-input {
+                width: 60px;
+                padding: 0.375rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Select2 Moderno */
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: auto !important;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: transparent;
         }
 
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
             line-height: 1.5;
             padding-left: 0;
             padding-right: 0;
-            color: #495057;
+            color: var(--dark-color);
         }
 
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
-            height: 36px;
+            height: auto;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
-            background-color: #007bff;
-        }
-
-        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-        }
-
-        .select2-container--bootstrap4 .select2-results__option {
-            padding: 0.375rem 0.75rem;
+            background-color: var(--primary-color);
         }
 
         .select2-container--bootstrap4 .select2-dropdown {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        /* Ajustar el ancho del select2 para dejar espacio al botón */
-        .input-group .select2-container {
-            flex: 1 1 auto;
-            width: auto !important;
-        }
-
-        /* Mantener los botones juntos */
-        .input-group-append .btn {
-            margin-left: -1px;
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
-        }
-
-        .required::after {
-            content: " *";
-            color: red;
-        }
-
-        /* Estilos para hacer la tabla responsive */
-        .modal-xl {
-            max-width: 95% !important;
-        }
-
-        .table-responsive {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-        }
-
-        #productsTable {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        /* Ajustes para pantallas pequeñas */
-        @media screen and (max-width: 768px) {
-            .modal-body {
-                padding: 0.5rem;
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            #productsTable td,
-            #productsTable th {
-                white-space: nowrap;
-            }
-            
-            /* Hacer los botones más grandes en móviles */
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
-            
-            /* Mejorar el espaciado en los formularios */
-            .form-group {
-                margin-bottom: 1rem;
-            }
-            
-            /* Ajustar el tamaño de los inputs en móviles */
-            .form-control {
-                font-size: 16px; /* Previene zoom en iOS */
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Estilos adicionales para responsividad */
-        @media screen and (max-width: 576px) {
-            /* Hacer que los inputs del formulario sean más grandes */
-            .input-group-text {
-                min-width: 45px;
-                justify-content: center;
-            }
-            
-            /* Mejorar la tabla de productos en móviles */
-            .table-responsive {
-                border: none;
-            }
-            
-            .table td, .table th {
-                padding: 0.5rem 0.25rem;
-                font-size: 0.875rem;
-            }
-            
-            /* Botones de acción en la tabla más pequeños */
-            .btn-sm {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.8rem;
-            }
-            
-            /* Ajustar botones del footer para que se mantengan en línea */
-            .card-footer .btn {
-                font-size: 0.875rem;
-                padding: 0.5rem 0.75rem;
-            }
+        .form-section {
+            animation: fadeIn 0.5s ease-out;
         }
 
-        /* Estilos para el grupo de botones de ventas */
-        .btn-group-sales {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            justify-content: flex-end;
+        .form-section:nth-child(2) {
+            animation-delay: 0.1s;
         }
 
-        .btn-group-sales .btn {
-            white-space: nowrap;
-            min-width: auto;
-        }
-
-        /* Separar el botón cancelar de los otros dos */
-        .btn-group-sales .btn:first-child {
-            margin-right: auto;
-        }
-
-        /* En pantallas grandes, hacer los botones más compactos */
-        @media screen and (min-width: 992px) {
-            .btn-group-sales .btn {
-                padding: 0.5rem 1.5rem;
-                font-size: 0.9rem;
-                min-width: 160px;
-                max-width: 200px;
-            }
-            
-            .btn-group-sales .btn:first-child {
-                min-width: 140px;
-                max-width: 180px;
-            }
-        }
-
-        /* Distribución responsive de botones - SIEMPRE EN LÍNEA */
-        @media screen and (max-width: 768px) {
-            .btn-group-sales {
-                gap: 0.25rem;
-            }
-            
-            .btn-group-sales .btn {
-                font-size: 0.8rem;
-                padding: 0.5rem 0.75rem;
-                min-width: 80px;
-            }
-        }
-
-        @media screen and (max-width: 576px) {
-            .btn-group-sales .btn {
-                font-size: 0.75rem;
-                padding: 0.4rem 0.6rem;
-                min-width: 70px;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            .btn-group-sales .btn {
-                font-size: 0.7rem;
-                padding: 0.375rem 0.5rem;
-                min-width: 60px;
-            }
-        }
-
-        /* Mejoras para tablets */
-        @media screen and (min-width: 769px) and (max-width: 1024px) {
-            .col-md-4 {
-                margin-bottom: 1rem;
-            }
+        .form-section:nth-child(3) {
+            animation-delay: 0.2s;
         }
     </style>
 @stop
@@ -538,7 +1247,7 @@
                     const productCode = productRow.find('td:eq(0)').text().trim();
                     const productName = productRow.find('td:eq(3)').text().trim();
                     const productImage = productRow.find('td:eq(2) img').attr('src');
-                    const productStock = productRow.find('td:eq(5) .badge').text().trim();
+                    const productStock = productRow.find('td:eq(5) .stock-badge').text().trim();
                     const productPriceText = productRow.find('td:eq(6)').text().trim();
                     const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
                     
@@ -581,22 +1290,6 @@
             // Si hay un cliente preseleccionado, asegurarse de que Select2 lo muestre correctamente
             @if(isset($selectedCustomerId))
                 $('#customer_id').val('{{ $selectedCustomerId }}').trigger('change');
-                
-                // Mostrar una notificación de que el cliente fue seleccionado automáticamente
-                // setTimeout(function() {
-                //     Swal.fire({
-                //         icon: 'success',
-                //         title: '¡Cliente seleccionado!',
-                //         text: 'El cliente recién creado ha sido seleccionado automáticamente',
-                //         toast: true,
-                //         position: 'top-end',
-                //         showConfirmButton: false,
-                //         timer: 4000,
-                //         timerProgressBar: true,
-                //         background: '#e8f5e8',
-                //         color: '#2e7d32'
-                //     });
-                // }, 1000);
             @endif
 
             // Función para formatear las opciones en el dropdown
@@ -700,14 +1393,12 @@
                         imageUrl = '/' + imageUrl;
                     }
                     
-
-                    
                     const row = `
                         <tr data-product-id="${product.id}" data-product-code="${product.code}">
                             <td>${product.code}</td>
                             <td>${product.name}</td>
                             <td>
-                                <span class="badge badge-${product.stock > 10 ? 'success' : (product.stock > 0 ? 'warning' : 'danger')}">
+                                <span class="stock-badge badge-${product.stock > 10 ? 'success' : (product.stock > 0 ? 'warning' : 'danger')}">
                                     ${product.stock}
                                 </span>
                             </td>
@@ -724,7 +1415,7 @@
                                 <span class="subtotal-value d-none">${product.sale_price}</span>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-danger btn-sm remove-item">
+                                <button type="button" class="btn-action btn-danger remove-item">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -733,6 +1424,7 @@
                     
                     $('#saleItems').append(row);
                     updateTotal();
+                    updateEmptyState();
                 }
                 
                 // Mostrar notificación solo si showAlert es true
@@ -750,6 +1442,24 @@
                         color: '#2e7d32'
                     });
                 }
+            }
+
+            // Función para actualizar el estado vacío
+            function updateEmptyState() {
+                const hasProducts = $('#saleItems tr').length > 0;
+                if (hasProducts) {
+                    $('#emptyState').hide();
+                    $('.modern-table').show();
+                } else {
+                    $('#emptyState').show();
+                    $('.modern-table').hide();
+                }
+            }
+
+            // Función para actualizar contadores
+            function updateCounters() {
+                const productCount = $('#saleItems tr').length;
+                $('.products-count').text(`${productCount} producto${productCount !== 1 ? 's' : ''}`);
             }
 
             // Buscar producto por código
@@ -845,6 +1555,8 @@
                     if (result.isConfirmed) {
                         row.remove();
                         updateTotal();
+                        updateEmptyState();
+                        updateCounters();
                     }
                 });
             });
@@ -857,8 +1569,9 @@
                 });
                 $('#totalAmount').text('{{ $currency->symbol }} ' + total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
+                $('.total-amount-display').text('{{ $currency->symbol }} ' + total.toFixed(2));
+                updateCounters();
             }
-
 
             // Limpiar formulario
             $('#clearForm').click(function() {
@@ -876,8 +1589,8 @@
                         $('#saleItems').empty();
                         $('#customer_id').val('').trigger('change');
                         $('#sale_date').val('{{ date('Y-m-d') }}');
-                        $('#payment_type').val('cash');
                         updateTotal();
+                        updateEmptyState();
                     }
                 });
             });
@@ -994,6 +1707,32 @@
             // Event listener para el botón volver
             $('button[onclick="window.history.back()"]').removeAttr('onclick').click(function() {
                 goBack();
+            });
+
+            // Inicializar estado vacío
+            updateEmptyState();
+            updateCounters();
+
+            // Detectar scroll horizontal en la tabla
+            function checkTableScroll() {
+                const tableWrapper = $('.table-wrapper');
+                const table = tableWrapper.find('.modern-table');
+                
+                if (table.width() > tableWrapper.width()) {
+                    tableWrapper.addClass('has-scroll');
+                } else {
+                    tableWrapper.removeClass('has-scroll');
+                }
+            }
+
+            // Verificar scroll al cargar y al cambiar el tamaño de la ventana
+            $(window).on('load resize', function() {
+                setTimeout(checkTableScroll, 100);
+            });
+
+            // Verificar scroll cuando se agregan productos
+            $(document).on('DOMNodeInserted', '#saleItems', function() {
+                setTimeout(checkTableScroll, 100);
             });
         });
     </script>
