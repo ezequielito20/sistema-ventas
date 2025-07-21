@@ -3698,7 +3698,7 @@
             });
 
             // Manejar el botón de editar deuda
-            $('.edit-debt-btn').click(function() {
+            $(document).on('click', '.edit-debt-btn', function() {
                 let $debtValue, customerId, currentDebt, customerName;
                 
                 // Verificar si estamos en la vista de escritorio (tabla) o móvil (tarjetas)
