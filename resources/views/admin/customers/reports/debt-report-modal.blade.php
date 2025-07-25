@@ -63,7 +63,7 @@
                             <option value="debt_asc">Deuda (Menor a mayor)</option>
                         </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3 mb-2 mb-md-0">
                     <label class="filter-label"><i class="fas fa-filter mr-1"></i>Filtrar por deuda</label>
                         <div class="d-flex align-items-center">
                             <input type="number" id="debtMinFilter" class="form-control form-control-sm mr-2" placeholder="Mín $" min="0" style="width: 80px;">
@@ -71,26 +71,67 @@
                             <input type="number" id="debtMaxFilter" class="form-control form-control-sm" placeholder="Máx $" min="0" style="width: 80px;">
                         </div>
                     </div>
+                <div class="col-md-3">
+                    <label for="debtTypeFilter" class="filter-label"><i class="fas fa-user-clock mr-1"></i>Tipo de deuda</label>
+                    <select id="debtTypeFilter" class="form-control form-control-sm">
+                        <option value="">Todos los clientes</option>
+                        <option value="defaulters">Solo morosos</option>
+                        <option value="current">Solo deuda actual</option>
+                    </select>
+                </div>
                 </div>
             </div>
         </div>
     <div class="card mb-3 summary-card summary-gradient-card">
-        <div class="card-body d-flex flex-wrap justify-content-between align-items-center summary-flex-better">
-            <div class="summary-info d-flex align-items-center gap-3 summary-info-block">
-                <div class="summary-icon">
-                    <i class="fas fa-info-circle"></i>
-    </div>
-        <div>
-                    <div class="summary-title">Clientes con deudas</div>
-                    <div class="summary-value"><span id="clientCount">{{ $customers->count() }}</span></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="summary-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <div class="summary-title">Total Clientes</div>
+                            <div class="summary-value"><span id="clientCount">{{ $customers->count() }}</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="summary-icon defaulter-icon">
+                            <i class="fas fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <div class="summary-title">Morosos</div>
+                            <div class="summary-value text-danger">
+                                <span id="defaultersCount">{{ $defaultersCount }}</span>
+                                <small class="text-muted">/ {{ $currency->symbol }} <span id="defaultersDebt">{{ number_format($defaultersDebt, 2) }}</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="summary-icon current-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div>
+                            <div class="summary-title">Deuda Actual</div>
+                            <div class="summary-value text-warning">
+                                <span id="currentDebtorsCount">{{ $currentDebtorsCount }}</span>
+                                <small class="text-muted">/ {{ $currency->symbol }} <span id="currentDebt">{{ number_format($currentDebt, 2) }}</span></small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="summary-totals-block d-flex flex-column align-items-end justify-content-center">
-                <div class="summary-total-label mb-1">Deuda Total</div>
+            <hr class="my-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="summary-total-label">Deuda Total</div>
                 <div class="summary-totals-row d-flex align-items-center gap-2">
                     <span id="totalDebtDisplay" class="badge badge-danger summary-badge-big">{{ $currency->symbol }} {{ number_format($totalDebt, 2) }}</span>
                     <span id="totalBsDebtDisplay" class="badge badge-primary summary-badge-big">Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}</span>
-        </div>
+                </div>
             </div>
         </div>
     </div>
@@ -117,9 +158,21 @@
                         data-phone="{{ strtolower($customer->phone ?? '') }}"
                         data-email="{{ strtolower($customer->email ?? '') }}"
                         data-nit="{{ strtolower($customer->nit_number ?? '') }}"
-                        data-debt="{{ $customer->total_debt }}">
+                        data-debt="{{ $customer->total_debt }}"
+                        data-debt-type="{{ $customer->isDefaulter() ? 'defaulters' : 'current' }}">
                         <td class="row-number-modal">{{ $index + 1 }}</td>
-                        <td>{{ $customer->name }}</td>
+                        <td>
+                            {{ $customer->name }}
+                            @if($customer->isDefaulter())
+                                <span class="badge badge-danger badge-sm ml-2" title="Cliente moroso - Tiene deudas de arqueos anteriores">
+                                    <i class="fas fa-exclamation-triangle"></i> Moroso
+                                </span>
+                            @else
+                                <span class="badge badge-warning badge-sm ml-2" title="Deuda del arqueo actual">
+                                    <i class="fas fa-clock"></i> Actual
+                                </span>
+                            @endif
+                        </td>
                         <td class="d-none d-md-table-cell">
                             {{ $customer->phone ?? '' }}<br>
                             <small class="text-muted">{{ $customer->email ?? '' }}</small>
@@ -282,6 +335,14 @@
     justify-content: center;
     font-size: 1.5rem;
     box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+}
+.summary-icon.defaulter-icon {
+    background: #fff5f5;
+    color: #dc3545;
+}
+.summary-icon.current-icon {
+    background: #fffbf0;
+    color: #ffc107;
 }
 .summary-title {
     font-size: 1.1rem;
@@ -472,6 +533,17 @@
         justify-content: center;
     }
 }
+@media (max-width: 768px) {
+    .filter-card .row .col-md-3,
+    .filter-card .row .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    .filter-card .row .col-md-3:last-child,
+    .filter-card .row .col-md-4:last-child {
+        margin-bottom: 0;
+    }
+}
+
 @media (max-width: 576px) {
     .debt-modal-header {
         flex-direction: column;
@@ -652,6 +724,7 @@
             let searchTerm = $('#searchFilter').val();
             let debtMin = $('#debtMinFilter').val();
             let debtMax = $('#debtMaxFilter').val();
+            let debtType = $('#debtTypeFilter').val();
             let order = $('#orderFilter').val();
             let exchangeRate = $('#modalExchangeRate').val();
             
@@ -668,6 +741,9 @@
             }
             if (debtMax && debtMax !== '') {
                 params.push('debt_max=' + encodeURIComponent(debtMax));
+            }
+            if (debtType && debtType !== '') {
+                params.push('debt_type=' + encodeURIComponent(debtType));
             }
             if (order && order !== 'debt_desc') { // Solo agregar si no es el valor por defecto
                 params.push('order=' + encodeURIComponent(order));
@@ -717,13 +793,34 @@
         function updateSummaryModal() {
             let visibleRows = $('.customer-row-modal:visible');
             let totalDebt = 0;
+            let defaultersCount = 0;
+            let currentDebtorsCount = 0;
+            let defaultersDebt = 0;
+            let currentDebt = 0;
+            
             visibleRows.each(function() {
                 let debt = parseFloat($(this).data('debt'));
+                let debtType = $(this).data('debt-type');
+                
                 if (!isNaN(debt)) {
                     totalDebt += debt;
+                    
+                    if (debtType === 'defaulters') {
+                        defaultersCount++;
+                        defaultersDebt += debt;
+                    } else {
+                        currentDebtorsCount++;
+                        currentDebt += debt;
+                    }
                 }
             });
+            
             $('#clientCount').text(visibleRows.length);
+            $('#defaultersCount').text(defaultersCount);
+            $('#currentDebtorsCount').text(currentDebtorsCount);
+            $('#defaultersDebt').text(defaultersDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $('#currentDebt').text(currentDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            
             let exchangeRate = parseFloat($('#modalExchangeRate').val());
             if (isNaN(exchangeRate) || exchangeRate <= 0) exchangeRate = {{ $exchangeRate ?? 1 }};
             $('#totalDebtDisplay').text('{{ $currency->symbol }} ' + totalDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
@@ -764,8 +861,11 @@
             let searchTerm = $('#searchFilter').val().toLowerCase();
             let debtMin = parseFloat($('#debtMinFilter').val());
             let debtMax = parseFloat($('#debtMaxFilter').val());
+            let debtType = $('#debtTypeFilter').val();
+            
             if (isNaN(debtMin)) debtMin = 0;
             if (isNaN(debtMax)) debtMax = Infinity;
+            
             $('.customer-row-modal').each(function() {
                 let row = $(this);
                 let name = row.data('name');
@@ -773,7 +873,10 @@
                 let email = row.data('email');
                 let nit = row.data('nit');
                 let debt = parseFloat(row.data('debt'));
+                let rowDebtType = row.data('debt-type');
                 let showRow = true;
+                
+                // Filtro de búsqueda
                 if (searchTerm &&
                     !name.includes(searchTerm) &&
                     !phone.includes(searchTerm) &&
@@ -781,9 +884,17 @@
                     !nit.includes(searchTerm)) {
                     showRow = false;
                 }
+                
+                // Filtro de rango de deuda
                 if (showRow && (debt < debtMin || debt > debtMax)) {
                     showRow = false;
                 }
+                
+                // Filtro de tipo de deuda
+                if (showRow && debtType && debtType !== '' && rowDebtType !== debtType) {
+                    showRow = false;
+                }
+                
                 if (showRow) {
                     row.show();
                 } else {
@@ -800,6 +911,10 @@
             applyFiltersModal();
         });
         $('#debtMinFilter, #debtMaxFilter').on('input change', function() {
+            applyFiltersModal();
+        });
+        
+        $('#debtTypeFilter').on('change', function() {
             applyFiltersModal();
         });
         $('#orderFilter').on('change', function() {
@@ -823,6 +938,7 @@
             $('#searchFilter').val('');
             $('#debtMinFilter').val('');
             $('#debtMaxFilter').val('');
+            $('#debtTypeFilter').val('');
             $('#orderFilter').val('debt_desc');
             updateSummaryModal();
             sortRowsModal();

@@ -583,6 +583,32 @@ class CustomerController extends Controller
             $query->where('total_debt', '<=', floatval($request->debt_max));
          }
 
+         // Filtrar por tipo de deuda (morosos vs deuda actual)
+         if ($request->filled('debt_type')) {
+            $debtType = $request->debt_type;
+            if ($debtType === 'defaulters') {
+               // Solo clientes morosos (con deudas de arqueos anteriores)
+               $query->whereHas('sales', function($q) {
+                  $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+                     ->whereNull('closing_date')
+                     ->first();
+                  if ($currentCashCount) {
+                     $q->where('sale_date', '<', $currentCashCount->opening_date);
+                  }
+               });
+            } elseif ($debtType === 'current') {
+               // Solo clientes con deuda del arqueo actual
+               $query->whereDoesntHave('sales', function($q) {
+                  $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+                     ->whereNull('closing_date')
+                     ->first();
+                  if ($currentCashCount) {
+                     $q->where('sale_date', '<', $currentCashCount->opening_date);
+                  }
+               });
+            }
+         }
+
          // Aplicar ordenamiento según el parámetro order
          $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
          switch($order) {
@@ -664,10 +690,27 @@ class CustomerController extends Controller
             ->orderBy('total_debt', 'desc')
             ->get();
 
+         // Calcular estadísticas por tipo de deuda
+         $defaultersCount = $customers->filter(function ($customer) {
+            return $customer->isDefaulter();
+         })->count();
+
+         $currentDebtorsCount = $customers->filter(function ($customer) {
+            return !$customer->isDefaulter();
+         })->count();
+
+         $defaultersDebt = $customers->filter(function ($customer) {
+            return $customer->isDefaulter();
+         })->sum('total_debt');
+
+         $currentDebt = $customers->filter(function ($customer) {
+            return !$customer->isDefaulter();
+         })->sum('total_debt');
+
          $company = $this->company;
          $currency = $this->currencies;
          $totalDebt = $customers->sum('total_debt');
-         $exchangeRate = request('exchange_rate', 1); // <-- Nuevo: toma el valor de la request o 1
+         $exchangeRate = request('exchange_rate', 1);
 
          // Devolver la vista parcial para el modal
          return view('admin.customers.reports.debt-report-modal', compact(
@@ -675,7 +718,11 @@ class CustomerController extends Controller
             'company',
             'currency',
             'totalDebt',
-            'exchangeRate' // <-- Nuevo: pasa a la vista
+            'exchangeRate',
+            'defaultersCount',
+            'currentDebtorsCount',
+            'defaultersDebt',
+            'currentDebt'
          ));
       } catch (\Exception $e) {
          Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
