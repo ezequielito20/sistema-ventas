@@ -19,7 +19,12 @@
                 <div class="col-lg-4 col-md-5 col-12">
                     <div class="hero-action-buttons d-flex justify-content-lg-end justify-content-center align-items-center gap-3 flex-wrap">
                         @can('customers.report')
-                            <button class="hero-btn hero-btn-info" id="debtReportBtn" data-toggle="tooltip" title="Reporte de Deudas">
+                            <button 
+                                class="hero-btn hero-btn-info" 
+                                id="debtReportBtn" 
+                                data-toggle="tooltip" 
+                                title="Reporte de Deudas"
+                            >
                                 <i class="fas fa-file-invoice-dollar"></i>
                                 <span class="d-none d-md-inline">Deudas</span>
                             </button>
@@ -127,7 +132,7 @@
             </div>
             <div class="stat-content">
                 <div class="stat-header">
-                    <h3 class="stat-number counter">{{ $totalCustomers }}</h3>
+                    <h3 class="stat-number">{{ $totalCustomers }}</h3>
                     @if ($customerGrowth > 0)
                         <span class="growth-badge growth-positive">
                             <i class="fas fa-arrow-up"></i>
@@ -204,17 +209,31 @@
     </div>
 
     {{-- Bloque unificado de Tipo de Cambio + Filtros + Búsqueda --}}
-    <div class="exchange-filters-card mb-4">
+    <div class="exchange-filters-card mb-4" x-data="exchangeFilters()">
         <div class="exchange-filters-content redesigned">
             <div class="exchange-block redesigned-left">
                 <div class="rate-row redesigned-rate-row">
                     <span class="currency-symbol">1 USD =</span>
-                    <input type="number" id="exchangeRate" class="rate-input" value="120.00" step="0.01" min="0" @cannot('customers.edit') readonly @endcannot>
+                    <input 
+                        type="number" 
+                        id="exchangeRate" 
+                        class="rate-input" 
+                        x-model="exchangeRate"
+                        step="0.01" 
+                        min="0" 
+                        @cannot('customers.edit') readonly @endcannot
+                        @keyup.enter="updateExchangeRate()"
+                    >
                     <span class="currency-code">VES</span>
                     @can('customers.edit')
-                        <button type="button" class="update-rate-btn update-exchange-rate ml-2">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>Actualizar</span>
+                        <button 
+                            type="button" 
+                            class="update-rate-btn update-exchange-rate ml-2"
+                            @click="updateExchangeRate()"
+                            :disabled="updating"
+                        >
+                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': updating }"></i>
+                            <span x-text="updating ? 'Actualizando...' : 'Actualizar'"></span>
                         </button>
                     @endcan
                 </div>
@@ -222,19 +241,35 @@
             <div class="filters-block redesigned-right">
                 <div class="filters-search-row">
                     <div class="filters-btns filters-btns-scroll mb-0">
-                        <button type="button" class="filter-btn filter-btn-all active" data-filter="all">
+                        <button 
+                            type="button" 
+                            class="filter-btn filter-btn-all active" 
+                            data-filter="all"
+                        >
                             <i class="fas fa-list"></i>
                             <span class="d-none d-sm-inline">Todos</span>
                         </button>
-                        <button type="button" class="filter-btn filter-btn-active" data-filter="active">
+                        <button 
+                            type="button" 
+                            class="filter-btn filter-btn-active" 
+                            data-filter="active"
+                        >
                             <i class="fas fa-check-circle"></i>
                             <span class="d-none d-sm-inline">Activos</span>
                         </button>
-                        <button type="button" class="filter-btn filter-btn-inactive" data-filter="inactive">
+                        <button 
+                            type="button" 
+                            class="filter-btn filter-btn-inactive" 
+                            data-filter="inactive"
+                        >
                             <i class="fas fa-times-circle"></i>
                             <span class="d-none d-sm-inline">Inactivos</span>
                         </button>
-                        <button type="button" class="filter-btn filter-btn-defaulters" data-filter="defaulters">
+                        <button 
+                            type="button" 
+                            class="filter-btn filter-btn-defaulters" 
+                            data-filter="defaulters"
+                        >
                             <i class="fas fa-exclamation-triangle"></i>
                             <span class="d-none d-sm-inline">Morosos</span>
                         </button>
@@ -242,8 +277,17 @@
                     <div class="search-group redesigned-search-group ml-3">
                         <div class="search-container">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="search-input" id="mobileSearch" placeholder="Buscar cliente...">
-                            <button type="button" class="search-clear" id="clearSearch">
+                            <input 
+                                type="text" 
+                                class="search-input" 
+                                id="mobileSearch" 
+                                placeholder="Buscar cliente..."
+                            >
+                            <button 
+                                type="button" 
+                                class="search-clear" 
+                                id="clearSearch"
+                            >
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -550,7 +594,12 @@
         <div class="cards-view d-lg-none">
             <div class="cards-container" id="mobileCustomersContainer">
                 @foreach ($customers as $customer)
-                    <div class="customer-card" data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" data-defaulter="{{ $customer->isDefaulter() ? 'true' : 'false' }}">
+                    <div 
+                        class="customer-card" 
+                        data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" 
+                        data-defaulter="{{ $customer->isDefaulter() ? 'true' : 'false' }}"
+
+                    >
                         <div class="card-header">
                             <div class="customer-avatar">
                                 <div class="avatar-circle">
@@ -971,6 +1020,134 @@
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== MEJORAS CON TAILWIND ===== */
+        /* Mejoras en la accesibilidad y focus states */
+        .hero-btn:focus,
+        .filter-btn:focus,
+        .search-input:focus,
+        .rate-input:focus {
+            @apply ring-2 ring-blue-500 ring-offset-2 outline-none;
+        }
+
+        /* Mejoras en las transiciones */
+        .stat-card,
+        .hero-btn,
+        .filter-btn,
+        .action-btn {
+            @apply transition-all duration-300 ease-in-out;
+        }
+
+        /* Mejoras en el hover de las tarjetas */
+        .stat-card:hover {
+            @apply transform -translate-y-1 shadow-lg;
+        }
+
+        /* Mejoras en los botones de acción */
+        .action-btn:hover {
+            @apply transform scale-105 shadow-md;
+        }
+
+        /* Mejoras en la tabla */
+        .customers-table tbody tr {
+            @apply transition-colors duration-200;
+        }
+
+        .customers-table tbody tr:hover {
+            @apply bg-gray-50;
+        }
+
+        /* Mejoras en los badges */
+        .status-badge,
+        .growth-badge,
+        .debt-warning-badge {
+            @apply transition-all duration-200;
+        }
+
+        /* Mejoras en los inputs */
+        .search-input,
+        .rate-input {
+            @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+        }
+
+        /* Mejoras en los modales */
+        .modern-modal {
+            @apply backdrop-blur-sm;
+        }
+
+        /* Mejoras en la responsividad */
+        @media (max-width: 640px) {
+            .hero-title {
+                @apply text-2xl;
+            }
+            
+            .stat-number {
+                @apply text-xl;
+            }
+        }
+
+        /* ===== ANIMACIONES Y ESTADOS DE CARGA ===== */
+        /* Spinner personalizado */
+        .spinner-custom {
+            @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+        }
+
+        /* Animación de fade in para las tarjetas */
+        .customer-card {
+            @apply animate-fade-in;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        /* Mejoras en los estados de hover */
+        .customer-card:hover {
+            @apply transform -translate-y-1 shadow-lg;
+        }
+
+        /* Mejoras en los botones de acción */
+        .action-btn {
+            @apply transition-all duration-200 ease-in-out;
+        }
+
+        .action-btn:hover {
+            @apply transform scale-110 shadow-lg;
+        }
+
+        /* Mejoras en los filtros */
+        .filter-btn {
+            @apply transition-all duration-200 ease-in-out;
+        }
+
+        .filter-btn:hover:not(.active) {
+            @apply transform -translate-y-0.5 shadow-md;
+        }
+
+        /* Mejoras en el tipo de cambio */
+        .update-rate-btn:disabled {
+            @apply opacity-50 cursor-not-allowed;
+        }
+
+        /* Mejoras en la búsqueda */
+        .search-clear {
+            @apply transition-all duration-200 ease-in-out;
+        }
+
+        .search-clear:hover {
+            @apply transform scale-110 bg-gray-200;
         }
 
         /* ===== HERO SECTION ===== */
@@ -3171,6 +3348,50 @@
 
 @section('js')
     <script>
+        // Funciones de Alpine.js
+
+        function exchangeFilters() {
+            return {
+                exchangeRate: 120.00,
+                updating: false,
+                
+                init() {
+                    // Cargar el tipo de cambio guardado
+                    const savedRate = localStorage.getItem('exchangeRate');
+                    if (savedRate) {
+                        this.exchangeRate = parseFloat(savedRate);
+                    }
+                },
+                
+                updateExchangeRate() {
+                    if (this.exchangeRate <= 0) return;
+                    
+                    this.updating = true;
+                    
+                    // Simular actualización
+                    setTimeout(() => {
+                        currentExchangeRate = this.exchangeRate;
+                        localStorage.setItem('exchangeRate', this.exchangeRate);
+                        updateBsValues(this.exchangeRate);
+                        
+                        this.updating = false;
+                        
+                        // Mostrar notificación
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tipo de cambio actualizado',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }, 500);
+                }
+            }
+        }
+
+
+
         // Variable global para almacenar el tipo de cambio actual
         let currentExchangeRate = 1.0;
 
@@ -3215,6 +3436,12 @@
             // Conectar el campo de búsqueda con DataTables (vista desktop)
             $('#mobileSearch').on('keyup', function() {
                 applyFiltersAndSearch();
+            });
+
+            // Mostrar/ocultar botón de limpiar búsqueda
+            $('#mobileSearch').on('input', function() {
+                const hasValue = $(this).val().length > 0;
+                $('#clearSearch').toggle(hasValue);
             });
 
             // Cargar el tipo de cambio guardado en localStorage (si existe)
@@ -3395,20 +3622,44 @@
             // Variable para mantener el filtro actual
             let currentFilter = 'all';
             
-            // Filtros de estado
+            // Filtros de estado - Mantener compatibilidad con Alpine.js
             $(document).on('click touchstart', '.filter-btn', function(e) {
                 e.stopPropagation();
                 
-                $('.filter-btn').removeClass('active');
-                $(this).addClass('active');
-
-                currentFilter = $(this).data('filter');
+                // Si Alpine.js está disponible, usar su sistema
+                if (window.Alpine && window.Alpine.store) {
+                    const filter = $(this).data('filter');
+                    if (window.Alpine.store('filters')) {
+                        window.Alpine.store('filters').currentFilter = filter;
+                    }
+                } else {
+                    // Fallback al sistema original
+                    $('.filter-btn').removeClass('active');
+                    $(this).addClass('active');
+                    currentFilter = $(this).data('filter');
+                }
+                
                 applyFiltersAndSearch();
             });
             
             // Función para aplicar filtros y búsqueda
             function applyFiltersAndSearch() {
+                // Obtener el término de búsqueda
                 const searchTerm = $('#mobileSearch').val();
+                
+                // Obtener el filtro actual
+                let currentFilter = 'all';
+                
+                // Verificar si hay un botón activo
+                const activeButton = $('.filter-btn.active');
+                if (activeButton.length > 0) {
+                    currentFilter = activeButton.data('filter');
+                }
+                
+                // Si Alpine.js está disponible, usar su estado
+                if (window.Alpine && window.Alpine.store && window.Alpine.store('filters')) {
+                    currentFilter = window.Alpine.store('filters').currentFilter || currentFilter;
+                }
                 
                 // Filtrar tabla (vista desktop)
                 if (table) {
