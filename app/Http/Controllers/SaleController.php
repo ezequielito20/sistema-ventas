@@ -480,10 +480,41 @@ class SaleController extends Controller
          $sale = Sale::where('company_id', Auth::user()->company_id)
             ->findOrFail($id);
 
+         // Verificar si la venta tiene pagos de deuda asociados
+         $debtPayments = DB::table('debt_payments')
+            ->where('sale_id', $sale->id)
+            ->where('company_id', Auth::user()->company_id)
+            ->get();
+
+         if ($debtPayments->count() > 0) {
+            $totalPaid = $debtPayments->sum('payment_amount');
+            $customerName = $sale->customer->name ?? 'Cliente';
+            
+            return response()->json([
+               'success' => false,
+               'message' => "⚠️ No se puede eliminar esta venta porque tiene pagos asociados.\n\n" .
+                           "📊 Detalles:\n" .
+                           "• Cliente: {$customerName}\n" .
+                           "• Venta #{$sale->id}\n" .
+                           "• Total de la venta: $" . number_format($sale->total_price, 2) . "\n" .
+                           "• Pagos realizados: $" . number_format($totalPaid, 2) . "\n" .
+                           "• Cantidad de pagos: {$debtPayments->count()}\n\n" .
+                           "🔧 Acción requerida:\n" .
+                           "Primero debes eliminar todos los pagos asociados a esta venta antes de poder eliminarla.",
+               'icons' => 'warning',
+               'has_payments' => true,
+               'payments_count' => $debtPayments->count(),
+               'total_paid' => $totalPaid
+            ], 422);
+         }
+
          // Restar la deuda del cliente
          $customer = Customer::findOrFail($sale->customer_id);
          $customer->total_debt = max(0, $customer->total_debt - $sale->total_price);
          $customer->save();
+
+         // Eliminar movimientos de caja asociados a esta venta
+         CashMovement::where('description', 'Venta #' . $sale->id)->delete();
 
          // Eliminar la venta
          $sale->delete();

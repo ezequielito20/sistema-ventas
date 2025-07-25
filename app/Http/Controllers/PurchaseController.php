@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\CashCount;
+use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use Illuminate\Support\Facades\DB;
@@ -452,12 +453,42 @@ class PurchaseController extends Controller
             'company_id' => $purchase->company_id
          ];
 
+         // Verificar si la compra tiene movimientos de caja asociados
+         $cashMovements = CashMovement::where('description', 'Compra #' . $purchase->id)
+            ->where('company_id', Auth::user()->company_id)
+            ->get();
+
+         if ($cashMovements->count() > 0) {
+            $totalMovements = $cashMovements->sum('amount');
+            $supplierName = $purchase->supplier->company_name ?? 'Proveedor';
+            
+            return response()->json([
+               'success' => false,
+               'message' => "⚠️ No se puede eliminar esta compra porque tiene movimientos de caja asociados.\n\n" .
+                           "📊 Detalles:\n" .
+                           "• Proveedor: {$supplierName}\n" .
+                           "• Compra #{$purchase->id}\n" .
+                           "• Total de la compra: $" . number_format($purchase->total_price, 2) . "\n" .
+                           "• Movimientos de caja: $" . number_format($totalMovements, 2) . "\n" .
+                           "• Cantidad de movimientos: {$cashMovements->count()}\n\n" .
+                           "🔧 Acción requerida:\n" .
+                           "Primero debes eliminar todos los movimientos de caja asociados a esta compra antes de poder eliminarla.",
+               'icons' => 'warning',
+               'has_movements' => true,
+               'movements_count' => $cashMovements->count(),
+               'total_movements' => $totalMovements
+            ], 422);
+         }
+
          // Revertir el stock de los productos
          foreach ($purchase->details as $detail) {
             $product = $detail->product;
             $product->stock -= $detail->quantity;
             $product->save();
          }
+
+         // Eliminar movimientos de caja asociados a esta compra
+         CashMovement::where('description', 'Compra #' . $purchase->id)->delete();
 
          // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
          $purchase->delete();

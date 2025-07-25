@@ -15,6 +15,8 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\DashboardController;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\DebtPaymentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -162,3 +164,96 @@ Route::get('/permissions/edit/{id}', [PermissionController::class, 'edit'])->nam
 Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->name('admin.permissions.update')->middleware(['auth', 'can:permissions.edit']);
 Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware(['auth', 'can:permissions.destroy']);
 Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware(['auth', 'can:permissions.show']);
+
+    // Temporal: Limpiar movimientos huérfanos de caja
+    Route::get('/admin/clean-orphan-movements', function () {
+        try {
+            DB::beginTransaction();
+            
+            // Obtener todos los movimientos de caja que mencionan compras o ventas
+            $purchaseMovements = DB::table('cash_movements')
+                ->where('description', 'like', 'Compra #%')
+                ->get();
+                
+            $saleMovements = DB::table('cash_movements')
+                ->where('description', 'like', 'Venta #%')
+                ->get();
+            
+            $deletedCount = 0;
+            
+            // Verificar movimientos de compras
+            foreach ($purchaseMovements as $movement) {
+                $purchaseId = str_replace('Compra #', '', $movement->description);
+                $purchaseExists = DB::table('purchases')->where('id', $purchaseId)->exists();
+                
+                if (!$purchaseExists) {
+                    DB::table('cash_movements')->where('id', $movement->id)->delete();
+                    $deletedCount++;
+                }
+            }
+            
+            // Verificar movimientos de ventas
+            foreach ($saleMovements as $movement) {
+                $saleId = str_replace('Venta #', '', $movement->description);
+                $saleExists = DB::table('sales')->where('id', $saleId)->exists();
+                
+                if (!$saleExists) {
+                    DB::table('cash_movements')->where('id', $movement->id)->delete();
+                    $deletedCount++;
+                }
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('admin.index')
+                ->with('message', "Se eliminaron {$deletedCount} movimientos huérfanos de caja")
+                ->with('icons', 'success');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.index')
+                ->with('message', 'Error al limpiar movimientos: ' . $e->getMessage())
+                ->with('icons', 'error');
+        }
+    })->middleware(['auth'])->name('admin.clean-orphan-movements');
+
+    // Temporal: Limpiar pagos de deuda huérfanos
+    Route::get('/admin/clean-orphan-debt-payments', function () {
+        try {
+            DB::beginTransaction();
+            
+            // Obtener todos los pagos de deuda
+            $debtPayments = DB::table('debt_payments')->get();
+            
+            $deletedCount = 0;
+            
+            // Verificar si las ventas asociadas existen
+            foreach ($debtPayments as $payment) {
+                $saleExists = DB::table('sales')->where('id', $payment->sale_id)->exists();
+                
+                if (!$saleExists) {
+                    DB::table('debt_payments')->where('id', $payment->id)->delete();
+                    $deletedCount++;
+                }
+            }
+            
+            DB::commit();
+            
+            return redirect()->route('admin.index')
+                ->with('message', "Se eliminaron {$deletedCount} pagos de deuda huérfanos")
+                ->with('icons', 'success');
+                
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('admin.index')
+                ->with('message', 'Error al limpiar pagos de deuda: ' . $e->getMessage())
+                ->with('icons', 'error');
+        }
+    })->middleware(['auth'])->name('admin.clean-orphan-debt-payments');
+
+    // Rutas para manejo de pagos de deuda
+    Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
+        Route::delete('/{id}', [DebtPaymentController::class, 'destroy'])->name('admin.debt-payments.destroy');
+        Route::get('/sale/{saleId}', [DebtPaymentController::class, 'getPaymentsBySale'])->name('admin.debt-payments.by-sale');
+        Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
+    });

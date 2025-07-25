@@ -39,11 +39,19 @@
                     <p>Estado actual de la caja y movimientos</p>
                 </div>
             </div>
-            <div class="section-status">
-                <span class="status-indicator {{ $currentCashCount ? 'active' : 'inactive' }}">
-                    <i class="fas fa-circle"></i>
-                    {{ $currentCashCount ? 'Caja Abierta' : 'Caja Cerrada' }}
-                </span>
+            <div class="section-controls">
+                <div class="data-selector">
+                    <select class="form-control form-control-sm data-switch" data-section="cash" id="cashDataSelector">
+                        <option value="current" selected>📊 Arqueo Actual</option>
+                        <option value="historical">📈 Histórico Completo</option>
+                    </select>
+                </div>
+                <div class="section-status">
+                    <span class="status-indicator {{ $currentCashCount ? 'active' : 'inactive' }}">
+                        <i class="fas fa-circle"></i>
+                        {{ $currentCashCount ? 'Caja Abierta' : 'Caja Cerrada' }}
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -65,14 +73,71 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $currentBalance }}">
-                                {{ $currency->symbol }}{{ number_format($currentBalance, 2) }}
+                            <div class="widget-value cash-balance-value" 
+                                 data-current="{{ $currentCashData['balance'] }}" 
+                                 data-historical="{{ $historicalData['balance'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentCashData['balance'], 2) }}
                             </div>
-                            <div class="widget-label">Balance Actual</div>
-                            <div class="widget-meta">
+                            <!-- Debug info (remove in production) -->
+                            <script>
+                                console.log('=== BALANCE DEBUG ===');
+                                console.log('Current Balance:', {{ $currentCashData['balance'] }});
+                                console.log('Historical Balance:', {{ $historicalData['balance'] }});
+                                @if($currentCashCount)
+                                console.log('--- COMPONENTS ---');
+                                console.log('Initial Amount:', {{ $currentCashCount->initial_amount ?? 0 }});
+                                console.log('Debt Payments:', {{ $currentCashData['debt_payments'] ?? 0 }});
+                                console.log('Cash Income:', {{ $currentCashData['income'] ?? 0 }});
+                                console.log('Purchases Cost:', {{ $currentCashData['purchases'] ?? 0 }});
+                                console.log('Cash Expenses:', {{ $currentCashData['expenses'] ?? 0 }});
+                                console.log('--- CALCULATION ---');
+                                let expected = {{ $currentCashCount->initial_amount ?? 0 }} + {{ $currentCashData['debt_payments'] ?? 0 }} + {{ $currentCashData['income'] ?? 0 }} - {{ $currentCashData['purchases'] ?? 0 }} - {{ $currentCashData['expenses'] ?? 0 }};
+                                console.log('Expected Balance:', expected);
+                                console.log('Actual Balance:', {{ $currentCashData['balance'] }});
+                                console.log('Difference:', expected - {{ $currentCashData['balance'] }});
+                                @endif
+                            </script>
+                            <div class="widget-label cash-balance-label">Balance Actual</div>
+                            <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
-                                Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}
+                                <span class="cash-meta-text">
+                                    Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}
+                                </span>
+                                @if($currentCashCount && $currentCashData['balance'] < 0)
+                                <br>
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Balance negativo detectado
+                                </small>
+                                @endif
                             </div>
+                            @if($currentCashCount)
+                            <div class="widget-action mt-2">
+                                @if($currentCashData['balance'] < 0)
+                                <a href="{{ route('admin.clean-orphan-movements') }}" 
+                                   class="action-btn" 
+                                   style="background: rgba(220,53,69,0.8);"
+                                   onclick="return confirm('¿Estás seguro de que quieres limpiar los movimientos huérfanos de caja?')">
+                                    <i class="fas fa-broom"></i>
+                                    Limpiar Movimientos Huérfanos
+                                </a>
+                                <a href="{{ route('admin.clean-orphan-debt-payments') }}" 
+                                   class="action-btn" 
+                                   style="background: rgba(255,193,7,0.8); margin-left: 0.5rem;"
+                                   onclick="return confirm('¿Estás seguro de que quieres limpiar los pagos de deuda huérfanos?')">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    Limpiar Pagos Huérfanos
+                                </a>
+                                @endif
+                                <button class="action-btn" 
+                                        onclick="showDetailedBalance()" 
+                                        style="background: rgba(102,126,234,0.8); margin-left: 0.5rem;">
+                                    <i class="fas fa-search"></i>
+                                    Debug Detallado
+                                </button>
+                            </div>
+                            @endif
+
                         </div>
                     </div>
                     <div class="widget-progress">
@@ -98,15 +163,21 @@
             </div>
         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $salesSinceCashOpen }}">
-                                {{ $currency->symbol }}{{ number_format($salesSinceCashOpen, 2) }}
-                </div>
-                            <div class="widget-label">Ventas desde Apertura</div>
-                            <div class="widget-meta">
+                            <div class="widget-value cash-sales-value" 
+                                 data-current="{{ $currentCashData['sales'] }}" 
+                                 data-historical="{{ $historicalData['sales'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentCashData['sales'], 2) }}
+                            </div>
+                            <div class="widget-label cash-sales-label">Ventas desde Apertura</div>
+                            <div class="widget-meta cash-sales-meta">
                                 <i class="fas fa-shopping-cart"></i>
-                                Compras: {{ $currency->symbol }}{{ number_format($purchasesSinceCashOpen, 2) }}
-                </div>
-            </div>
+                                <span class="cash-purchases-text">
+                                    Compras: {{ $currency->symbol }}<span class="cash-purchases-amount" 
+                                              data-current="{{ $currentCashData['purchases'] }}" 
+                                              data-historical="{{ $historicalData['purchases'] }}">{{ number_format($currentCashData['purchases'], 2) }}</span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar" style="width: 72%"></div>
@@ -131,15 +202,17 @@
                 </div>
             </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $debtSinceCashOpen }}">
-                                {{ $currency->symbol }}{{ number_format($debtSinceCashOpen, 2) }}
+                            <div class="widget-value cash-debt-value" 
+                                 data-current="{{ $currentCashData['debt'] }}" 
+                                 data-historical="{{ $historicalData['debt'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentCashData['debt'], 2) }}
                             </div>
-                            <div class="widget-label">Por Cobrar en Arqueo</div>
-                            <div class="widget-meta">
+                            <div class="widget-label cash-debt-label">Por Cobrar en Arqueo</div>
+                            <div class="widget-meta cash-debt-meta">
                                 <i class="fas fa-users"></i>
-                        Ventas pendientes desde apertura
-                </div>
-                </div>
+                                <span class="cash-debt-text">Ventas pendientes desde apertura</span>
+                            </div>
+                        </div>
                         <div class="widget-action">
                             <a href="{{ route('admin.customers.index') }}" class="action-btn">
                                 <i class="fas fa-eye"></i>
@@ -170,13 +243,15 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $totalPendingDebt }}">
+                            <div class="widget-value cash-total-debt-value" 
+                                 data-current="{{ $totalPendingDebt }}" 
+                                 data-historical="{{ $historicalData['debt'] }}">
                                 {{ $currency->symbol }}{{ number_format($totalPendingDebt, 2) }}
                             </div>
-                            <div class="widget-label">Total por Cobrar</div>
-                            <div class="widget-meta">
+                            <div class="widget-label cash-total-debt-label">Total por Cobrar</div>
+                            <div class="widget-meta cash-total-debt-meta">
                                 <i class="fas fa-calendar-alt"></i>
-                                Deudas acumuladas de clientes
+                                <span class="cash-total-debt-text">Deudas acumuladas de clientes</span>
                             </div>
                         </div>
                         <div class="widget-action">
@@ -1509,6 +1584,96 @@
         .section-actions .btn-action:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
+        }
+
+        /* Estilos para los controles de sección */
+        .section-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .data-selector {
+            position: relative;
+            min-width: 200px;
+        }
+
+        .data-switch {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+            font-size: 0.9rem;
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.7rem center;
+            background-repeat: no-repeat;
+            background-size: 1.2em 1.2em;
+            padding-right: 2.5rem;
+        }
+
+        .data-switch option {
+            background: white;
+            color: #2c3e50;
+            padding: 0.5rem;
+            font-weight: 500;
+        }
+
+        .data-switch option:checked {
+            background: #667eea;
+            color: white;
+        }
+
+        .data-switch:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(102, 126, 234, 0.25);
+        }
+
+        .data-switch:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-color: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .data-selector::before {
+            content: '⚡';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.3rem;
+            animation: pulse 2s infinite;
+            color: #667eea;
+        }
+
+        /* Responsive para controles */
+        @media (max-width: 768px) {
+            .section-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .data-selector {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .data-selector::before {
+                left: -25px;
+                font-size: 1.1rem;
+            }
         }
 
         /* Premium Widgets */
@@ -2983,6 +3148,124 @@
                 });
             });
 
+            // ==========================================
+            // SISTEMA DE CAMBIO DE DATOS DUAL
+            // ==========================================
+            
+            // Función para formatear números con símbolo de moneda
+            function formatCurrency(amount) {
+                return '{{ $currency->symbol }}' + parseFloat(amount).toLocaleString('es-PE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            // Función para cambiar datos de la sección de caja
+            function switchCashData(mode) {
+                console.log('Cambiando a modo:', mode); // Debug
+                
+                const elements = {
+                    balance: document.querySelector('.cash-balance-value'),
+                    balanceLabel: document.querySelector('.cash-balance-label'),
+                    balanceMeta: document.querySelector('.cash-meta-text'),
+                    sales: document.querySelector('.cash-sales-value'),
+                    salesLabel: document.querySelector('.cash-sales-label'),
+                    purchases: document.querySelector('.cash-purchases-amount'),
+                    debt: document.querySelector('.cash-debt-value'),
+                    debtLabel: document.querySelector('.cash-debt-label'),
+                    debtText: document.querySelector('.cash-debt-text'),
+                    totalDebt: document.querySelector('.cash-total-debt-value'),
+                    totalDebtLabel: document.querySelector('.cash-total-debt-label'),
+                    totalDebtText: document.querySelector('.cash-total-debt-text')
+                };
+
+                // Verificar que los elementos existen
+                console.log('Elementos encontrados:', elements);
+
+                if (mode === 'current') {
+                    // Datos del arqueo actual
+                    if (elements.balance) {
+                        elements.balance.textContent = formatCurrency(elements.balance.dataset.current || 0);
+                        console.log('Balance actual:', elements.balance.dataset.current);
+                    }
+                    if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Actual';
+                    if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format("d/m H:i") : "Cerrada" }}';
+                    
+                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset.current || 0);
+                    if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas desde Apertura';
+                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases.dataset.current || 0).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    
+                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.current || 0);
+                    if (elements.debtLabel) elements.debtLabel.textContent = 'Por Cobrar en Arqueo';
+                    if (elements.debtText) elements.debtText.textContent = 'Ventas pendientes desde apertura';
+                    
+                    if (elements.totalDebt) elements.totalDebt.textContent = formatCurrency(elements.totalDebt.dataset.current || 0);
+                    if (elements.totalDebtLabel) elements.totalDebtLabel.textContent = 'Total por Cobrar';
+                    if (elements.totalDebtText) elements.totalDebtText.textContent = 'Deudas acumuladas de clientes';
+                    
+                } else if (mode === 'historical') {
+                    // Datos históricos completos
+                    if (elements.balance) {
+                        elements.balance.textContent = formatCurrency(elements.balance.dataset.historical || 0);
+                        console.log('Balance histórico:', elements.balance.dataset.historical);
+                    }
+                    if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Histórico Total';
+                    if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: Inicio de operaciones';
+                    
+                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset.historical || 0);
+                    if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas Históricas Totales';
+                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases.dataset.historical || 0).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    
+                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.historical || 0);
+                    if (elements.debtLabel) elements.debtLabel.textContent = 'Total Histórico por Cobrar';
+                    if (elements.debtText) elements.debtText.textContent = 'Todas las deudas acumuladas';
+                    
+                    if (elements.totalDebt) elements.totalDebt.textContent = formatCurrency(elements.totalDebt.dataset.historical || 0);
+                    if (elements.totalDebtLabel) elements.totalDebtLabel.textContent = 'Deuda Total Acumulada';
+                    if (elements.totalDebtText) elements.totalDebtText.textContent = 'Histórico completo de deudas';
+                }
+
+                // Efecto visual de cambio
+                Object.values(elements).forEach(element => {
+                    if (element) {
+                        element.style.transform = 'scale(1.05)';
+                        element.style.transition = 'all 0.3s ease';
+                        element.style.color = mode === 'current' ? '#2c3e50' : '#6c5ce7';
+                        setTimeout(() => {
+                            element.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
+
+                // Cambiar color del selector según el modo
+                const selector = document.getElementById('cashDataSelector');
+                if (selector) {
+                    selector.style.borderColor = mode === 'current' ? '#667eea' : '#6c5ce7';
+                    selector.style.background = mode === 'current' ? 
+                        'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' : 
+                        'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                }
+            }
+
+            // Event listener para el selector de datos de caja (con timeout para asegurar que DOM esté listo)
+            setTimeout(() => {
+                const cashSelector = document.getElementById('cashDataSelector');
+                if (cashSelector) {
+                    console.log('Selector encontrado, agregando event listener');
+                    cashSelector.addEventListener('change', function() {
+                        const mode = this.value;
+                        console.log('Selector cambiado a:', mode);
+                        switchCashData(mode);
+                        
+                        // Mostrar notificación
+                        const modeText = mode === 'current' ? 'Arqueo Actual' : 'Histórico Completo';
+                        showNotification(`Mostrando datos: ${modeText}`, 'info');
+                    });
+                } else {
+                    console.error('Selector no encontrado');
+                }
+            }, 1000);
+
             // Actualizar hora en tiempo real
             function updateTime() {
                 const timeElement = document.querySelector('.stat-value');
@@ -3352,7 +3635,45 @@
                 }
             });
 
+            // Función para mostrar debug detallado del balance
+            window.showDetailedBalance = function() {
+                @if($currentCashCount)
+                const details = `
+🔍 DEBUG DETALLADO DEL BALANCE
+
+📊 COMPONENTES ACTUALES:
+• Monto inicial del arqueo: ${{ number_format($currentCashCount->initial_amount ?? 0, 2) }}
+• Pagos de deudas recibidos: ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }}
+• Otros ingresos de caja: ${{ number_format($currentCashData['income'] ?? 0, 2) }}
+• Compras realizadas: -${{ number_format($currentCashData['purchases'] ?? 0, 2) }}
+• Otros gastos de caja: -${{ number_format($currentCashData['expenses'] ?? 0, 2) }}
+
+🧮 CÁLCULO MANUAL:
+${{ number_format($currentCashCount->initial_amount ?? 0, 2) }} + ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }} + ${{ number_format($currentCashData['income'] ?? 0, 2) }} - ${{ number_format($currentCashData['purchases'] ?? 0, 2) }} - ${{ number_format($currentCashData['expenses'] ?? 0, 2) }} = ${{ number_format(($currentCashCount->initial_amount ?? 0) + ($currentCashData['debt_payments'] ?? 0) + ($currentCashData['income'] ?? 0) - ($currentCashData['purchases'] ?? 0) - ($currentCashData['expenses'] ?? 0), 2) }}
+
+📈 BALANCE ACTUAL DEL SISTEMA: ${{ number_format($currentCashData['balance'], 2) }}
+
+🔍 DIFERENCIA: ${{ number_format(($currentCashCount->initial_amount ?? 0) + ($currentCashData['debt_payments'] ?? 0) + ($currentCashData['income'] ?? 0) - ($currentCashData['purchases'] ?? 0) - ($currentCashData['expenses'] ?? 0) - $currentCashData['balance'], 2) }}
+
+💡 POSIBLES CAUSAS DE LA DIFERENCIA:
+• Movimientos de caja no contabilizados correctamente
+• Errores de redondeo en los cálculos
+• Caché de datos en el sistema
+• Movimientos de caja con fechas incorrectas
+
+🔧 ACCIONES RECOMENDADAS:
+1. Revisa la consola del navegador para más detalles
+2. Verifica los movimientos de caja en la sección de Arqueo
+3. Confirma que no hay movimientos duplicados
+4. Revisa si hay movimientos con fechas fuera del rango del arqueo
+                `;
+                
+                alert(details);
+                @endif
+            };
+
 
         });
     </script>
 @stop
+
