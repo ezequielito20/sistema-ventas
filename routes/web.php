@@ -22,6 +22,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/test-livewire', function () {
+    return view('test-livewire');
+})->name('test.livewire');
+
 Auth::routes();
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
