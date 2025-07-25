@@ -78,25 +78,7 @@
                                  data-historical="{{ $historicalData['balance'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentCashData['balance'], 2) }}
                             </div>
-                            <!-- Debug info (remove in production) -->
-                            <script>
-                                console.log('=== BALANCE DEBUG ===');
-                                console.log('Current Balance:', {{ $currentCashData['balance'] }});
-                                console.log('Historical Balance:', {{ $historicalData['balance'] }});
-                                @if($currentCashCount)
-                                console.log('--- COMPONENTS ---');
-                                console.log('Initial Amount:', {{ $currentCashCount->initial_amount ?? 0 }});
-                                console.log('Debt Payments:', {{ $currentCashData['debt_payments'] ?? 0 }});
-                                console.log('Cash Income:', {{ $currentCashData['income'] ?? 0 }});
-                                console.log('Purchases Cost:', {{ $currentCashData['purchases'] ?? 0 }});
-                                console.log('Cash Expenses:', {{ $currentCashData['expenses'] ?? 0 }});
-                                console.log('--- CALCULATION ---');
-                                let expected = {{ $currentCashCount->initial_amount ?? 0 }} + {{ $currentCashData['debt_payments'] ?? 0 }} + {{ $currentCashData['income'] ?? 0 }} - {{ $currentCashData['purchases'] ?? 0 }} - {{ $currentCashData['expenses'] ?? 0 }};
-                                console.log('Expected Balance:', expected);
-                                console.log('Actual Balance:', {{ $currentCashData['balance'] }});
-                                console.log('Difference:', expected - {{ $currentCashData['balance'] }});
-                                @endif
-                            </script>
+
                             <div class="widget-label cash-balance-label">Balance Actual</div>
                             <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
@@ -244,9 +226,9 @@
                         </div>
                         <div class="widget-body">
                             <div class="widget-value cash-total-debt-value" 
-                                 data-current="{{ $totalPendingDebt }}" 
+                                 data-current="{{ $currentCashData['debt'] }}" 
                                  data-historical="{{ $historicalData['debt'] }}">
-                                {{ $currency->symbol }}{{ number_format($totalPendingDebt, 2) }}
+                                {{ $currency->symbol }}{{ number_format($currentCashData['debt'], 2) }}
                             </div>
                             <div class="widget-label cash-total-debt-label">Total por Cobrar</div>
                             <div class="widget-meta cash-total-debt-meta">
@@ -2853,13 +2835,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar AOS (Animate On Scroll)
-            AOS.init({
-                duration: 800,
-                easing: 'ease-in-out',
-                once: true,
-                mirror: false
-            });
+            // Inicializar AOS (Animate On Scroll) solo si existe
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 800,
+                    easing: 'ease-in-out',
+                    once: true,
+                    mirror: false
+                });
+            }
 
             // Animación de contadores
             function animateCounters() {
@@ -3161,9 +3145,7 @@
             }
 
             // Función para cambiar datos de la sección de caja
-            function switchCashData(mode) {
-                console.log('Cambiando a modo:', mode); // Debug
-                
+            window.switchCashData = function(mode) {
                 const elements = {
                     balance: document.querySelector('.cash-balance-value'),
                     balanceLabel: document.querySelector('.cash-balance-label'),
@@ -3178,9 +3160,6 @@
                     totalDebtLabel: document.querySelector('.cash-total-debt-label'),
                     totalDebtText: document.querySelector('.cash-total-debt-text')
                 };
-
-                // Verificar que los elementos existen
-                console.log('Elementos encontrados:', elements);
 
                 if (mode === 'current') {
                     // Datos del arqueo actual
@@ -3207,7 +3186,6 @@
                     // Datos históricos completos
                     if (elements.balance) {
                         elements.balance.textContent = formatCurrency(elements.balance.dataset.historical || 0);
-                        console.log('Balance histórico:', elements.balance.dataset.historical);
                     }
                     if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Histórico Total';
                     if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: Inicio de operaciones';
@@ -3250,19 +3228,22 @@
             // Event listener para el selector de datos de caja (con timeout para asegurar que DOM esté listo)
             setTimeout(() => {
                 const cashSelector = document.getElementById('cashDataSelector');
+                
                 if (cashSelector) {
-                    console.log('Selector encontrado, agregando event listener');
                     cashSelector.addEventListener('change', function() {
                         const mode = this.value;
-                        console.log('Selector cambiado a:', mode);
+                        
+                        // Llamar a la función de cambio
                         switchCashData(mode);
                         
                         // Mostrar notificación
                         const modeText = mode === 'current' ? 'Arqueo Actual' : 'Histórico Completo';
-                        showNotification(`Mostrando datos: ${modeText}`, 'info');
+                        
+                        // Verificar si la función showNotification existe
+                        if (typeof showNotification === 'function') {
+                            showNotification(`Mostrando datos: ${modeText}`, 'info');
+                        }
                     });
-                } else {
-                    console.error('Selector no encontrado');
                 }
             }, 1000);
 
