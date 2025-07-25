@@ -80,6 +80,13 @@
                     </select>
                 </div>
                 </div>
+            <div class="row mt-2">
+                <div class="col-12 text-right">
+                    <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm" data-toggle="tooltip" title="Limpiar todos los filtros">
+                        <i class="fas fa-broom mr-1"></i>Limpiar Filtros
+                    </button>
+                </div>
+            </div>
             </div>
         </div>
     <div class="card mb-3 summary-card summary-gradient-card">
@@ -168,7 +175,7 @@
                                     <i class="fas fa-exclamation-triangle"></i> Moroso
                                 </span>
                             @else
-                                <span class="badge badge-warning badge-sm ml-2" title="Deuda del arqueo actual">
+                                <span class="badge badge-success badge-sm ml-2" title="Deuda del arqueo actual">
                                     <i class="fas fa-clock"></i> Actual
                                 </span>
                             @endif
@@ -315,6 +322,22 @@
 .clear-search:hover {
     background: #e0cfff;
     color: #4b2e83;
+}
+#clearFiltersBtn {
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+#clearFiltersBtn:hover {
+    background: #6c757d;
+    color: #fff;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
+}
+#clearFiltersBtn.btn-success {
+    transform: scale(1.05);
+    box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
 }
 .summary-card {
     background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
@@ -542,6 +565,10 @@
     .filter-card .row .col-md-4:last-child {
         margin-bottom: 0;
     }
+    #clearFiltersBtn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
 }
 
 @media (max-width: 576px) {
@@ -713,6 +740,10 @@
     }
     .btn-pdf-modal span {
         display: none;
+    }
+    #clearFiltersBtn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
     }
     }
 </style>
@@ -917,6 +948,37 @@
         $('#debtTypeFilter').on('change', function() {
             applyFiltersModal();
         });
+        
+        // Botón para limpiar todos los filtros
+        $('#clearFiltersBtn').on('click', function() {
+            // Limpiar todos los campos de filtro
+            $('#searchFilter').val('');
+            $('#debtMinFilter').val('');
+            $('#debtMaxFilter').val('');
+            $('#debtTypeFilter').val('');
+            $('#orderFilter').val('debt_desc');
+            
+            // Aplicar los filtros (que ahora están vacíos)
+            applyFiltersModal();
+            
+            // Actualizar iconos de ordenamiento
+            updateSortIcons();
+            
+            // Mostrar mensaje de confirmación
+            $(this).addClass('btn-success').removeClass('btn-outline-secondary');
+            $(this).find('i').removeClass('fa-broom').addClass('fa-check');
+            let originalText = $(this).find('span, .d-none.d-md-inline').length > 0 ? 
+                $(this).find('span, .d-none.d-md-inline').text() : 
+                $(this).text().replace($(this).find('i').text(), '').trim();
+            $(this).html('<i class="fas fa-check mr-1"></i>¡Limpiado!');
+            
+            // Restaurar el botón después de 1.5 segundos
+            setTimeout(function() {
+                $('#clearFiltersBtn').removeClass('btn-success').addClass('btn-outline-secondary');
+                $('#clearFiltersBtn').html('<i class="fas fa-broom mr-1"></i>Limpiar Filtros');
+            }, 1500);
+        });
+        
         $('#orderFilter').on('change', function() {
             sortRowsModal();
             updateRowNumbersModal();
