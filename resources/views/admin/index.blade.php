@@ -41,7 +41,7 @@
             </div>
             <div class="section-controls">
                 <div class="data-selector">
-                    <select class="form-control form-control-sm data-switch" data-section="cash" id="cashDataSelector">
+                    <select class="data-switch" data-section="cash" id="cashDataSelector">
                         <option value="current" selected>📊 Arqueo Actual</option>
                         <option value="historical">📈 Histórico Completo</option>
                     </select>
@@ -1578,65 +1578,123 @@
 
         .data-selector {
             position: relative;
-            min-width: 200px;
+            min-width: 220px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 3px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
         .data-switch {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border: 2px solid #667eea;
+            border: none;
             border-radius: 12px;
-            padding: 0.6rem 1.2rem;
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #2c3e50 !important;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
             width: 100%;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.7rem center;
+            background-position: right 1rem center;
             background-repeat: no-repeat;
             background-size: 1.2em 1.2em;
-            padding-right: 2.5rem;
+            padding-right: 3rem;
+            position: relative;
+            z-index: 2;
+            text-align: left;
+            line-height: 1.4;
         }
 
         .data-switch option {
             background: white;
-            color: #2c3e50;
-            padding: 0.5rem;
+            color: #2c3e50 !important;
+            padding: 0.75rem;
             font-weight: 500;
+            border-radius: 8px;
+            margin: 2px;
+            font-size: 0.9rem;
         }
 
         .data-switch option:checked {
-            background: #667eea;
-            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .data-switch option:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #2c3e50 !important;
         }
 
         .data-switch:focus {
             outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(102, 126, 234, 0.25);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 8px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
         }
 
         .data-switch:hover {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-color: #4f46e5;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
         }
 
-        .data-selector::before {
-            content: '⚡';
+
+
+        .data-selector::after {
+            content: '';
             position: absolute;
-            left: -30px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.3rem;
-            animation: pulse 2s infinite;
-            color: #667eea;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-radius: 15px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Asegurar que el texto del selector sea visible */
+        .data-switch,
+        .data-switch option {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Forzar visibilidad del texto en diferentes navegadores */
+        .data-switch {
+            -webkit-text-fill-color: #2c3e50;
+            -webkit-text-stroke: 0;
+            opacity: 1;
+        }
+
+        .data-switch option {
+            -webkit-text-fill-color: #2c3e50;
+            -webkit-text-stroke: 0;
+            opacity: 1;
+        }
+
+        .data-switch option:checked {
+            -webkit-text-fill-color: white;
+            -webkit-text-stroke: 0;
+            opacity: 1;
+        }
+
+        /* Asegurar que el texto sea visible en todos los estados */
+        .data-switch:not([size]) {
+            background-color: white;
+            color: #2c3e50 !important;
+        }
+
+        /* Estilo específico para el estado abierto */
+        .data-switch:focus {
+            background-color: white;
+            color: #2c3e50 !important;
         }
 
         /* Responsive para controles */
@@ -1650,11 +1708,29 @@
             .data-selector {
                 min-width: auto;
                 width: 100%;
+                max-width: 280px;
+                margin: 0 auto;
             }
             
-            .data-selector::before {
-                left: -25px;
-                font-size: 1.1rem;
+
+            
+            .data-switch {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .data-selector {
+                max-width: 100%;
+            }
+            
+
+            
+            .data-switch {
+                padding: 0.7rem 1rem;
+                font-size: 0.85rem;
+                padding-right: 2.5rem;
             }
         }
 
@@ -1942,6 +2018,20 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Efectos adicionales para el selector */
+
+        .data-switch:active {
+            transform: translateY(0);
+            transition: transform 0.1s ease;
+        }
+
+        /* Indicador de estado activo */
+        .data-selector.active {
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -3145,7 +3235,7 @@
             }
 
             // Función para cambiar datos de la sección de caja
-            window.switchCashData = function(mode) {
+            window.switchCashData = function(mode, isInitialization = false) {
                 const elements = {
                     balance: document.querySelector('.cash-balance-value'),
                     balanceLabel: document.querySelector('.cash-balance-label'),
@@ -3165,7 +3255,6 @@
                     // Datos del arqueo actual
                     if (elements.balance) {
                         elements.balance.textContent = formatCurrency(elements.balance.dataset.current || 0);
-                        console.log('Balance actual:', elements.balance.dataset.current);
                     }
                     if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Actual';
                     if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format("d/m H:i") : "Cerrada" }}';
@@ -3203,33 +3292,59 @@
                     if (elements.totalDebtText) elements.totalDebtText.textContent = 'Histórico completo de deudas';
                 }
 
-                // Efecto visual de cambio
-                Object.values(elements).forEach(element => {
-                    if (element) {
-                        element.style.transform = 'scale(1.05)';
-                        element.style.transition = 'all 0.3s ease';
-                        element.style.color = mode === 'current' ? '#2c3e50' : '#6c5ce7';
-                        setTimeout(() => {
-                            element.style.transform = 'scale(1)';
-                        }, 300);
-                    }
-                });
+                // Efecto visual de cambio (solo si no es inicialización)
+                if (!isInitialization) {
+                    Object.values(elements).forEach(element => {
+                        if (element) {
+                            element.style.transform = 'scale(1.05)';
+                            element.style.transition = 'all 0.3s ease';
+                            element.style.color = mode === 'current' ? '#2c3e50' : '#6c5ce7';
+                            setTimeout(() => {
+                                element.style.transform = 'scale(1)';
+                            }, 300);
+                        }
+                    });
 
-                // Cambiar color del selector según el modo
-                const selector = document.getElementById('cashDataSelector');
-                if (selector) {
-                    selector.style.borderColor = mode === 'current' ? '#667eea' : '#6c5ce7';
-                    selector.style.background = mode === 'current' ? 
-                        'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' : 
-                        'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                    // Cambiar color del selector según el modo
+                    const selector = document.getElementById('cashDataSelector');
+                    if (selector) {
+                        selector.style.borderColor = mode === 'current' ? '#667eea' : '#6c5ce7';
+                        selector.style.background = mode === 'current' ? 
+                            'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' : 
+                            'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                    }
                 }
             }
+
+            // Inicializar los datos correctos inmediatamente al cargar la página
+            document.addEventListener('DOMContentLoaded', function() {
+                // Esperar un momento para que los elementos estén completamente renderizados
+                setTimeout(() => {
+                    if (typeof switchCashData === 'function') {
+                        switchCashData('current', true); // true indica que es inicialización
+                    }
+                }, 200);
+            });
 
             // Event listener para el selector de datos de caja (con timeout para asegurar que DOM esté listo)
             setTimeout(() => {
                 const cashSelector = document.getElementById('cashDataSelector');
+                const dataSelectorContainer = document.querySelector('.data-selector');
                 
                 if (cashSelector) {
+                    // Asegurar que el texto sea visible al cargar
+                    cashSelector.style.color = '#2c3e50';
+                    cashSelector.style.backgroundColor = 'white';
+                    
+                    // Agregar clase activa al contenedor
+                    if (dataSelectorContainer) {
+                        dataSelectorContainer.classList.add('active');
+                    }
+                    
+                    // INICIALIZAR CON LOS DATOS CORRECTOS AL CARGAR LA PÁGINA
+                    const initialMode = cashSelector.value || 'current';
+                    switchCashData(initialMode, true);
+                    
                     cashSelector.addEventListener('change', function() {
                         const mode = this.value;
                         
@@ -3243,6 +3358,36 @@
                         if (typeof showNotification === 'function') {
                             showNotification(`Mostrando datos: ${modeText}`, 'info');
                         }
+                        
+                        // Efecto visual de confirmación
+                        if (dataSelectorContainer) {
+                            dataSelectorContainer.style.transform = 'scale(1.05)';
+                            setTimeout(() => {
+                                dataSelectorContainer.style.transform = 'scale(1)';
+                            }, 200);
+                        }
+                    });
+                    
+                    // Efecto hover mejorado
+                    if (dataSelectorContainer) {
+                        dataSelectorContainer.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-2px)';
+                        });
+                        
+                        dataSelectorContainer.addEventListener('mouseleave', function() {
+                            this.style.transform = 'translateY(0)';
+                        });
+                    }
+                    
+                    // Asegurar visibilidad del texto en eventos de focus
+                    cashSelector.addEventListener('focus', function() {
+                        this.style.color = '#2c3e50';
+                        this.style.backgroundColor = 'white';
+                    });
+                    
+                    cashSelector.addEventListener('blur', function() {
+                        this.style.color = '#2c3e50';
+                        this.style.backgroundColor = 'white';
                     });
                 }
             }, 1000);
