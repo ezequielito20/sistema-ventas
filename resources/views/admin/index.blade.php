@@ -28,7 +28,7 @@
 
 @section('content')
     {{-- Sección de Arqueo de Caja --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="section-header">
             <div class="section-title">
                 <div class="title-icon cash-register">
@@ -57,7 +57,7 @@
 
         <div class="row">
         {{-- Widget de Balance General --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget balance-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -129,7 +129,7 @@
         </div>
 
             {{-- Widget de Ventas desde Apertura --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget sales-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -168,7 +168,7 @@
             </div>
 
             {{-- Widget de Por Cobrar --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="300">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget debt-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -209,7 +209,7 @@
             </div>
 
             {{-- Widget de Total por Cobrar --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="400">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget total-debt-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -252,7 +252,7 @@
     </div>
 
     {{-- Sección de Ventas --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="section-header">
             <div class="section-title">
                 <div class="title-icon sales">
@@ -273,7 +273,7 @@
 
         <div class="row">
         {{-- Widget de Ventas de la Semana --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget weekly-sales-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -307,7 +307,7 @@
         </div>
 
         {{-- Widget de Promedio por Cliente --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget average-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -341,7 +341,7 @@
         </div>
 
             {{-- Widget de Ganancia Teórica --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="300">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget profit-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -375,7 +375,7 @@
         </div>
 
             {{-- Widget de Rendimiento Mensual --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="400">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget monthly-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -700,7 +700,7 @@
     </div> --}}
 
     {{-- Sección de Compras --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="section-header">
             <div class="section-title">
                 <div class="title-icon purchases">
@@ -721,7 +721,7 @@
 
         <div class="row">
         {{-- Widget de Total Compras del Mes --}}
-            <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget purchases-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -761,7 +761,7 @@
         </div>
 
         {{-- Widget de Productos Más Comprados --}}
-            <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget top-product-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -803,7 +803,7 @@
     </div>
 
     {{-- Gráficos de Tendencias --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         {{-- <div class="section-header">
             <div class="section-title">
                 <div class="title-icon trends">
@@ -825,7 +825,7 @@
         <div class="row">
     {{-- Gráfico de Ventas Mensuales --}}
             <div class="col-12 mb-4">
-                <div class="premium-chart-container large-chart" data-aos="zoom-in" data-aos-delay="100">
+                <div class="premium-chart-container large-chart">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart sales-trend">
@@ -865,7 +865,7 @@
 
             {{-- Gráfico de Compras Mensuales --}}
             <div class="col-md-8 mb-4">
-                <div class="premium-chart-container" data-aos="fade-right" data-aos-delay="200">
+                <div class="premium-chart-container">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart purchases-trend">
@@ -895,7 +895,7 @@
 
             {{-- Widget de Estadísticas de Compras --}}
             <div class="col-md-4 mb-4">
-                <div class="premium-stats-container" data-aos="fade-left" data-aos-delay="300">
+                <div class="premium-stats-container">
                     <div class="stats-header">
                         <div class="stats-title">
                             <div class="title-icon-stats purchases">
@@ -910,7 +910,7 @@
                     <div class="stats-content">
                         <div class="stats-list">
                             @foreach ($topProducts as $index => $product)
-                                <div class="stats-item" data-aos="fade-up" data-aos-delay="{{ 100 + ($index * 50) }}">
+                                <div class="stats-item">
                                     <div class="stats-rank">
                                         <span class="rank-number {{ $index < 3 ? 'top-rank' : '' }}">{{ $index + 1 }}</span>
                                     </div>
@@ -940,7 +940,7 @@
     </div>
 
     {{-- Información de Clientes --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="section-header">
             <div class="section-title">
                 <div class="title-icon customers">
@@ -961,7 +961,7 @@
 
         <div class="row">
         {{-- Widget de Total Clientes --}}
-            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="100">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget total-customers-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -1001,7 +1001,7 @@
         </div>
 
         {{-- Widget de Nuevos Clientes --}}
-            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="200">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget new-customers-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -1041,7 +1041,7 @@
         </div>
 
             {{-- Widget de Actividad de Clientes --}}
-            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4" data-aos="zoom-in" data-aos-delay="300">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget customer-activity-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
@@ -1083,7 +1083,7 @@
     </div>
 
     {{-- Top 10 Productos Más Vendidos --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="premium-table-container">
             <div class="table-header">
                 <div class="table-title">
@@ -1121,7 +1121,7 @@
                         </thead>
                         <tbody>
                         @foreach ($topSellingProducts as $index => $product)
-                            <tr class="table-row" data-aos="fade-up" data-aos-delay="{{ ($index + 1) * 50 }}">
+                            <tr class="table-row">
                                 <td class="rank-cell">
                                     <div class="rank-badge rank-{{ $index + 1 <= 3 ? 'top' : 'regular' }}">
                                         {{ $index + 1 }}
@@ -1172,7 +1172,7 @@
     </div>
 
     {{-- Top 5 Clientes --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="row">
             <div class="col-lg-6 col-12 mb-4">
                 <div class="premium-table-container customers-table">
@@ -1206,7 +1206,7 @@
                         </thead>
                         <tbody>
                                 @foreach ($topCustomers as $index => $customer)
-                                    <tr class="table-row" data-aos="fade-up" data-aos-delay="{{ ($index + 1) * 100 }}">
+                                    <tr class="table-row">
                                         <td class="rank-cell">
                                             <div class="rank-badge rank-{{ $index + 1 <= 3 ? 'top' : 'regular' }}">
                                                 {{ $index + 1 }}
@@ -1253,7 +1253,7 @@
         </div>
 
             <div class="col-lg-6 col-12 mb-4">
-                <div class="premium-chart-container" data-aos="fade-left" data-aos-delay="200">
+                <div class="premium-chart-container">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart analytics">
@@ -1283,11 +1283,11 @@
     
 
     {{-- Gráficos de Análisis --}}
-    <div class="dashboard-section" data-aos="fade-up" data-aos-duration="800">
+    <div class="dashboard-section">
         <div class="row">
         {{-- Gráfico de Ingresos vs Egresos --}}
             <div class="col-12">
-                <div class="premium-chart-container large-chart" data-aos="zoom-in" data-aos-delay="100">
+                <div class="premium-chart-container large-chart">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart cashflow">
@@ -1377,8 +1377,8 @@
             
             --border-radius: 20px;
             --border-radius-sm: 12px;
-            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --transition-smooth: all 0.2s ease;
+            --transition-bounce: all 0.2s ease;
         }
 
         /* Dashboard Header Styles */
@@ -1423,7 +1423,6 @@
             padding: 0.8rem;
             border-radius: var(--border-radius-sm);
             backdrop-filter: blur(10px);
-            animation: pulse 2s infinite;
         }
 
         .dashboard-subtitle {
@@ -1493,7 +1492,6 @@
             justify-content: center;
             font-size: 1.5rem;
             color: white;
-            animation: float 3s ease-in-out infinite;
         }
 
         .section-title .title-icon.cash-register {
@@ -1546,7 +1544,6 @@
         }
 
         .status-indicator i {
-            animation: blink 1.5s infinite;
         }
 
         .section-actions .btn-action {
@@ -1747,7 +1744,6 @@
         }
 
         .premium-widget:hover {
-            transform: translateY(-8px);
             box-shadow: var(--shadow-heavy);
         }
 
@@ -1857,7 +1853,6 @@
             justify-content: center;
             font-size: 1.5rem;
             backdrop-filter: blur(10px);
-            animation: rotate 4s linear infinite;
         }
 
         .widget-trend {
@@ -1895,7 +1890,6 @@
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            animation: countUp 2s ease-out;
         }
 
         .widget-label {
@@ -1952,7 +1946,6 @@
         .progress-bar {
             height: 100%;
             background: rgba(255,255,255,0.8);
-            transition: width 2s ease-out;
             position: relative;
             overflow: hidden;
         }
@@ -1965,7 +1958,6 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            animation: shimmer 2s infinite;
         }
 
         .progress-bar.success {
@@ -1988,36 +1980,7 @@
             background: linear-gradient(90deg, #9b59b6, #8e44ad);
         }
 
-        /* Animaciones */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* Animations removed for better performance */
 
         /* Efectos adicionales para el selector */
 
@@ -2127,7 +2090,7 @@
         }
 
         .premium-table-container:hover {
-            box-shadow: var(--shadow-heavy);
+            box-shadow: var(--shadow-medium);
         }
 
         .table-header {
@@ -2362,13 +2325,11 @@
         .revenue-progress {
             height: 100%;
             background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
-            transition: width 2s ease-out;
         }
 
         .spending-progress {
             height: 100%;
             background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
-            transition: width 2s ease-out;
         }
 
         .products-stats {
@@ -2413,7 +2374,7 @@
         }
 
         .premium-chart-container:hover {
-            box-shadow: var(--shadow-heavy);
+            box-shadow: var(--shadow-medium);
         }
 
         .chart-header {
@@ -2543,7 +2504,6 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
             box-shadow: var(--shadow-light);
         }
 
@@ -2706,7 +2666,6 @@
         }
 
         .premium-stats-container:hover {
-            transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
@@ -2770,7 +2729,6 @@
 
         .stats-item:hover {
             background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
         }
 
         .stats-rank {
@@ -2841,7 +2799,6 @@
             height: 100%;
             background: linear-gradient(90deg, #667eea, #764ba2);
             border-radius: 2px;
-            transition: width 0.8s ease;
         }
 
         .stats-footer {
@@ -2863,7 +2820,6 @@
         }
 
         .stats-action-btn:hover {
-            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
             color: white;
             text-decoration: none;
@@ -2925,42 +2881,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar AOS (Animate On Scroll) solo si existe
-            if (typeof AOS !== 'undefined') {
-                AOS.init({
-                    duration: 800,
-                    easing: 'ease-in-out',
-                    once: true,
-                    mirror: false
-                });
-            }
+            // AOS animations disabled for better performance
 
-            // Animación de contadores
-            function animateCounters() {
-                const counters = document.querySelectorAll('.widget-value');
-                counters.forEach(counter => {
-                    const target = parseFloat(counter.dataset.value) || 0;
-                    const text = counter.textContent;
-                    const symbol = text.match(/[^\d.,]/g)?.join('') || '';
-                    
-                    let current = 0;
-                    const increment = target / 100;
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= target) {
-                            current = target;
-                            clearInterval(timer);
-                        }
-                        counter.textContent = symbol + current.toLocaleString('es-PE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                    }, 20);
-                });
-            }
-
-            // Ejecutar animación de contadores después de un delay
-            setTimeout(animateCounters, 500);
+            // Counter animations disabled for better performance
 
             // Función para actualizar datos de ventas
             window.refreshSalesData = function() {
@@ -3118,20 +3041,7 @@
                 }, 1500);
             };
 
-            // Animaciones para barras de progreso en tablas
-            function animateProgressBars() {
-                const progressBars = document.querySelectorAll('.revenue-progress, .spending-progress');
-                progressBars.forEach(bar => {
-                    const width = bar.style.width;
-                    bar.style.width = '0%';
-                    setTimeout(() => {
-                        bar.style.width = width;
-                    }, 500);
-                });
-            }
-
-            // Ejecutar animaciones después de cargar
-            setTimeout(animateProgressBars, 1000);
+            // Progress bar animations disabled for better performance
 
             // Efecto hover mejorado para filas de tabla
             document.querySelectorAll('.table-row').forEach(row => {
@@ -3210,17 +3120,7 @@
             `;
             document.head.appendChild(notificationStyles);
 
-            // Efectos de hover mejorados para widgets
-            const widgets = document.querySelectorAll('.premium-widget');
-            widgets.forEach(widget => {
-                widget.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                });
-                
-                widget.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
+            // Hover effects disabled for better performance
 
             // ==========================================
             // SISTEMA DE CAMBIO DE DATOS DUAL
@@ -3407,14 +3307,7 @@
             // Actualizar cada minuto
             setInterval(updateTime, 60000);
 
-            // Parallax effect para el header
-            window.addEventListener('scroll', function() {
-                const header = document.querySelector('.dashboard-header');
-                if (header) {
-                    const scrolled = window.pageYOffset;
-                    header.style.transform = `translateY(${scrolled * 0.5}px)`;
-                }
-            });
+            // Parallax effects disabled for better performance
 
             // Lazy loading para gráficos
             const observerOptions = {
@@ -3440,30 +3333,7 @@
                 chartObserver.observe(canvas);
             });
 
-            // Efecto de typing para el título
-            function typeWriter(element, text, speed = 100) {
-                let i = 0;
-                element.textContent = '';
-                
-                function type() {
-                    if (i < text.length) {
-                        element.textContent += text.charAt(i);
-                        i++;
-                        setTimeout(type, speed);
-                    }
-                }
-                
-                type();
-            }
-
-            // Aplicar efecto typing al título después de cargar
-            setTimeout(() => {
-                const titleElement = document.querySelector('.dashboard-title');
-                if (titleElement) {
-                    const originalText = titleElement.textContent;
-                    typeWriter(titleElement, originalText, 50);
-                }
-            }, 1000);
+            // Typing effects disabled for better performance
             // Gráfico de usuarios por rol
             new Chart(document.getElementById('usersByRoleChart'), {
                 type: 'doughnut',
