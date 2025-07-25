@@ -21,7 +21,7 @@
                 <div class="col-lg-4">
                     <div class="header-actions">
                         <button onclick="window.history.back()" class="btn btn-modern btn-secondary-modern">
-                            <i class="fas fa-arrow-left"></i>
+                            {{-- <i class="fas fa-arrow-left"></i> --}}
                             <span>Volver</span>
                         </button>
                     </div>
@@ -125,8 +125,14 @@
                 <div class="products-table-container">
                     <div class="table-header">
                         <div class="table-info">
-                            <span class="products-count">0 productos</span>
-                            <span class="total-amount-display">{{ $currency->symbol }} 0.00</span>
+                            <div class="info-item">
+                                <i class="fas fa-boxes"></i>
+                                <span class="products-count">0 productos</span>
+                            </div>
+                            <div class="info-item total-info">
+                                <i class="fas fa-calculator"></i>
+                                <span class="total-amount-display">{{ $currency->symbol }} 0.00</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -517,36 +523,75 @@
 
         .table-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 1.5rem;
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-radius: var(--border-radius);
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .table-info {
+            background: white;
             display: flex;
             align-items: center;
-            gap: 2rem;
+            gap: 3rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: rgb(73, 214, 224);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .info-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .info-item i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
         }
 
         .products-count {
             color: var(--dark-color);
             font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .total-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .total-info i {
+            color: white;
         }
 
         .total-amount-display {
-            background: var(--gradient-success);
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .table-wrapper {
             position: relative;
-            min-height: 200px;
+            min-height: 120px;
             overflow-x: auto;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
@@ -576,6 +621,7 @@
             background: white;
             border-radius: var(--border-radius);
             overflow: hidden;
+            table-layout: fixed;
         }
 
         .modern-table thead {
@@ -583,13 +629,14 @@
         }
 
         .modern-table thead th {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1rem;
             text-align: left;
             color: white;
             font-weight: 600;
             font-size: 0.9rem;
             white-space: nowrap;
             min-width: 120px;
+            height: auto;
         }
 
         .modern-table thead th:first-child {
@@ -642,11 +689,26 @@
             border-bottom: none;
         }
 
+        .modern-table tbody {
+            min-height: auto;
+        }
+
+        /* Cuando no hay productos, ocultar la tabla */
+        .table-wrapper:has(#saleItems:empty) .modern-table {
+            display: none;
+        }
+
+        /* Cuando hay productos, mostrar la tabla y ocultar el estado vacío */
+        .table-wrapper:has(#saleItems:not(:empty)) #emptyState {
+            display: none;
+        }
+
         .modern-table tbody td {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1rem;
             color: var(--dark-color);
             font-size: 0.9rem;
             vertical-align: middle;
+            height: auto;
         }
 
         .modern-table tbody td:nth-child(3) {
@@ -741,12 +803,16 @@
 
         /* Estado Vacío */
         .empty-state {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             color: #a0aec0;
+            padding: 2rem;
+            min-height: 120px;
+            background: white;
+            border-radius: var(--border-radius);
         }
 
         .empty-state .empty-icon {
@@ -1014,6 +1080,17 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 992px) {
+            .table-info {
+                gap: 2rem;
+            }
+
+            .info-item {
+                min-width: 120px;
+                padding: 0.6rem 1.2rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .modern-header {
                 margin: -15px -15px 15px -15px;
@@ -1051,11 +1128,19 @@
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
+                padding: 1rem;
             }
 
             .table-info {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .info-item {
+                min-width: auto;
+                width: 100%;
+                max-width: 250px;
             }
 
             .table-wrapper {
@@ -1068,13 +1153,22 @@
             }
 
             .modern-table thead th {
-                padding: 0.75rem 1rem;
+                padding: 0.5rem 0.75rem;
                 font-size: 0.8rem;
             }
 
             .modern-table tbody td {
-                padding: 0.75rem 1rem;
+                padding: 0.5rem 0.75rem;
                 font-size: 0.8rem;
+            }
+
+            .table-wrapper {
+                min-height: 100px;
+            }
+
+            .empty-state {
+                min-height: 100px;
+                padding: 1.5rem;
             }
 
             .action-buttons {
@@ -1125,13 +1219,22 @@
             }
 
             .modern-table thead th {
-                padding: 0.5rem 0.75rem;
+                padding: 0.4rem 0.5rem;
                 font-size: 0.75rem;
             }
 
             .modern-table tbody td {
-                padding: 0.5rem 0.75rem;
+                padding: 0.4rem 0.5rem;
                 font-size: 0.75rem;
+            }
+
+            .table-wrapper {
+                min-height: 80px;
+            }
+
+            .empty-state {
+                min-height: 80px;
+                padding: 1rem;
             }
 
             .quantity-input {
@@ -1145,30 +1248,169 @@
         .select2-container--bootstrap4 .select2-selection--single {
             height: auto !important;
             padding: 0.75rem 1rem;
-            border: none;
-            background: transparent;
+            border: none !important;
+            background: transparent !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
         }
 
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
             line-height: 1.5;
-            padding-left: 0;
-            padding-right: 0;
-            color: var(--dark-color);
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            color: var(--dark-color) !important;
+            font-size: 1rem;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
+            color: #a0aec0 !important;
         }
 
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
             height: auto;
             top: 50%;
             transform: translateY(-50%);
+            right: 1rem;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b {
+            border-color: var(--primary-color) transparent transparent transparent;
+        }
+
+        /* Dropdown styles */
+        .select2-container--bootstrap4 .select2-dropdown {
+            border: 2px solid var(--primary-color) !important;
+            border-radius: var(--border-radius) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            z-index: 9999 !important;
+            background: white !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__options {
+            max-height: 300px;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option {
+            padding: 0.75rem 1rem !important;
+            color: var(--dark-color) !important;
+            background: white !important;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option:last-child {
+            border-bottom: none;
         }
 
         .select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
-            background-color: var(--primary-color);
+            background-color: var(--primary-color) !important;
+            color: white !important;
         }
 
-        .select2-container--bootstrap4 .select2-dropdown {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        .select2-container--bootstrap4 .select2-results__option[aria-selected="true"] {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+            color: var(--primary-color) !important;
+            font-weight: 600;
+        }
+
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            font-size: 0.95rem;
+        }
+
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field:focus {
+            border-color: var(--primary-color) !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        /* Estilos para las opciones formateadas */
+        .select2-results__option .d-flex {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100%;
+        }
+
+        .select2-results__option .badge {
+            font-size: 0.75rem !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+        }
+
+        .select2-results__option .badge-success {
+            background: var(--gradient-success) !important;
+            color: white !important;
+        }
+
+        .select2-results__option .badge-danger {
+            background: var(--gradient-danger) !important;
+            color: white !important;
+        }
+
+        /* Asegurar que el container tenga el ancho correcto */
+        .select2-container {
+            width: 100% !important;
+        }
+
+        /* Fix para el z-index del dropdown */
+        .select2-dropdown {
+            z-index: 9999 !important;
+        }
+
+        /* Estilos para cuando está dentro del input-group-modern */
+        .input-group-modern .select2-container {
+            flex: 1;
+        }
+
+        .input-group-modern .select2-container .select2-selection--single {
+            border-radius: 0 !important;
+        }
+
+        /* Estilos adicionales para mejorar la visibilidad */
+        .select2-container--bootstrap4.select2-container--open .select2-selection--single {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__message {
+            color: #6c757d !important;
+            padding: 1rem !important;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Asegurar que el texto sea legible */
+        .select2-results__option strong {
+            color: #2d3748 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Mejorar el contraste del placeholder */
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
+            color: #9ca3af !important;
+            font-style: italic;
+        }
+
+        /* Estilos para el estado focus */
+        .input-group-modern:focus-within .select2-container .select2-selection--single {
+            border-color: var(--primary-color) !important;
+        }
+
+        /* Asegurar que el dropdown tenga suficiente espacio */
+        .select2-container--bootstrap4 .select2-dropdown .select2-results {
+            padding: 0;
+        }
+
+        /* Mejorar la apariencia del campo de búsqueda */
+        .select2-container--bootstrap4 .select2-search--dropdown {
+            padding: 0.75rem !important;
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #e9ecef !important;
         }
 
         /* Animaciones */
@@ -1219,8 +1461,8 @@
                 placeholder: 'Seleccione un cliente',
                 allowClear: true,
                 width: '100%',
-                dropdownAutoWidth: true,
-                dropdownParent: $('#customer_id').parent(),
+                dropdownAutoWidth: false,
+                dropdownParent: $('body'), // Cambiar a body para evitar problemas de z-index
                 escapeMarkup: function(markup) {
                     return markup;
                 },
@@ -1230,10 +1472,35 @@
                     },
                     searching: function() {
                         return "Buscando...";
+                    },
+                    loadingMore: function() {
+                        return "Cargando más resultados...";
                     }
                 },
                 templateResult: formatCustomer,
-                templateSelection: formatCustomerSelection
+                templateSelection: formatCustomerSelection,
+                matcher: function(params, data) {
+                    // Si no hay término de búsqueda, mostrar todas las opciones
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+
+                    // Si no hay datos, no mostrar nada
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
+
+                    // Buscar en el texto completo (nombre y deuda)
+                    const searchTerm = params.term.toLowerCase();
+                    const fullText = data.text.toLowerCase();
+                    
+                    if (fullText.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+
+                    // No hay coincidencia
+                    return null;
+                }
             });
             
             // Función para verificar si solo hay un producto disponible
@@ -1292,6 +1559,27 @@
                 $('#customer_id').val('{{ $selectedCustomerId }}').trigger('change');
             @endif
 
+            // Asegurar que Select2 se renderice correctamente después de la inicialización
+            setTimeout(function() {
+                $('#customer_id').trigger('change.select2');
+            }, 100);
+
+            // Manejar eventos de apertura y cierre del dropdown
+            $('#customer_id').on('select2:open', function() {
+                // Asegurar que el dropdown tenga el z-index correcto
+                $('.select2-dropdown').css('z-index', 9999);
+                
+                // Enfocar el campo de búsqueda si existe
+                setTimeout(function() {
+                    $('.select2-search__field').focus();
+                }, 100);
+            });
+
+            $('#customer_id').on('select2:close', function() {
+                // Remover cualquier estilo temporal
+                $('.select2-dropdown').css('z-index', '');
+            });
+
             // Función para formatear las opciones en el dropdown
             function formatCustomer(customer) {
                 if (!customer.id) {
@@ -1300,17 +1588,24 @@
                 
                 // Extraer nombre y deuda del texto
                 const parts = customer.text.split(' - ');
-                const name = parts[0];
-                const debt = parts[1];
+                if (parts.length < 2) {
+                    return customer.text;
+                }
+                
+                const name = parts[0].trim();
+                const debt = parts[1].trim();
+                
+                // Determinar el tipo de badge basado en la deuda
+                const badgeClass = debt.includes('0.00') ? 'success' : 'danger';
                 
                 // Crear un elemento HTML con formato mejorado
                 const $container = $(
-                    `<div class="d-flex justify-content-between align-items-center py-1">
-                        <div>
-                            <strong>${name}</strong>
+                    `<div class="d-flex justify-content-between align-items-center" style="width: 100%; padding: 2px 0;">
+                        <div style="flex: 1;">
+                            <strong style="color: #2d3748; font-size: 0.95rem;">${name}</strong>
                         </div>
-                        <div class="text-right">
-                            <span class="badge badge-${debt.includes('0.00') ? 'success' : 'danger'}">${debt}</span>
+                        <div style="flex-shrink: 0; margin-left: 1rem;">
+                            <span class="badge badge-${badgeClass}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600;">${debt}</span>
                         </div>
                     </div>`
                 );
@@ -1447,12 +1742,16 @@
             // Función para actualizar el estado vacío
             function updateEmptyState() {
                 const hasProducts = $('#saleItems tr').length > 0;
+                const tableWrapper = $('.table-wrapper');
+                
                 if (hasProducts) {
                     $('#emptyState').hide();
                     $('.modern-table').show();
+                    tableWrapper.css('min-height', 'auto');
                 } else {
                     $('#emptyState').show();
                     $('.modern-table').hide();
+                    tableWrapper.css('min-height', '120px');
                 }
             }
 
