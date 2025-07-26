@@ -74,7 +74,7 @@
                             </div>
 
                             <!-- Fecha de Venta -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="sale_date" class="required">Fecha de Venta</label>
                                     <div class="input-group">
@@ -87,6 +87,26 @@
                                             class="form-control @error('sale_date') is-invalid @enderror"
                                             value="{{ old('sale_date', $sale->sale_date->format('Y-m-d')) }}" required>
                                         @error('sale_date')
+                                            <span class="invalid-feedback">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hora de Venta -->
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="sale_time">Hora de Venta</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-clock"></i>
+                                            </span>
+                                        </div>
+                                        <input type="time" name="sale_time" id="sale_time"
+                                            class="form-control @error('sale_time') is-invalid @enderror"
+                                            value="{{ old('sale_time', $sale->sale_date->format('H:i')) }}">
+                                        @error('sale_time')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>

@@ -167,22 +167,22 @@
                 </div>
             </div>
 
-            {{-- Widget de Por Cobrar --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
+            {{-- Widget de Deudas Dinámico --}}
+            <div class="col-xl-6 col-lg-12 col-md-12 col-12 mb-4">
                 <div class="premium-widget debt-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon debt-icon">
                                 <i class="fas fa-hourglass-half"></i>
                             </div>
                             <div class="widget-trend warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-            </div>
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
                         <div class="widget-body">
                             <div class="widget-value cash-debt-value" 
                                  data-current="{{ $currentCashData['debt'] }}" 
@@ -192,7 +192,18 @@
                             <div class="widget-label cash-debt-label">Por Cobrar en Arqueo</div>
                             <div class="widget-meta cash-debt-meta">
                                 <i class="fas fa-users"></i>
-                                <span class="cash-debt-text">Ventas pendientes desde apertura</span>
+                                <span class="cash-debt-text">Deudas del arqueo actual</span>
+                                <div class="debt-breakdown mt-2" style="font-size: 0.8rem; opacity: 0.9;">
+                                    <div class="debt-current-info">
+                                        📊 <span class="current-debt-customers">{{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}</span> clientes con deuda actual
+                                    </div>
+                                    <div class="debt-historical-info" style="display: none;">
+                                        👥 <span class="total-debt-customers">{{ $historicalData['debt_details']['total_customers_with_debt'] ?? 0 }}</span> clientes total
+                                        <br>
+                                        🔴 <span class="defaulters-count">{{ $historicalData['debt_details']['defaulters_count'] ?? 0 }}</span> morosos 
+                                        | 🟡 <span class="current-debtors-count">{{ $historicalData['debt_details']['current_debtors_count'] ?? 0 }}</span> actuales
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="widget-action">
@@ -204,47 +215,6 @@
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar warning" style="width: 45%"></div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Widget de Total por Cobrar --}}
-            <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
-                <div class="premium-widget total-debt-widget">
-                    <div class="widget-background">
-                        <div class="bg-pattern"></div>
-                        <div class="widget-gradient"></div>
-                    </div>
-                    <div class="widget-content">
-                        <div class="widget-header">
-                            <div class="widget-icon total-debt-icon">
-                                <i class="fas fa-hand-holding-usd"></i>
-                            </div>
-                            <div class="widget-trend negative">
-                                <i class="fas fa-arrow-down"></i>
-                            </div>
-                        </div>
-                        <div class="widget-body">
-                            <div class="widget-value cash-total-debt-value" 
-                                 data-current="{{ $currentCashData['debt'] }}" 
-                                 data-historical="{{ $historicalData['debt'] }}">
-                                {{ $currency->symbol }}{{ number_format($currentCashData['debt'], 2) }}
-                            </div>
-                            <div class="widget-label cash-total-debt-label">Total por Cobrar</div>
-                            <div class="widget-meta cash-total-debt-meta">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span class="cash-total-debt-text">Deudas acumuladas de clientes</span>
-                            </div>
-                        </div>
-                        <div class="widget-action">
-                            <a href="{{ route('admin.customers.index') }}" class="action-btn">
-                                <i class="fas fa-users"></i>
-                                Ver Clientes
-                            </a>
-                        </div>
-                    </div>
-                    <div class="widget-progress">
-                        <div class="progress-bar danger" style="width: 60%"></div>
                     </div>
                 </div>
             </div>
@@ -3145,10 +3115,7 @@
                     purchases: document.querySelector('.cash-purchases-amount'),
                     debt: document.querySelector('.cash-debt-value'),
                     debtLabel: document.querySelector('.cash-debt-label'),
-                    debtText: document.querySelector('.cash-debt-text'),
-                    totalDebt: document.querySelector('.cash-total-debt-value'),
-                    totalDebtLabel: document.querySelector('.cash-total-debt-label'),
-                    totalDebtText: document.querySelector('.cash-total-debt-text')
+                    debtText: document.querySelector('.cash-debt-text')
                 };
 
                 if (mode === 'current') {
@@ -3165,11 +3132,13 @@
                     
                     if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.current || 0);
                     if (elements.debtLabel) elements.debtLabel.textContent = 'Por Cobrar en Arqueo';
-                    if (elements.debtText) elements.debtText.textContent = 'Ventas pendientes desde apertura';
+                    if (elements.debtText) elements.debtText.textContent = 'Deudas del arqueo actual';
                     
-                    if (elements.totalDebt) elements.totalDebt.textContent = formatCurrency(elements.totalDebt.dataset.current || 0);
-                    if (elements.totalDebtLabel) elements.totalDebtLabel.textContent = 'Total por Cobrar';
-                    if (elements.totalDebtText) elements.totalDebtText.textContent = 'Deudas acumuladas de clientes';
+                    // Mostrar información de deuda actual
+                    const currentInfo = document.querySelector('.debt-current-info');
+                    const historicalInfo = document.querySelector('.debt-historical-info');
+                    if (currentInfo) currentInfo.style.display = 'block';
+                    if (historicalInfo) historicalInfo.style.display = 'none';
                     
                 } else if (mode === 'historical') {
                     // Datos históricos completos
@@ -3184,12 +3153,14 @@
                     if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases.dataset.historical || 0).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                     
                     if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.historical || 0);
-                    if (elements.debtLabel) elements.debtLabel.textContent = 'Total Histórico por Cobrar';
-                    if (elements.debtText) elements.debtText.textContent = 'Todas las deudas acumuladas';
+                    if (elements.debtLabel) elements.debtLabel.textContent = 'Deuda Total Pendiente';
+                    if (elements.debtText) elements.debtText.textContent = 'Clientes morosos + deudas actuales';
                     
-                    if (elements.totalDebt) elements.totalDebt.textContent = formatCurrency(elements.totalDebt.dataset.historical || 0);
-                    if (elements.totalDebtLabel) elements.totalDebtLabel.textContent = 'Deuda Total Acumulada';
-                    if (elements.totalDebtText) elements.totalDebtText.textContent = 'Histórico completo de deudas';
+                    // Mostrar información histórica detallada
+                    const currentInfo = document.querySelector('.debt-current-info');
+                    const historicalInfo = document.querySelector('.debt-historical-info');
+                    if (currentInfo) currentInfo.style.display = 'none';
+                    if (historicalInfo) historicalInfo.style.display = 'block';
                 }
 
                 // Efecto visual de cambio (solo si no es inicialización)

@@ -139,18 +139,38 @@
                                 </div>
                             </div>
 
-                            <!-- Fecha de compra -->
-                            <div class="form-section">
-                                <div class="form-group">
+                            <!-- Fecha de Compra -->
+                            <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                                <div class="form-group-modern">
                                     <label for="purchase_date" class="form-label required">
                                         <i class="fas fa-calendar"></i>
                                         Fecha de Compra
                                     </label>
-                                    <input type="date" name="purchase_date" id="purchase_date"
-                                        class="form-control-modern @error('purchase_date') is-invalid @enderror"
-                                        value="{{ old('purchase_date', $purchase->purchase_date) }}" required>
+                                    <div class="input-group-modern">
+                                        <input type="date" name="purchase_date" id="purchase_date"
+                                            class="form-control-modern @error('purchase_date') is-invalid @enderror"
+                                            value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}" required>
+                                    </div>
                                     @error('purchase_date')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <!-- Hora de Compra -->
+                            <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                                <div class="form-group-modern">
+                                    <label for="purchase_time" class="form-label required">
+                                        <i class="fas fa-clock"></i>
+                                        Hora de Compra
+                                    </label>
+                                    <div class="input-group-modern">
+                                        <input type="time" name="purchase_time" id="purchase_time"
+                                            class="form-control-modern @error('purchase_time') is-invalid @enderror"
+                                            value="{{ old('purchase_time', $purchase->purchase_date->format('H:i')) }}" required>
+                                    </div>
+                                    @error('purchase_time')
+                                        <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>

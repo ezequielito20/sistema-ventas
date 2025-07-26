@@ -117,6 +117,7 @@ class PurchaseController extends Controller
          // Validación de los datos
          $validated = $request->validate([
             'purchase_date' => 'required|date',
+            'purchase_time' => 'required|date_format:H:i',
             'items' => 'required|array|min:1',
             'total_price' => 'required|numeric|min:0',
          ]);
@@ -139,7 +140,7 @@ class PurchaseController extends Controller
 
          // Crear la compra principal
          $purchase = Purchase::create([
-            'purchase_date' => $validated['purchase_date'],
+            'purchase_date' => $validated['purchase_date'] . ' ' . $validated['purchase_time'],
             'payment_receipt' => $payment_receipt,
             'total_price' => $validated['total_price'],
             'company_id' => Auth::user()->company_id,
@@ -287,6 +288,7 @@ class PurchaseController extends Controller
          // Validación de los datos
          $validated = $request->validate([
             'purchase_date' => 'required|date',
+            'purchase_time' => 'nullable|date_format:H:i',
             'items' => 'required|array|min:1',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.price' => 'required|numeric|min:0',
@@ -313,7 +315,11 @@ class PurchaseController extends Controller
          ];
 
          // Actualizar fecha y total
-         $purchase->purchase_date = $validated['purchase_date'];
+         if (isset($validated['purchase_time'])) {
+            $purchase->purchase_date = $validated['purchase_date'] . ' ' . $validated['purchase_time'];
+         } else {
+            $purchase->purchase_date = $validated['purchase_date'];
+         }
          $purchase->total_price = $validated['total_price'];
          $purchase->save();
 

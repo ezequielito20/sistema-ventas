@@ -102,10 +102,10 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                        <div class="form-grid">
+                        <div class="row">
                             <!-- Código de Producto -->
-                            <div class="form-section">
-                                <div class="form-group">
+                            <div class="col-xl-4 col-lg-3 col-md-6 col-12">
+                                <div class="form-group-modern">
                                     <label for="product_code" class="form-label required">
                                         <i class="fas fa-barcode"></i>
                                         Código de Producto
@@ -138,18 +138,38 @@
                                 </div>
                             </div>
 
-                            <!-- Fecha de compra -->
-                            <div class="form-section">
-                                <div class="form-group">
+                            <!-- Fecha de Compra -->
+                            <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                                <div class="form-group-modern">
                                     <label for="purchase_date" class="form-label required">
                                         <i class="fas fa-calendar"></i>
                                         Fecha de Compra
                                     </label>
-                                    <input type="date" name="purchase_date" id="purchase_date"
-                                        class="form-control-modern @error('purchase_date') is-invalid @enderror"
-                                        value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                                    <div class="input-group-modern">
+                                        <input type="date" name="purchase_date" id="purchase_date"
+                                            class="form-control-modern @error('purchase_date') is-invalid @enderror"
+                                            value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                                    </div>
                                     @error('purchase_date')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            
+                            <!-- Hora de Compra -->
+                            <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                                <div class="form-group-modern">
+                                    <label for="purchase_time" class="form-label required">
+                                        <i class="fas fa-clock"></i>
+                                        Hora de Compra
+                                    </label>
+                                    <div class="input-group-modern">
+                                        <input type="time" name="purchase_time" id="purchase_time"
+                                            class="form-control-modern @error('purchase_time') is-invalid @enderror"
+                                            value="{{ old('purchase_time', date('H:i')) }}" required>
+                                    </div>
+                                    @error('purchase_time')
+                                        <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -747,6 +767,52 @@
 
         .form-group {
             margin-bottom: 1rem;
+        }
+        
+        /* Estilos para campos en una línea */
+        .form-group-modern {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group-modern .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Contenedor principal más ancho */
+        .main-panel {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* Responsive para pantallas extra anchas */
+        @media (min-width: 1400px) {
+            .main-panel {
+                max-width: 95%;
+            }
+            
+            .panel-body {
+                padding: 1.5rem 2rem;
+            }
+        }
+        
+        /* Responsive para pantallas anchas */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+            .main-panel {
+                max-width: 98%;
+            }
+        }
+        
+        /* Responsive para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .col-lg-3, .col-xl-2, .col-xl-4 {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Ajustes para campos de fecha y hora */
+        input[type="date"], input[type="time"] {
+            min-width: 120px;
         }
 
         .form-label {

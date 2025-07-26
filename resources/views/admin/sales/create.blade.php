@@ -45,69 +45,96 @@
                     <h3 class="section-title">Información de la Venta</h3>
                 </div>
                 
-                <div class="form-grid">
+                <div class="row">
                     <!-- Código de Producto -->
-                    <div class="form-group-modern">
-                        <label for="product_code" class="form-label required">
-                            <i class="fas fa-barcode"></i>
-                            Código de Producto
-                        </label>
-                        <div class="input-group-modern">
-                            <input type="text" name="product_code" id="product_code"
-                                class="form-control-modern @error('product_code') is-invalid @enderror"
-                                placeholder="Escanee o ingrese el código del producto">
-                            <div class="input-actions">
-                                <button type="button" class="btn-action btn-search" id="searchProduct"
-                                    data-toggle="modal" data-target="#searchProductModal">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <a href="/products/create" class="btn-action btn-add">
-                                    <i class="fas fa-plus"></i>
-                                </a>
+                    <div class="col-xl-4 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="product_code" class="form-label required">
+                                <i class="fas fa-barcode"></i>
+                                Código de Producto
+                            </label>
+                            <div class="input-group-modern">
+                                <input type="text" name="product_code" id="product_code"
+                                    class="form-control-modern @error('product_code') is-invalid @enderror"
+                                    placeholder="Escanee o ingrese el código del producto">
+                                <div class="input-actions">
+                                    <button type="button" class="btn-action btn-search" id="searchProduct"
+                                        data-toggle="modal" data-target="#searchProductModal">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <a href="/products/create" class="btn-action btn-add">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Cliente -->
-                    <div class="form-group-modern">
-                        <label for="customer_id" class="form-label required">
-                            <i class="fas fa-user"></i>
-                            Cliente
-                        </label>
-                        <div class="input-group-modern">
-                            <select name="customer_id" id="customer_id"
-                                class="form-control-modern select2 @error('customer_id') is-invalid @enderror" required>
-                                <option value="">Seleccione un cliente</option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
-                                        {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="input-actions">
-                                <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn-action btn-add">
-                                    <i class="fas fa-plus"></i>
-                                </a>
+                    <div class="col-xl-4 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="customer_id" class="form-label required">
+                                <i class="fas fa-user"></i>
+                                Cliente
+                            </label>
+                            <div class="input-group-modern">
+                                <select name="customer_id" id="customer_id"
+                                    class="form-control-modern select2 @error('customer_id') is-invalid @enderror" required>
+                                    <option value="">Seleccione un cliente</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
+                                            {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="input-actions">
+                                    <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn-action btn-add">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                </div>
                             </div>
+                            @error('customer_id')
+                                <div class="error-message">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
-                        @error('customer_id')
-                            <div class="error-message">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                {{ $message }}
-                            </div>
-                        @enderror
                     </div>
 
                     <!-- Fecha de Venta -->
-                    <div class="form-group-modern">
-                        <label for="sale_date" class="form-label required">
-                            <i class="fas fa-calendar"></i>
-                            Fecha de Venta
-                        </label>
-                        <div class="input-group-modern">
-                            <input type="date" name="sale_date" id="sale_date"
-                                class="form-control-modern @error('sale_date') is-invalid @enderror"
-                                value="{{ old('sale_date', date('Y-m-d')) }}" required>
+                    <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="sale_date" class="form-label required">
+                                <i class="fas fa-calendar"></i>
+                                Fecha de Venta
+                            </label>
+                            <div class="input-group-modern">
+                                <input type="date" name="sale_date" id="sale_date"
+                                    class="form-control-modern @error('sale_date') is-invalid @enderror"
+                                    value="{{ old('sale_date', date('Y-m-d')) }}" required>
+                            </div>
+                            @error('sale_date')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <!-- Hora de Venta -->
+                    <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="sale_time" class="form-label required">
+                                <i class="fas fa-clock"></i>
+                                Hora de Venta
+                            </label>
+                            <div class="input-group-modern">
+                                <input type="time" name="sale_time" id="sale_time"
+                                    class="form-control-modern @error('sale_time') is-invalid @enderror"
+                                    value="{{ old('sale_time', date('H:i')) }}" required>
+                            </div>
+                            @error('sale_time')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -287,6 +314,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
     <style>
+
         :root {
             --primary-color: #667eea;
             --success-color: #48bb78;
@@ -302,6 +330,70 @@
             --gradient-danger: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
             --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
             --gradient-info: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+
+        /* Estilos para campos en una línea */
+        .form-group-modern {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group-modern .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Contenedor principal más ancho */
+        .modern-sale-form {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Responsive para pantallas extra anchas */
+        @media (min-width: 1400px) {
+            .modern-sale-form {
+                max-width: 95%;
+                padding: 0 2rem;
+            }
+            
+            .form-section {
+                padding: 2rem 3rem;
+            }
+            
+            .products-table-container {
+                margin: 0 -1rem;
+            }
+        }
+        
+        /* Responsive para pantallas anchas */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+            .modern-sale-form {
+                max-width: 98%;
+                padding: 0 1.5rem;
+            }
+        }
+        
+        /* Responsive para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .col-lg-3, .col-xl-2, .col-xl-4 {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Ajustes para campos de fecha y hora */
+        input[type="date"], input[type="time"] {
+            min-width: 120px;
+        }
+        
+        /* Select2 responsive */
+        .select2-container {
+            width: 100% !important;
+        }
+        
+        .select2-container .select2-selection--single {
+            height: calc(2.25rem + 2px);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
 
         /* Header Moderno */
@@ -519,6 +611,23 @@
         /* Tabla de Productos */
         .products-table-container {
             padding: 2rem;
+            width: 100%;
+        }
+        
+        /* Tabla más ancha en pantallas grandes */
+        @media (min-width: 1200px) {
+            .products-table-container {
+                padding: 2rem 1rem;
+                overflow-x: visible;
+            }
+            
+            .table-responsive {
+                overflow-x: visible;
+            }
+            
+            .products-table {
+                min-width: 100%;
+            }
         }
 
         .table-header {
@@ -1446,7 +1555,7 @@
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function() {
+                    $(document).ready(function() {
             // Guardar la URL original cuando se carga la página por primera vez
             if (!sessionStorage.getItem('sales_original_referrer')) {
                 const referrer = document.referrer;
@@ -1887,7 +1996,9 @@
                     if (result.isConfirmed) {
                         $('#saleItems').empty();
                         $('#customer_id').val('').trigger('change');
+                        // Resetear fecha y hora a valores actuales
                         $('#sale_date').val('{{ date('Y-m-d') }}');
+                        $('#sale_time').val('{{ date('H:i') }}');
                         updateTotal();
                         updateEmptyState();
                     }

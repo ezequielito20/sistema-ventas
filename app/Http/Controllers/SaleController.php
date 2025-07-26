@@ -139,6 +139,7 @@ class SaleController extends Controller
          $validated = $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'sale_date' => 'required|date',
+            'sale_time' => 'required|date_format:H:i',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
@@ -165,7 +166,7 @@ class SaleController extends Controller
 
          // Crear la venta principal
          $sale = Sale::create([
-            'sale_date' => $validated['sale_date'],
+            'sale_date' => $validated['sale_date'] . ' ' . $validated['sale_time'], // Combinar fecha y hora del formulario
             'total_price' => $validated['total_price'],
             'company_id' => Auth::user()->company_id,
             'customer_id' => $validated['customer_id'],
@@ -326,6 +327,7 @@ class SaleController extends Controller
          // Validación de datos
          $validated = $request->validate([
             'sale_date' => 'required|date',
+            'sale_time' => 'nullable|date_format:H:i',
             'customer_id' => 'required|exists:customers,id',
             'items' => 'required|array|min:1',
             'items.*.quantity' => 'required|numeric|min:1',
@@ -370,7 +372,12 @@ class SaleController extends Controller
          }
 
          // Actualizar datos principales de la venta
-         $sale->sale_date = $validated['sale_date'];
+         // Combinar fecha y hora si se proporciona
+         if (isset($validated['sale_time'])) {
+            $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
+         } else {
+            $sale->sale_date = $validated['sale_date'];
+         }
          $sale->customer_id = $validated['customer_id'];
          $sale->total_price = $validated['total_price'];
          $sale->save();

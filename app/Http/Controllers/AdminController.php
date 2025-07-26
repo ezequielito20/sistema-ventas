@@ -14,6 +14,7 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use App\Models\Customer;
 
 class AdminController extends Controller
 {
@@ -405,58 +406,6 @@ class AdminController extends Controller
          ->sum('cash_movements.amount');
 
       // Calcular balance actual basado en flujo de caja real
-      $currentBalance = 0;
-      $debugBalance = []; // Para debug
-      
-      if ($currentCashCount) {
-         $cashOpenDate = $currentCashCount->opening_date;
-         $initialAmount = $currentCashCount->initial_amount ?? 0;
-         $debugBalance['initial'] = $initialAmount;
-         
-         // Ingresos reales: otros ingresos de caja (NO incluye ventas sin cobrar)
-         // EXCLUIR movimientos de caja relacionados con ventas para evitar duplicación
-         $realIncome = DB::table('cash_movements')
-            ->where('cash_count_id', $currentCashCount->id)
-            ->where('type', 'income')
-            ->where('description', 'not like', 'Venta #%') // Excluir movimientos de ventas
-            ->sum('amount') ?? 0;
-         $debugBalance['cash_income'] = $realIncome;
-            
-         // Egresos reales: gastos de caja (NO incluye compras, se calculan por separado)
-         // EXCLUIR movimientos de caja relacionados con compras para evitar duplicación
-         $realExpenses = DB::table('cash_movements')
-            ->where('cash_count_id', $currentCashCount->id)
-            ->where('type', 'expense')
-            ->where('description', 'not like', 'Compra #%') // Excluir movimientos de compras
-            ->sum('amount') ?? 0;
-         $debugBalance['cash_expenses'] = $realExpenses;
-            
-         // Compras realizadas desde apertura (dinero gastado en inventario)
-         // IMPORTANTE: Solo compras desde la fecha de apertura del arqueo
-         $purchasesCost = DB::table('purchases')
-            ->where('company_id', $companyId)
-            ->whereDate('purchase_date', '>=', $cashOpenDate)
-            ->sum('total_price') ?? 0;
-         $debugBalance['purchases'] = $purchasesCost;
-            
-         // Pagos recibidos de deudas (dinero real que ha entrado)
-         $debtPayments = 0;
-         if (Schema::hasTable('debt_payments')) {
-            $debtPayments = DB::table('debt_payments')
-               ->where('company_id', $companyId)
-               ->whereDate('created_at', '>=', $cashOpenDate)
-               ->sum('payment_amount') ?? 0;
-         }
-         $debugBalance['debt_payments'] = $debtPayments;
-         
-         // Balance real = Dinero inicial + Pagos recibidos + Otros ingresos - Compras - Otros gastos
-         $currentBalance = $initialAmount + $debtPayments + $realIncome - $purchasesCost - $realExpenses;
-         $debugBalance['final_balance'] = $currentBalance;
-         
-         // Log para debug (temporal)
-         Log::info('Balance Calculation Debug', $debugBalance);
-      }
-
       // ==========================================
       // DATOS DEL ARQUEO ACTUAL
       // ==========================================
@@ -464,10 +413,7 @@ class AdminController extends Controller
          'sales' => 0,
          'purchases' => 0,
          'debt' => 0,
-         'income' => 0,
-         'expenses' => 0,
-         'debt_payments' => 0,
-         'balance' => $currentBalance,
+         'balance' => 0,
          'opening_date' => null
       ];
 
@@ -487,106 +433,81 @@ class AdminController extends Controller
             ->where('purchase_date', '>=', $cashOpenDate)
             ->sum('total_price');
             
-         // Deudas pendientes en el arqueo actual (ventas - pagos recibidos)
-         $salesInCashCount = DB::table('sales')
-            ->where('company_id', $companyId)
-            ->where('sale_date', '>=', $cashOpenDate)
-            ->sum('total_price');
+         // Calcular deudas del arqueo actual usando los métodos del modelo Customer
+         $currentCashCountDebt = Customer::where('company_id', $companyId)
+            ->where('total_debt', '>', 0)
+            ->get()
+            ->sum(function($customer) {
+               return $customer->getCurrentCashCountDebtAmount();
+            });
             
-         $paymentsInCashCount = 0;
-         if (Schema::hasTable('debt_payments')) {
-            $paymentsInCashCount = DB::table('debt_payments')
-               ->where('company_id', $companyId)
-               ->where('created_at', '>=', $cashOpenDate)
-               ->sum('payment_amount') ?? 0;
-         }
+         $currentCashData['debt'] = $currentCashCountDebt;
          
-         // Deuda pendiente = Ventas realizadas - Pagos recibidos
-         $currentCashData['debt'] = max(0, $salesInCashCount - $paymentsInCashCount);
+         // Información adicional para debug y análisis
+         $currentCashData['debt_details'] = [
+            'current_count_debt' => $currentCashCountDebt,
+            'customers_with_current_debt' => Customer::where('company_id', $companyId)
+               ->where('total_debt', '>', 0)
+               ->get()
+               ->filter(function($customer) {
+                  return $customer->getCurrentCashCountDebtAmount() > 0;
+               })
+               ->count()
+         ];
          
-         // Debug para verificar el cálculo de deuda
-         $debugBalance['sales_in_cash_count'] = $salesInCashCount;
-         $debugBalance['payments_in_cash_count'] = $paymentsInCashCount;
-         $debugBalance['debt_pending'] = $currentCashData['debt'];
-
-         // Otros ingresos de caja (no incluye pagos de deudas ni ventas)
-         $currentCashData['income'] = DB::table('cash_movements')
-            ->where('cash_count_id', $currentCashCount->id)
-            ->where('type', 'income')
-            ->where('description', 'not like', 'Venta #%') // Excluir movimientos de ventas
-            ->sum('amount');
-
-         // Otros gastos de caja (no incluye compras)
-         $currentCashData['expenses'] = DB::table('cash_movements')
-            ->where('cash_count_id', $currentCashCount->id)
-            ->where('type', 'expense')
-            ->where('description', 'not like', 'Compra #%') // Excluir movimientos de compras
-            ->sum('amount');
-            
-         // Pagos de deudas recibidos en el arqueo actual
-         if (Schema::hasTable('debt_payments')) {
-            $currentCashData['debt_payments'] = DB::table('debt_payments')
-               ->where('company_id', $companyId)
-               ->where('created_at', '>=', $cashOpenDate)
-               ->sum('payment_amount') ?? 0;
-         }
-         
-         // Actualizar balance con la nueva lógica
-         $currentCashData['balance'] = $currentBalance;
+         // NUEVA LÓGICA DE BALANCE: (Ventas Totales) - (Deudas Totales) - (Compras Totales)
+         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['debt'] - $currentCashData['purchases'];
       }
 
       // ==========================================
       // DATOS HISTÓRICOS COMPLETOS
       // ==========================================
       
-      // Pagos históricos totales recibidos de deudas
-      $historicalDebtPayments = 0;
-      if (Schema::hasTable('debt_payments')) {
-         $historicalDebtPayments = DB::table('debt_payments')
-            ->where('company_id', $companyId)
-            ->sum('payment_amount') ?? 0;
-      }
+      // Ventas históricas totales
+      $totalSales = DB::table('sales')->where('company_id', $companyId)->sum('total_price');
       
-      // Otros ingresos históricos (movimientos de caja)
-      // EXCLUIR movimientos de caja relacionados con ventas para evitar duplicación
-      $historicalCashIncome = DB::table('cash_movements')
-         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
-         ->where('cash_counts.company_id', $companyId)
-         ->where('cash_movements.type', 'income')
-         ->where('cash_movements.description', 'not like', 'Venta #%') // Excluir movimientos de ventas
-         ->sum('cash_movements.amount') ?? 0;
-         
       // Compras históricas totales (dinero gastado)
       $historicalPurchases = DB::table('purchases')
          ->where('company_id', $companyId)
          ->sum('total_price') ?? 0;
-         
-      // Otros gastos históricos (movimientos de caja)
-      // EXCLUIR movimientos de caja relacionados con compras para evitar duplicación
-      $historicalCashExpenses = DB::table('cash_movements')
-         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
-         ->where('cash_counts.company_id', $companyId)
-         ->where('cash_movements.type', 'expense')
-         ->where('cash_movements.description', 'not like', 'Compra #%') // Excluir movimientos de compras
-         ->sum('cash_movements.amount') ?? 0;
       
-      // Deuda histórica pendiente (ventas totales - pagos totales recibidos)
-      $totalSales = DB::table('sales')->where('company_id', $companyId)->sum('total_price');
-      $totalDebtPayments = $historicalDebtPayments;
-      $historicalPendingDebt = max(0, $totalSales - $totalDebtPayments);
+      // Deuda histórica total (clientes morosos + clientes con deuda actual)
+      $customersWithDebt = Customer::where('company_id', $companyId)
+         ->where('total_debt', '>', 0)
+         ->get();
+         
+      $historicalPendingDebt = $customersWithDebt->sum('total_debt');
+      
+      // Separar deudas por tipo para análisis detallado
+      $defaultersDebt = $customersWithDebt->filter(function($customer) {
+         return $customer->isDefaulter();
+      })->sum('total_debt');
+      
+      $currentDebtorsDebt = $customersWithDebt->filter(function($customer) {
+         return !$customer->isDefaulter();
+      })->sum('total_debt');
       
       $historicalData = [
          'sales' => $totalSales,
          'purchases' => $historicalPurchases,
          'debt' => $historicalPendingDebt,
-         'income' => $historicalCashIncome,
-         'expenses' => $historicalCashExpenses,
-         'debt_payments' => $historicalDebtPayments,
-         'balance' => 0 // Se calculará después
+         'balance' => 0, // Se calculará después
+         'debt_details' => [
+            'total_debt' => $historicalPendingDebt,
+            'defaulters_debt' => $defaultersDebt,
+            'current_debtors_debt' => $currentDebtorsDebt,
+            'total_customers_with_debt' => $customersWithDebt->count(),
+            'defaulters_count' => $customersWithDebt->filter(function($customer) {
+               return $customer->isDefaulter();
+            })->count(),
+            'current_debtors_count' => $customersWithDebt->filter(function($customer) {
+               return !$customer->isDefaulter();
+            })->count()
+         ]
       ];
 
-      // Balance histórico real = Pagos recibidos + Otros ingresos - Compras - Otros gastos
-      $historicalData['balance'] = $historicalDebtPayments + $historicalCashIncome - $historicalPurchases - $historicalCashExpenses;
+      // NUEVA LÓGICA DE BALANCE HISTÓRICO: (Ventas Totales) - (Deudas Totales) - (Compras Totales)
+      $historicalData['balance'] = $historicalData['sales'] - $historicalData['debt'] - $historicalData['purchases'];
 
       // Mantener variables originales para compatibilidad
       $salesSinceCashOpen = $currentCashData['sales'];
@@ -680,7 +601,7 @@ class AdminController extends Controller
          'currentCashCount',
          'todayIncome',
          'todayExpenses',
-         'currentBalance',
+
          'salesSinceCashOpen',
          'purchasesSinceCashOpen',
          'debtSinceCashOpen',

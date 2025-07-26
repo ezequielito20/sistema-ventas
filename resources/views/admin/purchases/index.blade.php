@@ -194,7 +194,8 @@
                                         <i class="fas fa-calendar-alt"></i>
                                     </div>
                                     <div class="date-text">
-                                        {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}
+                                        <div class="date-main">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</div>
+                                        <div class="time-sub">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('H:i') }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -294,7 +295,10 @@
                                             <h6 class="receipt-title">{{ $purchase->payment_receipt ?: 'Sin recibo' }}</h6>
                                             <div class="receipt-date">
                                                 <i class="fas fa-calendar-alt"></i>
-                                                {{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}
+                                                <div class="date-time-info">
+                                                    <div class="date-main">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y') }}</div>
+                                                    <div class="time-sub">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('H:i') }}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -918,6 +922,31 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+        }
+        
+        /* Estilos para fecha y hora */
+        .date-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .date-main {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--dark-color);
+        }
+        
+        .time-sub {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .date-time-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
         }
 
         .receipt-icon, .date-icon, .amount-icon {

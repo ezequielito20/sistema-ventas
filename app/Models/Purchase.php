@@ -29,7 +29,7 @@ class Purchase extends Model
     * @var array<string, string>
     */
    protected $casts = [
-      'purchase_date' => 'date',
+      'purchase_date' => 'datetime',
       'total_price' => 'decimal:2'
    ];
    /**

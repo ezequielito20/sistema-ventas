@@ -27,7 +27,7 @@ class Sale extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'sale_date' => 'date',
+        'sale_date' => 'datetime',
         'total_price' => 'decimal:2',
     ];
 
