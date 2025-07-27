@@ -257,6 +257,29 @@ class Customer extends Model
    }
 
    /**
+    * Obtiene el total de pagos realizados después de una fecha específica
+    */
+   public function getTotalPaymentsAfterDate($date)
+   {
+      // Buscar en la tabla debt_payments si existe
+      if (Schema::hasTable('debt_payments')) {
+         return DB::table('debt_payments')
+            ->where('customer_id', $this->id)
+            ->where('created_at', '>=', $date)
+            ->sum('payment_amount');
+      }
+
+      // Si no existe la tabla debt_payments, buscar en cash_movements
+      return DB::table('cash_movements')
+         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+         ->where('cash_counts.company_id', $this->company_id)
+         ->where('cash_movements.type', 'income')
+         ->where('cash_movements.description', 'like', '%' . $this->name . '%')
+         ->where('cash_movements.created_at', '>=', $date)
+         ->sum('cash_movements.amount');
+   }
+
+   /**
     * Obtiene el total de deudas generadas antes de una fecha específica
     */
    public function getTotalDebtsBeforeDate($date)
@@ -287,7 +310,18 @@ class Customer extends Model
     */
    public function getCurrentCashCountDebtAmount()
    {
-      return $this->total_debt - $this->getPreviousCashCountDebtAmount();
+      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
+      
+      // Solo considerar ventas realizadas DESPUÉS de la apertura del arqueo actual
+      $salesInCurrentCashCount = $this->sales()
+         ->where('sale_date', '>=', $currentCashCountOpeningDate)
+         ->sum('total_price');
+      
+      // Obtener pagos realizados DESPUÉS de la apertura del arqueo actual
+      $paymentsInCurrentCashCount = $this->getTotalPaymentsAfterDate($currentCashCountOpeningDate);
+      
+      // La deuda del arqueo actual es: ventas del arqueo - pagos del arqueo
+      return $salesInCurrentCashCount - $paymentsInCurrentCashCount;
    }
 
    /**

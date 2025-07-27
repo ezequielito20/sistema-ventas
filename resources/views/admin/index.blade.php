@@ -56,77 +56,82 @@
         </div>
 
         <div class="row">
-        {{-- Widget de Balance General --}}
+            {{-- Widget de Balance General --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget balance-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon balance-icon">
-                    <i class="fas fa-balance-scale"></i>
+                                <i class="fas fa-balance-scale"></i>
                             </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-arrow-up"></i>
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value cash-balance-value" 
-                                 data-current="{{ $currentCashData['balance'] }}" 
-                                 data-historical="{{ $historicalData['balance'] }}">
+                            <div class="widget-value cash-balance-value" data-current="{{ $currentCashData['balance'] }}"
+                                data-historical="{{ $historicalData['balance'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentCashData['balance'], 2) }}
                             </div>
 
                             <div class="widget-label cash-balance-label">Balance Actual</div>
+                            <div class="widget-subtitle" style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">
+                                Ventas - Compras desde apertura
+                            </div>
                             <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
                                 <span class="cash-meta-text">
-                                    Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}
+                                    Desde:
+                                    {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}
                                 </span>
-                                @if($currentCashCount && $currentCashData['balance'] < 0)
-                                <br>
-                                <small class="text-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    Balance negativo detectado
-                                </small>
+                                @if ($currentCashCount && $currentCashData['balance'] < 0)
+                                    <br>
+                                    <small class="text-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Balance negativo detectado
+                                    </small>
                                 @endif
                             </div>
-                            @if($currentCashCount)
-                            <div class="widget-action mt-2">
-                                @if($currentCashData['balance'] < 0)
-                                <a href="{{ route('admin.clean-orphan-movements') }}" 
-                                   class="action-btn" 
-                                   style="background: rgba(220,53,69,0.8);"
-                                   onclick="return confirm('¿Estás seguro de que quieres limpiar los movimientos huérfanos de caja?')">
-                                    <i class="fas fa-broom"></i>
-                                    Limpiar Movimientos Huérfanos
-                                </a>
-                                <a href="{{ route('admin.clean-orphan-debt-payments') }}" 
-                                   class="action-btn" 
-                                   style="background: rgba(255,193,7,0.8); margin-left: 0.5rem;"
-                                   onclick="return confirm('¿Estás seguro de que quieres limpiar los pagos de deuda huérfanos?')">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    Limpiar Pagos Huérfanos
-                                </a>
-                                @endif
-                                <button class="action-btn" 
-                                        onclick="showDetailedBalance()" 
+                            @if ($currentCashCount)
+                                <div class="widget-action mt-2">
+                                    @if ($currentCashData['balance'] < 0)
+                                        <a href="{{ route('admin.clean-orphan-movements') }}" class="action-btn"
+                                            style="background: rgba(220,53,69,0.8);"
+                                            onclick="return confirm('¿Estás seguro de que quieres limpiar los movimientos huérfanos de caja?')">
+                                            <i class="fas fa-broom"></i>
+                                            Limpiar Movimientos Huérfanos
+                                        </a>
+                                        <a href="{{ route('admin.clean-orphan-debt-payments') }}" class="action-btn"
+                                            style="background: rgba(255,193,7,0.8); margin-left: 0.5rem;"
+                                            onclick="return confirm('¿Estás seguro de que quieres limpiar los pagos de deuda huérfanos?')">
+                                            <i class="fas fa-money-bill-wave"></i>
+                                            Limpiar Pagos Huérfanos
+                                        </a>
+                                    @endif
+                                    <button class="action-btn" onclick="showDetailedBalance()"
                                         style="background: rgba(102,126,234,0.8); margin-left: 0.5rem;">
-                                    <i class="fas fa-search"></i>
-                                    Debug Detallado
-                                </button>
-                            </div>
+                                        <i class="fas fa-search"></i>
+                                        Debug Detallado
+                                    </button>
+                                    <button class="action-btn" onclick="showBalanceBreakdown()"
+                                        style="background: rgba(40,167,69,0.8); margin-left: 0.5rem;">
+                                        <i class="fas fa-calculator"></i>
+                                        Ver Desglose
+                                    </button>
+                                </div>
                             @endif
 
                         </div>
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar" style="width: 85%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
             {{-- Widget de Ventas desde Apertura --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
@@ -134,29 +139,28 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon sales-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
+                                <i class="fas fa-chart-line"></i>
+                            </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-arrow-up"></i>
-            </div>
-        </div>
+                            </div>
+                        </div>
                         <div class="widget-body">
-                            <div class="widget-value cash-sales-value" 
-                                 data-current="{{ $currentCashData['sales'] }}" 
-                                 data-historical="{{ $historicalData['sales'] }}">
+                            <div class="widget-value cash-sales-value" data-current="{{ $currentCashData['sales'] }}"
+                                data-historical="{{ $historicalData['sales'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentCashData['sales'], 2) }}
                             </div>
                             <div class="widget-label cash-sales-label">Ventas desde Apertura</div>
                             <div class="widget-meta cash-sales-meta">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="cash-purchases-text">
-                                    Compras: {{ $currency->symbol }}<span class="cash-purchases-amount" 
-                                              data-current="{{ $currentCashData['purchases'] }}" 
-                                              data-historical="{{ $historicalData['purchases'] }}">{{ number_format($currentCashData['purchases'], 2) }}</span>
+                                    Compras: {{ $currency->symbol }}<span class="cash-purchases-amount"
+                                        data-current="{{ $currentCashData['purchases'] }}"
+                                        data-historical="{{ $historicalData['purchases'] }}">{{ number_format($currentCashData['purchases'], 2) }}</span>
                                 </span>
                             </div>
                         </div>
@@ -173,20 +177,19 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon debt-icon">
                                 <i class="fas fa-hourglass-half"></i>
                             </div>
                             <div class="widget-trend warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-            </div>
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
                         <div class="widget-body">
-                            <div class="widget-value cash-debt-value" 
-                                 data-current="{{ $currentCashData['debt'] }}" 
-                                 data-historical="{{ $historicalData['debt'] }}">
+                            <div class="widget-value cash-debt-value" data-current="{{ $currentCashData['debt'] }}"
+                                data-historical="{{ $historicalData['debt'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentCashData['debt'], 2) }}
                             </div>
                             <div class="widget-label cash-debt-label">Por Cobrar en Arqueo</div>
@@ -195,13 +198,21 @@
                                 <span class="cash-debt-text">Deudas del arqueo actual</span>
                                 <div class="debt-breakdown mt-2" style="font-size: 0.8rem; opacity: 0.9;">
                                     <div class="debt-current-info">
-                                        📊 <span class="current-debt-customers">{{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}</span> clientes con deuda actual
+                                        📊 <span
+                                            class="current-debt-customers">{{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}</span>
+                                        clientes con deuda actual
                                     </div>
                                     <div class="debt-historical-info" style="display: none;">
-                                        👥 <span class="total-debt-customers">{{ $historicalData['debt_details']['total_customers_with_debt'] ?? 0 }}</span> clientes total
+                                        👥 <span
+                                            class="total-debt-customers">{{ $historicalData['debt_details']['total_customers_with_debt'] ?? 0 }}</span>
+                                        clientes total
                                         <br>
-                                        🔴 <span class="defaulters-count">{{ $historicalData['debt_details']['defaulters_count'] ?? 0 }}</span> morosos 
-                                        | 🟡 <span class="current-debtors-count">{{ $historicalData['debt_details']['current_debtors_count'] ?? 0 }}</span> actuales
+                                        🔴 <span
+                                            class="defaulters-count">{{ $historicalData['debt_details']['defaulters_count'] ?? 0 }}</span>
+                                        morosos
+                                        | 🟡 <span
+                                            class="current-debtors-count">{{ $historicalData['debt_details']['current_debtors_count'] ?? 0 }}</span>
+                                        actuales
                                     </div>
                                 </div>
                             </div>
@@ -242,7 +253,7 @@
         </div>
 
         <div class="row">
-        {{-- Widget de Ventas de la Semana --}}
+            {{-- Widget de Ventas de la Semana --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget weekly-sales-widget">
                     <div class="widget-background">
@@ -266,23 +277,23 @@
                             <div class="widget-label">Ventas de la Semana</div>
                             <div class="widget-meta">
                                 <i class="fas fa-calendar-day"></i>
-                        Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}
-                </div>
+                                Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}
+                            </div>
                         </div>
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar success" style="width: 78%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Widget de Promedio por Cliente --}}
+            {{-- Widget de Promedio por Cliente --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget average-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon average-icon">
@@ -306,9 +317,9 @@
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar info" style="width: 65%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
             {{-- Widget de Ganancia Teórica --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
@@ -316,11 +327,11 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon profit-icon">
-                    <i class="fas fa-chart-pie"></i>
+                                <i class="fas fa-chart-pie"></i>
                             </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-percentage"></i>
@@ -340,9 +351,9 @@
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar warning" style="width: 88%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
             {{-- Widget de Rendimiento Mensual --}}
             <div class="col-xl-3 col-lg-6 col-md-6 col-12 mb-4">
@@ -350,12 +361,12 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon monthly-icon">
                                 <i class="fas fa-calendar-alt"></i>
-                </div>
+                            </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-rocket"></i>
                                 <span>+22%</span>
@@ -690,18 +701,18 @@
         </div>
 
         <div class="row">
-        {{-- Widget de Total Compras del Mes --}}
+            {{-- Widget de Total Compras del Mes --}}
             <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget purchases-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon purchases-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
                             <div class="widget-trend {{ $purchaseGrowth >= 0 ? 'positive' : 'negative' }}">
                                 <i class="fas fa-arrow-{{ $purchaseGrowth >= 0 ? 'up' : 'down' }}"></i>
                                 <span>{{ abs($purchaseGrowth) }}%</span>
@@ -725,44 +736,45 @@
                         </div>
                     </div>
                     <div class="widget-progress">
-                        <div class="progress-bar primary" style="width: {{ min(100, ($monthlyPurchases / 10000) * 100) }}%"></div>
+                        <div class="progress-bar primary"
+                            style="width: {{ min(100, ($monthlyPurchases / 10000) * 100) }}%"></div>
                     </div>
+                </div>
             </div>
-        </div>
 
-        {{-- Widget de Productos Más Comprados --}}
+            {{-- Widget de Productos Más Comprados --}}
             <div class="col-xl-6 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget top-product-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon product-icon">
-                    <i class="fas fa-box"></i>
-                </div>
+                                <i class="fas fa-box"></i>
+                            </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-crown"></i>
                                 <span>TOP</span>
-            </div>
-        </div>
+                            </div>
+                        </div>
                         <div class="widget-body">
                             <div class="widget-value" data-value="{{ $topProduct->total_quantity ?? 0 }}">
                                 {{ $topProduct->total_quantity ?? 0 }}
-                </div>
+                            </div>
                             <div class="widget-label">{{ Str::limit($topProduct->name ?? 'N/A', 25) }}</div>
                             <div class="widget-meta">
-                    <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
                                 Producto más comprado
-                </div>
+                            </div>
                         </div>
                         <div class="widget-action">
                             <a href="#topProductsDetail" class="action-btn" data-toggle="modal">
                                 <i class="fas fa-eye"></i>
                                 Ver Detalles
-                </a>
-            </div>
+                            </a>
+                        </div>
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar success" style="width: 95%"></div>
@@ -793,28 +805,32 @@
         </div> --}}
 
         <div class="row">
-    {{-- Gráfico de Ventas Mensuales --}}
+            {{-- Gráfico de Ventas Mensuales --}}
             <div class="col-12 mb-4">
                 <div class="premium-chart-container large-chart">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart sales-trend">
                                 <i class="fas fa-chart-area"></i>
-                </div>
+                            </div>
                             <div class="title-content-chart">
                                 <h3>Tendencia de Ventas Mensuales</h3>
                                 <p>Evolución de ventas en los últimos meses</p>
-                </div>
-            </div>
+                            </div>
+                        </div>
                         <div class="chart-actions">
                             <div class="chart-stats">
                                 <div class="stat-item">
                                     <div class="stat-label">Promedio</div>
-                                    <div class="stat-value">{{ $currency->symbol }}{{ number_format(collect($salesMonthlyData)->avg(), 2) }}</div>
+                                    <div class="stat-value">
+                                        {{ $currency->symbol }}{{ number_format(collect($salesMonthlyData)->avg(), 2) }}
+                                    </div>
                                 </div>
                                 <div class="stat-item">
                                     <div class="stat-label">Máximo</div>
-                                    <div class="stat-value">{{ $currency->symbol }}{{ number_format(collect($salesMonthlyData)->max(), 2) }}</div>
+                                    <div class="stat-value">
+                                        {{ $currency->symbol }}{{ number_format(collect($salesMonthlyData)->max(), 2) }}
+                                    </div>
                                 </div>
                             </div>
                             <button class="btn-chart-action" onclick="exportSalesChart()">
@@ -830,8 +846,8 @@
                     <div class="chart-content">
                         <canvas id="salesTrendsChart" style="min-height: 350px;"></canvas>
                     </div>
-        </div>
-    </div>
+                </div>
+            </div>
 
             {{-- Gráfico de Compras Mensuales --}}
             <div class="col-md-8 mb-4">
@@ -840,7 +856,7 @@
                         <div class="chart-title">
                             <div class="title-icon-chart purchases-trend">
                                 <i class="fas fa-chart-line"></i>
-                </div>
+                            </div>
                             <div class="title-content-chart">
                                 <h3>Tendencia de Compras Mensuales</h3>
                                 <p>Evolución de compras e inventario</p>
@@ -858,10 +874,10 @@
                         </div>
                     </div>
                     <div class="chart-content">
-                    <canvas id="purchaseTrendsChart" style="min-height: 300px;"></canvas>
+                        <canvas id="purchaseTrendsChart" style="min-height: 300px;"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
 
             {{-- Widget de Estadísticas de Compras --}}
             <div class="col-md-4 mb-4">
@@ -870,7 +886,7 @@
                         <div class="stats-title">
                             <div class="title-icon-stats purchases">
                                 <i class="fas fa-star"></i>
-                </div>
+                            </div>
                             <div class="title-content-stats">
                                 <h3>Top Productos</h3>
                                 <p>Más comprados</p>
@@ -882,28 +898,33 @@
                             @foreach ($topProducts as $index => $product)
                                 <div class="stats-item">
                                     <div class="stats-rank">
-                                        <span class="rank-number {{ $index < 3 ? 'top-rank' : '' }}">{{ $index + 1 }}</span>
+                                        <span
+                                            class="rank-number {{ $index < 3 ? 'top-rank' : '' }}">{{ $index + 1 }}</span>
                                     </div>
                                     <div class="stats-info">
                                         <div class="stats-name">{{ Str::limit($product->name, 20) }}</div>
                                         <div class="stats-meta">
-                                            <span class="quantity-badge">{{ number_format($product->total_quantity) }} unidades</span>
-                                            <span class="price-badge">{{ $currency->symbol }}{{ number_format($product->unit_price, 2) }}</span>
+                                            <span class="quantity-badge">{{ number_format($product->total_quantity) }}
+                                                unidades</span>
+                                            <span
+                                                class="price-badge">{{ $currency->symbol }}{{ number_format($product->unit_price, 2) }}</span>
                                         </div>
                                     </div>
                                     <div class="stats-progress">
-                                        <div class="progress-bar-mini" style="width: {{ min(100, ($product->total_quantity / $topProducts->first()->total_quantity) * 100) }}%"></div>
+                                        <div class="progress-bar-mini"
+                                            style="width: {{ min(100, ($product->total_quantity / $topProducts->first()->total_quantity) * 100) }}%">
+                                        </div>
                                     </div>
                                 </div>
-                                @endforeach
-                    </div>
+                            @endforeach
+                        </div>
                         <div class="stats-footer">
                             <a href="{{ route('admin.products.index') }}" class="stats-action-btn">
                                 <i class="fas fa-eye"></i>
                                 Ver Todos los Productos
                             </a>
-                </div>
-            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -930,18 +951,18 @@
         </div>
 
         <div class="row">
-        {{-- Widget de Total Clientes --}}
+            {{-- Widget de Total Clientes --}}
             <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget total-customers-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon customers-icon">
-                    <i class="fas fa-users"></i>
-                </div>
+                                <i class="fas fa-users"></i>
+                            </div>
                             <div class="widget-trend {{ $customerGrowth >= 0 ? 'positive' : 'negative' }}">
                                 <i class="fas fa-arrow-{{ $customerGrowth >= 0 ? 'up' : 'down' }}"></i>
                                 <span>{{ abs($customerGrowth) }}%</span>
@@ -965,23 +986,24 @@
                         </div>
                     </div>
                     <div class="widget-progress">
-                        <div class="progress-bar primary" style="width: {{ min(100, ($totalCustomers / 100) * 100) }}%"></div>
+                        <div class="progress-bar primary" style="width: {{ min(100, ($totalCustomers / 100) * 100) }}%">
+                        </div>
                     </div>
+                </div>
             </div>
-        </div>
 
-        {{-- Widget de Nuevos Clientes --}}
+            {{-- Widget de Nuevos Clientes --}}
             <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
                 <div class="premium-widget new-customers-widget">
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon new-customers-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
+                                <i class="fas fa-user-plus"></i>
+                            </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-trending-up"></i>
                                 <span>Nuevo</span>
@@ -1005,10 +1027,11 @@
                         </div>
                     </div>
                     <div class="widget-progress">
-                        <div class="progress-bar success" style="width: {{ min(100, ($newCustomers / 10) * 100) }}%"></div>
+                        <div class="progress-bar success" style="width: {{ min(100, ($newCustomers / 10) * 100) }}%">
+                        </div>
                     </div>
+                </div>
             </div>
-        </div>
 
             {{-- Widget de Actividad de Clientes --}}
             <div class="col-xl-4 col-lg-6 col-md-6 col-12 mb-4">
@@ -1016,19 +1039,20 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                </div>
+                    </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon activity-icon">
                                 <i class="fas fa-chart-pulse"></i>
-                </div>
+                            </div>
                             <div class="widget-trend positive">
                                 <i class="fas fa-fire"></i>
                                 <span>Activo</span>
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $monthlyActivity[count($monthlyActivity) - 1] ?? 0 }}">
+                            <div class="widget-value"
+                                data-value="{{ $monthlyActivity[count($monthlyActivity) - 1] ?? 0 }}">
                                 {{ $monthlyActivity[count($monthlyActivity) - 1] ?? 0 }}
                             </div>
                             <div class="widget-label">Actividad Mensual</div>
@@ -1041,8 +1065,8 @@
                             <a href="{{ route('admin.customers.index') }}" class="action-btn">
                                 <i class="fas fa-eye"></i>
                                 Ver Actividad
-                </a>
-            </div>
+                            </a>
+                        </div>
                     </div>
                     <div class="widget-progress">
                         <div class="progress-bar info" style="width: 75%"></div>
@@ -1059,7 +1083,7 @@
                 <div class="table-title">
                     <div class="title-icon-table products">
                         <i class="fas fa-trophy"></i>
-                </div>
+                    </div>
                     <div class="title-content-table">
                         <h3>Top 10 Productos Más Vendidos</h3>
                         <p>Ranking de productos con mejor rendimiento</p>
@@ -1076,20 +1100,20 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="premium-table-wrapper">
                 <table class="premium-table">
-                        <thead>
-                            <tr>
+                    <thead>
+                        <tr>
                             <th class="rank-column">#</th>
                             <th class="product-column">Producto</th>
                             <th class="center-column">Veces Vendido</th>
                             <th class="center-column">Cantidad Total</th>
                             <th class="right-column">Precio Unitario</th>
                             <th class="right-column">Ingresos Totales</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                        </tr>
+                    </thead>
+                    <tbody>
                         @foreach ($topSellingProducts as $index => $product)
                             <tr class="table-row">
                                 <td class="rank-cell">
@@ -1127,16 +1151,19 @@
                                 </td>
                                 <td class="right-cell">
                                     <div class="revenue-display">
-                                        <span class="revenue-amount">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</span>
+                                        <span
+                                            class="revenue-amount">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</span>
                                         <div class="revenue-bar">
-                                            <div class="revenue-progress" style="width: {{ min(100, ($product->total_revenue / $topSellingProducts->max('total_revenue')) * 100) }}%"></div>
+                                            <div class="revenue-progress"
+                                                style="width: {{ min(100, ($product->total_revenue / $topSellingProducts->max('total_revenue')) * 100) }}%">
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -1150,7 +1177,7 @@
                         <div class="table-title">
                             <div class="title-icon-table customers">
                                 <i class="fas fa-users"></i>
-                </div>
+                            </div>
                             <div class="title-content-table">
                                 <h3>Top 5 Clientes</h3>
                                 <p>Clientes con mayor volumen de compras</p>
@@ -1163,18 +1190,18 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="premium-table-wrapper">
                         <table class="premium-table customers">
-                        <thead>
-                            <tr>
+                            <thead>
+                                <tr>
                                     <th class="rank-column">#</th>
                                     <th class="customer-column">Cliente</th>
                                     <th class="right-column">Total Gastado</th>
                                     <th class="center-column">Productos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 @foreach ($topCustomers as $index => $customer)
                                     <tr class="table-row">
                                         <td class="rank-cell">
@@ -1195,9 +1222,12 @@
                                         </td>
                                         <td class="right-cell">
                                             <div class="spending-display">
-                                                <span class="spending-amount">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</span>
+                                                <span
+                                                    class="spending-amount">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</span>
                                                 <div class="spending-bar">
-                                                    <div class="spending-progress" style="width: {{ min(100, ($customer->total_spent / $topCustomers->max('total_spent')) * 100) }}%"></div>
+                                                    <div class="spending-progress"
+                                                        style="width: {{ min(100, ($customer->total_spent / $topCustomers->max('total_spent')) * 100) }}%">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -1214,13 +1244,13 @@
                                                 </div>
                                             </div>
                                         </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
             <div class="col-lg-6 col-12 mb-4">
                 <div class="premium-chart-container">
@@ -1228,12 +1258,12 @@
                         <div class="chart-title">
                             <div class="title-icon-chart analytics">
                                 <i class="fas fa-chart-pie"></i>
-                </div>
+                            </div>
                             <div class="title-content-chart">
                                 <h3>Análisis de Ventas</h3>
                                 <p>Distribución por categorías</p>
-                </div>
-            </div>
+                            </div>
+                        </div>
                         <div class="chart-actions">
                             <button class="btn-chart-action" onclick="toggleChartView()">
                                 <i class="fas fa-exchange-alt"></i>
@@ -1250,35 +1280,35 @@
     </div>
 
     {{-- ---------------------------------------------- --}}
-    
+
 
     {{-- Gráficos de Análisis --}}
     <div class="dashboard-section">
         <div class="row">
-        {{-- Gráfico de Ingresos vs Egresos --}}
+            {{-- Gráfico de Ingresos vs Egresos --}}
             <div class="col-12">
                 <div class="premium-chart-container large-chart">
                     <div class="chart-header">
                         <div class="chart-title">
                             <div class="title-icon-chart cashflow">
                                 <i class="fas fa-chart-bar"></i>
-                </div>
+                            </div>
                             <div class="title-content-chart">
                                 <h3>Análisis de Flujo de Caja</h3>
                                 <p>Ingresos vs Egresos - Últimos 7 días</p>
-                </div>
-            </div>
+                            </div>
+                        </div>
                         <div class="chart-actions">
                             <div class="chart-legend">
                                 <div class="legend-item income">
                                     <div class="legend-color"></div>
                                     <span>Ingresos</span>
-        </div>
+                                </div>
                                 <div class="legend-item expenses">
                                     <div class="legend-color"></div>
                                     <span>Egresos</span>
-                </div>
-                </div>
+                                </div>
+                            </div>
                             <button class="btn-chart-action" onclick="exportCashFlowChart()">
                                 <i class="fas fa-download"></i>
                                 Exportar
@@ -1287,7 +1317,7 @@
                                 <i class="fas fa-sync-alt"></i>
                                 Actualizar
                             </button>
-            </div>
+                        </div>
                     </div>
                     <div class="chart-content large">
                         <div class="chart-stats">
@@ -1296,7 +1326,8 @@
                                     <i class="fas fa-arrow-up"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <span class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['income']), 2) }}</span>
+                                    <span
+                                        class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['income']), 2) }}</span>
                                     <span class="stat-label">Total Ingresos</span>
                                 </div>
                             </div>
@@ -1305,7 +1336,8 @@
                                     <i class="fas fa-arrow-down"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <span class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['expenses']), 2) }}</span>
+                                    <span
+                                        class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['expenses']), 2) }}</span>
                                     <span class="stat-label">Total Egresos</span>
                                 </div>
                             </div>
@@ -1314,7 +1346,8 @@
                                     <i class="fas fa-equals"></i>
                                 </div>
                                 <div class="stat-info">
-                                    <span class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['income']) - array_sum($chartData['expenses']), 2) }}</span>
+                                    <span
+                                        class="stat-value">{{ $currency->symbol }}{{ number_format(array_sum($chartData['income']) - array_sum($chartData['expenses']), 2) }}</span>
                                     <span class="stat-label">Balance Neto</span>
                                 </div>
                             </div>
@@ -1340,11 +1373,11 @@
             --danger-gradient: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
             --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            
-            --shadow-light: 0 2px 10px rgba(0,0,0,0.1);
-            --shadow-medium: 0 8px 30px rgba(0,0,0,0.12);
-            --shadow-heavy: 0 15px 35px rgba(0,0,0,0.15);
-            
+
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.15);
+
             --border-radius: 20px;
             --border-radius-sm: 12px;
             --transition-smooth: all 0.2s ease;
@@ -1389,7 +1422,7 @@
         }
 
         .title-icon {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 0.8rem;
             border-radius: var(--border-radius-sm);
             backdrop-filter: blur(10px);
@@ -1412,7 +1445,7 @@
 
         .quick-stat {
             text-align: center;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             padding: 1rem;
             border-radius: var(--border-radius-sm);
             backdrop-filter: blur(10px);
@@ -1441,7 +1474,7 @@
             align-items: center;
             margin-bottom: 2rem;
             padding: 1.5rem;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             border-radius: var(--border-radius);
             backdrop-filter: blur(10px);
             box-shadow: var(--shadow-light);
@@ -1513,8 +1546,7 @@
             color: white;
         }
 
-        .status-indicator i {
-        }
+        .status-indicator i {}
 
         .section-actions .btn-action {
             background: var(--primary-gradient);
@@ -1619,7 +1651,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
             border-radius: 15px;
             pointer-events: none;
             z-index: 1;
@@ -1671,16 +1703,16 @@
                 align-items: stretch;
                 gap: 1rem;
             }
-            
+
             .data-selector {
                 min-width: auto;
                 width: 100%;
                 max-width: 280px;
                 margin: 0 auto;
             }
-            
 
-            
+
+
             .data-switch {
                 padding: 0.8rem 1.2rem;
                 font-size: 0.9rem;
@@ -1691,9 +1723,9 @@
             .data-selector {
                 max-width: 100%;
             }
-            
 
-            
+
+
             .data-switch {
                 padding: 0.7rem 1rem;
                 font-size: 0.85rem;
@@ -1817,7 +1849,7 @@
             width: 50px;
             height: 50px;
             border-radius: var(--border-radius-sm);
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1831,7 +1863,7 @@
             gap: 0.3rem;
             font-size: 0.9rem;
             font-weight: 600;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             backdrop-filter: blur(10px);
@@ -1882,7 +1914,7 @@
         }
 
         .action-btn {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             text-decoration: none;
             padding: 0.5rem 1rem;
@@ -1897,7 +1929,7 @@
         }
 
         .action-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             color: white;
             text-decoration: none;
             transform: translateY(-1px);
@@ -1909,13 +1941,13 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             z-index: 3;
         }
 
         .progress-bar {
             height: 100%;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             position: relative;
             overflow: hidden;
         }
@@ -1927,7 +1959,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
         }
 
         .progress-bar.success {
@@ -2042,7 +2074,10 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
+
+            *,
+            *::before,
+            *::after {
                 animation-duration: 0.01ms !important;
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
@@ -2086,7 +2121,7 @@
             width: 50px;
             height: 50px;
             border-radius: var(--border-radius-sm);
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2112,7 +2147,7 @@
         }
 
         .btn-table-action {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
             padding: 0.6rem 1rem;
@@ -2128,7 +2163,7 @@
         }
 
         .btn-table-action:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
 
@@ -2174,7 +2209,8 @@
             text-align: center;
         }
 
-        .product-column, .customer-column {
+        .product-column,
+        .customer-column {
             min-width: 200px;
         }
 
@@ -2211,13 +2247,15 @@
             color: #6c757d;
         }
 
-        .product-info, .customer-info {
+        .product-info,
+        .customer-info {
             display: flex;
             align-items: center;
             gap: 0.8rem;
         }
 
-        .product-icon, .customer-avatar {
+        .product-icon,
+        .customer-avatar {
             width: 40px;
             height: 40px;
             border-radius: var(--border-radius-sm);
@@ -2233,18 +2271,21 @@
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
 
-        .product-details, .customer-details {
+        .product-details,
+        .customer-details {
             display: flex;
             flex-direction: column;
         }
 
-        .product-name, .customer-name {
+        .product-name,
+        .customer-name {
             font-weight: 600;
             color: #2c3e50;
             font-size: 0.95rem;
         }
 
-        .product-category, .customer-status {
+        .product-category,
+        .customer-status {
             font-size: 0.8rem;
             color: #7f8c8d;
         }
@@ -2271,20 +2312,23 @@
             font-size: 1rem;
         }
 
-        .revenue-display, .spending-display {
+        .revenue-display,
+        .spending-display {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 0.3rem;
         }
 
-        .revenue-amount, .spending-amount {
+        .revenue-amount,
+        .spending-amount {
             font-weight: 700;
             color: #2c3e50;
             font-size: 1rem;
         }
 
-        .revenue-bar, .spending-bar {
+        .revenue-bar,
+        .spending-bar {
             width: 80px;
             height: 4px;
             background: #e9ecef;
@@ -2374,7 +2418,7 @@
             width: 50px;
             height: 50px;
             border-radius: var(--border-radius-sm);
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2427,7 +2471,7 @@
         }
 
         .btn-chart-action {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
             padding: 0.6rem 1rem;
@@ -2443,7 +2487,7 @@
         }
 
         .btn-chart-action:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
 
@@ -2539,13 +2583,16 @@
 
         /* Responsive Design for Tables and Charts */
         @media (max-width: 768px) {
-            .table-header, .chart-header {
+
+            .table-header,
+            .chart-header {
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
             }
 
-            .table-actions, .chart-actions {
+            .table-actions,
+            .chart-actions {
                 flex-direction: column;
                 gap: 0.5rem;
             }
@@ -2570,15 +2617,18 @@
                 font-size: 0.8rem;
             }
 
-            .premium-table td, .premium-table th {
+            .premium-table td,
+            .premium-table th {
                 padding: 0.8rem 0.5rem;
             }
 
-            .product-info, .customer-info {
+            .product-info,
+            .customer-info {
                 gap: 0.5rem;
             }
 
-            .product-icon, .customer-avatar {
+            .product-icon,
+            .customer-avatar {
                 width: 35px;
                 height: 35px;
                 font-size: 0.9rem;
@@ -2601,7 +2651,8 @@
                 font-size: 0.75rem;
             }
 
-            .revenue-bar, .spending-bar {
+            .revenue-bar,
+            .spending-bar {
                 width: 60px;
             }
 
@@ -2618,7 +2669,8 @@
                 gap: 0.25rem;
             }
 
-            .quantity-badge, .price-badge {
+            .quantity-badge,
+            .price-badge {
                 font-size: 0.75rem;
             }
         }
@@ -2740,7 +2792,8 @@
             flex-wrap: wrap;
         }
 
-        .quantity-badge, .price-badge {
+        .quantity-badge,
+        .price-badge {
             font-size: 0.8rem;
             padding: 0.25rem 0.5rem;
             border-radius: 6px;
@@ -2841,6 +2894,7 @@
                 text-align: left;
             }
         }
+
         .products-stats .stat-value {
             color: black;
         }
@@ -2859,15 +2913,15 @@
             window.refreshSalesData = function() {
                 const button = document.querySelector('.btn-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 // Simular actualización (aquí puedes agregar AJAX)
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
-                    
+
                     // Mostrar notificación de éxito
                     showNotification('Datos de ventas actualizados correctamente', 'success');
                 }, 2000);
@@ -2877,15 +2931,15 @@
             window.refreshPurchaseData = function() {
                 const button = event.target.closest('.btn-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 // Simular actualización (aquí puedes agregar AJAX)
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
-                    
+
                     // Mostrar notificación de éxito
                     showNotification('Datos de compras actualizados correctamente', 'success');
                 }, 2000);
@@ -2895,15 +2949,15 @@
             window.refreshCustomerData = function() {
                 const button = event.target.closest('.btn-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 // Simular actualización (aquí puedes agregar AJAX)
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
-                    
+
                     // Mostrar notificación de éxito
                     showNotification('Datos de clientes actualizados correctamente', 'success');
                 }, 2000);
@@ -2918,10 +2972,10 @@
             window.refreshTopProducts = function() {
                 const button = event.target.closest('.btn-table-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
@@ -2930,7 +2984,7 @@
             };
 
             window.viewAllCustomers = function() {
-                window.location.href = '{{ route("admin.customers.index") }}';
+                window.location.href = '{{ route('admin.customers.index') }}';
             };
 
             // Funciones para gráficos
@@ -2947,10 +3001,10 @@
             window.refreshCashFlowChart = function() {
                 const button = event.target.closest('.btn-chart-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
@@ -2962,10 +3016,10 @@
             window.refreshTrendsData = function() {
                 const button = event.target.closest('.btn-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
@@ -2981,10 +3035,10 @@
             window.refreshSalesChart = function() {
                 const button = event.target.closest('.btn-chart-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
@@ -3000,10 +3054,10 @@
             window.refreshPurchasesChart = function() {
                 const button = event.target.closest('.btn-chart-action');
                 const icon = button.querySelector('i');
-                
+
                 icon.style.animation = 'rotate 1s linear infinite';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     icon.style.animation = '';
                     button.disabled = false;
@@ -3018,7 +3072,7 @@
                 row.addEventListener('mouseenter', function() {
                     this.style.transform = 'translateX(5px) scale(1.01)';
                 });
-                
+
                 row.addEventListener('mouseleave', function() {
                     this.style.transform = 'translateX(0) scale(1)';
                 });
@@ -3034,12 +3088,12 @@
                         <span>${message}</span>
                     </div>
                 `;
-                
+
                 document.body.appendChild(notification);
-                
+
                 // Animar entrada
                 setTimeout(() => notification.classList.add('show'), 100);
-                
+
                 // Remover después de 3 segundos
                 setTimeout(() => {
                     notification.classList.remove('show');
@@ -3095,7 +3149,7 @@
             // ==========================================
             // SISTEMA DE CAMBIO DE DATOS DUAL
             // ==========================================
-            
+
             // Función para formatear números con símbolo de moneda
             function formatCurrency(amount) {
                 return '{{ $currency->symbol }}' + parseFloat(amount).toLocaleString('es-PE', {
@@ -3124,22 +3178,29 @@
                         elements.balance.textContent = formatCurrency(elements.balance.dataset.current || 0);
                     }
                     if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Actual';
-                    if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format("d/m H:i") : "Cerrada" }}';
-                    
-                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset.current || 0);
+                    if (elements.balanceMeta) elements.balanceMeta.innerHTML =
+                        'Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}';
+
+                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset
+                        .current || 0);
                     if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas desde Apertura';
-                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases.dataset.current || 0).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    
-                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.current || 0);
+                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases
+                        .dataset.current || 0).toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset
+                        .current || 0);
                     if (elements.debtLabel) elements.debtLabel.textContent = 'Por Cobrar en Arqueo';
                     if (elements.debtText) elements.debtText.textContent = 'Deudas del arqueo actual';
-                    
+
                     // Mostrar información de deuda actual
                     const currentInfo = document.querySelector('.debt-current-info');
                     const historicalInfo = document.querySelector('.debt-historical-info');
                     if (currentInfo) currentInfo.style.display = 'block';
                     if (historicalInfo) historicalInfo.style.display = 'none';
-                    
+
                 } else if (mode === 'historical') {
                     // Datos históricos completos
                     if (elements.balance) {
@@ -3147,15 +3208,21 @@
                     }
                     if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance Histórico Total';
                     if (elements.balanceMeta) elements.balanceMeta.innerHTML = 'Desde: Inicio de operaciones';
-                    
-                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset.historical || 0);
+
+                    if (elements.sales) elements.sales.textContent = formatCurrency(elements.sales.dataset
+                        .historical || 0);
                     if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas Históricas Totales';
-                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases.dataset.historical || 0).toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    
-                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset.historical || 0);
+                    if (elements.purchases) elements.purchases.textContent = parseFloat(elements.purchases
+                        .dataset.historical || 0).toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    if (elements.debt) elements.debt.textContent = formatCurrency(elements.debt.dataset
+                        .historical || 0);
                     if (elements.debtLabel) elements.debtLabel.textContent = 'Deuda Total Pendiente';
                     if (elements.debtText) elements.debtText.textContent = 'Clientes morosos + deudas actuales';
-                    
+
                     // Mostrar información histórica detallada
                     const currentInfo = document.querySelector('.debt-current-info');
                     const historicalInfo = document.querySelector('.debt-historical-info');
@@ -3180,8 +3247,8 @@
                     const selector = document.getElementById('cashDataSelector');
                     if (selector) {
                         selector.style.borderColor = mode === 'current' ? '#667eea' : '#6c5ce7';
-                        selector.style.background = mode === 'current' ? 
-                            'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' : 
+                        selector.style.background = mode === 'current' ?
+                            'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' :
                             'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
                     }
                 }
@@ -3201,35 +3268,36 @@
             setTimeout(() => {
                 const cashSelector = document.getElementById('cashDataSelector');
                 const dataSelectorContainer = document.querySelector('.data-selector');
-                
+
                 if (cashSelector) {
                     // Asegurar que el texto sea visible al cargar
                     cashSelector.style.color = '#2c3e50';
                     cashSelector.style.backgroundColor = 'white';
-                    
+
                     // Agregar clase activa al contenedor
                     if (dataSelectorContainer) {
                         dataSelectorContainer.classList.add('active');
                     }
-                    
+
                     // INICIALIZAR CON LOS DATOS CORRECTOS AL CARGAR LA PÁGINA
                     const initialMode = cashSelector.value || 'current';
                     switchCashData(initialMode, true);
-                    
+
                     cashSelector.addEventListener('change', function() {
                         const mode = this.value;
-                        
+
                         // Llamar a la función de cambio
                         switchCashData(mode);
-                        
+
                         // Mostrar notificación
-                        const modeText = mode === 'current' ? 'Arqueo Actual' : 'Histórico Completo';
-                        
+                        const modeText = mode === 'current' ? 'Arqueo Actual' :
+                        'Histórico Completo';
+
                         // Verificar si la función showNotification existe
                         if (typeof showNotification === 'function') {
                             showNotification(`Mostrando datos: ${modeText}`, 'info');
                         }
-                        
+
                         // Efecto visual de confirmación
                         if (dataSelectorContainer) {
                             dataSelectorContainer.style.transform = 'scale(1.05)';
@@ -3238,24 +3306,24 @@
                             }, 200);
                         }
                     });
-                    
+
                     // Efecto hover mejorado
                     if (dataSelectorContainer) {
                         dataSelectorContainer.addEventListener('mouseenter', function() {
                             this.style.transform = 'translateY(-2px)';
                         });
-                        
+
                         dataSelectorContainer.addEventListener('mouseleave', function() {
                             this.style.transform = 'translateY(0)';
                         });
                     }
-                    
+
                     // Asegurar visibilidad del texto en eventos de focus
                     cashSelector.addEventListener('focus', function() {
                         this.style.color = '#2c3e50';
                         this.style.backgroundColor = 'white';
                     });
-                    
+
                     cashSelector.addEventListener('blur', function() {
                         this.style.color = '#2c3e50';
                         this.style.backgroundColor = 'white';
@@ -3274,7 +3342,7 @@
                     });
                 }
             }
-            
+
             // Actualizar cada minuto
             setInterval(updateTime, 60000);
 
@@ -3604,43 +3672,113 @@
 
             // Función para mostrar debug detallado del balance
             window.showDetailedBalance = function() {
-                @if($currentCashCount)
-                const details = `
+                @if ($currentCashCount)
+                    const debugInfo = @json($currentCashData['debt_details']['debug_info'] ?? []);
+                    const cashOpenDate = '{{ $currentCashData['debt_details']['debug_info']['cash_open_date'] ?? 'N/A' }}';
+                    
+                    let details = `
 🔍 DEBUG DETALLADO DEL BALANCE
 
-📊 COMPONENTES ACTUALES:
-• Monto inicial del arqueo: ${{ number_format($currentCashCount->initial_amount ?? 0, 2) }}
-• Pagos de deudas recibidos: ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }}
-• Otros ingresos de caja: ${{ number_format($currentCashData['income'] ?? 0, 2) }}
-• Compras realizadas: -${{ number_format($currentCashData['purchases'] ?? 0, 2) }}
-• Otros gastos de caja: -${{ number_format($currentCashData['expenses'] ?? 0, 2) }}
+📊 INFORMACIÓN DEL ARQUEO:
+• Fecha de apertura: ${cashOpenDate}
+• Ventas desde apertura: ${{ number_format($currentCashData['sales'], 2) }}
+• Compras desde apertura: ${{ number_format($currentCashData['purchases'], 2) }}
+• Balance calculado: ${{ number_format($currentCashData['balance'], 2) }}
 
-🧮 CÁLCULO MANUAL:
-${{ number_format($currentCashCount->initial_amount ?? 0, 2) }} + ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }} + ${{ number_format($currentCashData['income'] ?? 0, 2) }} - ${{ number_format($currentCashData['purchases'] ?? 0, 2) }} - ${{ number_format($currentCashData['expenses'] ?? 0, 2) }} = ${{ number_format(($currentCashCount->initial_amount ?? 0) + ($currentCashData['debt_payments'] ?? 0) + ($currentCashData['income'] ?? 0) - ($currentCashData['purchases'] ?? 0) - ($currentCashData['expenses'] ?? 0), 2) }}
+💰 DEUDAS POR COBRAR:
+• Total deuda del arqueo actual: ${{ number_format($currentCashData['debt'], 2) }}
+• Clientes con deuda total: {{ $currentCashData['debt_details']['total_customers_with_debt'] ?? 0 }}
+• Clientes con deuda del arqueo actual: {{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}
 
-📈 BALANCE ACTUAL DEL SISTEMA: ${{ number_format($currentCashData['balance'], 2) }}
+📋 DETALLE POR CLIENTE:
+`;
 
-🔍 DIFERENCIA: ${{ number_format(($currentCashCount->initial_amount ?? 0) + ($currentCashData['debt_payments'] ?? 0) + ($currentCashData['income'] ?? 0) - ($currentCashData['purchases'] ?? 0) - ($currentCashData['expenses'] ?? 0) - $currentCashData['balance'], 2) }}
+                    if (debugInfo.customers_debug && debugInfo.customers_debug.length > 0) {
+                        debugInfo.customers_debug.forEach(customer => {
+                            details += `
+👤 ${customer.name} (ID: ${customer.id})
+   • Deuda total: $${customer.total_debt.toFixed(2)}
+   • Deuda arqueo actual: $${customer.current_cash_debt.toFixed(2)}
+   • Deuda arqueos anteriores: $${customer.previous_cash_debt.toFixed(2)}
+   • Ventas en arqueo actual: $${customer.sales_in_current.toFixed(2)}
+   • Pagos en arqueo actual: $${customer.payments_in_current.toFixed(2)}
+`;
+                        });
+                    } else {
+                        details += `✅ No hay clientes con deudas registradas.\n`;
+                    }
 
-💡 POSIBLES CAUSAS DE LA DIFERENCIA:
-• Movimientos de caja no contabilizados correctamente
-• Errores de redondeo en los cálculos
-• Caché de datos en el sistema
-• Movimientos de caja con fechas incorrectas
+                    details += `
+💡 EXPLICACIÓN:
+• Si "Deuda arqueo actual" > 0 pero no has hecho ventas, hay un error en el cálculo
+• Las deudas del arqueo actual deben ser 0 si no has vendido nada
+• Revisa si hay ventas con fechas incorrectas o pagos mal registrados
 
 🔧 ACCIONES RECOMENDADAS:
-1. Revisa la consola del navegador para más detalles
-2. Verifica los movimientos de caja en la sección de Arqueo
-3. Confirma que no hay movimientos duplicados
-4. Revisa si hay movimientos con fechas fuera del rango del arqueo
+1. Verifica que no hay ventas registradas después de la apertura de caja
+2. Revisa los pagos de deudas en la sección de clientes
+3. Confirma que las fechas de las ventas son correctas
+4. Si persiste el problema, contacta al administrador
                 `;
-                
-                alert(details);
+
+                    alert(details);
                 @endif
+            };
+
+            // Función para mostrar el desglose del balance
+            window.showBalanceBreakdown = function() {
+                const currentSales = {{ $currentCashData['sales'] ?? 0 }};
+                const currentPurchases = {{ $currentCashData['purchases'] ?? 0 }};
+                const currentBalance = {{ $currentCashData['balance'] ?? 0 }};
+                const currentDebt = {{ $currentCashData['debt'] ?? 0 }};
+                
+                const historicalSales = {{ $historicalData['sales'] ?? 0 }};
+                const historicalPurchases = {{ $historicalData['purchases'] ?? 0 }};
+                const historicalBalance = {{ $historicalData['balance'] ?? 0 }};
+                const historicalDebt = {{ $historicalData['debt'] ?? 0 }};
+
+                const breakdownHtml = `
+                    <div style="text-align: left; max-width: 500px;">
+                        <h5 style="color: #667eea; margin-bottom: 1rem;">📊 Desglose del Balance</h5>
+                        
+                        <div style="background: rgba(102,126,234,0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <h6 style="color: #667eea; margin-bottom: 0.5rem;">💰 Arqueo Actual</h6>
+                            <div style="font-size: 0.9rem; line-height: 1.6;">
+                                <div><strong>Ventas:</strong> {{ $currency->symbol }}${currentSales.toFixed(2)}</div>
+                                <div><strong>Compras:</strong> {{ $currency->symbol }}${currentPurchases.toFixed(2)}</div>
+                                <div><strong>Balance:</strong> {{ $currency->symbol }}${currentBalance.toFixed(2)}</div>
+                                <div><strong>Deudas por cobrar:</strong> {{ $currency->symbol }}${currentDebt.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(40,167,69,0.1); padding: 1rem; border-radius: 8px;">
+                            <h6 style="color: #28a745; margin-bottom: 0.5rem;">📈 Histórico Completo</h6>
+                            <div style="font-size: 0.9rem; line-height: 1.6;">
+                                <div><strong>Ventas totales:</strong> {{ $currency->symbol }}${historicalSales.toFixed(2)}</div>
+                                <div><strong>Compras totales:</strong> {{ $currency->symbol }}${historicalPurchases.toFixed(2)}</div>
+                                <div><strong>Balance histórico:</strong> {{ $currency->symbol }}${historicalBalance.toFixed(2)}</div>
+                                <div><strong>Deudas totales:</strong> {{ $currency->symbol }}${historicalDebt.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(255,193,7,0.1); border-radius: 8px; font-size: 0.85rem;">
+                            <strong>💡 Explicación:</strong> El balance se calcula como Ventas - Compras. 
+                            Las deudas no se restan porque ya están incluidas en las ventas (cuando vendes a crédito, 
+                            se cuenta como venta pero el dinero no está en caja hasta que se pague).
+                        </div>
+                    </div>
+                `;
+
+                Swal.fire({
+                    title: 'Desglose del Balance',
+                    html: breakdownHtml,
+                    width: '600px',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#667eea'
+                });
             };
 
 
         });
     </script>
 @stop
-

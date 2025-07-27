@@ -444,19 +444,39 @@ class AdminController extends Controller
          $currentCashData['debt'] = $currentCashCountDebt;
          
          // Información adicional para debug y análisis
+         $customersWithDebt = Customer::where('company_id', $companyId)
+            ->where('total_debt', '>', 0)
+            ->get();
+            
+         $customersWithCurrentDebt = $customersWithDebt->filter(function($customer) {
+            return $customer->getCurrentCashCountDebtAmount() > 0;
+         });
+         
          $currentCashData['debt_details'] = [
             'current_count_debt' => $currentCashCountDebt,
-            'customers_with_current_debt' => Customer::where('company_id', $companyId)
-               ->where('total_debt', '>', 0)
-               ->get()
-               ->filter(function($customer) {
-                  return $customer->getCurrentCashCountDebtAmount() > 0;
-               })
-               ->count()
+            'customers_with_current_debt' => $customersWithCurrentDebt->count(),
+            'total_customers_with_debt' => $customersWithDebt->count(),
+            'debug_info' => [
+               'cash_open_date' => $cashOpenDate,
+               'customers_debug' => $customersWithDebt->map(function($customer) {
+                  return [
+                     'id' => $customer->id,
+                     'name' => $customer->name,
+                     'total_debt' => $customer->total_debt,
+                     'current_cash_debt' => $customer->getCurrentCashCountDebtAmount(),
+                     'previous_cash_debt' => $customer->getPreviousCashCountDebtAmount(),
+                     'sales_in_current' => $customer->sales()
+                        ->where('sale_date', '>=', $customer->getCurrentCashCountOpeningDate())
+                        ->sum('total_price'),
+                     'payments_in_current' => $customer->getTotalPaymentsAfterDate($customer->getCurrentCashCountOpeningDate())
+                  ];
+               })->toArray()
+            ]
          ];
          
-         // NUEVA LÓGICA DE BALANCE: (Ventas Totales) - (Deudas Totales) - (Compras Totales)
-         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['debt'] - $currentCashData['purchases'];
+         // LÓGICA CORREGIDA DE BALANCE: (Ventas Totales) - (Compras Totales)
+         // Las deudas no se restan porque ya están incluidas en las ventas
+         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['purchases'];
       }
 
       // ==========================================
@@ -506,8 +526,9 @@ class AdminController extends Controller
          ]
       ];
 
-      // NUEVA LÓGICA DE BALANCE HISTÓRICO: (Ventas Totales) - (Deudas Totales) - (Compras Totales)
-      $historicalData['balance'] = $historicalData['sales'] - $historicalData['debt'] - $historicalData['purchases'];
+      // LÓGICA CORREGIDA DE BALANCE HISTÓRICO: (Ventas Totales) - (Compras Totales)
+      // Las deudas no se restan porque ya están incluidas en las ventas
+      $historicalData['balance'] = $historicalData['sales'] - $historicalData['purchases'];
 
       // Mantener variables originales para compatibilidad
       $salesSinceCashOpen = $currentCashData['sales'];
