@@ -1825,6 +1825,7 @@
             // Eliminar compra
             $('.delete-purchase').click(function() {
                 const id = $(this).data('id');
+                console.log('🔄 Intentando eliminar compra ID:', id);
 
                 Swal.fire({
                     title: '¿Estás seguro?',
@@ -1837,13 +1838,22 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        console.log('✅ Usuario confirmó eliminación');
+                        
                         $.ajax({
-                            url: `/admin/purchases/delete/${id}`,
+                            url: `/purchases/delete/${id}`,
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
+                            beforeSend: function() {
+                                console.log('📡 Enviando petición AJAX...');
+                                console.log('🔗 URL:', `/purchases/delete/${id}`);
+                                console.log('🔑 CSRF Token:', $('meta[name="csrf-token"]').attr('content'));
+                            },
                             success: function(response) {
+                                console.log('✅ Respuesta exitosa:', response);
+                                
                                 if (response.success) {
                                     Swal.fire({
                                         title: '¡Eliminado!',
@@ -1853,14 +1863,52 @@
                                         location.reload();
                                     });
                                 } else {
+                                    console.log('❌ Respuesta con error:', response);
                                     Swal.fire('Error', response.message, 'error');
                                 }
                             },
-                            error: function(xhr) {
-                                Swal.fire('Error', 'No se pudo eliminar la compra',
-                                    'error');
+                            error: function(xhr, status, error) {
+                                console.log('❌ Error en petición AJAX:');
+                                console.log('📊 Status:', status);
+                                console.log('🔍 Error:', error);
+                                console.log('📄 XHR:', xhr);
+                                console.log('📋 Response Text:', xhr.responseText);
+                                
+                                let errorMessage = 'No se pudo eliminar la compra';
+                                let errorDetails = '';
+                                
+                                try {
+                                    const response = JSON.parse(xhr.responseText);
+                                    if (response.message) {
+                                        errorMessage = response.message;
+                                    }
+                                    if (response.details) {
+                                        errorDetails = response.details;
+                                    }
+                                } catch (e) {
+                                    console.log('⚠️ No se pudo parsear la respuesta JSON');
+                                }
+                                
+                                if (xhr.status === 403) {
+                                    errorMessage = 'No tienes permisos para eliminar esta compra';
+                                } else if (xhr.status === 404) {
+                                    errorMessage = 'La compra no fue encontrada';
+                                } else if (xhr.status === 422) {
+                                    errorMessage = 'No se puede eliminar esta compra (tiene movimientos de caja)';
+                                } else if (xhr.status === 500) {
+                                    errorMessage = 'Error interno del servidor';
+                                }
+                                
+                                Swal.fire({
+                                    title: 'Error',
+                                    html: `<div>${errorMessage}</div>${errorDetails ? `<div style="margin-top: 10px; font-size: 0.9em; color: #666;">${errorDetails}</div>` : ''}`,
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
                             }
                         });
+                    } else {
+                        console.log('❌ Usuario canceló la eliminación');
                     }
                 });
             });
@@ -1871,7 +1919,7 @@
                 $('#purchaseDetailsTableBody').empty();
 
                 $.ajax({
-                    url: `/admin/purchases/${purchaseId}/details`,
+                    url: `/purchases/${purchaseId}/details`,
                     method: 'GET',
                     success: function(response) {
                         if (response.success) {

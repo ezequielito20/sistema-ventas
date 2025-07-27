@@ -459,30 +459,38 @@ class PurchaseController extends Controller
             'company_id' => $purchase->company_id
          ];
 
-         // Verificar si la compra tiene movimientos de caja asociados
-         $cashMovements = CashMovement::where('description', 'Compra #' . $purchase->id)
-            ->where('company_id', Auth::user()->company_id)
-            ->get();
-
-         if ($cashMovements->count() > 0) {
-            $totalMovements = $cashMovements->sum('amount');
-            $supplierName = $purchase->supplier->company_name ?? 'Proveedor';
+         // Verificar si al revertir el stock algún producto quedaría con stock negativo
+         $productsWithNegativeStock = [];
+         
+         foreach ($purchase->details as $detail) {
+            $product = $detail->product;
+            $newStock = $product->stock - $detail->quantity;
+            
+            if ($newStock < 0) {
+               $productsWithNegativeStock[] = [
+                  'name' => $product->name,
+                  'current_stock' => $product->stock,
+                  'quantity_to_remove' => $detail->quantity,
+                  'new_stock' => $newStock
+               ];
+            }
+         }
+         
+         if (!empty($productsWithNegativeStock)) {
+            $productList = '';
+            foreach ($productsWithNegativeStock as $product) {
+               $productList .= "• {$product['name']}: Stock actual {$product['current_stock']} - {$product['quantity_to_remove']} = {$product['new_stock']}\n";
+            }
             
             return response()->json([
                'success' => false,
-               'message' => "⚠️ No se puede eliminar esta compra porque tiene movimientos de caja asociados.\n\n" .
-                           "📊 Detalles:\n" .
-                           "• Proveedor: {$supplierName}\n" .
-                           "• Compra #{$purchase->id}\n" .
-                           "• Total de la compra: $" . number_format($purchase->total_price, 2) . "\n" .
-                           "• Movimientos de caja: $" . number_format($totalMovements, 2) . "\n" .
-                           "• Cantidad de movimientos: {$cashMovements->count()}\n\n" .
+               'message' => "⚠️ No se puede eliminar esta compra porque algunos productos quedarían con stock negativo.\n\n" .
+                           "📊 Productos afectados:\n" . $productList . "\n" .
                            "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todos los movimientos de caja asociados a esta compra antes de poder eliminarla.",
+                           "Primero debes vender o ajustar el stock de estos productos antes de poder eliminar la compra.",
                'icons' => 'warning',
-               'has_movements' => true,
-               'movements_count' => $cashMovements->count(),
-               'total_movements' => $totalMovements
+               'has_negative_stock' => true,
+               'products_affected' => $productsWithNegativeStock
             ], 422);
          }
 
@@ -493,8 +501,20 @@ class PurchaseController extends Controller
             $product->save();
          }
 
-         // Eliminar movimientos de caja asociados a esta compra
-         CashMovement::where('description', 'Compra #' . $purchase->id)->delete();
+         // Eliminar movimientos de caja asociados a esta compra (si existen)
+         $deletedMovements = CashMovement::where('description', 'Compra #' . $purchase->id)
+            ->whereHas('cashCount', function($query) {
+               $query->where('company_id', Auth::user()->company_id);
+            })
+            ->delete();
+            
+         // Log de movimientos eliminados
+         if ($deletedMovements > 0) {
+            Log::info('Movimientos de caja eliminados al eliminar compra', [
+               'purchase_id' => $purchase->id,
+               'movements_deleted' => $deletedMovements
+            ]);
+         }
 
          // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
          $purchase->delete();
