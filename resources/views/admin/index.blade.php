@@ -90,9 +90,7 @@
 
 
                             <div class="widget-label cash-balance-label">Balance Actual</div>
-                            <div class="widget-subtitle" style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">
-                                -Compras + Deudas Pagadas (Flujo de caja real)
-                            </div>
+                            
                             <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
                                 <span class="cash-meta-text">
@@ -107,35 +105,6 @@
                                     </small>
                                 @endif
                             </div>
-                            @if ($currentCashCount)
-                                <div class="widget-action mt-2">
-                                    @if ($currentCashData['balance'] < 0)
-                                        <a href="{{ route('admin.clean-orphan-movements') }}" class="action-btn"
-                                            style="background: rgba(220,53,69,0.8);"
-                                            onclick="return confirm('¿Estás seguro de que quieres limpiar los movimientos huérfanos de caja?')">
-                                            <i class="fas fa-broom"></i>
-                                            Limpiar Movimientos Huérfanos
-                                        </a>
-                                        <a href="{{ route('admin.clean-orphan-debt-payments') }}" class="action-btn"
-                                            style="background: rgba(255,193,7,0.8); margin-left: 0.5rem;"
-                                            onclick="return confirm('¿Estás seguro de que quieres limpiar los pagos de deuda huérfanos?')">
-                                            <i class="fas fa-money-bill-wave"></i>
-                                            Limpiar Pagos Huérfanos
-                                        </a>
-                                    @endif
-                                    <button class="action-btn" onclick="showDetailedBalance()"
-                                        style="background: rgba(102,126,234,0.8); margin-left: 0.5rem;">
-                                        <i class="fas fa-search"></i>
-                                        Debug Detallado
-                                    </button>
-                                    <button class="action-btn" onclick="showBalanceBreakdown()"
-                                        style="background: rgba(40,167,69,0.8); margin-left: 0.5rem;">
-                                        <i class="fas fa-calculator"></i>
-                                        Ver Desglose
-                                    </button>
-                                </div>
-                            @endif
-
                         </div>
                     </div>
                     <div class="widget-progress">
@@ -204,29 +173,6 @@
                                 {{ $currency->symbol }}{{ number_format($currentCashData['debt'], 2) }}
                             </div>
                             <div class="widget-label cash-debt-label">Por Cobrar en Arqueo</div>
-                            <div class="widget-meta cash-debt-meta">
-                                <i class="fas fa-users"></i>
-                                <span class="cash-debt-text">Deudas del arqueo actual</span>
-                                <div class="debt-breakdown mt-2" style="font-size: 0.8rem; opacity: 0.9;">
-                                    <div class="debt-current-info">
-                                        📊 <span
-                                            class="current-debt-customers">{{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}</span>
-                                        clientes con deuda actual
-                                    </div>
-                                    <div class="debt-historical-info" style="display: none;">
-                                        👥 <span
-                                            class="total-debt-customers">{{ $historicalData['debt_details']['total_customers_with_debt'] ?? 0 }}</span>
-                                        clientes total
-                                        <br>
-                                        🔴 <span
-                                            class="defaulters-count">{{ $historicalData['debt_details']['defaulters_count'] ?? 0 }}</span>
-                                        morosos
-                                        | 🟡 <span
-                                            class="current-debtors-count">{{ $historicalData['debt_details']['current_debtors_count'] ?? 0 }}</span>
-                                        actuales
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div class="widget-action">
                             <a href="{{ route('admin.customers.index') }}" class="action-btn">
