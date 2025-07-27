@@ -19,6 +19,7 @@
                 <div class="card-body">
                     <form action="{{ route('admin.cash-counts.store') }}" method="POST" id="cashCountForm">
                         @csrf
+                        <input type="hidden" name="redirect_to" value="{{ request()->headers->get('referer') }}">
 
                         <div class="row">
                             {{-- Fecha de Apertura --}}

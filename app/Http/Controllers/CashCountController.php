@@ -198,7 +198,29 @@ class CashCountController extends Controller
 
          DB::commit();
 
-         return redirect()->route('admin.cash-counts.index')
+         // Determinar desde dónde viene la petición para redirigir apropiadamente
+         $redirectTo = $request->input('redirect_to');
+         $redirectRoute = 'admin.cash-counts.index'; // Ruta por defecto
+         
+         if ($redirectTo) {
+            $refererUrl = parse_url($redirectTo, PHP_URL_PATH);
+            
+            // Detectar desde qué módulo viene la petición
+            if (strpos($refererUrl, '/sales') !== false) {
+               $redirectRoute = 'admin.sales.index';
+            } elseif (strpos($refererUrl, '/purchases') !== false) {
+               $redirectRoute = 'admin.purchases.index';
+            } elseif (strpos($refererUrl, '/customers') !== false) {
+               $redirectRoute = 'admin.customers.index';
+            } elseif (strpos($refererUrl, '/products') !== false) {
+               $redirectRoute = 'admin.products.index';
+            } elseif (strpos($refererUrl, '/suppliers') !== false) {
+               $redirectRoute = 'admin.suppliers.index';
+            }
+            // Si viene del dashboard o cash-counts, mantiene la ruta por defecto
+         }
+
+         return redirect()->route($redirectRoute)
             ->with('message', 'Caja abierta correctamente con un monto inicial de ' .
                $this->currencies->symbol . number_format($validated['initial_amount'], 2))
             ->with('icons', 'success');
