@@ -78,9 +78,10 @@
                                 {{ $currency->symbol }}{{ number_format($currentCashData['balance'], 2) }}
                             </div>
 
+
                             <div class="widget-label cash-balance-label">Balance Actual</div>
                             <div class="widget-subtitle" style="font-size: 0.75rem; opacity: 0.8; margin-top: 0.25rem;">
-                                Ventas - Compras desde apertura
+                                -Compras + Deudas Pagadas (Flujo de caja real)
                             </div>
                             <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
@@ -3681,8 +3682,8 @@
 
 📊 INFORMACIÓN DEL ARQUEO:
 • Fecha de apertura: ${cashOpenDate}
-• Ventas desde apertura: ${{ number_format($currentCashData['sales'], 2) }}
 • Compras desde apertura: ${{ number_format($currentCashData['purchases'], 2) }}
+• Deudas pagadas desde apertura: ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }}
 • Balance calculado: ${{ number_format($currentCashData['balance'], 2) }}
 
 💰 DEUDAS POR COBRAR:
