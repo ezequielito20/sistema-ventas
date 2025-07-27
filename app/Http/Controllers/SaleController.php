@@ -74,6 +74,46 @@ class SaleController extends Controller
       
       $averageTicket = $sales->count() > 0 ? $totalAmount / $sales->count() : 0;
       
+      // Obtener la caja actual (abierta)
+      $currentCashCount = CashCount::where('company_id', $this->company->id)
+                                  ->whereNull('closing_date')
+                                  ->first();
+      
+      // Calcular porcentajes dinámicos basados en ventas desde la apertura de la caja
+      $salesPercentageThisWeek = 0;
+      $profitPercentageThisWeek = 0;
+      $salesCountPercentageThisWeek = 0;
+      $averageTicketPercentage = 0;
+      
+      if ($currentCashCount) {
+         // Obtener todas las ventas desde que se abrió la caja actual
+         $salesSinceCashOpen = Sale::where('company_id', $this->company->id)
+                                  ->where('sale_date', '>=', $currentCashCount->opening_date)
+                                  ->get();
+         
+         $totalSalesSinceCashOpen = $salesSinceCashOpen->sum('total_price');
+         $totalProfitSinceCashOpen = $totalSalesSinceCashOpen * $profitMargin;
+         $totalSalesCountSinceCashOpen = $salesSinceCashOpen->count();
+         $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
+         
+         // Calcular porcentajes
+         if ($totalSalesSinceCashOpen > 0) {
+            $salesPercentageThisWeek = round(($totalSalesAmountThisWeek / $totalSalesSinceCashOpen) * 100, 1);
+         }
+         
+         if ($totalProfitSinceCashOpen > 0) {
+            $profitPercentageThisWeek = round(($totalProfitThisWeek / $totalProfitSinceCashOpen) * 100, 1);
+         }
+         
+         if ($totalSalesCountSinceCashOpen > 0) {
+            $salesCountPercentageThisWeek = round(($salesCountThisWeek / $totalSalesCountSinceCashOpen) * 100, 1);
+         }
+         
+         if ($averageTicketSinceCashOpen > 0) {
+            $averageTicketPercentage = round((($averageTicket - $averageTicketSinceCashOpen) / $averageTicketSinceCashOpen) * 100, 1);
+         }
+      }
+      
       $currency = $this->currencies;
       $cashCount = CashCount::where('company_id', $this->company->id)
                           ->whereNull('closing_date')
@@ -89,7 +129,11 @@ class SaleController extends Controller
           'cashCount',
           'totalSalesAmountThisWeek',
           'totalProfitThisWeek',
-          'salesCountThisWeek'
+          'salesCountThisWeek',
+          'salesPercentageThisWeek',
+          'profitPercentageThisWeek',
+          'salesCountPercentageThisWeek',
+          'averageTicketPercentage'
       ));
    }
 
@@ -376,7 +420,7 @@ class SaleController extends Controller
          if (isset($validated['sale_time'])) {
             $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
          } else {
-            $sale->sale_date = $validated['sale_date'];
+         $sale->sale_date = $validated['sale_date'];
          }
          $sale->customer_id = $validated['customer_id'];
          $sale->total_price = $validated['total_price'];

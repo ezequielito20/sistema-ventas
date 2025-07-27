@@ -48,23 +48,23 @@
                 <div class="row">
                     <!-- Código de Producto -->
                     <div class="col-xl-4 col-lg-3 col-md-6 col-12">
-                        <div class="form-group-modern">
-                            <label for="product_code" class="form-label required">
-                                <i class="fas fa-barcode"></i>
-                                Código de Producto
-                            </label>
-                            <div class="input-group-modern">
-                                <input type="text" name="product_code" id="product_code"
-                                    class="form-control-modern @error('product_code') is-invalid @enderror"
-                                    placeholder="Escanee o ingrese el código del producto">
-                                <div class="input-actions">
-                                    <button type="button" class="btn-action btn-search" id="searchProduct"
-                                        data-toggle="modal" data-target="#searchProductModal">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                    <a href="/products/create" class="btn-action btn-add">
-                                        <i class="fas fa-plus"></i>
-                                    </a>
+                    <div class="form-group-modern">
+                        <label for="product_code" class="form-label required">
+                            <i class="fas fa-barcode"></i>
+                            Código de Producto
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="text" name="product_code" id="product_code"
+                                class="form-control-modern @error('product_code') is-invalid @enderror"
+                                placeholder="Escanee o ingrese el código del producto">
+                            <div class="input-actions">
+                                <button type="button" class="btn-action btn-search" id="searchProduct"
+                                    data-toggle="modal" data-target="#searchProductModal">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="/products/create" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
                                 </div>
                             </div>
                         </div>
@@ -72,48 +72,48 @@
 
                     <!-- Cliente -->
                     <div class="col-xl-4 col-lg-3 col-md-6 col-12">
-                        <div class="form-group-modern">
-                            <label for="customer_id" class="form-label required">
-                                <i class="fas fa-user"></i>
-                                Cliente
-                            </label>
-                            <div class="input-group-modern">
-                                <select name="customer_id" id="customer_id"
-                                    class="form-control-modern select2 @error('customer_id') is-invalid @enderror" required>
-                                    <option value="">Seleccione un cliente</option>
-                                    @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
-                                            {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="input-actions">
-                                    <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn-action btn-add">
-                                        <i class="fas fa-plus"></i>
-                                    </a>
-                                </div>
+                    <div class="form-group-modern">
+                        <label for="customer_id" class="form-label required">
+                            <i class="fas fa-user"></i>
+                            Cliente
+                        </label>
+                        <div class="input-group-modern">
+                            <select name="customer_id" id="customer_id"
+                                class="form-control-modern select2 @error('customer_id') is-invalid @enderror" required>
+                                <option value="">Seleccione un cliente</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ isset($selectedCustomerId) && $selectedCustomerId == $customer->id ? 'selected' : '' }}>
+                                        {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="input-actions">
+                                <a href="{{ route('admin.customers.create') }}?return_to=sales.create" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
                             </div>
-                            @error('customer_id')
-                                <div class="error-message">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        </div>
+                        @error('customer_id')
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {{ $message }}
+                            </div>
+                        @enderror
                         </div>
                     </div>
 
                     <!-- Fecha de Venta -->
                     <div class="col-xl-2 col-lg-3 col-md-6 col-12">
-                        <div class="form-group-modern">
-                            <label for="sale_date" class="form-label required">
-                                <i class="fas fa-calendar"></i>
-                                Fecha de Venta
-                            </label>
-                            <div class="input-group-modern">
-                                <input type="date" name="sale_date" id="sale_date"
-                                    class="form-control-modern @error('sale_date') is-invalid @enderror"
-                                    value="{{ old('sale_date', date('Y-m-d')) }}" required>
-                            </div>
+                    <div class="form-group-modern">
+                        <label for="sale_date" class="form-label required">
+                            <i class="fas fa-calendar"></i>
+                            Fecha de Venta
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="date" name="sale_date" id="sale_date"
+                                class="form-control-modern @error('sale_date') is-invalid @enderror"
+                                value="{{ old('sale_date', date('Y-m-d')) }}" required>
+                        </div>
                             @error('sale_date')
                                 <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
@@ -1555,7 +1555,7 @@
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-                    $(document).ready(function() {
+        $(document).ready(function() {
             // Guardar la URL original cuando se carga la página por primera vez
             if (!sessionStorage.getItem('sales_original_referrer')) {
                 const referrer = document.referrer;

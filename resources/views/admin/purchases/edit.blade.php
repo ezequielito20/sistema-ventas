@@ -147,8 +147,8 @@
                                         Fecha de Compra
                                     </label>
                                     <div class="input-group-modern">
-                                        <input type="date" name="purchase_date" id="purchase_date"
-                                            class="form-control-modern @error('purchase_date') is-invalid @enderror"
+                                    <input type="date" name="purchase_date" id="purchase_date"
+                                        class="form-control-modern @error('purchase_date') is-invalid @enderror"
                                             value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}" required>
                                     </div>
                                     @error('purchase_date')

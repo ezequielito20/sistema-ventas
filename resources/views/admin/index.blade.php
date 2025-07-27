@@ -173,16 +173,16 @@
                     <div class="widget-background">
                         <div class="bg-pattern"></div>
                         <div class="widget-gradient"></div>
-                    </div>
+                </div>
                     <div class="widget-content">
                         <div class="widget-header">
                             <div class="widget-icon debt-icon">
                                 <i class="fas fa-hourglass-half"></i>
                             </div>
                             <div class="widget-trend warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                        </div>
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
                         <div class="widget-body">
                             <div class="widget-value cash-debt-value" 
                                  data-current="{{ $currentCashData['debt'] }}" 

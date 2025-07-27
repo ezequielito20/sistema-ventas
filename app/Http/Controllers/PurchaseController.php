@@ -318,7 +318,7 @@ class PurchaseController extends Controller
          if (isset($validated['purchase_time'])) {
             $purchase->purchase_date = $validated['purchase_date'] . ' ' . $validated['purchase_time'];
          } else {
-            $purchase->purchase_date = $validated['purchase_date'];
+         $purchase->purchase_date = $validated['purchase_date'];
          }
          $purchase->total_price = $validated['total_price'];
          $purchase->save();

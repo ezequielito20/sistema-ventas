@@ -465,12 +465,12 @@ class AdminController extends Controller
       
       // Ventas históricas totales
       $totalSales = DB::table('sales')->where('company_id', $companyId)->sum('total_price');
-      
+         
       // Compras históricas totales (dinero gastado)
       $historicalPurchases = DB::table('purchases')
          ->where('company_id', $companyId)
          ->sum('total_price') ?? 0;
-      
+         
       // Deuda histórica total (clientes morosos + clientes con deuda actual)
       $customersWithDebt = Customer::where('company_id', $companyId)
          ->where('total_debt', '>', 0)
