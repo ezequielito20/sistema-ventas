@@ -1838,7 +1838,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: `/purchases/delete/${id}`,
+                            url: `/admin/purchases/delete/${id}`,
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1871,7 +1871,7 @@
                 $('#purchaseDetailsTableBody').empty();
 
                 $.ajax({
-                    url: `/purchases/${purchaseId}/details`,
+                    url: `/admin/purchases/${purchaseId}/details`,
                     method: 'GET',
                     success: function(response) {
                         if (response.success) {

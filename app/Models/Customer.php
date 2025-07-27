@@ -317,11 +317,18 @@ class Customer extends Model
          ->where('sale_date', '>=', $currentCashCountOpeningDate)
          ->sum('total_price');
       
-      // Obtener pagos realizados DESPUÉS de la apertura del arqueo actual
-      $paymentsInCurrentCashCount = $this->getTotalPaymentsAfterDate($currentCashCountOpeningDate);
-      
-      // La deuda del arqueo actual es: ventas del arqueo - pagos del arqueo
-      return $salesInCurrentCashCount - $paymentsInCurrentCashCount;
+      // Solo contar pagos que corresponden a deudas del arqueo actual
+      // Si el cliente tiene ventas en el arqueo actual, entonces los pagos cuentan
+      if ($salesInCurrentCashCount > 0) {
+         $paymentsInCurrentCashCount = $this->getTotalPaymentsAfterDate($currentCashCountOpeningDate);
+         $debt = $salesInCurrentCashCount - $paymentsInCurrentCashCount;
+         
+         // La deuda nunca puede ser negativa
+         return max(0, $debt);
+      } else {
+         // Si no tiene ventas en el arqueo actual, no tiene deuda del arqueo actual
+         return 0;
+      }
    }
 
    /**
