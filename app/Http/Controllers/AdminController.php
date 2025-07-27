@@ -576,6 +576,107 @@ class AdminController extends Controller
       // Solo cuenta el dinero que realmente tienes disponible
       $historicalData['balance'] = -$historicalData['purchases'] + $historicalData['debt_payments'];
 
+      // ==========================================
+      // DATOS DE ARQUEOS CERRADOS
+      // ==========================================
+      
+      // Obtener todos los arqueos cerrados (con fecha de cierre)
+      $closedCashCounts = DB::table('cash_counts')
+         ->where('company_id', $companyId)
+         ->whereNotNull('closing_date')
+         ->orderBy('opening_date', 'desc')
+         ->get();
+
+      $closedCashCountsData = [];
+      
+      foreach ($closedCashCounts as $closedCashCount) {
+         $openingDate = $closedCashCount->opening_date;
+         $closingDate = $closedCashCount->closing_date;
+         
+         // Ventas durante este arqueo
+         $salesInPeriod = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $openingDate)
+            ->where('sale_date', '<=', $closingDate)
+            ->sum('total_price');
+            
+         // Compras durante este arqueo
+         $purchasesInPeriod = DB::table('purchases')
+            ->where('company_id', $companyId)
+            ->where('purchase_date', '>=', $openingDate)
+            ->where('purchase_date', '<=', $closingDate)
+            ->sum('total_price');
+            
+         // Deudas pagadas durante este arqueo
+         $debtPaymentsInPeriod = 0;
+         if (Schema::hasTable('debt_payments')) {
+            $allPaymentsInPeriod = DB::table('debt_payments')
+               ->where('company_id', $companyId)
+               ->where('created_at', '>=', $openingDate)
+               ->where('created_at', '<=', $closingDate)
+               ->get();
+            
+            // Filtrar solo los pagos que corresponden a deudas de este arqueo
+            $debtPaymentsInPeriod = $allPaymentsInPeriod->sum(function($payment) use ($openingDate, $closingDate) {
+               $customer = Customer::find($payment->customer_id);
+               if (!$customer) return 0;
+               
+               // Verificar si el cliente tiene ventas en este arqueo
+               $salesInThisCashCount = $customer->sales()
+                  ->where('sale_date', '>=', $openingDate)
+                  ->where('sale_date', '<=', $closingDate)
+                  ->sum('total_price');
+               
+               // Si el cliente tiene ventas en este arqueo, contar el pago
+               if ($salesInThisCashCount > 0) {
+                  return $payment->payment_amount;
+               } else {
+                  return 0;
+               }
+            });
+         }
+         
+         // Calcular deudas pendientes al cierre de este arqueo
+         $debtAtClosing = Customer::where('company_id', $companyId)
+            ->where('total_debt', '>', 0)
+            ->get()
+            ->sum(function($customer) use ($openingDate, $closingDate) {
+               // Calcular deuda específica de este arqueo
+               $salesInThisCashCount = $customer->sales()
+                  ->where('sale_date', '>=', $openingDate)
+                  ->where('sale_date', '<=', $closingDate)
+                  ->sum('total_price');
+               
+               $paymentsInThisCashCount = $customer->getTotalPaymentsAfterDate($openingDate) - 
+                                        $customer->getTotalPaymentsAfterDate($closingDate);
+               
+               $debt = $salesInThisCashCount - $paymentsInThisCashCount;
+               return max(0, $debt);
+            });
+         
+         // Calcular balance: -Compras + Deudas Pagadas
+         $balanceInPeriod = -$purchasesInPeriod + $debtPaymentsInPeriod;
+         
+         // Formatear fechas para mostrar en las opciones
+         $openingDateFormatted = Carbon::parse($openingDate)->format('d/m/y');
+         $closingDateFormatted = Carbon::parse($closingDate)->format('d/m/y');
+         
+         $closedCashCountsData[] = [
+            'id' => $closedCashCount->id,
+            'opening_date' => $openingDate,
+            'closing_date' => $closingDate,
+            'opening_date_formatted' => $openingDateFormatted,
+            'closing_date_formatted' => $closingDateFormatted,
+            'option_text' => "Arqueo #{$closedCashCount->id} (desde: {$openingDateFormatted} hasta: {$closingDateFormatted})",
+            'sales' => $salesInPeriod,
+            'purchases' => $purchasesInPeriod,
+            'debt_payments' => $debtPaymentsInPeriod,
+            'debt' => $debtAtClosing,
+            'balance' => $balanceInPeriod,
+            'initial_amount' => $closedCashCount->initial_amount
+         ];
+      }
+
       // Mantener variables originales para compatibilidad
       $salesSinceCashOpen = $currentCashData['sales'];
       $purchasesSinceCashOpen = $currentCashData['purchases'];
@@ -677,7 +778,8 @@ class AdminController extends Controller
          'dailySalesData',
          // NUEVOS DATOS DUALES
          'currentCashData',
-         'historicalData'
+         'historicalData',
+         'closedCashCountsData'
       ));
    }
 }

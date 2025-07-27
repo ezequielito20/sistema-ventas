@@ -44,6 +44,16 @@
                     <select class="data-switch" data-section="cash" id="cashDataSelector">
                         <option value="current" selected>📊 Arqueo Actual</option>
                         <option value="historical">📈 Histórico Completo</option>
+                        @foreach($closedCashCountsData as $closedCashCount)
+                            <option value="closed_{{ $closedCashCount['id'] }}" 
+                                    data-sales="{{ $closedCashCount['sales'] }}"
+                                    data-purchases="{{ $closedCashCount['purchases'] }}"
+                                    data-debt="{{ $closedCashCount['debt'] }}"
+                                    data-balance="{{ $closedCashCount['balance'] }}"
+                                    data-debt-payments="{{ $closedCashCount['debt_payments'] }}">
+                                📋 {{ $closedCashCount['option_text'] }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="section-status">
@@ -3229,6 +3239,44 @@
                     const historicalInfo = document.querySelector('.debt-historical-info');
                     if (currentInfo) currentInfo.style.display = 'none';
                     if (historicalInfo) historicalInfo.style.display = 'block';
+                } else if (mode.startsWith('closed_')) {
+                    // Datos de arqueo cerrado específico
+                    const cashCountId = mode.replace('closed_', '');
+                    const selectedOption = document.querySelector(`option[value="${mode}"]`);
+                    
+                    if (selectedOption) {
+                        const sales = parseFloat(selectedOption.dataset.sales || 0);
+                        const purchases = parseFloat(selectedOption.dataset.purchases || 0);
+                        const debt = parseFloat(selectedOption.dataset.debt || 0);
+                        const balance = parseFloat(selectedOption.dataset.balance || 0);
+                        const debtPayments = parseFloat(selectedOption.dataset.debtPayments || 0);
+                        
+                        // Obtener el texto de la opción para mostrar el período
+                        const optionText = selectedOption.textContent.replace('📋 ', '');
+                        
+                        if (elements.balance) {
+                            elements.balance.textContent = formatCurrency(balance);
+                        }
+                        if (elements.balanceLabel) elements.balanceLabel.textContent = 'Balance del Arqueo';
+                        if (elements.balanceMeta) elements.balanceMeta.innerHTML = `Período: ${optionText}`;
+
+                        if (elements.sales) elements.sales.textContent = formatCurrency(sales);
+                        if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas del Arqueo';
+                        if (elements.purchases) elements.purchases.textContent = parseFloat(purchases).toLocaleString('es-PE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                        if (elements.debt) elements.debt.textContent = formatCurrency(debt);
+                        if (elements.debtLabel) elements.debtLabel.textContent = 'Por Cobrar del Arqueo';
+                        if (elements.debtText) elements.debtText.textContent = 'Deudas pendientes al cierre';
+
+                        // Ocultar información detallada para arqueos cerrados
+                        const currentInfo = document.querySelector('.debt-current-info');
+                        const historicalInfo = document.querySelector('.debt-historical-info');
+                        if (currentInfo) currentInfo.style.display = 'none';
+                        if (historicalInfo) historicalInfo.style.display = 'none';
+                    }
                 }
 
                 // Efecto visual de cambio (solo si no es inicialización)
@@ -3291,8 +3339,13 @@
                         switchCashData(mode);
 
                         // Mostrar notificación
-                        const modeText = mode === 'current' ? 'Arqueo Actual' :
-                        'Histórico Completo';
+                        let modeText = 'Arqueo Actual';
+                        if (mode === 'historical') {
+                            modeText = 'Histórico Completo';
+                        } else if (mode.startsWith('closed_')) {
+                            const selectedOption = this.options[this.selectedIndex];
+                            modeText = selectedOption.textContent.replace('📋 ', '');
+                        }
 
                         // Verificar si la función showNotification existe
                         if (typeof showNotification === 'function') {
