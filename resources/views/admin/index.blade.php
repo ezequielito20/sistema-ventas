@@ -201,11 +201,29 @@
                     <p>Rendimiento y métricas de ventas</p>
                 </div>
             </div>
-            <div class="section-actions">
-                <button class="btn-action" onclick="refreshSalesData()">
-                    <i class="fas fa-sync-alt"></i>
-                    Actualizar
-                </button>
+            <div class="section-controls">
+                <div class="data-selector">
+                    <select class="data-switch" data-section="sales" id="salesDataSelector">
+                        <option value="current" selected>📊 Arqueo Actual</option>
+                        <option value="historical">📈 Histórico Completo</option>
+                        @foreach($closedCashCountsData as $closedCashCount)
+                            <option value="closed_{{ $closedCashCount['id'] }}" 
+                                    data-today-sales="{{ $closedSalesData[$closedCashCount['id']]['today_sales'] ?? 0 }}"
+                                    data-weekly-sales="{{ $closedSalesData[$closedCashCount['id']]['weekly_sales'] ?? 0 }}"
+                                    data-average-customer-spend="{{ $closedSalesData[$closedCashCount['id']]['average_customer_spend'] ?? 0 }}"
+                                    data-total-profit="{{ $closedSalesData[$closedCashCount['id']]['total_profit'] ?? 0 }}"
+                                    data-monthly-sales="{{ $closedSalesData[$closedCashCount['id']]['monthly_sales'] ?? 0 }}">
+                                📋 {{ $closedCashCount['option_text'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="section-actions">
+                    <button class="btn-action" onclick="refreshSalesData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualizar
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -228,13 +246,17 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $weeklySales }}">
-                                {{ $currency->symbol }}{{ number_format($weeklySales, 2) }}
+                            <div class="widget-value sales-weekly-value" 
+                                 data-current="{{ $currentSalesData['weekly_sales'] }}"
+                                 data-historical="{{ $historicalSalesData['weekly_sales'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentSalesData['weekly_sales'], 2) }}
                             </div>
-                            <div class="widget-label">Ventas de la Semana</div>
+                            <div class="widget-label sales-weekly-label">Ventas de la Semana</div>
                             <div class="widget-meta">
                                 <i class="fas fa-calendar-day"></i>
-                                Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}
+                                <span class="sales-today-text">
+                                    Hoy: {{ $currency->symbol }}{{ number_format($currentSalesData['today_sales'], 2) }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -262,10 +284,12 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $averageCustomerSpend }}">
-                                {{ $currency->symbol }}{{ number_format($averageCustomerSpend, 2) }}
+                            <div class="widget-value sales-average-value" 
+                                 data-current="{{ $currentSalesData['average_customer_spend'] }}"
+                                 data-historical="{{ $historicalSalesData['average_customer_spend'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentSalesData['average_customer_spend'], 2) }}
                             </div>
-                            <div class="widget-label">Promedio por Cliente</div>
+                            <div class="widget-label sales-average-label">Promedio por Cliente</div>
                             <div class="widget-meta">
                                 <i class="fas fa-users"></i>
                                 Ticket promedio de venta
@@ -296,10 +320,12 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $mostProfitableProducts->sum('total_profit') }}">
-                                {{ $currency->symbol }}{{ number_format($mostProfitableProducts->sum('total_profit'), 2) }}
+                            <div class="widget-value sales-profit-value" 
+                                 data-current="{{ $currentSalesData['total_profit'] }}"
+                                 data-historical="{{ $historicalSalesData['total_profit'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentSalesData['total_profit'], 2) }}
                             </div>
-                            <div class="widget-label">Ganancia Total Teórica</div>
+                            <div class="widget-label sales-profit-label">Ganancia Total Teórica</div>
                             <div class="widget-meta">
                                 <i class="fas fa-coins"></i>
                                 Margen de productos vendidos
@@ -330,10 +356,12 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value" data-value="{{ $monthlyPurchases }}">
-                                {{ $currency->symbol }}{{ number_format($monthlyPurchases, 2) }}
+                            <div class="widget-value sales-monthly-value" 
+                                 data-current="{{ $currentSalesData['monthly_sales'] }}"
+                                 data-historical="{{ $historicalSalesData['monthly_sales'] }}">
+                                {{ $currency->symbol }}{{ number_format($currentSalesData['monthly_sales'], 2) }}
                             </div>
-                            <div class="widget-label">Rendimiento Mensual</div>
+                            <div class="widget-label sales-monthly-label">Rendimiento Mensual</div>
                             <div class="widget-meta">
                                 <i class="fas fa-chart-bar"></i>
                                 Comparado con mes anterior
@@ -3249,6 +3277,139 @@
                 }
             }
 
+            // Función para cambiar datos de la sección de ventas
+            window.switchSalesData = function(mode, isInitialization = false) {
+                const elements = {
+                    weeklySales: document.querySelector('.sales-weekly-value'),
+                    weeklyLabel: document.querySelector('.sales-weekly-label'),
+                    todayText: document.querySelector('.sales-today-text'),
+                    averageSpend: document.querySelector('.sales-average-value'),
+                    averageLabel: document.querySelector('.sales-average-label'),
+                    profit: document.querySelector('.sales-profit-value'),
+                    profitLabel: document.querySelector('.sales-profit-label'),
+                    monthlySales: document.querySelector('.sales-monthly-value'),
+                    monthlyLabel: document.querySelector('.sales-monthly-label')
+                };
+
+                if (mode === 'current') {
+                    // Datos del arqueo actual
+                    if (elements.weeklySales) {
+                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset.current || 0);
+                    }
+                    if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas de la Semana';
+                    if (elements.todayText) elements.todayText.innerHTML = 
+                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset.current || 0).toLocaleString('es-PE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                    if (elements.averageSpend) {
+                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset.current || 0);
+                    }
+                    if (elements.averageLabel) elements.averageLabel.textContent = 'Promedio por Cliente';
+
+                    if (elements.profit) {
+                        elements.profit.textContent = formatCurrency(elements.profit.dataset.current || 0);
+                    }
+                    if (elements.profitLabel) elements.profitLabel.textContent = 'Ganancia Total Teórica';
+
+                    if (elements.monthlySales) {
+                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset.current || 0);
+                    }
+                    if (elements.monthlyLabel) elements.monthlyLabel.textContent = 'Rendimiento Mensual';
+
+                } else if (mode === 'historical') {
+                    // Datos históricos completos
+                    if (elements.weeklySales) {
+                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset.historical || 0);
+                    }
+                    if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas Históricas de la Semana';
+                    if (elements.todayText) elements.todayText.innerHTML = 
+                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset.historical || 0).toLocaleString('es-PE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+
+                    if (elements.averageSpend) {
+                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset.historical || 0);
+                    }
+                    if (elements.averageLabel) elements.averageLabel.textContent = 'Promedio Histórico por Cliente';
+
+                    if (elements.profit) {
+                        elements.profit.textContent = formatCurrency(elements.profit.dataset.historical || 0);
+                    }
+                    if (elements.profitLabel) elements.profitLabel.textContent = 'Ganancia Histórica Total';
+
+                    if (elements.monthlySales) {
+                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset.historical || 0);
+                    }
+                    if (elements.monthlyLabel) elements.monthlyLabel.textContent = 'Rendimiento Histórico Mensual';
+
+                } else if (mode.startsWith('closed_')) {
+                    // Datos de arqueo cerrado específico
+                    const selectedOption = document.querySelector(`option[value="${mode}"]`);
+                    
+                    if (selectedOption) {
+                        const todaySales = parseFloat(selectedOption.dataset.todaySales || 0);
+                        const weeklySales = parseFloat(selectedOption.dataset.weeklySales || 0);
+                        const averageCustomerSpend = parseFloat(selectedOption.dataset.averageCustomerSpend || 0);
+                        const totalProfit = parseFloat(selectedOption.dataset.totalProfit || 0);
+                        const monthlySales = parseFloat(selectedOption.dataset.monthlySales || 0);
+                        
+                        // Obtener el texto de la opción para mostrar el período
+                        const optionText = selectedOption.textContent.replace('📋 ', '');
+                        
+                        if (elements.weeklySales) {
+                            elements.weeklySales.textContent = formatCurrency(weeklySales);
+                        }
+                        if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas del Arqueo';
+                        if (elements.todayText) elements.todayText.innerHTML = 
+                            'Hoy: {{ $currency->symbol }}' + todaySales.toLocaleString('es-PE', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                        if (elements.averageSpend) {
+                            elements.averageSpend.textContent = formatCurrency(averageCustomerSpend);
+                        }
+                        if (elements.averageLabel) elements.averageLabel.textContent = 'Promedio del Arqueo';
+
+                        if (elements.profit) {
+                            elements.profit.textContent = formatCurrency(totalProfit);
+                        }
+                        if (elements.profitLabel) elements.profitLabel.textContent = 'Ganancia del Arqueo';
+
+                        if (elements.monthlySales) {
+                            elements.monthlySales.textContent = formatCurrency(monthlySales);
+                        }
+                        if (elements.monthlyLabel) elements.monthlyLabel.textContent = 'Total del Arqueo';
+                    }
+                }
+
+                // Efecto visual de cambio (solo si no es inicialización)
+                if (!isInitialization) {
+                    Object.values(elements).forEach(element => {
+                        if (element) {
+                            element.style.transform = 'scale(1.05)';
+                            element.style.transition = 'all 0.3s ease';
+                            element.style.color = mode === 'current' ? '#2c3e50' : '#6c5ce7';
+                            setTimeout(() => {
+                                element.style.transform = 'scale(1)';
+                            }, 300);
+                        }
+                    });
+
+                    // Cambiar color del selector según el modo
+                    const selector = document.getElementById('salesDataSelector');
+                    if (selector) {
+                        selector.style.borderColor = mode === 'current' ? '#667eea' : '#6c5ce7';
+                        selector.style.background = mode === 'current' ?
+                            'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)' :
+                            'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                    }
+                }
+            }
+
             // Inicializar los datos correctos inmediatamente al cargar la página
             document.addEventListener('DOMContentLoaded', function() {
                 // Esperar un momento para que los elementos estén completamente renderizados
@@ -3330,6 +3491,78 @@
                     });
                 }
             }, 1000);
+
+            // Event listener para el selector de datos de ventas
+            setTimeout(() => {
+                const salesSelector = document.getElementById('salesDataSelector');
+                const salesDataSelectorContainer = document.querySelector('.section-controls .data-selector');
+
+                if (salesSelector) {
+                    // Asegurar que el texto sea visible al cargar
+                    salesSelector.style.color = '#2c3e50';
+                    salesSelector.style.backgroundColor = 'white';
+
+                    // Agregar clase activa al contenedor
+                    if (salesDataSelectorContainer) {
+                        salesDataSelectorContainer.classList.add('active');
+                    }
+
+                    // INICIALIZAR CON LOS DATOS CORRECTOS AL CARGAR LA PÁGINA
+                    const initialSalesMode = salesSelector.value || 'current';
+                    switchSalesData(initialSalesMode, true);
+
+                    salesSelector.addEventListener('change', function() {
+                        const mode = this.value;
+
+                        // Llamar a la función de cambio
+                        switchSalesData(mode);
+
+                        // Mostrar notificación
+                        let modeText = 'Arqueo Actual';
+                        if (mode === 'historical') {
+                            modeText = 'Histórico Completo';
+                        } else if (mode.startsWith('closed_')) {
+                            const selectedOption = this.options[this.selectedIndex];
+                            modeText = selectedOption.textContent.replace('📋 ', '');
+                        }
+
+                        // Verificar si la función showNotification existe
+                        if (typeof showNotification === 'function') {
+                            showNotification(`Mostrando datos de ventas: ${modeText}`, 'info');
+                        }
+
+                        // Efecto visual de confirmación
+                        if (salesDataSelectorContainer) {
+                            salesDataSelectorContainer.style.transform = 'scale(1.05)';
+                            setTimeout(() => {
+                                salesDataSelectorContainer.style.transform = 'scale(1)';
+                            }, 200);
+                        }
+                    });
+
+                    // Efecto hover mejorado
+                    if (salesDataSelectorContainer) {
+                        salesDataSelectorContainer.addEventListener('mouseenter', function() {
+                            this.style.transform = 'translateY(-2px)';
+                        });
+
+                        salesDataSelectorContainer.addEventListener('mouseleave', function() {
+                            this.style.transform = 'translateY(0)';
+                        });
+                    }
+
+                    // Asegurar visibilidad del texto en eventos de focus
+                    salesSelector.addEventListener('focus', function() {
+                        this.style.color = '#2c3e50';
+                        this.style.backgroundColor = 'white';
+                    });
+
+                    salesSelector.addEventListener('blur', function() {
+                        this.style.color = '#2c3e50';
+                        this.style.backgroundColor = 'white';
+                    });
+                }
+            }, 1200);
 
             // Actualizar hora en tiempo real
             function updateTime() {

@@ -64,7 +64,7 @@
                             <p class="stats-label">Ventas esta semana</p>
                             <div class="stats-trend @if($salesPercentageThisWeek < 0) negative @elseif($salesPercentageThisWeek == 0) neutral @endif">
                                 @if($salesPercentageThisWeek > 0)
-                                    <i class="fas fa-arrow-up"></i>
+                                <i class="fas fa-arrow-up"></i>
                                     <span>+{{ $salesPercentageThisWeek }}%</span>
                                 @elseif($salesPercentageThisWeek < 0)
                                     <i class="fas fa-arrow-down"></i>
@@ -104,7 +104,7 @@
                             <p class="stats-label">Ganancias esta semana</p>
                             <div class="stats-trend @if($profitPercentageThisWeek < 0) negative @elseif($profitPercentageThisWeek == 0) neutral @endif">
                                 @if($profitPercentageThisWeek > 0)
-                                    <i class="fas fa-arrow-up"></i>
+                                <i class="fas fa-arrow-up"></i>
                                     <span>+{{ $profitPercentageThisWeek }}%</span>
                                 @elseif($profitPercentageThisWeek < 0)
                                     <i class="fas fa-arrow-down"></i>
@@ -143,7 +143,7 @@
                             <p class="stats-label">Ventas realizadas</p>
                             <div class="stats-trend @if($salesCountPercentageThisWeek < 0) negative @elseif($salesCountPercentageThisWeek == 0) neutral @endif">
                                 @if($salesCountPercentageThisWeek > 0)
-                                    <i class="fas fa-arrow-up"></i>
+                                <i class="fas fa-arrow-up"></i>
                                     <span>+{{ $salesCountPercentageThisWeek }}%</span>
                                 @elseif($salesCountPercentageThisWeek < 0)
                                     <i class="fas fa-arrow-down"></i>
@@ -182,7 +182,7 @@
                             <p class="stats-label">Ticket promedio</p>
                             <div class="stats-trend @if($averageTicketPercentage < 0) negative @elseif($averageTicketPercentage == 0) neutral @endif">
                                 @if($averageTicketPercentage > 0)
-                                    <i class="fas fa-arrow-up"></i>
+                                <i class="fas fa-arrow-up"></i>
                                     <span>+{{ $averageTicketPercentage }}%</span>
                                 @elseif($averageTicketPercentage < 0)
                                     <i class="fas fa-arrow-down"></i>

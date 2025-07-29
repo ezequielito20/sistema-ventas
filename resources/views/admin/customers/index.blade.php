@@ -3967,9 +3967,9 @@
                     customerName = $(this).closest('.customer-card').find('.customer-name').text();
                 }
                 
-                // Obtener la fecha actual en formato YYYY-MM-DD
-                const today = new Date();
-                const todayString = today.toISOString().split('T')[0];
+                // Obtener la fecha actual en formato YYYY-MM-DD usando la fecha del servidor
+                const todayString = '{{ date('Y-m-d') }}';
+                const currentTime = '{{ date('H:i') }}';
                 
                 // Llenar el modal con los datos del cliente
                 $('#payment_customer_id').val(customerId);
@@ -3979,7 +3979,7 @@
                 $('#remaining_debt').val('');
                 $('#payment_notes').val('');
                 $('#payment_date').val(todayString).attr('max', todayString);
-                $('#payment_time').val(today.toTimeString().slice(0, 5)); // Establecer hora actual
+                $('#payment_time').val(currentTime); // Establecer hora actual del servidor
                 
                 // Mostrar el modal
                 $('#debtPaymentModal').modal('show');
@@ -4010,11 +4010,12 @@
                 const paymentTime = $('#payment_time').val();
                 const notes = $('#payment_notes').val();
                 
-                // Validar que la fecha no sea mayor a hoy
-                const today = new Date();
+                // Validar que la fecha no sea mayor a hoy usando la fecha del servidor
+                const todayString = '{{ date('Y-m-d') }}';
                 const selectedDate = new Date(paymentDate);
+                const todayDate = new Date(todayString);
                 
-                if (selectedDate > today) {
+                if (selectedDate > todayDate) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Fecha inválida',

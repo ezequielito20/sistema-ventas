@@ -465,7 +465,7 @@ class PurchaseController extends Controller
          foreach ($purchase->details as $detail) {
             $product = $detail->product;
             $newStock = $product->stock - $detail->quantity;
-            
+
             if ($newStock < 0) {
                $productsWithNegativeStock[] = [
                   'name' => $product->name,

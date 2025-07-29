@@ -674,13 +674,141 @@ class AdminController extends Controller
             'debt' => $debtAtClosing,
             'balance' => $balanceInPeriod,
             'initial_amount' => $closedCashCount->initial_amount
-         ];
-      }
+                  ];
+       }
 
-      // Mantener variables originales para compatibilidad
-      $salesSinceCashOpen = $currentCashData['sales'];
-      $purchasesSinceCashOpen = $currentCashData['purchases'];
-      $debtSinceCashOpen = $currentCashData['debt'];
+       // ==========================================
+       // DATOS DE VENTAS POR ARQUEO
+       // ==========================================
+       
+       // Datos de ventas del arqueo actual
+       $currentSalesData = [
+         'today_sales' => 0,
+         'weekly_sales' => 0,
+         'average_customer_spend' => 0,
+         'total_profit' => 0,
+         'monthly_sales' => 0
+       ];
+
+       if ($currentCashCount) {
+         $cashOpenDate = $currentCashCount->opening_date;
+         
+         // Ventas de hoy en el arqueo actual
+         $currentSalesData['today_sales'] = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->whereDate('sale_date', now())
+            ->sum('total_price');
+            
+         // Ventas de la semana actual (desde el lunes)
+         $startOfWeek = now()->startOfWeek();
+         $currentSalesData['weekly_sales'] = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->whereBetween('sale_date', [$startOfWeek, now()])
+            ->sum('total_price');
+            
+         // Promedio de venta por cliente en el arqueo actual
+         $currentSalesData['average_customer_spend'] = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $cashOpenDate)
+            ->avg('total_price') ?? 0;
+            
+         // Ganancia total teórica en el arqueo actual
+         $currentSalesData['total_profit'] = DB::table('sale_details as sd')
+            ->select(DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit'))
+            ->join('products as p', 'sd.product_id', '=', 'p.id')
+            ->join('sales as s', 'sd.sale_id', '=', 's.id')
+            ->where('s.company_id', $companyId)
+            ->where('s.sale_date', '>=', $cashOpenDate)
+            ->value('total_profit') ?? 0;
+            
+         // Ventas mensuales en el arqueo actual
+         $currentSalesData['monthly_sales'] = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->whereMonth('sale_date', now()->month)
+            ->whereYear('sale_date', now()->year)
+            ->sum('total_price');
+       }
+
+       // Datos históricos de ventas
+       $historicalSalesData = [
+         'today_sales' => $todaySales,
+         'weekly_sales' => $weeklySales,
+         'average_customer_spend' => $averageCustomerSpend ?? 0,
+         'total_profit' => $mostProfitableProducts->sum('total_profit'),
+         'monthly_sales' => $monthlyPurchases // ⚠️ Esto está mal, debería ser ventas mensuales
+       ];
+
+       // Calcular ventas mensuales correctamente
+       $historicalSalesData['monthly_sales'] = DB::table('sales')
+          ->where('company_id', $companyId)
+          ->whereMonth('sale_date', now()->month)
+          ->whereYear('sale_date', now()->year)
+          ->sum('total_price');
+
+       // Datos de ventas por arqueo cerrado
+       $closedSalesData = [];
+       
+       foreach ($closedCashCounts as $closedCashCount) {
+         $openingDate = $closedCashCount->opening_date;
+         $closingDate = $closedCashCount->closing_date;
+         
+         // Ventas de hoy en este arqueo (si el arqueo estaba abierto hoy)
+         $todaySalesInPeriod = 0;
+         if (Carbon::parse($openingDate)->startOfDay() <= now()->startOfDay() && 
+             Carbon::parse($closingDate)->startOfDay() >= now()->startOfDay()) {
+            $todaySalesInPeriod = DB::table('sales')
+               ->where('company_id', $companyId)
+               ->whereDate('sale_date', now())
+               ->sum('total_price');
+         }
+         
+         // Ventas de la semana en este arqueo
+         $startOfWeek = now()->startOfWeek();
+         $weeklySalesInPeriod = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $openingDate)
+            ->where('sale_date', '<=', $closingDate)
+            ->where('sale_date', '>=', $startOfWeek)
+            ->sum('total_price');
+            
+         // Promedio de venta por cliente en este arqueo
+         $averageCustomerSpendInPeriod = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $openingDate)
+            ->where('sale_date', '<=', $closingDate)
+            ->avg('total_price') ?? 0;
+            
+         // Ganancia total teórica en este arqueo
+         $totalProfitInPeriod = DB::table('sale_details as sd')
+            ->select(DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit'))
+            ->join('products as p', 'sd.product_id', '=', 'p.id')
+            ->join('sales as s', 'sd.sale_id', '=', 's.id')
+            ->where('s.company_id', $companyId)
+            ->where('s.sale_date', '>=', $openingDate)
+            ->where('s.sale_date', '<=', $closingDate)
+            ->value('total_profit') ?? 0;
+            
+         // Ventas totales del arqueo
+         $totalSalesInPeriod = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $openingDate)
+            ->where('sale_date', '<=', $closingDate)
+            ->sum('total_price');
+         
+         $closedSalesData[$closedCashCount->id] = [
+            'today_sales' => $todaySalesInPeriod,
+            'weekly_sales' => $weeklySalesInPeriod,
+            'average_customer_spend' => $averageCustomerSpendInPeriod,
+            'total_profit' => $totalProfitInPeriod,
+            'monthly_sales' => $totalSalesInPeriod, // Para arqueos cerrados, mostramos el total del arqueo
+            'total_sales' => $totalSalesInPeriod
+         ];
+       }
+
+       // Mantener variables originales para compatibilidad
+       $salesSinceCashOpen = $currentCashData['sales'];
+       $purchasesSinceCashOpen = $currentCashData['purchases'];
+       $debtSinceCashOpen = $currentCashData['debt'];
 
       // Datos para el gráfico de ingresos vs egresos (últimos 7 días)
       $lastDays = collect(range(6, 0))->map(function ($days) {
@@ -779,7 +907,11 @@ class AdminController extends Controller
          // NUEVOS DATOS DUALES
          'currentCashData',
          'historicalData',
-         'closedCashCountsData'
+         'closedCashCountsData',
+         // DATOS DE VENTAS POR ARQUEO
+         'currentSalesData',
+         'historicalSalesData',
+         'closedSalesData'
       ));
    }
 }
