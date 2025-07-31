@@ -1,4 +1,4 @@
-@if(config('app.debug'))
+@if(config('app.debug') && config('debugbar.enabled'))
     @php
         if (app()->bound('debugbar')) {
             $debugbar = app('debugbar');

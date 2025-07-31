@@ -262,8 +262,8 @@ Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('ad
         Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
     });
 
-    // Rutas de Debugbar (solo en desarrollo)
-    if (config('app.debug')) {
+    // Rutas de Debugbar (solo cuando esté habilitada)
+    if (config('app.debug') && config('debugbar.enabled')) {
         Route::get('_debugbar/assets/stylesheets', [
             'as' => 'debugbar.assets.css',
             'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css'
