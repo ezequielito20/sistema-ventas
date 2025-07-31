@@ -214,11 +214,11 @@
                         <i class="fas fa-times-circle"></i>
                     </button>
                     
-                    <button type="submit" class="btn-modern btn-primary-modern" name="action" value="save" title="Procesar Venta">
+                    <button type="submit" class="btn-modern btn-primary-modern" id="submitSale" name="action" value="save" title="Procesar Venta">
                         <i class="fas fa-save"></i>
                     </button>
                     
-                    <button type="submit" class="btn-modern btn-success-modern" name="action" value="save_and_new" title="Procesar y Nueva Venta">
+                    <button type="submit" class="btn-modern btn-success-modern" id="submitSaleAndNew" name="action" value="save_and_new" title="Procesar y Nueva Venta">
                         <i class="fas fa-plus-circle"></i>
                     </button>
                 </div>
@@ -1045,6 +1045,18 @@
         .btn-modern.btn-secondary-modern {
             background: #e2e8f0;
             color: var(--dark-color);
+        }
+
+        /* Estilo para botones deshabilitados */
+        .btn-modern:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-modern:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         /* Tooltip para los botones */
@@ -2009,6 +2021,9 @@
             $('form').on('submit', function(e) {
                 e.preventDefault();
                 
+                // Deshabilitar ambos botones para prevenir múltiples envíos
+                $('#submitSale, #submitSaleAndNew').prop('disabled', true);
+                
                 // Verificar si hay productos en la tabla
                 if ($('#saleItems tr').length === 0) {
                     Swal.fire({
@@ -2016,6 +2031,8 @@
                         title: 'Error',
                         text: 'Debe agregar al menos un producto a la venta'
                     });
+                    // Rehabilitar botones si hay error
+                    $('#submitSale, #submitSaleAndNew').prop('disabled', false);
                     return false;
                 }
                 
@@ -2026,6 +2043,8 @@
                         title: 'Error',
                         text: 'Debe seleccionar un cliente'
                     });
+                    // Rehabilitar botones si hay error
+                    $('#submitSale, #submitSaleAndNew').prop('disabled', false);
                     return false;
                 }
                 

@@ -198,7 +198,7 @@
                 </div>
 
                 <div class="card-footer text-right">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="submitSupplier">
                         <i class="fas fa-save mr-2"></i>
                         Guardar Proveedor
                     </button>
@@ -245,6 +245,18 @@
     .card-footer {
         background-color: #f8f9fa;
     }
+    
+    /* Estilo para botones deshabilitados */
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .btn:disabled:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
 </style>
 @stop
 
@@ -288,6 +300,11 @@ $(document).ready(function() {
                 text: 'Por favor, revise los campos marcados en rojo.',
                 confirmButtonText: 'Entendido'
             });
+            // Rehabilitar botón si hay error
+            $('#submitSupplier').prop('disabled', false);
+        } else {
+            // Deshabilitar botón para prevenir múltiples envíos
+            $('#submitSupplier').prop('disabled', true);
         }
     });
 

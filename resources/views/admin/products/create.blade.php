@@ -255,7 +255,7 @@
 
             <!-- Botones de Acción -->
             <div class="form-actions">
-                <button type="submit" class="action-btn primary-btn">
+                                        <button type="submit" class="action-btn primary-btn" id="submitProduct">
                     <i class="fas fa-save"></i>
                     <span>Guardar Producto</span>
                 </button>
@@ -390,6 +390,18 @@
             box-shadow: var(--shadow);
             color: inherit;
             text-decoration: none;
+        }
+        
+        /* Estilo para botones deshabilitados */
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .action-btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         .header-decoration {
@@ -1012,7 +1024,7 @@
                 }
 
                 // Mostrar indicador de carga
-                $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+                $('#submitProduct').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
             });
 
             // Auto-generar código si está vacío

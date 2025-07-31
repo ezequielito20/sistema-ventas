@@ -1152,6 +1152,18 @@
             color: white;
             text-decoration: none;
         }
+        
+        /* Estilo para botones deshabilitados */
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .action-btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
 
         /* Responsive para botones */
         @media (max-width: 768px) {

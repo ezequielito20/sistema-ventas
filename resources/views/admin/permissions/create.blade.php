@@ -43,7 +43,7 @@
 
                 <div class="row mt-4">
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitPermission">
                             <i class="fas fa-save mr-2"></i>Guardar Permiso
                         </button>
                         <a href="{{ route('admin.permissions.index') }}" class="btn btn-default">
@@ -62,6 +62,18 @@
             content: ' *';
             color: red;
         }
+        
+        /* Estilo para botones deshabilitados */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
     </style>
 @stop
 
@@ -71,6 +83,11 @@
             // Convertir automáticamente a minúsculas y reemplazar espacios por puntos
             $('#name').on('input', function() {
                 $(this).val($(this).val().toLowerCase().replace(/\s+/g, '.'));
+            });
+            
+            // Deshabilitar botón en envío del formulario
+            $('form').on('submit', function(e) {
+                $('#submitPermission').prop('disabled', true);
             });
         });
     </script>

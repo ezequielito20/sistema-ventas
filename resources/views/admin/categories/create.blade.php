@@ -47,7 +47,7 @@
                         <button onclick="window.history.back()" class="btn btn-secondary">
                             <i class="fas fa-arrow-left mr-2"></i>Volver
                         </button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitCategory">
                             <i class="fas fa-save mr-2"></i>Guardar
                         </button>
                     </div>
@@ -67,5 +67,28 @@
             border-bottom-left-radius: 0.75rem !important;
             border-bottom-right-radius: 0.75rem !important;
         }
+        
+        /* Estilo para botones deshabilitados */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
     </style>
+@stop
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        // Deshabilitar botón en envío del formulario
+        $('form').on('submit', function(e) {
+            $('#submitCategory').prop('disabled', true);
+        });
+    });
+</script>
 @stop

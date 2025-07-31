@@ -138,11 +138,11 @@
 
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-lg btn-primary mr-2" name="action" value="save">
+                                <button type="submit" class="btn btn-lg btn-primary mr-2" name="action" value="save" id="submitCustomer">
                                     <i class="fas fa-save mr-2"></i>
                                     Guardar Cliente
                                 </button>
-                                <button type="submit" class="btn btn-lg btn-success" name="action" value="save_and_new">
+                                <button type="submit" class="btn btn-lg btn-success" name="action" value="save_and_new" id="submitCustomerAndNew">
                                     <i class="fas fa-plus-circle mr-2"></i>
                                     Guardar y Crear Otro
                                 </button>
@@ -224,6 +224,18 @@
             background-position: right calc(.375em + .1875rem) center;
             background-size: calc(.75em + .375rem) calc(.75em + .375rem);
         }
+        
+        /* Estilo para botones deshabilitados */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
     </style>
 @stop
 
@@ -245,9 +257,14 @@
 
             // Validación del formulario
             $('#customerForm').on('submit', function(e) {
+                // Deshabilitar botones para prevenir múltiples envíos
+                $('#submitCustomer, #submitCustomerAndNew').prop('disabled', true);
+                
                 if (!this.checkValidity()) {
                     e.preventDefault();
                     e.stopPropagation();
+                    // Rehabilitar botones si hay error
+                    $('#submitCustomer, #submitCustomerAndNew').prop('disabled', false);
                 }
                 $(this).addClass('was-validated');
             });

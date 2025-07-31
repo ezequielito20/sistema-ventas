@@ -63,7 +63,7 @@
                             Cancelar
                         </button>
                         <button type="submit" 
-                                class="btn btn-primary">
+                                class="btn btn-primary" id="submitRole">
                             <i class="fas fa-save mr-2"></i>
                             Guardar Rol
                         </button>
@@ -101,6 +101,18 @@
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
+    
+    /* Estilo para botones deshabilitados */
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    .btn:disabled:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
 </style>
 @stop
 
@@ -109,6 +121,9 @@
     $(document).ready(function() {
         // Validación del lado del cliente
         $('form').on('submit', function(e) {
+            // Deshabilitar botón para prevenir múltiples envíos
+            $('#submitRole').prop('disabled', true);
+            
             let name = $('#name').val().trim();
             
             if (name.length === 0) {
@@ -118,6 +133,8 @@
                     title: 'Error de validación',
                     text: 'El nombre del rol es obligatorio'
                 });
+                // Rehabilitar botón si hay error
+                $('#submitRole').prop('disabled', false);
                 return false;
             }
             
@@ -128,6 +145,8 @@
                     title: 'Error de validación',
                     text: 'El nombre no puede exceder los 255 caracteres'
                 });
+                // Rehabilitar botón si hay error
+                $('#submitRole').prop('disabled', false);
                 return false;
             }
         });
