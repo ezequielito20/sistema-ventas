@@ -149,11 +149,11 @@
                         data-phone="{{ strtolower($customer->phone ?? '') }}"
                         data-email="{{ strtolower($customer->email ?? '') }}"
                         data-debt="{{ $customer->total_debt }}"
-                        data-debt-type="{{ $customer->isDefaulter() ? 'defaulters' : 'current' }}">
+                                                    data-debt-type="{{ $customersData[$customer->id]['isDefaulter'] ? 'defaulters' : 'current' }}">
                         <td>{{ $index + 1 }}</td>
                         <td>
                             {{ $customer->name }}
-                            @if($customer->isDefaulter())
+                            @if($customersData[$customer->id]['isDefaulter'])
                                 <span class="badge badge-danger badge-sm ml-2">Moroso</span>
                             @else
                                 <span class="badge badge-success badge-sm ml-2">Actual</span>

@@ -510,7 +510,7 @@
                                                  data-original-value="{{ $customer->total_debt }}">
                                                 {{ $currency->symbol }}
                                                 <span class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
-                                                @if ($customer->isDefaulter())
+                                                @if ($customersData[$customer->id]['isDefaulter'])
                                                     <span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores">
                                                         <i class="fas fa-exclamation-triangle"></i>
                                                     </span>
@@ -597,7 +597,7 @@
                     <div 
                         class="customer-card" 
                         data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" 
-                        data-defaulter="{{ $customer->isDefaulter() ? 'true' : 'false' }}"
+                        data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
 
                     >
                         <div class="card-header">
@@ -676,7 +676,7 @@
                                                     Bs. {{ number_format($customer->total_debt, 2) }}
                                                 </div>
                                                 <div class="debt-type-info">
-                                                    @if ($customer->isDefaulter())
+                                                    @if ($customersData[$customer->id]['isDefaulter'])
                                                         <span class="debt-type-badge debt-type-defaulters" title="Cliente con deudas de arqueos de caja anteriores">
                                                             <i class="fas fa-exclamation-triangle"></i>
                                                             Moroso
