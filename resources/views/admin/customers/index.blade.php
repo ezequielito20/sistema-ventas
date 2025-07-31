@@ -3456,8 +3456,8 @@
                 updateBsValues(currentExchangeRate);
             }
             
-            // Actualizar valores en Bs cuando se cambia el tipo de cambio
-            $('.update-exchange-rate').click(function() {
+            // Actualizar valores en Bs cuando se cambia el tipo de cambio - Usar delegación de eventos
+            $(document).on('click', '.update-exchange-rate', function() {
                 const rate = parseFloat($('#exchangeRate').val());
                 if (rate > 0) {
                     currentExchangeRate = rate;
@@ -3752,8 +3752,8 @@
                                         // Variable global para almacenar las ventas del cliente actual
                             let currentCustomerSales = [];
 
-            // Ver detalles del cliente
-            $('.show-customer').click(function() {
+            // Ver detalles del cliente - Usar delegación de eventos para funcionar con DataTable
+            $(document).on('click', '.show-customer', function() {
                 const customerId = $(this).data('id');
 
                 $.ajax({
@@ -3763,30 +3763,29 @@
                         if (response.success) {
                             const customer = response.customer;
 
-                                            // Mostrar nombre del cliente en el encabezado
+                            // Mostrar nombre del cliente en el encabezado
                             $('#customerName').text(customer.name);
 
-                                            // Guardar las ventas globalmente para filtrado
-                                            currentCustomerSales = customer.sales || [];
+                            // Guardar las ventas globalmente para filtrado
+                            currentCustomerSales = customer.sales || [];
 
-                                            // Llenar tabla de historial de ventas
-                                            displaySales(currentCustomerSales);
+                            // Llenar tabla de historial de ventas
+                            displaySales(currentCustomerSales);
 
-                                            // Limpiar filtros
-                                            $('#dateFrom').val('');
-                                            $('#dateTo').val('');
-                                            $('#amountFrom').val('');
-                                            $('#amountTo').val('');
+                            // Limpiar filtros
+                            $('#dateFrom').val('');
+                            $('#dateTo').val('');
+                            $('#amountFrom').val('');
+                            $('#amountTo').val('');
 
-                                            $('#showCustomerModal').modal('show');
-                                        }
-                                    },
-                                    error: function() {
-                                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente',
-                                            'error');
-                                    }
-                                });
-                            });
+                            $('#showCustomerModal').modal('show');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente', 'error');
+                    }
+                });
+            });
 
                             // Función para mostrar las ventas
                             function displaySales(sales) {
@@ -3892,8 +3891,8 @@
                                 }
             });
 
-            // Eliminar cliente
-            $('.delete-customer').click(function() {
+            // Eliminar cliente - Usar delegación de eventos para funcionar con DataTable
+            $(document).on('click', '.delete-customer', function() {
                 const id = $(this).data('id');
 
                 Swal.fire({
