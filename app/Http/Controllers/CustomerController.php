@@ -543,9 +543,17 @@ class CustomerController extends Controller
    public function debtReport(Request $request)
    {
       try {
+         // Obtener el arqueo de caja actual una sola vez
+         $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+         
+         $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
          // Obtener clientes con deudas pendientes
          $query = Customer::where('company_id', $this->company->id)
-            ->where('total_debt', '>', 0);
+            ->where('total_debt', '>', 0)
+            ->select('id', 'name', 'phone', 'email', 'nit_number', 'total_debt', 'created_at', 'updated_at');
 
          // Aplicar filtros si existen
          if ($request->has('search') && $request->search) {
@@ -583,29 +591,26 @@ class CustomerController extends Controller
             $query->where('total_debt', '<=', floatval($request->debt_max));
          }
 
-         // Filtrar por tipo de deuda (morosos vs deuda actual)
+         // Filtrar por tipo de deuda (morosos vs deuda actual) - optimizado
          if ($request->filled('debt_type')) {
             $debtType = $request->debt_type;
-            if ($debtType === 'defaulters') {
-               // Solo clientes morosos (con deudas de arqueos anteriores)
-               $query->whereHas('sales', function($q) {
-                  $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
-                     ->whereNull('closing_date')
-                     ->first();
-                  if ($currentCashCount) {
-                     $q->where('sale_date', '<', $currentCashCount->opening_date);
-                  }
-               });
-            } elseif ($debtType === 'current') {
-               // Solo clientes con deuda del arqueo actual
-               $query->whereDoesntHave('sales', function($q) {
-                  $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
-                     ->whereNull('closing_date')
-                     ->first();
-                  if ($currentCashCount) {
-                     $q->where('sale_date', '<', $currentCashCount->opening_date);
-                  }
-               });
+            $customerIds = $query->pluck('id')->toArray();
+            
+            if (!empty($customerIds)) {
+               $salesQuery = \App\Models\Sale::whereIn('customer_id', $customerIds)
+                  ->where('company_id', $this->company->id);
+               
+               if ($debtType === 'defaulters') {
+                  // Solo clientes morosos (con deudas de arqueos anteriores)
+                  $customersWithOldSales = $salesQuery->where('sale_date', '<', $openingDate)
+                     ->pluck('customer_id')->unique();
+                  $query->whereIn('id', $customersWithOldSales);
+               } elseif ($debtType === 'current') {
+                  // Solo clientes con deuda del arqueo actual
+                  $customersWithOldSales = $salesQuery->where('sale_date', '<', $openingDate)
+                     ->pluck('customer_id')->unique();
+                  $query->whereNotIn('id', $customersWithOldSales);
+               }
             }
          }
 
@@ -683,29 +688,47 @@ class CustomerController extends Controller
    public function debtReportModal()
    {
       try {
-         // Obtener clientes con deudas pendientes
+         // Obtener el arqueo de caja actual una sola vez
+         $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+         
+         $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+         // Obtener clientes con deudas pendientes en una sola consulta optimizada
          $customers = Customer::where('company_id', $this->company->id)
             ->where('total_debt', '>', 0)
-            ->with('lastSale')
+            ->select('id', 'name', 'phone', 'email', 'nit_number', 'total_debt', 'created_at', 'updated_at')
             ->orderBy('total_debt', 'desc')
             ->get();
 
-         // Calcular estadísticas por tipo de deuda
-         $defaultersCount = $customers->filter(function ($customer) {
-            return $customer->isDefaulter();
-         })->count();
+         // Calcular estadísticas de manera más eficiente
+         $defaultersCount = 0;
+         $currentDebtorsCount = 0;
+         $defaultersDebt = 0;
+         $currentDebt = 0;
 
-         $currentDebtorsCount = $customers->filter(function ($customer) {
-            return !$customer->isDefaulter();
-         })->count();
+         // Obtener información de ventas en una sola consulta
+         $customerIds = $customers->pluck('id')->toArray();
+         $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIds)
+            ->where('company_id', $this->company->id)
+            ->select('customer_id', 'sale_date')
+            ->get()
+            ->groupBy('customer_id');
 
-         $defaultersDebt = $customers->filter(function ($customer) {
-            return $customer->isDefaulter();
-         })->sum('total_debt');
-
-         $currentDebt = $customers->filter(function ($customer) {
-            return !$customer->isDefaulter();
-         })->sum('total_debt');
+         // Procesar estadísticas
+         foreach ($customers as $customer) {
+            $customerSales = $salesInfo->get($customer->id, collect());
+            $hasOldSales = $customerSales->where('sale_date', '<', $openingDate)->count() > 0;
+            
+            if ($hasOldSales) {
+               $defaultersCount++;
+               $defaultersDebt += $customer->total_debt;
+            } else {
+               $currentDebtorsCount++;
+               $currentDebt += $customer->total_debt;
+            }
+         }
 
          $company = $this->company;
          $currency = $this->currencies;

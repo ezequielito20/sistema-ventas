@@ -851,7 +851,7 @@
     </div>
 
     {{-- Modal para el reporte de deudas rediseñado --}}
-    <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true">
+    <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content modern-modal">
                 <div class="modal-body">
@@ -3488,41 +3488,36 @@
             
             // Botón de reporte de deudas
             $('#debtReportBtn').click(function() {
-                // Mostrar un indicador de carga
-                Swal.fire({
-                    title: 'Cargando reporte...',
-                    html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
-                    showConfirmButton: false,
-                    allowOutsideClick: false
-                });
-
-                // Cargar el reporte mediante AJAX
+                // Mostrar el modal de carga inmediatamente
+                $('#debtReportModal').modal('show');
+                
+                // Remover aria-hidden cuando el modal se muestra
+                $('#debtReportModal').removeAttr('aria-hidden');
+                
+                // Cargar el reporte mediante AJAX con timeout
                 $.ajax({
                     url: '{{ route("admin.customers.debt-report") }}',
                     type: 'GET',
                     data: {
-                        exchange_rate: currentExchangeRate // <-- Enviar el valor actual de la tasa de cambio
+                        exchange_rate: currentExchangeRate
                     },
+                    timeout: 30000, // 30 segundos de timeout
                     success: function(response) {
-                        // Cerrar el indicador de carga
-                        Swal.close();
-                        
-                        // Crear un modal dinámico
-                        if (!$('#debtReportModal').length) {
-                            $('body').append('<div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content"></div></div></div>');
-                        }
-                        
                         // Llenar el modal con la respuesta
                         $('#debtReportModal .modal-content').html(response);
-                        
-                        // Mostrar el modal
-                        $('#debtReportModal').modal('show');
                         
                         // Pasar el tipo de cambio actual al modal
                         $('#debtReportModal').data('exchangeRate', currentExchangeRate);
                     },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
+                    error: function(xhr, status, error) {
+                        // Cerrar el modal de carga
+                        $('#debtReportModal').modal('hide');
+                        
+                        if (status === 'timeout') {
+                            Swal.fire('Error', 'El reporte tardó demasiado en cargar. Inténtalo de nuevo.', 'error');
+                        } else {
+                            Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
+                        }
                     }
                 });
             });
@@ -3531,11 +3526,20 @@
             $(document).on('shown.bs.modal', '#debtReportModal', function() {
                 console.log('Modal mostrado, estableciendo tipo de cambio:', currentExchangeRate);
                 
+                // Asegurar que aria-hidden esté removido
+                $('#debtReportModal').removeAttr('aria-hidden');
+                
                 // Establecer el valor del tipo de cambio en el modal
                 $('#modalExchangeRate').val(currentExchangeRate);
                 
                 // Actualizar los valores en Bs en el modal
                 updateModalBsValues(currentExchangeRate);
+            });
+            
+            // Escuchar el evento de modal oculto para restaurar aria-hidden
+            $(document).on('hidden.bs.modal', '#debtReportModal', function() {
+                // Restaurar aria-hidden cuando el modal se cierra
+                $('#debtReportModal').attr('aria-hidden', 'true');
             });
             
             // Función para actualizar los valores en Bs en el modal

@@ -22,8 +22,8 @@
                         </div>
                     </div>
                 </div>
-                                </div>
-                            </div>
+            </div>
+        </div>
         <div class="col-lg-7">
             <div class="card rate-card">
                 <div class="card-body d-flex align-items-center gap-2 debt-rate-row-redesigned">
@@ -42,36 +42,25 @@
             </div>
         </div>
     </div>
+    
+    <!-- Filtros simplificados -->
     <div class="card mb-3 filter-card">
         <div class="card-body">
             <div class="row align-items-end">
                 <div class="col-md-4 mb-2 mb-md-0">
                     <label for="searchFilter" class="filter-label"><i class="fas fa-search mr-1"></i>Buscar cliente</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" id="searchFilter" class="form-control" placeholder="Nombre, teléfono, email o cédula...">
-                        <div class="input-group-append">
-                            <button class="btn btn-light clear-search" type="button" onclick="$('#searchFilter').val('').trigger('input')" data-toggle="tooltip" title="Limpiar búsqueda"><i class="fas fa-times"></i></button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-2 mb-md-0">
-                    <label for="orderFilter" class="filter-label"><i class="fas fa-sort mr-1"></i>Ordenar por</label>
-                        <select id="orderFilter" class="form-control form-control-sm">
-                            <option value="name_asc">Nombre (A-Z)</option>
-                            <option value="name_desc">Nombre (Z-A)</option>
-                            <option value="debt_desc" selected>Deuda (Mayor a menor)</option>
-                            <option value="debt_asc">Deuda (Menor a mayor)</option>
-                        </select>
+                    <input type="text" id="searchFilter" class="form-control form-control-sm" placeholder="Nombre, teléfono, email...">
                 </div>
                 <div class="col-md-3 mb-2 mb-md-0">
-                    <label class="filter-label"><i class="fas fa-filter mr-1"></i>Filtrar por deuda</label>
-                        <div class="d-flex align-items-center">
-                            <input type="number" id="debtMinFilter" class="form-control form-control-sm mr-2" placeholder="Mín $" min="0" style="width: 80px;">
-                            <span class="mx-1">-</span>
-                            <input type="number" id="debtMaxFilter" class="form-control form-control-sm" placeholder="Máx $" min="0" style="width: 80px;">
-                        </div>
-                    </div>
-                <div class="col-md-3">
+                    <label for="orderFilter" class="filter-label"><i class="fas fa-sort mr-1"></i>Ordenar por</label>
+                    <select id="orderFilter" class="form-control form-control-sm">
+                        <option value="debt_desc" selected>Deuda (Mayor a menor)</option>
+                        <option value="debt_asc">Deuda (Menor a mayor)</option>
+                        <option value="name_asc">Nombre (A-Z)</option>
+                        <option value="name_desc">Nombre (Z-A)</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2 mb-md-0">
                     <label for="debtTypeFilter" class="filter-label"><i class="fas fa-user-clock mr-1"></i>Tipo de deuda</label>
                     <select id="debtTypeFilter" class="form-control form-control-sm">
                         <option value="">Todos los clientes</option>
@@ -79,16 +68,16 @@
                         <option value="current">Solo deuda actual</option>
                     </select>
                 </div>
-                </div>
-            <div class="row mt-2">
-                <div class="col-12 text-right">
-                    <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm" data-toggle="tooltip" title="Limpiar todos los filtros">
-                        <i class="fas fa-broom mr-1"></i>Limpiar Filtros
+                <div class="col-md-2">
+                    <button type="button" id="clearFiltersBtn" class="btn btn-outline-secondary btn-sm w-100" data-toggle="tooltip" title="Limpiar filtros">
+                        <i class="fas fa-broom mr-1"></i>Limpiar
                     </button>
                 </div>
             </div>
-            </div>
         </div>
+    </div>
+    
+    <!-- Resumen optimizado -->
     <div class="card mb-3 summary-card summary-gradient-card">
         <div class="card-body">
             <div class="row">
@@ -99,7 +88,7 @@
                         </div>
                         <div>
                             <div class="summary-title">Total Clientes</div>
-                            <div class="summary-value"><span id="clientCount">{{ $customers->count() }}</span></div>
+                            <div class="summary-value">{{ $customers->count() }}</div>
                         </div>
                     </div>
                 </div>
@@ -111,8 +100,7 @@
                         <div>
                             <div class="summary-title">Morosos</div>
                             <div class="summary-value text-danger">
-                                <span id="defaultersCount">{{ $defaultersCount }}</span>
-                                <small class="text-muted">/ {{ $currency->symbol }} <span id="defaultersDebt">{{ number_format($defaultersDebt, 2) }}</span></small>
+                                {{ $defaultersCount }} / {{ $currency->symbol }} {{ number_format($defaultersDebt, 2) }}
                             </div>
                         </div>
                     </div>
@@ -125,8 +113,7 @@
                         <div>
                             <div class="summary-title">Deuda Actual</div>
                             <div class="summary-value text-warning">
-                                <span id="currentDebtorsCount">{{ $currentDebtorsCount }}</span>
-                                <small class="text-muted">/ {{ $currency->symbol }} <span id="currentDebt">{{ number_format($currentDebt, 2) }}</span></small>
+                                {{ $currentDebtorsCount }} / {{ $currency->symbol }} {{ number_format($currentDebt, 2) }}
                             </div>
                         </div>
                     </div>
@@ -136,48 +123,40 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="summary-total-label">Deuda Total</div>
                 <div class="summary-totals-row d-flex align-items-center gap-2">
-                    <span id="totalDebtDisplay" class="badge badge-danger summary-badge-big">{{ $currency->symbol }} {{ number_format($totalDebt, 2) }}</span>
-                    <span id="totalBsDebtDisplay" class="badge badge-primary summary-badge-big">Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}</span>
+                    <span class="badge badge-danger summary-badge-big">{{ $currency->symbol }} {{ number_format($totalDebt, 2) }}</span>
+                    <span class="badge badge-primary summary-badge-big modal-bs-debt" data-debt="{{ $totalDebt }}">Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}</span>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Tabla optimizada -->
     <div class="table-responsive debt-modal-table-responsive">
         <table class="table table-striped table-bordered debt-modal-table">
-            <thead class="bg-light sticky-top">
+            <thead class="bg-light">
                 <tr>
                     <th>#</th>
-                    <th class="sortable-header" data-sort="name" style="cursor: pointer;" title="Haz clic para ordenar por nombre">
-                        Cliente <i class="fas fa-sort ml-1 sort-icon" data-sort="name"></i>
-                    </th>
+                    <th>Cliente</th>
                     <th class="d-none d-md-table-cell">Contacto</th>
-                    <th class="sortable-header" data-sort="debt" style="cursor: pointer;" title="Haz clic para ordenar por deuda">
-                        Deuda Total <i class="fas fa-sort ml-1 sort-icon" data-sort="debt"></i>
-                    </th>
+                    <th>Deuda Total</th>
                     <th>Deuda en Bs</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($customers as $index => $customer)
                     <tr class="customer-row-modal" 
-                        data-customer-id="{{ $customer->id }}"
                         data-name="{{ strtolower($customer->name) }}"
                         data-phone="{{ strtolower($customer->phone ?? '') }}"
                         data-email="{{ strtolower($customer->email ?? '') }}"
-                        data-nit="{{ strtolower($customer->nit_number ?? '') }}"
                         data-debt="{{ $customer->total_debt }}"
                         data-debt-type="{{ $customer->isDefaulter() ? 'defaulters' : 'current' }}">
-                        <td class="row-number-modal">{{ $index + 1 }}</td>
+                        <td>{{ $index + 1 }}</td>
                         <td>
                             {{ $customer->name }}
                             @if($customer->isDefaulter())
-                                <span class="badge badge-danger badge-sm ml-2" title="Cliente moroso - Tiene deudas de arqueos anteriores">
-                                    <i class="fas fa-exclamation-triangle"></i> Moroso
-                                </span>
+                                <span class="badge badge-danger badge-sm ml-2">Moroso</span>
                             @else
-                                <span class="badge badge-success badge-sm ml-2" title="Deuda del arqueo actual">
-                                    <i class="fas fa-clock"></i> Actual
-                                </span>
+                                <span class="badge badge-success badge-sm ml-2">Actual</span>
                             @endif
                         </td>
                         <td class="d-none d-md-table-cell">
@@ -187,7 +166,7 @@
                         <td class="text-right text-danger font-weight-bold">
                             {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
                         </td>
-                        <td class="text-right text-danger font-weight-bold bs-debt-modal" data-debt="{{ $customer->total_debt }}">
+                        <td class="text-right text-danger font-weight-bold bs-debt" data-debt="{{ $customer->total_debt }}">
                             Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 1), 2) }}
                         </td>
                     </tr>
@@ -196,16 +175,6 @@
                         <td colspan="5" class="text-center">No hay clientes con deudas pendientes</td>
                     </tr>
                 @endforelse
-                <tr class="bg-light font-weight-bold" id="totalRowModal">
-                    <td colspan="3" class="text-right d-none d-md-table-cell">TOTAL DEUDA PENDIENTE:</td>
-                    <td colspan="2" class="text-right d-md-none">TOTAL DEUDA PENDIENTE:</td>
-                    <td class="text-right text-danger" id="totalDebtTableModal">
-                        {{ $currency->symbol }} {{ number_format($totalDebt, 2) }}
-                    </td>
-                    <td class="text-right text-danger" id="totalBsDebtTableModal">
-                        Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>
@@ -750,260 +719,121 @@
 
 <script>
     $(document).ready(function() {
-        // Función para actualizar el enlace del PDF con los filtros aplicados
+        // Función optimizada para actualizar el enlace del PDF
         function updatePdfLinks() {
             let searchTerm = $('#searchFilter').val();
-            let debtMin = $('#debtMinFilter').val();
-            let debtMax = $('#debtMaxFilter').val();
             let debtType = $('#debtTypeFilter').val();
             let order = $('#orderFilter').val();
             let exchangeRate = $('#modalExchangeRate').val();
             
-            // Construir la URL base
             let pdfUrl = '{{ route("admin.customers.debt-report.download") }}';
             let params = [];
             
-            // Agregar parámetros solo si tienen valor
             if (searchTerm && searchTerm.trim() !== '') {
                 params.push('search=' + encodeURIComponent(searchTerm.trim()));
-            }
-            if (debtMin && debtMin !== '') {
-                params.push('debt_min=' + encodeURIComponent(debtMin));
-            }
-            if (debtMax && debtMax !== '') {
-                params.push('debt_max=' + encodeURIComponent(debtMax));
             }
             if (debtType && debtType !== '') {
                 params.push('debt_type=' + encodeURIComponent(debtType));
             }
-            if (order && order !== 'debt_desc') { // Solo agregar si no es el valor por defecto
+            if (order && order !== 'debt_desc') {
                 params.push('order=' + encodeURIComponent(order));
             }
             if (exchangeRate && exchangeRate !== '{{ $exchangeRate ?? 1 }}') {
                 params.push('exchange_rate=' + encodeURIComponent(exchangeRate));
             }
             
-            // Construir la URL final
             if (params.length > 0) {
                 pdfUrl += '?' + params.join('&');
             }
             
-            // Actualizar el enlace del botón PDF
             $('#viewPdfBtn').attr('href', pdfUrl);
         }
 
-        // Función para actualizar los iconos de ordenamiento
-        function updateSortIcons() {
-            const order = $('#orderFilter').val();
-            
-            // Remover todas las clases de iconos
-            $('.sort-icon').removeClass('fa-sort-up fa-sort-down fa-sort');
-            
-            // Aplicar el icono correcto según el orden
-            if (order === 'name_asc') {
-                $('.sort-icon[data-sort="name"]').addClass('fa-sort-up');
-            } else if (order === 'name_desc') {
-                $('.sort-icon[data-sort="name"]').addClass('fa-sort-down');
-            } else if (order === 'debt_asc') {
-                $('.sort-icon[data-sort="debt"]').addClass('fa-sort-up');
-            } else if (order === 'debt_desc') {
-                $('.sort-icon[data-sort="debt"]').addClass('fa-sort-down');
-            } else {
-                // Estado por defecto
-                $('.sort-icon').addClass('fa-sort');
-            }
-        }
-
-        // Función para actualizar los números de fila SOLO en el modal
-        function updateRowNumbersModal() {
-            $('.customer-row-modal:visible').each(function(index) {
-                $(this).find('.row-number-modal').text(index + 1);
-            });
-        }
-        // Función para actualizar el resumen SOLO en el modal
-        function updateSummaryModal() {
-            let visibleRows = $('.customer-row-modal:visible');
-            let totalDebt = 0;
-            let defaultersCount = 0;
-            let currentDebtorsCount = 0;
-            let defaultersDebt = 0;
-            let currentDebt = 0;
-            
-            visibleRows.each(function() {
-                let debt = parseFloat($(this).data('debt'));
-                let debtType = $(this).data('debt-type');
-                
-                if (!isNaN(debt)) {
-                    totalDebt += debt;
-                    
-                    if (debtType === 'defaulters') {
-                        defaultersCount++;
-                        defaultersDebt += debt;
-                    } else {
-                        currentDebtorsCount++;
-                        currentDebt += debt;
-                    }
-                }
-            });
-            
-            $('#clientCount').text(visibleRows.length);
-            $('#defaultersCount').text(defaultersCount);
-            $('#currentDebtorsCount').text(currentDebtorsCount);
-            $('#defaultersDebt').text(defaultersDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            $('#currentDebt').text(currentDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            
-            let exchangeRate = parseFloat($('#modalExchangeRate').val());
-            if (isNaN(exchangeRate) || exchangeRate <= 0) exchangeRate = {{ $exchangeRate ?? 1 }};
-            $('#totalDebtDisplay').text('{{ $currency->symbol }} ' + totalDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            let totalDebtBs = totalDebt * exchangeRate;
-            $('#totalBsDebtDisplay').text('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            $('#totalDebtTableModal').text('{{ $currency->symbol }} ' + totalDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-            $('#totalBsDebtTableModal').text('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-        }
-        // Función para ordenar filas visibles SOLO en el modal
-        function sortRowsModal() {
-            const order = $('#orderFilter').val();
-            const $tbody = $('.debt-modal-table').find('tbody');
-            const rows = $('.customer-row-modal:visible').get();
-            const $totalRow = $('#totalRowModal');
-            rows.sort(function(a, b) {
-                const nameA = $(a).data('name');
-                const nameB = $(b).data('name');
-                const debtA = parseFloat($(a).data('debt')) || 0;
-                const debtB = parseFloat($(b).data('debt')) || 0;
-                if (order === 'name_asc') {
-                    return nameA.localeCompare(nameB);
-                } else if (order === 'name_desc') {
-                    return nameB.localeCompare(nameA);
-                } else if (order === 'debt_desc') {
-                    return debtB - debtA;
-                } else if (order === 'debt_asc') {
-                    return debtA - debtB;
-                }
-                return 0;
-            });
-            $.each(rows, function(idx, row) {
-                $tbody.append(row);
-            });
-            $tbody.append($totalRow);
-        }
-        // Función para aplicar filtros SOLO en el modal
-        function applyFiltersModal() {
+        // Función optimizada para filtrar la tabla
+        function filterTable() {
             let searchTerm = $('#searchFilter').val().toLowerCase();
-            let debtMin = parseFloat($('#debtMinFilter').val());
-            let debtMax = parseFloat($('#debtMaxFilter').val());
             let debtType = $('#debtTypeFilter').val();
-            
-            if (isNaN(debtMin)) debtMin = 0;
-            if (isNaN(debtMax)) debtMax = Infinity;
+            let order = $('#orderFilter').val();
             
             $('.customer-row-modal').each(function() {
                 let row = $(this);
                 let name = row.data('name');
                 let phone = row.data('phone');
                 let email = row.data('email');
-                let nit = row.data('nit');
-                let debt = parseFloat(row.data('debt'));
                 let rowDebtType = row.data('debt-type');
+                
                 let showRow = true;
                 
                 // Filtro de búsqueda
-                if (searchTerm &&
+                if (searchTerm && 
                     !name.includes(searchTerm) &&
                     !phone.includes(searchTerm) &&
-                    !email.includes(searchTerm) &&
-                    !nit.includes(searchTerm)) {
-                    showRow = false;
-                }
-                
-                // Filtro de rango de deuda
-                if (showRow && (debt < debtMin || debt > debtMax)) {
+                    !email.includes(searchTerm)) {
                     showRow = false;
                 }
                 
                 // Filtro de tipo de deuda
-                if (showRow && debtType && debtType !== '' && rowDebtType !== debtType) {
+                if (debtType && rowDebtType !== debtType) {
                     showRow = false;
                 }
                 
-                if (showRow) {
-                    row.show();
-                } else {
-                    row.hide();
-                }
+                row.toggle(showRow);
             });
-            sortRowsModal();
-            updateRowNumbersModal();
-            updateSummaryModal();
+            
+            // Actualizar números de fila
+            $('.customer-row-modal:visible').each(function(index) {
+                $(this).find('td:first').text(index + 1);
+            });
+            
             updatePdfLinks();
         }
-        // Eventos reactivos para los filtros SOLO en el modal
-        $('#searchFilter').on('input', function() {
-            applyFiltersModal();
-        });
-        $('#debtMinFilter, #debtMaxFilter').on('input change', function() {
-            applyFiltersModal();
-        });
-        
-        $('#debtTypeFilter').on('change', function() {
-            applyFiltersModal();
-        });
-        
-        // Botón para limpiar todos los filtros
-        $('#clearFiltersBtn').on('click', function() {
-            // Limpiar todos los campos de filtro
-            $('#searchFilter').val('');
-            $('#debtMinFilter').val('');
-            $('#debtMaxFilter').val('');
-            $('#debtTypeFilter').val('');
-            $('#orderFilter').val('debt_desc');
-            
-            // Aplicar los filtros (que ahora están vacíos)
-            applyFiltersModal();
-            
-            // Actualizar iconos de ordenamiento
-            updateSortIcons();
-            
-            // Mostrar mensaje de confirmación
-            $(this).addClass('btn-success').removeClass('btn-outline-secondary');
-            $(this).find('i').removeClass('fa-broom').addClass('fa-check');
-            let originalText = $(this).find('span, .d-none.d-md-inline').length > 0 ? 
-                $(this).find('span, .d-none.d-md-inline').text() : 
-                $(this).text().replace($(this).find('i').text(), '').trim();
-            $(this).html('<i class="fas fa-check mr-1"></i>¡Limpiado!');
-            
-            // Restaurar el botón después de 1.5 segundos
-            setTimeout(function() {
-                $('#clearFiltersBtn').removeClass('btn-success').addClass('btn-outline-secondary');
-                $('#clearFiltersBtn').html('<i class="fas fa-broom mr-1"></i>Limpiar Filtros');
-            }, 1500);
-        });
-        
+
+        // Event listeners optimizados
+        $('#searchFilter').on('input', filterTable);
+        $('#debtTypeFilter').on('change', filterTable);
         $('#orderFilter').on('change', function() {
-            sortRowsModal();
-            updateRowNumbersModal();
-            updateSortIcons();
+            filterTable();
             updatePdfLinks();
         });
 
-        // Actualizar enlace PDF cuando cambie el tipo de cambio
-        $('#modalExchangeRate').on('input change', function() {
-            updatePdfLinks();
-        });
-        // Inicializar iconos de ordenamiento
-        updateSortIcons();
-        // Inicializar enlaces PDF
-        updatePdfLinks();
-        // Limpiar el modal al cerrarse
-        $('#debtReportModal').on('hidden.bs.modal', function () {
-            $('.customer-row-modal').show();
+        // Botón limpiar filtros
+        $('#clearFiltersBtn').on('click', function() {
             $('#searchFilter').val('');
-            $('#debtMinFilter').val('');
-            $('#debtMaxFilter').val('');
             $('#debtTypeFilter').val('');
             $('#orderFilter').val('debt_desc');
-            updateSummaryModal();
-            sortRowsModal();
+            filterTable();
+            
+            $(this).removeClass('btn-outline-secondary').addClass('btn-success');
+            $(this).html('<i class="fas fa-check mr-1"></i>¡Limpiado!');
+            
+            setTimeout(function() {
+                $(this).removeClass('btn-success').addClass('btn-outline-secondary');
+                $(this).html('<i class="fas fa-broom mr-1"></i>Limpiar');
+            }.bind(this), 1500);
         });
+
+        // Actualizar tipo de cambio
+        $('#updateModalExchangeRate').on('click', function() {
+            let rate = parseFloat($('#modalExchangeRate').val());
+            if (rate > 0) {
+                // Actualizar valores en Bs
+                $('.bs-debt').each(function() {
+                    let debtUsd = parseFloat($(this).data('debt'));
+                    let debtBs = debtUsd * rate;
+                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+                
+                $('.modal-bs-debt').each(function() {
+                    let debtUsd = parseFloat($(this).data('debt'));
+                    let debtBs = debtUsd * rate;
+                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                });
+                
+                updatePdfLinks();
+            }
+        });
+
+        // Inicializar tooltips
+        $('[data-toggle="tooltip"]').tooltip();
     });
 </script> 

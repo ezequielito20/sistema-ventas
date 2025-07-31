@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Registrar middleware de optimización global
+        $middleware->append(\App\Http\Middleware\OptimizeResponseMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
