@@ -23,9 +23,16 @@ class CashCountController extends Controller
    public function __construct()
    {
       $this->middleware(function ($request, $next) {
-         $this->company = Auth::user()->company;
+         // Obtener company y currency en una sola consulta
+         $userCompany = DB::table('companies')
+            ->select('companies.id', 'companies.name', 'companies.country')
+            ->where('companies.id', Auth::user()->company_id)
+            ->first();
+            
+         $this->company = $userCompany;
          $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->country)
+            ->select('id', 'name', 'code', 'symbol', 'country_id')
+            ->where('country_id', $userCompany->country)
             ->first();
 
          return $next($request);
@@ -35,51 +42,86 @@ class CashCountController extends Controller
    {
       $currency = $this->currencies;
       $company = $this->company;
+      $companyId = $this->company->id;
+      
       // Obtener el arqueo actual si existe
-      $currentCashCount = CashCount::where('company_id', $this->company->id)
+      $currentCashCount = CashCount::select('id', 'initial_amount', 'opening_date', 'closing_date')
+         ->where('company_id', $companyId)
          ->whereNull('closing_date')
          ->first();
 
-      // Obtener todos los arqueos con paginación
-      $cashCounts = CashCount::with('movements')
-         ->where('company_id', $this->company->id)
+      // Obtener todos los arqueos con paginación (solo campos necesarios)
+      $cashCounts = CashCount::select('id', 'initial_amount', 'opening_date', 'closing_date', 'created_at')
+         ->where('company_id', $companyId)
          ->orderBy('created_at', 'desc')
          ->paginate(10);
 
-      // Calcular estadísticas del día
+      // Cargar movimientos para los arqueos paginados en una sola consulta
+      $cashCountIds = $cashCounts->pluck('id');
+      $movements = CashMovement::select('cash_count_id', 'type', 'amount', 'created_at')
+         ->whereIn('cash_count_id', $cashCountIds)
+         ->get()
+         ->groupBy('cash_count_id');
+
+      // Asignar movimientos a cada arqueo
+      $cashCounts->getCollection()->transform(function ($cashCount) use ($movements) {
+         $cashCount->movements = $movements->get($cashCount->id, collect());
+         return $cashCount;
+      });
+
+      // Calcular estadísticas del día en una sola consulta consolidada
       $today = Carbon::today();
-      $todayIncome = CashMovement::whereHas('cashCount', function ($query) {
-         $query->where('company_id', $this->company->id)
-            ->whereNull('closing_date');
-      })
-         ->where('type', 'income')
-         ->whereDate('created_at', $today)
-         ->sum('amount');
+      $todayStats = DB::select("
+         SELECT 
+            COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as today_income,
+            COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as today_expenses,
+            COUNT(*) as total_movements
+         FROM cash_movements cm
+         INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
+         WHERE cc.company_id = ? 
+         AND cc.closing_date IS NULL
+         AND DATE(cm.created_at) = ?
+      ", [$companyId, $today->format('Y-m-d')]);
 
-      $todayExpenses = CashMovement::whereHas('cashCount', function ($query) {
-         $query->where('company_id', $this->company->id)
-            ->whereNull('closing_date');
-      })
-         ->where('type', 'expense')
-         ->sum('amount');
+      $todayIncome = $todayStats[0]->today_income ?? 0;
+      $todayExpenses = $todayStats[0]->today_expenses ?? 0;
+      $totalMovements = $todayStats[0]->total_movements ?? 0;
 
-      $totalMovements = CashMovement::whereHas('cashCount', function ($query) {
-         $query->where('company_id', $this->company->id);
-      })
-         ->whereDate('created_at', $today)
-         ->count();
+      // Calcular balance actual usando los datos ya cargados
+      $currentBalance = 0;
+      if ($currentCashCount) {
+         $currentMovements = $movements->get($currentCashCount->id, collect());
+         $income = $currentMovements->where('type', 'income')->sum('amount');
+         $expenses = $currentMovements->where('type', 'expense')->sum('amount');
+         $currentBalance = $currentCashCount->initial_amount + $income - $expenses;
+      }
 
-      // Calcular balance actual
-      $currentBalance = $currentCashCount ?
-         ($currentCashCount->initial_amount +
-            $currentCashCount->movements()->where('type', 'income')->sum('amount') -
-            $currentCashCount->movements()->where('type', 'expense')->sum('amount')) : 0;
-
-      // Preparar datos para el gráfico
+      // Obtener datos del gráfico en una sola consulta consolidada
       $lastDays = collect(range(6, 0))->map(function ($days) {
          return Carbon::today()->subDays($days);
       });
 
+      $dateRange = [
+         $lastDays->first()->format('Y-m-d'),
+         $lastDays->last()->format('Y-m-d')
+      ];
+
+      $chartDataRaw = DB::select("
+         SELECT 
+            DATE(cm.created_at) as date,
+            cm.type,
+            SUM(cm.amount) as total_amount
+         FROM cash_movements cm
+         INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
+         WHERE cc.company_id = ?
+         AND DATE(cm.created_at) BETWEEN ? AND ?
+         GROUP BY DATE(cm.created_at), cm.type
+         ORDER BY date
+      ", [$companyId, $dateRange[0], $dateRange[1]]);
+
+      // Procesar datos del gráfico
+      $chartDataByDate = collect($chartDataRaw)->groupBy('date');
+      
       $chartData = [
          'labels' => $lastDays->map(fn($date) => $date->format('d/m')),
          'income' => [],
@@ -87,40 +129,46 @@ class CashCountController extends Controller
       ];
 
       foreach ($lastDays as $date) {
-         $chartData['income'][] = CashMovement::whereHas('cashCount', function ($query) {
-            $query->where('company_id', $this->company->id);
-         })
-            ->where('type', 'income')
-            ->whereDate('created_at', $date)
-            ->sum('amount');
-
-         $chartData['expenses'][] = CashMovement::whereHas('cashCount', function ($query) {
-            $query->where('company_id', $this->company->id);
-         })
-            ->where('type', 'expense')
-            ->whereDate('created_at', $date)
-            ->sum('amount');
+         $dateStr = $date->format('Y-m-d');
+         $dayData = $chartDataByDate->get($dateStr, collect());
+         
+         $chartData['income'][] = $dayData->where('type', 'income')->first()->total_amount ?? 0;
+         $chartData['expenses'][] = $dayData->where('type', 'expense')->first()->total_amount ?? 0;
       }
 
-      // Calcular total de productos vendidos en la caja actual
-      $totalProducts = DB::table('sale_details')
-         ->join('sales', 'sales.id', '=', 'sale_details.sale_id')
-         ->where('sales.company_id', $this->company->id)
-         ->whereBetween('sales.created_at', [
-            $currentCashCount->opening_date ?? now(),
-            $currentCashCount->closing_date ?? now()
-         ])
-         ->sum('sale_details.quantity');
+      // Calcular total de productos vendidos y comprados en una sola consulta
+      $productStats = DB::select("
+         SELECT 
+            COALESCE(SUM(sd.quantity), 0) as total_products_sold,
+            COALESCE(SUM(pd.quantity), 0) as total_products_purchased
+         FROM (
+            SELECT 
+               COALESCE(SUM(sd.quantity), 0) as quantity
+            FROM sale_details sd
+            INNER JOIN sales s ON sd.sale_id = s.id
+            WHERE s.company_id = ?
+            AND s.created_at BETWEEN ? AND ?
+         ) sd,
+         (
+            SELECT 
+               COALESCE(SUM(pd.quantity), 0) as quantity
+            FROM purchase_details pd
+            INNER JOIN purchases p ON pd.purchase_id = p.id
+            WHERE p.company_id = ?
+            AND p.created_at BETWEEN ? AND ?
+         ) pd
+      ", [
+         $companyId, 
+         $currentCashCount->opening_date ?? now(), 
+         $currentCashCount->closing_date ?? now(),
+         $companyId, 
+         $currentCashCount->opening_date ?? now(), 
+         $currentCashCount->closing_date ?? now()
+      ]);
 
-      // Calcular total de productos comprados en la caja actual
-      $totalPurchasedProducts = DB::table('purchase_details')
-         ->join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
-         ->where('purchases.company_id', $this->company->id)
-         ->whereBetween('purchases.created_at', [
-            $currentCashCount->opening_date ?? now(),
-            $currentCashCount->closing_date ?? now()
-         ])
-         ->sum('purchase_details.quantity');
+      $totalProducts = $productStats[0]->total_products_sold ?? 0;
+      $totalPurchasedProducts = $productStats[0]->total_products_purchased ?? 0;
+
       return view('admin.cash-counts.index', compact(
          'cashCounts',
          'currentCashCount',
