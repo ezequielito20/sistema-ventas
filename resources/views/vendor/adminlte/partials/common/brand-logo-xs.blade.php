@@ -24,7 +24,7 @@
 
     {{-- Logo --}}
     @if($userCompany && $userCompany->logo)
-                    <img src="{{ asset('storage/' . $userCompany->logo) }}"
+                    <img src="{{ $userCompany->logo_url }}"
              alt="{{ config('adminlte.logo_img_alt', 'Company Logo') }}"
              class="{{ config('adminlte.logo_img_class', 'brand-image img-circle elevation-3') }}"
              style="opacity:.8">
