@@ -26,11 +26,13 @@ class AdminController extends Controller
    public function __construct()
    {
       $this->middleware(function ($request, $next) {
-         // Obtener la company directamente para evitar N+1 queries
+         // Obtener la company directamente para evitar N+1 queries (optimizado)
          $this->company = DB::table('companies')
+            ->select('id', 'name', 'logo', 'country')
             ->where('id', Auth::user()->company_id)
             ->first();
          $this->currencies = DB::table('currencies')
+            ->select('id', 'name', 'code', 'symbol', 'country_id')
             ->where('country_id', $this->company->country)
             ->first();
          
@@ -60,27 +62,44 @@ class AdminController extends Controller
       $categoriesCount = $counts->categories_count;
       $productsCount = $counts->products_count;
 
-      // Usuarios por rol
-      $usersByRole = Role::byCompany($companyId)->withCount(['users' => function ($query) use ($companyId) {
-         $query->where('company_id', $companyId);
-      }])->get()->map(function ($role) {
-         return [
-            'name' => ucfirst($role->name),
-            'count' => $role->users_count
-         ];
-      });
+      // Usuarios por rol (optimizado)
+      $usersByRole = DB::table('roles')
+         ->select('roles.id', 'roles.name', DB::raw('COUNT(users.id) as users_count'))
+         ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
+         ->leftJoin('users', function($join) use ($companyId) {
+            $join->on('model_has_roles.model_id', '=', 'users.id')
+                 ->where('model_has_roles.model_type', 'App\\Models\\User')
+                 ->where('users.company_id', $companyId);
+         })
+         ->where('roles.company_id', $companyId)
+         ->groupBy('roles.id', 'roles.name')
+         ->get()
+         ->map(function ($role) {
+            return [
+               'name' => ucfirst($role->name),
+               'count' => $role->users_count
+            ];
+         });
 
-      // Usuarios por mes (últimos 6 meses)
-      $usersPerMonth = User::where('company_id', $companyId)
-         ->select(DB::raw('TO_CHAR(created_at, \'Month YYYY\') as month'), DB::raw('count(*) as count'), DB::raw('MIN(created_at) as date_order'))
+      // Usuarios por mes (últimos 6 meses) - optimizado
+      $usersPerMonth = DB::table('users')
+         ->select(
+            DB::raw('TO_CHAR(created_at, \'Month YYYY\') as month'),
+            DB::raw('count(*) as count'),
+            DB::raw('MIN(created_at) as date_order')
+         )
+         ->where('company_id', $companyId)
          ->whereDate('created_at', '>=', now()->subMonths(6))
          ->groupBy(DB::raw('TO_CHAR(created_at, \'Month YYYY\')'))
          ->orderBy('date_order')
          ->get();
 
-      // Productos por categoría
-      $productsByCategory = Category::where('company_id', $companyId)
-         ->withCount('products')
+      // Productos por categoría (optimizado)
+      $productsByCategory = DB::table('categories')
+         ->select('categories.id', 'categories.name', DB::raw('COUNT(products.id) as products_count'))
+         ->leftJoin('products', 'categories.id', '=', 'products.category_id')
+         ->where('categories.company_id', $companyId)
+         ->groupBy('categories.id', 'categories.name')
          ->get()
          ->map(function ($category) {
             return [
@@ -443,8 +462,9 @@ class AdminController extends Controller
          ->where('company_id', $companyId)
          ->sum('total_debt');
 
-      // Estadísticas de Arqueo de Caja
+      // Estadísticas de Arqueo de Caja (optimizado)
       $currentCashCount = DB::table('cash_counts')
+         ->select('id', 'company_id', 'opening_date', 'closing_date', 'initial_amount')
          ->where('company_id', $companyId)
          ->whereNull('closing_date')
          ->first();
@@ -496,27 +516,34 @@ class AdminController extends Controller
          // Deudas pagadas desde apertura de caja (dinero recibido)
          // Solo contar pagos de deudas del arqueo actual
          if (Schema::hasTable('debt_payments')) {
-            // Obtener todos los pagos desde la apertura del arqueo
+            // Obtener todos los pagos desde la apertura del arqueo (optimizado)
             $allPayments = DB::table('debt_payments')
+               ->select('id', 'company_id', 'customer_id', 'payment_amount', 'created_at')
                ->where('company_id', $companyId)
                ->where('created_at', '>=', $cashOpenDate)
                ->get();
             
-                         // Filtrar solo los pagos que corresponden a deudas del arqueo actual
-             $currentCashData['debt_payments'] = $allPayments->sum(function($payment) use ($cashOpenDate) {
-                $customer = Customer::find($payment->customer_id);
-                if (!$customer) return 0;
-                
-                // Verificar si el cliente tiene ventas en el arqueo actual
-                $salesInCurrentCashCount = $customer->sales()
-                   ->where('sale_date', '>=', $cashOpenDate)
-                   ->sum('total_price');
+                         // Filtrar solo los pagos que corresponden a deudas del arqueo actual (optimizado)
+             $customerSalesData = DB::table('customers')
+                ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
+                ->leftJoin('sales', function($join) use ($cashOpenDate) {
+                   $join->on('customers.id', '=', 'sales.customer_id')
+                        ->where('sales.sale_date', '>=', $cashOpenDate);
+                })
+                ->whereIn('customers.id', $allPayments->pluck('customer_id'))
+                ->groupBy('customers.id')
+                ->get()
+                ->keyBy('id');
+             
+             $currentCashData['debt_payments'] = $allPayments->sum(function($payment) use ($customerSalesData) {
+                $customerData = $customerSalesData->get($payment->customer_id);
+                if (!$customerData) return 0;
                 
                 // Si el cliente tiene ventas en el arqueo actual, contar el pago
-                if ($salesInCurrentCashCount > 0) {
-                   return $payment->payment_amount; // Todo el pago cuenta como del arqueo actual
+                if ($customerData->sales_in_period > 0) {
+                   return $payment->payment_amount;
                 } else {
-                   return 0; // No tiene ventas en el arqueo actual, no contar este pago
+                   return 0;
                 }
              });
          } else {
@@ -652,8 +679,9 @@ class AdminController extends Controller
       // DATOS DE ARQUEOS CERRADOS
       // ==========================================
       
-      // Obtener todos los arqueos cerrados (con fecha de cierre)
+      // Obtener todos los arqueos cerrados (con fecha de cierre) - optimizado
       $closedCashCounts = DB::table('cash_counts')
+         ->select('id', 'company_id', 'opening_date', 'closing_date', 'initial_amount')
          ->where('company_id', $companyId)
          ->whereNotNull('closing_date')
          ->orderBy('opening_date', 'desc')
@@ -679,33 +707,43 @@ class AdminController extends Controller
             ->where('purchase_date', '<=', $closingDate)
             ->sum('total_price');
             
-         // Deudas pagadas durante este arqueo
+         // Deudas pagadas durante este arqueo (optimizado)
          $debtPaymentsInPeriod = 0;
          if (Schema::hasTable('debt_payments')) {
             $allPaymentsInPeriod = DB::table('debt_payments')
+               ->select('id', 'company_id', 'customer_id', 'payment_amount', 'created_at')
                ->where('company_id', $companyId)
                ->where('created_at', '>=', $openingDate)
                ->where('created_at', '<=', $closingDate)
                ->get();
             
-            // Filtrar solo los pagos que corresponden a deudas de este arqueo
-            $debtPaymentsInPeriod = $allPaymentsInPeriod->sum(function($payment) use ($openingDate, $closingDate) {
-               $customer = Customer::find($payment->customer_id);
-               if (!$customer) return 0;
+            if ($allPaymentsInPeriod->isNotEmpty()) {
+               // Obtener datos de ventas de clientes en una sola consulta
+               $customerSalesInPeriod = DB::table('customers')
+                  ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
+                  ->leftJoin('sales', function($join) use ($openingDate, $closingDate) {
+                     $join->on('customers.id', '=', 'sales.customer_id')
+                          ->where('sales.sale_date', '>=', $openingDate)
+                          ->where('sales.sale_date', '<=', $closingDate);
+                  })
+                  ->whereIn('customers.id', $allPaymentsInPeriod->pluck('customer_id'))
+                  ->groupBy('customers.id')
+                  ->get()
+                  ->keyBy('id');
                
-               // Verificar si el cliente tiene ventas en este arqueo
-               $salesInThisCashCount = $customer->sales()
-                  ->where('sale_date', '>=', $openingDate)
-                  ->where('sale_date', '<=', $closingDate)
-                  ->sum('total_price');
-               
-               // Si el cliente tiene ventas en este arqueo, contar el pago
-               if ($salesInThisCashCount > 0) {
-                  return $payment->payment_amount;
-               } else {
-                  return 0;
-               }
-            });
+               // Filtrar solo los pagos que corresponden a deudas de este arqueo
+               $debtPaymentsInPeriod = $allPaymentsInPeriod->sum(function($payment) use ($customerSalesInPeriod) {
+                  $customerData = $customerSalesInPeriod->get($payment->customer_id);
+                  if (!$customerData) return 0;
+                  
+                  // Si el cliente tiene ventas en este arqueo, contar el pago
+                  if ($customerData->sales_in_period > 0) {
+                     return $payment->payment_amount;
+                  } else {
+                     return 0;
+                  }
+               });
+            }
          }
          
          // Calcular deudas pendientes al cierre de este arqueo optimizado
