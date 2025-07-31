@@ -261,3 +261,21 @@ Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('ad
         Route::get('/sale/{saleId}', [DebtPaymentController::class, 'getPaymentsBySale'])->name('admin.debt-payments.by-sale');
         Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
     });
+
+    // Rutas de Debugbar (solo en desarrollo)
+    if (config('app.debug')) {
+        Route::get('_debugbar/assets/stylesheets', [
+            'as' => 'debugbar.assets.css',
+            'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css'
+        ]);
+        
+        Route::get('_debugbar/assets/javascript', [
+            'as' => 'debugbar.assets.js',
+            'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@js'
+        ]);
+        
+        Route::get('_debugbar/open', [
+            'as' => 'debugbar.open',
+            'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle'
+        ]);
+    }

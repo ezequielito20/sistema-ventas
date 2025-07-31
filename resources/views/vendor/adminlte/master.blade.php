@@ -131,6 +131,9 @@
     {{-- Custom Scripts --}}
     @yield('adminlte_js')
 
+    {{-- Debugbar --}}
+    @include('debugbar-include')
+
 </body>
 
 </html>
