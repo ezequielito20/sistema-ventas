@@ -27,12 +27,17 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('pagination::bootstrap-4');
         Paginator::defaultSimpleView('pagination::simple-bootstrap-4');
         
-        // Compartir la variable company con todas las vistas
-        View::composer('*', function ($view) {
+        // Comentado temporalmente para evitar N+1 queries
+        // La variable company se manejará directamente en los controladores
+        /*
+        View::composer(['admin.*', 'auth.*', 'layouts.*'], function ($view) {
             if (Auth::check()) {
-                $company = Company::find(Auth::user()->company_id);
+                $company = \Illuminate\Support\Facades\DB::table('companies')
+                    ->where('id', Auth::user()->company_id)
+                    ->first();
                 $view->with('company', $company);
             }
         });
+        */
     }
 }

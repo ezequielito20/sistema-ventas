@@ -20,8 +20,9 @@ class UserController extends Controller
    {
       $company = Auth::user()->company;
       $users = User::where('company_id', $company->id)
-      ->orderBy('name', 'asc')
-      ->get();
+         ->with('company') // Eager loading para evitar N+1 queries
+         ->orderBy('name', 'asc')
+         ->get();
       return view('admin.users.index', compact('users', 'company'));
    }
 
