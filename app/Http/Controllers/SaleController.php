@@ -147,12 +147,17 @@ class SaleController extends Controller
          $companyId = $company->id;
          $currency = $this->currencies;
 
-         // Obtener productos y clientes de la compañía actual
+         // Obtener productos con solo los campos necesarios
          $products = Product::where('company_id', $companyId)
             ->where('stock', '>', 0)
+            ->select('id', 'code', 'name', 'image', 'stock', 'sale_price', 'category_id')
+            ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
             ->get();
+
+         // Obtener clientes con solo los campos necesarios para el select
          $customers = Customer::where('company_id', $companyId)
-            ->orderBy('name', 'asc') // Ordenar alfabéticamente por nombre
+            ->select('id', 'name', 'total_debt')
+            ->orderBy('name', 'asc')
             ->get();
 
          // Obtener el customer_id de la URL si existe
@@ -221,6 +226,13 @@ class SaleController extends Controller
          $customer->total_debt = $customer->total_debt + $validated['total_price'];
          $customer->save();
 
+         // Obtener todos los productos necesarios en una sola consulta
+         $productIds = collect($request->items)->pluck('product_id')->unique();
+         $products = Product::whereIn('id', $productIds)
+            ->select('id', 'stock')
+            ->get()
+            ->keyBy('id');
+
          // Procesar cada producto en la venta
          foreach ($request->items as $item) {
             // Crear el detalle de venta
@@ -232,10 +244,12 @@ class SaleController extends Controller
                'subtotal' => $item['subtotal'],
             ]);
 
-            // Actualizar el stock del producto
-            $product = Product::findOrFail($item['product_id']);
-            $product->stock -= $item['quantity'];
-            $product->save();
+            // Actualizar el stock del producto usando el modelo ya cargado
+            $product = $products->get($item['product_id']);
+            if ($product) {
+               $product->stock -= $item['quantity'];
+               $product->save();
+            }
          }
 
          // Registrar la transacción en la caja usando CashMovement en lugar de CashTransaction
@@ -599,7 +613,8 @@ class SaleController extends Controller
    public function getProductDetails($code)
    {
       try {
-         $product = Product::with('category')
+         $product = Product::select('id', 'code', 'name', 'stock', 'sale_price', 'image', 'category_id')
+            ->with(['category:id,name'])
             ->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
@@ -642,7 +657,8 @@ class SaleController extends Controller
    public function getProductByCode($code)
    {
       try {
-         $product = Product::where('code', $code)
+         $product = Product::select('id', 'code', 'name', 'stock', 'sale_price', 'image')
+            ->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
 
