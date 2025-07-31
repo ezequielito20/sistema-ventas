@@ -210,27 +210,8 @@ class Customer extends Model
     */
    public function hasPreviousCashCountDebts()
    {
-      if ($this->total_debt <= 0) {
-         return false;
-      }
-
-      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
-      
-      // Verificar si tiene ventas antes del arqueo actual
-      $hasSalesBeforeCurrentCashCount = $this->sales()
-         ->where('sale_date', '<', $currentCashCountOpeningDate)
-         ->exists();
-
-      if (!$hasSalesBeforeCurrentCashCount) {
-         return false;
-      }
-
-      // Verificar si tiene pagos que cubran las deudas anteriores
-      $totalPaymentsBeforeCurrentCashCount = $this->getTotalPaymentsBeforeDate($currentCashCountOpeningDate);
-      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
-
-      // Si los pagos no cubren las deudas anteriores, entonces tiene deudas de arqueos anteriores
-      return $totalPaymentsBeforeCurrentCashCount < $totalDebtsBeforeCurrentCashCount;
+      // CORRECCIÓN: Simplificar la lógica - solo verificar si tiene deuda pendiente de arqueos anteriores
+      return $this->getPreviousCashCountDebtAmount() > 0;
    }
 
    /**
@@ -294,15 +275,27 @@ class Customer extends Model
     */
    public function getPreviousCashCountDebtAmount()
    {
-      if (!$this->hasPreviousCashCountDebts()) {
-         return 0;
+      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
+      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
+      
+      // CORRECCIÓN: Considerar TODOS los pagos, no solo los antes del arqueo
+      $totalPayments = 0;
+      if (Schema::hasTable('debt_payments')) {
+         $totalPayments = DB::table('debt_payments')
+            ->where('customer_id', $this->id)
+            ->where('company_id', $this->company_id)
+            ->sum('payment_amount');
+      } else {
+         // Fallback a cash_movements si no existe debt_payments
+         $totalPayments = DB::table('cash_movements')
+            ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+            ->where('cash_counts.company_id', $this->company_id)
+            ->where('cash_movements.type', 'income')
+            ->where('cash_movements.description', 'like', '%' . $this->name . '%')
+            ->sum('cash_movements.amount');
       }
 
-      $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
-      $totalPaymentsBeforeCurrentCashCount = $this->getTotalPaymentsBeforeDate($currentCashCountOpeningDate);
-      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
-
-      return $totalDebtsBeforeCurrentCashCount - $totalPaymentsBeforeCurrentCashCount;
+      return max(0, $totalDebtsBeforeCurrentCashCount - $totalPayments);
    }
 
    /**
@@ -336,7 +329,8 @@ class Customer extends Model
     */
    public function isDefaulter()
    {
-      return $this->hasPreviousCashCountDebts();
+      // CORRECCIÓN: Solo verificar si tiene deuda pendiente de arqueos anteriores
+      return $this->getPreviousCashCountDebtAmount() > 0;
    }
 
    /**

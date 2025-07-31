@@ -41,6 +41,8 @@ class CustomerController extends Controller
             ->first();
          
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+         
+
 
          // Obtener todos los clientes con sus ventas
          $customers = Customer::with('sales')
@@ -107,18 +109,25 @@ class CustomerController extends Controller
             $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
             $totalSalesAfter = $salesAfterCashCount->sum('total_price');
             
-            // Calcular pagos antes y después del arqueo actual
-            $paymentsBeforeCashCount = $customerPayments->where('created_at', '<', $openingDate);
-            $paymentsAfterCashCount = $customerPayments->where('created_at', '>=', $openingDate);
+            // Calcular pagos totales
+            $totalPayments = $customerPayments->sum('payment_amount');
             
-            $totalPaymentsBefore = $paymentsBeforeCashCount->sum('payment_amount');
-            $totalPaymentsAfter = $paymentsAfterCashCount->sum('payment_amount');
+            // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
+            // La deuda anterior = Ventas anteriores - Pagos totales (si hay ventas anteriores)
+            $previousDebt = 0;
+            if ($totalSalesBefore > 0) {
+               // Si tiene ventas anteriores, calcular cuánto debe de esas ventas
+               $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+            }
             
-            // Determinar si es moroso
+            // Calcular deuda actual (solo ventas del arqueo actual)
+            $currentDebt = max(0, $totalSalesAfter);
+            
+            // Determinar si es moroso (SOLO si tiene deuda pendiente de arqueos anteriores)
             $hasOldSales = $salesBeforeCashCount->count() > 0;
-            $previousDebt = $totalSalesBefore - $totalPaymentsBefore;
-            $currentDebt = max(0, $totalSalesAfter - $totalPaymentsAfter);
-            $isDefaulter = $hasOldSales && $previousDebt > 0;
+            $isDefaulter = $previousDebt > 0;
+            
+
             
             // Almacenar datos calculados
             $customersData[$customer->id] = [
@@ -685,16 +694,20 @@ class CustomerController extends Controller
                   
                   // Calcular ventas antes del arqueo actual
                   $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-                  $paymentsBeforeCashCount = $customerPayments->where('created_at', '<', $openingDate);
                   
                   $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
-                  $totalPaymentsBefore = $paymentsBeforeCashCount->sum('payment_amount');
+                  $totalPayments = $customerPayments->sum('payment_amount');
+                  
+                  // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
+                  $previousDebt = 0;
+                  if ($totalSalesBefore > 0) {
+                     $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+                  }
                   
                   // Determinar si es moroso
                   $hasOldSales = $salesBeforeCashCount->count() > 0;
-                  $previousDebt = $totalSalesBefore - $totalPaymentsBefore;
                   
-                  if ($hasOldSales && $previousDebt > 0) {
+                  if ($previousDebt > 0) {
                      $defaultersIds[] = $customerId;
                   } else {
                      $currentDebtorsIds[] = $customerId;
@@ -833,15 +846,21 @@ class CustomerController extends Controller
             
             // Calcular ventas antes del arqueo actual
             $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-            $paymentsBeforeCashCount = $customerPayments->where('created_at', '<', $openingDate);
             
             $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
-            $totalPaymentsBefore = $paymentsBeforeCashCount->sum('payment_amount');
+            $totalPayments = $customerPayments->sum('payment_amount');
             
-            // Determinar si es moroso (tiene deudas de arqueos anteriores)
+            // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
+            // La deuda anterior = Ventas anteriores - Pagos totales (si hay ventas anteriores)
+            $previousDebt = 0;
+            if ($totalSalesBefore > 0) {
+               // Si tiene ventas anteriores, calcular cuánto debe de esas ventas
+               $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+            }
+            
+            // Determinar si es moroso (SOLO si tiene deuda pendiente de arqueos anteriores)
             $hasOldSales = $salesBeforeCashCount->count() > 0;
-            $previousDebt = $totalSalesBefore - $totalPaymentsBefore;
-            $isDefaulter = $hasOldSales && $previousDebt > 0;
+            $isDefaulter = $previousDebt > 0;
             
             // Almacenar datos calculados
             $customersData[$customer->id] = [
