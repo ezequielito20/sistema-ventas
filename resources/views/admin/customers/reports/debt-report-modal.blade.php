@@ -785,7 +785,34 @@
                 $(this).find('td:first').text(index + 1);
             });
             
+            // Actualizar totales basados en las filas visibles
+            updateFilteredTotals();
+            
             updatePdfLinks();
+        }
+
+        // Función para actualizar totales basados en filtros
+        function updateFilteredTotals() {
+            let totalDebt = 0;
+            let totalDebtBs = 0;
+            let visibleCount = 0;
+            let exchangeRate = parseFloat($('#modalExchangeRate').val()) || 1;
+            
+            // Calcular totales solo de las filas visibles
+            $('.customer-row-modal:visible').each(function() {
+                let debtAmount = parseFloat($(this).data('debt')) || 0;
+                totalDebt += debtAmount;
+                totalDebtBs += debtAmount * exchangeRate;
+                visibleCount++;
+            });
+            
+            // Actualizar el resumen en la tarjeta (usando las clases correctas)
+            $('.summary-badge-big:first').text('{{ $currency->symbol }} ' + totalDebt.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $('.modal-bs-debt').text('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+            $('.modal-bs-debt').data('debt', totalDebt); // Actualizar el data-debt para futuros cálculos
+            
+            // Actualizar contador de clientes
+            $('.summary-value:first').text(visibleCount);
         }
 
         // Event listeners optimizados
@@ -828,6 +855,9 @@
                     let debtBs = debtUsd * rate;
                     $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
                 });
+                
+                // Actualizar totales filtrados con el nuevo tipo de cambio
+                updateFilteredTotals();
                 
                 updatePdfLinks();
             }
