@@ -453,6 +453,86 @@
                 </div>
             </div>
 
+            {{-- Vista móvil optimizada --}}
+            <div class="mobile-view" id="mobileView">
+                <div class="mobile-sales-list">
+                    @foreach ($sales as $sale)
+                        <div class="mobile-sale-card" data-sale-id="{{ $sale->id }}">
+                            <div class="mobile-card-header">
+                                <div class="mobile-sale-number">
+                                    <span class="number-badge">#{{ $loop->iteration }}</span>
+                                </div>
+                                <div class="mobile-sale-total">
+                                    <span class="total-amount-mobile">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-card-body">
+                                <div class="mobile-customer-section">
+                                    <div class="mobile-customer-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="mobile-customer-info">
+                                        <h4 class="mobile-customer-name">{{ $sale->customer->name }}</h4>
+                                        <p class="mobile-customer-email">{{ $sale->customer->email }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mobile-sale-details">
+                                    <div class="mobile-detail-row">
+                                        <div class="mobile-detail-label">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>Fecha</span>
+                                        </div>
+                                        <div class="mobile-detail-value">
+                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mobile-detail-row">
+                                        <div class="mobile-detail-label">
+                                            <i class="fas fa-boxes"></i>
+                                            <span>Productos</span>
+                                        </div>
+                                        <div class="mobile-detail-value">
+                                            <div class="mobile-product-badges">
+                                                <span class="mobile-badge unique">{{ $sale->saleDetails->count() }} únicos</span>
+                                                <span class="mobile-badge total">{{ $sale->saleDetails->sum('quantity') }} totales</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-card-footer">
+                                <div class="mobile-actions">
+                                    <button type="button" class="mobile-btn mobile-btn-primary view-details"
+                                        data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                        <i class="fas fa-list"></i>
+                                        <span>Ver Detalle</span>
+                                    </button>
+                                    
+                                    <div class="mobile-action-buttons">
+                                        @can('sales.edit')
+                                            <button type="button" class="mobile-btn-action btn-edit"
+                                                data-id="{{ $sale->id }}" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        @endcan
+                                        @can('sales.destroy')
+                                            <button type="button" class="mobile-btn-action delete-sale"
+                                                data-id="{{ $sale->id }}" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
             {{-- Contenedor de paginación personalizada --}}
             <div class="modern-pagination-container"></div>
 
@@ -1878,6 +1958,226 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
+        /* Vista Móvil Optimizada */
+        .mobile-view {
+            display: none;
+        }
+
+        .mobile-sales-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-sale-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-sale-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .mobile-card-header {
+            background: var(--gradient-primary);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-sale-number .number-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .mobile-sale-total .total-amount-mobile {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-card-body {
+            padding: 1.5rem;
+        }
+
+        .mobile-customer-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .mobile-customer-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 1.5rem;
+        }
+
+        .mobile-customer-info {
+            flex: 1;
+        }
+
+        .mobile-customer-name {
+            margin: 0;
+            color: var(--dark-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .mobile-customer-email {
+            margin: 0;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .mobile-sale-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .mobile-detail-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .mobile-detail-label i {
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .mobile-detail-value {
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+
+        .mobile-product-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mobile-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .mobile-badge.unique {
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            color: #234e52;
+        }
+
+        .mobile-badge.total {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            color: #2c5282;
+        }
+
+        .mobile-card-footer {
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mobile-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mobile-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .mobile-btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            flex: 1;
+        }
+
+        .mobile-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .mobile-action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mobile-btn-action {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .mobile-btn-action.btn-edit {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+        }
+
+        .mobile-btn-action.delete-sale {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .mobile-btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .modern-header {
@@ -1933,6 +2233,25 @@
             .table-row:hover {
                 transform: none;
             }
+
+            /* Ocultar tabla en móvil y mostrar vista móvil */
+            .table-view {
+                display: none !important;
+            }
+
+            .mobile-view {
+                display: block !important;
+            }
+
+            /* Ocultar vista de tarjetas en móvil */
+            .cards-view {
+                display: none !important;
+            }
+
+            /* Ajustar botones de vista */
+            .view-toggles {
+                display: none !important;
+            }
         }
 
         @media (max-width: 576px) {
@@ -1958,6 +2277,99 @@
             .action-buttons {
                 flex-wrap: wrap;
                 justify-content: center;
+            }
+
+            /* Ajustes específicos para móviles muy pequeños */
+            .mobile-card-body {
+                padding: 1rem;
+            }
+
+            .mobile-customer-section {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.75rem;
+            }
+
+            .mobile-customer-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+
+            .mobile-detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .mobile-detail-label {
+                font-size: 0.85rem;
+            }
+
+            .mobile-detail-value {
+                font-size: 0.85rem;
+                width: 100%;
+            }
+
+            .mobile-product-badges {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .mobile-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .mobile-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .mobile-action-buttons {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .mobile-btn-action {
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+            }
+
+            /* Mejorar espaciado en móviles muy pequeños */
+            .mobile-sales-list {
+                gap: 0.75rem;
+            }
+
+            .mobile-sale-card {
+                margin-bottom: 0.5rem;
+            }
+
+            .mobile-card-header {
+                padding: 0.75rem;
+            }
+
+            .mobile-card-footer {
+                padding: 0.75rem 1rem;
+            }
+
+            /* Ajustar tamaños de fuente para mejor legibilidad */
+            .mobile-sale-number .number-badge {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .mobile-sale-total .total-amount-mobile {
+                font-size: 1.1rem;
+            }
+
+            .mobile-customer-name {
+                font-size: 1rem;
+            }
+
+            .mobile-customer-email {
+                font-size: 0.8rem;
             }
         }
 
@@ -3326,6 +3738,45 @@
                     });
                 }
 
+                // Aplicar filtros a las tarjetas móviles si están visibles
+                if ($(window).width() <= 768) {
+                    $('.mobile-sale-card').each(function() {
+                        const card = $(this);
+                        const saleDateText = card.find('.mobile-detail-value').first().text().trim();
+                        const saleAmountText = card.find('.total-amount-mobile').text().trim();
+                        
+                        // Extraer fecha y monto de las tarjetas móviles
+                        const saleDate = new Date(saleDateText.split(' ')[0].split('/').reverse().join('-'));
+                        const saleAmount = parseFloat(saleAmountText.replace(/[^\d.,]/g, '').replace(',', ''));
+                        
+                        // Aplicar filtros
+                        let dateFilter = true;
+                        if (dateFrom) {
+                            const fromDate = new Date(dateFrom);
+                            dateFilter = dateFilter && saleDate >= fromDate;
+                        }
+                        if (dateTo) {
+                            const toDate = new Date(dateTo);
+                            toDate.setHours(23, 59, 59);
+                            dateFilter = dateFilter && saleDate <= toDate;
+                        }
+                        
+                        let amountFilter = true;
+                        if (amountMin > 0) {
+                            amountFilter = amountFilter && saleAmount >= amountMin;
+                        }
+                        if (amountMax < Infinity) {
+                            amountFilter = amountFilter && saleAmount <= amountMax;
+                        }
+                        
+                        if (dateFilter && amountFilter) {
+                            card.show();
+                        } else {
+                            card.hide();
+                        }
+                    });
+                }
+
                 // Redibujar la tabla
                 table.draw();
                 
@@ -3371,6 +3822,11 @@
                 // Mostrar todas las tarjetas si están visibles
                 if ($('.view-toggle.active').data('view') === 'cards') {
                     $('.modern-sale-card').show();
+                }
+
+                // Mostrar todas las tarjetas móviles si están visibles
+                if ($(window).width() <= 768) {
+                    $('.mobile-sale-card').show();
                 }
                 
                 // Ocultar indicador de filtros activos
@@ -3447,6 +3903,42 @@
             // Establecer fecha máxima como hoy para el campo "Hasta"
             const today = new Date().toISOString().split('T')[0];
             $('#dateTo').attr('max', today);
+
+            // Función para ajustar vista según el tamaño de pantalla
+            function adjustViewForScreenSize() {
+                const windowWidth = $(window).width();
+                
+                if (windowWidth <= 768) {
+                    // En móvil, ocultar tabla y mostrar vista móvil
+                    $('.table-view').hide();
+                    $('.cards-view').hide();
+                    $('.mobile-view').show();
+                    $('.view-toggles').hide();
+                } else {
+                    // En desktop, mostrar tabla y botones de vista
+                    $('.table-view').show();
+                    $('.mobile-view').hide();
+                    $('.view-toggles').show();
+                    
+                    // Restaurar vista activa (tabla o cards)
+                    const activeView = $('.view-toggle.active').data('view');
+                    if (activeView === 'cards') {
+                        $('#tableView').hide();
+                        $('#cardsView').show();
+                    } else {
+                        $('#tableView').show();
+                        $('#cardsView').hide();
+                    }
+                }
+            }
+
+            // Ajustar vista al cargar la página
+            adjustViewForScreenSize();
+
+            // Ajustar vista cuando cambie el tamaño de la ventana
+            $(window).resize(function() {
+                adjustViewForScreenSize();
+            });
         });
     </script>
 @stop
