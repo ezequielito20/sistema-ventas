@@ -244,6 +244,83 @@
                 </div>
             </div>
         </div>
+        
+        {{-- Filtros Avanzados --}}
+        <div class="filters-section">
+            <div class="filters-header">
+                <div class="filters-title">
+                    <i class="fas fa-filter"></i>
+                    <span>Filtros Avanzados</span>
+                </div>
+                <button type="button" class="filters-toggle" id="filtersToggle">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div class="filters-content" id="filtersContent">
+                <div class="filters-grid">
+                    <!-- Filtro de Fecha -->
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Rango de Fechas
+                        </label>
+                        <div class="date-range">
+                            <div class="date-input">
+                                <label>Desde:</label>
+                                <input type="date" id="dateFrom" class="filter-input">
+                            </div>
+                            <div class="date-input">
+                                <label>Hasta:</label>
+                                <input type="date" id="dateTo" class="filter-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtro de Monto -->
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="fas fa-dollar-sign"></i>
+                            Rango de Montos
+                        </label>
+                        <div class="amount-range">
+                            <div class="amount-input">
+                                <label>Mínimo:</label>
+                                <div class="input-with-symbol">
+                                    <span class="currency-symbol">{{ $currency->symbol }}</span>
+                                    <input type="number" id="amountMin" class="filter-input" placeholder="0.00" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="amount-input">
+                                <label>Máximo:</label>
+                                <div class="input-with-symbol">
+                                    <span class="currency-symbol">{{ $currency->symbol }}</span>
+                                    <input type="number" id="amountMax" class="filter-input" placeholder="999999.99" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filters-actions">
+                    <div class="filters-status" id="filtersStatus" style="display: none;">
+                        <span class="status-text">Filtros activos:</span>
+                        <span class="active-filters" id="activeFiltersList"></span>
+                    </div>
+                    <div class="filters-buttons">
+                        <button type="button" class="btn-filter btn-apply" id="applyFilters">
+                            <i class="fas fa-search"></i>
+                            <span>Aplicar Filtros</span>
+                        </button>
+                        <button type="button" class="btn-filter btn-clear" id="clearFilters">
+                            <i class="fas fa-times"></i>
+                            <span>Limpiar Filtros</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="modern-card-body">
             {{-- Vista de tabla moderna --}}
             <div class="table-view" id="tableView">
@@ -999,6 +1076,272 @@
             background: rgba(30, 58, 138, 0.1);
             color: #1e3a8a;
             border: 1px solid #60a5fa;
+        }
+
+        /* Filtros Avanzados */
+        .filters-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .filters-header:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .filters-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .filters-title i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .filters-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .filters-toggle:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.1);
+        }
+
+        .filters-toggle.rotated {
+            transform: rotate(180deg);
+        }
+
+        .filters-content {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .filters-content.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.95rem;
+        }
+
+        .filter-label i {
+            color: var(--primary-color);
+        }
+
+        .date-range, .amount-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .date-input, .amount-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .date-input label, .amount-input label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .filter-input {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-with-symbol {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 0.75rem;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 2;
+        }
+
+        .input-with-symbol .filter-input {
+            padding-left: 2.5rem;
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .filters-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            border: 1px solid #9ae6b4;
+            border-radius: var(--border-radius);
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #22543d;
+        }
+
+        .active-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-badge {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .filters-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-apply {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-clear {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-clear:hover {
+            background: #cbd5e0;
+            color: #475569;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive para filtros */
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .date-range, .amount-range {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .filters-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .filters-status {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .filters-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .btn-filter {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         /* Tarjeta Moderna */
@@ -2890,6 +3233,220 @@
                 html: true,
                 template: '<div class="tooltip modern-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
             });
+
+            // ===== FUNCIONALIDAD DE FILTROS AVANZADOS =====
+            
+            // Toggle de filtros
+            $('#filtersToggle').click(function() {
+                const content = $('#filtersContent');
+                const toggle = $(this);
+                
+                content.toggleClass('show');
+                toggle.toggleClass('rotated');
+                
+                if (content.hasClass('show')) {
+                    toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                } else {
+                    toggle.find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                }
+            });
+
+            // Función para aplicar filtros
+            function applyFilters() {
+                const dateFrom = $('#dateFrom').val();
+                const dateTo = $('#dateTo').val();
+                const amountMin = parseFloat($('#amountMin').val()) || 0;
+                const amountMax = parseFloat($('#amountMax').val()) || Infinity;
+
+                // Crear función de filtro personalizada para DataTable
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    const saleDate = new Date(data[2].split(' ')[0].split('/').reverse().join('-'));
+                    const saleAmount = parseFloat(data[4].replace(/[^\d.,]/g, '').replace(',', ''));
+                    
+                    // Filtro de fecha
+                    let dateFilter = true;
+                    if (dateFrom) {
+                        const fromDate = new Date(dateFrom);
+                        dateFilter = dateFilter && saleDate >= fromDate;
+                    }
+                    if (dateTo) {
+                        const toDate = new Date(dateTo);
+                        toDate.setHours(23, 59, 59); // Incluir todo el día
+                        dateFilter = dateFilter && saleDate <= toDate;
+                    }
+                    
+                    // Filtro de monto
+                    let amountFilter = true;
+                    if (amountMin > 0) {
+                        amountFilter = amountFilter && saleAmount >= amountMin;
+                    }
+                    if (amountMax < Infinity) {
+                        amountFilter = amountFilter && saleAmount <= amountMax;
+                    }
+                    
+                    return dateFilter && amountFilter;
+                });
+
+                // Aplicar filtros a las tarjetas si están visibles
+                if ($('.view-toggle.active').data('view') === 'cards') {
+                    $('.modern-sale-card').each(function() {
+                        const card = $(this);
+                        const saleDateText = card.find('.detail-value').first().text().trim();
+                        const saleAmountText = card.find('.total-amount').text().trim();
+                        
+                        // Extraer fecha y monto de las tarjetas
+                        const saleDate = new Date(saleDateText.split(' ')[0].split('/').reverse().join('-'));
+                        const saleAmount = parseFloat(saleAmountText.replace(/[^\d.,]/g, '').replace(',', ''));
+                        
+                        // Aplicar filtros
+                        let dateFilter = true;
+                        if (dateFrom) {
+                            const fromDate = new Date(dateFrom);
+                            dateFilter = dateFilter && saleDate >= fromDate;
+                        }
+                        if (dateTo) {
+                            const toDate = new Date(dateTo);
+                            toDate.setHours(23, 59, 59);
+                            dateFilter = dateFilter && saleDate <= toDate;
+                        }
+                        
+                        let amountFilter = true;
+                        if (amountMin > 0) {
+                            amountFilter = amountFilter && saleAmount >= amountMin;
+                        }
+                        if (amountMax < Infinity) {
+                            amountFilter = amountFilter && saleAmount <= amountMax;
+                        }
+                        
+                        if (dateFilter && amountFilter) {
+                            card.show();
+                        } else {
+                            card.hide();
+                        }
+                    });
+                }
+
+                // Redibujar la tabla
+                table.draw();
+                
+                // Mostrar indicador de filtros activos
+                const activeFilters = [];
+                if (dateFrom || dateTo) activeFilters.push('fecha');
+                if (amountMin > 0 || amountMax < Infinity) activeFilters.push('monto');
+                
+                if (activeFilters.length > 0) {
+                    // Mostrar indicador de filtros activos
+                    $('#filtersStatus').show();
+                    $('#activeFiltersList').html(
+                        activeFilters.map(filter => `<span class="filter-badge">${filter}</span>`).join('')
+                    );
+                    
+                    // Mostrar notificación
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Filtros aplicados',
+                        text: `Filtros de ${activeFilters.join(' y ')} aplicados correctamente`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    $('#filtersStatus').hide();
+                }
+            }
+
+            // Función para limpiar filtros
+            function clearFilters() {
+                // Limpiar inputs
+                $('#dateFrom').val('');
+                $('#dateTo').val('');
+                $('#amountMin').val('');
+                $('#amountMax').val('');
+                
+                // Limpiar filtros de DataTable
+                $.fn.dataTable.ext.search.pop();
+                
+                // Mostrar todas las tarjetas si están visibles
+                if ($('.view-toggle.active').data('view') === 'cards') {
+                    $('.modern-sale-card').show();
+                }
+                
+                // Ocultar indicador de filtros activos
+                $('#filtersStatus').hide();
+                
+                // Redibujar tabla
+                table.draw();
+                
+                // Mostrar notificación
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Filtros limpiados',
+                    text: 'Todos los filtros han sido removidos',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            // Event listeners para filtros
+            $('#applyFilters').click(function() {
+                applyFilters();
+            });
+
+            $('#clearFilters').click(function() {
+                clearFilters();
+            });
+
+            // Aplicar filtros al presionar Enter en los inputs
+            $('.filter-input').keypress(function(e) {
+                if (e.which === 13) {
+                    applyFilters();
+                }
+            });
+
+            // Validación de fechas
+            $('#dateFrom, #dateTo').change(function() {
+                const dateFrom = $('#dateFrom').val();
+                const dateTo = $('#dateTo').val();
+                
+                if (dateFrom && dateTo && dateFrom > dateTo) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Rango de fechas inválido',
+                        text: 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"',
+                        confirmButtonColor: '#667eea'
+                    });
+                    
+                    // Limpiar el campo que causó el error
+                    $(this).val('');
+                }
+            });
+
+            // Validación de montos
+            $('#amountMin, #amountMax').change(function() {
+                const amountMin = parseFloat($('#amountMin').val()) || 0;
+                const amountMax = parseFloat($('#amountMax').val()) || 0;
+                
+                if (amountMin > 0 && amountMax > 0 && amountMin > amountMax) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Rango de montos inválido',
+                        text: 'El monto mínimo no puede ser mayor que el monto máximo',
+                        confirmButtonColor: '#667eea'
+                    });
+                    
+                    // Limpiar el campo que causó el error
+                    $(this).val('');
+                }
+            });
+
+            // Establecer fecha máxima como hoy para el campo "Hasta"
+            const today = new Date().toISOString().split('T')[0];
+            $('#dateTo').attr('max', today);
         });
     </script>
 @stop
