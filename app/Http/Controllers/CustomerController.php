@@ -511,6 +511,66 @@ class CustomerController extends Controller
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
 
+         // Verificar si el cliente tiene ventas asociadas
+         $salesCount = $customer->sales()->count();
+         if ($salesCount > 0) {
+            $totalSalesAmount = $customer->sales()->sum('total_price');
+            $firstSaleDate = $customer->sales()->orderBy('sale_date', 'asc')->first()->sale_date->format('d/m/Y');
+            $lastSaleDate = $customer->sales()->orderBy('sale_date', 'desc')->first()->sale_date->format('d/m/Y');
+            
+            return response()->json([
+               'success' => false,
+               'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene ventas asociadas.\n\n" .
+                           "📊 Detalles:\n" .
+                           "• Cliente: {$customer->name}\n" .
+                           "• Ventas asociadas: {$salesCount}\n" .
+                           "• Total de ventas: $" . number_format($totalSalesAmount, 2) . "\n" .
+                           "• Primera venta: {$firstSaleDate}\n" .
+                           "• Última venta: {$lastSaleDate}\n\n" .
+                           "🔧 Acción requerida:\n" .
+                           "Primero debes eliminar todas las ventas asociadas a este cliente antes de poder eliminarlo.\n\n" .
+                           "💡 Sugerencia:\n" .
+                           "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
+               'icons' => 'warning',
+               'has_sales' => true,
+               'sales_count' => $salesCount,
+               'total_sales_amount' => $totalSalesAmount,
+               'first_sale_date' => $firstSaleDate,
+               'last_sale_date' => $lastSaleDate,
+               'customer_name' => $customer->name
+            ], 422);
+         }
+
+         // Verificar si el cliente tiene pagos de deuda asociados
+         $paymentsCount = \App\Models\DebtPayment::where('customer_id', $customer->id)->count();
+         if ($paymentsCount > 0) {
+            $totalPaymentsAmount = \App\Models\DebtPayment::where('customer_id', $customer->id)->sum('payment_amount');
+            $firstPaymentDate = \App\Models\DebtPayment::where('customer_id', $customer->id)->orderBy('created_at', 'asc')->first()->created_at->format('d/m/Y');
+            $lastPaymentDate = \App\Models\DebtPayment::where('customer_id', $customer->id)->orderBy('created_at', 'desc')->first()->created_at->format('d/m/Y');
+            
+            return response()->json([
+               'success' => false,
+               'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene pagos de deuda asociados.\n\n" .
+                           "📊 Detalles:\n" .
+                           "• Cliente: {$customer->name}\n" .
+                           "• Pagos asociados: {$paymentsCount}\n" .
+                           "• Total de pagos: $" . number_format($totalPaymentsAmount, 2) . "\n" .
+                           "• Primer pago: {$firstPaymentDate}\n" .
+                           "• Último pago: {$lastPaymentDate}\n\n" .
+                           "🔧 Acción requerida:\n" .
+                           "Primero debes eliminar todos los pagos de deuda asociados a este cliente antes de poder eliminarlo.\n\n" .
+                           "💡 Sugerencia:\n" .
+                           "Ve al historial de pagos del cliente y elimina los registros de pago.",
+               'icons' => 'warning',
+               'has_payments' => true,
+               'payments_count' => $paymentsCount,
+               'total_payments_amount' => $totalPaymentsAmount,
+               'first_payment_date' => $firstPaymentDate,
+               'last_payment_date' => $lastPaymentDate,
+               'customer_name' => $customer->name
+            ], 422);
+         }
+
          // Guardar información para el log antes de eliminar
          $customerInfo = [
             'id' => $customer->id,
@@ -533,6 +593,33 @@ class CustomerController extends Controller
             'message' => '¡Cliente eliminado exitosamente!',
             'icons' => 'success'
          ]);
+      } catch (\Illuminate\Database\QueryException $e) {
+         // Capturar errores específicos de base de datos
+         Log::error('Error de base de datos al eliminar cliente: ' . $e->getMessage(), [
+            'user_id' => Auth::id(),
+            'customer_id' => $id,
+            'error_code' => $e->getCode()
+         ]);
+
+         // Verificar si es un error de restricción de clave foránea
+         if ($e->getCode() == 23000) { // Código de error de MySQL para restricción de clave foránea
+            return response()->json([
+               'success' => false,
+               'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene registros asociados en el sistema.\n\n" .
+                           "🔧 Acción requerida:\n" .
+                           "Primero debes eliminar todas las ventas y pagos asociados a este cliente antes de poder eliminarlo.\n\n" .
+                           "💡 Sugerencia:\n" .
+                           "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
+               'icons' => 'warning',
+               'customer_name' => $customer->name
+            ], 422);
+         }
+
+         return response()->json([
+            'success' => false,
+            'message' => 'Error de base de datos al eliminar el cliente. Por favor, inténtelo de nuevo.',
+            'icons' => 'error'
+         ], 500);
       } catch (\Exception $e) {
          Log::error('Error al eliminar cliente: ' . $e->getMessage(), [
             'user_id' => Auth::id(),

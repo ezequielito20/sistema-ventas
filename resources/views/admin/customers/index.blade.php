@@ -3922,12 +3922,63 @@
                                         location.reload();
                                     });
                                 } else {
-                                    Swal.fire('Error', response.message, response.icon);
+                                    // Mostrar mensaje de error con formato mejorado y botones adicionales
+                                    let showCancelButton = false;
+                                    let cancelButtonText = '';
+                                    let confirmButtonText = 'Entendido';
+                                    
+                                    // Si tiene ventas, mostrar botón para ir a ventas
+                                    if (response.has_sales) {
+                                        showCancelButton = true;
+                                        cancelButtonText = 'Ver Ventas';
+                                        confirmButtonText = 'Entendido';
+                                    }
+                                    
+                                    Swal.fire({
+                                        title: response.icons === 'warning' ? 'No se puede eliminar' : 'Error',
+                                        html: response.message.replace(/\n/g, '<br>'),
+                                        icon: response.icons,
+                                        showCancelButton: showCancelButton,
+                                        confirmButtonColor: response.icons === 'warning' ? '#ed8936' : '#667eea',
+                                        cancelButtonColor: '#667eea',
+                                        confirmButtonText: confirmButtonText,
+                                        cancelButtonText: cancelButtonText
+                                    }).then((result) => {
+                                        if (result.dismiss === Swal.DismissReason.cancel && response.has_sales) {
+                                            // Redirigir a la página de ventas con filtro por cliente
+                                            window.location.href = '/sales?search=' + encodeURIComponent(response.customer_name || '');
+                                        }
+                                    });
                                 }
                             },
-                            error: function() {
-                                Swal.fire('Error', 'No se pudo eliminar el cliente',
-                                    'error');
+                            error: function(xhr, status, error) {
+                                let errorMessage = 'No se pudo eliminar el cliente';
+                                let iconType = 'error';
+                                
+                                // Intentar obtener el mensaje de error del servidor
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                    // Determinar el tipo de icono basado en la respuesta del servidor
+                                    if (xhr.responseJSON.icons === 'warning') {
+                                        iconType = 'warning';
+                                    }
+                                } else if (xhr.status === 422) {
+                                    errorMessage = 'No se puede eliminar este cliente debido a restricciones del sistema';
+                                } else if (xhr.status === 404) {
+                                    errorMessage = 'El cliente no fue encontrado';
+                                } else if (xhr.status === 403) {
+                                    errorMessage = 'No tienes permisos para eliminar este cliente';
+                                } else if (xhr.status === 500) {
+                                    errorMessage = 'Error interno del servidor al eliminar el cliente';
+                                }
+                                
+                                Swal.fire({
+                                    title: iconType === 'warning' ? 'No se puede eliminar' : 'Error',
+                                    html: errorMessage.replace(/\n/g, '<br>'),
+                                    icon: iconType,
+                                    confirmButtonColor: iconType === 'warning' ? '#ed8936' : '#667eea',
+                                    confirmButtonText: 'Entendido'
+                                });
                             }
                         });
                     }
