@@ -196,6 +196,7 @@ class SaleController extends Controller
             'items.*.subtotal' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
             'note' => 'nullable|string|max:1000',
+            'already_paid' => 'required|boolean',
          ]);
 
          DB::beginTransaction();
@@ -224,9 +225,31 @@ class SaleController extends Controller
             'note' => $validated['note'] ?? null,
          ]);
 
-         // Actualizar la deuda del cliente
-         $customer->total_debt = $customer->total_debt + $validated['total_price'];
-         $customer->save();
+         // Manejar el pago automático si ya pagó
+         if ($validated['already_paid']) {
+            // Obtener la deuda anterior del cliente
+            $previousDebt = $customer->total_debt;
+            
+            // Registrar el pago automático en la tabla debt_payments
+            DB::table('debt_payments')->insert([
+               'company_id' => Auth::user()->company_id,
+               'customer_id' => $validated['customer_id'],
+               'previous_debt' => $previousDebt,
+               'payment_amount' => $validated['total_price'],
+               'remaining_debt' => $previousDebt, // La deuda restante es igual a la anterior porque ya pagó esta venta
+               'notes' => 'Pago automático registrado al crear la venta #' . $sale->id,
+               'user_id' => Auth::user()->id,
+               'created_at' => now(),
+               'updated_at' => now(),
+            ]);
+
+            // No actualizar la deuda del cliente porque ya pagó
+            // La deuda se mantiene igual
+         } else {
+            // Actualizar la deuda del cliente solo si no pagó
+            $customer->total_debt = $customer->total_debt + $validated['total_price'];
+            $customer->save();
+         }
 
          // Obtener todos los productos necesarios en una sola consulta
          $productIds = collect($request->items)->pluck('product_id')->unique();

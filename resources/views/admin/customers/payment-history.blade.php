@@ -2101,14 +2101,14 @@
     <script>
         $(document).ready(function() {
             // Inicializar DataTable con configuración moderna
+            // Los pagos ya vienen ordenados del más reciente al más antiguo desde el servidor
             $('#paymentsTable').DataTable({
                 responsive: true,
                 autoWidth: false,
                 paging: false,
                 info: false,
                 searching: false, // Usamos nuestro propio buscador
-                ordering: true,
-                order: [[0, 'desc']],
+                ordering: false, // Deshabilitar ordenamiento del DataTable para respetar el orden del servidor
                 language: {
                     "sProcessing":     "Procesando...",
                     "sLengthMenu":     "Mostrar _MENU_ registros",

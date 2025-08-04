@@ -137,6 +137,26 @@
                             @enderror
                         </div>
                     </div>
+
+                    <!-- ¿Ya pagó? -->
+                    <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="already_paid" class="form-label">
+                                <i class="fas fa-credit-card"></i>
+                                ¿Ya pagó?
+                            </label>
+                            <div class="input-group-modern">
+                                <select name="already_paid" id="already_paid" class="form-control-modern">
+                                    <option value="0" {{ old('already_paid', '0') == '0' ? 'selected' : '' }}>No</option>
+                                    <option value="1" {{ old('already_paid', '0') == '1' ? 'selected' : '' }}>Sí</option>
+                                </select>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Si selecciona "Sí", se registrará automáticamente el pago
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1648,6 +1668,29 @@
         .form-section:nth-child(3) {
             animation-delay: 0.2s;
         }
+
+        /* Estilos para el campo de pago */
+        .form-text {
+            color: #a0aec0;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-text i {
+            margin-right: 0.25rem;
+        }
+
+        #already_paid {
+            font-weight: 600;
+        }
+
+        #already_paid option[value="1"] {
+            color: var(--success-color);
+        }
+
+        #already_paid option[value="0"] {
+            color: var(--warning-color);
+        }
     </style>
 @stop
 
@@ -2138,6 +2181,18 @@
                     $('#submitSale, #submitSaleAndNew').prop('disabled', false);
                     return false;
                 }
+
+                // Verificar si se seleccionó el estado de pago
+                if (!$('#already_paid').val()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar si el cliente ya pagó o no'
+                    });
+                    // Rehabilitar botones si hay error
+                    $('#submitSale, #submitSaleAndNew').prop('disabled', false);
+                    return false;
+                }
                 
                 // Preparar los datos de los productos
                 const items = [];
@@ -2232,6 +2287,25 @@
             // Inicializar estado vacío
             updateEmptyState();
             updateCounters();
+
+            // Manejar cambio en el campo "¿Ya pagó?"
+            $('#already_paid').on('change', function() {
+                const alreadyPaid = $(this).val() === '1';
+                const customerId = $('#customer_id').val();
+                
+                if (customerId && alreadyPaid) {
+                    // Mostrar información sobre el pago automático
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Pago Automático',
+                        text: 'Al seleccionar "Sí", se registrará automáticamente el pago de esta venta y no se incrementará la deuda del cliente.',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#667eea'
+                    });
+                }
+            });
+
+
 
             // Detectar scroll horizontal en la tabla
             function checkTableScroll() {
