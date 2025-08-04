@@ -3,7 +3,10 @@
 /public/build
 /public/hot
 /public/storage
+# Debugbar files
 /storage/debugbar/
+/debugbar/
+*.debugbar
 /storage/*.key
 /storage/pail
 /vendor
