@@ -2726,12 +2726,33 @@
                                     });
                                 }
                             },
-                            error: function() {
+                            error: function(xhr, status, error) {
+                                let errorMessage = 'No se pudo eliminar la venta';
+                                let iconType = 'error';
+                                
+                                // Intentar obtener el mensaje de error del servidor
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                    // Determinar el tipo de icono basado en la respuesta del servidor
+                                    if (xhr.responseJSON.icons === 'warning') {
+                                        iconType = 'warning';
+                                    }
+                                } else if (xhr.status === 422) {
+                                    errorMessage = 'No se puede eliminar esta venta debido a restricciones del sistema';
+                                } else if (xhr.status === 404) {
+                                    errorMessage = 'La venta no fue encontrada';
+                                } else if (xhr.status === 403) {
+                                    errorMessage = 'No tienes permisos para eliminar esta venta';
+                                } else if (xhr.status === 500) {
+                                    errorMessage = 'Error interno del servidor al eliminar la venta';
+                                }
+                                
                                 Swal.fire({
-                                    title: 'Error',
-                                    text: 'No se pudo eliminar la venta',
-                                    icon: 'error',
-                                    confirmButtonColor: '#667eea'
+                                    title: iconType === 'warning' ? 'Advertencia' : 'Error',
+                                    text: errorMessage,
+                                    icon: iconType,
+                                    confirmButtonColor: iconType === 'warning' ? '#ed8936' : '#667eea',
+                                    confirmButtonText: 'Entendido'
                                 });
                             }
                         });

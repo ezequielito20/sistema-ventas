@@ -545,10 +545,11 @@ class SaleController extends Controller
          $sale = Sale::where('company_id', Auth::user()->company_id)
             ->findOrFail($id);
 
-         // Verificar si la venta tiene pagos de deuda asociados
+         // Verificar si hay pagos de deuda del cliente después de la fecha de esta venta
          $debtPayments = DB::table('debt_payments')
-            ->where('sale_id', $sale->id)
+            ->where('customer_id', $sale->customer_id)
             ->where('company_id', Auth::user()->company_id)
+            ->where('created_at', '>', $sale->sale_date)
             ->get();
 
          if ($debtPayments->count() > 0) {
@@ -557,15 +558,15 @@ class SaleController extends Controller
             
             return response()->json([
                'success' => false,
-               'message' => "⚠️ No se puede eliminar esta venta porque tiene pagos asociados.\n\n" .
+               'message' => "⚠️ No se puede eliminar esta venta porque el cliente tiene pagos de deuda posteriores.\n\n" .
                            "📊 Detalles:\n" .
                            "• Cliente: {$customerName}\n" .
-                           "• Venta #{$sale->id}\n" .
+                           "• Venta #{$sale->id} del " . $sale->sale_date->format('d/m/Y') . "\n" .
                            "• Total de la venta: $" . number_format($sale->total_price, 2) . "\n" .
-                           "• Pagos realizados: $" . number_format($totalPaid, 2) . "\n" .
-                           "• Cantidad de pagos: {$debtPayments->count()}\n\n" .
+                           "• Pagos posteriores: $" . number_format($totalPaid, 2) . "\n" .
+                           "• Cantidad de pagos posteriores: {$debtPayments->count()}\n\n" .
                            "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todos los pagos asociados a esta venta antes de poder eliminarla.",
+                           "Primero debes eliminar todos los pagos de deuda posteriores a esta venta antes de poder eliminarla.",
                'icons' => 'warning',
                'has_payments' => true,
                'payments_count' => $debtPayments->count(),
