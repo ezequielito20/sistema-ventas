@@ -195,6 +195,7 @@ class SaleController extends Controller
             'items.*.price' => 'required|numeric|min:0',
             'items.*.subtotal' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:1000',
          ]);
 
          DB::beginTransaction();
@@ -220,6 +221,7 @@ class SaleController extends Controller
             'company_id' => Auth::user()->company_id,
             'customer_id' => $validated['customer_id'],
             'cash_count_id' => $currentCashCount->id,
+            'note' => $validated['note'] ?? null,
          ]);
 
          // Actualizar la deuda del cliente
@@ -390,6 +392,7 @@ class SaleController extends Controller
             'items' => 'required|array|min:1',
             'items.*.quantity' => 'required|numeric|min:1',
             'total_price' => 'required|numeric|min:0',
+            'note' => 'nullable|string|max:1000',
          ]);
 
          DB::beginTransaction();
@@ -438,6 +441,7 @@ class SaleController extends Controller
          }
          $sale->customer_id = $validated['customer_id'];
          $sale->total_price = $validated['total_price'];
+         $sale->note = $validated['note'] ?? null;
          $sale->save();
 
          // Obtener IDs de detalles actuales
@@ -744,7 +748,8 @@ class SaleController extends Controller
                'customer_name' => $sale->customer->name,
                'customer_email' => $sale->customer->email,
                'customer_phone' => $sale->customer->phone,
-               'total_price' => $sale->total_price
+               'total_price' => $sale->total_price,
+               'note' => $sale->note
             ],
             'details' => $details
          ];

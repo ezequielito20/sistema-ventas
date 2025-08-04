@@ -219,8 +219,21 @@
                         </div>
                     </div>
                     
-                    <!-- Total de la venta -->
+                    <!-- Total de la venta y Nota -->
                     <div class="sale-total">
+                        <!-- Campo de Nota -->
+                        <div class="note-card">
+                            <div class="note-icon">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <div class="note-content">
+                                <label for="note" class="note-label">Nota de la Venta</label>
+                                <textarea name="note" id="note" class="note-textarea" 
+                                    placeholder="Agregue una nota adicional para esta venta (opcional)">{{ old('note', $sale->note) }}</textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Total de la venta -->
                         <div class="total-card">
                             <div class="total-icon">
                                 <i class="fas fa-receipt"></i>
@@ -963,11 +976,77 @@
             font-size: 0.9rem;
         }
 
-        /* Total de la Venta */
+        /* Total de la Venta y Nota */
         .sale-total {
             margin-top: 2rem;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        /* Campo de Nota */
+        .note-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .note-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-info);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .note-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .note-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .note-textarea {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .note-textarea::placeholder {
+            color: #a0aec0;
+            font-style: italic;
         }
 
         .total-card {
@@ -980,6 +1059,7 @@
             gap: 1rem;
             box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
             min-width: 300px;
+            flex-shrink: 0;
         }
 
         .total-icon {
@@ -1323,6 +1403,17 @@
                 width: 55px;
                 height: 55px;
                 font-size: 1.1rem;
+            }
+
+            .sale-total {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .note-card {
+                min-width: auto;
+                width: 100%;
+                max-width: none;
             }
 
             .total-card {

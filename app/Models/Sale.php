@@ -19,6 +19,7 @@ class Sale extends Model
         'total_price',
         'company_id',
         'customer_id',
+        'note',
     ];
 
     /**

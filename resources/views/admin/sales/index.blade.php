@@ -600,8 +600,20 @@
                             </table>
                         </div>
 
-                        {{-- Total destacado --}}
+                        {{-- Total destacado y Nota --}}
                         <div class="total-section">
+                            <!-- Campo de Nota -->
+                            <div class="note-card" id="noteCard" style="display: none;">
+                                <div class="note-icon">
+                                    <i class="fas fa-sticky-note"></i>
+                                </div>
+                                <div class="note-content">
+                                    <span class="note-label">Nota de la Venta</span>
+                                    <div class="note-text" id="noteText"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Total de la venta -->
                             <div class="total-card">
                                 <div class="total-icon">
                                     <i class="fas fa-receipt"></i>
@@ -2173,11 +2185,67 @@
             border-bottom: none;
         }
 
-        /* Sección de Total */
+        /* Sección de Total y Nota */
         .total-section {
             margin-top: 2rem;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+
+        /* Campo de Nota en el Modal */
+        .note-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .note-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-info);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .note-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .note-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .note-text {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .total-card {
@@ -2311,6 +2379,17 @@
 
             .products-section {
                 padding: 1rem;
+            }
+
+            .total-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .note-card {
+                min-width: auto;
+                width: 100%;
+                max-width: none;
             }
 
             .total-card {
@@ -2606,6 +2685,9 @@
                 button.prop('disabled', true);
 
                 $('#saleDetailsTableBody').empty();
+                
+                // Ocultar la nota al inicio
+                $('#noteCard').hide();
 
                 $.ajax({
                     url: `/sales/${saleId}/details`,
@@ -2642,6 +2724,17 @@
                             const formattedTotal = total.toFixed(2).replace(
                                 /\B(?=(\d{3})+(?!\d))/g, ",");
                             $('#modalTotal').text(formattedTotal);
+
+                            // Manejar la nota
+                            const noteCard = $('#noteCard');
+                            const noteText = $('#noteText');
+                            
+                            if (response.sale.note && response.sale.note.trim() !== '') {
+                                noteText.text(response.sale.note);
+                                noteCard.show();
+                            } else {
+                                noteCard.hide();
+                            }
                         } else {
                             Swal.fire({
                                 title: 'Error',
