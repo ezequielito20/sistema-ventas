@@ -3,246 +3,290 @@
 @section('title', 'Editar Venta')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Editar Venta</h1>
-        <a href="{{ route('admin.sales.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
-        </a>
+    <div class="modern-header">
+        <div class="header-gradient"></div>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="header-content">
+                        <div class="header-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="header-text">
+                            <h1 class="header-title">Editar Venta</h1>
+                            <p class="header-subtitle">Modifique los datos de la transacción de venta</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="header-actions">
+                        <button onclick="window.history.back()" class="btn btn-modern btn-secondary-modern">
+                            <span>Volver</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @stop
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        Información de la Venta
-                    </h3>
+    <div class="modern-sale-form">
+        <form action="{{ route('admin.sales.update', $sale->id) }}" method="POST" enctype="multipart/form-data" id="saleForm">
+            @csrf
+            @method('PUT')
+            
+            <!-- Sección de Información Básica -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h3 class="section-title">Información de la Venta</h3>
                 </div>
-
-                <form action="{{ route('admin.sales.update', $sale->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
-                    <div class="card-body">
-                        <div class="row">
-                            <!-- Código de Producto -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="product_code" class="required">Código de Producto</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-barcode"></i>
-                                            </span>
-                                        </div>
-                                        <input type="text" id="product_code" class="form-control"
-                                            placeholder="Ingrese código de producto">
-                                        <div class="input-group-append">
-                                            <button type="button" class="btn btn-primary" data-toggle="modal"
-                                                data-target="#searchProductModal">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Cliente -->
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="customer_id" class="required">Cliente</label>
-                                    <div class="input-group">
-                                        <select name="customer_id" id="customer_id" class="form-control select2"
-                                            style="width: calc(100% - 90px);" required>
-                                            <option value="">Seleccione un cliente</option>
-                                            @foreach ($customers as $customer)
-                                                <option value="{{ $customer->id }}"
-                                                    {{ $sale->customer_id == $customer->id ? 'selected' : '' }}>
-                                                    {{ $customer->name }} - {{ $customer->document_number }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="input-group-append" style="white-space: nowrap;">
-                                            <a href="{{ route('admin.customers.create') }}" class="btn btn-success">
-                                                <i class="fas fa-plus"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Fecha de Venta -->
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="sale_date" class="required">Fecha de Venta</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-calendar"></i>
-                                            </span>
-                                        </div>
-                                        <input type="date" name="sale_date" id="sale_date"
-                                            class="form-control @error('sale_date') is-invalid @enderror"
-                                            value="{{ old('sale_date', $sale->sale_date->format('Y-m-d')) }}" required>
-                                        @error('sale_date')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Hora de Venta -->
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="sale_time">Hora de Venta</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-clock"></i>
-                                            </span>
-                                        </div>
-                                        <input type="time" name="sale_time" id="sale_time"
-                                            class="form-control @error('sale_time') is-invalid @enderror"
-                                            value="{{ old('sale_time', $sale->sale_date->format('H:i')) }}">
-                                        @error('sale_time')
-                                            <span class="invalid-feedback">{{ $message }}</span>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tabla de productos -->
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header bg-light">
-                                        <h3 class="card-title">
-                                            <i class="fas fa-shopping-cart mr-2"></i>
-                                            Productos en la Venta
-                                        </h3>
-                                    </div>
-                                    <div class="card-body table-responsive p-0">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Código</th>
-                                                    <th>Producto</th>
-                                                    <th>Stock</th>
-                                                    <th width="120px">Cantidad</th>
-                                                    <th>Precio Unit.</th>
-                                                    <th>Subtotal</th>
-                                                    <th width="50px">Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="saleItems">
-                                                @foreach ($saleDetails as $detail)
-                                                    <tr data-product-code="{{ $detail['code'] }}">
-                                                        <td>{{ $detail['code'] }}</td>
-                                                        <td>{{ $detail['name'] }}</td>
-                                                        <td class="text-center">
-                                                            <span
-                                                                class="badge badge-{{ $detail['stock_status_class'] }}">{{ $detail['stock'] }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <input type="number"
-                                                                class="form-control form-control-sm quantity-input"
-                                                                name="items[{{ $detail['id'] }}][quantity]"
-                                                                value="{{ $detail['quantity'] }}" min="1"
-                                                                max="{{ $detail['stock'] }}">
-                                                        </td>
-                                                        <td>
-                                                            <div class="input-group input-group-sm">
-                                                                <div class="input-group-prepend">
-                                                                    <span
-                                                                        class="input-group-text">{{ $currency->symbol }}</span>
-                                                                </div>
-                                                                <input type="number"
-                                                                    class="form-control form-control-sm price-input"
-                                                                    name="items[{{ $detail['id'] }}][price]"
-                                                                    value="{{ $detail['sale_price'] }}" step="0.01"
-                                                                    readonly>
-                                                            </div>
-                                                        </td>
-                                                        <td class="text-right">
-                                                            <span class="subtotal-value"
-                                                                style="display:none;">{{ $detail['quantity'] * $detail['sale_price'] }}</span>
-                                                            <span class="subtotal-display">{{ $currency->symbol }}
-                                                                {{ number_format($detail['quantity'] * $detail['sale_price'], 2) }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm remove-item">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td colspan="5" class="text-right">
-                                                        <strong>Total:</strong>
-                                                    </td>
-                                                    <td class="text-right"> <span
-                                                            id="totalAmount">{{ number_format($sale->total_price, 2) }}</span>
-                                                        <input type="hidden" name="total_price" id="totalAmountInput"
-                                                            value="{{ $sale->total_price }}">
-                                                    </td>
-                                                    <td></td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
+                
+                <div class="row">
+                    <!-- Código de Producto -->
+                    <div class="col-xl-4 col-lg-3 col-md-6 col-12">
+                    <div class="form-group-modern">
+                        <label for="product_code" class="form-label">
+                            <i class="fas fa-barcode"></i>
+                            Código de Producto
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="text" name="product_code" id="product_code"
+                                class="form-control-modern"
+                                placeholder="Escanee o ingrese el código del producto">
+                            <div class="input-actions">
+                                <button type="button" class="btn-action btn-search" id="searchProduct"
+                                    data-toggle="modal" data-target="#searchProductModal">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="/products/create" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-footer">
-                        <div class="d-flex justify-content-between">
-                            <button type="button" class="btn btn-danger" id="clearForm">
-                                <i class="fas fa-trash mr-2"></i>Limpiar
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save mr-2"></i>Actualizar Venta
-                            </button>
+                    <!-- Cliente -->
+                    <div class="col-xl-4 col-lg-3 col-md-6 col-12">
+                    <div class="form-group-modern">
+                        <label for="customer_id" class="form-label required">
+                            <i class="fas fa-user"></i>
+                            Cliente
+                        </label>
+                        <div class="input-group-modern">
+                            <select name="customer_id" id="customer_id"
+                                class="form-control-modern select2" required>
+                                <option value="">Seleccione un cliente</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" {{ $sale->customer_id == $customer->id ? 'selected' : '' }}>
+                                        {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="input-actions">
+                                <a href="{{ route('admin.customers.create') }}?return_to=sales.edit" class="btn-action btn-add">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                        @error('customer_id')
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {{ $message }}
+                            </div>
+                        @enderror
                         </div>
                     </div>
-                </form>
+
+                    <!-- Fecha de Venta -->
+                    <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                    <div class="form-group-modern">
+                        <label for="sale_date" class="form-label required">
+                            <i class="fas fa-calendar"></i>
+                            Fecha de Venta
+                        </label>
+                        <div class="input-group-modern">
+                            <input type="date" name="sale_date" id="sale_date"
+                                class="form-control-modern @error('sale_date') is-invalid @enderror"
+                                value="{{ old('sale_date', $sale->sale_date->format('Y-m-d')) }}" required>
+                        </div>
+                            @error('sale_date')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <!-- Hora de Venta -->
+                    <div class="col-xl-2 col-lg-3 col-md-6 col-12">
+                        <div class="form-group-modern">
+                            <label for="sale_time" class="form-label required">
+                                <i class="fas fa-clock"></i>
+                                Hora de Venta
+                            </label>
+                            <div class="input-group-modern">
+                                <input type="time" name="sale_time" id="sale_time"
+                                    class="form-control-modern @error('sale_time') is-invalid @enderror"
+                                    value="{{ old('sale_time', $sale->sale_date->format('H:i')) }}" required>
+                            </div>
+                            @error('sale_time')
+                                <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Sección de Productos -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3 class="section-title">Productos en la Venta</h3>
+                </div>
+                
+                <div class="products-table-container">
+                    <div class="table-header">
+                        <div class="table-info">
+                            <div class="info-item">
+                                <i class="fas fa-boxes"></i>
+                                <span class="products-count">{{ count($saleDetails) }} productos</span>
+                            </div>
+                            <div class="info-item total-info">
+                                <i class="fas fa-calculator"></i>
+                                <span class="total-amount-display">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-barcode"></i> Código</th>
+                                    <th><i class="fas fa-box"></i> Producto</th>
+                                    <th><i class="fas fa-warehouse"></i> Stock</th>
+                                    <th><i class="fas fa-sort-numeric-up"></i> Cantidad</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio Unit.</th>
+                                    <th><i class="fas fa-calculator"></i> Subtotal</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="saleItems">
+                                @foreach ($saleDetails as $detail)
+                                    <tr data-product-id="{{ $detail['id'] }}" data-product-code="{{ $detail['code'] }}">
+                                        <td>{{ $detail['code'] }}</td>
+                                        <td>{{ $detail['name'] }}</td>
+                                        <td>
+                                            <span class="stock-badge badge-{{ $detail['stock_status_class'] }}">
+                                                {{ $detail['stock'] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <input type="number" class="quantity-input" 
+                                                   name="items[{{ $detail['id'] }}][quantity]"
+                                                   value="{{ $detail['quantity'] }}" min="1" max="{{ $detail['stock'] }}" step="1">
+                                        </td>
+                                        <td>
+                                            {{ $currency->symbol }} {{ number_format($detail['sale_price'], 2) }}
+                                            <input type="hidden" class="price-input" value="{{ $detail['sale_price'] }}">
+                                        </td>
+                                        <td>
+                                            <span class="subtotal-display">{{ $currency->symbol }} {{ number_format($detail['quantity'] * $detail['sale_price'], 2) }}</span>
+                                            <span class="subtotal-value d-none">{{ $detail['quantity'] * $detail['sale_price'] }}</span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn-action btn-danger remove-item">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        
+                        <!-- Estado vacío -->
+                        <div class="empty-state" id="emptyState" style="display: none;">
+                            <div class="empty-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h4>No hay productos agregados</h4>
+                            <p>Agregue productos escaneando códigos o usando el buscador</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Total de la venta -->
+                    <div class="sale-total">
+                        <div class="total-card">
+                            <div class="total-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="total-content">
+                                <span class="total-label">Total de la Venta</span>
+                                <span class="total-amount" id="totalAmount">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                <input type="hidden" name="total_price" id="totalAmountInput" value="{{ $sale->total_price }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones del Formulario -->
+            <div class="form-actions">
+                <div class="action-buttons">
+                    <button type="button" class="btn-modern btn-danger-modern" id="cancelSale" title="Cancelar Edición">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn-modern btn-primary-modern" id="submitSale" title="Actualizar Venta">
+                        <i class="fas fa-save"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Modal de Búsqueda de Productos -->
     <div class="modal fade" id="searchProductModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white">
-                        <i class="fas fa-search mr-2"></i>
-                        Búsqueda de Productos
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-
+            <div class="modal-content modern-modal">
+                <div class="modal-header-modern">
+                    <div class="modal-header-background">
+                        <div class="modal-header-gradient"></div>
+                    </div>
+                    <div class="modal-header-content">
+                        <div class="modal-title-section">
+                            <div class="modal-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="modal-title-text">
+                                <h4 class="modal-title-main">Búsqueda de Productos</h4>
+                                <p class="modal-subtitle">Seleccione productos para agregar a la venta</p>
+                            </div>
+                        </div>
+                        <button type="button" class="modal-close-btn" data-dismiss="modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-body">
+                
+                <div class="modal-body-modern">
                     <div class="table-responsive">
-                        <table id="productsTable" class="table table-striped table-hover w-100 nowrap">
+                        <table id="productsTable" class="modern-table">
                             <thead>
                                 <tr>
-                                    <th style="min-width: 100px">Código</th>
-                                    <th style="min-width: 40px">Acción</th>
-                                    <th style="width: 40px">Imagen</th>
-                                    <th style="min-width: 250px">Nombre</th>
-                                    <th style="min-width: 150px">Categoría</th>
-                                    <th style="min-width: 100px">Stock</th>
-                                    <th style="min-width: 120px">Precio</th>
-                                    <th style="min-width: 100px">Estado</th>
+                                    <th><i class="fas fa-barcode"></i> Código</th>
+                                    <th><i class="fas fa-plus-circle"></i> Acción</th>
+                                    <th><i class="fas fa-image"></i> Imagen</th>
+                                    <th><i class="fas fa-box"></i> Nombre</th>
+                                    <th><i class="fas fa-tags"></i> Categoría</th>
+                                    <th><i class="fas fa-warehouse"></i> Stock</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Precio</th>
+                                    <th><i class="fas fa-info-circle"></i> Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -250,29 +294,28 @@
                                     <tr>
                                         <td class="align-middle">{{ $product->code }}</td>
                                         <td class="align-middle text-center">
-                                            <button type="button" class="btn btn-primary btn-sm select-product"
+                                            <button type="button" class="btn-action btn-primary select-product"
                                                 data-code="{{ $product->code }}"
+                                                data-id="{{ $product->id }}"
                                                 {{ $product->stock <= 0 ? 'disabled' : '' }}>
                                                 <i class="fas fa-plus-circle"></i>
                                             </button>
                                         </td>
                                         <td class="align-middle">
-                                            <img src="{{ $product->image_url }}" alt="N/I" class="img-thumbnail"
-                                                width="50">
+                                            <img src="{{ $product->image_url }}" alt="N/I" class="product-thumbnail">
                                         </td>
                                         <td class="align-middle">{{ $product->name }}</td>
                                         <td class="align-middle">{{ $product->category->name }}</td>
                                         <td class="align-middle text-center">
-                                            <span class="badge badge-{{ $product->stock_status_class }}">
+                                            <span class="stock-badge badge-{{ $product->stock_status_class }}">
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="align-middle text-right">
-                                            {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}
+                                        <td class="align-middle text-right">{{ $currency->symbol }}
+                                            {{ number_format($product->sale_price, 2) }}
                                         </td>
                                         <td class="align-middle text-center">
-                                            <span
-                                                class="badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
+                                            <span class="status-badge badge-{{ $product->stock_status_label === 'Bajo' ? 'danger' : ($product->stock_status_label === 'Normal' ? 'warning' : 'success') }}">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -291,193 +334,1479 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
     <style>
+        :root {
+            --primary-color: #667eea;
+            --success-color: #48bb78;
+            --danger-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+            --dark-color: #2d3748;
+            --light-color: #f7fafc;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-success: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            --gradient-danger: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            --gradient-info: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+
+        /* Estilos para campos en una línea */
+        .form-group-modern {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group-modern .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Contenedor principal más ancho */
+        .modern-sale-form {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Responsive para pantallas extra anchas */
+        @media (min-width: 1400px) {
+            .modern-sale-form {
+                max-width: 95%;
+                padding: 0 2rem;
+            }
+            
+            .form-section {
+                padding: 2rem 3rem;
+            }
+            
+            .products-table-container {
+                margin: 0 -1rem;
+            }
+        }
+        
+        /* Responsive para pantallas anchas */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+            .modern-sale-form {
+                max-width: 98%;
+                padding: 0 1.5rem;
+            }
+        }
+        
+        /* Responsive para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .col-lg-3, .col-xl-2, .col-xl-4 {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Ajustes para campos de fecha y hora */
+        input[type="date"], input[type="time"] {
+            min-width: 120px;
+        }
+        
+        /* Select2 responsive */
+        .select2-container {
+            width: 100% !important;
+        }
+        
         .select2-container .select2-selection--single {
-            height: 38px !important;
+            height: calc(2.25rem + 2px);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 38px !important;
+        /* Header Moderno */
+        .modern-header {
+            position: relative;
+            margin: -15px -15px 20px -15px;
+            padding: 2rem 0;
+            overflow: hidden;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
         }
 
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 36px !important;
+        .header-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
         }
 
-        .required::after {
-            content: " *";
-            color: red;
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
-        /* Estilos para hacer la tabla responsive */
-        .modal-xl {
-            max-width: 95% !important;
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
         }
 
-        .table-responsive {
+        .header-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
             margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Formulario Moderno */
+        .modern-sale-form {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: var(--gradient-primary);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .form-grid {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dark-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        .input-group-modern {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .input-group-modern:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control-modern {
+            flex: 1;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--dark-color);
+        }
+
+        .form-control-modern:focus {
+            outline: none;
+        }
+
+        .form-control-modern::placeholder {
+            color: #a0aec0;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+        }
+
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-action.btn-search {
+            background: var(--gradient-info);
+            color: white;
+        }
+
+        .btn-action.btn-add {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-action.btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Tabla de Productos */
+        .products-table-container {
+            padding: 2rem;
+            width: 100%;
+        }
+        
+        /* Tabla más ancha en pantallas grandes */
+        @media (min-width: 1200px) {
+            .products-table-container {
+                padding: 2rem 1rem;
+                overflow-x: visible;
+            }
+            
+            .table-responsive {
+                overflow-x: visible;
+            }
+            
+            .products-table {
+                min-width: 100%;
+            }
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: var(--border-radius);
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .table-info {
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: rgb(73, 214, 224);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .info-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .info-item i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .products-count {
+            color: var(--dark-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .total-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .total-info i {
+            color: white;
+        }
+
+        .total-amount-display {
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .table-wrapper {
+            position: relative;
+            min-height: 120px;
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .table-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .table-wrapper.has-scroll::after {
+            opacity: 1;
+        }
+
+        .modern-table {
+            width: 100%;
+            min-width: 800px;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            table-layout: fixed;
+        }
+
+        .modern-table thead {
+            background: var(--gradient-primary);
+        }
+
+        .modern-table thead th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            min-width: 120px;
+            height: auto;
+        }
+
+        .modern-table thead th:first-child {
+            min-width: 100px;
+        }
+
+        .modern-table thead th:nth-child(2) {
+            min-width: 200px;
+        }
+
+        .modern-table thead th:nth-child(3) {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .modern-table thead th:nth-child(4) {
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .modern-table thead th:nth-child(5) {
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .modern-table thead th:nth-child(6) {
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .modern-table thead th:last-child {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .modern-table thead th i {
+            margin-right: 0.5rem;
+        }
+
+        .modern-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.3s ease;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .modern-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .modern-table tbody {
+            min-height: auto;
+        }
+
+        /* Cuando no hay productos, ocultar la tabla */
+        .table-wrapper:has(#saleItems:empty) .modern-table {
+            display: none;
+        }
+
+        /* Cuando hay productos, mostrar la tabla y ocultar el estado vacío */
+        .table-wrapper:has(#saleItems:not(:empty)) #emptyState {
+            display: none;
+        }
+
+        .modern-table tbody td {
+            padding: 0.75rem 1rem;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+            vertical-align: middle;
+            height: auto;
+        }
+
+        .modern-table tbody td:nth-child(3) {
+            text-align: center;
+        }
+
+        .modern-table tbody td:nth-child(4) {
+            text-align: center;
+        }
+
+        .modern-table tbody td:nth-child(5) {
+            text-align: right;
+        }
+
+        .modern-table tbody td:nth-child(6) {
+            text-align: right;
+        }
+
+        .modern-table tbody td:last-child {
+            text-align: center;
+        }
+
+        .product-thumbnail {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .stock-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stock-badge.badge-success {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .stock-badge.badge-warning {
+            background: var(--gradient-warning);
+            color: white;
+        }
+
+        .stock-badge.badge-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .quantity-input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Scrollbar personalizado para la tabla */
+        .table-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
+        }
+
+        /* Estado Vacío */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #a0aec0;
+            padding: 2rem;
+            min-height: 120px;
+            background: white;
+            border-radius: var(--border-radius);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--dark-color);
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Total de la Venta */
+        .sale-total {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .total-card {
+            background: var(--gradient-success);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+            min-width: 300px;
+        }
+
+        .total-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .total-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .total-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        /* Acciones del Formulario */
+        .form-actions {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-modern {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-modern:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-modern.btn-primary-modern {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-modern.btn-success-modern {
+            background: var(--gradient-success);
+            color: white;
+        }
+
+        .btn-modern.btn-danger-modern {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .btn-modern.btn-secondary-modern {
+            background: #e2e8f0;
+            color: var(--dark-color);
+        }
+
+        /* Estilo para botones deshabilitados */
+        .btn-modern:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-modern:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Tooltip para los botones */
+        .btn-modern::before {
+            content: attr(title);
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .btn-modern::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-bottom-color: rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modern:hover::before,
+        .btn-modern:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Moderno */
+        .modern-modal {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header-modern {
+            position: relative;
             padding: 0;
+            border: none;
+            overflow: hidden;
+            height: 120px;
+        }
+
+        .modal-header-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+        }
+
+        .modal-header-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+
+        .modal-header-content {
+            position: relative;
+            z-index: 2;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .modal-title-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-title-main {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .modal-close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .modal-body-modern {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .table-info {
+                gap: 2rem;
+            }
+
+            .info-item {
+                min-width: 120px;
+                padding: 0.6rem 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .modern-header {
+                margin: -15px -15px 15px -15px;
+                padding: 1.5rem 0;
+            }
+
+            .header-title {
+                font-size: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .section-header {
+                padding: 1rem;
+            }
+
+            .products-table-container {
+                padding: 1rem;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            .table-info {
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+            }
+
+            .info-item {
+                min-width: auto;
+                width: 100%;
+                max-width: 250px;
+            }
+
+            .table-wrapper {
+                margin: 0 -1rem;
+                border-radius: 0;
+            }
+
+            .modern-table {
+                min-width: 700px;
+            }
+
+            .modern-table thead th {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .modern-table tbody td {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .table-wrapper {
+                min-height: 100px;
+            }
+
+            .empty-state {
+                min-height: 100px;
+                padding: 1.5rem;
+            }
+
+            .action-buttons {
+                gap: 0.75rem;
+            }
+
+            .btn-modern {
+                width: 55px;
+                height: 55px;
+                font-size: 1.1rem;
+            }
+
+            .total-card {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .modal-header-content {
+                padding: 1rem;
+            }
+
+            .modal-title-main {
+                font-size: 1.2rem;
+            }
+
+            .modal-body-modern {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-modern {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+
+            .action-buttons {
+                gap: 0.5rem;
+            }
+
+            .form-control-modern {
+                font-size: 16px;
+            }
+
+            .modern-table {
+                min-width: 600px;
+            }
+
+            .modern-table thead th {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .modern-table tbody td {
+                padding: 0.4rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .table-wrapper {
+                min-height: 80px;
+            }
+
+            .empty-state {
+                min-height: 80px;
+                padding: 1rem;
+            }
+
+            .quantity-input {
+                width: 60px;
+                padding: 0.375rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Select2 Moderno */
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: auto !important;
+            padding: 0.75rem 1rem;
+            border: none !important;
+            background: transparent !important;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            line-height: 1.5;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            color: var(--dark-color) !important;
+            font-size: 1rem;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
+            color: #a0aec0 !important;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+            height: auto;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 1rem;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b {
+            border-color: var(--primary-color) transparent transparent transparent;
+        }
+
+        /* Dropdown styles */
+        .select2-container--bootstrap4 .select2-dropdown {
+            border: 2px solid var(--primary-color) !important;
+            border-radius: var(--border-radius) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            z-index: 9999 !important;
+            background: white !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__options {
+            max-height: 300px;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option {
+            padding: 0.75rem 1rem !important;
+            color: var(--dark-color) !important;
+            background: white !important;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option:last-child {
+            border-bottom: none;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option[aria-selected="true"] {
+            background-color: rgba(102, 126, 234, 0.1) !important;
+            color: var(--primary-color) !important;
+            font-weight: 600;
+        }
+
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 0.5rem !important;
+            font-size: 0.95rem;
+        }
+
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field:focus {
+            border-color: var(--primary-color) !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        /* Estilos para las opciones formateadas */
+        .select2-results__option .d-flex {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
             width: 100%;
         }
 
-        #productsTable {
+        .select2-results__option .badge {
+            font-size: 0.75rem !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+        }
+
+        .select2-results__option .badge-success {
+            background: var(--gradient-success) !important;
+            color: white !important;
+        }
+
+        .select2-results__option .badge-danger {
+            background: var(--gradient-danger) !important;
+            color: white !important;
+        }
+
+        /* Asegurar que el container tenga el ancho correcto */
+        .select2-container {
             width: 100% !important;
         }
 
-        .dataTables_wrapper {
-            width: 100%;
+        /* Fix para el z-index del dropdown */
+        .select2-dropdown {
+            z-index: 9999 !important;
         }
 
-        /* Ajustes para pantallas pequeñas */
-        @media screen and (max-width: 768px) {
-            .modal-body {
-                padding: 0.5rem;
+        /* Estilos para cuando está dentro del input-group-modern */
+        .input-group-modern .select2-container {
+            flex: 1;
+        }
+
+        .input-group-modern .select2-container .select2-selection--single {
+            border-radius: 0 !important;
+        }
+
+        /* Estilos adicionales para mejorar la visibilidad */
+        .select2-container--bootstrap4.select2-container--open .select2-selection--single {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__message {
+            color: #6c757d !important;
+            padding: 1rem !important;
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Asegurar que el texto sea legible */
+        .select2-results__option strong {
+            color: #2d3748 !important;
+            font-weight: 600 !important;
+        }
+
+        /* Mejorar el contraste del placeholder */
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
+            color: #9ca3af !important;
+            font-style: italic;
+        }
+
+        /* Estilos para el estado focus */
+        .input-group-modern:focus-within .select2-container .select2-selection--single {
+            border-color: var(--primary-color) !important;
+        }
+
+        /* Asegurar que el dropdown tenga suficiente espacio */
+        .select2-container--bootstrap4 .select2-dropdown .select2-results {
+            padding: 0;
+        }
+
+        /* Mejorar la apariencia del campo de búsqueda */
+        .select2-container--bootstrap4 .select2-search--dropdown {
+            padding: 0.75rem !important;
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #e9ecef !important;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            #productsTable td,
-            #productsTable th {
-                white-space: nowrap;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        /* Asegurar que los botones no se envuelvan */
-        .input-group-append {
-            display: flex;
-            flex-wrap: nowrap;
+        .form-section {
+            animation: fadeIn 0.5s ease-out;
         }
 
-        /* Ajustar el ancho del select2 para dejar espacio a los botones */
-        .select2-container {
-            flex: 1 1 auto;
-            width: auto !important;
-            max-width: calc(100% - 90px) !important;
+        .form-section:nth-child(2) {
+            animation-delay: 0.1s;
         }
 
-        /* Mantener los botones juntos */
-        .input-group-append .btn {
-            margin-left: -1px;
-            flex-shrink: 0;
+        .form-section:nth-child(3) {
+            animation-delay: 0.2s;
         }
     </style>
 @stop
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Cargar los detalles existentes de la venta
-            const saleDetails = @json($saleDetails);
+            // Inicializar Select2 con opciones mejoradas
+            $('#customer_id').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Seleccione un cliente',
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: false,
+                dropdownParent: $('body'),
+                escapeMarkup: function(markup) {
+                    return markup;
+                },
+                language: {
+                    noResults: function() {
+                        return "No se encontraron resultados";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    },
+                    loadingMore: function() {
+                        return "Cargando más resultados...";
+                    }
+                },
+                templateResult: formatCustomer,
+                templateSelection: formatCustomerSelection,
+                matcher: function(params, data) {
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
 
-            // saleDetails.forEach(product => {
-            //     addProductToTable(product, true);
-            // });
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
 
-            // Inicializar DataTable para el modal de búsqueda
+                    const searchTerm = params.term.toLowerCase();
+                    const fullText = data.text.toLowerCase();
+                    
+                    if (fullText.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+
+                    return null;
+                }
+            });
+
+            // Función para formatear las opciones en el dropdown
+            function formatCustomer(customer) {
+                if (!customer.id) {
+                    return customer.text;
+                }
+                
+                const parts = customer.text.split(' - ');
+                if (parts.length < 2) {
+                    return customer.text;
+                }
+                
+                const name = parts[0].trim();
+                const debt = parts[1].trim();
+                
+                const badgeClass = debt.includes('0.00') ? 'success' : 'danger';
+                
+                const $container = $(
+                    `<div class="d-flex justify-content-between align-items-center" style="width: 100%; padding: 2px 0;">
+                        <div style="flex: 1;">
+                            <strong style="color: #2d3748; font-size: 0.95rem;">${name}</strong>
+                        </div>
+                        <div style="flex-shrink: 0; margin-left: 1rem;">
+                            <span class="badge badge-${badgeClass}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600;">${debt}</span>
+                        </div>
+                    </div>`
+                );
+                
+                return $container;
+            }
+            
+            // Función para formatear la opción seleccionada
+            function formatCustomerSelection(customer) {
+                if (!customer.id) {
+                    return customer.text;
+                }
+                return customer.text;
+            }
+
+            // Inicializar DataTable
             $('#productsTable').DataTable({
                 responsive: true,
-                scrollX: true,
                 autoWidth: false,
                 language: window.DataTablesSpanishConfig,
                 columnDefs: [{
-                    responsivePriority: 1,
-                    targets: [0, 1, 2]
-                }, {
-                    responsivePriority: 2,
-                    targets: [4, 5]
-                }, {
-                    responsivePriority: 3,
-                    targets: '_all'
-                }]
+                        responsivePriority: 1,
+                        targets: [0, 1, 3]
+                    },
+                    {
+                        responsivePriority: 2,
+                        targets: [5, 6]
+                    },
+                    {
+                        responsivePriority: 3,
+                        targets: '_all'
+                    }
+                ]
             });
-
-            // Al cargar la página, inicializamos los productos existentes
-            $('#saleItems tr').each(function() {
-                const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-                const price = parseFloat($(this).find('.price-input').val()) || 0;
-                const subtotal = quantity * price;
-                $(this).find('.subtotal').text(subtotal.toFixed(2));
-            });
-
-            // Actualizar el total inicial
-            updateTotal();
 
             // Función para agregar producto a la tabla
-            function addProductToTable(product, isExisting = false) {
+            function addProductToTable(product, showAlert = true) {
                 // Verificar si el producto ya está en la tabla
-                if ($(`tr[data-product-code="${product.code}"]`).length > 0 && !isExisting) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Producto ya agregado',
-                        text: 'Este producto ya está en la lista de venta'
-                    });
-                    return;
+                const existingRow = $(`#saleItems tr[data-product-id="${product.id}"]`);
+                
+                if (existingRow.length > 0) {
+                    // Si el producto ya existe, incrementar la cantidad
+                    const quantityInput = existingRow.find('.quantity-input');
+                    const currentQuantity = parseInt(quantityInput.val()) || 0;
+                    const newQuantity = currentQuantity + 1;
+                    
+                    // Verificar stock
+                    const maxStock = parseInt(quantityInput.attr('max'));
+                    if (newQuantity > maxStock) {
+                        if (showAlert) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock insuficiente',
+                                text: `Solo hay ${maxStock} unidades disponibles`,
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
+                        return;
+                    }
+                    
+                    quantityInput.val(newQuantity).trigger('input');
+                } else {
+                    // Si es un producto nuevo, agregar una nueva fila
+                    let imageUrl = product.image;
+                    if (!imageUrl || imageUrl === '') {
+                        imageUrl = '/img/no-image.png';
+                    } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                        imageUrl = '/' + imageUrl;
+                    }
+                    
+                    const row = `
+                        <tr data-product-id="${product.id}" data-product-code="${product.code}">
+                            <td>${product.code}</td>
+                            <td>${product.name}</td>
+                            <td>
+                                <span class="stock-badge badge-${product.stock > 10 ? 'success' : (product.stock > 0 ? 'warning' : 'danger')}">
+                                    ${product.stock}
+                                </span>
+                            </td>
+                            <td>
+                                <input type="number" class="quantity-input" 
+                                       value="1" min="1" max="${product.stock}" step="1">
+                            </td>
+                            <td>
+                                {{ $currency->symbol }} ${product.sale_price}
+                                <input type="hidden" class="price-input" value="${product.sale_price}">
+                            </td>
+                            <td>
+                                <span class="subtotal-display">{{ $currency->symbol }} ${product.sale_price}</span>
+                                <span class="subtotal-value d-none">${product.sale_price}</span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn-action btn-danger remove-item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    $('#saleItems').append(row);
+                    updateTotal();
+                    updateEmptyState();
                 }
-
-                const quantity = isExisting ? product.quantity : 1;
-                const price = isExisting ? product.product_price : product.sale_price;
-
-                const row = `
-                    <tr data-product-code="${product.code}">
-                        <td>${product.code}</td>
-                        <td>${product.name}</td>
-                        <td class="text-center">
-                            <span class="badge badge-${product.stock_status_class}">${product.stock}</span>
-                        </td>
-                        <td>
-                            <input type="number" 
-                                class="form-control form-control-sm quantity-input" 
-                                name="items[${product.id}][quantity]" 
-                                value="${quantity}" 
-                                min="1" 
-                                max="${product.stock}">
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">{{ $currency->symbol }}</span>
-                                </div>
-                                <input type="number" 
-                                    class="form-control form-control-sm price-input" 
-                                    name="items[${product.id}][price]" 
-                                    value="${price}" 
-                                    step="0.01" 
-                                    readonly>
-                            </div>
-                        </td>
-                        <td class="text-right">
-                            {{ $currency->symbol }}   <span class="subtotal"> ${(quantity * price).toFixed(2)}</span>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
-                $('#saleItems').append(row);
-                updateTotal();
-
-                if (!isExisting) {
+                
+                // Mostrar notificación solo si showAlert es true
+                if (showAlert) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Producto agregado',
-                        text: 'El producto se agregó a la lista de venta',
+                        title: '¡Producto agregado!',
+                        text: `${product.name} se agregó a la lista de venta`,
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
-                        timer: 3000
+                        timer: 3000,
+                        timerProgressBar: true,
+                        background: '#e8f5e8',
+                        color: '#2e7d32'
                     });
                 }
             }
 
-            // Manejar la entrada de código de producto
-            $('#product_code').keypress(function(e) {
-                if (e.which == 13) {
+            // Función para actualizar el estado vacío
+            function updateEmptyState() {
+                const hasProducts = $('#saleItems tr').length > 0;
+                const tableWrapper = $('.table-wrapper');
+                
+                if (hasProducts) {
+                    $('#emptyState').hide();
+                    $('.modern-table').show();
+                    tableWrapper.css('min-height', 'auto');
+                } else {
+                    $('#emptyState').show();
+                    $('.modern-table').hide();
+                    tableWrapper.css('min-height', '120px');
+                }
+            }
+
+            // Función para actualizar contadores
+            function updateCounters() {
+                const productCount = $('#saleItems tr').length;
+                $('.products-count').text(`${productCount} producto${productCount !== 1 ? 's' : ''}`);
+            }
+
+            // Buscar producto por código
+            $('#product_code').on('keypress', function(e) {
+                if (e.which == 13) { // Enter key
                     e.preventDefault();
                     const code = $(this).val();
                     if (code) {
@@ -489,27 +1818,28 @@
                                     addProductToTable(response.product);
                                     $('#product_code').val('').focus();
                                 } else {
-                                    Swal.fire('Error', response.message, 'error');
+                                    Swal.fire('Error', 'Producto no encontrado', 'error');
                                 }
                             },
                             error: function() {
-                                Swal.fire('Error',
-                                    'No se pudo obtener la información del producto',
-                                    'error');
+                                Swal.fire('Error', 'Error al buscar el producto', 'error');
                             }
                         });
                     }
                 }
             });
 
-            // Evento para el botón de seleccionar producto
-            $(document).on('click', '.select-product', function() {
+            // Seleccionar producto desde el modal
+            $('.select-product').click(function() {
                 const code = $(this).data('code');
+                const productId = $(this).data('id');
+                
                 $.ajax({
                     url: `/sales/product-details/${code}`,
                     method: 'GET',
                     success: function(response) {
                         if (response.success) {
+                            response.product.id = productId;
                             addProductToTable(response.product);
                             $('#searchProductModal').modal('hide');
                         } else {
@@ -517,8 +1847,7 @@
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudo obtener la información del producto',
-                            'error');
+                        Swal.fire('Error', 'Error al obtener detalles del producto', 'error');
                     }
                 });
             });
@@ -530,17 +1859,24 @@
                 const price = parseFloat(row.find('.price-input').val()) || 0;
                 const stock = parseInt($(this).attr('max'));
 
+                // Validar que la cantidad no exceda el stock
                 if (quantity > stock) {
                     $(this).val(stock);
                     Swal.fire({
                         icon: 'warning',
                         title: 'Stock insuficiente',
-                        text: `Solo hay ${stock} unidades disponibles`
+                        text: `Solo hay ${stock} unidades disponibles`,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
                     });
+                    return;
                 }
 
                 const subtotal = quantity * price;
-                row.find('.subtotal').text(subtotal.toFixed(2));
+                row.find('.subtotal-value').text(subtotal.toFixed(2));
+                row.find('.subtotal-display').text('{{ $currency->symbol }} ' + subtotal.toFixed(2));
                 updateTotal();
             });
 
@@ -548,8 +1884,8 @@
             $(document).on('click', '.remove-item', function() {
                 const row = $(this).closest('tr');
                 Swal.fire({
-                    title: '¿Está seguro?',
-                    text: "Se eliminará este producto de la venta",
+                    title: '¿Eliminar producto?',
+                    text: "¿Está seguro de eliminar este producto de la venta?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -560,6 +1896,8 @@
                     if (result.isConfirmed) {
                         row.remove();
                         updateTotal();
+                        updateEmptyState();
+                        updateCounters();
                     }
                 });
             });
@@ -567,32 +1905,119 @@
             // Actualizar total general
             function updateTotal() {
                 let total = 0;
-                $('#saleItems tr').each(function() {
-                    const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-                    const price = parseFloat($(this).find('.price-input').val()) || 0;
-                    total += quantity * price;
+                $('.subtotal-value').each(function() {
+                    total += parseFloat($(this).text()) || 0;
                 });
-
                 $('#totalAmount').text('{{ $currency->symbol }} ' + total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
+                $('.total-amount-display').text('{{ $currency->symbol }} ' + total.toFixed(2));
+                updateCounters();
             }
 
-            // Manejar el envío del formulario
-            $('#updateSale').click(function(e) {
+            // Manejar envío del formulario
+            $('form').on('submit', function(e) {
                 e.preventDefault();
-
+                
+                // Deshabilitar botón para prevenir múltiples envíos
+                $('#submitSale').prop('disabled', true);
+                
+                // Verificar si hay productos en la tabla
                 if ($('#saleItems tr').length === 0) {
-                    Swal.fire('Error', 'Debe agregar al menos un producto', 'error');
-                    return;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe agregar al menos un producto a la venta'
+                    });
+                    $('#submitSale').prop('disabled', false);
+                    return false;
                 }
-
+                
+                // Verificar si se seleccionó un cliente
                 if (!$('#customer_id').val()) {
-                    Swal.fire('Error', 'Debe seleccionar un cliente', 'error');
-                    return;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar un cliente'
+                    });
+                    $('#submitSale').prop('disabled', false);
+                    return false;
                 }
+                
+                // Preparar los datos de los productos
+                const items = [];
+                $('#saleItems tr').each(function() {
+                    const row = $(this);
+                    const productId = row.data('product-id');
+                    items.push({
+                        product_id: productId,
+                        quantity: parseFloat(row.find('.quantity-input').val()),
+                        price: parseFloat(row.find('.price-input').val()),
+                        subtotal: parseFloat(row.find('.subtotal-value').text())
+                    });
+                });
+                
+                // Crear campos ocultos para los items
+                $('#itemsContainer').remove();
+                const container = $('<div id="itemsContainer"></div>');
+                
+                items.forEach((item, index) => {
+                    container.append(`<input type="hidden" name="items[${index}][product_id]" value="${item.product_id}">`);
+                    container.append(`<input type="hidden" name="items[${index}][quantity]" value="${item.quantity}">`);
+                    container.append(`<input type="hidden" name="items[${index}][price]" value="${item.price}">`);
+                    container.append(`<input type="hidden" name="items[${index}][subtotal]" value="${item.subtotal}">`);
+                });
+                
+                $(this).append(container);
+                
+                // Remover el event listener temporalmente para evitar bucles
+                $(this).off('submit');
+                
+                // Enviar el formulario
+                $(this).submit();
+            });
 
-                // Enviar formulario
-                $('#saleForm').submit();
+            // Manejar el botón de cancelar edición
+            $('#cancelSale').click(function() {
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    text: "Se perderán todos los cambios realizados en esta venta",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, cancelar edición',
+                    cancelButtonText: 'No, continuar editando'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.history.back();
+                    }
+                });
+            });
+
+            // Inicializar estado vacío
+            updateEmptyState();
+            updateCounters();
+
+            // Detectar scroll horizontal en la tabla
+            function checkTableScroll() {
+                const tableWrapper = $('.table-wrapper');
+                const table = tableWrapper.find('.modern-table');
+                
+                if (table.width() > tableWrapper.width()) {
+                    tableWrapper.addClass('has-scroll');
+                } else {
+                    tableWrapper.removeClass('has-scroll');
+                }
+            }
+
+            // Verificar scroll al cargar y al cambiar el tamaño de la ventana
+            $(window).on('load resize', function() {
+                setTimeout(checkTableScroll, 100);
+            });
+
+            // Verificar scroll cuando se agregan productos
+            $(document).on('DOMNodeInserted', '#saleItems', function() {
+                setTimeout(checkTableScroll, 100);
             });
         });
     </script>
