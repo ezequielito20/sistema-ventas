@@ -749,12 +749,13 @@
             $('#viewPdfBtn').attr('href', pdfUrl);
         }
 
-        // Función optimizada para filtrar la tabla
+        // Función optimizada para filtrar y ordenar la tabla
         function filterTable() {
             let searchTerm = $('#searchFilter').val().toLowerCase();
             let debtType = $('#debtTypeFilter').val();
             let order = $('#orderFilter').val();
             
+            // Primero filtrar las filas
             $('.customer-row-modal').each(function() {
                 let row = $(this);
                 let name = row.data('name');
@@ -780,6 +781,9 @@
                 row.toggle(showRow);
             });
             
+            // Luego ordenar las filas visibles
+            sortVisibleRows(order);
+            
             // Actualizar números de fila
             $('.customer-row-modal:visible').each(function(index) {
                 $(this).find('td:first').text(index + 1);
@@ -789,6 +793,51 @@
             updateFilteredTotals();
             
             updatePdfLinks();
+        }
+
+        // Función para ordenar las filas visibles
+        function sortVisibleRows(orderType) {
+            let tbody = $('.debt-modal-table tbody');
+            let visibleRows = $('.customer-row-modal:visible').get();
+            
+            visibleRows.sort(function(a, b) {
+                let aData = $(a);
+                let bData = $(b);
+                
+                switch(orderType) {
+                    case 'debt_desc':
+                        // Deuda (Mayor a menor)
+                        let aDebt = parseFloat(aData.data('debt')) || 0;
+                        let bDebt = parseFloat(bData.data('debt')) || 0;
+                        return bDebt - aDebt;
+                        
+                    case 'debt_asc':
+                        // Deuda (Menor a mayor)
+                        let aDebtAsc = parseFloat(aData.data('debt')) || 0;
+                        let bDebtAsc = parseFloat(bData.data('debt')) || 0;
+                        return aDebtAsc - bDebtAsc;
+                        
+                    case 'name_asc':
+                        // Nombre (A-Z)
+                        let aName = aData.data('name').toLowerCase();
+                        let bName = bData.data('name').toLowerCase();
+                        return aName.localeCompare(bName);
+                        
+                    case 'name_desc':
+                        // Nombre (Z-A)
+                        let aNameDesc = aData.data('name').toLowerCase();
+                        let bNameDesc = bData.data('name').toLowerCase();
+                        return bNameDesc.localeCompare(aNameDesc);
+                        
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Reinsertar las filas ordenadas
+            visibleRows.forEach(function(row) {
+                tbody.append(row);
+            });
         }
 
         // Función para actualizar totales basados en filtros
@@ -819,7 +868,19 @@
         $('#searchFilter').on('input', filterTable);
         $('#debtTypeFilter').on('change', filterTable);
         $('#orderFilter').on('change', function() {
-            filterTable();
+            // Si no hay filtros activos, solo ordenar
+            let searchTerm = $('#searchFilter').val();
+            let debtType = $('#debtTypeFilter').val();
+            
+            if (!searchTerm && !debtType) {
+                sortVisibleRows($(this).val());
+                // Actualizar números de fila
+                $('.customer-row-modal:visible').each(function(index) {
+                    $(this).find('td:first').text(index + 1);
+                });
+            } else {
+                filterTable();
+            }
             updatePdfLinks();
         });
 
@@ -828,7 +889,19 @@
             $('#searchFilter').val('');
             $('#debtTypeFilter').val('');
             $('#orderFilter').val('debt_desc');
-            filterTable();
+            
+            // Mostrar todas las filas y ordenar por defecto
+            $('.customer-row-modal').show();
+            sortVisibleRows('debt_desc');
+            
+            // Actualizar números de fila
+            $('.customer-row-modal:visible').each(function(index) {
+                $(this).find('td:first').text(index + 1);
+            });
+            
+            // Actualizar totales
+            updateFilteredTotals();
+            updatePdfLinks();
             
             $(this).removeClass('btn-outline-secondary').addClass('btn-success');
             $(this).html('<i class="fas fa-check mr-1"></i>¡Limpiado!');
