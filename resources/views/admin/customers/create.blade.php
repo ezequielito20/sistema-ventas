@@ -103,7 +103,7 @@
                                             <input type="tel"
                                                 class="form-control form-control-lg @error('phone') is-invalid @enderror"
                                                 id="phone" name="phone" value="{{ old('phone') }}"
-                                                placeholder="(123) 456-7890" >
+                                                placeholder="(123) 456-7890" autocomplete="off">
                                             @error('phone')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
