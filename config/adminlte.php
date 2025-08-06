@@ -478,17 +478,17 @@ return [
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/datatables/jquery.dataTables.min.js'),
+               'location' => 'vendor/datatables/jquery.dataTables.min.js',
             ],
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/datatables/dataTables.bootstrap4.min.js'),
+               'location' => 'vendor/datatables/dataTables.bootstrap4.min.js',
             ],
             [
                'type' => 'css',
                'asset' => true,
-               'location' => asset('vendor/datatables/dataTables.bootstrap4.min.css'),
+               'location' => 'vendor/datatables/dataTables.bootstrap4.min.css',
             ],
          ],
       ],
@@ -498,12 +498,12 @@ return [
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/select2/select2.min.js'),
+               'location' => 'vendor/select2/select2.min.js',
             ],
             [
                'type' => 'css',
                'asset' => true,
-               'location' => asset('vendor/select2/select2.min.css'),
+               'location' => 'vendor/select2/select2.min.css',
             ],
          ],
       ],
@@ -513,7 +513,7 @@ return [
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/chartjs/Chart.bundle.min.js'),
+               'location' => 'vendor/chartjs/Chart.bundle.min.js',
             ],
          ],
       ],
@@ -523,12 +523,12 @@ return [
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/sweetalert2/sweetalert2.min.js'),
+               'location' => 'vendor/sweetalert2/sweetalert2.min.js',
             ],
             [
                'type' => 'css',
                'asset' => true,
-               'location' => asset('vendor/sweetalert2/sweetalert2.min.css'),
+               'location' => 'vendor/sweetalert2/sweetalert2.min.css',
             ],
          ],
       ],
@@ -538,12 +538,12 @@ return [
             [
                'type' => 'css',
                'asset' => true,
-               'location' => asset('vendor/pace/pace-theme-center-radar.min.css'),
+               'location' => 'vendor/pace/pace-theme-center-radar.min.css',
             ],
             [
                'type' => 'js',
                'asset' => true,
-               'location' => asset('vendor/pace/pace.min.js'),
+               'location' => 'vendor/pace/pace.min.js',
             ],
          ],
       ],
