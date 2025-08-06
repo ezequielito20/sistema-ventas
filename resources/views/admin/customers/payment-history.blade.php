@@ -2414,7 +2414,6 @@
                                 }
                             );
                             
-                            console.log('Select2, DataTables, Chart.js y SweetAlert2 cargados para customers payment-history');
                         });
                     });
                 });

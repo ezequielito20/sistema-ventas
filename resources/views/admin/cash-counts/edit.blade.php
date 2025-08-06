@@ -143,7 +143,6 @@
                     }
                 });
                 
-                console.log('SweetAlert2 cargado para cash-counts edit');
             });
         });
     </script>

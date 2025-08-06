@@ -688,7 +688,6 @@
                     $('.hero-section').addClass('animate__animated animate__fadeInDown');
                     $('.form-card').addClass('animate__animated animate__fadeInUp');
                     
-                    console.log('SweetAlert2 y Animate.css cargados para categories edit');
                 });
             });
         });

@@ -479,14 +479,6 @@
                 });
             });
             
-            // Cargar SweetAlert2 y Chart.js
-            loadSweetAlert2(function() {
-                console.log('SweetAlert2 cargado para suppliers index');
-            });
-            
-            loadChartJS(function() {
-                console.log('Chart.js cargado para suppliers index');
-            });
         });
     </script>
 @stop

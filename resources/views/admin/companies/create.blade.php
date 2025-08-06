@@ -1029,7 +1029,6 @@
                     });
                 @endif
                 
-                console.log('SweetAlert2 cargado para companies create');
             });
         });
 

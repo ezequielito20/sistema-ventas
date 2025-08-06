@@ -1528,10 +1528,7 @@
                 });
             });
             
-            // Cargar SweetAlert2
-            loadSweetAlert2(function() {
-                console.log('SweetAlert2 cargado para productos');
-            });
+            
         });
     </script>
 @stop

@@ -3347,6 +3347,7 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         // Funciones de Alpine.js
 
@@ -3396,8 +3397,10 @@
         let currentExchangeRate = 1.0;
 
         $(document).ready(function() {
-            // Inicializar DataTable
-            const table = $('#customersTable').DataTable({
+            // Cargar DataTables dinámicamente
+            loadDataTables(function() {
+                // Inicializar DataTable
+                const table = $('#customersTable').DataTable({
                 responsive: true,
                 autoWidth: false,
                 stateSave: true, // Guarda la página y el estado del paginador
@@ -3524,7 +3527,6 @@
 
             // Escuchar el evento de modal mostrado
             $(document).on('shown.bs.modal', '#debtReportModal', function() {
-                console.log('Modal mostrado, estableciendo tipo de cambio:', currentExchangeRate);
                 
                 // Asegurar que aria-hidden esté removido
                 $('#debtReportModal').removeAttr('aria-hidden');
@@ -3573,7 +3575,6 @@
             $(document).on('click', '#updateModalExchangeRate', function() {
                 const rate = parseFloat($('#modalExchangeRate').val());
                 if (rate > 0) {
-                    console.log('Actualizando tipo de cambio desde el modal:', rate);
                     
                     // Actualizar la variable global
                     currentExchangeRate = rate;
@@ -4098,7 +4099,6 @@
                         notes: notes
                     },
                     success: function(response) {
-                        console.log('Respuesta del servidor:', response);
                         
                         // Actualizar la deuda en todas las vistas (tabla y tarjetas)
                         const $debtValues = $(`.debt-value[data-customer-id="${customerId}"]`);
@@ -4154,6 +4154,8 @@
                     }
                 });
             });
+            
+            })
         });
     </script>
 @stop

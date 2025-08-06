@@ -885,7 +885,6 @@
                         }
                     });
                     
-                    console.log('Inputmask y SweetAlert2 cargados para customers edit');
                 });
             });
         });

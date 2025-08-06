@@ -473,7 +473,7 @@ return [
 
    'plugins' => [
       'Datatables' => [
-         'active' => true,
+         'active' => false,
          'files' => [
             [
                'type' => 'js',
@@ -508,7 +508,7 @@ return [
          ],
       ],
       'Chartjs' => [
-         'active' => true,
+         'active' => false,
          'files' => [
             [
                'type' => 'js',

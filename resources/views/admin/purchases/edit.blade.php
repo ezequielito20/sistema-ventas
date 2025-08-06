@@ -2701,10 +2701,7 @@
                 checkEmptyState();
             });
             
-            // Cargar SweetAlert2
-            loadSweetAlert2(function() {
-                console.log('SweetAlert2 cargado para purchases edit');
-            });
+
         });
     </script>
 @stop

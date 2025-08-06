@@ -1776,7 +1776,6 @@
                     // Obtener el ID real del producto desde el botón
                     const productId = productRow.find('button.select-product').data('id');
                     
-                    console.log('ID extraído del botón:', productId, 'tipo:', typeof productId);
                     
                     // Crear objeto producto con los datos disponibles
                     const product = {
@@ -1788,7 +1787,6 @@
                         sale_price: productPrice
                     };
                     
-                    console.log('Objeto producto creado:', product);
                     
                     setTimeout(function() {
                         // Agregar el producto a la tabla silenciosamente (sin alerta porque es automático)
@@ -2202,11 +2200,7 @@
                 $('#saleItems tr').each(function() {
                     const row = $(this);
                     const productId = row.data('product-id');
-                    console.log('Fila del producto:', {
-                        productId: productId,
-                        typeof: typeof productId,
-                        dataAttributes: row.data()
-                    });
+                    
                     items.push({
                         product_id: productId,
                         quantity: parseFloat(row.find('.quantity-input').val()),
@@ -2215,7 +2209,6 @@
                     });
                 });
                 
-                console.log('Items finales que se enviarán:', items);
                 
                 // Crear campos ocultos para los items
                 $('#itemsContainer').remove(); // Eliminar contenedor previo si existe

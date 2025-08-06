@@ -4013,7 +4013,6 @@
                 });
             };
 
-            console.log('Chart.js cargado para admin index');
         });
     });
     </script>

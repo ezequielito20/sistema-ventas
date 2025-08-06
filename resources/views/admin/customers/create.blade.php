@@ -760,7 +760,6 @@
                     }
                 }
                 
-                console.log('Inputmask cargado para customers create');
             });
         });
     </script>

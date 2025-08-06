@@ -121,7 +121,6 @@
                     this.value = parseFloat(this.value).toFixed(2);
                 });
                 
-                console.log('SweetAlert2 cargado para cash-counts create');
             });
         });
     </script>

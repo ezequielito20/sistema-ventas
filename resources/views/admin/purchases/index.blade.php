@@ -1824,7 +1824,6 @@
             // Eliminar compra
             $('.delete-purchase').click(function() {
                 const id = $(this).data('id');
-                console.log('🔄 Intentando eliminar compra ID:', id);
 
                 Swal.fire({
                     title: '¿Estás seguro?',
@@ -1837,7 +1836,6 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        console.log('✅ Usuario confirmó eliminación');
                         
                         $.ajax({
                             url: `/purchases/delete/${id}`,
@@ -1846,12 +1844,8 @@
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
                             beforeSend: function() {
-                                console.log('📡 Enviando petición AJAX...');
-                                console.log('🔗 URL:', `/purchases/delete/${id}`);
-                                console.log('🔑 CSRF Token:', $('meta[name="csrf-token"]').attr('content'));
                             },
                             success: function(response) {
-                                console.log('✅ Respuesta exitosa:', response);
                                 
                                 if (response.success) {
                                     Swal.fire({
@@ -1862,17 +1856,10 @@
                                         location.reload();
                                     });
                                 } else {
-                                    console.log('❌ Respuesta con error:', response);
                                     Swal.fire('Error', response.message, 'error');
                                 }
                             },
                             error: function(xhr, status, error) {
-                                console.log('❌ Error en petición AJAX:');
-                                console.log('📊 Status:', status);
-                                console.log('🔍 Error:', error);
-                                console.log('📄 XHR:', xhr);
-                                console.log('📋 Response Text:', xhr.responseText);
-                                
                                 let errorMessage = 'No se pudo eliminar la compra';
                                 let errorDetails = '';
                                 
@@ -1885,7 +1872,6 @@
                                         errorDetails = response.details;
                                     }
                                 } catch (e) {
-                                    console.log('⚠️ No se pudo parsear la respuesta JSON');
                                 }
                                 
                                 if (xhr.status === 403) {
@@ -1907,7 +1893,6 @@
                             }
                         });
                     } else {
-                        console.log('❌ Usuario canceló la eliminación');
                     }
                 });
             });
@@ -1960,10 +1945,7 @@
                 });
             });
             
-            // Cargar SweetAlert2
-            loadSweetAlert2(function() {
-                console.log('SweetAlert2 cargado para purchases index');
-            });
+            
         });
     </script>
 @stop

@@ -1021,7 +1021,6 @@
                 // Inicializar tooltips
                 $('[data-toggle="tooltip"]').tooltip();
                 
-                console.log('SweetAlert2 cargado para categories index');
             });
         });
     </script>

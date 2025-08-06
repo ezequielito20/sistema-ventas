@@ -2724,8 +2724,6 @@
                 
                 const id = $(this).data('id');
                 
-                console.log('=== CLICK EN BOTÓN HISTORIAL ===');
-                console.log('ID del cash count:', id);
                 
                 // Mostrar loader
                 Swal.fire({
@@ -3013,10 +3011,6 @@
                     .appendTo('head');
             });
             
-            // Cargar SweetAlert2
-            loadSweetAlert2(function() {
-                console.log('SweetAlert2 cargado para cash-counts index');
-            });
         });
     </script>
 @stop
