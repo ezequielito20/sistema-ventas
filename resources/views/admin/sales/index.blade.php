@@ -771,7 +771,7 @@
                                 </div>
                                 <div class="total-content">
                                     <span class="total-label">Total de la Venta</span>
-                                    <span class="total-amount">{{ $currency->symbol }}<span
+                                    <span class="total-amount"><span id="currencySymbol">{{ $currency->symbol }}</span><span
                                             id="modalTotal">0.00</span></span>
                                 </div>
                             </div>
@@ -811,5 +811,11 @@
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales para el JavaScript
+        window.currencySymbol = '{{ $currency->symbol }}';
+    </script>
+    
     <script src="{{ asset('js/admin/sales/index.js') }}"></script>
 @stop 

@@ -310,14 +310,15 @@ $(document).ready(function() {
                                 <td>${detail.product.name || ''}</td>
                                 <td>${detail.product.category || 'Sin categoría'}</td>
                                 <td class="text-center">${quantity}</td>
-                                <td class="text-right">{{ $currency->symbol }} ${price.toFixed(2)}</td>
-                                <td class="text-right">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
+                                <td class="text-right">${window.currencySymbol} ${price.toFixed(2)}</td>
+                                <td class="text-right">${window.currencySymbol} ${subtotal.toFixed(2)}</td>
                             </tr>
                         `);
                     });
 
-                    const formattedTotal = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    $('#modalTotal').text(formattedTotal);
+                                                const formattedTotal = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            $('#modalTotal').text(formattedTotal);
+                            $('#currencySymbol').text(window.currencySymbol);
 
                     // Manejar la nota
                     const noteCard = $('#noteCard');
