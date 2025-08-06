@@ -513,7 +513,7 @@ return [
             [
                'type' => 'js',
                'asset' => true,
-               'location' => 'vendor/chartjs/Chart.bundle.min.js',
+               'location' => 'vendor/chartjs/chart.min.js',
             ],
          ],
       ],
