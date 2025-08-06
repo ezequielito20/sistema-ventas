@@ -477,18 +477,18 @@ return [
          'files' => [
             [
                'type' => 'js',
-               'asset' => false,
-               'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+               'asset' => true,
+               'location' => asset('vendor/datatables/jquery.dataTables.min.js'),
             ],
             [
                'type' => 'js',
-               'asset' => false,
-               'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
+               'asset' => true,
+               'location' => asset('vendor/datatables/dataTables.bootstrap4.min.js'),
             ],
             [
                'type' => 'css',
-               'asset' => false,
-               'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
+               'asset' => true,
+               'location' => asset('vendor/datatables/dataTables.bootstrap4.min.css'),
             ],
          ],
       ],
@@ -497,13 +497,13 @@ return [
          'files' => [
             [
                'type' => 'js',
-               'asset' => false,
-               'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
+               'asset' => true,
+               'location' => asset('vendor/select2/select2.min.js'),
             ],
             [
                'type' => 'css',
-               'asset' => false,
-               'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
+               'asset' => true,
+               'location' => asset('vendor/select2/select2.min.css'),
             ],
          ],
       ],
@@ -512,8 +512,8 @@ return [
          'files' => [
             [
                'type' => 'js',
-               'asset' => false,
-               'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
+               'asset' => true,
+               'location' => asset('vendor/chartjs/Chart.bundle.min.js'),
             ],
          ],
       ],
@@ -537,13 +537,13 @@ return [
          'files' => [
             [
                'type' => 'css',
-               'asset' => false,
-               'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-center-radar.min.css',
+               'asset' => true,
+               'location' => asset('vendor/pace/pace-theme-center-radar.min.css'),
             ],
             [
                'type' => 'js',
-               'asset' => false,
-               'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js',
+               'asset' => true,
+               'location' => asset('vendor/pace/pace.min.js'),
             ],
          ],
       ],
