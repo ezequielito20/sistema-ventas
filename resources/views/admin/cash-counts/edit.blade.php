@@ -124,20 +124,26 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Validación de formulario
-            $('form').submit(function(e) {
-                const initialAmount = parseFloat($('#initial_amount').val());
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                // Validación de formulario
+                $('form').submit(function(e) {
+                    const initialAmount = parseFloat($('#initial_amount').val());
 
-                if (initialAmount < 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'El monto inicial no puede ser negativo'
-                    });
-                }
+                    if (initialAmount < 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'El monto inicial no puede ser negativo'
+                        });
+                    }
+                });
+                
+                console.log('SweetAlert2 cargado para cash-counts edit');
             });
         });
     </script>

@@ -290,8 +290,8 @@
 @stop
 
 @section('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2-bootstrap4.min.css') }}">
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -898,189 +898,196 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar Select2
-            $('.select2').select2({
-                theme: 'bootstrap4',
-                dropdownParent: $('body')
-            });
+            loadSelect2(function() {
+                // Inicializar Select2
+                $('.select2').select2({
+                    theme: 'bootstrap4',
+                    dropdownParent: $('body')
+                });
 
-            // Preview de imagen mejorado
-            $('#image').change(function() {
-                const file = this.files[0];
-                const preview = $('#imagePreview');
-                const currentImage = $('#currentImage');
-                
-                if (file) {
-                    // Validar tipo de archivo
-                    if (!file.type.match('image.*')) {
-                        alert('Por favor selecciona un archivo de imagen válido.');
-                        return;
-                    }
+                // Preview de imagen mejorado
+                $('#image').change(function() {
+                    const file = this.files[0];
+                    const preview = $('#imagePreview');
+                    const currentImage = $('#currentImage');
+                    
+                    if (file) {
+                        // Validar tipo de archivo
+                        if (!file.type.match('image.*')) {
+                            alert('Por favor selecciona un archivo de imagen válido.');
+                            return;
+                        }
 
-                    // Validar tamaño (2MB)
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert('La imagen no puede ser mayor a 2MB.');
-                        return;
-                    }
+                        // Validar tamaño (2MB)
+                        if (file.size > 2 * 1024 * 1024) {
+                            alert('La imagen no puede ser mayor a 2MB.');
+                            return;
+                        }
 
-                    let reader = new FileReader();
-                    reader.onload = function(event) {
-                        // Ocultar imagen actual si existe
+                        let reader = new FileReader();
+                        reader.onload = function(event) {
+                            // Ocultar imagen actual si existe
+                            if (currentImage.length) {
+                                currentImage.hide();
+                            }
+                            
+                            // Mostrar nueva imagen
+                            preview.html(`
+                                <img src="${event.target.result}" alt="Nueva imagen seleccionada" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--border-radius);">
+                                <div class="image-overlay">
+                                    <div class="image-info">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Nueva imagen: ${file.name}</span>
+                                    </div>
+                                </div>
+                            `);
+                            
+                            // Actualizar texto del botón
+                            $('.file-label').html('<i class="fas fa-camera"></i> Cambiar Imagen');
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        // Si no hay archivo seleccionado, restaurar imagen original
                         if (currentImage.length) {
-                            currentImage.hide();
+                            currentImage.show();
+                            preview.find('img').not(currentImage.find('img')).remove();
+                            preview.find('.image-overlay').not(currentImage.find('.image-overlay')).remove();
+                        } else {
+                            preview.html(`
+                                <div class="upload-placeholder">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Haz clic para seleccionar una imagen</p>
+                                    <span>JPG, PNG, GIF hasta 2MB</span>
+                                </div>
+                            `);
                         }
                         
-                        // Mostrar nueva imagen
-                        preview.html(`
-                            <img src="${event.target.result}" alt="Nueva imagen seleccionada" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--border-radius);">
-                            <div class="image-overlay">
-                                <div class="image-info">
-                                    <i class="fas fa-camera"></i>
-                                    <span>Nueva imagen: ${file.name}</span>
-                                </div>
-                            </div>
-                        `);
+                        // Restaurar texto del botón
+                        const hasOriginalImage = {{ $product->image ? 'true' : 'false' }};
+                        $('.file-label').html(`<i class="fas fa-camera"></i> ${hasOriginalImage ? 'Cambiar Imagen' : 'Seleccionar Imagen'}`);
+                    }
+                });
+
+                // Click en preview para seleccionar archivo
+                $('#imagePreview').click(function() {
+                    $('#image').click();
+                });
+
+                // Calcular margen de beneficio
+                function calculateProfit() {
+                    const purchasePrice = parseFloat($('#purchase_price').val()) || 0;
+                    const salePrice = parseFloat($('#sale_price').val()) || 0;
+
+                    if (purchasePrice > 0) {
+                        const profit = ((salePrice - purchasePrice) / purchasePrice) * 100;
+                        $('#profitValue').text(profit.toFixed(2) + '%');
+                        $('#profitIndicator').show();
+
+                        // Cambiar color según el margen
+                        const indicator = $('#profitIndicator');
+                        indicator.removeClass('alert-danger alert-warning alert-success');
                         
-                        // Actualizar texto del botón
-                        $('.file-label').html('<i class="fas fa-camera"></i> Cambiar Imagen');
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    // Si no hay archivo seleccionado, restaurar imagen original
-                    if (currentImage.length) {
-                        currentImage.show();
-                        preview.find('img').not(currentImage.find('img')).remove();
-                        preview.find('.image-overlay').not(currentImage.find('.image-overlay')).remove();
+                        if (profit < 0) {
+                            indicator.addClass('alert-danger');
+                            indicator.find('i').attr('class', 'fas fa-arrow-down');
+                        } else if (profit < 20) {
+                            indicator.addClass('alert-warning');
+                            indicator.find('i').attr('class', 'fas fa-exclamation-triangle');
+                        } else {
+                            indicator.addClass('alert-success');
+                            indicator.find('i').attr('class', 'fas fa-arrow-up');
+                        }
                     } else {
-                        preview.html(`
-                            <div class="upload-placeholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Haz clic para seleccionar una imagen</p>
-                                <span>JPG, PNG, GIF hasta 2MB</span>
-                            </div>
-                        `);
+                        $('#profitIndicator').hide();
                     }
-                    
-                    // Restaurar texto del botón
-                    const hasOriginalImage = {{ $product->image ? 'true' : 'false' }};
-                    $('.file-label').html(`<i class="fas fa-camera"></i> ${hasOriginalImage ? 'Cambiar Imagen' : 'Seleccionar Imagen'}`);
                 }
-            });
 
-            // Click en preview para seleccionar archivo
-            $('#imagePreview').click(function() {
-                $('#image').click();
-            });
+                // Calcular margen inicial
+                calculateProfit();
 
-            // Calcular margen de beneficio
-            function calculateProfit() {
-                const purchasePrice = parseFloat($('#purchase_price').val()) || 0;
-                const salePrice = parseFloat($('#sale_price').val()) || 0;
+                // Recalcular en cambios
+                $('#purchase_price, #sale_price').on('input', calculateProfit);
 
-                if (purchasePrice > 0) {
-                    const profit = ((salePrice - purchasePrice) / purchasePrice) * 100;
-                    $('#profitValue').text(profit.toFixed(2) + '%');
-                    $('#profitIndicator').show();
+                // Validación de stock
+                function validateStock() {
+                    const stock = parseInt($('#stock').val()) || 0;
+                    const minStock = parseInt($('#min_stock').val()) || 0;
+                    const maxStock = parseInt($('#max_stock').val()) || 0;
 
-                    // Cambiar color según el margen
-                    const indicator = $('#profitIndicator');
-                    indicator.removeClass('alert-danger alert-warning alert-success');
-                    
-                    if (profit < 0) {
-                        indicator.addClass('alert-danger');
-                        indicator.find('i').attr('class', 'fas fa-arrow-down');
-                    } else if (profit < 20) {
-                        indicator.addClass('alert-warning');
-                        indicator.find('i').attr('class', 'fas fa-exclamation-triangle');
+                    // Validar stock máximo vs mínimo
+                    if (minStock >= maxStock && maxStock > 0) {
+                        $('#max_stock')[0].setCustomValidity('El stock máximo debe ser mayor que el stock mínimo');
+                        $('#max_stock').addClass('is-invalid');
                     } else {
-                        indicator.addClass('alert-success');
-                        indicator.find('i').attr('class', 'fas fa-arrow-up');
+                        $('#max_stock')[0].setCustomValidity('');
+                        $('#max_stock').removeClass('is-invalid');
                     }
-                } else {
-                    $('#profitIndicator').hide();
-                }
-            }
 
-            // Calcular margen inicial
-            calculateProfit();
-
-            // Recalcular en cambios
-            $('#purchase_price, #sale_price').on('input', calculateProfit);
-
-            // Validación de stock
-            function validateStock() {
-                const stock = parseInt($('#stock').val()) || 0;
-                const minStock = parseInt($('#min_stock').val()) || 0;
-                const maxStock = parseInt($('#max_stock').val()) || 0;
-
-                // Validar stock máximo vs mínimo
-                if (minStock >= maxStock && maxStock > 0) {
-                    $('#max_stock')[0].setCustomValidity('El stock máximo debe ser mayor que el stock mínimo');
-                    $('#max_stock').addClass('is-invalid');
-                } else {
-                    $('#max_stock')[0].setCustomValidity('');
-                    $('#max_stock').removeClass('is-invalid');
+                    // Validar stock actual
+                    if (stock < 0) {
+                        $('#stock')[0].setCustomValidity('El stock no puede ser negativo');
+                        $('#stock').addClass('is-invalid');
+                    } else {
+                        $('#stock')[0].setCustomValidity('');
+                        $('#stock').removeClass('is-invalid');
+                    }
                 }
 
-                // Validar stock actual
-                if (stock < 0) {
-                    $('#stock')[0].setCustomValidity('El stock no puede ser negativo');
-                    $('#stock').addClass('is-invalid');
-                } else {
-                    $('#stock')[0].setCustomValidity('');
-                    $('#stock').removeClass('is-invalid');
+                $('#stock, #min_stock, #max_stock').on('input', validateStock);
+
+                // Validación del formulario
+                $('#productForm').on('submit', function(e) {
+                    validateStock();
+                    
+                    const stock = parseInt($('#stock').val()) || 0;
+                    const minStock = parseInt($('#min_stock').val()) || 0;
+                    const maxStock = parseInt($('#max_stock').val()) || 0;
+
+                    if (minStock >= maxStock && maxStock > 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Validación',
+                            text: 'El stock máximo debe ser mayor que el stock mínimo'
+                        });
+                        return false;
+                    }
+
+                    if (stock < 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Validación',
+                            text: 'El stock no puede ser negativo'
+                        });
+                        return false;
+                    }
+
+                    // Mostrar indicador de carga
+                    $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Actualizando...');
+                });
+
+                // Efectos visuales
+                $('.form-input').on('focus', function() {
+                    $(this).parent().addClass('focused');
+                }).on('blur', function() {
+                    $(this).parent().removeClass('focused');
+                });
+
+                // Mostrar información del producto en el header
+                const productName = '{{ $product->name }}';
+                if (productName.length > 30) {
+                    $('.subtitle').text('Modifica la información del producto "' + productName.substring(0, 30) + '..."');
                 }
-            }
-
-            $('#stock, #min_stock, #max_stock').on('input', validateStock);
-
-            // Validación del formulario
-            $('#productForm').on('submit', function(e) {
-                validateStock();
-                
-                const stock = parseInt($('#stock').val()) || 0;
-                const minStock = parseInt($('#min_stock').val()) || 0;
-                const maxStock = parseInt($('#max_stock').val()) || 0;
-
-                if (minStock >= maxStock && maxStock > 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Validación',
-                        text: 'El stock máximo debe ser mayor que el stock mínimo'
-                    });
-                    return false;
-                }
-
-                if (stock < 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Validación',
-                        text: 'El stock no puede ser negativo'
-                    });
-                    return false;
-                }
-
-                // Mostrar indicador de carga
-                $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Actualizando...');
             });
-
-            // Efectos visuales
-            $('.form-input').on('focus', function() {
-                $(this).parent().addClass('focused');
-            }).on('blur', function() {
-                $(this).parent().removeClass('focused');
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para productos edit');
             });
-
-            // Mostrar información del producto en el header
-            const productName = '{{ $product->name }}';
-            if (productName.length > 30) {
-                $('.subtitle').text('Modifica la información del producto "' + productName.substring(0, 30) + '..."');
-            }
         });
     </script>
 @stop

@@ -344,11 +344,11 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
+    <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('vendor/select2/select2-bootstrap4.min.css') }}" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
     
     <style>
         :root {
@@ -1675,15 +1675,15 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar Select2 con opciones mejoradas
-            $('#customer_id').select2({
+            // Cargar Select2, DataTables y SweetAlert2
+            loadSelect2(function() {
+                loadDataTables(function() {
+                    loadSweetAlert2(function() {
+                        // Inicializar Select2 con opciones mejoradas
+                        $('#customer_id').select2({
                 theme: 'bootstrap4',
                 placeholder: 'Seleccione un cliente',
                 allowClear: true,
@@ -1781,7 +1781,31 @@
                         responsivePriority: 3,
                         targets: '_all'
                     }
-                ]
+                ],
+                initComplete: function() {
+                    // Reagregar event listeners después de que DataTable esté listo
+                    $('.select-product').off('click').on('click', function() {
+                        const code = $(this).data('code');
+                        const productId = $(this).data('id');
+                        
+                        $.ajax({
+                            url: `/sales/product-details/${code}`,
+                            method: 'GET',
+                            success: function(response) {
+                                if (response.success) {
+                                    response.product.id = productId;
+                                    addProductToTable(response.product);
+                                    $('#searchProductModal').modal('hide');
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'Error al obtener detalles del producto', 'error');
+                            }
+                        });
+                    });
+                }
             });
 
             // Función para agregar producto a la tabla
@@ -1920,28 +1944,7 @@
                 }
             });
 
-            // Seleccionar producto desde el modal
-            $('.select-product').click(function() {
-                const code = $(this).data('code');
-                const productId = $(this).data('id');
-                
-                $.ajax({
-                    url: `/sales/product-details/${code}`,
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            response.product.id = productId;
-                            addProductToTable(response.product);
-                            $('#searchProductModal').modal('hide');
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Error al obtener detalles del producto', 'error');
-                    }
-                });
-            });
+
 
             // Actualizar subtotal cuando cambie cantidad
             $(document).on('input', '.quantity-input', function() {
@@ -2109,6 +2112,10 @@
             // Verificar scroll cuando se agregan productos
             $(document).on('DOMNodeInserted', '#saleItems', function() {
                 setTimeout(checkTableScroll, 100);
+            });
+            
+                    });
+                });
             });
         });
     </script>

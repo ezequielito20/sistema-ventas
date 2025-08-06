@@ -7,9 +7,7 @@
     <title>{{ config('app.name', 'Laravel') }} - Editar Empresa</title>
     
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('vendor/fonts/inter.css') }}">
     
     <!-- Icons -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
@@ -18,7 +16,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte.min.css') }}">
     
     <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
     
     <!-- Custom CSS -->
     <style>
@@ -912,87 +910,92 @@
     <!-- Scripts -->
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/adminlte.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const companyForm = document.getElementById('companyForm');
-            const submitButton = document.getElementById('submitButton');
-            const buttonText = submitButton.querySelector('.button-text');
-            const loading = submitButton.querySelector('.loading');
-            const successCheckmark = submitButton.querySelector('.success-checkmark');
-            
-            // File upload functionality
-            const fileInput = document.getElementById('file');
-            const fileUploadContainer = document.getElementById('fileUploadContainer');
-            const previewContainer = document.getElementById('previewContainer');
-            
-            // Drag and drop functionality
-            fileUploadContainer.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
-            
-            fileUploadContainer.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-            });
-            
-            fileUploadContainer.addEventListener('drop', function(e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    handleFileSelect(files[0]);
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                const companyForm = document.getElementById('companyForm');
+                const submitButton = document.getElementById('submitButton');
+                const buttonText = submitButton.querySelector('.button-text');
+                const loading = submitButton.querySelector('.loading');
+                const successCheckmark = submitButton.querySelector('.success-checkmark');
+                
+                // File upload functionality
+                const fileInput = document.getElementById('file');
+                const fileUploadContainer = document.getElementById('fileUploadContainer');
+                const previewContainer = document.getElementById('previewContainer');
+                
+                // Drag and drop functionality
+                fileUploadContainer.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+                
+                fileUploadContainer.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
+                
+                fileUploadContainer.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        handleFileSelect(files[0]);
+                    }
+                });
+                
+                fileInput.addEventListener('change', function(e) {
+                    if (this.files.length > 0) {
+                        handleFileSelect(this.files[0]);
+                    }
+                });
+                
+                function handleFileSelect(file) {
+                    if (!file.type.match('image.*')) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Por favor selecciona solo archivos de imagen'
+                        });
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContainer.innerHTML = `
+                            <img src="${e.target.result}" class="preview-image" alt="Preview">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
                 }
-            });
-            
-            fileInput.addEventListener('change', function(e) {
-                if (this.files.length > 0) {
-                    handleFileSelect(this.files[0]);
-                }
-            });
-            
-            function handleFileSelect(file) {
-                if (!file.type.match('image.*')) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Por favor selecciona solo archivos de imagen'
+                
+                // Form submission with loading animation
+                companyForm.addEventListener('submit', function(e) {
+                    // Show loading state
+                    buttonText.style.opacity = '0';
+                    loading.classList.add('active');
+                    submitButton.disabled = true;
+                    
+                    // Form will submit naturally
+                });
+                
+                // Input focus effects
+                const inputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.parentElement.style.transform = 'scale(1.02)';
                     });
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewContainer.innerHTML = `
-                        <img src="${e.target.result}" class="preview-image" alt="Preview">
-                    `;
-                };
-                reader.readAsDataURL(file);
-            }
-            
-            // Form submission with loading animation
-            companyForm.addEventListener('submit', function(e) {
-                // Show loading state
-                buttonText.style.opacity = '0';
-                loading.classList.add('active');
-                submitButton.disabled = true;
-                
-                // Form will submit naturally
-            });
-            
-            // Input focus effects
-            const inputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'scale(1.02)';
+                    
+                    input.addEventListener('blur', function() {
+                        this.parentElement.style.transform = 'scale(1)';
+                    });
                 });
                 
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'scale(1)';
-                });
+                console.log('SweetAlert2 cargado para companies edit');
             });
         });
 

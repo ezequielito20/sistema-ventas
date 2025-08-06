@@ -1241,8 +1241,8 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
     <style>
         /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
         :root {
@@ -2481,102 +2481,102 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable con configuración moderna
-            $('#cashCountsTable').DataTable({
-                responsive: true,
-                autoWidth: false,
-                paging: false, // Deshabilitar paginación de DataTables
-                info: false,   // Deshabilitar información de DataTables
-                searching: false, // Deshabilitar búsqueda de DataTables
-                ordering: true,
-                order: [[0, 'desc']],
-                language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
-                        "sPrevious": "Anterior"
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
+
+                // Inicializar DataTable con configuración moderna
+                $('#cashCountsTable').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    paging: false, // Deshabilitar paginación de DataTables
+                    info: false,   // Deshabilitar información de DataTables
+                    searching: false, // Deshabilitar búsqueda de DataTables
+                    ordering: true,
+                    order: [[0, 'desc']],
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        },
+                        "buttons": {
+                            "copy": "Copiar",
+                            "colvis": "Visibilidad"
+                        }
                     },
-                    "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
-                },
-                dom: 'rt', // Solo tabla y procesamiento
-                initComplete: function() {
-                    // Agregar animaciones a las filas
-                    $('.cash-count-row').each(function(index) {
-                        $(this).css({
-                            'animation-delay': (index * 0.1) + 's',
-                            'animation': 'fadeInUp 0.6s ease-out forwards'
+                    dom: 'rt', // Solo tabla y procesamiento
+                    initComplete: function() {
+                        // Agregar animaciones a las filas
+                        $('.cash-count-row').each(function(index) {
+                            $(this).css({
+                                'animation-delay': (index * 0.1) + 's',
+                                'animation': 'fadeInUp 0.6s ease-out forwards'
+                            });
                         });
-                    });
-                    
-                    // Mostrar la paginación de Laravel
-                    $('.pagination-container').show();
-                }
-            });
+                        
+                        // Mostrar la paginación de Laravel
+                        $('.pagination-container').show();
+                    }
+                });
 
-            // Inicializar tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+                // Inicializar tooltips
+                $('[data-toggle="tooltip"]').tooltip();
 
-            // Gráfico de Movimientos con diseño moderno
-            const ctx = document.getElementById('cashMovementsChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($chartData['labels']) !!},
-                    datasets: [{
-                        label: 'Ingresos',
-                        data: {!! json_encode($chartData['income']) !!},
-                        borderColor: '#4facfe',
-                        backgroundColor: 'rgba(79, 172, 254, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#4facfe',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }, {
-                        label: 'Egresos',
-                        data: {!! json_encode($chartData['expenses']) !!},
-                        borderColor: '#fa709a',
-                        backgroundColor: 'rgba(250, 112, 154, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#fa709a',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
+                // Cargar Chart.js y crear gráfico
+                loadChartJS(function() {
+                    // Gráfico de Movimientos con diseño moderno
+                    const ctx = document.getElementById('cashMovementsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: {!! json_encode($chartData['labels']) !!},
+                            datasets: [{
+                                label: 'Ingresos',
+                                data: {!! json_encode($chartData['income']) !!},
+                                borderColor: '#4facfe',
+                                backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#4facfe',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
+                            }, {
+                                label: 'Egresos',
+                                data: {!! json_encode($chartData['expenses']) !!},
+                                borderColor: '#fa709a',
+                                backgroundColor: 'rgba(250, 112, 154, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#fa709a',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
+                            }]
                 },
                 options: {
                     responsive: true,
@@ -2930,87 +2930,93 @@
                 });
             });
 
-            // Función para animar números
-            function animateNumber(selector, finalValue) {
-                const element = $(selector);
-                const startValue = 0;
-                const duration = 1000;
-                const startTime = performance.now();
+                // Función para animar números
+                function animateNumber(selector, finalValue) {
+                    const element = $(selector);
+                    const startValue = 0;
+                    const duration = 1000;
+                    const startTime = performance.now();
 
-                function updateNumber(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Easing function
-                    const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-                    
-                    const currentValue = startValue + (parseFloat(finalValue.replace(/[^\d.-]/g, '')) - startValue) * easeOutQuart;
-                    const formattedValue = finalValue.replace(/[\d.]+/, currentValue.toFixed(2));
-                    
-                    element.text(formattedValue);
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(updateNumber);
+                    function updateNumber(currentTime) {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        // Easing function
+                        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                        
+                        const currentValue = startValue + (parseFloat(finalValue.replace(/[^\d.-]/g, '')) - startValue) * easeOutQuart;
+                        const formattedValue = finalValue.replace(/[\d.]+/, currentValue.toFixed(2));
+                        
+                        element.text(formattedValue);
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(updateNumber);
+                        }
                     }
+                    
+                    requestAnimationFrame(updateNumber);
                 }
-                
-                requestAnimationFrame(updateNumber);
-            }
 
-            // Función para formatear números
-            function number_format(number, decimals) {
-                return new Intl.NumberFormat('es-ES', {
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals
-                }).format(number);
-            }
+                // Función para formatear números
+                function number_format(number, decimals) {
+                    return new Intl.NumberFormat('es-ES', {
+                        minimumFractionDigits: decimals,
+                        maximumFractionDigits: decimals
+                    }).format(number);
+                }
 
-            // Animaciones CSS adicionales
-            $('<style>')
-                .prop('type', 'text/css')
-                .html(`
-                    @keyframes fadeInUp {
-                        from {
-                            opacity: 0;
-                            transform: translateY(30px);
+                // Animaciones CSS adicionales
+                $('<style>')
+                    .prop('type', 'text/css')
+                    .html(`
+                        @keyframes fadeInUp {
+                            from {
+                                opacity: 0;
+                                transform: translateY(30px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0);
+                            }
                         }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
+                        
+                        @keyframes fadeInLeft {
+                            from {
+                                opacity: 0;
+                                transform: translateX(-30px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateX(0);
+                            }
                         }
-                    }
-                    
-                    @keyframes fadeInLeft {
-                        from {
-                            opacity: 0;
-                            transform: translateX(-30px);
+                        
+                        .modern-swal-popup {
+                            border-radius: 12px !important;
+                            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
                         }
-                        to {
-                            opacity: 1;
-                            transform: translateX(0);
+                        
+                        .modern-swal-confirm {
+                            border-radius: 8px !important;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                            border: none !important;
+                            font-weight: 600 !important;
                         }
-                    }
-                    
-                    .modern-swal-popup {
-                        border-radius: 12px !important;
-                        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
-                    }
-                    
-                    .modern-swal-confirm {
-                        border-radius: 8px !important;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                        border: none !important;
-                        font-weight: 600 !important;
-                    }
-                    
-                    .modern-swal-cancel {
-                        border-radius: 8px !important;
-                        background: linear-gradient(135deg, #fa709a 0%, #f5576c 100%) !important;
-                        border: none !important;
-                        font-weight: 600 !important;
-                    }
-                `)
-                .appendTo('head');
+                        
+                        .modern-swal-cancel {
+                            border-radius: 8px !important;
+                            background: linear-gradient(135deg, #fa709a 0%, #f5576c 100%) !important;
+                            border: none !important;
+                            font-weight: 600 !important;
+                        }
+                    `)
+                    .appendTo('head');
+            });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para cash-counts index');
+            });
         });
     </script>
 @stop

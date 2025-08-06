@@ -426,8 +426,8 @@
 @stop
 
 @section('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+    <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
+    <link href="{{ asset('vendor/select2/select2-bootstrap4.min.css') }}" rel="stylesheet" />
     <style>
         /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
         :root {
@@ -2096,319 +2096,329 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable con configuración moderna
-            // Los pagos ya vienen ordenados del más reciente al más antiguo desde el servidor
-            $('#paymentsTable').DataTable({
-                responsive: true,
-                autoWidth: false,
-                paging: false,
-                info: false,
-                searching: false, // Usamos nuestro propio buscador
-                ordering: false, // Deshabilitar ordenamiento del DataTable para respetar el orden del servidor
-                language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
-                },
-                dom: 'rt',
-                initComplete: function() {
-                    $('.pagination').show();
-                }
-            });
-
-            // Inicializar Select2
-            $('.select2-modern').select2({
-                theme: 'bootstrap4',
-                dropdownParent: $('body')
-            });
-
-            // Inicializar gráficos con colores modernos
-            if (document.getElementById('weekdayChart')) {
-                const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
-                const weekdayChart = new Chart(weekdayCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: {!! json_encode($weekdayLabels) !!},
-                        datasets: [{
-                            label: 'Pagos por día de la semana',
-                            data: {!! json_encode($weekdayData) !!},
-                            backgroundColor: 'rgba(102, 126, 234, 0.6)',
-                            borderColor: 'rgba(102, 126, 234, 1)',
-                            borderWidth: 2,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: 'rgba(255, 255, 255, 0.8)',
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
-                                titleColor: 'white',
-                                bodyColor: 'white',
-                                borderColor: 'rgba(255, 255, 255, 0.2)',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.8)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.8)',
-                                    callback: function(value) {
-                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+            // Cargar Select2, DataTables, Chart.js y SweetAlert2
+            loadSelect2(function() {
+                loadDataTables(function() {
+                    loadChartJS(function() {
+                        loadSweetAlert2(function() {
+                            // Inicializar DataTable con configuración moderna
+                            // Los pagos ya vienen ordenados del más reciente al más antiguo desde el servidor
+                            $('#paymentsTable').DataTable({
+                                responsive: true,
+                                autoWidth: false,
+                                paging: false,
+                                info: false,
+                                searching: false, // Usamos nuestro propio buscador
+                                ordering: false, // Deshabilitar ordenamiento del DataTable para respetar el orden del servidor
+                                language: {
+                                    "sProcessing":     "Procesando...",
+                                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                                    "sZeroRecords":    "No se encontraron resultados",
+                                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                                    "sInfoPostFix":    "",
+                                    "sSearch":         "Buscar:",
+                                    "sUrl":            "",
+                                    "sInfoThousands":  ",",
+                                    "sLoadingRecords": "Cargando...",
+                                    "oPaginate": {
+                                        "sFirst":    "Primero",
+                                        "sLast":     "Último",
+                                        "sNext":     "Siguiente",
+                                        "sPrevious": "Anterior"
+                                    },
+                                    "oAria": {
+                                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                                    },
+                                    "buttons": {
+                                        "copy": "Copiar",
+                                        "colvis": "Visibilidad"
                                     }
                                 },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
+                                dom: 'rt',
+                                initComplete: function() {
+                                    $('.pagination').show();
                                 }
-                            }
-                        }
-                    }
-                });
-            }
+                            });
 
-            if (document.getElementById('monthlyChart')) {
-                const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-                const monthlyChart = new Chart(monthlyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($monthlyLabels) !!},
-                        datasets: [{
-                            label: 'Pagos por mes',
-                            data: {!! json_encode($monthlyData) !!},
-                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                            borderColor: 'rgba(16, 185, 129, 1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
-                            pointBorderColor: 'white',
-                            pointBorderWidth: 2,
-                            pointRadius: 6,
-                            pointHoverRadius: 8
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    color: 'rgba(255, 255, 255, 0.8)',
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
-                                titleColor: 'white',
-                                bodyColor: 'white',
-                                borderColor: 'rgba(255, 255, 255, 0.2)',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.8)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.8)',
-                                    callback: function(value) {
-                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
-                                    }
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+                            // Inicializar Select2
+                            $('.select2-modern').select2({
+                                theme: 'bootstrap4',
+                                dropdownParent: $('body')
+                            });
 
-            // Animaciones para las tarjetas de estadísticas
-            $('.stat-card').each(function(index) {
-                $(this).css({
-                    'animation-delay': (index * 0.1) + 's'
-                });
-            });
-
-            // Manejar la eliminación de pagos con diseño moderno
-            $(document).on('click', '.delete-payment', function() {
-                const paymentId = $(this).data('payment-id');
-                const customerName = $(this).data('customer-name');
-                const paymentAmount = $(this).data('payment-amount');
-                const $button = $(this);
-
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    html: `
-                        <div style="text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🗑️</div>
-                            <p>Vas a eliminar el pago de <strong style="color: #10b981;">${paymentAmount} {{ $currency->symbol }}</strong></p>
-                            <p>del cliente <strong style="color: #667eea;">${customerName}</strong></p>
-                            <p style="color: #ef4444; font-weight: 600;">Esta acción restaurará la deuda al cliente.</p>
-                        </div>
-                    `,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar',
-                    customClass: {
-                        popup: 'swal-modern',
-                        confirmButton: 'btn btn-danger btn-modern',
-                        cancelButton: 'btn btn-secondary btn-modern'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Mostrar estado de carga en el botón
-                        const originalText = $button.html();
-                        $button.html('<i class="fas fa-spinner fa-spin"></i> Eliminando...');
-                        $button.prop('disabled', true);
-
-                        Swal.fire({
-                            title: 'Eliminando pago...',
-                            html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
-                            showConfirmButton: false,
-                            allowOutsideClick: false
-                        });
-
-                        $.ajax({
-                            url: `/admin/customers/payment-history/${paymentId}`,
-                            type: 'DELETE',
-                            data: {
-                                _token: '{{ csrf_token() }}'
-                            },
-                            success: function(response) {
-                                // Eliminar la fila de la tabla o la tarjeta
-                                const $row = $button.closest('tr');
-                                const $card = $button.closest('.payment-card');
-                                
-                                if ($row.length > 0) {
-                                    $row.fadeOut(300, function() {
-                                        $(this).remove();
-                                    });
-                                } else if ($card.length > 0) {
-                                    $card.fadeOut(300, function() {
-                                        $(this).remove();
-                                    });
-                                }
-
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Pago eliminado!',
-                                    text: 'El pago ha sido eliminado y la deuda ha sido restaurada',
-                                    confirmButtonText: 'Aceptar',
-                                    customClass: {
-                                        popup: 'swal-modern'
-                                    }
-                                });
-
-                                if (response.statistics) {
-                                    $('.stat-value').each(function() {
-                                        $(this).addClass('animate-value');
-                                    });
-                                }
-                            },
-                            error: function(xhr) {
-                                // Restaurar el botón
-                                $button.html(originalText);
-                                $button.prop('disabled', false);
-
-                                let errorMessage = 'Ha ocurrido un error al eliminar el pago';
-                                
-                                if (xhr.responseJSON && xhr.responseJSON.message) {
-                                    errorMessage = xhr.responseJSON.message;
-                                }
-
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: errorMessage,
-                                    confirmButtonText: 'Aceptar',
-                                    customClass: {
-                                        popup: 'swal-modern'
+                            // Inicializar gráficos con colores modernos
+                            if (document.getElementById('weekdayChart')) {
+                                const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+                                const weekdayChart = new Chart(weekdayCtx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: {!! json_encode($weekdayLabels) !!},
+                                        datasets: [{
+                                            label: 'Pagos por día de la semana',
+                                            data: {!! json_encode($weekdayData) !!},
+                                            backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                                            borderColor: 'rgba(102, 126, 234, 1)',
+                                            borderWidth: 2,
+                                            borderRadius: 8,
+                                            borderSkipped: false,
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                labels: {
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    font: {
+                                                        size: 12
+                                                    }
+                                                }
+                                            },
+                                            tooltip: {
+                                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                                titleColor: 'white',
+                                                bodyColor: 'white',
+                                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                                borderWidth: 1,
+                                                callbacks: {
+                                                    label: function(context) {
+                                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                ticks: {
+                                                    color: 'rgba(255, 255, 255, 0.8)'
+                                                },
+                                                grid: {
+                                                    color: 'rgba(255, 255, 255, 0.1)'
+                                                }
+                                            },
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    callback: function(value) {
+                                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                                    }
+                                                },
+                                                grid: {
+                                                    color: 'rgba(255, 255, 255, 0.1)'
+                                                }
+                                            }
+                                        }
                                     }
                                 });
                             }
+
+                            if (document.getElementById('monthlyChart')) {
+                                const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+                                const monthlyChart = new Chart(monthlyCtx, {
+                                    type: 'line',
+                                    data: {
+                                        labels: {!! json_encode($monthlyLabels) !!},
+                                        datasets: [{
+                                            label: 'Pagos por mes',
+                                            data: {!! json_encode($monthlyData) !!},
+                                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                            borderColor: 'rgba(16, 185, 129, 1)',
+                                            borderWidth: 3,
+                                            tension: 0.4,
+                                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                                            pointBorderColor: 'white',
+                                            pointBorderWidth: 2,
+                                            pointRadius: 6,
+                                            pointHoverRadius: 8
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                labels: {
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    font: {
+                                                        size: 12
+                                                    }
+                                                }
+                                            },
+                                            tooltip: {
+                                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                                titleColor: 'white',
+                                                bodyColor: 'white',
+                                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                                borderWidth: 1,
+                                                callbacks: {
+                                                    label: function(context) {
+                                                        return '{{ $currency->symbol }} ' + context.raw.toFixed(2);
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        scales: {
+                                            x: {
+                                                ticks: {
+                                                    color: 'rgba(255, 255, 255, 0.8)'
+                                                },
+                                                grid: {
+                                                    color: 'rgba(255, 255, 255, 0.1)'
+                                                }
+                                            },
+                                            y: {
+                                                beginAtZero: true,
+                                                ticks: {
+                                                    color: 'rgba(255, 255, 255, 0.8)',
+                                                    callback: function(value) {
+                                                        return '{{ $currency->symbol }} ' + value.toFixed(2);
+                                                    }
+                                                },
+                                                grid: {
+                                                    color: 'rgba(255, 255, 255, 0.1)'
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            // Animaciones para las tarjetas de estadísticas
+                            $('.stat-card').each(function(index) {
+                                $(this).css({
+                                    'animation-delay': (index * 0.1) + 's'
+                                });
+                            });
+
+                            // Manejar la eliminación de pagos con diseño moderno
+                            $(document).on('click', '.delete-payment', function() {
+                                const paymentId = $(this).data('payment-id');
+                                const customerName = $(this).data('customer-name');
+                                const paymentAmount = $(this).data('payment-amount');
+                                const $button = $(this);
+
+                                Swal.fire({
+                                    title: '¿Estás seguro?',
+                                    html: `
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 3rem; margin-bottom: 1rem;">🗑️</div>
+                                            <p>Vas a eliminar el pago de <strong style="color: #10b981;">${paymentAmount} {{ $currency->symbol }}</strong></p>
+                                            <p>del cliente <strong style="color: #667eea;">${customerName}</strong></p>
+                                            <p style="color: #ef4444; font-weight: 600;">Esta acción restaurará la deuda al cliente.</p>
+                                        </div>
+                                    `,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Sí, eliminar',
+                                    cancelButtonText: 'Cancelar',
+                                    customClass: {
+                                        popup: 'swal-modern',
+                                        confirmButton: 'btn btn-danger btn-modern',
+                                        cancelButton: 'btn btn-secondary btn-modern'
+                                    }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        // Mostrar estado de carga en el botón
+                                        const originalText = $button.html();
+                                        $button.html('<i class="fas fa-spinner fa-spin"></i> Eliminando...');
+                                        $button.prop('disabled', true);
+
+                                        Swal.fire({
+                                            title: 'Eliminando pago...',
+                                            html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                                            showConfirmButton: false,
+                                            allowOutsideClick: false
+                                        });
+
+                                        $.ajax({
+                                            url: `/admin/customers/payment-history/${paymentId}`,
+                                            type: 'DELETE',
+                                            data: {
+                                                _token: '{{ csrf_token() }}'
+                                            },
+                                            success: function(response) {
+                                                // Eliminar la fila de la tabla o la tarjeta
+                                                const $row = $button.closest('tr');
+                                                const $card = $button.closest('.payment-card');
+                                                
+                                                if ($row.length > 0) {
+                                                    $row.fadeOut(300, function() {
+                                                        $(this).remove();
+                                                    });
+                                                } else if ($card.length > 0) {
+                                                    $card.fadeOut(300, function() {
+                                                        $(this).remove();
+                                                    });
+                                                }
+
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: '¡Pago eliminado!',
+                                                    text: 'El pago ha sido eliminado y la deuda ha sido restaurada',
+                                                    confirmButtonText: 'Aceptar',
+                                                    customClass: {
+                                                        popup: 'swal-modern'
+                                                    }
+                                                });
+
+                                                if (response.statistics) {
+                                                    $('.stat-value').each(function() {
+                                                        $(this).addClass('animate-value');
+                                                    });
+                                                }
+                                            },
+                                            error: function(xhr) {
+                                                // Restaurar el botón
+                                                $button.html(originalText);
+                                                $button.prop('disabled', false);
+
+                                                let errorMessage = 'Ha ocurrido un error al eliminar el pago';
+                                                
+                                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                                    errorMessage = xhr.responseJSON.message;
+                                                }
+
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Error',
+                                                    text: errorMessage,
+                                                    confirmButtonText: 'Aceptar',
+                                                    customClass: {
+                                                        popup: 'swal-modern'
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            });
+
+                            // Efectos hover adicionales
+                            $('.stat-card').hover(
+                                function() {
+                                    $(this).find('.stat-icon').addClass('pulse');
+                                },
+                                function() {
+                                    $(this).find('.stat-icon').removeClass('pulse');
+                                }
+                            );
+                            
+                            console.log('Select2, DataTables, Chart.js y SweetAlert2 cargados para customers payment-history');
                         });
-                    }
+                    });
                 });
             });
-
-            // Efectos hover adicionales
-            $('.stat-card').hover(
-                function() {
-                    $(this).find('.stat-icon').addClass('pulse');
-                },
-                function() {
-                    $(this).find('.stat-icon').removeClass('pulse');
-                }
-            );
         });
     </script>
 @stop 

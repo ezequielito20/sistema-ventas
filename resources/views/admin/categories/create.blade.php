@@ -193,7 +193,7 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/animate-css/animate.min.css') }}">
     <style>
         :root {
             --primary-color: #667eea;
@@ -498,98 +498,105 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
+    <script>
     $(document).ready(function() {
-            // Función para volver atrás
-            window.goBack = function() {
-                if (document.referrer) {
-                    window.history.back();
-                } else {
-                    window.location.href = '{{ route("admin.categories.index") }}';
-                }
-            };
+        // Cargar SweetAlert2 y Animate.css
+        loadSweetAlert2(function() {
+            loadAnimateCSS(function() {
+                // Función para volver atrás
+                window.goBack = function() {
+                    if (document.referrer) {
+                        window.history.back();
+                    } else {
+                        window.location.href = '{{ route("admin.categories.index") }}';
+                    }
+                };
 
-            // Validación del formulario
-            $('#categoryForm').on('submit', function(e) {
-                const name = $('#name').val().trim();
-                const description = $('#description').val().trim();
-                
-                // Validar nombre
-                if (name.length === 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de validación',
-                        text: 'El nombre de la categoría es obligatorio'
-                    });
-                    $('#name').focus();
-                    return false;
-                }
-                
-                if (name.length > 255) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de validación',
-                        text: 'El nombre no puede exceder los 255 caracteres'
-                    });
-                    $('#name').focus();
-                    return false;
-                }
+                // Validación del formulario
+                $('#categoryForm').on('submit', function(e) {
+                    const name = $('#name').val().trim();
+                    const description = $('#description').val().trim();
+                    
+                    // Validar nombre
+                    if (name.length === 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de validación',
+                            text: 'El nombre de la categoría es obligatorio'
+                        });
+                        $('#name').focus();
+                        return false;
+                    }
+                    
+                    if (name.length > 255) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de validación',
+                            text: 'El nombre no puede exceder los 255 caracteres'
+                        });
+                        $('#name').focus();
+                        return false;
+                    }
 
-                // Deshabilitar botón y mostrar loading
-                $('#submitCategory').prop('disabled', true).html(`
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Guardando...</span>
-                `);
-            });
-
-            // Contador de caracteres para descripción
-            $('#description').on('input', function() {
-                const maxLength = 255;
-                const currentLength = $(this).val().length;
-                const remaining = maxLength - currentLength;
-                
-                // Actualizar texto de ayuda
-                const helpText = $(this).siblings('.form-text');
-                if (remaining < 0) {
-                    helpText.html(`
-                        <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i>
-                        Has excedido el límite de caracteres por ${Math.abs(remaining)} caracteres
+                    // Deshabilitar botón y mostrar loading
+                    $('#submitCategory').prop('disabled', true).html(`
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Guardando...</span>
                     `);
-                } else {
-                    helpText.html(`
-                        <i class="fas fa-info-circle"></i>
-                        La descripción es opcional pero ayuda a organizar mejor los productos. 
-                        <span style="color: ${remaining < 50 ? 'var(--warning-color)' : 'inherit'}">
-                            (${remaining} caracteres restantes)
-                        </span>
-                    `);
-                }
+                });
+
+                // Contador de caracteres para descripción
+                $('#description').on('input', function() {
+                    const maxLength = 255;
+                    const currentLength = $(this).val().length;
+                    const remaining = maxLength - currentLength;
+                    
+                    // Actualizar texto de ayuda
+                    const helpText = $(this).siblings('.form-text');
+                    if (remaining < 0) {
+                        helpText.html(`
+                            <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i>
+                            Has excedido el límite de caracteres por ${Math.abs(remaining)} caracteres
+                        `);
+                    } else {
+                        helpText.html(`
+                            <i class="fas fa-info-circle"></i>
+                            La descripción es opcional pero ayuda a organizar mejor los productos. 
+                            <span style="color: ${remaining < 50 ? 'var(--warning-color)' : 'inherit'}">
+                                (${remaining} caracteres restantes)
+                            </span>
+                        `);
+                    }
+                });
+
+                // Confirmación antes de salir si hay cambios
+                let formChanged = false;
+                
+                $('#categoryForm input, #categoryForm textarea').on('change keyup', function() {
+                    formChanged = true;
+                });
+
+                window.onbeforeunload = function() {
+                    if (formChanged) {
+                        return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
+                    }
+                };
+
+                // Desactivar la advertencia al enviar el formulario
+                $('#categoryForm').on('submit', function() {
+                    window.onbeforeunload = null;
+                });
+
+                // Animaciones de entrada
+                $('.hero-section').addClass('animate__animated animate__fadeInDown');
+                $('.form-card').addClass('animate__animated animate__fadeInUp');
+                
+                console.log('SweetAlert2 y Animate.css cargados para categories create');
             });
-
-            // Confirmación antes de salir si hay cambios
-            let formChanged = false;
-            
-            $('#categoryForm input, #categoryForm textarea').on('change keyup', function() {
-                formChanged = true;
-            });
-
-            window.onbeforeunload = function() {
-                if (formChanged) {
-                    return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
-                }
-            };
-
-            // Desactivar la advertencia al enviar el formulario
-            $('#categoryForm').on('submit', function() {
-                window.onbeforeunload = null;
-            });
-
-            // Animaciones de entrada
-            $('.hero-section').addClass('animate__animated animate__fadeInDown');
-            $('.form-card').addClass('animate__animated animate__fadeInUp');
+        });
     });
 </script>
 @stop

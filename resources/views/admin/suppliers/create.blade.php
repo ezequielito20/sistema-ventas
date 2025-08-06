@@ -261,56 +261,64 @@
 @stop
 
 @section('js')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+<script src="{{ asset('vendor/config.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Máscara para teléfonos
-    $('#company_phone, #supplier_phone').inputmask('(999) 999-9999');
+    // Cargar Inputmask
+    loadInputmask(function() {
+        // Máscara para teléfonos
+        $('#company_phone, #supplier_phone').inputmask('(999) 999-9999');
 
-    // Validación del formulario
-    $('#supplierForm').on('submit', function(e) {
-        let isValid = true;
-        
-        // Remover espacios en blanco extras
-        $('input[type="text"], input[type="email"]').each(function() {
-            $(this).val($(this).val().trim());
-        });
+        // Validación del formulario
+        $('#supplierForm').on('submit', function(e) {
+            let isValid = true;
+            
+            // Remover espacios en blanco extras
+            $('input[type="text"], input[type="email"]').each(function() {
+                $(this).val($(this).val().trim());
+            });
 
-        // Validar email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test($('#company_email').val())) {
-            $('#company_email').addClass('is-invalid');
-            isValid = false;
-        }
-
-        // Validar teléfonos
-        const phoneRegex = /^\(\d{3}\)\s\d{3}-\d{4}$/;
-        ['#company_phone', '#supplier_phone'].forEach(selector => {
-            if (!phoneRegex.test($(selector).val())) {
-                $(selector).addClass('is-invalid');
+            // Validar email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test($('#company_email').val())) {
+                $('#company_email').addClass('is-invalid');
                 isValid = false;
+            }
+
+            // Validar teléfonos
+            const phoneRegex = /^\(\d{3}\)\s\d{3}-\d{4}$/;
+            ['#company_phone', '#supplier_phone'].forEach(selector => {
+                if (!phoneRegex.test($(selector).val())) {
+                    $(selector).addClass('is-invalid');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: 'Por favor, revise los campos marcados en rojo.',
+                    confirmButtonText: 'Entendido'
+                });
+                // Rehabilitar botón si hay error
+                $('#submitSupplier').prop('disabled', false);
+            } else {
+                // Deshabilitar botón para prevenir múltiples envíos
+                $('#submitSupplier').prop('disabled', true);
             }
         });
 
-        if (!isValid) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de Validación',
-                text: 'Por favor, revise los campos marcados en rojo.',
-                confirmButtonText: 'Entendido'
-            });
-            // Rehabilitar botón si hay error
-            $('#submitSupplier').prop('disabled', false);
-        } else {
-            // Deshabilitar botón para prevenir múltiples envíos
-            $('#submitSupplier').prop('disabled', true);
-        }
+        // Limpiar validación al escribir
+        $('input').on('input', function() {
+            $(this).removeClass('is-invalid');
+        });
     });
-
-    // Limpiar validación al escribir
-    $('input').on('input', function() {
-        $(this).removeClass('is-invalid');
+    
+    // Cargar SweetAlert2
+    loadSweetAlert2(function() {
+        console.log('SweetAlert2 cargado para suppliers create');
     });
 });
 </script>

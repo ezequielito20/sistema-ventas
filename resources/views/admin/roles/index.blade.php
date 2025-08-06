@@ -240,9 +240,9 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/buttons.bootstrap4.min.css') }}">
 
     <style>
         .card {
@@ -368,78 +368,70 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.colVis.min.js"></script>
-
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicialización de tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
 
-            // Inicialización de DataTables
-            $('#rolesTable').DataTable({
-                responsive: true,
-                autoWidth: false,
-                dom: 'Bfrtip',
-                buttons: [{
-                    extend: 'collection',
-                    text: '<i class="fas fa-file-export mr-2"></i>Exportar',
-                    className: 'btn btn-primary',
+                // Inicialización de tooltips
+                $('[data-toggle="tooltip"]').tooltip();
+
+                // Inicialización de DataTables
+                $('#rolesTable').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    dom: 'Bfrtip',
                     buttons: [{
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel mr-2"></i>Excel',
-                            className: 'btn btn-success',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3]
+                        extend: 'collection',
+                        text: '<i class="fas fa-file-export mr-2"></i>Exportar',
+                        className: 'btn btn-primary',
+                        buttons: [{
+                                extend: 'excel',
+                                text: '<i class="fas fa-file-excel mr-2"></i>Excel',
+                                className: 'btn btn-success',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
+                                className: 'btn btn-danger',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3]
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="fas fa-print mr-2"></i>Imprimir',
+                                className: 'btn btn-info',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3]
+                                }
                             }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
-                            className: 'btn btn-danger',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3]
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="fas fa-print mr-2"></i>Imprimir',
-                            className: 'btn btn-info',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3]
-                            }
+                        ]
+                    }],
+                    "language": {
+                        "emptyTable": "No hay información",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ Roles",
+                        "infoEmpty": "Mostrando 0 a 0 de 0 Roles",
+                        "infoFiltered": "(Filtrado de _MAX_ total Roles)",
+                        "infoPostFix": "",
+                        "thousands": ",",
+                        "lengthMenu": "Mostrar _MENU_ Roles",
+                        "loadingRecords": "Cargando...",
+                        "processing": "Procesando...",
+                        "search": "Buscador:",
+                        "zeroRecords": "Sin resultados encontrados",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
                         }
-                    ]
-                }],
-                "language": {
-                    "emptyTable": "No hay información",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Roles",
-                    "infoEmpty": "Mostrando 0 a 0 de 0 Roles",
-                    "infoFiltered": "(Filtrado de _MAX_ total Roles)",
-                    "infoPostFix": "",
-                    "thousands": ",",
-                    "lengthMenu": "Mostrar _MENU_ Roles",
-                    "loadingRecords": "Cargando...",
-                    "processing": "Procesando...",
-                    "search": "Buscador:",
-                    "zeroRecords": "Sin resultados encontrados",
-                    "paginate": {
-                        "first": "Primero",
-                        "last": "Último",
-                        "next": "Siguiente",
-                        "previous": "Anterior"
                     }
-                }
-            });
+                });
 
             // Manejo de eliminación de roles
             $('.delete-role').click(function() {
@@ -838,16 +830,22 @@
                 });
             });
 
-            function updateGroupSelectors() {
-                $('.group-selector').each(function() {
-                    const group = $(this).data('group');
-                    const totalPermissions = $(`.permission-checkbox[data-group="${group}"]`).length;
-                    const checkedPermissions = $(`.permission-checkbox[data-group="${group}"]:checked`)
-                        .length;
+                function updateGroupSelectors() {
+                    $('.group-selector').each(function() {
+                        const group = $(this).data('group');
+                        const totalPermissions = $(`.permission-checkbox[data-group="${group}"]`).length;
+                        const checkedPermissions = $(`.permission-checkbox[data-group="${group}"]:checked`)
+                            .length;
 
-                    $(this).prop('checked', totalPermissions === checkedPermissions);
-                });
-            }
+                        $(this).prop('checked', totalPermissions === checkedPermissions);
+                    });
+                }
+            });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para roles');
+            });
         });
     </script>
 @stop

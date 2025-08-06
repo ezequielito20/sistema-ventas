@@ -97,25 +97,31 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Validación del formulario
-            $('#cashCountForm').submit(function(e) {
-                const initialAmount = parseFloat($('#initial_amount').val());
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                // Validación del formulario
+                $('#cashCountForm').submit(function(e) {
+                    const initialAmount = parseFloat($('#initial_amount').val());
 
-                if (initialAmount < 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'El monto inicial no puede ser negativo'
-                    });
-                }
-            });
+                    if (initialAmount < 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'El monto inicial no puede ser negativo'
+                        });
+                    }
+                });
 
-            // Formateo automático del monto
-            $('#initial_amount').on('blur', function() {
-                this.value = parseFloat(this.value).toFixed(2);
+                // Formateo automático del monto
+                $('#initial_amount').on('blur', function() {
+                    this.value = parseFloat(this.value).toFixed(2);
+                });
+                
+                console.log('SweetAlert2 cargado para cash-counts create');
             });
         });
     </script>

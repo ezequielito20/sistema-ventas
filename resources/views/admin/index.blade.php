@@ -2887,12 +2887,14 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // AOS animations disabled for better performance
+            // Cargar Chart.js
+            loadChartJS(function() {
+                // AOS animations disabled for better performance
 
-            // Counter animations disabled for better performance
+                // Counter animations disabled for better performance
 
             // Función para actualizar datos de ventas
             window.refreshSalesData = function() {
@@ -4011,7 +4013,8 @@
                 });
             };
 
-
+            console.log('Chart.js cargado para admin index');
         });
+    });
     </script>
 @stop

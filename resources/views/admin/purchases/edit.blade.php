@@ -470,9 +470,8 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
     <style>
         /* Variables CSS */
         :root {
@@ -2331,102 +2330,101 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar los subtotales y el total al cargar la página
-            updateAllTotals();
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
 
-            // Inicializar DataTable para el modal de búsqueda
-            $('#productsTable').DataTable({
-                responsive: true,
-                scrollX: true,
-                autoWidth: false,
-                language: {
-                    "emptyTable": "No hay información",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ productos",
-                    "infoEmpty": "Mostrando 0 a 0 de 0 productos",
-                    "infoFiltered": "(filtrado de _MAX_ productos totales)",
-                    "lengthMenu": "Mostrar _MENU_ productos",
-                    "loadingRecords": "Cargando...",
-                    "processing": "Procesando...",
-                    "search": "Buscar:",
-                    "zeroRecords": "No se encontraron coincidencias",
-                    "paginate": {
-                        "first": "Primero",
-                        "last": "Último",
-                        "next": "Siguiente",
-                        "previous": "Anterior"
-                    }
-                },
-                columnDefs: [{
-                        responsivePriority: 1,
-                        targets: [0, 1, 2]
-                    }, // Código, Acción y Nombre siempre visibles
-                    {
-                        responsivePriority: 2,
-                        targets: [4, 5]
-                    }, // Stock y Precio siguiente prioridad
-                    {
-                        responsivePriority: 3,
-                        targets: '_all'
-                    } // El resto menos prioritario
-                ]
-            });
+                // Inicializar los subtotales y el total al cargar la página
+                updateAllTotals();
 
-            // Manejar la entrada de código de producto
-            $('#product_code').keypress(function(e) {
-                if (e.which == 13) { // Si presiona Enter
-                    e.preventDefault();
-                    const productCode = $(this).val().trim();
-
-                    if (productCode) {
-                        // Verificar si el producto ya está en la tabla
-                        if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Producto ya agregado',
-                                text: 'Este producto ya está en la lista de compra',
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 3000
-                            });
-                            return;
+                // Inicializar DataTable para el modal de búsqueda
+                $('#productsTable').DataTable({
+                    responsive: true,
+                    scrollX: true,
+                    autoWidth: false,
+                    language: {
+                        "emptyTable": "No hay información",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ productos",
+                        "infoEmpty": "Mostrando 0 a 0 de 0 productos",
+                        "infoFiltered": "(filtrado de _MAX_ productos totales)",
+                        "lengthMenu": "Mostrar _MENU_ productos",
+                        "loadingRecords": "Cargando...",
+                        "processing": "Procesando...",
+                        "search": "Buscar:",
+                        "zeroRecords": "No se encontraron coincidencias",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
                         }
+                    },
+                    columnDefs: [{
+                            responsivePriority: 1,
+                            targets: [0, 1, 2]
+                        }, // Código, Acción y Nombre siempre visibles
+                        {
+                            responsivePriority: 2,
+                            targets: [4, 5]
+                        }, // Stock y Precio siguiente prioridad
+                        {
+                            responsivePriority: 3,
+                            targets: '_all'
+                        } // El resto menos prioritario
+                    ]
+                });
 
-                        // Buscar el producto por código
-                        $.ajax({
-                            url: `/purchases/product-by-code/${productCode}`,
-                            method: 'GET',
-                            success: function(response) {
-                                if (response.success) {
-                                    addProductToTable(response.product);
-                                    $('#product_code').val(''); // Limpiar el input
-                                    
-                                    // Notificación de éxito
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Producto agregado',
-                                        text: 'El producto se agregó a la lista de compra',
-                                        toast: true,
-                                        position: 'top-end',
-                                        showConfirmButton: false,
-                                        timer: 3000
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: response.message,
-                                        toast: true,
-                                        position: 'top-end',
-                                        showConfirmButton: false,
-                                        timer: 3000
+                // Manejar la entrada de código de producto
+                $('#product_code').keypress(function(e) {
+                    if (e.which == 13) { // Si presiona Enter
+                        e.preventDefault();
+                        const productCode = $(this).val().trim();
+
+                        if (productCode) {
+                            // Verificar si el producto ya está en la tabla
+                            if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Producto ya agregado',
+                                    text: 'Este producto ya está en la lista de compra',
+                                    toast: true,
+                                    position: 'top-end',
+                                    showConfirmButton: false,
+                                    timer: 3000
+                                });
+                                return;
+                            }
+
+                            // Buscar el producto por código
+                            $.ajax({
+                                url: `/purchases/product-by-code/${productCode}`,
+                                method: 'GET',
+                                success: function(response) {
+                                    if (response.success) {
+                                        addProductToTable(response.product);
+                                        $('#product_code').val(''); // Limpiar el input
+                                        
+                                        // Notificación de éxito
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Producto agregado',
+                                            text: 'El producto se agregó a la lista de compra',
+                                            toast: true,
+                                            position: 'top-end',
+                                            showConfirmButton: false,
+                                            timer: 3000
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: response.message,
+                                            toast: true,
+                                            position: 'top-end',
+                                            showConfirmButton: false,
+                                            timer: 3000
                                     });
                                 }
                             },
@@ -2607,100 +2605,106 @@
                 });
             });
 
-            // Función para actualizar el total de una fila
-            function updateRowTotal(row) {
-                const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
-                const price = parseFloat(row.find('.price-input').val()) || 0;
-                const subtotal = quantity * price;
-                row.find('.subtotal').text(subtotal.toFixed(2));
-            }
-
-            // Función para actualizar todos los totales
-            function updateAllTotals() {
-                let total = 0;
-                let totalProducts = 0;
-                let totalQuantity = 0;
-
-                $('#purchaseItems tr').each(function() {
-                    const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-                    const price = parseFloat($(this).find('.price-input').val()) || 0;
+                // Función para actualizar el total de una fila
+                function updateRowTotal(row) {
+                    const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+                    const price = parseFloat(row.find('.price-input').val()) || 0;
                     const subtotal = quantity * price;
-                    
-                    $(this).find('.subtotal').text(subtotal.toFixed(2));
-                    total += subtotal;
-                    totalProducts++;
-                    totalQuantity += quantity;
-                });
-
-                // Actualizar totales en el panel lateral
-                $('#totalAmountDisplay').text('{{ $currency->symbol }} ' + total.toFixed(2));
-                $('#totalAmountInput').val(total.toFixed(2));
-                $('#totalProducts').text(totalProducts);
-                $('#totalQuantity').text(totalQuantity);
-                $('#productCount').text(totalProducts + ' productos');
-            }
-
-            // Función para verificar estado vacío
-            function checkEmptyState() {
-                const hasProducts = $('#purchaseItems tr').length > 0;
-                
-                if (hasProducts) {
-                    $('.table-container').show();
-                    $('#emptyState').hide();
-                } else {
-                    $('.table-container').hide();
-                    $('#emptyState').show();
+                    row.find('.subtotal').text(subtotal.toFixed(2));
                 }
-            }
 
-            // Botón cancelar edición
-            $('#cancelEdit').click(function() {
-                Swal.fire({
-                    title: '¿Cancelar edición?',
-                    text: '¿Está seguro de que desea cancelar la edición? Los cambios no guardados se perderán.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Sí, cancelar',
-                    cancelButtonText: 'Continuar editando'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.history.back();
-                    }
-                });
-            });
+                // Función para actualizar todos los totales
+                function updateAllTotals() {
+                    let total = 0;
+                    let totalProducts = 0;
+                    let totalQuantity = 0;
 
-            // Validación del formulario antes de enviar
-            $('#purchaseForm').submit(function(e) {
-                const productCount = $('#purchaseItems tr').length;
-                
-                if (productCount === 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Compra vacía',
-                        text: 'Debe agregar al menos un producto a la compra antes de actualizar.',
-                        confirmButtonColor: '#4f46e5'
+                    $('#purchaseItems tr').each(function() {
+                        const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                        const price = parseFloat($(this).find('.price-input').val()) || 0;
+                        const subtotal = quantity * price;
+                        
+                        $(this).find('.subtotal').text(subtotal.toFixed(2));
+                        total += subtotal;
+                        totalProducts++;
+                        totalQuantity += quantity;
                     });
-                    return false;
+
+                    // Actualizar totales en el panel lateral
+                    $('#totalAmountDisplay').text('{{ $currency->symbol }} ' + total.toFixed(2));
+                    $('#totalAmountInput').val(total.toFixed(2));
+                    $('#totalProducts').text(totalProducts);
+                    $('#totalQuantity').text(totalQuantity);
+                    $('#productCount').text(totalProducts + ' productos');
                 }
 
-                // Mostrar loading
-                Swal.fire({
-                    title: 'Actualizando compra...',
-                    text: 'Por favor espere mientras se procesa la información',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
+                // Función para verificar estado vacío
+                function checkEmptyState() {
+                    const hasProducts = $('#purchaseItems tr').length > 0;
+                    
+                    if (hasProducts) {
+                        $('.table-container').show();
+                        $('#emptyState').hide();
+                    } else {
+                        $('.table-container').hide();
+                        $('#emptyState').show();
                     }
-                });
-            });
+                }
 
-            // Inicializar estado vacío
-            checkEmptyState();
+                // Botón cancelar edición
+                $('#cancelEdit').click(function() {
+                    Swal.fire({
+                        title: '¿Cancelar edición?',
+                        text: '¿Está seguro de que desea cancelar la edición? Los cambios no guardados se perderán.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Sí, cancelar',
+                        cancelButtonText: 'Continuar editando'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.history.back();
+                        }
+                    });
+                });
+
+                // Validación del formulario antes de enviar
+                $('#purchaseForm').submit(function(e) {
+                    const productCount = $('#purchaseItems tr').length;
+                    
+                    if (productCount === 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Compra vacía',
+                            text: 'Debe agregar al menos un producto a la compra antes de actualizar.',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        return false;
+                    }
+
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Actualizando compra...',
+                        text: 'Por favor espere mientras se procesa la información',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                });
+
+                // Inicializar estado vacío
+                checkEmptyState();
+            });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para purchases edit');
+            });
         });
     </script>
 @stop

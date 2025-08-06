@@ -1317,221 +1317,220 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar tooltips
-            $('[data-tooltip]').tooltip();
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
+                // Inicializar tooltips
+                $('[data-tooltip]').tooltip();
 
-            // Función para filtrar productos
-            function filterProducts(filter) {
-                const rows = $('.modern-table tbody tr');
-                let visibleCount = 0;
+                // Función para filtrar productos
+                function filterProducts(filter) {
+                    const rows = $('.modern-table tbody tr');
+                    let visibleCount = 0;
 
-                rows.each(function() {
-                    const row = $(this);
-                    const stockText = row.find('.stock-badge').text().toLowerCase();
-                    let show = false;
+                    rows.each(function() {
+                        const row = $(this);
+                        const stockBadge = row.find('.stock-badge');
+                        let show = false;
 
-                    if (filter === 'all') {
-                        show = true;
-                    } else if (filter === 'low') {
-                        show = stockText.includes('bajo');
-                    } else if (filter === 'normal') {
-                        show = stockText.includes('normal') || stockText.includes('óptimo');
-                    }
-
-                    if (show) {
-                        row.show();
-                        visibleCount++;
-                    } else {
-                        row.hide();
-                    }
-                });
-
-                // Mostrar/ocultar estado vacío
-                if (visibleCount === 0) {
-                    $('.table-container').hide();
-                    $('#emptyState').show();
-                } else {
-                    $('.table-container').show();
-                    $('#emptyState').hide();
-                }
-            }
-
-            // Función para buscar productos
-            function searchProducts(searchTerm) {
-                const rows = $('.modern-table tbody tr');
-                let visibleCount = 0;
-
-                rows.each(function() {
-                    const row = $(this);
-                    const productName = row.find('.product-name').text().toLowerCase();
-                    const productCode = row.find('.product-code').text().toLowerCase();
-                    const categoryName = row.find('.category-badge span').text().toLowerCase();
-
-                    if (productName.includes(searchTerm) || 
-                        productCode.includes(searchTerm) || 
-                        categoryName.includes(searchTerm)) {
-                        row.show();
-                        visibleCount++;
-                    } else {
-                        row.hide();
-                    }
-                });
-
-                // Mostrar/ocultar estado vacío
-                if (visibleCount === 0) {
-                    $('.table-container').hide();
-                    $('#emptyState').show();
-                } else {
-                    $('.table-container').show();
-                    $('#emptyState').hide();
-                }
-            }
-
-            // Búsqueda en tiempo real
-            $('#productSearch').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                searchProducts(searchTerm);
-            });
-
-            // Limpiar búsqueda
-            $('#clearSearch').on('click', function() {
-                $('#productSearch').val('');
-                searchProducts('');
-            });
-
-            // Filtros
-            $('.filter-btn').click(function() {
-                $('.filter-btn').removeClass('active');
-                $(this).addClass('active');
-
-                const filter = $(this).data('filter');
-                filterProducts(filter);
-            });
-
-            // Mostrar detalles del producto
-            $('.show-product').click(function() {
-                const id = $(this).data('id');
-
-                $.ajax({
-                    url: `/products/${id}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            const product = response.product;
-
-                            // Actualizar imagen
-                            if (product.image) {
-                                $('#productImage').attr('src', product.image).show();
-                                $('#noImage').hide();
-                            } else {
-                                $('#productImage').hide();
-                                $('#noImage').show();
-                            }
-
-                            // Actualizar información básica
-                            $('#productCode').text(product.code);
-                            $('#productName').text(product.name);
-                            $('#productCategory').text(product.category);
-                            $('#productDescription').text(product.description);
-
-                            // Actualizar stock
-                            $('#productStock').text(product.stock);
-                            $('#productMinStock').text(product.min_stock);
-                            $('#productMaxStock').text(product.max_stock);
-
-                            // Actualizar precios
-                            $('#productPurchasePrice').text(product.purchase_price);
-                            $('#productSalePrice').text(product.sale_price);
-
-                            // Actualizar fechas
-                            $('#productEntryDate').text(product.entry_date);
-                            $('#productEntryDaysAgo').text(product.entry_days_ago);
-                            $('#productCreatedAt').text(product.created_at);
-                            $('#productUpdatedAt').text(product.updated_at);
-
-                            $('#showProductModal').modal('show');
+                        if (filter === 'all') {
+                            show = true;
+                        } else if (filter === 'low') {
+                            // Verificar si el badge tiene la clase 'badge-danger' (stock bajo)
+                            show = stockBadge.hasClass('badge-danger');
+                        } else if (filter === 'normal') {
+                            // Verificar si el badge tiene la clase 'badge-warning' o 'badge-success' (stock normal/alto)
+                            show = stockBadge.hasClass('badge-warning') || stockBadge.hasClass('badge-success');
                         }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudo cargar la información del producto', 'error');
+
+                        if (show) {
+                            row.show();
+                            visibleCount++;
+                        } else {
+                            row.hide();
+                        }
+                    });
+
+                    // Mostrar/ocultar estado vacío
+                    if (visibleCount === 0) {
+                        $('.table-container').hide();
+                        $('#emptyState').show();
+                    } else {
+                        $('.table-container').show();
+                        $('#emptyState').hide();
                     }
-                });
-            });
-
-            // Manejo de eliminación de productos
-            $('.delete-product').click(function() {
-                const productId = $(this).data('id');
-
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción no se puede revertir",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: `/products/delete/${productId}`,
-                            type: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            success: function(response) {
-                                if (response.status === 'success') {
-                                    Swal.fire({
-                                        title: '¡Eliminado!',
-                                        text: response.message,
-                                        icon: 'success'
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Error', response.message, 'error');
-                                }
-                            },
-                            error: function(xhr) {
-                                const response = xhr.responseJSON;
-                                Swal.fire('Error', response.message || 'No se pudo eliminar el producto', 'error');
-                            }
-                        });
-                    }
-                });
-            });
-
-            // Animación de entrada para las filas
-            $('.modern-table tbody tr').each(function(index) {
-                $(this).css('animation-delay', (index * 0.1) + 's');
-            });
-
-            // Toggle del panel
-            $('.panel-toggle').click(function() {
-                const icon = $(this).find('i');
-                const panelBody = $('.panel-body');
-                
-                if (panelBody.is(':visible')) {
-                    panelBody.slideUp();
-                    icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
-                } else {
-                    panelBody.slideDown();
-                    icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
                 }
+
+                // Función para buscar productos
+                function searchProducts(searchTerm) {
+                    const rows = $('.modern-table tbody tr');
+                    let visibleCount = 0;
+
+                    rows.each(function() {
+                        const row = $(this);
+                        const productName = row.find('.product-name').text().toLowerCase();
+                        const productCode = row.find('.product-code').text().toLowerCase();
+                        const categoryName = row.find('.category-badge span').text().toLowerCase();
+
+                        if (productName.includes(searchTerm) || 
+                            productCode.includes(searchTerm) || 
+                            categoryName.includes(searchTerm)) {
+                            row.show();
+                            visibleCount++;
+                        } else {
+                            row.hide();
+                        }
+                    });
+
+                    // Mostrar/ocultar estado vacío
+                    if (visibleCount === 0) {
+                        $('.table-container').hide();
+                        $('#emptyState').show();
+                    } else {
+                        $('.table-container').show();
+                        $('#emptyState').hide();
+                    }
+                }
+
+                // Búsqueda en tiempo real
+                $('#productSearch').on('keyup', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    searchProducts(searchTerm);
+                });
+
+                // Limpiar búsqueda
+                $('#clearSearch').on('click', function() {
+                    $('#productSearch').val('');
+                    searchProducts('');
+                });
+
+                // Filtros
+                $('.filter-btn').click(function() {
+                    $('.filter-btn').removeClass('active');
+                    $(this).addClass('active');
+
+                    const filter = $(this).data('filter');
+                    filterProducts(filter);
+                });
+
+                // Mostrar detalles del producto
+                $('.show-product').click(function() {
+                    const id = $(this).data('id');
+
+                    $.ajax({
+                        url: `/products/${id}`,
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                const product = response.product;
+
+                                // Actualizar imagen
+                                if (product.image) {
+                                    $('#productImage').attr('src', product.image).show();
+                                    $('#noImage').hide();
+                                } else {
+                                    $('#productImage').hide();
+                                    $('#noImage').show();
+                                }
+
+                                // Actualizar información básica
+                                $('#productCode').text(product.code);
+                                $('#productName').text(product.name);
+                                $('#productCategory').text(product.category);
+                                $('#productDescription').text(product.description);
+
+                                // Actualizar stock
+                                $('#productStock').text(product.stock);
+                                $('#productMinStock').text(product.min_stock);
+                                $('#productMaxStock').text(product.max_stock);
+
+                                // Actualizar precios
+                                $('#productPurchasePrice').text(product.purchase_price);
+                                $('#productSalePrice').text(product.sale_price);
+
+                                // Actualizar fechas
+                                $('#productEntryDate').text(product.entry_date);
+                                $('#productEntryDaysAgo').text(product.entry_days_ago);
+                                $('#productCreatedAt').text(product.created_at);
+                                $('#productUpdatedAt').text(product.updated_at);
+
+                                $('#showProductModal').modal('show');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudo cargar la información del producto', 'error');
+                        }
+                    });
+                });
+
+                // Manejo de eliminación de productos
+                $('.delete-product').click(function() {
+                    const productId = $(this).data('id');
+
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: "Esta acción no se puede revertir",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/products/delete/${productId}`,
+                                type: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                success: function(response) {
+                                    if (response.status === 'success') {
+                                        Swal.fire({
+                                            title: '¡Eliminado!',
+                                            text: response.message,
+                                            icon: 'success'
+                                        }).then(() => {
+                                            window.location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire('Error', response.message, 'error');
+                                    }
+                                },
+                                error: function(xhr) {
+                                    const response = xhr.responseJSON;
+                                    Swal.fire('Error', response.message || 'No se pudo eliminar el producto', 'error');
+                                }
+                            });
+                        }
+                    });
+                });
+
+                // Animación de entrada para las filas
+                $('.modern-table tbody tr').each(function(index) {
+                    $(this).css('animation-delay', (index * 0.1) + 's');
+                });
+
+                // Toggle del panel
+                $('.panel-toggle').click(function() {
+                    const icon = $(this).find('i');
+                    const panelBody = $('.panel-body');
+                    
+                    if (panelBody.is(':visible')) {
+                        panelBody.slideUp();
+                        icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                    } else {
+                        panelBody.slideDown();
+                        icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                    }
+                });
+            });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para productos');
             });
         });
     </script>

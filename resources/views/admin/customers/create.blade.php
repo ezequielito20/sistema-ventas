@@ -684,79 +684,84 @@
 @stop
 
 @section('js')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Guardar la URL original cuando se carga la página por primera vez
-            if (!sessionStorage.getItem('customers_original_referrer')) {
-                const referrer = document.referrer;
-                if (referrer && !referrer.includes('/customers/create')) {
-                    sessionStorage.setItem('customers_original_referrer', referrer);
+            // Cargar Inputmask
+            loadInputmask(function() {
+                // Guardar la URL original cuando se carga la página por primera vez
+                if (!sessionStorage.getItem('customers_original_referrer')) {
+                    const referrer = document.referrer;
+                    if (referrer && !referrer.includes('/customers/create')) {
+                        sessionStorage.setItem('customers_original_referrer', referrer);
+                    }
                 }
-            }
-            
-            // Inicializar máscaras
-            $('#phone').inputmask('(999) 999-9999');
-            // $('#nit_number').inputmask('999-999999-999-9');
-
-            // Validación del formulario
-            $('#customerForm').on('submit', function(e) {
-                // Deshabilitar botones para prevenir múltiples envíos
-                $('#submitCustomer, #submitCustomerAndNew').prop('disabled', true);
                 
-                if (!this.checkValidity()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    // Rehabilitar botones si hay error
-                    $('#submitCustomer, #submitCustomerAndNew').prop('disabled', false);
-                }
-                $(this).addClass('was-validated');
-            });
+                // Inicializar máscaras
+                $('#phone').inputmask('(999) 999-9999');
+                // $('#nit_number').inputmask('999-999999-999-9');
 
-            // Validación en tiempo real del email
-            $('#email').on('input', function() {
-                const email = $(this).val();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                if (emailRegex.test(email)) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    $(this).removeClass('is-valid').addClass('is-invalid');
-                }
-            });
-
-            // Capitalizar automáticamente el nombre
-            $('#name').on('input', function() {
-                let words = $(this).val().split(' ');
-                words = words.map(word => {
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                // Validación del formulario
+                $('#customerForm').on('submit', function(e) {
+                    // Deshabilitar botones para prevenir múltiples envíos
+                    $('#submitCustomer, #submitCustomerAndNew').prop('disabled', true);
+                    
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Rehabilitar botones si hay error
+                        $('#submitCustomer, #submitCustomerAndNew').prop('disabled', false);
+                    }
+                    $(this).addClass('was-validated');
                 });
-                $(this).val(words.join(' '));
-            });
 
-            // Mostrar tooltip con el formato requerido
-            $('[data-toggle="tooltip"]').tooltip();
+                // Validación en tiempo real del email
+                $('#email').on('input', function() {
+                    const email = $(this).val();
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-            // Animación suave al hacer focus en los inputs
-            $('.modern-input').on('focus', function() {
-                $(this).closest('.modern-form-group').addClass('focused');
-            }).on('blur', function() {
-                $(this).closest('.modern-form-group').removeClass('focused');
-            });
+                    if (emailRegex.test(email)) {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                    } else {
+                        $(this).removeClass('is-valid').addClass('is-invalid');
+                    }
+                });
 
-            // Función para navegar de vuelta a la vista original
-            window.goBack = function() {
-                // Verificar si hay una URL de referencia guardada en sessionStorage
-                const originalReferrer = sessionStorage.getItem('customers_original_referrer');
-                
-                if (originalReferrer && originalReferrer !== window.location.href) {
-                    // Si tenemos una URL original guardada, ir allí
-                    window.location.href = originalReferrer;
-                } else {
-                    // Comportamiento normal del botón volver
-                    window.history.back();
+                // Capitalizar automáticamente el nombre
+                $('#name').on('input', function() {
+                    let words = $(this).val().split(' ');
+                    words = words.map(word => {
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    });
+                    $(this).val(words.join(' '));
+                });
+
+                // Mostrar tooltip con el formato requerido
+                $('[data-toggle="tooltip"]').tooltip();
+
+                // Animación suave al hacer focus en los inputs
+                $('.modern-input').on('focus', function() {
+                    $(this).closest('.modern-form-group').addClass('focused');
+                }).on('blur', function() {
+                    $(this).closest('.modern-form-group').removeClass('focused');
+                });
+
+                // Función para navegar de vuelta a la vista original
+                window.goBack = function() {
+                    // Verificar si hay una URL de referencia guardada en sessionStorage
+                    const originalReferrer = sessionStorage.getItem('customers_original_referrer');
+                    
+                    if (originalReferrer && originalReferrer !== window.location.href) {
+                        // Si tenemos una URL original guardada, ir allí
+                        window.location.href = originalReferrer;
+                    } else {
+                        // Comportamiento normal del botón volver
+                        window.history.back();
+                    }
                 }
-            }
+                
+                console.log('Inputmask cargado para customers create');
+            });
         });
     </script>
 @stop

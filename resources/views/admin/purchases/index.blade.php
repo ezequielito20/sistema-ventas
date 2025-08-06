@@ -432,8 +432,8 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
     <style>
         /* Variables CSS */
         :root {
@@ -1701,101 +1701,100 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable
-            const table = $('#purchasesTable').DataTable({
-                responsive: true,
-                searching: true, // Mantener búsqueda habilitada para filtros personalizados
-                language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                    "buttons": {
-                        "copy": "Copiar",
-                        "colvis": "Visibilidad"
-                    }
-                }
-            });
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
 
-            // Conectar búsqueda del header con DataTable y vista móvil
-            $('#purchasesSearch').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                
-                // Búsqueda en DataTable (vista desktop)
-                table.search(this.value).draw();
-                
-                // Búsqueda en tarjetas móviles
-                $('.mobile-card').each(function() {
-                    const receiptText = $(this).find('.receipt-title').text().toLowerCase();
-                    const dateText = $(this).find('.receipt-date').text().toLowerCase();
-                    
-                    if (receiptText.includes(searchTerm) || dateText.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
+                // Inicializar DataTable
+                const table = $('#purchasesTable').DataTable({
+                    responsive: true,
+                    searching: true, // Mantener búsqueda habilitada para filtros personalizados
+                    language: {
+                        "sProcessing":     "Procesando...",
+                        "sLengthMenu":     "Mostrar _MENU_ registros",
+                        "sZeroRecords":    "No se encontraron resultados",
+                        "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                        "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                        "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":    "",
+                        "sSearch":         "Buscar:",
+                        "sUrl":            "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                        },
+                        "buttons": {
+                            "copy": "Copiar",
+                            "colvis": "Visibilidad"
+                        }
                     }
                 });
-            });
 
-            // Limpiar búsqueda
-            $('#clearSearch').on('click', function() {
-                $('#purchasesSearch').val('');
-                table.search('').draw();
-                $('.mobile-card').show();
-            });
+                // Conectar búsqueda del header con DataTable y vista móvil
+                $('#purchasesSearch').on('keyup', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    
+                    // Búsqueda en DataTable (vista desktop)
+                    table.search(this.value).draw();
+                    
+                    // Búsqueda en tarjetas móviles
+                    $('.mobile-card').each(function() {
+                        const receiptText = $(this).find('.receipt-title').text().toLowerCase();
+                        const dateText = $(this).find('.receipt-date').text().toLowerCase();
+                        
+                        if (receiptText.includes(searchTerm) || dateText.includes(searchTerm)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                });
 
-            // Inicializar tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+                // Limpiar búsqueda
+                $('#clearSearch').on('click', function() {
+                    $('#purchasesSearch').val('');
+                    table.search('').draw();
+                    $('.mobile-card').show();
+                });
 
-            // Mostrar modal de detalles de la compra
-            $('.show-purchase').click(function() {
-                const id = $(this).data('id');
+                // Inicializar tooltips
+                $('[data-toggle="tooltip"]').tooltip();
 
-                // Limpiar datos anteriores
-                $('#purchaseId, #purchaseDate, #purchaseTotal, #purchaseStatus, #productName, #productQuantity, #supplierName')
-                    .text('');
-                $('#receiptImage').attr('src', '');
-                $('#receiptSection').hide();
+                // Mostrar modal de detalles de la compra
+                $('.show-purchase').click(function() {
+                    const id = $(this).data('id');
 
-                $.ajax({
-                    url: `/purchases/${id}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            const purchase = response.purchase;
+                    // Limpiar datos anteriores
+                    $('#purchaseId, #purchaseDate, #purchaseTotal, #purchaseStatus, #productName, #productQuantity, #supplierName')
+                        .text('');
+                    $('#receiptImage').attr('src', '');
+                    $('#receiptSection').hide();
 
-                            // Llenar datos generales
-                            $('#purchaseId').text(`#${String(purchase.id).padStart(6, '0')}`);
-                            $('#purchaseDate').text(purchase.formatted_date);
-                            $('#purchaseTotal').text(`$${purchase.total_price}`);
-                            $('#purchaseStatus').html(purchase.payment_receipt ?
-                                '<span class="badge badge-success">Completado</span>' :
-                                '<span class="badge badge-warning">Pendiente</span>'
+                    $.ajax({
+                        url: `/purchases/${id}`,
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                const purchase = response.purchase;
+
+                                // Llenar datos generales
+                                $('#purchaseId').text(`#${String(purchase.id).padStart(6, '0')}`);
+                                $('#purchaseDate').text(purchase.formatted_date);
+                                $('#purchaseTotal').text(`$${purchase.total_price}`);
+                                $('#purchaseStatus').html(purchase.payment_receipt ?
+                                    '<span class="badge badge-success">Completado</span>' :
+                                    '<span class="badge badge-warning">Pendiente</span>'
                             );
 
                             // Llenar datos del producto
@@ -1913,51 +1912,57 @@
                 });
             });
 
-            // Ver detalles de la compra
-            $('.view-details').click(function() {
-                const purchaseId = $(this).data('id');
-                $('#purchaseDetailsTableBody').empty();
+                // Ver detalles de la compra
+                $('.view-details').click(function() {
+                    const purchaseId = $(this).data('id');
+                    $('#purchaseDetailsTableBody').empty();
 
-                $.ajax({
-                    url: `/purchases/${purchaseId}/details`,
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            let total = 0;
+                    $.ajax({
+                        url: `/purchases/${purchaseId}/details`,
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                let total = 0;
 
-                            response.details.forEach(function(detail) {
-                                const quantity = parseFloat(detail.quantity);
-                                const price = parseFloat(detail.product_price);
-                                const subtotal = quantity * price;
-                                total += subtotal;
+                                response.details.forEach(function(detail) {
+                                    const quantity = parseFloat(detail.quantity);
+                                    const price = parseFloat(detail.product_price);
+                                    const subtotal = quantity * price;
+                                    total += subtotal;
 
-                                $('#purchaseDetailsTableBody').append(`
-                                    <tr>
-                                        <td>${detail.product.code || ''}</td>
-                                        <td>${detail.product.name || ''}</td>
-                                        <td>${detail.product.category || 'Sin categoría'}</td>
-                                        <td class="text-center">${quantity}</td>
-                                        <td class="text-right">{{ $currency->symbol }} ${price.toFixed(2)}</td>
-                                        <td class="text-right">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
-                                        
-                                    </tr>
-                                `);
-                            });
+                                    $('#purchaseDetailsTableBody').append(`
+                                        <tr>
+                                            <td>${detail.product.code || ''}</td>
+                                            <td>${detail.product.name || ''}</td>
+                                            <td>${detail.product.category || 'Sin categoría'}</td>
+                                            <td class="text-center">${quantity}</td>
+                                            <td class="text-right">{{ $currency->symbol }} ${price.toFixed(2)}</td>
+                                            <td class="text-right">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
+                                            
+                                        </tr>
+                                    `);
+                                });
 
-                            // Formatear el total con separador de miles
-                            const formattedTotal = total.toFixed(2).replace(
-                                /\B(?=(\d{3})+(?!\d))/g, ",");
-                            $('#modalTotal').text(formattedTotal);
-                            $('#purchaseDetailsModal').modal('show');
-                        } else {
-                            Swal.fire('Error', response.message ||
-                                'Error al cargar los detalles', 'error');
+                                // Formatear el total con separador de miles
+                                const formattedTotal = total.toFixed(2).replace(
+                                    /\B(?=(\d{3})+(?!\d))/g, ",");
+                                $('#modalTotal').text(formattedTotal);
+                                $('#purchaseDetailsModal').modal('show');
+                            } else {
+                                Swal.fire('Error', response.message ||
+                                    'Error al cargar los detalles', 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudieron cargar los detalles', 'error');
                         }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudieron cargar los detalles', 'error');
-                    }
+                    });
                 });
+            });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para purchases index');
             });
         });
     </script>

@@ -430,9 +430,8 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
     <style>
         /* Variables CSS */
         :root {
@@ -2059,415 +2058,420 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTable
-            $('#productsTable').DataTable({
-                responsive: true,
-                scrollX: true,
-                language: {
-                    "emptyTable": "No hay información",
-                    "info": "Mostrando _START_ a _END_ de _TOTAL_ productos",
-                    "infoEmpty": "Mostrando 0 a 0 de 0 productos",
-                    "infoFiltered": "(filtrado de _MAX_ productos totales)",
-                    "lengthMenu": "Mostrar _MENU_ productos",
-                    "loadingRecords": "Cargando...",
-                    "processing": "Procesando...",
-                    "search": "Buscar:",
-                    "zeroRecords": "No se encontraron coincidencias",
-                    "paginate": {
-                        "first": "Primero",
-                        "last": "Último",
-                        "next": "Siguiente",
-                        "previous": "Anterior"
-                    }
-                },
-                columnDefs: [{
-                        responsivePriority: 1,
-                        targets: [0, 1, 2]
-                    },
-                    {
-                        responsivePriority: 2,
-                        targets: [4, 5]
-                    },
-                    {
-                        responsivePriority: 3,
-                        targets: '_all'
-                    }
-                ]
-            });
-            
-            // Verificar producto único después de inicializar DataTable
-            setTimeout(function() {
-                checkAndAddSingleProduct();
-            }, 100);
-            
-            function checkAndAddSingleProduct() {
-                const availableProducts = $('#productsTable tbody tr').length;
-                
-                if (availableProducts === 1) {
-                    const productRow = $('#productsTable tbody tr:first');
-                    const productCode = productRow.find('td:eq(0)').text().trim();
-                    const productId = productRow.find('button.select-product').data('id');
-                    const productName = productRow.find('td:eq(2) .product-name').text().trim();
-                    const productImage = productRow.find('td:eq(2) img').attr('src');
-                    const productStock = productRow.find('td:eq(4) .badge').text().trim();
-                    const productPriceText = productRow.find('td:eq(5)').text().trim();
-                    const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-                    
-                    
-                
-                    if (!productId || productId === '' || productId === null) {
-                        console.error('ID de producto no válido:', productId);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'No se pudo obtener el ID del producto'
-                        });
-                        return;
-                    }
-                
-                    const product = {
-                        id: productId,
-                        code: productCode,
-                        name: productName,
-                        image: productImage,
-                        stock: productStock,
-                        purchase_price: productPrice
-                    };
-                    
-                    setTimeout(function() {
-                        addProductToTable(product, false);
-                        $('#purchase_date').focus();
-                    }, 500);
-                } else if (availableProducts === 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Sin productos disponibles',
-                        text: 'No hay productos disponibles en el inventario para realizar compras',
-                        confirmButtonText: 'Entendido'
-                    });
-                }
-            }
-
-            // Manejar adición de productos
-            $('#addProduct').click(function() {
-                const productCode = $('#product_code').val();
-                if (productCode) {
-                    $.get(`/admin/purchases/product-by-code/${productCode}`, function(response) {
-                        if (response.success) {
-                            addProductToTable(response.product);
-                            $('#product_code').val('');
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
+                // Inicializar DataTable
+                $('#productsTable').DataTable({
+                    responsive: true,
+                    scrollX: true,
+                    language: {
+                        "emptyTable": "No hay información",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ productos",
+                        "infoEmpty": "Mostrando 0 a 0 de 0 productos",
+                        "infoFiltered": "(filtrado de _MAX_ productos totales)",
+                        "lengthMenu": "Mostrar _MENU_ productos",
+                        "loadingRecords": "Cargando...",
+                        "processing": "Procesando...",
+                        "search": "Buscar:",
+                        "zeroRecords": "No se encontraron coincidencias",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
                         }
-                    });
-                }
-            });
-
-            // Manejar entrada de código
-            $('#product_code').keypress(function(e) {
-                if (e.which == 13) {
-                    e.preventDefault();
-                    const productCode = $(this).val();
-
-                    if (productCode) {
-                        if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                    },
+                    columnDefs: [{
+                            responsivePriority: 1,
+                            targets: [0, 1, 2]
+                        },
+                        {
+                            responsivePriority: 2,
+                            targets: [4, 5]
+                        },
+                        {
+                            responsivePriority: 3,
+                            targets: '_all'
+                        }
+                    ]
+                });
+                
+                // Verificar producto único después de inicializar DataTable
+                setTimeout(function() {
+                    checkAndAddSingleProduct();
+                }, 100);
+                
+                function checkAndAddSingleProduct() {
+                    const availableProducts = $('#productsTable tbody tr').length;
+                    
+                    if (availableProducts === 1) {
+                        const productRow = $('#productsTable tbody tr:first');
+                        const productCode = productRow.find('td:eq(0)').text().trim();
+                        const productId = productRow.find('button.select-product').data('id');
+                        const productName = productRow.find('td:eq(2) .product-name').text().trim();
+                        const productImage = productRow.find('td:eq(2) img').attr('src');
+                        const productStock = productRow.find('td:eq(4) .badge').text().trim();
+                        const productPriceText = productRow.find('td:eq(5)').text().trim();
+                        const productPrice = parseFloat(productPriceText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+                        
+                        
+                    
+                        if (!productId || productId === '' || productId === null) {
+                            console.error('ID de producto no válido:', productId);
                             Swal.fire({
-                                icon: 'warning',
-                                title: 'Producto ya agregado',
-                                text: 'Este producto ya está en la lista de compra'
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'No se pudo obtener el ID del producto'
                             });
                             return;
                         }
+                    
+                        const product = {
+                            id: productId,
+                            code: productCode,
+                            name: productName,
+                            image: productImage,
+                            stock: productStock,
+                            purchase_price: productPrice
+                        };
+                        
+                        setTimeout(function() {
+                            addProductToTable(product, false);
+                            $('#purchase_date').focus();
+                        }, 500);
+                    } else if (availableProducts === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sin productos disponibles',
+                            text: 'No hay productos disponibles en el inventario para realizar compras',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                }
 
-                        $.ajax({
-                            url: `/purchases/product-by-code/${productCode}`,
-                            method: 'GET',
-                            success: function(response) {
-                                if (response.success) {
-                                    addProductToTable(response.product);
-                                    $('#product_code').val('');
-                                } else {
-                                    Swal.fire('Error', response.message, 'error');
-                                }
-                            },
-                            error: function() {
-                                Swal.fire('Error', 'No se encontró el producto', 'error');
+                // Manejar adición de productos
+                $('#addProduct').click(function() {
+                    const productCode = $('#product_code').val();
+                    if (productCode) {
+                        $.get(`/admin/purchases/product-by-code/${productCode}`, function(response) {
+                            if (response.success) {
+                                addProductToTable(response.product);
+                                $('#product_code').val('');
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
                             }
                         });
                     }
-                }
-            });
+                });
 
-            // Evento para seleccionar producto
-            $(document).on('click', '.select-product', function() {
-                const productCode = $(this).data('code');
-                const productId = $(this).data('id');
+                // Manejar entrada de código
+                $('#product_code').keypress(function(e) {
+                    if (e.which == 13) {
+                        e.preventDefault();
+                        const productCode = $(this).val();
 
-                if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Producto ya agregado',
-                        text: 'Este producto ya está en la lista de compra'
-                    });
-                    return;
-                }
+                        if (productCode) {
+                            if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Producto ya agregado',
+                                    text: 'Este producto ya está en la lista de compra'
+                                });
+                                return;
+                            }
 
-                $.ajax({
-                    url: `/purchases/product-details/${productCode}`,
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            response.product.id = productId;
-                            addProductToTable(response.product);
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
+                            $.ajax({
+                                url: `/purchases/product-by-code/${productCode}`,
+                                method: 'GET',
+                                success: function(response) {
+                                    if (response.success) {
+                                        addProductToTable(response.product);
+                                        $('#product_code').val('');
+                                    } else {
+                                        Swal.fire('Error', response.message, 'error');
+                                    }
+                                },
+                                error: function() {
+                                    Swal.fire('Error', 'No se encontró el producto', 'error');
+                                }
+                            });
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error en la petición:', error);
-                        Swal.fire('Error', 'No se pudo obtener la información del producto', 'error');
                     }
                 });
-            });
 
-            // Función para agregar producto a la tabla
-            function addProductToTable(product, showAlert = true) {
-                
-                if (!product.id || product.id === '' || product.id === null) {
-                    console.error('Producto sin ID válido:', product);
-                    if (showAlert) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'El producto no tiene un ID válido'
-                        });
-                    }
-                    return;
-                }
-                
-                if ($(`tr[data-product-code="${product.code}"]`).length > 0) {
-                    if (showAlert) {
+                // Evento para seleccionar producto
+                $(document).on('click', '.select-product', function() {
+                    const productCode = $(this).data('code');
+                    const productId = $(this).data('id');
+
+                    if ($(`tr[data-product-code="${productCode}"]`).length > 0) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Producto ya agregado',
                             text: 'Este producto ya está en la lista de compra'
                         });
+                        return;
                     }
-                    return;
-                }
 
-                let imageUrl = product.image;
-                if (!imageUrl || imageUrl === '') {
-                    imageUrl = '/img/no-image.png';
-                } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-                    imageUrl = '/' + imageUrl;
-                }
-                
-
-                const price = product.purchase_price || product.price || 0;
-
-                const row = `
-                    <tr data-product-code="${product.code}" data-product-id="${product.id}" class="fade-in-up">
-                        <td>
-                            <div class="product-item">
-                                <img src="${imageUrl}" alt="${product.name}" class="product-image">
-                                <div class="product-info">
-                                    <div class="product-name">${product.name}</div>
-                                    <div class="product-code">${product.code}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <span class="stock-badge badge badge-${product.stock < 10 ? 'danger' : (product.stock < 50 ? 'warning' : 'success')}">
-                                ${product.stock}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <input type="number" 
-                                class="form-control quantity-control quantity-input" 
-                                name="items[${product.id}][quantity]" 
-                                value="1" 
-                                min="1"
-                                step="1"
-                                style="text-align: center;">
-                        </td>
-                        <td class="text-center">
-                            <div class="input-group price-control">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">{{$currency->symbol}}</span>
-                                </div>
-                                <input type="number" 
-                                    class="form-control price-input" 
-                                    name="items[${product.id}][price]" 
-                                    value="${price}" 
-                                    step="0.01">
-                            </div>
-                        </td>
-                        <td class="text-right">
-                            <span class="subtotal-text">{{$currency->symbol}} <span class="subtotal">${price}</span></span>
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-item">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-
-                $('#purchaseItems').append(row);
-                updateTotal();
-                updateEmptyState();
-
-                if (showAlert) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Producto agregado!',
-                        text: `${product.name} se agregó a la lista de compra`,
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true,
-                        background: '#e8f5e8',
-                        color: '#2e7d32'
+                    $.ajax({
+                        url: `/purchases/product-details/${productCode}`,
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                response.product.id = productId;
+                                addProductToTable(response.product);
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error en la petición:', error);
+                            Swal.fire('Error', 'No se pudo obtener la información del producto', 'error');
+                        }
                     });
-                }
-            }
+                });
 
-            // Actualizar subtotal
-            $(document).on('input', '.quantity-input, .price-input', function() {
-                const row = $(this).closest('tr');
-                const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
-                const price = parseFloat(row.find('.price-input').val()) || 0;
-                const subtotal = quantity * price;
-                row.find('.subtotal').text(subtotal.toFixed(2));
-                updateTotal();
-            });
-
-            // Manejar clics en las flechas de cantidad
-            $(document).on('click', '.quantity-control', function(e) {
-                const input = $(this).find('.quantity-input');
-                const rect = this.getBoundingClientRect();
-                const clickY = e.clientY - rect.top;
-                const height = rect.height;
-                
-                // Si el clic está en la mitad superior (flecha arriba)
-                if (clickY < height / 2) {
-                    const currentValue = parseInt(input.val()) || 0;
-                    input.val(currentValue + 1).trigger('input');
-                }
-                // Si el clic está en la mitad inferior (flecha abajo)
-                else {
-                    const currentValue = parseInt(input.val()) || 0;
-                    if (currentValue > 1) {
-                        input.val(currentValue - 1).trigger('input');
+                // Función para agregar producto a la tabla
+                function addProductToTable(product, showAlert = true) {
+                    
+                    if (!product.id || product.id === '' || product.id === null) {
+                        console.error('Producto sin ID válido:', product);
+                        if (showAlert) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'El producto no tiene un ID válido'
+                            });
+                        }
+                        return;
                     }
-                }
-            });
+                    
+                    if ($(`tr[data-product-code="${product.code}"]`).length > 0) {
+                        if (showAlert) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Producto ya agregado',
+                                text: 'Este producto ya está en la lista de compra'
+                            });
+                        }
+                        return;
+                    }
 
-            // Prevenir que el clic en el input active las flechas
-            $(document).on('click', '.quantity-input', function(e) {
-                e.stopPropagation();
-            });
+                    let imageUrl = product.image;
+                    if (!imageUrl || imageUrl === '') {
+                        imageUrl = '/img/no-image.png';
+                    } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                        imageUrl = '/' + imageUrl;
+                    }
+                    
 
-            // Eliminar producto
-            $(document).on('click', '.remove-item', function() {
-                const row = $(this).closest('tr');
-                row.fadeOut(300, function() {
-                    $(this).remove();
+                    const price = product.purchase_price || product.price || 0;
+
+                    const row = `
+                        <tr data-product-code="${product.code}" data-product-id="${product.id}" class="fade-in-up">
+                            <td>
+                                <div class="product-item">
+                                    <img src="${imageUrl}" alt="${product.name}" class="product-image">
+                                    <div class="product-info">
+                                        <div class="product-name">${product.name}</div>
+                                        <div class="product-code">${product.code}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="stock-badge badge badge-${product.stock < 10 ? 'danger' : (product.stock < 50 ? 'warning' : 'success')}">
+                                    ${product.stock}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <input type="number" 
+                                    class="form-control quantity-control quantity-input" 
+                                    name="items[${product.id}][quantity]" 
+                                    value="1" 
+                                    min="1"
+                                    step="1"
+                                    style="text-align: center;">
+                            </td>
+                            <td class="text-center">
+                                <div class="input-group price-control">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">{{$currency->symbol}}</span>
+                                    </div>
+                                    <input type="number" 
+                                        class="form-control price-input" 
+                                        name="items[${product.id}][price]" 
+                                        value="${price}" 
+                                        step="0.01">
+                                </div>
+                            </td>
+                            <td class="text-right">
+                                <span class="subtotal-text">{{$currency->symbol}} <span class="subtotal">${price}</span></span>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+
+                    $('#purchaseItems').append(row);
                     updateTotal();
                     updateEmptyState();
-                });
-            });
 
-            // Actualizar total general
-            function updateTotal() {
-                let total = 0;
-                let totalProducts = 0;
-                let totalQuantity = 0;
-                
-                $('.subtotal').each(function() {
-                    total += parseFloat($(this).text()) || 0;
-                });
-                
-                $('#purchaseItems tr').each(function() {
-                    totalProducts++;
-                    const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-                    totalQuantity += quantity;
-                });
-                
-                $('#totalAmount').text(total.toFixed(2));
-                $('#totalAmountInput').val(total.toFixed(2));
-                $('#totalAmountDisplay').text('{{$currency->symbol}} ' + total.toFixed(2));
-                $('#totalProducts').text(totalProducts);
-                $('#totalQuantity').text(totalQuantity);
-                $('#productCount').text(totalProducts + ' productos');
-                
-            }
-
-            // Actualizar estado vacío
-            function updateEmptyState() {
-                const itemCount = $('#purchaseItems tr').length;
-                if (itemCount === 0) {
-                    $('#emptyState').show();
-                } else {
-                    $('#emptyState').hide();
+                    if (showAlert) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Producto agregado!',
+                            text: `${product.name} se agregó a la lista de compra`,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            background: '#e8f5e8',
+                            color: '#2e7d32'
+                        });
+                    }
                 }
-            }
 
-            // Cancelar compra
-            $('#cancelPurchase').click(function() {
-                Swal.fire({
-                    title: '¿Está seguro?',
-                    text: "Se perderán todos los datos ingresados en esta compra",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, cancelar compra',
-                    cancelButtonText: 'No, continuar editando'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.history.back();
+                // Actualizar subtotal
+                $(document).on('input', '.quantity-input, .price-input', function() {
+                    const row = $(this).closest('tr');
+                    const quantity = parseFloat(row.find('.quantity-input').val()) || 0;
+                    const price = parseFloat(row.find('.price-input').val()) || 0;
+                    const subtotal = quantity * price;
+                    row.find('.subtotal').text(subtotal.toFixed(2));
+                    updateTotal();
+                });
+
+                // Manejar clics en las flechas de cantidad
+                $(document).on('click', '.quantity-control', function(e) {
+                    const input = $(this).find('.quantity-input');
+                    const rect = this.getBoundingClientRect();
+                    const clickY = e.clientY - rect.top;
+                    const height = rect.height;
+                    
+                    // Si el clic está en la mitad superior (flecha arriba)
+                    if (clickY < height / 2) {
+                        const currentValue = parseInt(input.val()) || 0;
+                        input.val(currentValue + 1).trigger('input');
+                    }
+                    // Si el clic está en la mitad inferior (flecha abajo)
+                    else {
+                        const currentValue = parseInt(input.val()) || 0;
+                        if (currentValue > 1) {
+                            input.val(currentValue - 1).trigger('input');
+                        }
                     }
                 });
-            });
 
-            // Envío del formulario
-            $('form').on('submit', function(e) {
-                e.preventDefault();
-                
-                if ($('#purchaseItems tr').length === 0) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Sin productos',
-                        text: 'Debe agregar al menos un producto a la compra'
+                // Prevenir que el clic en el input active las flechas
+                $(document).on('click', '.quantity-input', function(e) {
+                    e.stopPropagation();
+                });
+
+                // Eliminar producto
+                $(document).on('click', '.remove-item', function() {
+                    const row = $(this).closest('tr');
+                    row.fadeOut(300, function() {
+                        $(this).remove();
+                        updateTotal();
+                        updateEmptyState();
                     });
-                    return;
+                });
+
+                // Actualizar total general
+                function updateTotal() {
+                    let total = 0;
+                    let totalProducts = 0;
+                    let totalQuantity = 0;
+                    
+                    $('.subtotal').each(function() {
+                        total += parseFloat($(this).text()) || 0;
+                    });
+                    
+                    $('#purchaseItems tr').each(function() {
+                        totalProducts++;
+                        const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+                        totalQuantity += quantity;
+                    });
+                    
+                    $('#totalAmount').text(total.toFixed(2));
+                    $('#totalAmountInput').val(total.toFixed(2));
+                    $('#totalAmountDisplay').text('{{$currency->symbol}} ' + total.toFixed(2));
+                    $('#totalProducts').text(totalProducts);
+                    $('#totalQuantity').text(totalQuantity);
+                    $('#productCount').text(totalProducts + ' productos');
+                    
                 }
 
-                if (!$('#purchase_date').val()) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Fecha requerida',
-                        text: 'Debe seleccionar una fecha de compra'
-                    });
-                    return;
+                // Actualizar estado vacío
+                function updateEmptyState() {
+                    const itemCount = $('#purchaseItems tr').length;
+                    if (itemCount === 0) {
+                        $('#emptyState').show();
+                    } else {
+                        $('#emptyState').hide();
+                    }
                 }
 
-                $('#submitPurchase, button[name="action"]').prop('disabled', true);
+                // Cancelar compra
+                $('#cancelPurchase').click(function() {
+                    Swal.fire({
+                        title: '¿Está seguro?',
+                        text: "Se perderán todos los datos ingresados en esta compra",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, cancelar compra',
+                        cancelButtonText: 'No, continuar editando'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.history.back();
+                        }
+                    });
+                });
 
-                this.submit();
+                // Envío del formulario
+                $('form').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if ($('#purchaseItems tr').length === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sin productos',
+                            text: 'Debe agregar al menos un producto a la compra'
+                        });
+                        return;
+                    }
+
+                    if (!$('#purchase_date').val()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Fecha requerida',
+                            text: 'Debe seleccionar una fecha de compra'
+                        });
+                        return;
+                    }
+
+                    $('#submitPurchase, button[name="action"]').prop('disabled', true);
+
+                    this.submit();
+                });
+
+                // Inicializar estado vacío
+                updateEmptyState();
             });
-
-            // Inicializar estado vacío
-            updateEmptyState();
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                console.log('SweetAlert2 cargado para purchases create');
+            });
         });
     </script>
 @stop

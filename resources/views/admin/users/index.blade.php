@@ -32,9 +32,9 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/datatables/buttons.bootstrap4.min.css') }}">
 <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -722,153 +722,171 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Initialize tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+            // Cargar todas las librerías necesarias
+            loadDataTables(function() {
+                // Initialize tooltips
+                $('[data-toggle="tooltip"]').tooltip();
 
-            // Initialize DataTables for desktop view
-            $('#usersTable').DataTable({
-                responsive: false,
-                autoWidth: false,
-                dom: 'Bfrtip',
-                buttons: [{
-                    extend: 'collection',
-                    text: '<i class="fas fa-download mr-2"></i>Exportar',
-                    className: 'btn btn-primary btn-modern',
+                // Initialize DataTables for desktop view
+                $('#usersTable').DataTable({
+                    responsive: false,
+                    autoWidth: false,
+                    dom: 'Bfrtip',
                     buttons: [{
-                            extend: 'excel',
-                            text: '<i class="fas fa-file-excel mr-2"></i>Excel',
-                            className: 'btn btn-success btn-modern',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6]
+                        extend: 'collection',
+                        text: '<i class="fas fa-download mr-2"></i>Exportar',
+                        className: 'btn btn-primary btn-modern',
+                        buttons: [{
+                                extend: 'excel',
+                                text: '<i class="fas fa-file-excel mr-2"></i>Excel',
+                                className: 'btn btn-success btn-modern',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5, 6]
+                                }
+                            },
+                            {
+                                extend: 'pdf',
+                                text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
+                                className: 'btn btn-danger btn-modern',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5, 6]
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="fas fa-print mr-2"></i>Imprimir',
+                                className: 'btn btn-info btn-modern',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5, 6]
+                                }
                             }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="fas fa-file-pdf mr-2"></i>PDF',
-                            className: 'btn btn-danger btn-modern',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6]
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="fas fa-print mr-2"></i>Imprimir',
-                            className: 'btn btn-info btn-modern',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6]
-                            }
+                        ]
+                    }],
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    language: {
+                        emptyTable: "No hay información disponible",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ usuarios",
+                        infoEmpty: "Mostrando 0 a 0 de 0 usuarios",
+                        infoFiltered: "(Filtrado de _MAX_ total usuarios)",
+                        lengthMenu: "Mostrar _MENU_ usuarios",
+                        loadingRecords: "Cargando...",
+                        processing: "Procesando...",
+                        search: "Buscar:",
+                        zeroRecords: "Sin resultados encontrados",
+                        paginate: {
+                            first: "Primero",
+                            last: "Último",
+                            next: "Siguiente",
+                            previous: "Anterior"
                         }
-                    ]
-                }],
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                language: {
-                    emptyTable: "No hay información disponible",
-                    info: "Mostrando _START_ a _END_ de _TOTAL_ usuarios",
-                    infoEmpty: "Mostrando 0 a 0 de 0 usuarios",
-                    infoFiltered: "(Filtrado de _MAX_ total usuarios)",
-                    lengthMenu: "Mostrar _MENU_ usuarios",
-                    loadingRecords: "Cargando...",
-                    processing: "Procesando...",
-                    search: "Buscar:",
-                    zeroRecords: "Sin resultados encontrados",
-                    paginate: {
-                        first: "Primero",
-                        last: "Último",
-                        next: "Siguiente",
-                        previous: "Anterior"
-                    }
-                }
-            });
-
-            // Mobile search functionality
-            $('#mobileSearch').on('input', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                $('.user-card').each(function() {
-                    const cardData = $(this).data('search');
-                    if (cardData.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
                     }
                 });
             });
+            
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                // Enhanced delete user functionality
+                $('.delete-user').click(function() {
+                    const userId = $(this).data('id');
+                    const userName = $(this).closest('tr, .user-card').find('.font-weight-bold, h5').first().text();
 
-            // Enhanced delete user functionality
-            $('.delete-user').click(function() {
-                const userId = $(this).data('id');
-                const userName = $(this).closest('tr, .user-card').find('.font-weight-bold, h5').first().text();
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        html: `¿Deseas eliminar al usuario <strong>${userName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
+    
+                });
 
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    html: `¿Deseas eliminar al usuario <strong>${userName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e74c3c',
-                    cancelButtonColor: '#95a5a6',
-                    confirmButtonText: '<i class="fas fa-trash mr-2"></i>Sí, eliminar',
-                    cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancelar',
-                    reverseButtons: true,
-                    customClass: {
-                        confirmButton: 'btn btn-danger btn-modern',
-                        cancelButton: 'btn btn-secondary btn-modern'
-                    },
-                    buttonsStyling: false
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Show loading
-                        Swal.fire({
-                            title: 'Eliminando...',
-                            html: 'Por favor espera mientras se elimina el usuario',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            showConfirmButton: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+                // Mobile search functionality
+                $('#mobileSearch').on('input', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    $('.user-card').each(function() {
+                        const cardData = $(this).data('search');
+                        if (cardData.includes(searchTerm)) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                });
 
-                        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+                // Enhanced delete user functionality
+                $('.delete-user').click(function() {
+                    const userId = $(this).data('id');
+                    const userName = $(this).closest('tr, .user-card').find('.font-weight-bold, h5').first().text();
 
-                        $.ajax({
-                            url: `/users/delete/${userId}`,
-                            type: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            success: function(response) {
-                                if (response.status === 'success') {
-                                    Swal.fire({
-                                        title: '¡Eliminado!',
-                                        text: response.message,
-                                        icon: 'success',
-                                        confirmButtonText: 'Entendido',
-                                        customClass: {
-                                            confirmButton: 'btn btn-success btn-modern'
-                                        },
-                                        buttonsStyling: false
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        html: `¿Deseas eliminar al usuario <strong>${userName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74c3c',
+                        cancelButtonColor: '#95a5a6',
+                        confirmButtonText: '<i class="fas fa-trash mr-2"></i>Sí, eliminar',
+                        cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancelar',
+                        reverseButtons: true,
+                        customClass: {
+                            confirmButton: 'btn btn-danger btn-modern',
+                            cancelButton: 'btn btn-secondary btn-modern'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Eliminando...',
+                                html: 'Por favor espera mientras se elimina el usuario',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                showConfirmButton: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                            $.ajax({
+                                url: `/users/delete/${userId}`,
+                                type: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
+                                success: function(response) {
+                                    if (response.status === 'success') {
+                                        Swal.fire({
+                                            title: '¡Eliminado!',
+                                            text: response.message,
+                                            icon: 'success',
+                                            confirmButtonText: 'Entendido',
+                                            customClass: {
+                                                confirmButton: 'btn btn-success btn-modern'
+                                            },
+                                            buttonsStyling: false
+                                        }).then(() => {
+                                            window.location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error',
+                                            text: response.message,
+                                            icon: 'error',
+                                            confirmButtonText: 'Entendido',
+                                            customClass: {
+                                                confirmButton: 'btn btn-danger btn-modern'
+                                            },
+                                            buttonsStyling: false
+                                        });
+                                    }
+                                },
+                                error: function(xhr) {
+                                    const response = xhr.responseJSON;
                                     Swal.fire({
                                         title: 'Error',
-                                        text: response.message,
+                                        text: response?.message || 'No se pudo eliminar el usuario',
                                         icon: 'error',
                                         confirmButtonText: 'Entendido',
                                         customClass: {
@@ -877,12 +895,53 @@
                                         buttonsStyling: false
                                     });
                                 }
-                            },
-                            error: function(xhr) {
-                                const response = xhr.responseJSON;
-                Swal.fire({
+                            });
+                        }
+                    });
+                });
+
+                // Enhanced show user functionality
+                $('.show-user').click(function() {
+                    const userId = $(this).data('id');
+
+                    // Show loading
+                    Swal.fire({
+                        title: 'Cargando...',
+                        html: 'Obteniendo información del usuario',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: `/users/${userId}`,
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                $('#userName').text(response.user.name);
+                                $('#userEmail').text(response.user.email);
+                                $('#userCompany').text(response.user.company_name || 'N/A');
+
+                                const rolesHtml = response.user.roles.map(role =>
+                                    `<span class="badge badge-modern badge-info-modern mr-1">${role.display_name}</span>`
+                                ).join('');
+                                $('#userRoles').html(rolesHtml ||
+                                    '<span class="text-muted">Sin rol asignado</span>');
+
+                                $('#userVerification').html(response.user.verified ?
+                                    '<span class="badge badge-modern badge-success-modern">Verificado</span>' :
+                                    '<span class="badge badge-modern badge-warning-modern">Pendiente de verificación</span>'
+                                );
+
+                                Swal.close();
+                                $('#showUserModal').modal('show');
+                            } else {
+                                Swal.fire({
                                     title: 'Error',
-                                    text: response?.message || 'No se pudo eliminar el usuario',
+                                    text: 'No se pudieron obtener los datos del usuario',
                                     icon: 'error',
                                     confirmButtonText: 'Entendido',
                                     customClass: {
@@ -891,50 +950,8 @@
                                     buttonsStyling: false
                                 });
                             }
-                        });
-                    }
-                });
-            });
-
-            // Enhanced show user functionality
-            $('.show-user').click(function() {
-                const userId = $(this).data('id');
-
-                // Show loading
-                Swal.fire({
-                    title: 'Cargando...',
-                    html: 'Obteniendo información del usuario',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                $.ajax({
-                    url: `/users/${userId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            $('#userName').text(response.user.name);
-                            $('#userEmail').text(response.user.email);
-                            $('#userCompany').text(response.user.company_name || 'N/A');
-
-                            const rolesHtml = response.user.roles.map(role =>
-                                `<span class="badge badge-modern badge-info-modern mr-1">${role.display_name}</span>`
-                            ).join('');
-                            $('#userRoles').html(rolesHtml ||
-                                '<span class="text-muted">Sin rol asignado</span>');
-
-                            $('#userVerification').html(response.user.verified ?
-                                '<span class="badge badge-modern badge-success-modern">Verificado</span>' :
-                                '<span class="badge badge-modern badge-warning-modern">Pendiente de verificación</span>'
-                            );
-
-                            Swal.close();
-                            $('#showUserModal').modal('show');
-                        } else {
+                        },
+                        error: function() {
                             Swal.fire({
                                 title: 'Error',
                                 text: 'No se pudieron obtener los datos del usuario',
@@ -946,43 +963,31 @@
                                 buttonsStyling: false
                             });
                         }
-                    },
-                    error: function() {
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'No se pudieron obtener los datos del usuario',
-                            icon: 'error',
-                            confirmButtonText: 'Entendido',
-                            customClass: {
-                                confirmButton: 'btn btn-danger btn-modern'
-                            },
-                            buttonsStyling: false
-                        });
-                    }
+                    });
                 });
-            });
 
-            // Smooth animations for cards
-            $('.user-card, .main-card').each(function(index) {
-                $(this).css({
-                    'animation-delay': (index * 0.1) + 's',
-                    'animation': 'fadeInUp 0.6s ease-out both'
+                // Smooth animations for cards
+                $('.user-card, .main-card').each(function(index) {
+                    $(this).css({
+                        'animation-delay': (index * 0.1) + 's',
+                        'animation': 'fadeInUp 0.6s ease-out both'
+                    });
                 });
-            });
 
-            // Add CSS animation keyframes
-            $('<style>').text(`
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
+                // Add CSS animation keyframes
+                $('<style>').text(`
+                    @keyframes fadeInUp {
+                        from {
+                            opacity: 0;
+                            transform: translateY(30px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
                     }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-            `).appendTo('head');
+                `).appendTo('head');
+            });
         });
     </script>
 @stop

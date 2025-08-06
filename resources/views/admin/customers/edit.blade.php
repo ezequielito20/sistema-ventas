@@ -766,120 +766,127 @@
 @stop
 
 @section('js')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar máscaras
-            $('#phone').inputmask('(999) 999-9999');
-            // $('#nit_number').inputmask('999-999999-999-9');
+            // Cargar Inputmask y SweetAlert2
+            loadInputmask(function() {
+                loadSweetAlert2(function() {
+                    // Inicializar máscaras
+                    $('#phone').inputmask('(999) 999-9999');
+                    // $('#nit_number').inputmask('999-999999-999-9');
 
-            // Validación del formulario
-            $('#customerForm').on('submit', function(e) {
-                if (!this.checkValidity()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                $(this).addClass('was-validated');
-            });
+                    // Validación del formulario
+                    $('#customerForm').on('submit', function(e) {
+                        if (!this.checkValidity()) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                        $(this).addClass('was-validated');
+                    });
 
-            // Validación en tiempo real del email
-            $('#email').on('input', function() {
-                const email = $(this).val();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    // Validación en tiempo real del email
+                    $('#email').on('input', function() {
+                        const email = $(this).val();
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-                if (emailRegex.test(email)) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    $(this).removeClass('is-valid').addClass('is-invalid');
-                }
-            });
+                        if (emailRegex.test(email)) {
+                            $(this).removeClass('is-invalid').addClass('is-valid');
+                        } else {
+                            $(this).removeClass('is-valid').addClass('is-invalid');
+                        }
+                    });
 
-            // Capitalizar automáticamente el nombre
-            $('#name').on('input', function() {
-                const input = $(this);
-                const cursorPosition = input[0].selectionStart;
-                const originalValue = input.val();
-                
-                let words = originalValue.split(' ');
-                words = words.map(word => {
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                });
-                const newValue = words.join(' ');
-                
-                // Solo actualizar si el valor cambió
-                if (originalValue !== newValue) {
-                    input.val(newValue);
-                    
-                    // Restaurar la posición del cursor
-                    input[0].setSelectionRange(cursorPosition, cursorPosition);
-                }
-            });
-
-            // Mostrar tooltip con el formato requerido
-            $('[data-toggle="tooltip"]').tooltip();
-
-            // Animación suave al hacer focus en los inputs
-            $('.modern-input').on('focus', function() {
-                $(this).closest('.modern-form-group').addClass('focused');
-            }).on('blur', function() {
-                $(this).closest('.modern-form-group').removeClass('focused');
-            });
-
-            // Manejo del botón de edición de deuda
-            $('#enableDebtEdit').on('click', function() {
-                const $btn = $(this);
-                const $input = $('#total_debt');
-                const isEnabled = $input.prop('disabled');
-
-                if (isEnabled) {
-                    // Mostrar alerta de confirmación
-                    Swal.fire({
-                        title: '¿Habilitar edición de deuda?',
-                        text: 'La deuda se calcula automáticamente según las ventas y pagos. ¿Está seguro de que desea editarla manualmente?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, habilitar',
-                        cancelButtonText: 'Cancelar',
-                        reverseButtons: true
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Habilitar el campo
-                            $input.prop('disabled', false);
-                            $btn.addClass('enabled');
-                            $btn.find('i').removeClass('fa-lock').addClass('fa-unlock');
-                            $btn.attr('title', 'Deshabilitar edición de deuda');
+                    // Capitalizar automáticamente el nombre
+                    $('#name').on('input', function() {
+                        const input = $(this);
+                        const cursorPosition = input[0].selectionStart;
+                        const originalValue = input.val();
+                        
+                        let words = originalValue.split(' ');
+                        words = words.map(word => {
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                        });
+                        const newValue = words.join(' ');
+                        
+                        // Solo actualizar si el valor cambió
+                        if (originalValue !== newValue) {
+                            input.val(newValue);
                             
-                            // Enfocar el campo
-                            $input.focus();
-                            
-                            // Mostrar mensaje de éxito
+                            // Restaurar la posición del cursor
+                            input[0].setSelectionRange(cursorPosition, cursorPosition);
+                        }
+                    });
+
+                    // Mostrar tooltip con el formato requerido
+                    $('[data-toggle="tooltip"]').tooltip();
+
+                    // Animación suave al hacer focus en los inputs
+                    $('.modern-input').on('focus', function() {
+                        $(this).closest('.modern-form-group').addClass('focused');
+                    }).on('blur', function() {
+                        $(this).closest('.modern-form-group').removeClass('focused');
+                    });
+
+                    // Manejo del botón de edición de deuda
+                    $('#enableDebtEdit').on('click', function() {
+                        const $btn = $(this);
+                        const $input = $('#total_debt');
+                        const isEnabled = $input.prop('disabled');
+
+                        if (isEnabled) {
+                            // Mostrar alerta de confirmación
                             Swal.fire({
-                                title: 'Campo habilitado',
-                                text: 'Ahora puede editar la deuda manualmente',
-                                icon: 'success',
+                                title: '¿Habilitar edición de deuda?',
+                                text: 'La deuda se calcula automáticamente según las ventas y pagos. ¿Está seguro de que desea editarla manualmente?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'Sí, habilitar',
+                                cancelButtonText: 'Cancelar',
+                                reverseButtons: true
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Habilitar el campo
+                                    $input.prop('disabled', false);
+                                    $btn.addClass('enabled');
+                                    $btn.find('i').removeClass('fa-lock').addClass('fa-unlock');
+                                    $btn.attr('title', 'Deshabilitar edición de deuda');
+                                    
+                                    // Enfocar el campo
+                                    $input.focus();
+                                    
+                                    // Mostrar mensaje de éxito
+                                    Swal.fire({
+                                        title: 'Campo habilitado',
+                                        text: 'Ahora puede editar la deuda manualmente',
+                                        icon: 'success',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            });
+                        } else {
+                            // Deshabilitar el campo
+                            $input.prop('disabled', true);
+                            $btn.removeClass('enabled');
+                            $btn.find('i').removeClass('fa-unlock').addClass('fa-lock');
+                            $btn.attr('title', 'Habilitar edición de deuda');
+                            
+                            // Mostrar mensaje informativo
+                            Swal.fire({
+                                title: 'Campo deshabilitado',
+                                text: 'La deuda volverá a calcularse automáticamente',
+                                icon: 'info',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
                         }
                     });
-                } else {
-                    // Deshabilitar el campo
-                    $input.prop('disabled', true);
-                    $btn.removeClass('enabled');
-                    $btn.find('i').removeClass('fa-unlock').addClass('fa-lock');
-                    $btn.attr('title', 'Habilitar edición de deuda');
                     
-                    // Mostrar mensaje informativo
-                    Swal.fire({
-                        title: 'Campo deshabilitado',
-                        text: 'La deuda volverá a calcularse automáticamente',
-                        icon: 'info',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                }
+                    console.log('Inputmask y SweetAlert2 cargados para customers edit');
+                });
             });
         });
     </script>

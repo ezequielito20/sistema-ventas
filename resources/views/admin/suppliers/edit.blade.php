@@ -266,9 +266,11 @@
 @stop
 
 @section('js')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         $(document).ready(function() {
+            // Cargar Inputmask
+            loadInputmask(function() {
             // Máscara para teléfonos
             $('#company_phone, #supplier_phone').inputmask('(999) 999-9999');
 
@@ -329,8 +331,12 @@
             $('input').on('change', function() {
                 formChanged = true;
             });
-
-            
         });
-    </script>
+        
+        // Cargar SweetAlert2
+        loadSweetAlert2(function() {
+            console.log('SweetAlert2 cargado para suppliers edit');
+        });
+    });
+</script>
 @stop

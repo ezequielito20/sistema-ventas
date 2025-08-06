@@ -772,254 +772,257 @@
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('vendor/config.js') }}"></script>
 
     <script>
         $(document).ready(function() {
-            // Variables para paginación
-            let currentPage = 1;
-            const itemsPerPage = 10;
-            let allCategories = [];
-            let filteredCategories = [];
+            // Cargar SweetAlert2
+            loadSweetAlert2(function() {
+                // Variables para paginación
+                let currentPage = 1;
+                const itemsPerPage = 10;
+                let allCategories = [];
+                let filteredCategories = [];
 
-            // Obtener todas las filas de la tabla
-            function getAllCategories() {
-                const rows = $('#categoriesTableBody tr');
-                allCategories = [];
-                rows.each(function(index) {
-                    const $row = $(this);
-                    const $categoryName = $row.find('.category-name');
-                    const $descriptionText = $row.find('.description-text');
-                    
-                    allCategories.push({
-                        element: $row,
-                        data: {
-                            id: $row.data('category-id'),
-                            name: $categoryName.text().trim(),
-                            description: $descriptionText.text().trim()
-                        }
-                    });
-                });
-                filteredCategories = [...allCategories];
-            }
-
-            // Función para mostrar página específica
-            function showPage(page) {
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                
-                // Ocultar todas las filas
-                $('#categoriesTableBody tr').hide();
-                
-                // Mostrar solo las filas de la página actual
-                filteredCategories.slice(startIndex, endIndex).forEach((category, index) => {
-                    category.element.show();
-                    // Actualizar números de fila
-                    category.element.find('.row-number').text(startIndex + index + 1);
-                });
-                
-                // Actualizar información de paginación
-                updatePaginationInfo(page, filteredCategories.length);
-                updatePaginationControls(page, Math.ceil(filteredCategories.length / itemsPerPage));
-            }
-
-            // Actualizar información de paginación
-            function updatePaginationInfo(currentPage, totalItems) {
-                const startItem = (currentPage - 1) * itemsPerPage + 1;
-                const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-                $('#paginationInfo').text(`Mostrando ${startItem}-${endItem} de ${totalItems} registros`);
-            }
-
-            // Actualizar controles de paginación
-            function updatePaginationControls(currentPage, totalPages) {
-                const $prevBtn = $('#prevPage');
-                const $nextBtn = $('#nextPage');
-                const $pageNumbers = $('#pageNumbers');
-                
-                // Habilitar/deshabilitar botones
-                $prevBtn.prop('disabled', currentPage === 1);
-                $nextBtn.prop('disabled', currentPage === totalPages);
-                
-                // Generar números de página
-                let pageNumbersHTML = '';
-                const maxVisiblePages = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    pageNumbersHTML += `
-                        <button class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">
-                            ${i}
-                        </button>
-                    `;
-                }
-                
-                $pageNumbers.html(pageNumbersHTML);
-            }
-
-            // Función de búsqueda
-            function filterCategories(searchTerm) {
-                const searchLower = searchTerm.toLowerCase().trim();
-                
-                if (!searchLower) {
-                    filteredCategories = [...allCategories];
-                } else {
-                    filteredCategories = allCategories.filter(category => {
-                        const nameMatch = category.data.name.toLowerCase().includes(searchLower);
-                        const descriptionMatch = category.data.description.toLowerCase().includes(searchLower);
-                        return nameMatch || descriptionMatch;
-                    });
-                }
-                
-                currentPage = 1;
-                showPage(currentPage);
-            }
-
-            // Inicializar
-            getAllCategories();
-            showPage(1);
-
-            // Event listeners para paginación
-            $(document).on('click', '#prevPage', function() {
-                if (currentPage > 1) {
-                    currentPage--;
-                    showPage(currentPage);
-                }
-            });
-
-            $(document).on('click', '#nextPage', function() {
-                const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    showPage(currentPage);
-                }
-            });
-
-            $(document).on('click', '.page-number', function() {
-                const page = parseInt($(this).data('page'));
-                currentPage = page;
-                showPage(currentPage);
-            });
-
-            // Búsqueda en tiempo real
-            $('#categorySearch').on('keyup', function() {
-                const searchTerm = $(this).val();
-                filterCategories(searchTerm);
-            });
-
-            // Toggle de filtros
-            $('#filtersToggle').click(function() {
-                const content = $('#filtersContent');
-                const toggle = $(this);
-                
-                content.toggleClass('show');
-                toggle.toggleClass('rotated');
-            });
-
-            // Aplicar filtros
-            $('#applyFilters').click(function() {
-                const searchTerm = $('#categorySearch').val();
-                filterCategories(searchTerm);
-            });
-
-            // Limpiar filtros
-            $('#clearFilters').click(function() {
-                $('#categorySearch').val('');
-                filterCategories('');
-            });
-
-            // Manejo de visualización de categoría
-            $('.show-category').click(function() {
-                const categoryId = $(this).data('id');
-
-                // Mostrar loading
-                Swal.fire({
-                    title: 'Cargando...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                // Obtener datos de la categoría
-                $.ajax({
-                    url: `/categories/${categoryId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.status === 'success') {
-                            // Llenar datos en el modal
-                            $('#categoryName').text(response.category.name);
-                            $('#categoryDescription').text(response.category.description);
-                            $('#categoryCreated').text(response.category.created_at);
-                            $('#categoryUpdated').text(response.category.updated_at);
-
-                            // Cerrar loading y mostrar modal
-                            Swal.close();
-                            $('#showCategoryModal').modal('show');
-                        } else {
-                            Swal.fire('Error',
-                                'No se pudieron obtener los datos de la categoría', 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'No se pudieron obtener los datos de la categoría',
-                            'error');
-                    }
-                });
-            });
-
-            // Manejo de eliminación de categorías
-            $('.delete-category').click(function() {
-                const categoryId = $(this).data('id');
-
-                Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción no se puede revertir",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: `/categories/delete/${categoryId}`,
-                            type: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            success: function(response) {
-                                if (response.status === 'success') {
-                                    Swal.fire({
-                                        title: '¡Eliminado!',
-                                        text: response.message,
-                                        icon: 'success'
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Error', response.message, 'error');
-                                }
-                            },
-                            error: function(xhr) {
-                                const response = xhr.responseJSON;
-                                Swal.fire('Error', response.message ||
-                                    'No se pudo eliminar la categoría', 'error');
+                // Obtener todas las filas de la tabla
+                function getAllCategories() {
+                    const rows = $('#categoriesTableBody tr');
+                    allCategories = [];
+                    rows.each(function(index) {
+                        const $row = $(this);
+                        const $categoryName = $row.find('.category-name');
+                        const $descriptionText = $row.find('.description-text');
+                        
+                        allCategories.push({
+                            element: $row,
+                            data: {
+                                id: $row.data('category-id'),
+                                name: $categoryName.text().trim(),
+                                description: $descriptionText.text().trim()
                             }
                         });
+                    });
+                    filteredCategories = [...allCategories];
+                }
+
+                // Función para mostrar página específica
+                function showPage(page) {
+                    const startIndex = (page - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    
+                    // Ocultar todas las filas
+                    $('#categoriesTableBody tr').hide();
+                    
+                    // Mostrar solo las filas de la página actual
+                    filteredCategories.slice(startIndex, endIndex).forEach((category, index) => {
+                        category.element.show();
+                        // Actualizar números de fila
+                        category.element.find('.row-number').text(startIndex + index + 1);
+                    });
+                    
+                    // Actualizar información de paginación
+                    updatePaginationInfo(page, filteredCategories.length);
+                    updatePaginationControls(page, Math.ceil(filteredCategories.length / itemsPerPage));
+                }
+
+                // Actualizar información de paginación
+                function updatePaginationInfo(currentPage, totalItems) {
+                    const startItem = (currentPage - 1) * itemsPerPage + 1;
+                    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+                    $('#paginationInfo').text(`Mostrando ${startItem}-${endItem} de ${totalItems} registros`);
+                }
+
+                // Actualizar controles de paginación
+                function updatePaginationControls(currentPage, totalPages) {
+                    const $prevBtn = $('#prevPage');
+                    const $nextBtn = $('#nextPage');
+                    const $pageNumbers = $('#pageNumbers');
+                    
+                    // Habilitar/deshabilitar botones
+                    $prevBtn.prop('disabled', currentPage === 1);
+                    $nextBtn.prop('disabled', currentPage === totalPages);
+                    
+                    // Generar números de página
+                    let pageNumbersHTML = '';
+                    const maxVisiblePages = 5;
+                    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                    
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                    }
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                        pageNumbersHTML += `
+                            <button class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">
+                                ${i}
+                            </button>
+                        `;
+                    }
+                    
+                    $pageNumbers.html(pageNumbersHTML);
+                }
+
+                // Función de búsqueda
+                function filterCategories(searchTerm) {
+                    const searchLower = searchTerm.toLowerCase().trim();
+                    
+                    if (!searchLower) {
+                        filteredCategories = [...allCategories];
+                    } else {
+                        filteredCategories = allCategories.filter(category => {
+                            const nameMatch = category.data.name.toLowerCase().includes(searchLower);
+                            const descriptionMatch = category.data.description.toLowerCase().includes(searchLower);
+                            return nameMatch || descriptionMatch;
+                        });
+                    }
+                    
+                    currentPage = 1;
+                    showPage(currentPage);
+                }
+
+                // Inicializar
+                getAllCategories();
+                showPage(1);
+
+                // Event listeners para paginación
+                $(document).on('click', '#prevPage', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        showPage(currentPage);
                     }
                 });
+
+                $(document).on('click', '#nextPage', function() {
+                    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        showPage(currentPage);
+                    }
+                });
+
+                $(document).on('click', '.page-number', function() {
+                    const page = parseInt($(this).data('page'));
+                    currentPage = page;
+                    showPage(currentPage);
+                });
+
+                // Búsqueda en tiempo real
+                $('#categorySearch').on('keyup', function() {
+                    const searchTerm = $(this).val();
+                    filterCategories(searchTerm);
+                });
+
+                // Toggle de filtros
+                $('#filtersToggle').click(function() {
+                    const content = $('#filtersContent');
+                    const toggle = $(this);
+                    
+                    content.toggleClass('show');
+                    toggle.toggleClass('rotated');
+                });
+
+                // Aplicar filtros
+                $('#applyFilters').click(function() {
+                    const searchTerm = $('#categorySearch').val();
+                    filterCategories(searchTerm);
+                });
+
+                // Limpiar filtros
+                $('#clearFilters').click(function() {
+                    $('#categorySearch').val('');
+                    filterCategories('');
+                });
+
+                // Manejo de visualización de categoría
+                $('.show-category').click(function() {
+                    const categoryId = $(this).data('id');
+
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Cargando...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Obtener datos de la categoría
+                    $.ajax({
+                        url: `/categories/${categoryId}`,
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                // Llenar datos en el modal
+                                $('#categoryName').text(response.category.name);
+                                $('#categoryDescription').text(response.category.description);
+                                $('#categoryCreated').text(response.category.created_at);
+                                $('#categoryUpdated').text(response.category.updated_at);
+
+                                // Cerrar loading y mostrar modal
+                                Swal.close();
+                                $('#showCategoryModal').modal('show');
+                            } else {
+                                Swal.fire('Error',
+                                    'No se pudieron obtener los datos de la categoría', 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'No se pudieron obtener los datos de la categoría',
+                                'error');
+                        }
+                    });
+                });
+
+                // Manejo de eliminación de categorías
+                $('.delete-category').click(function() {
+                    const categoryId = $(this).data('id');
+
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: "Esta acción no se puede revertir",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: `/categories/delete/${categoryId}`,
+                                type: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                success: function(response) {
+                                    if (response.status === 'success') {
+                                        Swal.fire({
+                                            title: '¡Eliminado!',
+                                            text: response.message,
+                                            icon: 'success'
+                                        }).then(() => {
+                                            window.location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire('Error', response.message, 'error');
+                                    }
+                                },
+                                error: function(xhr) {
+                                    const response = xhr.responseJSON;
+                                    Swal.fire('Error', response.message ||
+                                        'No se pudo eliminar la categoría', 'error');
+                                }
+                            });
+                        }
+                    });
+                });
+
+                // Inicializar tooltips
+                $('[data-toggle="tooltip"]').tooltip();
+                
+                console.log('SweetAlert2 cargado para categories index');
             });
-
-            // Inicializar tooltips
-            $('[data-toggle="tooltip"]').tooltip();
-
-
         });
     </script>
 @stop
