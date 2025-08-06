@@ -215,11 +215,14 @@
                                         <i class="fas fa-money-bill-wave"></i>
                                         Deuda Total
                                     </label>
-                                    <div class="input-wrapper">
+                                    <div class="input-wrapper debt-input-wrapper">
                                         <input type="number" step="0.01" min="0"
                                             class="modern-input @error('total_debt') is-invalid @enderror"
                                             id="total_debt" name="total_debt" value="{{ old('total_debt', $customer->total_debt) }}"
-                                            placeholder="0.00">
+                                            placeholder="0.00" disabled>
+                                        <button type="button" class="debt-edit-btn" id="enableDebtEdit" data-toggle="tooltip" title="Habilitar edición de deuda">
+                                            <i class="fas fa-lock"></i>
+                                        </button>
                                         @error('total_debt')
                                             <div class="invalid-feedback">
                                                 <i class="fas fa-exclamation-circle"></i>
@@ -227,6 +230,10 @@
                                             </div>
                                         @enderror
                                     </div>
+                                    <small class="form-text debt-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        La deuda se calcula automáticamente según las ventas y pagos. Solo edite manualmente si es necesario.
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -677,6 +684,66 @@
             box-shadow: none !important;
         }
 
+        /* ===== DEBT FIELD STYLING ===== */
+        .debt-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .debt-input-wrapper .modern-input {
+            flex: 1;
+        }
+
+        .debt-input-wrapper .modern-input:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .debt-edit-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            background: var(--warning-gradient);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+
+        .debt-edit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .debt-edit-btn.enabled {
+            background: var(--success-gradient);
+        }
+
+        .debt-edit-btn.enabled i {
+            transform: rotate(180deg);
+        }
+
+        .debt-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: var(--border-radius-sm);
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .debt-warning i {
+            color: #856404;
+        }
+
         /* ===== SCROLLBAR STYLING ===== */
         ::-webkit-scrollbar {
             width: 8px;
@@ -756,6 +823,63 @@
                 $(this).closest('.modern-form-group').addClass('focused');
             }).on('blur', function() {
                 $(this).closest('.modern-form-group').removeClass('focused');
+            });
+
+            // Manejo del botón de edición de deuda
+            $('#enableDebtEdit').on('click', function() {
+                const $btn = $(this);
+                const $input = $('#total_debt');
+                const isEnabled = $input.prop('disabled');
+
+                if (isEnabled) {
+                    // Mostrar alerta de confirmación
+                    Swal.fire({
+                        title: '¿Habilitar edición de deuda?',
+                        text: 'La deuda se calcula automáticamente según las ventas y pagos. ¿Está seguro de que desea editarla manualmente?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, habilitar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Habilitar el campo
+                            $input.prop('disabled', false);
+                            $btn.addClass('enabled');
+                            $btn.find('i').removeClass('fa-lock').addClass('fa-unlock');
+                            $btn.attr('title', 'Deshabilitar edición de deuda');
+                            
+                            // Enfocar el campo
+                            $input.focus();
+                            
+                            // Mostrar mensaje de éxito
+                            Swal.fire({
+                                title: 'Campo habilitado',
+                                text: 'Ahora puede editar la deuda manualmente',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                } else {
+                    // Deshabilitar el campo
+                    $input.prop('disabled', true);
+                    $btn.removeClass('enabled');
+                    $btn.find('i').removeClass('fa-unlock').addClass('fa-lock');
+                    $btn.attr('title', 'Habilitar edición de deuda');
+                    
+                    // Mostrar mensaje informativo
+                    Swal.fire({
+                        title: 'Campo deshabilitado',
+                        text: 'La deuda volverá a calcularse automáticamente',
+                        icon: 'info',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
             });
         });
     </script>
