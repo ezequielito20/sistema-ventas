@@ -51,172 +51,182 @@
     </div>
 
     <!-- Tabla de pedidos -->
-    <div class="overflow-x-auto">
+    <div class="modern-table-container">
         @if ($orders->count() > 0)
-            <table class="table-modern">
+            <table class="modern-table">
                 <thead>
                     <tr>
-                        <th wire:click="sortBy('id')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-1">
+                        <th wire:click="sortBy('id')" class="cursor-pointer">
+                            <div class="th-content">
                                 <span>#</span>
                                 @if ($sortField === 'id')
-                                    <i
-                                        class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }} text-blue-500"></i>
+                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
                                 @else
-                                    <i class="fas fa-sort text-gray-300"></i>
+                                    <i class="fas fa-sort"></i>
                                 @endif
                             </div>
                         </th>
-                        <th wire:click="sortBy('customer_name')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-1">
+                        <th wire:click="sortBy('customer_name')" class="cursor-pointer">
+                            <div class="th-content">
                                 <span>Cliente</span>
                                 @if ($sortField === 'customer_name')
-                                    <i
-                                        class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }} text-blue-500"></i>
+                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
                                 @else
-                                    <i class="fas fa-sort text-gray-300"></i>
+                                    <i class="fas fa-sort"></i>
                                 @endif
                             </div>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Teléfono
+                        <th>
+                            <div class="th-content">
+                                <span>Teléfono</span>
+                            </div>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Producto
+                        <th>
+                            <div class="th-content">
+                                <span>Producto</span>
+                            </div>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Cantidad
+                        <th>
+                            <div class="th-content">
+                                <span>Cantidad</span>
+                            </div>
                         </th>
-                        <th wire:click="sortBy('total_price')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-1">
+                        <th wire:click="sortBy('total_price')" class="cursor-pointer">
+                            <div class="th-content">
                                 <span>Total</span>
                                 @if ($sortField === 'total_price')
-                                    <i
-                                        class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }} text-blue-500"></i>
+                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
                                 @else
-                                    <i class="fas fa-sort text-gray-300"></i>
+                                    <i class="fas fa-sort"></i>
                                 @endif
                             </div>
                         </th>
-                        <th wire:click="sortBy('status')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-1">
+                        <th wire:click="sortBy('status')" class="cursor-pointer">
+                            <div class="th-content">
                                 <span>Estado</span>
                                 @if ($sortField === 'status')
-                                    <i
-                                        class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }} text-blue-500"></i>
+                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
                                 @else
-                                    <i class="fas fa-sort text-gray-300"></i>
+                                    <i class="fas fa-sort"></i>
                                 @endif
                             </div>
                         </th>
-                        <th wire:click="sortBy('created_at')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                            <div class="flex items-center space-x-1">
+                        <th wire:click="sortBy('created_at')" class="cursor-pointer">
+                            <div class="th-content">
                                 <span>Fecha</span>
                                 @if ($sortField === 'created_at')
-                                    <i
-                                        class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }} text-blue-500"></i>
+                                    <i class="fas fa-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
                                 @else
-                                    <i class="fas fa-sort text-gray-300"></i>
+                                    <i class="fas fa-sort"></i>
                                 @endif
                             </div>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Acciones
+                        <th>
+                            <div class="th-content">
+                                <span>Acciones</span>
+                            </div>
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @foreach ($orders as $index => $order)
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #{{ ($orders->currentPage() - 1) * $orders->perPage() + $index + 1 }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">{{ $order->customer_name }}</div>
-                                    @if ($order->customer)
-                                        <div class="text-xs text-green-600 flex items-center">
-                                            <i class="fas fa-user-check mr-1"></i>Cliente registrado
-                                        </div>
-                                    @else
-                                        <div class="text-xs text-blue-600 flex items-center">
-                                            <i class="fas fa-user-plus mr-1"></i>Cliente nuevo
-                                        </div>
-                                    @endif
+                        <tr class="table-row">
+                            <td>
+                                <div class="row-number">
+                                    {{ ($orders->currentPage() - 1) * $orders->perPage() + $index + 1 }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $order->customer_phone }}
+                            <td>
+                                <div class="customer-info">
+                                    <div class="customer-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="customer-details">
+                                        <div class="customer-name">{{ $order->customer_name }}</div>
+                                        @if ($order->customer)
+                                            <div class="customer-email">
+                                                <i class="fas fa-user-check mr-1"></i>Cliente registrado
+                                            </div>
+                                        @else
+                                            <div class="customer-email">
+                                                <i class="fas fa-user-plus mr-1"></i>Cliente nuevo
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">
+                            <td>
+                                <div class="date-info">
+                                    <div class="date-main">{{ $order->customer_phone }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="products-info">
+                                    <div class="product-badge unique">
+                                        <i class="fas fa-box"></i>
                                         {{ $order->product->name ?? 'Producto eliminado' }}
                                     </div>
                                     @if ($order->notes)
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            {{ Str::limit($order->notes, 30) }}
+                                        <div class="product-badge total">
+                                            <i class="fas fa-sticky-note"></i>
+                                            {{ Str::limit($order->notes, 20) }}
                                         </div>
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <td>
+                                <div class="product-badge unique">
+                                    <i class="fas fa-hashtag"></i>
                                     {{ $order->quantity }}
-                                </span>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                    ${{ number_format($order->total_price, 2) }}
-                                </span>
+                            <td>
+                                <div class="price-info">
+                                    <div class="price-amount">
+                                        ${{ number_format($order->total_price, 2) }}
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {{ $this->getStatusBadgeClass($order->status) }}">
-                                    <i class="{{ $this->getStatusIcon($order->status) }} mr-2"></i>
+                            <td>
+                                <span class="product-badge {{ $order->status === 'processed' ? 'unique' : ($order->status === 'pending' ? 'total' : '') }}">
+                                    <i class="{{ $this->getStatusIcon($order->status) }}"></i>
                                     @switch($order->status)
                                         @case('pending')
                                             Pendiente
                                         @break
-
                                         @case('processed')
                                             Procesado
                                         @break
-
                                         @case('cancelled')
                                             Cancelado
                                         @break
                                     @endswitch
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $order->created_at->format('d/m/Y H:i') }}
+                            <td>
+                                <div class="date-info">
+                                    <div class="date-main">{{ $order->created_at->format('d/m/Y') }}</div>
+                                    <div class="date-time">{{ $order->created_at->format('H:i') }}</div>
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex items-center space-x-2">
+                            <td>
+                                <div class="action-buttons">
                                     <a href="{{ route('admin.orders.show', $order) }}"
-                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
+                                        class="btn-action btn-edit"
                                         title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </a>
 
                                     @if ($order->status === 'pending')
                                         <button wire:click="openProcessModal({{ $order->id }})"
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors duration-200"
+                                            class="btn-action btn-edit"
                                             title="Procesar pedido">
                                             <i class="fas fa-check"></i>
                                         </button>
 
                                         <button wire:click="cancelOrder({{ $order->id }})"
                                             wire:confirm="¿Está seguro de cancelar este pedido?"
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 transition-colors duration-200"
+                                            class="btn-action btn-delete"
                                             title="Cancelar pedido">
                                             <i class="fas fa-times"></i>
                                         </button>

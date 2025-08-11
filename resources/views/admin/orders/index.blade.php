@@ -156,82 +156,82 @@
     </div>
 
     {{-- Filtros y Búsqueda --}}
-    <div class="filters-section">
-        <div class="filters-header" id="filtersHeader">
-            <div class="filters-title">
-                <i class="fas fa-filter"></i>
-                <span>Filtros Avanzados</span>
+    <div class="filters-section" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div class="filters-header" id="filtersHeader" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0; padding: 1.5rem;">
+            <div class="filters-title" style="color: white;">
+                <i class="fas fa-filter" style="color: #fbbf24;"></i>
+                <span style="font-weight: 600;">Filtros Avanzados</span>
             </div>
-            <button class="filters-toggle" id="filtersToggle">
+            <button class="filters-toggle" id="filtersToggle" style="color: white; background: rgba(255,255,255,0.2); border-radius: 8px; padding: 0.5rem;">
                 <i class="fas fa-chevron-down"></i>
             </button>
         </div>
         
-        <div class="filters-content" id="filtersContent">
-            <div class="filters-grid">
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-calendar"></i>
+        <div class="filters-content" id="filtersContent" style="padding: 2rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 0 0 16px 16px;">
+            <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div class="filter-group" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #bae6fd;">
+                    <label class="filter-label" style="color: #0369a1; font-weight: 600; margin-bottom: 1rem; display: block;">
+                        <i class="fas fa-calendar" style="color: #0ea5e9; margin-right: 0.5rem;"></i>
                         Rango de Fechas
                     </label>
-                    <div class="date-range">
-                        <div class="date-input">
-                            <label>Desde</label>
-                            <input type="date" class="filter-input" id="dateFrom">
+                    <div class="date-range" style="display: flex; gap: 1rem;">
+                        <div class="date-input" style="flex: 1;">
+                            <label style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Desde</label>
+                            <input type="date" class="filter-input" id="dateFrom" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; transition: all 0.3s;">
                         </div>
-                        <div class="date-input">
-                            <label>Hasta</label>
-                            <input type="date" class="filter-input" id="dateTo">
+                        <div class="date-input" style="flex: 1;">
+                            <label style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Hasta</label>
+                            <input type="date" class="filter-input" id="dateTo" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; transition: all 0.3s;">
                         </div>
                     </div>
                 </div>
                 
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-dollar-sign"></i>
+                <div class="filter-group" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #bbf7d0;">
+                    <label class="filter-label" style="color: #166534; font-weight: 600; margin-bottom: 1rem; display: block;">
+                        <i class="fas fa-dollar-sign" style="color: #22c55e; margin-right: 0.5rem;"></i>
                         Rango de Monto
                     </label>
-                    <div class="amount-range">
-                        <div class="amount-input">
-                            <label>Mínimo</label>
-                            <div class="input-with-symbol">
-                                <span class="currency-symbol">$</span>
-                                <input type="number" class="filter-input" id="amountMin" placeholder="0.00" step="0.01" min="0">
+                    <div class="amount-range" style="display: flex; gap: 1rem;">
+                        <div class="amount-input" style="flex: 1;">
+                            <label style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Mínimo</label>
+                            <div class="input-with-symbol" style="position: relative;">
+                                <span class="currency-symbol" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #22c55e; font-weight: 600;">$</span>
+                                <input type="number" class="filter-input" id="amountMin" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; transition: all 0.3s;">
                             </div>
                         </div>
-                        <div class="amount-input">
-                            <label>Máximo</label>
-                            <div class="input-with-symbol">
-                                <span class="currency-symbol">$</span>
-                                <input type="number" class="filter-input" id="amountMax" placeholder="0.00" step="0.01" min="0">
+                        <div class="amount-input" style="flex: 1;">
+                            <label style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Máximo</label>
+                            <div class="input-with-symbol" style="position: relative;">
+                                <span class="currency-symbol" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #22c55e; font-weight: 600;">$</span>
+                                <input type="number" class="filter-input" id="amountMax" placeholder="0.00" step="0.01" min="0" style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; transition: all 0.3s;">
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-tag"></i>
+                <div class="filter-group" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.5rem; border-radius: 12px; border: 1px solid #fcd34d;">
+                    <label class="filter-label" style="color: #92400e; font-weight: 600; margin-bottom: 1rem; display: block;">
+                        <i class="fas fa-tag" style="color: #f59e0b; margin-right: 0.5rem;"></i>
                         Estado del Pedido
                     </label>
-                    <div class="filters-buttons">
-                        <button class="btn-filter active" data-filter="all">
+                    <div class="filters-buttons" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <button class="btn-filter active" data-filter="all" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                             <i class="fas fa-list"></i>
                             Todos
                         </button>
-                        <button class="btn-filter" data-filter="pending">
+                        <button class="btn-filter" data-filter="pending" style="background: white; color: #f59e0b; border: 2px solid #fbbf24; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                             <i class="fas fa-clock"></i>
                             Pendientes
                         </button>
-                        <button class="btn-filter" data-filter="processing">
+                        <button class="btn-filter" data-filter="processing" style="background: white; color: #0ea5e9; border: 2px solid #38bdf8; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                             <i class="fas fa-truck"></i>
                             En Proceso
                         </button>
-                        <button class="btn-filter" data-filter="completed">
+                        <button class="btn-filter" data-filter="completed" style="background: white; color: #22c55e; border: 2px solid #4ade80; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                             <i class="fas fa-check"></i>
                             Completados
                         </button>
-                        <button class="btn-filter" data-filter="cancelled">
+                        <button class="btn-filter" data-filter="cancelled" style="background: white; color: #ef4444; border: 2px solid #f87171; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                             <i class="fas fa-times"></i>
                             Cancelados
                         </button>
@@ -239,19 +239,19 @@
                 </div>
             </div>
             
-            <div class="filters-actions">
-                <div class="filters-status">
-                    <span class="status-text">Filtros activos:</span>
+            <div class="filters-actions" style="display: flex; justify-content: space-between; align-items: center; padding-top: 1.5rem; border-top: 2px solid #e2e8f0;">
+                <div class="filters-status" style="display: flex; align-items: center; gap: 1rem;">
+                    <span class="status-text" style="color: #64748b; font-weight: 600;">Filtros activos:</span>
                     <div class="active-filters" id="activeFilters">
-                        <span class="filter-badge">Todos los pedidos</span>
+                        <span class="filter-badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">Todos los pedidos</span>
                     </div>
                 </div>
-                <div class="filters-buttons">
-                    <button class="btn-apply" id="applyFilters">
+                <div class="filters-buttons" style="display: flex; gap: 1rem;">
+                    <button class="btn-apply" id="applyFilters" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                         <i class="fas fa-filter"></i>
                         Aplicar Filtros
                     </button>
-                    <button class="btn-clear" id="clearFilters">
+                    <button class="btn-clear" id="clearFilters" style="background: white; color: #64748b; border: 2px solid #e2e8f0; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                         <i class="fas fa-times"></i>
                         Limpiar
                     </button>
@@ -261,30 +261,30 @@
     </div>
 
     {{-- Contenido Principal --}}
-    <div class="modern-card">
-        <div class="modern-card-header">
-            <div class="title-content">
-                <div class="title-icon">
+    <div class="modern-card" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <div class="modern-card-header" style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); padding: 2rem; border-radius: 16px 16px 0 0; border-bottom: 2px solid #e2e8f0;">
+            <div class="title-content" style="display: flex; align-items: center; gap: 1rem;">
+                <div class="title-icon" style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
                     <i class="fas fa-list"></i>
                 </div>
                 <div>
-                    <h3>Lista de Pedidos</h3>
-                    <p>Gestiona y visualiza todos los pedidos del sistema</p>
+                    <h3 style="color: #1e293b; font-size: 1.5rem; font-weight: 700; margin: 0;">Lista de Pedidos</h3>
+                    <p style="color: #64748b; margin: 0.5rem 0 0 0;">Gestiona y visualiza todos los pedidos del sistema</p>
                 </div>
             </div>
-            <div class="modern-card-actions">
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Buscar pedidos..." id="searchInput">
+            <div class="modern-card-actions" style="display: flex; align-items: center; gap: 1.5rem; margin-top: 1.5rem;">
+                <div class="search-container" style="flex: 1; max-width: 400px;">
+                    <div class="search-box" style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+                        <input type="text" placeholder="Buscar pedidos..." id="searchInput" style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; transition: all 0.3s;">
                     </div>
                 </div>
-                <div class="view-toggles">
-                    <button class="view-toggle active" data-view="table">
+                <div class="view-toggles" style="display: flex; gap: 0.5rem;">
+                    <button class="view-toggle active" data-view="table" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                         <i class="fas fa-table"></i>
                         <span>Tabla</span>
                     </button>
-                    <button class="view-toggle" data-view="cards">
+                    <button class="view-toggle" data-view="cards" style="background: white; color: #64748b; border: 2px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; transition: all 0.3s;">
                         <i class="fas fa-th-large"></i>
                         <span>Tarjetas</span>
                     </button>
@@ -292,7 +292,7 @@
             </div>
         </div>
         
-        <div class="modern-card-body">
+        <div class="modern-card-body" style="padding: 2rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 0 0 16px 16px;">
             <!-- Livewire Component -->
             <livewire:orders-table />
         </div>
@@ -361,25 +361,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Funcionalidad de botones de filtro
+    // Funcionalidad de botones de filtro con efectos visuales
     const filterButtons = document.querySelectorAll('.btn-filter');
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             // Remover clase active de todos los botones
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'white';
+                btn.style.color = btn.dataset.filter === 'pending' ? '#f59e0b' : 
+                                 btn.dataset.filter === 'processing' ? '#0ea5e9' : 
+                                 btn.dataset.filter === 'completed' ? '#22c55e' : 
+                                 btn.dataset.filter === 'cancelled' ? '#ef4444' : '#64748b';
+            });
+            
             // Agregar clase active al botón clickeado
             this.classList.add('active');
+            this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            this.style.color = 'white';
+        });
+        
+        // Efectos hover para botones de filtro
+        button.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+            }
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            }
         });
     });
     
-    // Funcionalidad de toggle de vista
+    // Funcionalidad de toggle de vista con efectos
     const viewToggles = document.querySelectorAll('.view-toggle');
     viewToggles.forEach(toggle => {
         toggle.addEventListener('click', function() {
             // Remover clase active de todos los toggles
-            viewToggles.forEach(t => t.classList.remove('active'));
+            viewToggles.forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'white';
+                t.style.color = '#64748b';
+                t.style.border = '2px solid #e2e8f0';
+            });
+            
             // Agregar clase active al toggle clickeado
             this.classList.add('active');
+            this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            this.style.color = 'white';
+            this.style.border = 'none';
+        });
+        
+        // Efectos hover para toggles
+        toggle.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+            }
+        });
+        
+        toggle.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            }
         });
     });
     
@@ -394,6 +443,34 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('mouseleave', function() {
             this.style.transform = 'translateY(0)';
             this.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+        });
+    });
+    
+    // Efectos para inputs
+    const inputs = document.querySelectorAll('input[type="date"], input[type="number"], input[type="text"]');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.borderColor = '#667eea';
+            this.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.borderColor = '#e2e8f0';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Efectos para botones de acción
+    const actionButtons = document.querySelectorAll('.btn-apply, .btn-clear');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.15)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
         });
     });
 });
