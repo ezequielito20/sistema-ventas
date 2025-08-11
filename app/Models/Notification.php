@@ -137,7 +137,7 @@ class Notification extends Model
                 'customer_phone' => $order->customer_phone,
                 'product_name' => $order->product->name,
                 'quantity' => $order->quantity,
-                'total' => $order->total_price,
+                'total_price' => $order->total_price,
                 'notes' => $order->notes,
             ],
         ]);

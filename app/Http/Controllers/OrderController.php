@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Customer;
 use App\Models\Sale;
+use App\Models\SaleDetail;
+use App\Models\Product;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +74,22 @@ class OrderController extends Controller
                 'note' => $order->notes,
             ]);
 
+            // Create sale detail and update product stock
+            SaleDetail::create([
+                'sale_id' => $sale->id,
+                'product_id' => $order->product_id,
+                'quantity' => $order->quantity,
+                'unit_price' => $order->unit_price,
+                'subtotal' => $order->total_price,
+            ]);
+
+            // Update product stock
+            $product = Product::find($order->product_id);
+            if ($product) {
+                $product->stock -= $order->quantity;
+                $product->save();
+            }
+
             // Update order
             $order->update([
                 'status' => 'processed',
@@ -84,18 +102,18 @@ class OrderController extends Controller
             // Update customer debt
             $customer->increment('total_debt', $order->total_price);
 
-            // Create notification
-            Notification::create([
-                'user_id' => Auth::id(),
-                'type' => 'order_processed',
-                'title' => 'Pedido Procesado',
-                'message' => "Pedido #{$order->id} de {$order->customer_name} procesado exitosamente",
-                'data' => [
-                    'order_id' => $order->id,
-                    'sale_id' => $sale->id,
-                    'customer_id' => $customer->id,
-                ],
-            ]);
+            // Notification disabled - no longer creating notifications when processing orders
+            // Notification::create([
+            //     'user_id' => Auth::id(),
+            //     'type' => 'order_processed',
+            //     'title' => 'Pedido Procesado',
+            //     'message' => "Pedido #{$order->id} de {$order->customer_name} procesado exitosamente",
+            //     'data' => [
+            //         'order_id' => $order->id,
+            //         'sale_id' => $sale->id,
+            //         'customer_id' => $customer->id,
+            //     ],
+            // ]);
 
             DB::commit();
 
@@ -122,17 +140,17 @@ class OrderController extends Controller
             'processed_by' => Auth::id(),
         ]);
 
-        // Create notification
-        Notification::create([
-            'user_id' => Auth::id(),
-            'type' => 'order_cancelled',
-            'title' => 'Pedido Cancelado',
-            'message' => "Pedido #{$order->id} de {$order->customer_name} cancelado",
-            'data' => [
-                'order_id' => $order->id,
-                'reason' => 'Cancelado por administrador',
-            ],
-        ]);
+        // Notification disabled - no longer creating notifications when cancelling orders
+        // Notification::create([
+        //     'user_id' => Auth::id(),
+        //     'type' => 'order_cancelled',
+        //     'title' => 'Pedido Cancelado',
+        //     'message' => "Pedido #{$order->id} de {$order->customer_name} cancelado",
+        //     'data' => [
+        //         'order_id' => $order->id,
+        //         'reason' => 'Cancelado por administrador',
+        //     ],
+        // ]);
 
         return redirect()->route('admin.orders.index')->with('success', 'Pedido cancelado exitosamente.');
     }

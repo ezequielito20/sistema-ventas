@@ -18,6 +18,8 @@ class SaleDetail extends Model
       'quantity',
       'sale_id',
       'product_id',
+      'unit_price',
+      'subtotal',
    ];
 
    /**
@@ -27,6 +29,8 @@ class SaleDetail extends Model
     */
    protected $casts = [
       'quantity' => 'integer',
+      'unit_price' => 'decimal:2',
+      'subtotal' => 'decimal:2',
    ];
 
    /**
