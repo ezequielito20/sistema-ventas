@@ -3168,6 +3168,7 @@
 
 @section('js')
     <script src="{{ asset('vendor/config.js') }}"></script>
+    <script src="{{ asset('vendor/chartjs/chart.min.js') }}"></script>
     <script>
         // Variables globales para notificaciones
         let notificationsInterval;
@@ -3920,91 +3921,117 @@
             });
 
             // Typing effects disabled for better performance
-            // Gráfico de usuarios por rol
-            new Chart(document.getElementById('usersByRoleChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($usersByRole->pluck('name')) !!},
-                    datasets: [{
-                        data: {!! json_encode($usersByRole->pluck('count')) !!},
-                        backgroundColor: [
-                            '#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-
-            // Gráfico de usuarios por mes
-            new Chart(document.getElementById('usersPerMonthChart'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($usersPerMonth->pluck('month')) !!},
-                    datasets: [{
-                        label: 'Usuarios Registrados',
-                        data: {!! json_encode($usersPerMonth->pluck('count')) !!},
-                        fill: false,
-                        borderColor: '#00a65a',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
+            
+            // Verificar si Chart.js está disponible antes de crear gráficos
+            setTimeout(() => {
+                if (typeof Chart !== 'undefined') {
+                    console.log('Chart.js cargado correctamente');
+                
+                // Función para crear gráfico de forma segura
+                function createChartSafely(canvasId, config) {
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        try {
+                            return new Chart(canvas, config);
+                        } catch (error) {
+                            console.warn(`Error al crear gráfico ${canvasId}:`, error);
+                            return null;
                         }
+                    } else {
+                        console.warn(`Canvas con ID '${canvasId}' no encontrado`);
+                        return null;
                     }
                 }
-            });
-
-            // Gráfico de productos por categoría
-            new Chart(document.getElementById('productsByCategoryChart'), {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode($productsByCategory->pluck('name')) !!},
-                    datasets: [{
-                        label: 'Cantidad de Productos',
-                        data: {!! json_encode($productsByCategory->pluck('count')) !!},
-                        backgroundColor: [
-                            '#f56954',
-                            '#00a65a',
-                            '#f39c12',
-                            '#00c0ef',
-                            '#3c8dbc',
-                            '#d2d6de'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
+                
+                                // Gráficos comentados porque sus elementos canvas están deshabilitados en el HTML
+                // Estos gráficos están deshabilitados en la interfaz pero el código está disponible para futuras implementaciones
+                /*
+                // Gráfico de usuarios por rol
+                createChartSafely('usersByRoleChart', {
+                    type: 'doughnut',
+                    data: {
+                        labels: {!! json_encode($usersByRole->pluck('name')) !!},
+                        datasets: [{
+                            data: {!! json_encode($usersByRole->pluck('count')) !!},
+                            backgroundColor: [
+                                '#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'
+                            ]
+                        }]
                     },
-                    plugins: {
-                        legend: {
-                            display: false
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Gráfico de usuarios por mes
+                createChartSafely('usersPerMonthChart', {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($usersPerMonth->pluck('month')) !!},
+                        datasets: [{
+                            label: 'Usuarios Registrados',
+                            data: {!! json_encode($usersPerMonth->pluck('count')) !!},
+                            fill: false,
+                            borderColor: '#00a65a',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
                         }
                     }
-                }
-            });
+                });
+
+                // Gráfico de productos por categoría
+                createChartSafely('productsByCategoryChart', {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode($productsByCategory->pluck('name')) !!},
+                        datasets: [{
+                            label: 'Cantidad de Productos',
+                            data: {!! json_encode($productsByCategory->pluck('count')) !!},
+                            backgroundColor: [
+                                '#f56954',
+                                '#00a65a',
+                                '#f39c12',
+                                '#00c0ef',
+                                '#3c8dbc',
+                                '#d2d6de'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                */
 
             // Gráfico de tendencia de ventas mensuales
-            new Chart(document.getElementById('salesTrendsChart'), {
+            createChartSafely('salesTrendsChart', {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($dailySalesLabels) !!},
@@ -4054,7 +4081,7 @@
             });
 
             // Gráfico de tendencia de compras
-            new Chart(document.getElementById('purchaseTrendsChart'), {
+            createChartSafely('purchaseTrendsChart', {
                 type: 'line',
                 data: {
                     labels: {!! json_encode($purchaseMonthlyLabels) !!},
@@ -4099,7 +4126,9 @@
             });
 
             // Gráfico de Actividad de Clientes
-            new Chart(document.getElementById('customerActivityChart'), {
+            // Comentado porque el canvas no existe en el HTML
+            /*
+            createChartSafely('customerActivityChart', {
                 type: 'line',
                 data: {
                     labels: {!! json_encode($monthlyLabels) !!},
@@ -4128,8 +4157,9 @@
                     }
                 }
             });
+            */
 
-            new Chart(document.getElementById('salesByCategoryChart'), {
+            createChartSafely('salesByCategoryChart', {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($salesByCategory->pluck('name')) !!},
@@ -4173,7 +4203,7 @@
             });
 
             // Gráfico de Ingresos vs Egresos
-            new Chart(document.getElementById('cashFlowChart'), {
+            createChartSafely('cashFlowChart', {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode($chartData['labels']) !!},
@@ -4216,6 +4246,12 @@
                     }
                 }
             });
+                
+                console.log('Todos los gráficos se han inicializado correctamente');
+                } else {
+                    console.warn('Chart.js no está disponible. Los gráficos no se mostrarán.');
+                }
+            }, 1000); // Esperar 1 segundo para que el DOM esté completamente cargado
 
 
 
