@@ -447,23 +447,11 @@ $(document).ready(function() {
 
     // ===== ELIMINACIÓN DE VENTAS =====
     
-    // Debug: verificar que los eventos se están registrando
-    console.log('Registrando eventos para botones de acción...');
-    
-    // Debug: evento general para todos los botones de acción
-    $(document).on('click', '.btn-action, .mobile-btn-action, .btn-card-action', function() {
-        console.log('Botón clickeado:', $(this).attr('class'), 'ID:', $(this).data('id'));
-    });
-    
     // Eliminar venta con confirmación moderna
     $(document).on('click', '.delete-sale', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Botón eliminar clickeado');
         const id = $(this).data('id');
-        console.log('ID de venta a eliminar:', id);
-
-        // SweetAlert2 ya está disponible o tiene fallback
 
         Swal.fire({
             title: '¿Estás seguro?',
@@ -562,9 +550,7 @@ $(document).ready(function() {
     $(document).on('click', '.btn-edit', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Botón editar clickeado');
         const saleId = $(this).data('id');
-        console.log('ID de venta a editar:', saleId);
 
         if (saleId) {
             window.location.href = `/sales/edit/${saleId}`;
@@ -581,34 +567,6 @@ $(document).ready(function() {
     // ===== MODAL =====
     // Asegurar estado inicial oculto
     $('#saleDetailsModal').removeClass('show');
-    
-    // Función de prueba para verificar que todo funciona
-    window.testSalesButtons = function() {
-        console.log('=== PRUEBA DE BOTONES ===');
-        console.log('jQuery disponible:', typeof $ !== 'undefined');
-        console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
-        console.log('Botones editar:', $('.btn-edit').length);
-        console.log('Botones eliminar:', $('.delete-sale').length);
-        
-        // Probar SweetAlert2
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Prueba',
-                text: 'Si ves esto, SweetAlert2 funciona',
-                icon: 'info'
-            });
-        } else {
-            alert('SweetAlert2 no está disponible');
-        }
-    };
-    
-    // Ejecutar prueba después de 2 segundos
-    setTimeout(function() {
-        console.log('Ejecutando prueba automática...');
-        if (typeof window.testSalesButtons === 'function') {
-            window.testSalesButtons();
-        }
-    }, 2000);
 
     // ===== FILTROS AVANZADOS =====
     

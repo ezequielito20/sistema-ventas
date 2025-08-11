@@ -798,39 +798,4 @@
         window.currencySymbol = '{{ $currency->symbol }}';
     </script>
     <script src="{{ asset('js/admin/sales/index.js') }}"></script>
-    
-    <!-- Script de inicialización adicional -->
-    <script>
-        // Esperar a que jQuery esté disponible
-        function waitForJQuery(callback) {
-            if (typeof $ !== 'undefined') {
-                callback();
-            } else {
-                setTimeout(function() {
-                    waitForJQuery(callback);
-                }, 100);
-            }
-        }
-        
-        waitForJQuery(function() {
-            $(document).ready(function() {
-                console.log('Script de inicialización ejecutándose...');
-                
-                // Verificar que todo esté cargado
-                console.log('jQuery:', typeof $ !== 'undefined');
-                console.log('SweetAlert2:', typeof Swal !== 'undefined');
-                
-                // Eventos de debug para botones
-                $(document).on('click', '.btn-edit, .delete-sale', function(e) {
-                    console.log('Botón clickeado:', $(this).attr('class'));
-                    console.log('ID:', $(this).data('id'));
-                    console.log('Evento:', e);
-                });
-                
-                // Verificar que los botones existen
-                console.log('Botones editar encontrados:', $('.btn-edit').length);
-                console.log('Botones eliminar encontrados:', $('.delete-sale').length);
-            });
-        });
-    </script>
 @endpush 

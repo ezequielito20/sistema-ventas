@@ -516,14 +516,10 @@
                     const toggleButton = document.querySelector('.sidebar-toggle-btn');
                     
                     function updateButtonVisibility() {
-                        console.log('Window width:', window.innerWidth);
-                        console.log('Toggle button:', toggleButton);
                         if (window.innerWidth >= 1024) {
                             toggleButton.style.display = 'flex';
-                            console.log('Showing toggle button');
                         } else {
                             toggleButton.style.display = 'none';
-                            console.log('Hiding toggle button');
                         }
                     }
                     
