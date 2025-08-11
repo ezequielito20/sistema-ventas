@@ -1,32 +1,29 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Gestión de Pedidos')
 
-@section('content_header')
-    <div class="hero-section mb-4">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-lg-8 col-md-7 col-12">
-                    <div class="hero-content">
-                        <h1 class="hero-title">
-                            <i class="fas fa-shopping-cart"></i>
-                            Gestión de Pedidos
-                        </h1>
-                        <p class="hero-subtitle">Administra y visualiza todos los pedidos de tus clientes</p>
-                        <div class="hero-stats"></div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-5 col-12">
-                    <div class="hero-action-buttons d-flex justify-content-lg-end justify-content-center align-items-center gap-3 flex-wrap">
-                        <span class="text-sm text-white opacity-75">Última actualización: {{ now()->format('d/m/Y H:i') }}</span>
-                    </div>
-                </div>
+@section('content')
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-shopping-cart text-blue-600 mr-3"></i>
+                    Gestión de Pedidos
+                </h1>
+                <p class="text-gray-600 mt-1">Administra y visualiza todos los pedidos de tus clientes</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    <i class="fas fa-clock mr-1"></i>
+                    Última actualización: {{ now()->format('d/m/Y H:i') }}
+                </span>
             </div>
         </div>
     </div>
-@stop
 
-@section('content')
+    <!-- Livewire Component -->
     <livewire:orders-table />
     
     <!-- Notificaciones -->
@@ -64,4 +61,5 @@
             </div>
         </template>
     </div>
-@stop
+</div>
+@endsection

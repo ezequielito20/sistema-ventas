@@ -1,9 +1,11 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
-// Inicializar Alpine.js
-window.Alpine = Alpine;
-Alpine.start();
+// Inicializar Alpine.js solo si no está ya inicializado
+if (!window.Alpine) {
+    window.Alpine = Alpine;
+    Alpine.start();
+}
 
 // Funciones globales útiles
 window.appHelpers = {

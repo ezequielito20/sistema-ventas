@@ -20,6 +20,7 @@
     <!-- Styles -->
     @vite(['resources/sass/app.scss'])
     @livewireStyles
+    @stack('css')
     
     <style>
         body {
@@ -62,32 +63,130 @@
             from { transform: translateX(-100%); }
             to { transform: translateX(0); }
         }
+        
+        /* Estilos para botones compatibles con AdminLTE */
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: white;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-outline:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+            color: #111827;
+        }
+        
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            background-color: #3b82f6;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            background-color: #dc2626;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
+            color: white;
+        }
+        
+        /* Estilos para el contenido principal */
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+        
+        /* Asegurar que el contenido principal no se superponga con el sidebar */
+        .lg\:pl-64 {
+            padding-left: 16rem;
+        }
+        
+        /* Estilos para el header de la página */
+        .flex.items-center.justify-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+        
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .text-gray-900 {
+            color: #111827;
+        }
+        
+        .text-gray-600 {
+            color: #4b5563;
+        }
+        
+        .space-x-3 > * + * {
+            margin-left: 0.75rem;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50" x-data="appLayout()">
-    <!-- Sidebar para móviles (overlay) -->
-    <div x-show="sidebarOpen" 
-         x-transition:enter="transition-opacity ease-linear duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition-opacity ease-linear duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-         @click="sidebarOpen = false">
-    </div>
+    <div class="flex h-screen">
+        <!-- Sidebar para móviles (overlay) -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+             @click="sidebarOpen = false">
+        </div>
 
-    <!-- Sidebar -->
-    <div x-show="sidebarOpen" 
-         x-transition:enter="transition ease-in-out duration-300 transform"
-         x-transition:enter-start="-translate-x-full"
-         x-transition:enter-end="translate-x-0"
-         x-transition:leave="transition ease-in-out duration-300 transform"
-         x-transition:leave-start="translate-x-0"
-         x-transition:leave-end="-translate-x-full"
-         class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:static lg:inset-0"
-         @click.away="sidebarOpen = false">
+        <!-- Sidebar -->
+        <div x-show="sidebarOpen || window.innerWidth >= 1024" 
+             x-transition:enter="transition ease-in-out duration-300 transform"
+             x-transition:enter-start="-translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in-out duration-300 transform"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="-translate-x-full"
+             class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:inset-0"
+             @click.away="sidebarOpen = false">
         
         <!-- Logo -->
         <div class="flex items-center justify-between h-16 px-6 border-b border-blue-700">
@@ -249,8 +348,8 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="lg:pl-64 flex flex-col flex-1">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <!-- Top Navigation -->
         <header class="bg-white shadow-sm border-b border-gray-200">
             <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -359,19 +458,19 @@
             </div>
         </header>
 
-        <!-- Page Content -->
-        <main class="flex-1 overflow-y-auto">
-            <div class="py-6">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                <div class="py-6 px-4 sm:px-6 lg:px-8">
                     @yield('content')
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- Scripts -->
     @vite(['resources/js/app.js'])
     @livewireScripts
+    @stack('js')
     
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
@@ -379,7 +478,7 @@
     <script>
         function appLayout() {
             return {
-                sidebarOpen: false,
+                sidebarOpen: window.innerWidth >= 1024,
                 
                 init() {
                     // Cerrar sidebar en móviles al hacer clic en un enlace

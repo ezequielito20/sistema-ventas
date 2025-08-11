@@ -40,11 +40,11 @@ class SaleController extends Controller
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
       
-      // Obtener todas las ventas
+      // Obtener todas las ventas con paginación
       $sales = Sale::where('company_id', $this->company->id)
                   ->with(['customer', 'saleDetails', 'saleDetails.product'])
                   ->orderBy('sale_date', 'desc')
-                  ->get();
+                  ->paginate(15);
       
       // Calcular ventas de esta semana
       $salesThisWeek = Sale::where('company_id', $this->company->id)
@@ -118,6 +118,11 @@ class SaleController extends Controller
       $cashCount = CashCount::where('company_id', $this->company->id)
                           ->whereNull('closing_date')
                           ->exists();
+      
+      // Debug: Log información para verificar
+      \Log::info('Sales count: ' . $sales->count());
+      \Log::info('Currency: ' . ($currency->symbol ?? 'null'));
+      \Log::info('Cash count exists: ' . ($cashCount ? 'true' : 'false'));
       
       return view('admin.sales.index', compact(
           'sales', 
