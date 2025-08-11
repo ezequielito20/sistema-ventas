@@ -808,6 +808,6 @@
         // Variables globales para el JavaScript
         window.currencySymbol = '{{ $currency->symbol }}';
     </script>
-    
+
     <script src="{{ asset('js/admin/sales/index.js') }}"></script>
 @stop 

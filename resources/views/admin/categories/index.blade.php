@@ -932,90 +932,90 @@
                 $('#clearFilters').click(function() {
                     $('#categorySearch').val('');
                     filterCategories('');
+            });
+
+            // Manejo de visualización de categoría
+            $('.show-category').click(function() {
+                const categoryId = $(this).data('id');
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Cargando...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
                 });
 
-                // Manejo de visualización de categoría
-                $('.show-category').click(function() {
-                    const categoryId = $(this).data('id');
+                // Obtener datos de la categoría
+                $.ajax({
+                    url: `/categories/${categoryId}`,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            // Llenar datos en el modal
+                            $('#categoryName').text(response.category.name);
+                            $('#categoryDescription').text(response.category.description);
+                            $('#categoryCreated').text(response.category.created_at);
+                            $('#categoryUpdated').text(response.category.updated_at);
 
-                    // Mostrar loading
-                    Swal.fire({
-                        title: 'Cargando...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
+                            // Cerrar loading y mostrar modal
+                            Swal.close();
+                            $('#showCategoryModal').modal('show');
+                        } else {
+                            Swal.fire('Error',
+                                'No se pudieron obtener los datos de la categoría', 'error');
                         }
-                    });
-
-                    // Obtener datos de la categoría
-                    $.ajax({
-                        url: `/categories/${categoryId}`,
-                        type: 'GET',
-                        success: function(response) {
-                            if (response.status === 'success') {
-                                // Llenar datos en el modal
-                                $('#categoryName').text(response.category.name);
-                                $('#categoryDescription').text(response.category.description);
-                                $('#categoryCreated').text(response.category.created_at);
-                                $('#categoryUpdated').text(response.category.updated_at);
-
-                                // Cerrar loading y mostrar modal
-                                Swal.close();
-                                $('#showCategoryModal').modal('show');
-                            } else {
-                                Swal.fire('Error',
-                                    'No se pudieron obtener los datos de la categoría', 'error');
-                            }
-                        },
-                        error: function() {
-                            Swal.fire('Error', 'No se pudieron obtener los datos de la categoría',
-                                'error');
-                        }
-                    });
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'No se pudieron obtener los datos de la categoría',
+                            'error');
+                    }
                 });
+            });
 
-                // Manejo de eliminación de categorías
-                $('.delete-category').click(function() {
-                    const categoryId = $(this).data('id');
+            // Manejo de eliminación de categorías
+            $('.delete-category').click(function() {
+                const categoryId = $(this).data('id');
 
-                    Swal.fire({
-                        title: '¿Estás seguro?',
-                        text: "Esta acción no se puede revertir",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                url: `/categories/delete/${categoryId}`,
-                                type: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                },
-                                success: function(response) {
-                                    if (response.status === 'success') {
-                                        Swal.fire({
-                                            title: '¡Eliminado!',
-                                            text: response.message,
-                                            icon: 'success'
-                                        }).then(() => {
-                                            window.location.reload();
-                                        });
-                                    } else {
-                                        Swal.fire('Error', response.message, 'error');
-                                    }
-                                },
-                                error: function(xhr) {
-                                    const response = xhr.responseJSON;
-                                    Swal.fire('Error', response.message ||
-                                        'No se pudo eliminar la categoría', 'error');
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "Esta acción no se puede revertir",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/categories/delete/${categoryId}`,
+                            type: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: response.message,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
                                 }
-                            });
-                        }
-                    });
+                            },
+                            error: function(xhr) {
+                                const response = xhr.responseJSON;
+                                Swal.fire('Error', response.message ||
+                                    'No se pudo eliminar la categoría', 'error');
+                            }
+                        });
+                    }
+                });
                 });
 
                 // Inicializar tooltips

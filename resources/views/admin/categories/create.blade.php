@@ -499,7 +499,7 @@
 
 @section('js')
     <script src="{{ asset('vendor/config.js') }}"></script>
-    <script>
+<script>
     $(document).ready(function() {
         // Cargar SweetAlert2 y Animate.css
         loadSweetAlert2(function() {

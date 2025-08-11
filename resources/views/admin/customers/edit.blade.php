@@ -128,23 +128,23 @@
                                 <div class="form-group modern-form-group">
                                     <label for="name" class="modern-label required">
                                         <i class="fas fa-user"></i>
-                                        Nombre Completo
-                                    </label>
+                                            Nombre Completo
+                                        </label>
                                     <div class="input-wrapper">
-                                        <input type="text"
+                                            <input type="text"
                                             class="modern-input @error('name') is-invalid @enderror"
-                                            id="name" name="name" value="{{ old('name', $customer->name) }}"
+                                                id="name" name="name" value="{{ old('name', $customer->name) }}"
                                             placeholder="Ingrese el nombre completo" required autofocus>
-                                        <div class="valid-feedback">
+                                            <div class="valid-feedback">
                                             <i class="fas fa-check-circle"></i>
-                                            ¡Se ve bien!
-                                        </div>
-                                        @error('name')
+                                                ¡Se ve bien!
+                                            </div>
+                                            @error('name')
                                             <div class="invalid-feedback">
                                                 <i class="fas fa-exclamation-circle"></i>
                                                 {{ $message }}
                                             </div>
-                                        @enderror
+                                            @enderror
                                     </div>
                                 </div>
 
@@ -152,20 +152,20 @@
                                 <div class="form-group modern-form-group">
                                     <label for="nit_number" class="modern-label">
                                         <i class="fas fa-id-card"></i>
-                                        Número de Cédula
-                                    </label>
+                                            Número de Cédula
+                                        </label>
                                     <div class="input-wrapper">
-                                        <input type="text"
+                                            <input type="text"
                                             class="modern-input @error('nit_number') is-invalid @enderror"
-                                            id="nit_number" name="nit_number"
-                                            value="{{ old('nit_number', $customer->nit_number) }}"
+                                                id="nit_number" name="nit_number"
+                                                value="{{ old('nit_number', $customer->nit_number) }}"
                                             placeholder="Ingrese la Cédula">
-                                        @error('nit_number')
+                                            @error('nit_number')
                                             <div class="invalid-feedback">
                                                 <i class="fas fa-exclamation-circle"></i>
                                                 {{ $message }}
                                             </div>
-                                        @enderror
+                                            @enderror
                                     </div>
                                 </div>
 
@@ -173,8 +173,8 @@
                                 <div class="form-group modern-form-group">
                                     <label for="phone" class="modern-label">
                                         <i class="fas fa-phone"></i>
-                                        Teléfono
-                                    </label>
+                                            Teléfono
+                                        </label>
                                     <div class="input-wrapper">
                                         <input type="tel"
                                             class="modern-input @error('phone') is-invalid @enderror"
@@ -185,7 +185,7 @@
                                                 <i class="fas fa-exclamation-circle"></i>
                                                 {{ $message }}
                                             </div>
-                                        @enderror
+                                            @enderror
                                     </div>
                                 </div>
 
@@ -193,8 +193,8 @@
                                 <div class="form-group modern-form-group">
                                     <label for="email" class="modern-label">
                                         <i class="fas fa-envelope"></i>
-                                        Correo Electrónico
-                                    </label>
+                                            Correo Electrónico
+                                        </label>
                                     <div class="input-wrapper">
                                         <input type="email"
                                             class="modern-input @error('email') is-invalid @enderror"
@@ -205,7 +205,7 @@
                                                 <i class="fas fa-exclamation-circle"></i>
                                                 {{ $message }}
                                             </div>
-                                        @enderror
+                                            @enderror
                                     </div>
                                 </div>
 
@@ -213,8 +213,8 @@
                                 <div class="form-group modern-form-group">
                                     <label for="total_debt" class="modern-label">
                                         <i class="fas fa-money-bill-wave"></i>
-                                        Deuda Total
-                                    </label>
+                                            Deuda Total
+                                        </label>
                                     <div class="input-wrapper debt-input-wrapper">
                                         <input type="number" step="0.01" min="0"
                                             class="modern-input @error('total_debt') is-invalid @enderror"
@@ -228,7 +228,7 @@
                                                 <i class="fas fa-exclamation-circle"></i>
                                                 {{ $message }}
                                             </div>
-                                        @enderror
+                                            @enderror
                                     </div>
                                     <small class="form-text debt-warning">
                                         <i class="fas fa-exclamation-triangle"></i>
@@ -772,59 +772,59 @@
             // Cargar Inputmask y SweetAlert2
             loadInputmask(function() {
                 loadSweetAlert2(function() {
-                    // Inicializar máscaras
-                    $('#phone').inputmask('(999) 999-9999');
-                    // $('#nit_number').inputmask('999-999999-999-9');
+            // Inicializar máscaras
+            $('#phone').inputmask('(999) 999-9999');
+            // $('#nit_number').inputmask('999-999999-999-9');
 
-                    // Validación del formulario
-                    $('#customerForm').on('submit', function(e) {
-                        if (!this.checkValidity()) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                        }
-                        $(this).addClass('was-validated');
-                    });
+            // Validación del formulario
+            $('#customerForm').on('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                $(this).addClass('was-validated');
+            });
 
-                    // Validación en tiempo real del email
-                    $('#email').on('input', function() {
-                        const email = $(this).val();
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            // Validación en tiempo real del email
+            $('#email').on('input', function() {
+                const email = $(this).val();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-                        if (emailRegex.test(email)) {
-                            $(this).removeClass('is-invalid').addClass('is-valid');
-                        } else {
-                            $(this).removeClass('is-valid').addClass('is-invalid');
-                        }
-                    });
+                if (emailRegex.test(email)) {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                } else {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                }
+            });
 
-                    // Capitalizar automáticamente el nombre
-                    $('#name').on('input', function() {
-                        const input = $(this);
-                        const cursorPosition = input[0].selectionStart;
-                        const originalValue = input.val();
-                        
-                        let words = originalValue.split(' ');
-                        words = words.map(word => {
-                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                        });
-                        const newValue = words.join(' ');
-                        
-                        // Solo actualizar si el valor cambió
-                        if (originalValue !== newValue) {
-                            input.val(newValue);
-                            
-                            // Restaurar la posición del cursor
-                            input[0].setSelectionRange(cursorPosition, cursorPosition);
-                        }
-                    });
+            // Capitalizar automáticamente el nombre
+            $('#name').on('input', function() {
+                const input = $(this);
+                const cursorPosition = input[0].selectionStart;
+                const originalValue = input.val();
+                
+                let words = originalValue.split(' ');
+                words = words.map(word => {
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                });
+                const newValue = words.join(' ');
+                
+                // Solo actualizar si el valor cambió
+                if (originalValue !== newValue) {
+                    input.val(newValue);
+                    
+                    // Restaurar la posición del cursor
+                    input[0].setSelectionRange(cursorPosition, cursorPosition);
+                }
+            });
 
-                    // Mostrar tooltip con el formato requerido
-                    $('[data-toggle="tooltip"]').tooltip();
+            // Mostrar tooltip con el formato requerido
+            $('[data-toggle="tooltip"]').tooltip();
 
-                    // Animación suave al hacer focus en los inputs
+            // Animación suave al hacer focus en los inputs
                     $('.modern-input').on('focus', function() {
                         $(this).closest('.modern-form-group').addClass('focused');
-                    }).on('blur', function() {
+            }).on('blur', function() {
                         $(this).closest('.modern-form-group').removeClass('focused');
                     });
 

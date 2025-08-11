@@ -18,9 +18,10 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DebtPaymentController;
 
+// Ruta pública para pedidos de clientes
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('public.order-system');
+})->name('public.orders');
 
 Route::get('/test-livewire', function () {
     return view('test-livewire');
@@ -30,7 +31,8 @@ Auth::routes();
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
+// Dashboard administrativo (requiere autenticación)
+Route::get('/admin', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
 Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
@@ -260,6 +262,24 @@ Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('ad
         Route::delete('/{id}', [DebtPaymentController::class, 'destroy'])->name('admin.debt-payments.destroy');
         Route::get('/sale/{saleId}', [DebtPaymentController::class, 'getPaymentsBySale'])->name('admin.debt-payments.by-sale');
         Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
+    });
+
+    // Rutas para manejo de pedidos (Admin)
+    Route::prefix('admin/orders')->middleware(['auth'])->group(function () {
+        Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders.index');
+        Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('admin.orders.show');
+        Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'process'])->name('admin.orders.process');
+        Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('admin.orders.cancel');
+    });
+
+    // Rutas para notificaciones (Admin)
+    Route::prefix('admin/notifications')->middleware(['auth'])->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('admin.notifications.index');
+        Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+        Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
+        Route::get('/recent', [App\Http\Controllers\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
+        Route::post('/{notification}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
+        Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
     });
 
     // Rutas de Debugbar (solo cuando esté habilitada)

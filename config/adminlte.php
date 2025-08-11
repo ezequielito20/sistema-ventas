@@ -64,7 +64,7 @@ return [
     */
 
    'logo' => '<b>Sistema de Ventas</b>',
-   'url' => '/',
+   'url' => '/admin',
    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
    'logo_img_class' => 'brand-image img-circle elevation-3',
    'logo_img_xl' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
@@ -258,7 +258,7 @@ return [
     */
 
    'use_route_url' => false,
-   'dashboard_url' => '/',
+   'dashboard_url' => '/admin',
    'logout_url' => 'logout',
    'login_url' => 'login',
    'register_url' => 'register',
@@ -310,6 +310,11 @@ return [
          'type' => 'fullscreen-widget',
          'topnav_right' => true,
       ],
+      [
+         'type' => 'navbar-custom',
+         'content' => 'components.notification-dropdown',
+         'topnav_right' => true,
+      ],
 
       // Sidebar items:
       // [
@@ -334,6 +339,12 @@ return [
       //     'url' => 'admin/settings',
       //     'icon' => 'fas fa-fw fa-user',
       // ],
+      [
+         'text' => 'Pedidos Online',
+         'url' => 'admin/orders',
+         'icon' => 'fas fa-fw fa-shopping-cart',
+         'classes' => 'bg-orange text-white',
+      ],
       [
          'text' => 'Config empresa',
          'url' => 'settings',
