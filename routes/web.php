@@ -145,6 +145,7 @@ Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sal
 Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware(['auth', 'can:sales.edit']);
 Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware(['auth', 'can:sales.destroy']);
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware(['auth', 'can:sales.details']);
+Route::get('/test-sales-details/{id}', [SaleController::class, 'getDetails'])->name('test.sales.details')->middleware(['auth']);
 Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware(['auth', 'can:sales.product-details']);
 Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware(['auth', 'can:sales.product-by-code']);
 Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware(['auth', 'can:sales.print']);

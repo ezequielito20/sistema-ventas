@@ -7,6 +7,8 @@
 $(document).ready(function() {
     // Variable global para la tabla
     let table;
+    // Variable para controlar peticiones AJAX en progreso
+    let ajaxInProgress = false;
 
     // ===== FUNCIONES DE PAGINACIÓN =====
     
@@ -123,7 +125,9 @@ $(document).ready(function() {
     /**
      * Inicializar DataTable con configuración optimizada
      */
-    table = $('#salesTable').DataTable({
+    // Cargar DataTables dinámicamente
+    loadDataTables(function() {
+        table = $('#salesTable').DataTable({
         responsive: true,
         language: {
             "sProcessing": "Procesando...",
@@ -165,6 +169,7 @@ $(document).ready(function() {
 
     // Forzar la creación de paginación después de la inicialización
     setTimeout(createModernPagination, 500);
+    });
 
     // ===== EVENTOS DE PAGINACIÓN =====
     
@@ -274,8 +279,49 @@ $(document).ready(function() {
     
     // Ver detalles de la venta optimizado
     $(document).on('click', '.view-details', function() {
+        // Verificar que DataTables esté cargado
+        if (typeof $.fn.DataTable === 'undefined') {
+            console.warn('DataTables no está cargado aún, esperando...');
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Espere un momento mientras se cargan los componentes',
+                icon: 'info',
+                showConfirmButton: false,
+                timer: 2000
+            });
+            return;
+        }
+
         const saleId = $(this).data('id');
         const button = $(this);
+
+        // Verificar que el modal esté disponible y listo
+        const modal = $('#saleDetailsModal');
+        if (modal.length === 0) {
+            console.error('Modal no encontrado');
+            return;
+        }
+        
+        if (!modalReady) {
+            console.warn('Modal no está listo aún, esperando...');
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Espere un momento mientras se inicializa el modal',
+                icon: 'info',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            return;
+        }
+
+
+        // Verificar si ya hay una petición en progreso
+        if (ajaxInProgress) {
+            return;
+        }
+
+        // Marcar que hay una petición en progreso
+        ajaxInProgress = true;
 
         // Indicador de carga simple
         button.html('<i class="fas fa-spinner fa-spin"></i> <span>Cargando...</span>');
@@ -284,9 +330,17 @@ $(document).ready(function() {
         $('#saleDetailsTableBody').empty();
         $('#noteCard').hide();
 
+        
         $.ajax({
-            url: `/sales/${saleId}/details`,
+            url: `/test-sales-details/${saleId}`,
             method: 'GET',
+            xhrFields: {
+                withCredentials: true
+            },
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
             success: function(response) {
                 if (response.success) {
                     let total = 0;
@@ -340,14 +394,33 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudieron cargar los detalles',
-                    icon: 'error',
-                    confirmButtonColor: '#667eea'
-                });
+                console.error('Error en la petición AJAX:', {xhr, status, error});
+                console.error('Status:', xhr.status);
+                console.error('Response Text:', xhr.responseText);
+                
+                // Resetear variable de petición en progreso
+                ajaxInProgress = false;
+                
+                if (xhr.status === 401) {
+                    console.error('Usuario no autenticado');
+                    Swal.fire({
+                        title: 'Error de Autenticación',
+                        text: 'Debe iniciar sesión para ver los detalles',
+                        icon: 'warning',
+                        confirmButtonColor: '#667eea'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudieron cargar los detalles',
+                        icon: 'error',
+                        confirmButtonColor: '#667eea'
+                    });
+                }
             },
             complete: function() {
+                // Resetear variable de petición en progreso
+                ajaxInProgress = false;
                 // Restaurar botón
                 button.html('<i class="fas fa-list"></i> <span>Ver Detalle</span>');
                 button.prop('disabled', false);
@@ -472,13 +545,20 @@ $(document).ready(function() {
 
     // ===== MODAL =====
     
+    // Variable para controlar si el modal está listo
+    let modalReady = false;
+    
     // Arreglar problema de aria-hidden en el modal
     $('#saleDetailsModal').on('show.bs.modal', function() {
         $(this).removeAttr('aria-hidden');
+        modalReady = true;
     });
 
     $('#saleDetailsModal').on('hidden.bs.modal', function() {
         $(this).attr('aria-hidden', 'true');
+        modalReady = false;
+        // Resetear variable de petición en progreso al cerrar modal
+        ajaxInProgress = false;
     });
 
     // ===== FILTROS AVANZADOS =====

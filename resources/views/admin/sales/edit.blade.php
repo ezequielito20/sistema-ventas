@@ -2109,10 +2109,22 @@
                 setTimeout(checkTableScroll, 100);
             });
 
-            // Verificar scroll cuando se agregan productos
-            $(document).on('DOMNodeInserted', '#saleItems', function() {
-                setTimeout(checkTableScroll, 100);
-            });
+            // Verificar scroll cuando se agregan productos (usando MutationObserver en lugar de DOMNodeInserted)
+            const saleItemsContainer = document.getElementById('saleItems');
+            if (saleItemsContainer) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList') {
+                            setTimeout(checkTableScroll, 100);
+                        }
+                    });
+                });
+                
+                observer.observe(saleItemsContainer, {
+                    childList: true,
+                    subtree: true
+                });
+            }
             
                     });
                 });

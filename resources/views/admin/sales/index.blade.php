@@ -804,6 +804,7 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         // Variables globales para el JavaScript
         window.currencySymbol = '{{ $currency->symbol }}';

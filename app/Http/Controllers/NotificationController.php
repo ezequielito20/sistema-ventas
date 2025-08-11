@@ -44,7 +44,7 @@ class NotificationController extends Controller
     public function getUnreadCount()
     {
         $count = Notification::where('user_id', Auth::id())
-            ->unread()
+            ->pendingOrders()
             ->count();
 
         return response()->json(['count' => $count]);
@@ -56,7 +56,7 @@ class NotificationController extends Controller
     public function getRecentNotifications()
     {
         $notifications = Notification::where('user_id', Auth::id())
-            ->unread()
+            ->pendingOrders()
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();

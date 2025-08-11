@@ -735,6 +735,8 @@ class SaleController extends Controller
    public function getDetails($id)
    {
       try {
+         Log::info('getDetails llamado con ID: ' . $id);
+         
          // Verificar que la venta existe primero
          $sale = Sale::with('customer')->find($id);
          

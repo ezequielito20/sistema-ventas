@@ -71,6 +71,15 @@ class Notification extends Model
     }
 
     /**
+     * Scope for pending order notifications only.
+     */
+    public function scopePendingOrders($query)
+    {
+        return $query->where('type', 'new_order')
+            ->whereRaw('CAST(data->>\'order_id\' AS INTEGER) IN (SELECT id FROM orders WHERE status = \'pending\')');
+    }
+
+    /**
      * Mark notification as read.
      */
     public function markAsRead(): void

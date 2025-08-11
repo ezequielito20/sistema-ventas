@@ -102,6 +102,11 @@ class OrderController extends Controller
             // Update customer debt
             $customer->increment('total_debt', $order->total_price);
 
+            // Remove the order notification since it's now processed
+            Notification::where('type', 'new_order')
+                ->whereJsonContains('data->order_id', $order->id)
+                ->delete();
+
             // Notification disabled - no longer creating notifications when processing orders
             // Notification::create([
             //     'user_id' => Auth::id(),
@@ -117,7 +122,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.orders.index')->with('success', 'Pedido procesado exitosamente. Se creó la venta y se actualizó la deuda del cliente.');
+            return redirect()->route('admin.index')->with('success', 'Pedido procesado exitosamente. Se creó la venta y se actualizó la deuda del cliente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -140,6 +145,11 @@ class OrderController extends Controller
             'processed_by' => Auth::id(),
         ]);
 
+        // Remove the order notification since it's now cancelled
+        Notification::where('type', 'new_order')
+            ->whereJsonContains('data->order_id', $order->id)
+            ->delete();
+
         // Notification disabled - no longer creating notifications when cancelling orders
         // Notification::create([
         //     'user_id' => Auth::id(),
@@ -152,6 +162,6 @@ class OrderController extends Controller
         //     ],
         // ]);
 
-        return redirect()->route('admin.orders.index')->with('success', 'Pedido cancelado exitosamente.');
+        return redirect()->route('admin.index')->with('success', 'Pedido cancelado exitosamente.');
     }
 }
