@@ -183,6 +183,52 @@
             </div>
         </div>
     </div>
+
+    {{-- Modo Tarjetas para Móviles --}}
+    <div class="mobile-cards">
+        @foreach ($roles as $role)
+            <div class="mobile-card">
+                <div class="mobile-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 font-weight-bold text-primary">{{ $role->name }}</h6>
+                        <span class="badge badge-secondary">#{{ $loop->iteration }}</span>
+                    </div>
+                </div>
+                <div class="mobile-card-body">
+                    <div class="mobile-info">
+                        <span class="mobile-info-label">Fecha de Creación:</span>
+                        <span class="mobile-info-value">{{ $role->created_at->format('d/m/Y H:i') }}</span>
+                    </div>
+                    
+                    <div class="mobile-card-actions">
+                        @can('roles.show')
+                            <button type="button" class="btn btn-success btn-sm show-role"
+                                data-id="{{ $role->id }}" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        @endcan
+                        @can('roles.edit')
+                            <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        @endcan
+                        @can('roles.edit')
+                            <a type="button" class="btn btn-warning btn-sm assign-permissions"
+                                data-id="{{ $role->id }}" data-name="{{ $role->name }}" title="Asignar permisos">
+                                <i class="fas fa-key"></i>
+                            </a>
+                        @endcan
+                        @can('roles.destroy')
+                            <button type="button" class="btn btn-danger btn-sm delete-role"
+                                data-id="{{ $role->id }}" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        @endcan
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
 </div>
 
     {{-- Modal para mostrar rol --}}
@@ -378,6 +424,98 @@
             transition: var(--transition);
             height: 100%;
             min-height: 140px;
+        }
+
+        /* Modo tarjetas para móviles */
+        .mobile-cards {
+            display: none;
+        }
+
+        .mobile-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .mobile-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .mobile-card-header {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .mobile-card-body {
+            padding: 1rem;
+        }
+
+        .mobile-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .mobile-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .mobile-info:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .mobile-info-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .mobile-info-value {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 0.875rem;
+        }
+
+        /* Estilos adicionales para tarjetas móviles */
+        .mobile-card .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .mobile-card h6 {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .mobile-card .btn-sm {
+            border-radius: 0.5rem;
+            transition: var(--transition);
+            border: none;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+        }
+
+        .mobile-card .btn-sm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .stats-card:hover {
@@ -956,20 +1094,34 @@
 
         /* Responsividad */
         @media (max-width: 768px) {
+            /* Widgets más compactos */
+            .stats-card {
+                min-height: 100px;
+            }
+
             .stats-card-body {
-                flex-direction: column;
-                text-align: center;
+                flex-direction: row;
+                text-align: left;
                 gap: 0.75rem;
+                padding: 1rem;
             }
 
             .stats-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 1.25rem;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
 
             .stats-value {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
+            }
+
+            .stats-label {
+                font-size: 0.875rem;
+            }
+
+            .stats-trend {
+                font-size: 0.75rem;
             }
 
             .title-content {
@@ -995,27 +1147,27 @@
                 width: 100%;
             }
 
-
-
             .modern-card-header,
             .modern-card-body {
                 padding: 1rem;
             }
 
-            .table th,
-            .table td {
-                padding: 0.75rem 0.5rem !important;
-                font-size: 0.875rem;
+            /* Ocultar tabla en móviles */
+            .table-responsive {
+                display: none;
             }
 
-            .btn-group {
-                flex-direction: column;
-                gap: 0.25rem;
+            /* Mostrar tarjetas móviles */
+            .mobile-cards {
+                display: block;
             }
 
-            .btn-sm {
-                width: 100%;
-                justify-content: center;
+            /* Ocultar controles de DataTables en móviles */
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter,
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                display: none !important;
             }
 
             .modal-xl {
@@ -1036,8 +1188,6 @@
             #showRoleModal .modal-body {
                 padding: 1.5rem;
             }
-
-
 
             #showRoleModal .form-control-static {
                 padding: 0.75rem;
@@ -1083,26 +1233,69 @@
         }
 
         @media (max-width: 576px) {
+            /* Widgets aún más compactos */
             .stats-dashboard .row {
                 margin: 0;
             }
 
             .stats-dashboard .col-lg-3,
             .stats-dashboard .col-md-6 {
-                padding: 0.5rem;
+                padding: 0.25rem;
             }
 
             .stats-card {
-                min-height: 120px;
+                min-height: 80px;
             }
 
-            .table-responsive {
+            .stats-card-body {
+                padding: 0.75rem;
+                gap: 0.5rem;
+            }
+
+            .stats-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.875rem;
+            }
+
+            .stats-value {
+                font-size: 1rem;
+            }
+
+            .stats-label {
                 font-size: 0.75rem;
             }
 
-            .table th,
-            .table td {
-                padding: 0.5rem 0.25rem !important;
+            .stats-trend {
+                font-size: 0.625rem;
+            }
+
+            /* Tarjetas móviles más compactas */
+            .mobile-card {
+                margin-bottom: 0.75rem;
+            }
+
+            .mobile-card-header {
+                padding: 0.75rem;
+            }
+
+            .mobile-card-body {
+                padding: 0.75rem;
+            }
+
+            .mobile-card-actions {
+                gap: 0.25rem;
+                margin-top: 0.75rem;
+            }
+
+            .mobile-info {
+                margin-bottom: 0.25rem;
+                padding: 0.25rem 0;
+            }
+
+            .mobile-info-label,
+            .mobile-info-value {
+                font-size: 0.75rem;
             }
 
             .btn-sm {
@@ -1156,8 +1349,6 @@
             #showRoleModal .modal-body {
                 padding: 1rem;
             }
-
-
 
             #showRoleModal .form-group {
                 margin-bottom: 1rem;
