@@ -35,7 +35,6 @@
         </div>
     </div>
 
-@section('content')
     {{-- Dashboard de Estadísticas Moderno --}}
     <div class="stats-dashboard">
         <div class="row g-4">

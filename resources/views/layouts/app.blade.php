@@ -132,6 +132,28 @@
         .lg\:pl-64 {
             padding-left: 16rem;
         }
+
+        /* Transición suave para el contenido principal */
+        .flex-1 {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        /* Estilos para el botón de toggle del sidebar */
+        .sidebar-toggle-btn {
+            transition: all 0.2s ease-in-out;
+            display: none !important;
+        }
+
+        @media (min-width: 1024px) {
+            .sidebar-toggle-btn {
+                display: flex !important;
+            }
+        }
+
+        .sidebar-toggle-btn:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
         
         /* Estilos para el header de la página */
         .flex.items-center.justify-between {
@@ -178,7 +200,7 @@
         </div>
 
         <!-- Sidebar -->
-        <div x-show="sidebarOpen || window.innerWidth >= 1024" 
+        <div x-show="sidebarOpen" 
              x-transition:enter="transition ease-in-out duration-300 transform"
              x-transition:enter-start="-translate-x-full"
              x-transition:enter-end="translate-x-0"
@@ -349,12 +371,17 @@
     </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden lg:ml-64">
+        <div class="flex-1 flex flex-col overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
         <!-- Top Navigation -->
         <header class="bg-white shadow-sm border-b border-gray-200">
             <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                 <!-- Mobile menu button -->
                 <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+
+                <!-- Desktop sidebar toggle button -->
+                <button @click="sidebarOpen = !sidebarOpen" class="sidebar-toggle-btn p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200" style="display: none;">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
 
@@ -481,6 +508,27 @@
                 sidebarOpen: window.innerWidth >= 1024,
                 
                 init() {
+                    // Mostrar/ocultar botón de toggle según el tamaño de pantalla
+                    const toggleButton = document.querySelector('.sidebar-toggle-btn');
+                    
+                    function updateButtonVisibility() {
+                        console.log('Window width:', window.innerWidth);
+                        console.log('Toggle button:', toggleButton);
+                        if (window.innerWidth >= 1024) {
+                            toggleButton.style.display = 'flex';
+                            console.log('Showing toggle button');
+                        } else {
+                            toggleButton.style.display = 'none';
+                            console.log('Hiding toggle button');
+                        }
+                    }
+                    
+                    // Ejecutar al inicio
+                    setTimeout(updateButtonVisibility, 100);
+                    
+                    // Ejecutar cuando cambie el tamaño de la ventana
+                    window.addEventListener('resize', updateButtonVisibility);
+                    
                     // Cerrar sidebar en móviles al hacer clic en un enlace
                     this.$watch('sidebarOpen', value => {
                         if (value && window.innerWidth < 1024) {
@@ -488,6 +536,17 @@
                         } else {
                             document.body.style.overflow = '';
                         }
+                    });
+
+                    // Manejar el estado del sidebar en localStorage
+                    const savedState = localStorage.getItem('sidebarOpen');
+                    if (savedState !== null) {
+                        this.sidebarOpen = JSON.parse(savedState);
+                    }
+
+                    // Guardar el estado cuando cambie
+                    this.$watch('sidebarOpen', value => {
+                        localStorage.setItem('sidebarOpen', JSON.stringify(value));
                     });
                 }
             }
