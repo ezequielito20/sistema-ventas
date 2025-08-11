@@ -65,6 +65,9 @@
     {{-- Custom Stylesheets (post AdminLTE) --}}
     @yield('adminlte_css')
 
+    {{-- Tailwind CSS for Livewire Components --}}
+    @vite(['resources/sass/app.scss'])
+
     {{-- Favicon --}}
     @if(config('adminlte.use_ico_only'))
         <link rel="shortcut icon" href="{{ asset('favicons/favicon.ico') }}" />
@@ -130,6 +133,9 @@
 
     {{-- Custom Scripts --}}
     @yield('adminlte_js')
+
+    {{-- Vite Scripts for Alpine.js --}}
+    @vite(['resources/js/app.js'])
 
     {{-- Debugbar --}}
     @include('debugbar-include')

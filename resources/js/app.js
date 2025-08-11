@@ -1,6 +1,8 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 
-// Inicializar Alpine.js
-window.Alpine = Alpine;
-Alpine.start();
+// Verificar si Alpine ya está inicializado para evitar conflictos
+if (!window.Alpine) {
+    window.Alpine = Alpine;
+    Alpine.start();
+}
