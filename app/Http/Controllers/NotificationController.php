@@ -57,9 +57,14 @@ class NotificationController extends Controller
     {
         $notifications = Notification::where('user_id', Auth::id())
             ->unread()
-            ->recent(7)
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
+
+        // Agregar el atributo time_ago a cada notificación
+        $notifications->each(function ($notification) {
+            $notification->time_ago = $notification->created_at->diffForHumans();
+        });
 
         return response()->json(['notifications' => $notifications]);
     }

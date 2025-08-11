@@ -55,6 +55,10 @@
                     <i class="fas fa-sync-alt"></i>
                     Actualizar
                 </button>
+                <button class="btn-notification-action" onclick="testNotifications()">
+                    <i class="fas fa-bug"></i>
+                    Probar
+                </button>
                 <button class="btn-notification-action" onclick="toggleNotifications()">
                     <i class="fas fa-times"></i>
                     Cerrar
@@ -83,13 +87,11 @@
                     <select class="data-switch" data-section="cash" id="cashDataSelector">
                         <option value="current" selected>📊 Arqueo Actual</option>
                         <option value="historical">📈 Histórico Completo</option>
-                        @foreach($closedCashCountsData as $closedCashCount)
-                            <option value="closed_{{ $closedCashCount['id'] }}" 
-                                    data-sales="{{ $closedCashCount['sales'] }}"
-                                    data-purchases="{{ $closedCashCount['purchases'] }}"
-                                    data-debt="{{ $closedCashCount['debt'] }}"
-                                    data-balance="{{ $closedCashCount['balance'] }}"
-                                    data-debt-payments="{{ $closedCashCount['debt_payments'] }}">
+                        @foreach ($closedCashCountsData as $closedCashCount)
+                            <option value="closed_{{ $closedCashCount['id'] }}" data-sales="{{ $closedCashCount['sales'] }}"
+                                data-purchases="{{ $closedCashCount['purchases'] }}"
+                                data-debt="{{ $closedCashCount['debt'] }}" data-balance="{{ $closedCashCount['balance'] }}"
+                                data-debt-payments="{{ $closedCashCount['debt_payments'] }}">
                                 📋 {{ $closedCashCount['option_text'] }}
                             </option>
                         @endforeach
@@ -129,7 +131,7 @@
 
 
                             <div class="widget-label cash-balance-label">Balance Actual</div>
-                            
+
                             <div class="widget-meta cash-balance-meta">
                                 <i class="fas fa-clock"></i>
                                 <span class="cash-meta-text">
@@ -245,13 +247,13 @@
                     <select class="data-switch" data-section="sales" id="salesDataSelector">
                         <option value="current" selected>📊 Arqueo Actual</option>
                         <option value="historical">📈 Histórico Completo</option>
-                        @foreach($closedCashCountsData as $closedCashCount)
-                            <option value="closed_{{ $closedCashCount['id'] }}" 
-                                    data-today-sales="{{ $closedSalesData[$closedCashCount['id']]['today_sales'] ?? 0 }}"
-                                    data-weekly-sales="{{ $closedSalesData[$closedCashCount['id']]['weekly_sales'] ?? 0 }}"
-                                    data-average-customer-spend="{{ $closedSalesData[$closedCashCount['id']]['average_customer_spend'] ?? 0 }}"
-                                    data-total-profit="{{ $closedSalesData[$closedCashCount['id']]['total_profit'] ?? 0 }}"
-                                    data-monthly-sales="{{ $closedSalesData[$closedCashCount['id']]['monthly_sales'] ?? 0 }}">
+                        @foreach ($closedCashCountsData as $closedCashCount)
+                            <option value="closed_{{ $closedCashCount['id'] }}"
+                                data-today-sales="{{ $closedSalesData[$closedCashCount['id']]['today_sales'] ?? 0 }}"
+                                data-weekly-sales="{{ $closedSalesData[$closedCashCount['id']]['weekly_sales'] ?? 0 }}"
+                                data-average-customer-spend="{{ $closedSalesData[$closedCashCount['id']]['average_customer_spend'] ?? 0 }}"
+                                data-total-profit="{{ $closedSalesData[$closedCashCount['id']]['total_profit'] ?? 0 }}"
+                                data-monthly-sales="{{ $closedSalesData[$closedCashCount['id']]['monthly_sales'] ?? 0 }}">
                                 📋 {{ $closedCashCount['option_text'] }}
                             </option>
                         @endforeach
@@ -285,9 +287,9 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value sales-weekly-value" 
-                                 data-current="{{ $currentSalesData['weekly_sales'] }}"
-                                 data-historical="{{ $historicalSalesData['weekly_sales'] }}">
+                            <div class="widget-value sales-weekly-value"
+                                data-current="{{ $currentSalesData['weekly_sales'] }}"
+                                data-historical="{{ $historicalSalesData['weekly_sales'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentSalesData['weekly_sales'], 2) }}
                             </div>
                             <div class="widget-label sales-weekly-label">Ventas de la Semana</div>
@@ -323,9 +325,9 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value sales-average-value" 
-                                 data-current="{{ $currentSalesData['average_customer_spend'] }}"
-                                 data-historical="{{ $historicalSalesData['average_customer_spend'] }}">
+                            <div class="widget-value sales-average-value"
+                                data-current="{{ $currentSalesData['average_customer_spend'] }}"
+                                data-historical="{{ $historicalSalesData['average_customer_spend'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentSalesData['average_customer_spend'], 2) }}
                             </div>
                             <div class="widget-label sales-average-label">Promedio por Cliente</div>
@@ -359,9 +361,9 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value sales-profit-value" 
-                                 data-current="{{ $currentSalesData['total_profit'] }}"
-                                 data-historical="{{ $historicalSalesData['total_profit'] }}">
+                            <div class="widget-value sales-profit-value"
+                                data-current="{{ $currentSalesData['total_profit'] }}"
+                                data-historical="{{ $historicalSalesData['total_profit'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentSalesData['total_profit'], 2) }}
                             </div>
                             <div class="widget-label sales-profit-label">Ganancia Total Teórica</div>
@@ -395,9 +397,9 @@
                             </div>
                         </div>
                         <div class="widget-body">
-                            <div class="widget-value sales-monthly-value" 
-                                 data-current="{{ $currentSalesData['monthly_sales'] }}"
-                                 data-historical="{{ $historicalSalesData['monthly_sales'] }}">
+                            <div class="widget-value sales-monthly-value"
+                                data-current="{{ $currentSalesData['monthly_sales'] }}"
+                                data-historical="{{ $historicalSalesData['monthly_sales'] }}">
                                 {{ $currency->symbol }}{{ number_format($currentSalesData['monthly_sales'], 2) }}
                             </div>
                             <div class="widget-label sales-monthly-label">Rendimiento Mensual</div>
@@ -1563,6 +1565,7 @@
                 transform: translateY(-100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -1573,9 +1576,11 @@
             0% {
                 transform: scale(1);
             }
+
             50% {
                 transform: scale(1.05);
             }
+
             100% {
                 transform: scale(1);
             }
@@ -3173,7 +3178,7 @@
             // Inicializar notificaciones
             initializeNotifications();
             startNotificationPolling();
-            
+
             // Agregar event listener para la campanita
             const notificationStat = document.getElementById('notificationStat');
             if (notificationStat) {
@@ -3185,12 +3190,11 @@
             } else {
                 console.error('Notification stat element not found');
             }
-            
-            // Cargar Chart.js
-            loadChartJS(function() {
-                // AOS animations disabled for better performance
 
-                // Counter animations disabled for better performance
+            // Inicializar gráficos y funcionalidades
+            // AOS animations disabled for better performance
+
+            // Counter animations disabled for better performance
 
             // Función para actualizar datos de ventas
             window.refreshSalesData = function() {
@@ -3515,17 +3519,17 @@
                     // Datos de arqueo cerrado específico
                     const cashCountId = mode.replace('closed_', '');
                     const selectedOption = document.querySelector(`option[value="${mode}"]`);
-                    
+
                     if (selectedOption) {
                         const sales = parseFloat(selectedOption.dataset.sales || 0);
                         const purchases = parseFloat(selectedOption.dataset.purchases || 0);
                         const debt = parseFloat(selectedOption.dataset.debt || 0);
                         const balance = parseFloat(selectedOption.dataset.balance || 0);
                         const debtPayments = parseFloat(selectedOption.dataset.debtPayments || 0);
-                        
+
                         // Obtener el texto de la opción para mostrar el período
                         const optionText = selectedOption.textContent.replace('📋 ', '');
-                        
+
                         if (elements.balance) {
                             elements.balance.textContent = formatCurrency(balance);
                         }
@@ -3534,10 +3538,11 @@
 
                         if (elements.sales) elements.sales.textContent = formatCurrency(sales);
                         if (elements.salesLabel) elements.salesLabel.textContent = 'Ventas del Arqueo';
-                        if (elements.purchases) elements.purchases.textContent = parseFloat(purchases).toLocaleString('es-PE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
+                        if (elements.purchases) elements.purchases.textContent = parseFloat(purchases)
+                            .toLocaleString('es-PE', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
 
                         if (elements.debt) elements.debt.textContent = formatCurrency(debt);
                         if (elements.debtLabel) elements.debtLabel.textContent = 'Por Cobrar del Arqueo';
@@ -3592,17 +3597,20 @@
                 if (mode === 'current') {
                     // Datos del arqueo actual
                     if (elements.weeklySales) {
-                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset.current || 0);
+                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset
+                            .current || 0);
                     }
                     if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas de la Semana';
-                    if (elements.todayText) elements.todayText.innerHTML = 
-                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset.current || 0).toLocaleString('es-PE', {
+                    if (elements.todayText) elements.todayText.innerHTML =
+                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset.current ||
+                            0).toLocaleString('es-PE', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         });
 
                     if (elements.averageSpend) {
-                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset.current || 0);
+                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset
+                            .current || 0);
                     }
                     if (elements.averageLabel) elements.averageLabel.textContent = 'Promedio por Cliente';
 
@@ -3612,26 +3620,32 @@
                     if (elements.profitLabel) elements.profitLabel.textContent = 'Ganancia Total Teórica';
 
                     if (elements.monthlySales) {
-                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset.current || 0);
+                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset
+                            .current || 0);
                     }
                     if (elements.monthlyLabel) elements.monthlyLabel.textContent = 'Rendimiento Mensual';
 
                 } else if (mode === 'historical') {
                     // Datos históricos completos
                     if (elements.weeklySales) {
-                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset.historical || 0);
+                        elements.weeklySales.textContent = formatCurrency(elements.weeklySales.dataset
+                            .historical || 0);
                     }
-                    if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas Históricas de la Semana';
-                    if (elements.todayText) elements.todayText.innerHTML = 
-                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset.historical || 0).toLocaleString('es-PE', {
+                    if (elements.weeklyLabel) elements.weeklyLabel.textContent =
+                        'Ventas Históricas de la Semana';
+                    if (elements.todayText) elements.todayText.innerHTML =
+                        'Hoy: {{ $currency->symbol }}' + parseFloat(elements.weeklySales?.dataset
+                            .historical || 0).toLocaleString('es-PE', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         });
 
                     if (elements.averageSpend) {
-                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset.historical || 0);
+                        elements.averageSpend.textContent = formatCurrency(elements.averageSpend.dataset
+                            .historical || 0);
                     }
-                    if (elements.averageLabel) elements.averageLabel.textContent = 'Promedio Histórico por Cliente';
+                    if (elements.averageLabel) elements.averageLabel.textContent =
+                        'Promedio Histórico por Cliente';
 
                     if (elements.profit) {
                         elements.profit.textContent = formatCurrency(elements.profit.dataset.historical || 0);
@@ -3639,29 +3653,32 @@
                     if (elements.profitLabel) elements.profitLabel.textContent = 'Ganancia Histórica Total';
 
                     if (elements.monthlySales) {
-                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset.historical || 0);
+                        elements.monthlySales.textContent = formatCurrency(elements.monthlySales.dataset
+                            .historical || 0);
                     }
-                    if (elements.monthlyLabel) elements.monthlyLabel.textContent = 'Rendimiento Histórico Mensual';
+                    if (elements.monthlyLabel) elements.monthlyLabel.textContent =
+                        'Rendimiento Histórico Mensual';
 
                 } else if (mode.startsWith('closed_')) {
                     // Datos de arqueo cerrado específico
                     const selectedOption = document.querySelector(`option[value="${mode}"]`);
-                    
+
                     if (selectedOption) {
                         const todaySales = parseFloat(selectedOption.dataset.todaySales || 0);
                         const weeklySales = parseFloat(selectedOption.dataset.weeklySales || 0);
-                        const averageCustomerSpend = parseFloat(selectedOption.dataset.averageCustomerSpend || 0);
+                        const averageCustomerSpend = parseFloat(selectedOption.dataset.averageCustomerSpend ||
+                            0);
                         const totalProfit = parseFloat(selectedOption.dataset.totalProfit || 0);
                         const monthlySales = parseFloat(selectedOption.dataset.monthlySales || 0);
-                        
+
                         // Obtener el texto de la opción para mostrar el período
                         const optionText = selectedOption.textContent.replace('📋 ', '');
-                        
+
                         if (elements.weeklySales) {
                             elements.weeklySales.textContent = formatCurrency(weeklySales);
                         }
                         if (elements.weeklyLabel) elements.weeklyLabel.textContent = 'Ventas del Arqueo';
-                        if (elements.todayText) elements.todayText.innerHTML = 
+                        if (elements.todayText) elements.todayText.innerHTML =
                             'Hoy: {{ $currency->symbol }}' + todaySales.toLocaleString('es-PE', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -3709,14 +3726,12 @@
             }
 
             // Inicializar los datos correctos inmediatamente al cargar la página
-            document.addEventListener('DOMContentLoaded', function() {
-                // Esperar un momento para que los elementos estén completamente renderizados
-                setTimeout(() => {
-                    if (typeof switchCashData === 'function') {
-                        switchCashData('current', true); // true indica que es inicialización
-                    }
-                }, 200);
-            });
+            // Esperar un momento para que los elementos estén completamente renderizados
+            setTimeout(() => {
+                if (typeof switchCashData === 'function') {
+                    switchCashData('current', true); // true indica que es inicialización
+                }
+            }, 200);
 
             // Event listener para el selector de datos de caja (con timeout para asegurar que DOM esté listo)
             setTimeout(() => {
@@ -3793,7 +3808,8 @@
             // Event listener para el selector de datos de ventas
             setTimeout(() => {
                 const salesSelector = document.getElementById('salesDataSelector');
-                const salesDataSelectorContainer = document.querySelector('.section-controls .data-selector');
+                const salesDataSelectorContainer = document.querySelector(
+                    '.section-controls .data-selector');
 
                 if (salesSelector) {
                     // Asegurar que el texto sea visible al cargar
@@ -4201,60 +4217,7 @@
                 }
             });
 
-            // Función para mostrar debug detallado del balance
-            window.showDetailedBalance = function() {
-                @if ($currentCashCount)
-                    const debugInfo = @json($currentCashData['debt_details']['debug_info'] ?? []);
-                    const cashOpenDate = '{{ $currentCashData['debt_details']['debug_info']['cash_open_date'] ?? 'N/A' }}';
-                    
-                    let details = `
-🔍 DEBUG DETALLADO DEL BALANCE
 
-📊 INFORMACIÓN DEL ARQUEO:
-• Fecha de apertura: ${cashOpenDate}
-• Compras desde apertura: ${{ number_format($currentCashData['purchases'], 2) }}
-• Deudas pagadas desde apertura: ${{ number_format($currentCashData['debt_payments'] ?? 0, 2) }}
-• Balance calculado: ${{ number_format($currentCashData['balance'], 2) }}
-
-💰 DEUDAS POR COBRAR:
-• Total deuda del arqueo actual: ${{ number_format($currentCashData['debt'], 2) }}
-• Clientes con deuda total: {{ $currentCashData['debt_details']['total_customers_with_debt'] ?? 0 }}
-• Clientes con deuda del arqueo actual: {{ $currentCashData['debt_details']['customers_with_current_debt'] ?? 0 }}
-
-📋 DETALLE POR CLIENTE:
-`;
-
-                    if (debugInfo.customers_debug && debugInfo.customers_debug.length > 0) {
-                        debugInfo.customers_debug.forEach(customer => {
-                            details += `
-👤 ${customer.name} (ID: ${customer.id})
-   • Deuda total: $${customer.total_debt.toFixed(2)}
-   • Deuda arqueo actual: $${customer.current_cash_debt.toFixed(2)}
-   • Deuda arqueos anteriores: $${customer.previous_cash_debt.toFixed(2)}
-   • Ventas en arqueo actual: $${customer.sales_in_current.toFixed(2)}
-   • Pagos en arqueo actual: $${customer.payments_in_current.toFixed(2)}
-`;
-                        });
-                    } else {
-                        details += `✅ No hay clientes con deudas registradas.\n`;
-                    }
-
-                    details += `
-💡 EXPLICACIÓN:
-• Si "Deuda arqueo actual" > 0 pero no has hecho ventas, hay un error en el cálculo
-• Las deudas del arqueo actual deben ser 0 si no has vendido nada
-• Revisa si hay ventas con fechas incorrectas o pagos mal registrados
-
-🔧 ACCIONES RECOMENDADAS:
-1. Verifica que no hay ventas registradas después de la apertura de caja
-2. Revisa los pagos de deudas en la sección de clientes
-3. Confirma que las fechas de las ventas son correctas
-4. Si persiste el problema, contacta al administrador
-                `;
-
-                    alert(details);
-                @endif
-            };
 
             // Función para mostrar el desglose del balance
             window.showBalanceBreakdown = function() {
@@ -4262,7 +4225,7 @@
                 const currentPurchases = {{ $currentCashData['purchases'] ?? 0 }};
                 const currentBalance = {{ $currentCashData['balance'] ?? 0 }};
                 const currentDebt = {{ $currentCashData['debt'] ?? 0 }};
-                
+
                 const historicalSales = {{ $historicalData['sales'] ?? 0 }};
                 const historicalPurchases = {{ $historicalData['purchases'] ?? 0 }};
                 const historicalBalance = {{ $historicalData['balance'] ?? 0 }};
@@ -4316,8 +4279,10 @@
         // Función para inicializar las notificaciones
         function initializeNotifications() {
             // Crear elemento de audio para notificaciones
-            notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-            
+            notificationSound = new Audio(
+                'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'
+            );
+
             // Verificar notificaciones iniciales
             checkNewNotifications();
         }
@@ -4332,27 +4297,27 @@
 
         // Función para verificar nuevas notificaciones
         function checkNewNotifications() {
-            fetch('{{ route("admin.notifications.unread-count") }}')
+            fetch('{{ route('admin.notifications.unread-count') }}')
                 .then(response => response.json())
                 .then(data => {
                     const currentCount = data.count || 0;
-                    
+
                     // Mostrar badge si hay notificaciones (inicial o nuevas)
                     if (currentCount > 0) {
                         showNotificationBadge(currentCount);
                     } else {
                         hideNotificationBadge();
                     }
-                    
+
                     // Si hay nuevas notificaciones (más que antes)
                     if (currentCount > lastNotificationCount && lastNotificationCount > 0) {
                         // Reproducir sonido
                         playNotificationSound();
-                        
+
                         // Mostrar notificación del navegador
                         showBrowserNotification(currentCount);
                     }
-                    
+
                     lastNotificationCount = currentCount;
                 })
                 .catch(error => console.log('Error checking notifications:', error));
@@ -4361,11 +4326,11 @@
         // Función para mostrar el badge de notificaciones
         function showNotificationBadge(count) {
             const countElement = document.getElementById('notificationCountBadge');
-            
+
             if (countElement) {
                 countElement.style.display = 'flex';
                 countElement.textContent = count;
-                
+
                 // Agregar animación de bounce
                 countElement.style.animation = 'pulse 0.5s ease-in-out';
                 setTimeout(() => {
@@ -4401,16 +4366,24 @@
 
         // Función para cargar notificaciones
         function loadNotifications() {
-            fetch('{{ route("admin.notifications.recent") }}')
-                .then(response => response.json())
+            console.log('loadNotifications called');
+            fetch('{{ route('admin.notifications.recent') }}')
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Notifications data:', data);
                     displayNotifications(data.notifications || []);
                 })
-                .catch(error => console.log('Error loading notifications:', error));
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
         }
 
         // Función para mostrar notificaciones en la lista
         function displayNotifications(notifications) {
+            console.log('displayNotifications called with:', notifications);
             const list = document.getElementById('notificationsList');
             if (!list) {
                 console.error('notificationsList not found');
@@ -4428,7 +4401,7 @@
                         <div class="notification-title-text">
                             <i class="fas fa-shopping-cart"></i> ${notification.title}
                         </div>
-                        <div class="notification-time">${notification.time_ago}</div>
+                        <div class="notification-time">${notification.time_ago || notification.created_at}</div>
                     </div>
                     <div class="notification-message">
                         <strong>Cliente:</strong> ${notification.data.customer_name || 'N/A'}<br>
@@ -4450,17 +4423,22 @@
 
         // Función para mostrar/ocultar la sección de notificaciones
         function toggleNotifications() {
+            console.log('toggleNotifications called');
             const section = document.getElementById('notificationsSection');
-            
+
             if (!section) {
                 console.error('notificationsSection not found');
                 return;
             }
-            
+
+            console.log('Current display style:', section.style.display);
+
             if (section.style.display === 'none' || section.style.display === '') {
+                console.log('Showing notifications section');
                 section.style.display = 'block';
                 loadNotifications();
             } else {
+                console.log('Hiding notifications section');
                 section.style.display = 'none';
             }
         }
@@ -4468,39 +4446,39 @@
         // Función para marcar una notificación como leída
         function markAsRead(notificationId) {
             fetch(`{{ route('admin.notifications.mark-read', '') }}/${notificationId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadNotifications();
-                    checkNewNotifications();
-                }
-            })
-            .catch(error => console.log('Error marking notification as read:', error));
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadNotifications();
+                        checkNewNotifications();
+                    }
+                })
+                .catch(error => console.log('Error marking notification as read:', error));
         }
 
         // Función para marcar todas las notificaciones como leídas
         function markAllAsRead() {
-            fetch('{{ route("admin.notifications.mark-all-read") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadNotifications();
-                    checkNewNotifications();
-                }
-            })
-            .catch(error => console.log('Error marking all notifications as read:', error));
+            fetch('{{ route('admin.notifications.mark-all-read') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadNotifications();
+                        checkNewNotifications();
+                    }
+                })
+                .catch(error => console.log('Error marking all notifications as read:', error));
         }
 
         // Función para ver un pedido específico
@@ -4514,16 +4492,36 @@
             checkNewNotifications();
         }
 
-                    // Solicitar permisos de notificación al cargar la página
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
+        // Función de prueba para verificar notificaciones
+        function testNotifications() {
+            console.log('Testing notifications...');
 
-            // Función de prueba para verificar que todo funciona
-            console.log('Dashboard loaded successfully');
-            console.log('toggleNotifications function available:', typeof toggleNotifications);
-            console.log('loadNotifications function available:', typeof loadNotifications);
-        });
-    });
+            // Probar la función toggleNotifications
+            console.log('Testing toggleNotifications...');
+            toggleNotifications();
+
+            // Probar la función loadNotifications después de un delay
+            setTimeout(() => {
+                console.log('Testing loadNotifications...');
+                loadNotifications();
+            }, 1000);
+
+            // Probar la función checkNewNotifications
+            setTimeout(() => {
+                console.log('Testing checkNewNotifications...');
+                checkNewNotifications();
+            }, 2000);
+        }
+
+        // Solicitar permisos de notificación al cargar la página
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Función de prueba para verificar que todo funciona
+        console.log('Dashboard loaded successfully');
+        console.log('toggleNotifications function available:', typeof toggleNotifications);
+        console.log('loadNotifications function available:', typeof loadNotifications);
+    
     </script>
 @stop
