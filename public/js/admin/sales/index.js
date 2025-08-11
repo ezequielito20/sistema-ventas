@@ -5,6 +5,7 @@
  */
 
 $(document).ready(function() {
+    
     // Variable global para la tabla
     let table;
     // Variable para controlar peticiones AJAX en progreso
@@ -276,7 +277,33 @@ $(document).ready(function() {
     });
 
     // ===== DETALLES DE VENTA =====
-    
+
+    // Helpers simples para mostrar/ocultar modal sin depender de Bootstrap
+    function showSaleDetailsModal() {
+        const $modal = $('#saleDetailsModal');
+        if ($modal.hasClass('show')) return;
+        // Crear backdrop si no existe
+        if ($('.modal-backdrop-custom').length === 0) {
+            $('body').append('<div class="modal-backdrop-custom"></div>');
+        }
+        $modal.addClass('show');
+        $('body').css('overflow', 'hidden');
+    }
+
+    function hideSaleDetailsModal() {
+        const $modal = $('#saleDetailsModal');
+        $modal.removeClass('show');
+        $('.modal-backdrop-custom').remove();
+        $('body').css('overflow', '');
+        // Resetear tabla de detalles
+        $('#saleDetailsTableBody').empty();
+    }
+
+    // Cerrar modal en botones con data-dismiss="modal"
+    $(document).on('click', '[data-dismiss="modal"]', function () {
+        hideSaleDetailsModal();
+    });
+
     // Ver detalles de la venta optimizado
     $(document).on('click', '.view-details', function() {
         // Verificar que DataTables esté cargado
@@ -295,22 +322,10 @@ $(document).ready(function() {
         const saleId = $(this).data('id');
         const button = $(this);
 
-        // Verificar que el modal esté disponible y listo
+        // Verificar que el modal esté disponible
         const modal = $('#saleDetailsModal');
         if (modal.length === 0) {
             console.error('Modal no encontrado');
-            return;
-        }
-        
-        if (!modalReady) {
-            console.warn('Modal no está listo aún, esperando...');
-            Swal.fire({
-                title: 'Cargando...',
-                text: 'Espere un momento mientras se inicializa el modal',
-                icon: 'info',
-                showConfirmButton: false,
-                timer: 1500
-            });
             return;
         }
 
@@ -384,6 +399,8 @@ $(document).ready(function() {
                     } else {
                         noteCard.hide();
                     }
+                    // Mostrar modal cuando los datos estén listos
+                    showSaleDetailsModal();
                 } else {
                     Swal.fire({
                         title: 'Error',
@@ -430,9 +447,23 @@ $(document).ready(function() {
 
     // ===== ELIMINACIÓN DE VENTAS =====
     
+    // Debug: verificar que los eventos se están registrando
+    console.log('Registrando eventos para botones de acción...');
+    
+    // Debug: evento general para todos los botones de acción
+    $(document).on('click', '.btn-action, .mobile-btn-action, .btn-card-action', function() {
+        console.log('Botón clickeado:', $(this).attr('class'), 'ID:', $(this).data('id'));
+    });
+    
     // Eliminar venta con confirmación moderna
-    $(document).on('click', '.delete-sale', function() {
+    $(document).on('click', '.delete-sale', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Botón eliminar clickeado');
         const id = $(this).data('id');
+        console.log('ID de venta a eliminar:', id);
+
+        // SweetAlert2 ya está disponible o tiene fallback
 
         Swal.fire({
             title: '¿Estás seguro?',
@@ -528,8 +559,12 @@ $(document).ready(function() {
     });
 
     // Editar venta
-    $(document).on('click', '.btn-edit', function() {
+    $(document).on('click', '.btn-edit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Botón editar clickeado');
         const saleId = $(this).data('id');
+        console.log('ID de venta a editar:', saleId);
 
         if (saleId) {
             window.location.href = `/sales/edit/${saleId}`;
@@ -544,22 +579,36 @@ $(document).ready(function() {
     });
 
     // ===== MODAL =====
+    // Asegurar estado inicial oculto
+    $('#saleDetailsModal').removeClass('show');
     
-    // Variable para controlar si el modal está listo
-    let modalReady = false;
+    // Función de prueba para verificar que todo funciona
+    window.testSalesButtons = function() {
+        console.log('=== PRUEBA DE BOTONES ===');
+        console.log('jQuery disponible:', typeof $ !== 'undefined');
+        console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+        console.log('Botones editar:', $('.btn-edit').length);
+        console.log('Botones eliminar:', $('.delete-sale').length);
+        
+        // Probar SweetAlert2
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Prueba',
+                text: 'Si ves esto, SweetAlert2 funciona',
+                icon: 'info'
+            });
+        } else {
+            alert('SweetAlert2 no está disponible');
+        }
+    };
     
-    // Arreglar problema de aria-hidden en el modal
-    $('#saleDetailsModal').on('show.bs.modal', function() {
-        $(this).removeAttr('aria-hidden');
-        modalReady = true;
-    });
-
-    $('#saleDetailsModal').on('hidden.bs.modal', function() {
-        $(this).attr('aria-hidden', 'true');
-        modalReady = false;
-        // Resetear variable de petición en progreso al cerrar modal
-        ajaxInProgress = false;
-    });
+    // Ejecutar prueba después de 2 segundos
+    setTimeout(function() {
+        console.log('Ejecutando prueba automática...');
+        if (typeof window.testSalesButtons === 'function') {
+            window.testSalesButtons();
+        }
+    }, 2000);
 
     // ===== FILTROS AVANZADOS =====
     
@@ -849,4 +898,4 @@ $(document).ready(function() {
 
     // Ajustar vista cuando cambie el tamaño de la ventana
     $(window).resize(adjustViewForScreenSize);
-}); 
+});

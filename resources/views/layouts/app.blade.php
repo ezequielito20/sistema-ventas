@@ -497,10 +497,14 @@
     <!-- Scripts -->
     @vite(['resources/js/app.js'])
     @livewireScripts
-    @stack('js')
+    
+    <!-- jQuery (necesario para DataTables y otros scripts) -->
+    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+    
+    @stack('js')
     
     <script>
         function appLayout() {

@@ -215,6 +215,41 @@ body {
     margin-bottom: 2rem;
 }
 
+/* ===== MODAL (fall-back si no hay CSS de Bootstrap) ===== */
+/* Ocultar el modal por defecto y mostrarlo solo cuando tenga la clase .show */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+    z-index: 1050;
+}
+
+.modal.show { display: block; }
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.75rem auto;
+}
+
+.modal-dialog.modal-xl { max-width: 1140px; }
+
+.modal-backdrop-custom {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+}
+
 /* Layout horizontal para los widgets de estadísticas */
 .stats-dashboard .row {
     display: flex;
