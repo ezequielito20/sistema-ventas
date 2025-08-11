@@ -80,6 +80,44 @@
     }
 }
 
+/* Proteger elementos específicos de AdminLTE de Tailwind CSS */
+.main-header .navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.main-header .navbar.navbar-white {
+    background-color: #ffffff !important;
+}
+
+.main-header .navbar.navbar-light {
+    background-color: #ffffff !important;
+}
+
+.main-header .navbar .nav-link {
+    color: #6c757d !important;
+}
+
+.main-header .navbar .nav-link:hover {
+    color: #495057 !important;
+}
+
+.main-header .navbar .form-control {
+    background-color: #ffffff !important;
+    border-color: #ced4da !important;
+}
+
+.main-header .navbar .btn-navbar {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #6c757d !important;
+}
+
+.main-header .navbar .btn-navbar:hover {
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+}
+
 @layer utilities {
     .text-shadow {
         text-shadow: 0 2px 4px rgba(0,0,0,0.1);
