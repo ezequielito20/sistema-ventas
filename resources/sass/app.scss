@@ -1,49 +1,60 @@
-// Fonts
-@import url('https://fonts.bunny.net/css?family=Nunito');
-
-// Variables
-@import 'variables';
-
 // Tailwind CSS
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-// Bootstrap (mantener para AdminLTE)
-@import 'bootstrap/scss/bootstrap';
-
 // Componentes personalizados
 @layer components {
     .btn-primary {
-        @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
     }
     
     .btn-secondary {
-        @apply bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+        @apply bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
     }
     
     .btn-success {
-        @apply bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+        @apply bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2;
     }
     
     .btn-danger {
-        @apply bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+        @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    }
+    
+    .btn-outline {
+        @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 font-medium py-2.5 px-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
     }
     
     .card {
-        @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+        @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200;
+    }
+    
+    .card-header {
+        @apply border-b border-gray-200 pb-4 mb-4;
+    }
+    
+    .card-title {
+        @apply text-lg font-semibold text-gray-900;
+    }
+    
+    .card-subtitle {
+        @apply text-sm text-gray-600 mt-1;
     }
     
     .form-input {
-        @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+        @apply w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
     }
     
     .form-label {
         @apply block text-sm font-medium text-gray-700 mb-2;
     }
     
+    .form-select {
+        @apply w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white;
+    }
+    
     .table-modern {
-        @apply min-w-full divide-y divide-gray-200;
+        @apply min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm overflow-hidden;
     }
     
     .table-modern thead {
@@ -51,7 +62,7 @@
     }
     
     .table-modern th {
-        @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+        @apply px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider;
     }
     
     .table-modern td {
@@ -59,63 +70,55 @@
     }
     
     .table-modern tbody tr {
-        @apply hover:bg-gray-50 transition-colors duration-150;
-    }
-}
-
-// Compatibilidad AdminLTE + Tailwind
-@layer base {
-    /* Reset específico para AdminLTE */
-    .adminlte-page {
-        @apply antialiased;
+        @apply hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100;
     }
     
-    /* Mantener estilos de AdminLTE */
-    .main-header {
-        @apply bg-white border-b border-gray-200;
+    .table-modern tbody tr:last-child {
+        @apply border-b-0;
     }
     
-    .main-sidebar {
-        @apply bg-gray-800;
+    .badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    
+    .badge-success {
+        @apply bg-green-100 text-green-800;
+    }
+    
+    .badge-warning {
+        @apply bg-yellow-100 text-yellow-800;
+    }
+    
+    .badge-danger {
+        @apply bg-red-100 text-red-800;
+    }
+    
+    .badge-info {
+        @apply bg-blue-100 text-blue-800;
+    }
+    
+    .badge-gray {
+        @apply bg-gray-100 text-gray-800;
     }
 }
 
-/* Proteger elementos específicos de AdminLTE de Tailwind CSS */
-.main-header .navbar {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid #dee2e6 !important;
-}
-
-.main-header .navbar.navbar-white {
-    background-color: #ffffff !important;
-}
-
-.main-header .navbar.navbar-light {
-    background-color: #ffffff !important;
-}
-
-.main-header .navbar .nav-link {
-    color: #6c757d !important;
-}
-
-.main-header .navbar .nav-link:hover {
-    color: #495057 !important;
-}
-
-.main-header .navbar .form-control {
-    background-color: #ffffff !important;
-    border-color: #ced4da !important;
-}
-
-.main-header .navbar .btn-navbar {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    color: #6c757d !important;
-}
-
-.main-header .navbar .btn-navbar:hover {
-    background-color: #f8f9fa !important;
-    color: #495057 !important;
+// Utilidades personalizadas
+@layer utilities {
+    .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    
+    .backdrop-blur {
+        backdrop-filter: blur(8px);
+    }
+    
+    .glass {
+        @apply bg-white bg-opacity-20 backdrop-blur border border-white border-opacity-30;
+    }
 }
 
 @layer utilities {
@@ -127,3 +130,4 @@
         text-shadow: 0 4px 8px rgba(0,0,0,0.12);
     }
 }
+

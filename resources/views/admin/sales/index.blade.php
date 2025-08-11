@@ -1,52 +1,39 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Gestión de Ventas')
 
-@section('content_header')
-    <div class="modern-header">
-        <div class="header-gradient"></div>
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="header-content">
-                        <div class="header-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="header-text">
-                            <h1 class="header-title">Gestión de Ventas</h1>
-                            <p class="header-subtitle">Panel de control y análisis de ventas</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="header-actions">
-                        @can('sales.report')
-                            <a href="{{ route('admin.sales.report') }}" class="btn btn-modern btn-report" target="_blank">
-                                <i class="fas fa-file-pdf"></i>
-                                <span>Reporte</span>
-                            </a>
-                        @endcan
-                        @if ($cashCount)
-                            @can('sales.create')
-                                <a href="{{ route('admin.sales.create') }}" class="btn btn-modern btn-primary-modern">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Nueva Venta</span>
-                                </a>
-                            @endcan
-                        @else
-                            @can('cash-counts.create')
-                                <a href="{{ route('admin.cash-counts.create') }}" class="btn btn-modern btn-danger-modern">
-                                    <i class="fas fa-cash-register"></i>
-                                    <span>Abrir Caja</span>
-                                </a>
-                            @endcan
-                        @endif
-                    </div>
-                </div>
-            </div>
+@section('content')
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestión de Ventas</h1>
+            <p class="text-gray-600">Panel de control y análisis de ventas</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            @can('sales.report')
+                <a href="{{ route('admin.sales.report') }}" class="btn-outline" target="_blank">
+                    <i class="fas fa-file-pdf mr-2"></i>
+                    Reporte
+                </a>
+            @endcan
+            @if ($cashCount)
+                @can('sales.create')
+                    <a href="{{ route('admin.sales.create') }}" class="btn-primary">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Nueva Venta
+                    </a>
+                @endcan
+            @else
+                @can('cash-counts.create')
+                    <a href="{{ route('admin.cash-counts.create') }}" class="btn-danger">
+                        <i class="fas fa-cash-register mr-2"></i>
+                        Abrir Caja
+                    </a>
+                @endcan
+            @endif
         </div>
     </div>
-@stop
 
 @section('content')
     {{-- Dashboard de Estadísticas Moderno --}}
@@ -797,18 +784,19 @@
             </div>
         </div>
     </div>
-@stop
+    </div>
+</div>
+@endsection
 
-@section('css')
+@push('css')
     <link rel="stylesheet" href="{{ asset('css/admin/sales/index.css') }}">
-@stop
+@endpush
 
-@section('js')
+@push('js')
     <script src="{{ asset('vendor/config.js') }}"></script>
     <script>
         // Variables globales para el JavaScript
         window.currencySymbol = '{{ $currency->symbol }}';
     </script>
-
     <script src="{{ asset('js/admin/sales/index.js') }}"></script>
-@stop 
+@endpush 
