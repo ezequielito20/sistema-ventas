@@ -288,7 +288,7 @@
         </div>
     </div>
 
-    {{-- Modal de Asignación de Permisos --}}
+        {{-- Modal de Asignación de Permisos --}}
     <div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -306,9 +306,8 @@
                     <div class="row mb-3">
                         <div class="col-md-8">
                             <div class="search-box">
-                                <input type="text" id="searchPermission" class="form-control"
+                                <input type="text" id="searchPermission" class="form-control" autocomplete="off"
                                     placeholder="Buscar permisos...">
-                                <i class="fas fa-search search-icon"></i>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-center justify-content-end">
@@ -328,25 +327,23 @@
 
                         <div class="row permissions-container">
                             @foreach ($permissions as $module => $modulePermissions)
-                                <div class="col-md-6 mb-4">
-                                    <div class="card card-outline card-warning h-100">
-                                        <div class="card-header">
-                                            <div
-                                                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-                                                <h3 class="card-title text-capitalize mb-2 mb-md-0">
-                                                    <i class="fas fa-folder mr-2"></i>{{ $module }}
-                                                </h3>
+                                <div class="col-xl-4 col-lg-6 col-12 mb-4">
+                                    <div class="permission-module-card">
+                                        <div class="permission-module-header">
+                                            <div class="permission-module-title">
+                                                <i class="fas fa-folder mr-2"></i>{{ $module }}
+                                            </div>
+                                            <div class="permission-module-selector">
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" class="custom-control-input group-selector"
                                                         id="group_{{ $module }}" data-group="{{ $module }}">
-                                                    <label class="custom-control-label pl-2"
-                                                        for="group_{{ $module }}" style="margin-left: 15px;">
+                                                    <label class="custom-control-label" for="group_{{ $module }}">
                                                         Seleccionar todo
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="permission-module-body">
                                             @foreach ($modulePermissions as $permission)
                                                 <div class="permission-item" data-group="{{ $module }}">
                                                     <div class="custom-control custom-checkbox">
@@ -379,9 +376,9 @@
                         <i class="fas fa-save mr-2"></i>Guardar Cambios
                     </button>
                 </div>
-                    </div>
+            </div>
+        </div>
     </div>
-</div>
 @endsection
 
 @push('css')
@@ -998,39 +995,165 @@
             overflow: hidden;
         }
 
-        /* Modal de permisos */
+        /* Modal de permisos - Diseño moderno y responsivo */
+        #permissionsModal .modal-dialog {
+            max-width: 1400px;
+            margin: 1rem auto;
+        }
+
+        #permissionsModal .modal-header {
+            background: var(--warning-gradient);
+            color: white;
+            border-radius: 0.75rem 0.75rem 0 0;
+            padding: 1.5rem;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #permissionsModal .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0;
+        }
+
+        #permissionsModal .modal-title i {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        #permissionsModal .close {
+            opacity: 0.8;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        #permissionsModal .close:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        #permissionsModal .modal-body {
+            padding: 2rem;
+            background: white;
+        }
+
+        #permissionsModal .modal-footer {
+            background: var(--light-bg);
+            padding: 1.5rem 2rem;
+            border-radius: 0 0 0.75rem 0.75rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        /* Barra de búsqueda y controles */
         .search-box {
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .search-box .search-icon {
             position: absolute;
-            right: 15px;
+            right: 1rem;
             top: 50%;
             transform: translateY(-50%);
             color: #64748b;
+            font-size: 1rem;
         }
 
         .search-box input {
-            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            padding: 1rem 3rem 1rem 1.5rem;
             border: 2px solid #e2e8f0;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             background: white;
             transition: var(--transition);
             width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
         }
 
         .search-box input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
             outline: none;
         }
 
+        .search-box input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        /* Selector principal */
+        .custom-control.custom-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .custom-switch .custom-control-label::before {
+            width: 3rem;
+            height: 1.75rem;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 1rem;
+            transition: var(--transition);
+        }
+
+        .custom-switch .custom-control-label::after {
+            width: calc(1.5rem - 4px);
+            height: calc(1.5rem - 4px);
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .custom-switch .custom-control-input:checked~.custom-control-label::before {
+            background: var(--warning-gradient);
+        }
+
+        .custom-switch .custom-control-input:checked~.custom-control-label::after {
+            transform: translateX(1.25rem);
+        }
+
+        .custom-control-label {
+            padding-left: 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.875rem;
+        }
+
+        /* Contenedor de permisos */
         .permissions-container {
-            max-height: 70vh;
+            max-height: 60vh;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .permissions-container .row {
+            width: 100%;
+            margin: 0;
+        }
+
+        .permissions-container .col-xl-4,
+        .permissions-container .col-lg-6,
+        .permissions-container .col-12 {
+            padding: 0.75rem;
         }
 
         .permissions-container::-webkit-scrollbar {
@@ -1038,61 +1161,150 @@
         }
 
         .permissions-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #f8fafc;
             border-radius: 4px;
         }
 
         .permissions-container::-webkit-scrollbar-thumb {
-            background: var(--primary-gradient);
+            background: var(--warning-gradient);
             border-radius: 4px;
         }
 
         .permissions-container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
         }
 
+        /* Tarjetas de módulos de permisos */
+        .permission-module-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 2px solid #f1f5f9;
+            overflow: hidden;
+            transition: var(--transition);
+            height: 100%;
+        }
+
+        .permission-module-card:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .permission-module-header {
+            background: var(--light-bg);
+            padding: 1.25rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .permission-module-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: capitalize;
+        }
+
+        .permission-module-title i {
+            color: #f59e0b;
+            font-size: 1.25rem;
+        }
+
+        .permission-module-selector {
+            display: flex;
+            align-items: center;
+        }
+
+        .permission-module-body {
+            padding: 1.25rem;
+        }
+
+        /* Items de permisos */
         .permission-item {
-            padding: 0.75rem;
+            padding: 0.875rem;
             border-radius: 0.5rem;
             transition: var(--transition);
             margin-bottom: 0.5rem;
+            border: 1px solid transparent;
         }
 
         .permission-item:hover {
             background: var(--light-bg);
+            border-color: #e2e8f0;
         }
 
-        .custom-switch .custom-control-label::before {
-            width: 2.5rem;
-            height: 1.5rem;
-            background: #e2e8f0;
-            border: none;
-            border-radius: 1rem;
+        .permission-item:last-child {
+            margin-bottom: 0;
         }
 
-        .custom-switch .custom-control-label::after {
-            width: calc(1.25rem - 4px);
-            height: calc(1.25rem - 4px);
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .permission-item .custom-control {
+            margin: 0;
         }
 
-        .custom-switch .custom-control-input:checked~.custom-control-label::before {
-            background: var(--primary-gradient);
-        }
-
-        .custom-switch .custom-control-input:checked~.custom-control-label::after {
-            transform: translateX(1rem);
-        }
-
-        .custom-control-label {
-            padding-left: 1rem;
-            cursor: pointer;
+        .permission-item .custom-control-label {
+            font-size: 0.875rem;
             font-weight: 500;
+            color: #374151;
+            line-height: 1.4;
+        }
+
+        .permission-item .custom-control-input:checked~.custom-control-label {
+            color: #1e293b;
+            font-weight: 600;
         }
 
         /* Responsividad */
+        @media (min-width: 1200px) {
+            /* Pantallas XL - 3 columnas */
+            #permissionsModal .modal-dialog {
+                max-width: 1400px;
+            }
+
+            .permissions-container .col-xl-4 {
+                flex: 0 0 33.333333%;
+                max-width: 33.333333%;
+            }
+
+            .permission-module-card {
+                min-height: 300px;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1199px) {
+            /* Pantallas LG - 2 columnas */
+            #permissionsModal .modal-dialog {
+                max-width: 1200px;
+            }
+
+            .permissions-container .col-lg-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            .permission-module-card {
+                min-height: 280px;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991px) {
+            /* Pantallas MD - 2 columnas */
+            .permissions-container .col-lg-6 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
+            .permission-module-card {
+                min-height: 250px;
+            }
+        }
+
         @media (max-width: 768px) {
             /* Widgets más compactos */
             .stats-card {
@@ -1175,8 +1387,52 @@
                 margin: 1rem;
             }
 
+            /* Modal de permisos responsivo para tablets */
+            #permissionsModal .modal-dialog {
+                max-width: 95%;
+                margin: 1rem;
+            }
+
+            #permissionsModal .modal-header {
+                padding: 1.25rem;
+            }
+
+            #permissionsModal .modal-title {
+                font-size: 1.125rem;
+            }
+
+            #permissionsModal .modal-body {
+                padding: 1.5rem;
+            }
+
+            #permissionsModal .modal-footer {
+                padding: 1.25rem 1.5rem;
+            }
+
+
+
+            .permission-module-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .permission-module-title {
+                font-size: 1rem;
+            }
+
+            .permission-module-body {
+                padding: 1rem;
+            }
+
             .permissions-container {
                 max-height: 60vh;
+            }
+
+            .search-box input {
+                padding: 0.875rem 2.5rem 0.875rem 1.25rem;
+                font-size: 0.875rem;
             }
 
             /* Modal responsivo para tablets */
@@ -1229,6 +1485,40 @@
             .dataTables_wrapper .paginate_button.previous,
             .dataTables_wrapper .paginate_button.next {
                 min-width: 40px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            /* Pantallas pequeñas - 1 columna */
+            #permissionsModal .modal-dialog {
+                max-width: 95%;
+                margin: 1rem;
+            }
+
+            .permissions-container .col-12 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .permission-module-card {
+                min-height: auto;
+            }
+
+            .permission-module-header {
+                padding: 0.875rem;
+            }
+
+            .permission-module-body {
+                padding: 0.875rem;
+            }
+
+            .permission-item {
+                padding: 0.75rem;
+                margin-bottom: 0.375rem;
+            }
+
+            .permission-item .custom-control-label {
+                font-size: 0.8rem;
             }
         }
 
@@ -1367,6 +1657,86 @@
                 width: 28px;
                 height: 28px;
             }
+
+            /* Modal de permisos responsivo para móviles pequeños */
+            #permissionsModal .modal-dialog {
+                max-width: 98%;
+                margin: 0.5rem;
+            }
+
+            #permissionsModal .modal-header {
+                padding: 1rem;
+            }
+
+            #permissionsModal .modal-title {
+                font-size: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            #permissionsModal .modal-title i {
+                font-size: 1.25rem;
+            }
+
+            #permissionsModal .modal-body {
+                padding: 1rem;
+            }
+
+            #permissionsModal .modal-footer {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            #permissionsModal .modal-footer .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .permission-module-card {
+                margin-bottom: 1rem;
+            }
+
+            .permission-module-header {
+                padding: 0.875rem;
+            }
+
+            .permission-module-title {
+                font-size: 0.875rem;
+            }
+
+            .permission-module-body {
+                padding: 0.875rem;
+            }
+
+            .permission-item {
+                padding: 0.75rem;
+                margin-bottom: 0.375rem;
+            }
+
+            .permission-item .custom-control-label {
+                font-size: 0.8rem;
+            }
+
+            .search-box {
+                margin-bottom: 1rem;
+            }
+
+            .search-box input {
+                padding: 0.75rem 2.25rem 0.75rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .custom-control-label {
+                font-size: 0.8rem;
+            }
+
+            .permissions-container {
+                max-height: 50vh;
+            }
+
+
         }
 
         /* DataTables responsivo */
@@ -1620,6 +1990,46 @@
             border: none;
             color: white;
         }
+
+        /* Botones del modal de permisos */
+        #permissionsModal .btn {
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: var(--transition);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #permissionsModal .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #permissionsModal .btn-secondary {
+            background: white;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+
+        #permissionsModal .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+
+        #permissionsModal .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        #permissionsModal .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white;
+        }
     </style>
 @endpush
 
@@ -1637,6 +2047,10 @@
                     dom: 'lfrtip',
                     pageLength: 10,
                     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                    processing: false,
+                    serverSide: false,
+                    ajax: null,
+                    deferRender: false,
 
                     "language": {
                         "emptyTable": "No hay información",
@@ -1658,6 +2072,8 @@
                         }
                     }
                 });
+
+
 
             // Manejo de eliminación de roles
             $('.delete-role').click(function() {
@@ -1886,6 +2302,15 @@
                 $('#roleId').val(roleId);
                 $('#roleName').text(roleName);
 
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Cargando permisos...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 // Limpiar checkboxes
                 $('.permission-checkbox').prop('checked', false);
 
@@ -1904,6 +2329,10 @@
                             if (data.role_info && data.role_info.is_system_role) {
                                 $('#roleName').append(' <small class="badge badge-warning">Rol del Sistema</small>');
                             }
+
+                            // Cerrar loading y mostrar modal
+                            Swal.close();
+                            $('#permissionsModal').modal('show');
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -1940,8 +2369,66 @@
                             $('#permissionsModal').modal('hide');
                         });
                     });
+            });
 
-                $('#permissionsModal').modal('show');
+            // Event listeners para el modal de permisos
+            $('#permissionsModal').on('show.bs.modal', function () {
+                // Crear backdrop manualmente si no existe
+                if ($('.modal-backdrop').length === 0) {
+                    $('body').append('<div class="modal-backdrop fade show"></div>');
+                }
+                
+                // Aplicar estilos inmediatamente
+                setTimeout(function() {
+                    $('.modal-backdrop').css({
+                        'background-color': 'rgba(0, 0, 0, 0.5)',
+                        'background': 'rgba(0, 0, 0, 0.5)',
+                        'opacity': '1',
+                        'z-index': '1040',
+                        'position': 'fixed',
+                        'top': '0',
+                        'left': '0',
+                        'width': '100%',
+                        'height': '100%'
+                    });
+                }, 10);
+            });
+
+            // Event listener para el botón de cerrar del modal de permisos
+            $(document).on('click', '#permissionsModal .close', function() {
+                $('#permissionsModal').modal('hide');
+                // Limpiar backdrop inmediatamente
+                setTimeout(function() {
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    $('body').css('padding-right', '');
+                }, 100);
+            });
+
+            // Cerrar al hacer clic en el backdrop del modal de permisos
+            $('#permissionsModal').on('click', function(e) {
+                if (e.target === this) {
+                    $('#permissionsModal').modal('hide');
+                    // Limpiar backdrop inmediatamente
+                    setTimeout(function() {
+                        $('.modal-backdrop').remove();
+                        $('body').removeClass('modal-open');
+                        $('body').css('padding-right', '');
+                    }, 100);
+                }
+            });
+
+            // También permitir cerrar con ESC el modal de permisos
+            $('#permissionsModal').on('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    $('#permissionsModal').modal('hide');
+                    // Limpiar backdrop inmediatamente
+                    setTimeout(function() {
+                        $('.modal-backdrop').remove();
+                        $('body').removeClass('modal-open');
+                        $('body').css('padding-right', '');
+                    }, 100);
+                }
             });
 
             // Selector para todos los permisos
@@ -2041,8 +2528,10 @@
                             timer: 1500
                         });
 
-                        // Recargar la tabla de roles
-                        window.LaravelDataTables['rolesTable'].ajax.reload();
+                        // Recargar la página para actualizar la tabla después de un pequeño delay
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 100);
                     },
                     error: function(xhr) {
                         let errorMessage = 'Hubo un problema al actualizar los permisos';

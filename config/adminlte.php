@@ -48,7 +48,7 @@ return [
     */
 
    'google_fonts' => [
-      'allowed' => true,
+      'allowed' => false,
    ],
 
    /*
@@ -136,7 +136,7 @@ return [
 
    'usermenu_enabled' => true,
    'usermenu_header' => false,
-   'usermenu_header_class' => 'bg-blue-500',
+   'usermenu_header_class' => 'bg-white',
    'usermenu_image' => false,
    'usermenu_desc' => false,
    'usermenu_profile_url' => false,
@@ -197,7 +197,7 @@ return [
    'classes_content_wrapper' => '',
    'classes_content_header' => '',
    'classes_content' => '',
-   'classes_sidebar' => 'sidebar-dark-primary elevation-4',
+   'classes_sidebar' => 'sidebar-light-primary elevation-4',
    'classes_sidebar_nav' => '',
    'classes_topnav' => 'navbar-white navbar-light bg-white',
    'classes_topnav_nav' => 'navbar-expand',
@@ -283,7 +283,7 @@ return [
     |
     */
 
-       'laravel_asset_bundling' => false,
+       'laravel_asset_bundling' => 'vite',
    'laravel_css_path' => 'resources/sass/app.scss',
    'laravel_js_path' => 'resources/js/app.js',
 
