@@ -1,520 +1,965 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Crear Usuario')
 
-@section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Crear Nuevo Usuario</h1>
-        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-2"></i>Volver al listado
-        </a>
-    </div>
-@stop
-
 @section('content')
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-outline card-primary shadow-sm">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Información del Usuario
-                </h3>
+<div class="space-y-6">
+    <!-- Header con gradiente -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="header-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="header-text">
+                    <h1 class="page-title">Crear Usuario</h1>
+                    <p class="page-subtitle">Crea un nuevo usuario para el sistema</p>
+                </div>
             </div>
+            <a href="{{ route('admin.users.index') }}" class="btn-back">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver
+            </a>
+        </div>
+    </div>
 
-            <form action="{{ route('admin.users.store') }}" method="POST" id="createUserForm">
-                @csrf
-                <div class="card-body">
-                    <div class="row">
-                        {{-- Nombre del Usuario --}}
-                        <div class="col-md-6">
+    <!-- Formulario -->
+    <div class="form-container">
+        <div class="form-card">
+            <div class="form-card-header">
+                <div class="header-icon-container">
+                    <div class="header-icon-bg">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+                <div class="header-content">
+                    <h3 class="form-card-title">Nuevo Usuario</h3>
+                    <p class="form-card-subtitle">Define la información del nuevo usuario</p>
+                </div>
+            </div>
+            
+            <div class="form-card-body">
+                <form action="{{ route('admin.users.store') }}" method="POST" x-data="userForm()">
+                    @csrf
+
+                    <!-- Información básica -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-user label-icon"></i>
+                            Información Básica
+                        </h4>
+                        
+                        <div class="form-grid">
                             <div class="form-group">
-                                <label for="name" class="font-weight-bold required">
-                                    Nombre Completo
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-user label-icon"></i>
+                                    Nombre Completo <span class="required">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                    </div>
-                                    <input type="text" 
-                                           name="name" 
-                                           id="name" 
-                                           class="form-control @error('name') is-invalid @enderror" 
-                                           value="{{ old('name') }}" 
-                                           placeholder="Ingrese el nombre completo"
-                                           required>
-                                    @error('name')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" name="name" id="name"
+                                        class="form-input {{ $errors->has('name') ? 'is-invalid' : '' }}"
+                                        value="{{ old('name') }}" 
+                                        required
+                                        placeholder="Ingrese el nombre completo">
                                 </div>
+                                @if ($errors->has('name'))
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $errors->first('name') }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope label-icon"></i>
+                                    Correo Electrónico <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" name="email" id="email"
+                                        class="form-input {{ $errors->has('email') ? 'is-invalid' : '' }}"
+                                        value="{{ old('email') }}" 
+                                        required
+                                        placeholder="ejemplo@dominio.com">
+                                </div>
+                                @if ($errors->has('email'))
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $errors->first('email') }}
+                                    </div>
+                                @endif
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Email --}}
-                        <div class="col-md-6">
+                    <!-- Contraseñas -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-lock label-icon"></i>
+                            Contraseña
+                        </h4>
+                        
+                        <div class="form-grid">
                             <div class="form-group">
-                                <label for="email" class="font-weight-bold required">
-                                    Correo Electrónico
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock label-icon"></i>
+                                    Contraseña <span class="required">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-envelope"></i>
-                                        </span>
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" name="password" id="password"
+                                        class="form-input {{ $errors->has('password') ? 'is-invalid' : '' }}"
+                                        required
+                                        x-model="password"
+                                        @input="checkPasswordStrength()">
+                                    <button type="button" class="password-toggle-btn" 
+                                        @click="togglePassword('password')" 
+                                        :title="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                                        <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                @if ($errors->has('password'))
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $errors->first('password') }}
                                     </div>
-                                    <input type="email" 
-                                           name="email" 
-                                           id="email" 
-                                           class="form-control @error('email') is-invalid @enderror" 
-                                           value="{{ old('email') }}" 
-                                           placeholder="ejemplo@dominio.com"
-                                           required>
-                                    @error('email')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
+                                @endif
+                                <div x-show="passwordStrength.show" class="password-strength">
+                                    <div class="strength-bar">
+                                        <div class="strength-fill" :class="passwordStrength.class" :style="'width: ' + passwordStrength.width + '%'"></div>
+                                    </div>
+                                    <span class="strength-text" :class="passwordStrength.textClass" x-text="passwordStrength.text"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password_confirmation" class="form-label">
+                                    <i class="fas fa-lock label-icon"></i>
+                                    Confirmar Contraseña <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" name="password_confirmation" id="password_confirmation"
+                                        class="form-input"
+                                        required
+                                        x-model="passwordConfirmation"
+                                        @input="checkPasswordMatch()">
+                                    <button type="button" class="password-toggle-btn" 
+                                        @click="togglePassword('password_confirmation')" 
+                                        :title="showPasswordConfirmation ? 'Ocultar confirmación' : 'Mostrar confirmación'">
+                                        <i class="fas" :class="showPasswordConfirmation ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                <div x-show="passwordMatch.show" class="password-match" :class="passwordMatch.class">
+                                    <i class="fas" :class="passwordMatch.icon"></i>
+                                    <span x-text="passwordMatch.text"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        {{-- Contraseña --}}
-                        <div class="col-md-6">
+                    <!-- Asignación -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-users-cog label-icon"></i>
+                            Asignación
+                        </h4>
+                        
+                        <div class="form-grid">
                             <div class="form-group">
-                                <label for="password" class="font-weight-bold required">
-                                    Contraseña
+                                <label for="company_id" class="form-label">
+                                    <i class="fas fa-building label-icon"></i>
+                                    Empresa <span class="required">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-lock"></i>
-                                        </span>
-                                    </div>
-                                    <input type="password" 
-                                           name="password" 
-                                           id="password" 
-                                           class="form-control @error('password') is-invalid @enderror" 
-                                           required>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary password-toggle-btn" type="button" id="togglePassword" title="Mostrar/Ocultar contraseña">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                    @error('password')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                                <div id="passwordStrength" class="mt-2"></div>
-                            </div>
-                        </div>
-
-                        {{-- Confirmar Contraseña --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="password_confirmation" class="font-weight-bold required">
-                                    Confirmar Contraseña
-                                </label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-lock"></i>
-                                        </span>
-                                    </div>
-                                    <input type="password" 
-                                           name="password_confirmation" 
-                                           id="password_confirmation" 
-                                           class="form-control"
-                                           required>
-                                    <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary password-toggle-btn" type="button" id="togglePasswordConfirmation" title="Mostrar/Ocultar confirmación">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        {{-- Empresa --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="company_id" class="font-weight-bold required">
-                                    Empresa
-                                </label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-building"></i>
-                                        </span>
-                                    </div>
-                                    <select name="company_id" 
-                                            id="company_id" 
-                                            class="form-control @error('company_id') is-invalid @enderror"
-                                            required>
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                    <select name="company_id" id="company_id"
+                                        class="form-input {{ $errors->has('company_id') ? 'is-invalid' : '' }}"
+                                        required>
                                         <option value="">Seleccione una empresa</option>
                                         @foreach($companies as $company)
                                             <option value="{{ $company->id }}" 
-                                                    {{ old('company_id') == $company->id ? 'selected' : '' }}>
+                                                {{ old('company_id') == $company->id ? 'selected' : '' }}>
                                                 {{ $company->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('company_id')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
                                 </div>
+                                @if ($errors->has('company_id'))
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $errors->first('company_id') }}
+                                    </div>
+                                @endif
                             </div>
-                        </div>
 
-                        {{-- Rol --}}
-                        <div class="col-md-6">
                             <div class="form-group">
-                                <label for="role" class="font-weight-bold required">
-                                    Rol del Usuario
+                                <label for="role" class="form-label">
+                                    <i class="fas fa-user-tag label-icon"></i>
+                                    Rol del Usuario <span class="required">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user-tag"></i>
-                                        </span>
-                                    </div>
-                                    <select name="role" 
-                                            id="role" 
-                                            class="form-control @error('role') is-invalid @enderror"
-                                            required>
+                                    <span class="input-group-icon">
+                                        <i class="fas fa-user-tag"></i>
+                                    </span>
+                                    <select name="role" id="role"
+                                        class="form-input {{ $errors->has('role') ? 'is-invalid' : '' }}"
+                                        required>
                                         <option value="">Seleccione un rol</option>
                                         @foreach($roles as $role)
                                             <option value="{{ $role->id }}" 
-                                                    {{ old('role') == $role->id ? 'selected' : '' }}>
+                                                {{ old('role') == $role->id ? 'selected' : '' }}>
                                                 {{ $role->name }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    @error('role')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
+                                </div>
+                                @if ($errors->has('role'))
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $errors->first('role') }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones adicionales -->
+                    <div class="form-section">
+                        <h4 class="section-title">
+                            <i class="fas fa-cog label-icon"></i>
+                            Opciones Adicionales
+                        </h4>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="send_verification_email" checked>
+                                        <span class="checkmark"></span>
+                                        <i class="fas fa-envelope checkbox-icon"></i>
+                                        Enviar email de verificación al usuario
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" x-model="syncPasswordVisibility">
+                                        <span class="checkmark"></span>
+                                        <i class="fas fa-sync checkbox-icon"></i>
+                                        Sincronizar visibilidad de contraseñas
+                                    </label>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Opciones adicionales --}}
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" 
-                                       class="custom-control-input" 
-                                       id="sendVerificationEmail" 
-                                       name="send_verification_email" 
-                                       checked>
-                                <label class="custom-control-label" for="sendVerificationEmail">
-                                    <i class="fas fa-envelope mr-1"></i>
-                                    Enviar email de verificación al usuario
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" 
-                                       class="custom-control-input" 
-                                       id="syncPasswordVisibility">
-                                <label class="custom-control-label" for="syncPasswordVisibility">
-                                    <i class="fas fa-sync mr-1"></i>
-                                    Sincronizar visibilidad de contraseñas
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-footer">
-                    <div class="text-right">
-                        <button type="button" 
-                                onclick="window.history.back()" 
-                                class="btn btn-secondary">
+                    <div class="form-actions">
+                        <a href="{{ route('admin.users.index') }}" class="btn-secondary">
                             <i class="fas fa-times mr-2"></i>
                             Cancelar
-                        </button>
-                        <button type="submit" 
-                                class="btn btn-primary" 
-                                id="submitButton">
+                        </a>
+                        <button type="submit" class="btn-primary" x-ref="submitBtn">
                             <i class="fas fa-save mr-2"></i>
                             Crear Usuario
                         </button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-@stop
 
-@section('css')
+@push('css')
 <style>
-    .required::after {
-        content: " *";
-        color: red;
+    /* Estilos mejorados con más color */
+    .space-y-6 > * + * {
+        margin-top: 2rem;
     }
-    .card {
-        border-radius: 0.75rem;
-    }
-    .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid rgba(0,0,0,.125);
-    }
-    .input-group-text {
-        background-color: #f8f9fa;
-    }
-    .btn {
-        border-radius: 0.5rem;
-    }
-    .form-control {
-        border-radius: 0.5rem;
-    }
-    .input-group > .form-control {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-    .password-strength-meter {
-        height: 0.25rem;
-        background-color: #e9ecef;
-        border-radius: 0.25rem;
-        margin-top: 0.5rem;
-    }
-    .strength-weak { background-color: #dc3545; }
-    .strength-medium { background-color: #ffc107; }
-    .strength-strong { background-color: #28a745; }
     
-    /* Password toggle button styling */
-    .password-toggle-btn {
-        border: none;
-        background: transparent;
-        color: #6c757d;
+    /* Header de la página */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 16px;
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .header-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        backdrop-filter: blur(10px);
         transition: all 0.3s ease;
-        border-radius: 0 0.5rem 0.5rem 0;
+    }
+    
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    /* Contenedor del formulario */
+    .form-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+    
+    /* Header del formulario */
+    .form-card-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .header-icon-container {
+        display: flex;
+        align-items: center;
+    }
+    
+    .header-icon-bg {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .form-card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    
+    .form-card-subtitle {
+        color: #64748b;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.95rem;
+    }
+    
+    /* Cuerpo del formulario */
+    .form-card-body {
+        padding: 2.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    /* Secciones del formulario */
+    .form-section {
+        margin-bottom: 2.5rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    /* Grupos de formulario */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    .label-icon {
+        color: #667eea;
+        font-size: 0.875rem;
+    }
+    
+    .required {
+        color: #ef4444;
+        font-weight: 700;
+    }
+    
+    /* Input group */
+    .input-group {
+        display: flex;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .input-group-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        font-size: 1.1rem;
+    }
+    
+    .form-input {
+        flex: 1;
+        padding: 1rem 1.25rem;
+        border: none;
+        font-size: 1rem;
+        background: white;
+        color: #374151;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        background: #fafbfc;
+    }
+    
+    .form-input.is-invalid {
+        background: #fef2f2;
+    }
+    
+    .form-input::placeholder {
+        color: #9ca3af;
+        font-style: italic;
+    }
+    
+    /* Password toggle button */
+    .password-toggle-btn {
+        background: #f8fafc;
+        border: none;
+        color: #6b7280;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-left: 1px solid #e5e7eb;
     }
     
     .password-toggle-btn:hover {
-        background-color: #f8f9fa;
-        color: #495057;
-        transform: scale(1.05);
+        background: #e5e7eb;
+        color: #374151;
     }
     
-    .password-toggle-btn:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        outline: none;
+    /* Password strength */
+    .password-strength {
+        margin-top: 0.75rem;
     }
     
-    .password-toggle-btn i {
+    .strength-bar {
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .strength-fill {
+        height: 100%;
         transition: all 0.3s ease;
     }
     
-    .input-group-append .btn {
-        border-left: none;
+    .strength-fill.weak {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+    
+    .strength-fill.medium {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+    
+    .strength-fill.strong {
+        background: linear-gradient(90deg, #10b981, #34d399);
+    }
+    
+    .strength-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .strength-text.weak {
+        color: #ef4444;
+    }
+    
+    .strength-text.medium {
+        color: #f59e0b;
+    }
+    
+    .strength-text.strong {
+        color: #10b981;
+    }
+    
+    /* Password match */
+    .password-match {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .password-match.match {
+        background: #f0fdf4;
+        color: #166534;
+        border-left: 4px solid #10b981;
+    }
+    
+    .password-match.no-match {
+        background: #fef2f2;
+        color: #dc2626;
+        border-left: 4px solid #ef4444;
+    }
+    
+    /* Checkbox group */
+    .checkbox-group {
+        margin-top: 0.5rem;
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        color: #374151;
+    }
+    
+    .checkbox-label:hover {
+        background: #f8fafc;
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+        display: none;
+    }
+    
+    .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .checkbox-label input[type="checkbox"]:checked + .checkmark {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+    }
+    
+    .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .checkbox-icon {
+        color: #667eea;
+        font-size: 0.875rem;
+    }
+    
+    /* Mensajes de error */
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #fef2f2;
+        border-radius: 8px;
+        border-left: 4px solid #ef4444;
+    }
+    
+    /* Acciones del formulario */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 2rem;
+        border-top: 2px solid #f1f5f9;
+        margin-top: 2rem;
+    }
+    
+    /* Botones */
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    }
+    
+    .btn-secondary {
+        background: white;
+        border: 2px solid #e5e7eb;
+        color: #64748b;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #475569;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Responsividad */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem;
+            margin: 0 1rem 2rem 1rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .header-left {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .header-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
+        }
+        
+        .form-container {
+            margin: 0 1rem;
+        }
+        
+        .form-card-header {
+            padding: 1.5rem;
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .header-icon-bg {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        
+        .form-card-body {
+            padding: 1.5rem;
+        }
+        
+        .form-section {
+            padding: 1rem;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
-@stop
+@endpush
 
-@section('js')
+@push('js')
 <script>
-$(document).ready(function() {
-    // Toggle password visibility with smooth animation
-    function togglePasswordVisibility(inputId, buttonId) {
-        const passwordInput = $(inputId);
-        const button = $(buttonId);
-        const icon = button.find('i');
+function userForm() {
+    return {
+        password: '',
+        passwordConfirmation: '',
+        showPassword: false,
+        showPasswordConfirmation: false,
+        syncPasswordVisibility: false,
+        passwordStrength: {
+            show: false,
+            width: 0,
+            class: '',
+            text: '',
+            textClass: ''
+        },
+        passwordMatch: {
+            show: false,
+            class: '',
+            icon: '',
+            text: ''
+        },
         
-        // Add animation effect
-        icon.addClass('fa-spin');
+        init() {
+            this.$watch('syncPasswordVisibility', (value) => {
+                if (value) {
+                    this.syncPasswords();
+                }
+            });
+        },
         
-        setTimeout(() => {
-            if (passwordInput.attr('type') === 'password') {
-                passwordInput.attr('type', 'text');
-                icon.removeClass('fa-eye fa-spin').addClass('fa-eye-slash');
-                button.attr('title', 'Ocultar contraseña');
-                button.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
-            } else {
-                passwordInput.attr('type', 'password');
-                icon.removeClass('fa-eye-slash fa-spin').addClass('fa-eye');
-                button.attr('title', 'Mostrar contraseña');
-                button.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+        togglePassword(field) {
+            if (field === 'password') {
+                this.showPassword = !this.showPassword;
+                const input = document.getElementById('password');
+                input.type = this.showPassword ? 'text' : 'password';
+                
+                if (this.syncPasswordVisibility) {
+                    this.showPasswordConfirmation = this.showPassword;
+                    const confirmInput = document.getElementById('password_confirmation');
+                    confirmInput.type = this.showPassword ? 'text' : 'password';
+                }
+            } else if (field === 'password_confirmation') {
+                this.showPasswordConfirmation = !this.showPasswordConfirmation;
+                const input = document.getElementById('password_confirmation');
+                input.type = this.showPasswordConfirmation ? 'text' : 'password';
+                
+                if (this.syncPasswordVisibility) {
+                    this.showPassword = this.showPasswordConfirmation;
+                    const passwordInput = document.getElementById('password');
+                    passwordInput.type = this.showPasswordConfirmation ? 'text' : 'password';
+                }
             }
-        }, 150);
-    }
-
-    // Toggle password visibility
-    $('#togglePassword').click(function() {
-        togglePasswordVisibility('#password', '#togglePassword');
+        },
         
-        // Sync with confirmation if enabled
-        if ($('#syncPasswordVisibility').is(':checked')) {
-            setTimeout(() => {
-                const passwordType = $('#password').attr('type');
-                $('#password_confirmation').attr('type', passwordType);
-                
-                const confirmIcon = $('#togglePasswordConfirmation i');
-                const confirmButton = $('#togglePasswordConfirmation');
-                
-                if (passwordType === 'text') {
-                    confirmIcon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    confirmButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
-                    confirmButton.attr('title', 'Ocultar confirmación');
-                } else {
-                    confirmIcon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    confirmButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
-                    confirmButton.attr('title', 'Mostrar confirmación');
-                }
-            }, 150);
-        }
-    });
-
-    // Toggle password confirmation visibility
-    $('#togglePasswordConfirmation').click(function() {
-        togglePasswordVisibility('#password_confirmation', '#togglePasswordConfirmation');
+        syncPasswords() {
+            this.showPasswordConfirmation = this.showPassword;
+            const confirmInput = document.getElementById('password_confirmation');
+            confirmInput.type = this.showPassword ? 'text' : 'password';
+        },
         
-        // Sync with main password if enabled
-        if ($('#syncPasswordVisibility').is(':checked')) {
-            setTimeout(() => {
-                const confirmType = $('#password_confirmation').attr('type');
-                $('#password').attr('type', confirmType);
-                
-                const passwordIcon = $('#togglePassword i');
-                const passwordButton = $('#togglePassword');
-                
-                if (confirmType === 'text') {
-                    passwordIcon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    passwordButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
-                    passwordButton.attr('title', 'Ocultar contraseña');
-                } else {
-                    passwordIcon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    passwordButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
-                    passwordButton.attr('title', 'Mostrar contraseña');
-                }
-            }, 150);
-        }
-    });
-
-    // Synchronize password visibility (optional feature)
-    $('#syncPasswordVisibility').change(function() {
-        if ($(this).is(':checked')) {
-            // Show feedback message
-            const label = $('label[for="syncPasswordVisibility"]');
-            const originalText = label.html();
-            label.html('<i class="fas fa-check text-success mr-1"></i>Sincronización activada');
-            
-            // Sync current state
-            const passwordType = $('#password').attr('type');
-            $('#password_confirmation').attr('type', passwordType);
-            
-            const passwordIcon = $('#togglePassword i');
-            const confirmIcon = $('#togglePasswordConfirmation i');
-            const confirmButton = $('#togglePasswordConfirmation');
-            
-            if (passwordType === 'text') {
-                confirmIcon.removeClass('fa-eye').addClass('fa-eye-slash');
-                confirmButton.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
-                confirmButton.attr('title', 'Ocultar confirmación');
-            } else {
-                confirmIcon.removeClass('fa-eye-slash').addClass('fa-eye');
-                confirmButton.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
-                confirmButton.attr('title', 'Mostrar confirmación');
+        checkPasswordStrength() {
+            if (!this.password) {
+                this.passwordStrength.show = false;
+                return;
             }
             
-            // Reset label after 2 seconds
-            setTimeout(() => {
-                label.html(originalText);
-            }, 2000);
-        } else {
-            // Show deactivation feedback
-            const label = $('label[for="syncPasswordVisibility"]');
-            const originalText = label.html();
-            label.html('<i class="fas fa-times text-warning mr-1"></i>Sincronización desactivada');
+            let strength = 0;
             
-            setTimeout(() => {
-                label.html(originalText);
-            }, 2000);
+            // Length check
+            if (this.password.length >= 8) strength += 1;
+            
+            // Character type checks
+            if (this.password.match(/[a-z]/)) strength += 1;
+            if (this.password.match(/[A-Z]/)) strength += 1;
+            if (this.password.match(/[0-9]/)) strength += 1;
+            if (this.password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            this.passwordStrength.show = true;
+            
+            if (strength < 2) {
+                this.passwordStrength.width = 25;
+                this.passwordStrength.class = 'weak';
+                this.passwordStrength.text = 'Contraseña débil';
+                this.passwordStrength.textClass = 'weak';
+            } else if (strength < 4) {
+                this.passwordStrength.width = 50;
+                this.passwordStrength.class = 'medium';
+                this.passwordStrength.text = 'Contraseña media';
+                this.passwordStrength.textClass = 'medium';
+            } else {
+                this.passwordStrength.width = 100;
+                this.passwordStrength.class = 'strong';
+                this.passwordStrength.text = 'Contraseña fuerte';
+                this.passwordStrength.textClass = 'strong';
+            }
+        },
+        
+        checkPasswordMatch() {
+            if (!this.passwordConfirmation) {
+                this.passwordMatch.show = false;
+                return;
+            }
+            
+            this.passwordMatch.show = true;
+            
+            if (this.password === this.passwordConfirmation) {
+                this.passwordMatch.class = 'match';
+                this.passwordMatch.icon = 'fa-check-circle';
+                this.passwordMatch.text = 'Las contraseñas coinciden';
+            } else {
+                this.passwordMatch.class = 'no-match';
+                this.passwordMatch.icon = 'fa-times-circle';
+                this.passwordMatch.text = 'Las contraseñas no coinciden';
+            }
+        },
+        
+        submitForm() {
+            // Validaciones básicas
+            if (this.password !== this.passwordConfirmation) {
+                this.showAlert('Error de validación', 'Las contraseñas no coinciden', 'error');
+                return false;
+            }
+            
+            if (this.password && this.passwordStrength.width < 50) {
+                this.showAlert('Contraseña débil', 'Por favor, use una contraseña más segura', 'warning');
+                return false;
+            }
+            
+            // Mostrar estado de carga
+            const submitBtn = this.$refs.submitBtn;
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creando...';
+            submitBtn.disabled = true;
+            
+            // Enviar formulario
+            return true;
+        },
+        
+        showAlert(title, text, icon) {
+            // Usar SweetAlert2 si está disponible, sino alert nativo
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: icon,
+                    title: title,
+                    text: text,
+                    confirmButtonText: 'Entendido'
+                });
+            } else {
+                alert(`${title}: ${text}`);
+            }
         }
-    });
-
-    // Password strength meter
-    function checkPasswordStrength(password) {
-        let strength = 0;
-        
-        // Length check
-        if (password.length >= 8) strength += 1;
-        
-        // Character type checks
-        if (password.match(/[a-z]/)) strength += 1;
-        if (password.match(/[A-Z]/)) strength += 1;
-        if (password.match(/[0-9]/)) strength += 1;
-        if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
-        
-        return strength;
     }
-
-    $('#password').on('input', function() {
-        const password = $(this).val();
-        const strength = checkPasswordStrength(password);
-        let strengthHtml = '<div class="password-strength-meter ';
-        
-        if (strength < 2) {
-            strengthHtml += 'strength-weak" style="width: 33%"></div>';
-            $('#passwordStrength').html(strengthHtml + '<small class="text-danger">Contraseña débil</small>');
-        } else if (strength < 4) {
-            strengthHtml += 'strength-medium" style="width: 66%"></div>';
-            $('#passwordStrength').html(strengthHtml + '<small class="text-warning">Contraseña media</small>');
-        } else {
-            strengthHtml += 'strength-strong" style="width: 100%"></div>';
-            $('#passwordStrength').html(strengthHtml + '<small class="text-success">Contraseña fuerte</small>');
-        }
-    });
-
-    // Form validation
-    $('#createUserForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        // Basic validations
-        const password = $('#password').val();
-        const confirmPassword = $('#password_confirmation').val();
-        
-        if (password !== confirmPassword) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de validación',
-                text: 'Las contraseñas no coinciden'
-            });
-            return false;
-        }
-        
-        if (checkPasswordStrength(password) < 2) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Contraseña débil',
-                text: 'Por favor, use una contraseña más segura'
-            });
-            return false;
-        }
-
-        // Show loading state
-        const submitButton = $('#submitButton');
-        const originalContent = submitButton.html();
-        submitButton.html('<i class="fas fa-spinner fa-spin mr-2"></i>Creando...').prop('disabled', true);
-
-        // Submit form
-        this.submit();
-    });
-
-    // Select2 initialization (if you're using it)
-    if ($.fn.select2) {
-        $('#company_id, #role').select2({
-            theme: 'bootstrap4',
-            placeholder: 'Seleccione una opción',
-            width: '100%'
-        });
-    }
-});
+}
 </script>
-@stop
+@endpush
