@@ -208,6 +208,7 @@
              x-transition:leave="transition-opacity ease-linear duration-300"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
              class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden">
         </div>
 
@@ -220,6 +221,7 @@
              x-transition:leave="transition ease-in-out duration-300 transform"
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full"
+             @click.stop
              class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:inset-0">
         
         <!-- Logo -->
@@ -561,6 +563,14 @@
                         if (window.innerWidth < 1024) {
                             // En móviles, siempre cerrar el sidebar
                             this.sidebarOpen = false;
+                        } else {
+                            // En desktop, restaurar el estado guardado
+                            const savedState = localStorage.getItem('sidebarOpen');
+                            if (savedState !== null) {
+                                this.sidebarOpen = JSON.parse(savedState);
+                            } else {
+                                this.sidebarOpen = true; // Por defecto abierto en desktop
+                            }
                         }
                     });
                 }

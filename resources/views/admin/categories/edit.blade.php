@@ -346,15 +346,15 @@
         margin: 0 auto;
         padding: 2rem;
         min-height: 100vh;
+        z-index: 1;
     }
 
     /* ===== HEADER FLOTANTE ===== */
     .floating-header {
-        position: sticky;
-        top: 2rem;
-        z-index: 100;
+        position: relative;
         margin-bottom: 2rem;
         animation: slideDown 0.6s ease-out;
+        z-index: 10;
     }
 
     .header-content {
@@ -487,6 +487,8 @@
         grid-template-columns: 1fr auto;
         gap: 2rem;
         align-items: start;
+        position: relative;
+        z-index: 1;
     }
 
     .form-card {
@@ -497,6 +499,8 @@
         box-shadow: var(--shadow-2xl);
         overflow: hidden;
         animation: slideUp 0.8s ease-out 0.2s both;
+        position: relative;
+        z-index: 2;
     }
 
     /* ===== INDICADOR DE PROGRESO ===== */
@@ -879,9 +883,9 @@
         border-radius: var(--border-radius-lg);
         box-shadow: var(--shadow-xl);
         overflow: hidden;
-        position: sticky;
-        top: 8rem;
+        position: relative;
         animation: slideLeft 0.8s ease-out 0.4s both;
+        z-index: 2;
     }
 
     .info-header {
@@ -1040,7 +1044,6 @@
         .info-card {
             width: 100%;
             position: relative;
-            top: auto;
         }
     }
 
