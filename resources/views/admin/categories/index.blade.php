@@ -227,7 +227,7 @@
                             <div class="search-border"></div>
                         </div>
                     </div>
-                    <div class="view-toggles">
+                    <div class="view-toggles desktop-only">
                         <button class="view-toggle active" data-view="table">
                             <i class="fas fa-table"></i>
                             <span>Tabla</span>
@@ -242,8 +242,78 @@
             
             <!-- Content Body -->
             <div class="content-body">
-                {{-- Vista de tabla (desktop) --}}
-                <div class="desktop-view" id="desktopTableView">
+                {{-- Vista de tarjetas (por defecto) --}}
+                <div class="desktop-view" id="desktopCardsView">
+                    <div class="cards-grid" id="cardsGrid">
+                        @foreach ($categories as $category)
+                            <div class="category-card" data-category-id="{{ $category->id }}" data-search="{{ strtolower($category->name . ' ' . ($category->description ?? '')) }}">
+                                <div class="card-header">
+                                    <div class="card-avatar">
+                                        <i class="fas fa-tag"></i>
+                                    </div>
+                                    <div class="card-badge">
+                                        <span>ID: {{ $category->id }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="card-title">{{ $category->name }}</h4>
+                                    <p class="card-description">{{ Str::limit($category->description, 150) ?? 'Sin descripción' }}</p>
+                                    <div class="card-meta">
+                                        <div class="meta-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>{{ \Carbon\Carbon::parse($category->created_at)->format('H:i') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    @can('categories.show')
+                                        <button type="button" class="card-btn card-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                            <span>Ver</span>
+                                        </button>
+                                    @endcan
+                                    @can('categories.edit')
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}" class="card-btn card-btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                            <span>Editar</span>
+                                        </a>
+                                    @endcan
+                                    @can('categories.destroy')
+                                        <button type="button" class="card-btn card-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                            <span>Eliminar</span>
+                                        </button>
+                                    @endcan
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Paginación para tarjetas --}}
+                    <div class="custom-pagination">
+                        <div class="pagination-info">
+                            <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $categories->count()) }} de {{ $categories->count() }} registros</span>
+                        </div>
+                        <div class="pagination-controls">
+                            <button id="cardsPrevPage" class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </button>
+                            <div id="cardsPageNumbers" class="page-numbers"></div>
+                            <button id="cardsNextPage" class="pagination-btn">
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Vista de tabla (solo desktop) --}}
+                <div class="desktop-view" id="desktopTableView" style="display: none;">
                     <div class="table-container">
                         <table id="categoriesTable" class="modern-table">
                             <thead>
@@ -346,76 +416,6 @@
                             </button>
                             <div id="pageNumbers" class="page-numbers"></div>
                             <button id="nextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Vista de tarjetas (desktop) --}}
-                <div class="desktop-view" id="desktopCardsView" style="display: none;">
-                    <div class="cards-grid" id="cardsGrid">
-                        @foreach ($categories as $category)
-                            <div class="category-card" data-category-id="{{ $category->id }}" data-search="{{ strtolower($category->name . ' ' . ($category->description ?? '')) }}">
-                                <div class="card-header">
-                                    <div class="card-avatar">
-                                        <i class="fas fa-tag"></i>
-                                    </div>
-                                    <div class="card-badge">
-                                        <span>ID: {{ $category->id }}</span>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="card-title">{{ $category->name }}</h4>
-                                    <p class="card-description">{{ Str::limit($category->description, 150) ?? 'Sin descripción' }}</p>
-                                    <div class="card-meta">
-                                        <div class="meta-item">
-                                            <i class="fas fa-calendar"></i>
-                                            <span>{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y') }}</span>
-                                        </div>
-                                        <div class="meta-item">
-                                            <i class="fas fa-clock"></i>
-                                            <span>{{ \Carbon\Carbon::parse($category->created_at)->format('H:i') }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-actions">
-                                    @can('categories.show')
-                                        <button type="button" class="card-btn card-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver Detalles">
-                                            <i class="fas fa-eye"></i>
-                                            <span>Ver</span>
-                                        </button>
-                                    @endcan
-                                    @can('categories.edit')
-                                        <a href="{{ route('admin.categories.edit', $category->id) }}" class="card-btn card-btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                            <span>Editar</span>
-                                        </a>
-                                    @endcan
-                                    @can('categories.destroy')
-                                        <button type="button" class="card-btn card-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                            <span>Eliminar</span>
-                                        </button>
-                                    @endcan
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    {{-- Paginación para tarjetas --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $categories->count()) }} de {{ $categories->count() }} registros</span>
-                        </div>
-                        <div class="pagination-controls">
-                            <button id="cardsPrevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="cardsPageNumbers" class="page-numbers"></div>
-                            <button id="cardsNextPage" class="pagination-btn">
                                 Siguiente
                                 <i class="fas fa-chevron-right"></i>
                             </button>
@@ -1315,6 +1315,10 @@
         gap: 0.5rem;
     }
 
+    .desktop-only {
+        display: flex;
+    }
+
     .view-toggle {
         background: white;
         color: #64748b;
@@ -1348,9 +1352,121 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+        .main-container {
+            padding: 1rem;
+        }
+
+        .floating-header {
+            position: relative;
+            top: auto;
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .header-left {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .header-icon-wrapper {
+            width: 40px;
+            height: 40px;
+        }
+
+        .header-icon {
+            font-size: 1.2rem;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.85rem;
+        }
+
+        .header-actions {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .btn-glass {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .stats-dashboard {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .stat-card {
+            padding: 1rem;
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+        }
+
+        .stat-trend {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .filters-section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters-header {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters-title {
+            font-size: 1rem;
+        }
+
+        .filters-text h3 {
+            font-size: 1rem;
+        }
+
+        .filters-text p {
+            font-size: 0.8rem;
+        }
+
         .filters-grid {
             grid-template-columns: 1fr;
             gap: 1rem;
+        }
+
+        .filter-group {
+            padding: 1rem;
         }
 
         .filters-actions {
@@ -1367,105 +1483,177 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
+            padding: 1rem;
         }
 
         .title-content {
             flex-direction: column;
             text-align: center;
+            gap: 0.5rem;
         }
 
         .title-icon {
-            width: 50px;
-            height: 50px;
-            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
         }
 
         .title-content h3 {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
         }
 
         .title-content p {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .content-actions {
             width: 100%;
-            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .search-container {
             max-width: none;
+            width: 100%;
+        }
+
+        .search-input {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            font-size: 0.9rem;
         }
 
         .view-toggles {
             justify-content: center;
+            width: 100%;
         }
 
-        .stats-grid {
-            grid-template-columns: 1fr;
+        .desktop-only {
+            display: none !important;
         }
 
-        .stat-card {
-            flex-direction: column;
-            text-align: center;
-            gap: 0.75rem;
+        .view-toggle {
+            flex: 1;
+            justify-content: center;
+            padding: 0.75rem;
+            font-size: 0.85rem;
         }
 
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            font-size: 1.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
+        .content-body {
+            padding: 1rem;
         }
     }
 
     @media (max-width: 480px) {
+        .main-container {
+            padding: 0.75rem;
+        }
+
+        .floating-header {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .header-icon-wrapper {
+            width: 36px;
+            height: 36px;
+        }
+
+        .header-icon {
+            font-size: 1rem;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.8rem;
+        }
+
+        .btn-glass {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .stats-dashboard {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .stat-card {
+            padding: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+        }
+
+        .stat-trend {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.3rem;
+        }
+
         .filters-section {
-            padding: 1rem;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
         }
 
         .filters-header {
-            padding: 1.25rem 1.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.75rem;
         }
 
         .filters-title {
-            font-size: 1.1rem;
-        }
-
-        .filters-text h3 {
-            font-size: 1.1rem;
-        }
-
-        .filters-text p {
-            font-size: 0.8rem;
-        }
-
-        .filter-group {
-            padding: 1rem;
-        }
-
-        .filter-label {
             font-size: 0.9rem;
         }
 
-        .filter-input {
-            padding: 0.75rem 1rem 0.75rem 2rem;
-            font-size: 0.875rem;
+        .filters-text h3 {
+            font-size: 0.9rem;
         }
 
-        .filter-input-icon {
+        .filters-text p {
+            font-size: 0.75rem;
+        }
+
+        .filter-group {
+            padding: 0.75rem;
+        }
+
+        .filter-label {
             font-size: 0.8rem;
         }
 
+        .filter-input {
+            padding: 0.5rem 0.75rem 0.5rem 2rem;
+            font-size: 0.8rem;
+        }
+
+        .filter-input-icon {
+            font-size: 0.75rem;
+        }
+
         .filter-input-border {
-            height: 1.5px;
+            height: 1px;
         }
 
         .filters-actions {
-            padding-top: 1rem;
+            padding-top: 0.75rem;
         }
 
         .filters-status {
@@ -1475,11 +1663,11 @@
         }
 
         .status-text {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .filter-badge {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .filters-buttons {
@@ -1490,37 +1678,54 @@
         .btn-modern {
             width: 100%;
             justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
         }
 
         .content-card {
-            border-radius: 20px;
+            border-radius: 16px;
         }
 
         .content-header {
-            padding: 1.5rem;
+            padding: 0.75rem;
         }
 
         .title-content {
             flex-direction: column;
             text-align: center;
+            gap: 0.5rem;
         }
 
         .title-icon {
-            width: 50px;
-            height: 50px;
-            font-size: 1.25rem;
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
         }
 
         .title-content h3 {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
         }
 
         .title-content p {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
+        }
+
+        .content-actions {
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+            font-size: 0.8rem;
+        }
+
+        .view-toggle {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
         }
 
         .content-body {
-            padding: 1.5rem;
+            padding: 0.75rem;
         }
     }
 
@@ -1697,14 +1902,14 @@
     /* Tarjetas de Categorías */
     .cards-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
     .category-card {
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         box-shadow: var(--shadow-light);
         overflow: hidden;
         transition: all 0.3s ease;
@@ -1713,8 +1918,8 @@
     }
 
     .category-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-heavy);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-medium);
     }
 
     .category-card::before {
@@ -1723,7 +1928,7 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
+        height: 3px;
         background: var(--gradient-primary);
         opacity: 0;
         transition: opacity 0.3s ease;
@@ -1735,7 +1940,7 @@
 
     .card-header {
         background: var(--gradient-primary);
-        padding: 2rem;
+        padding: 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1755,15 +1960,15 @@
     }
 
     .card-avatar {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         background: rgba(255,255,255,0.2);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         position: relative;
         z-index: 1;
         backdrop-filter: blur(10px);
@@ -1772,9 +1977,9 @@
     .card-badge {
         background: rgba(255,255,255,0.2);
         color: white;
-        padding: 0.75rem 1.25rem;
-        border-radius: 25px;
-        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
         font-weight: 600;
         position: relative;
         z-index: 1;
@@ -1782,76 +1987,76 @@
     }
 
     .card-body {
-        padding: 2rem;
+        padding: 1.5rem;
         background: white;
     }
 
     .card-title {
         color: var(--dark-color);
-        font-size: 1.4rem;
-        font-weight: 800;
-        margin: 0 0 1rem 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0 0 0.75rem 0;
         line-height: 1.3;
     }
 
     .card-description {
         color: #64748b;
-        font-size: 1rem;
-        line-height: 1.6;
-        margin: 0 0 1.5rem 0;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0 0 1rem 0;
         font-weight: 500;
     }
 
     .card-meta {
         display: flex;
-        gap: 1.5rem;
+        gap: 1rem;
         flex-wrap: wrap;
-        padding: 1rem;
+        padding: 0.75rem;
         background: #f8fafc;
-        border-radius: 12px;
+        border-radius: 10px;
         border: 1px solid #e2e8f0;
     }
 
     .meta-item {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         color: #64748b;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         font-weight: 600;
     }
 
     .meta-item i {
         color: var(--primary-color);
-        font-size: 1rem;
+        font-size: 0.9rem;
         background: rgba(102, 126, 234, 0.1);
-        padding: 0.5rem;
-        border-radius: 8px;
+        padding: 0.4rem;
+        border-radius: 6px;
     }
 
     .card-actions {
-        padding: 1.5rem 2rem;
+        padding: 1rem 1.5rem;
         background: #f8fafc;
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem;
         flex-wrap: wrap;
         border-top: 1px solid #e2e8f0;
     }
 
     .card-btn {
         flex: 1;
-        min-width: 100px;
-        padding: 0.875rem 1.25rem;
+        min-width: 80px;
+        padding: 0.75rem 1rem;
         border: none;
-        border-radius: 12px;
-        font-size: 0.9rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
         text-decoration: none;
         position: relative;
         overflow: hidden;
@@ -1909,12 +2114,12 @@
         .mobile-cards {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .mobile-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: var(--shadow-light);
             overflow: hidden;
             border: 1px solid var(--border-color);
@@ -1922,15 +2127,15 @@
         }
 
         .mobile-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
         }
 
         .mobile-card-header {
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             background: var(--gradient-primary);
             color: white;
             position: relative;
@@ -1949,14 +2154,14 @@
         }
 
         .mobile-avatar {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             position: relative;
             z-index: 1;
             backdrop-filter: blur(10px);
@@ -1969,29 +2174,29 @@
         }
 
         .mobile-title {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 700;
             margin: 0;
             line-height: 1.3;
         }
 
         .mobile-id {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.8;
-            margin-top: 0.25rem;
+            margin-top: 0.2rem;
             display: block;
         }
 
         .mobile-actions {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
             position: relative;
             z-index: 1;
         }
 
         .mobile-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
             border-radius: 50%;
             background: rgba(255,255,255,0.2);
@@ -2001,7 +2206,7 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1rem;
+            font-size: 0.9rem;
             text-decoration: none;
             backdrop-filter: blur(10px);
         }
@@ -2012,15 +2217,15 @@
         }
 
         .mobile-card-body {
-            padding: 1.5rem;
+            padding: 1rem;
             background: white;
         }
 
         .mobile-description {
             color: #64748b;
-            font-size: 1rem;
-            line-height: 1.5;
-            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin: 0 0 0.75rem 0;
             font-weight: 500;
         }
 
@@ -2028,15 +2233,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
+            padding: 0.75rem;
             background: #f8fafc;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid #e2e8f0;
         }
 
         .mobile-date {
             color: #64748b;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
         }
     }
@@ -2351,67 +2556,242 @@
             flex-direction: column;
             gap: 1rem;
             text-align: center;
+            padding: 1rem;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            gap: 0.5rem;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .page-number {
+            width: 36px;
+            height: 36px;
+            font-size: 0.85rem;
         }
 
         .cards-grid {
             grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .category-card {
+            border-radius: 12px;
+        }
+
+        .card-header {
+            padding: 0.75rem;
+        }
+
+        .card-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .card-badge {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .card-body {
+            padding: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            font-size: 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-meta {
+            padding: 0.5rem;
+            gap: 0.75rem;
+        }
+
+        .meta-item {
+            font-size: 0.75rem;
+            gap: 0.4rem;
+        }
+
+        .meta-item i {
+            font-size: 0.8rem;
+            padding: 0.3rem;
         }
 
         .card-actions {
             flex-direction: column;
+            gap: 0.4rem;
+            padding: 0.75rem;
         }
 
         .card-btn {
             min-width: auto;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            gap: 0.3rem;
         }
 
         .modal-container {
             max-width: 95%;
-            border-radius: 20px;
-        }
-
-        .modal-header {
-            padding: 1.5rem 2rem;
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-content-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1.5rem 2rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .modal-container {
-            max-width: 98%;
             border-radius: 16px;
         }
 
         .modal-header {
-            padding: 1.25rem 1.5rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
         }
 
         .modal-body {
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
-        .modal-footer {
-            padding: 1.25rem 1.5rem;
+        .modal-content-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .modal-detail-item {
-            padding: 1.25rem;
+            padding: 1rem;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .custom-pagination {
+            padding: 0.75rem;
+        }
+
+        .pagination-info {
+            font-size: 0.8rem;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .page-number {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+
+        .category-card {
+            border-radius: 10px;
+        }
+
+        .card-header {
+            padding: 0.5rem;
+        }
+
+        .card-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+        }
+
+        .card-badge {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        .card-body {
+            padding: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .card-description {
+            font-size: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .card-meta {
+            padding: 0.4rem;
+            gap: 0.6rem;
+        }
+
+        .meta-item {
+            font-size: 0.7rem;
+            gap: 0.3rem;
+        }
+
+        .meta-item i {
+            font-size: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        .card-actions {
+            padding: 0.5rem;
+        }
+
+        .card-btn {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.75rem;
+            gap: 0.25rem;
+        }
+
+        .modal-container {
+            max-width: 98%;
+            border-radius: 12px;
+        }
+
+        .modal-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .modal-title {
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: 0.75rem;
+        }
+
+        .modal-detail-item {
+            padding: 0.75rem;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+        }
+
+        .detail-value {
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            padding: 0.75rem 1rem;
         }
     }
 
@@ -2444,7 +2824,7 @@
 @push('js')
 <script>
     // Variables globales
-    let currentViewMode = 'table';
+    let currentViewMode = 'cards';
     let currentPage = 1;
     const itemsPerPage = 10;
     const cardsPerPage = 12;
@@ -2468,8 +2848,8 @@
             currentViewMode = savedViewMode;
             changeViewMode(savedViewMode);
         } else {
-            // Modo por defecto: tabla
-            changeViewMode('table');
+            // Modo por defecto: tarjetas
+            changeViewMode('cards');
         }
 
         // Obtener todas las categorías
