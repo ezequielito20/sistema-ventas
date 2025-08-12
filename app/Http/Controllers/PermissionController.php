@@ -30,8 +30,9 @@ class PermissionController extends Controller
    {
       try {
          $company = $this->company;
-         // Obtener todos los permisos ordenados por nombre
-         $permissions = Permission::with(['roles', 'users'])
+         
+         // Obtener todos los permisos para estadísticas
+         $allPermissions = Permission::with(['roles', 'users'])
             ->orderBy('name', 'asc')
             ->get()
             ->map(function ($permission) {
@@ -48,23 +49,37 @@ class PermissionController extends Controller
             });
 
          // Calcular estadísticas para los widgets
-         $totalPermissions = $permissions->count();
+         $totalPermissions = $allPermissions->count();
 
          // Permisos activos (los que están en uso por roles o usuarios)
-         $activePermissions = $permissions->filter(function ($permission) {
+         $activePermissions = $allPermissions->filter(function ($permission) {
             return $permission->roles->count() > 0 || $permission->users->count() > 0;
          })->count();
 
          // Contar roles únicos que tienen permisos asignados
-         $rolesCount = $permissions->pluck('roles')->flatten()->unique('id')->count();
+         $rolesCount = $allPermissions->pluck('roles')->flatten()->unique('id')->count();
 
          // Permisos sin usar (los que no están asignados a ningún rol ni usuario)
-         $unusedPermissions = $permissions->filter(function ($permission) {
+         $unusedPermissions = $allPermissions->filter(function ($permission) {
             return $permission->roles->count() === 0 && $permission->users->count() === 0;
          })->count();
 
-         
-         
+         // Obtener permisos paginados para la tabla
+         $permissions = Permission::with(['roles', 'users'])
+            ->orderBy('name', 'asc')
+            ->paginate(10)
+            ->through(function ($permission) {
+               // Obtener usuarios que tienen el permiso a través de roles
+               $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
+                  $query->whereHas('permissions', function ($q) use ($permission) {
+                     $q->where('permissions.id', $permission->id);
+                  });
+               })->count();
+
+               // Añadir el conteo de usuarios al objeto de permiso
+               $permission->users_count = $usersViaRoles;
+               return $permission;
+            });
 
          return view('admin.permissions.index', compact(
             'permissions',
@@ -175,18 +190,37 @@ class PermissionController extends Controller
    {
       try {
          $permission = Permission::with(['roles', 'users'])->findOrFail($id);
+         
+         // Obtener usuarios que tienen el permiso a través de roles
+         $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
+            $query->whereHas('permissions', function ($q) use ($permission) {
+               $q->where('permissions.id', $permission->id);
+            });
+         })->count();
 
-         return response()->json([
+         // Preparar datos para la respuesta
+         $permissionData = [
+            'id' => $permission->id,
             'name' => $permission->name,
             'guard_name' => $permission->guard_name,
-            'roles' => $permission->roles->pluck('name'),
-            'users' => $permission->users->pluck('name'),
-            'created_at' => $permission->created_at->format('d/m/Y H:i:s'),
-            'updated_at' => $permission->updated_at->format('d/m/Y H:i:s')
+            'roles_count' => $permission->roles->count(),
+            'users_count' => $usersViaRoles,
+            'created_at' => $permission->created_at->format('d/m/Y H:i'),
+            'updated_at' => $permission->updated_at->format('d/m/Y H:i'),
+            'roles' => $permission->roles->pluck('name')->toArray(),
+            'users' => [] // Por simplicidad, no mostramos nombres de usuarios
+         ];
+
+         return response()->json([
+            'status' => 'success',
+            'permission' => $permissionData
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al mostrar permiso: ' . $e->getMessage());
-         return response()->json(['error' => 'Error al obtener los detalles del permiso'], 500);
+         Log::error('Error al obtener detalles del permiso: ' . $e->getMessage());
+         return response()->json([
+            'status' => 'error',
+            'message' => 'No se pudieron obtener los datos del permiso'
+         ], 500);
       }
    }
 

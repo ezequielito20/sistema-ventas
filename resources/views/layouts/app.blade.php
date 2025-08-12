@@ -162,6 +162,11 @@
             transform: scale(1.05);
         }
         
+        /* Prevenir flash del sidebar antes de que Alpine.js se inicialice */
+        [x-cloak] {
+            display: none !important;
+        }
+        
         /* Estilos para el header de la página */
         .flex.items-center.justify-between {
             display: flex;
@@ -196,6 +201,7 @@
     <div class="flex h-screen">
         <!-- Sidebar para móviles (overlay) -->
         <div x-show="sidebarOpen" 
+             x-cloak
              x-transition:enter="transition-opacity ease-linear duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -208,6 +214,7 @@
 
         <!-- Sidebar -->
         <div x-show="sidebarOpen" 
+             x-cloak
              x-transition:enter="transition ease-in-out duration-300 transform"
              x-transition:enter-start="-translate-x-full"
              x-transition:enter-end="translate-x-0"
@@ -405,6 +412,7 @@
                         
                         <!-- Notifications dropdown -->
                         <div x-show="open" 
+                             x-cloak
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -450,6 +458,7 @@
                         
                         <!-- User dropdown -->
                         <div x-show="open" 
+                             x-cloak
                              x-transition:enter="transition ease-out duration-100"
                              x-transition:enter-start="transform opacity-0 scale-95"
                              x-transition:enter-end="transform opacity-100 scale-100"
@@ -498,6 +507,10 @@
     <!-- jQuery (necesario para DataTables y otros scripts) -->
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     
+    <!-- Bootstrap CSS y JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
     
@@ -506,7 +519,7 @@
     <script>
         function appLayout() {
             return {
-                sidebarOpen: window.innerWidth >= 1024,
+                sidebarOpen: false, // Estado inicial cerrado
                 
                 init() {
                     // Mostrar/ocultar botón de toggle según el tamaño de pantalla
@@ -526,6 +539,18 @@
                     // Ejecutar cuando cambie el tamaño de la ventana
                     window.addEventListener('resize', updateButtonVisibility);
                     
+                    // Manejar el estado del sidebar en localStorage
+                    const savedState = localStorage.getItem('sidebarOpen');
+                    if (savedState !== null) {
+                        // Solo cargar el estado guardado si estamos en desktop
+                        if (window.innerWidth >= 1024) {
+                            this.sidebarOpen = JSON.parse(savedState);
+                        }
+                    } else {
+                        // Si no hay estado guardado, establecer según el tamaño de pantalla
+                        this.sidebarOpen = window.innerWidth >= 1024;
+                    }
+
                     // Cerrar sidebar en móviles al hacer clic en un enlace
                     this.$watch('sidebarOpen', value => {
                         if (value && window.innerWidth < 1024) {
@@ -535,19 +560,24 @@
                         }
                     });
 
-                    // Manejar el estado del sidebar en localStorage
-                    const savedState = localStorage.getItem('sidebarOpen');
-                    if (savedState !== null) {
-                        this.sidebarOpen = JSON.parse(savedState);
-                    }
-
-                    // Guardar el estado cuando cambie
+                    // Guardar el estado cuando cambie (solo en desktop)
                     this.$watch('sidebarOpen', value => {
-                        localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                        if (window.innerWidth >= 1024) {
+                            localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                        }
+                    });
+                    
+                    // Manejar cambios de tamaño de ventana
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth < 1024) {
+                            // En móviles, siempre cerrar el sidebar
+                            this.sidebarOpen = false;
+                        }
                     });
                 }
             }
         }
     </script>
+    @include('debugbar-include')
 </body>
 </html>
