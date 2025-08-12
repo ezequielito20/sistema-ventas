@@ -208,8 +208,7 @@
              x-transition:leave="transition-opacity ease-linear duration-300"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-             @click="sidebarOpen = false">
+             class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden">
         </div>
 
         <!-- Sidebar -->
@@ -221,8 +220,7 @@
              x-transition:leave="transition ease-in-out duration-300 transform"
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full"
-             class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:inset-0"
-             @click.away="sidebarOpen = false">
+             class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:inset-0">
         
         <!-- Logo -->
         <div class="flex items-center justify-between h-16 px-6 border-b border-blue-700">
@@ -550,15 +548,6 @@
                         // Si no hay estado guardado, establecer según el tamaño de pantalla
                         this.sidebarOpen = window.innerWidth >= 1024;
                     }
-
-                    // Cerrar sidebar en móviles al hacer clic en un enlace
-                    this.$watch('sidebarOpen', value => {
-                        if (value && window.innerWidth < 1024) {
-                            document.body.style.overflow = 'hidden';
-                        } else {
-                            document.body.style.overflow = '';
-                        }
-                    });
 
                     // Guardar el estado cuando cambie (solo en desktop)
                     this.$watch('sidebarOpen', value => {
