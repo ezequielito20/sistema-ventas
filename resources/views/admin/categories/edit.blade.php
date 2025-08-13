@@ -25,15 +25,15 @@
             </div>
             <div class="header-actions">
                 <button onclick="goBack()" class="btn-glass btn-secondary-glass">
-                    <i class="fas fa-arrow-left"></i>
+                            <i class="fas fa-arrow-left"></i>
                     <span>Volver</span>
                     <div class="btn-ripple"></div>
                 </button>
                 <button type="submit" form="categoryForm" class="btn-glass btn-primary-glass">
-                    <i class="fas fa-save"></i>
+                            <i class="fas fa-save"></i>
                     <span>Actualizar</span>
                     <div class="btn-ripple"></div>
-                </button>
+                        </button>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
                 <div class="progress-step active">
                     <div class="step-icon">
                         <i class="fas fa-edit"></i>
-                    </div>
+                </div>
                     <span>Editar Información</span>
                 </div>
                 <div class="progress-line"></div>
@@ -57,12 +57,12 @@
                     <span>Completar</span>
                 </div>
             </div>
-
+            
             <!-- Form Content -->
             <div class="form-content">
-                <form id="categoryForm" action="{{ route('admin.categories.update', $category->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
+            <form id="categoryForm" action="{{ route('admin.categories.update', $category->id) }}" method="POST">
+                @csrf
+                @method('PUT')
                     
                     <!-- Name Field -->
                     <div class="field-group">
@@ -70,35 +70,35 @@
                             <label for="name" class="field-label">
                                 <div class="label-content">
                                     <div class="label-icon">
-                                        <i class="fas fa-tag"></i>
+                            <i class="fas fa-tag"></i>
                                     </div>
                                     <span>Nombre de la Categoría</span>
                                     <span class="required-indicator">*</span>
                                 </div>
-                            </label>
+                        </label>
                             
                             <div class="input-container">
                                 <div class="input-wrapper">
                                     <div class="input-icon">
-                                        <i class="fas fa-tag"></i>
-                                    </div>
-                                    <input type="text" 
-                                           id="name" 
-                                           name="name" 
-                                           value="{{ old('name', $category->name) }}" 
+                                    <i class="fas fa-tag"></i>
+                            </div>
+                            <input type="text" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name', $category->name) }}" 
                                            class="modern-input @error('name') error @enderror"
-                                           placeholder="Ej: Electrónicos, Ropa, Hogar..."
-                                           required>
+                                   placeholder="Ej: Electrónicos, Ropa, Hogar..."
+                                   required>
                                     <div class="input-border"></div>
                                     <div class="input-focus-effect"></div>
-                                </div>
+                        </div>
                                 
-                                @error('name')
+                        @error('name')
                                     <div class="error-message">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-exclamation-triangle"></i>
                                         <span>{{ $message }}</span>
-                                    </div>
-                                @enderror
+                            </div>
+                        @enderror
                                 
                                 <div class="field-help">
                                     <i class="fas fa-info-circle"></i>
@@ -114,34 +114,34 @@
                             <label for="description" class="field-label">
                                 <div class="label-content">
                                     <div class="label-icon">
-                                        <i class="fas fa-align-left"></i>
+                            <i class="fas fa-align-left"></i>
                                     </div>
                                     <span>Descripción</span>
                                     <span class="optional-indicator">Opcional</span>
                                 </div>
-                            </label>
+                        </label>
                             
                             <div class="input-container">
                                 <div class="textarea-wrapper">
                                     <div class="input-icon">
-                                        <i class="fas fa-align-left"></i>
-                                    </div>
+                                    <i class="fas fa-align-left"></i>
+                            </div>
                                     <textarea id="description" 
-                                              name="description" 
-                                              rows="4" 
+                                      name="description" 
+                                      rows="4" 
                                               class="modern-textarea @error('description') error @enderror"
                                               placeholder="Describe qué tipo de productos incluye esta categoría...">{{ old('description', $category->description) }}</textarea>
                                     <div class="input-border"></div>
                                     <div class="input-focus-effect"></div>
-                                </div>
+                        </div>
                                 
-                                @error('description')
+                        @error('description')
                                     <div class="error-message">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-exclamation-triangle"></i>
                                         <span>{{ $message }}</span>
-                                    </div>
-                                @enderror
-                                
+                            </div>
+                        @enderror
+                        
                                 <div class="field-help">
                                     <i class="fas fa-lightbulb"></i>
                                     <span>Ayuda a organizar y encontrar productos más fácilmente</span>
@@ -188,45 +188,45 @@
         
         <!-- Category Info Card -->
         <div class="info-card" id="infoCard">
-            <div class="info-header">
+                        <div class="info-header">
                 <div class="info-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                 <h3>Información de la Categoría</h3>
             </div>
             <div class="info-content">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">ID de Categoría</div>
-                        <div class="info-value">{{ $category->id }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Fecha de Creación</div>
-                        <div class="info-value">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y H:i') }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Última Actualización</div>
-                        <div class="info-value">{{ \Carbon\Carbon::parse($category->updated_at)->format('d/m/Y H:i') }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Estado</div>
-                        <div class="info-value">
-                            <span class="status-badge status-active">
-                                <i class="fas fa-check-circle"></i>
-                                Activa
-                            </span>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">ID de Categoría</div>
+                                <div class="info-value">{{ $category->id }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Fecha de Creación</div>
+                                <div class="info-value">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y H:i') }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Última Actualización</div>
+                                <div class="info-value">{{ \Carbon\Carbon::parse($category->updated_at)->format('d/m/Y H:i') }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Estado</div>
+                                <div class="info-value">
+                                    <span class="status-badge status-active">
+                                        <i class="fas fa-check-circle"></i>
+                                        Activa
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
+                    </div>
+                </div>
 
 @push('css')
-<style>
+    <style>
     /* ===== VARIABLES GLOBALES ===== */
-    :root {
+        :root {
         /* Colores principales */
         --primary-50: #f0f9ff;
         --primary-100: #e0f2fe;
@@ -344,7 +344,7 @@
         position: relative;
         max-width: 1400px;
         margin: 0 auto;
-        padding: 2rem;
+            padding: 2rem;
         min-height: 100vh;
         z-index: 1;
     }
@@ -352,7 +352,7 @@
     /* ===== HEADER FLOTANTE ===== */
     .floating-header {
         position: relative;
-        margin-bottom: 2rem;
+            margin-bottom: 2rem;
         animation: slideDown 0.6s ease-out;
         z-index: 10;
     }
@@ -364,9 +364,9 @@
         border-radius: var(--border-radius-lg);
         padding: 1.5rem 2rem;
         box-shadow: var(--shadow-xl);
-        display: flex;
+            display: flex;
         justify-content: space-between;
-        align-items: center;
+            align-items: center;
         gap: 2rem;
     }
 
@@ -384,7 +384,7 @@
         width: 64px;
         height: 64px;
         background: var(--gradient-primary);
-        border-radius: 50%;
+            border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -423,7 +423,7 @@
     }
 
     .header-actions {
-        display: flex;
+            display: flex;
         gap: 1rem;
     }
 
@@ -438,8 +438,8 @@
         color: var(--gray-700);
         font-weight: 600;
         text-decoration: none;
-        display: flex;
-        align-items: center;
+            display: flex;
+            align-items: center;
         gap: 0.5rem;
         transition: var(--transition-normal);
         overflow: hidden;
@@ -489,15 +489,15 @@
         align-items: start;
         position: relative;
         z-index: 1;
-    }
+        }
 
-    .form-card {
+        .form-card {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: var(--blur-backdrop);
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: var(--border-radius-xl);
         box-shadow: var(--shadow-2xl);
-        overflow: hidden;
+            overflow: hidden;
         animation: slideUp 0.8s ease-out 0.2s both;
         position: relative;
         z-index: 2;
@@ -535,13 +535,13 @@
     }
 
     .progress-step.active .step-icon {
-        background: var(--gradient-primary);
-        color: white;
+            background: var(--gradient-primary);
+            color: white;
         box-shadow: var(--glow-primary);
-    }
+        }
 
     .progress-step span {
-        font-weight: 600;
+            font-weight: 600;
         color: var(--gray-600);
         transition: var(--transition-normal);
     }
@@ -591,10 +591,10 @@
     }
 
     .label-content {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
     .label-icon {
         width: 32px;
@@ -609,7 +609,7 @@
     }
 
     .label-content span {
-        font-size: 1rem;
+            font-size: 1rem;
         font-weight: 700;
         color: var(--gray-800);
     }
@@ -659,11 +659,11 @@
     .input-icon {
         width: 48px;
         background: var(--gray-50);
-        display: flex;
-        align-items: center;
+            display: flex;
+            align-items: center;
         justify-content: center;
         color: var(--primary-500);
-        font-size: 1rem;
+            font-size: 1rem;
         border-right: 1px solid var(--gray-200);
     }
 
@@ -727,9 +727,9 @@
 
     /* ===== MENSAJES DE ERROR Y AYUDA ===== */
     .error-message {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         color: #ef4444;
         font-weight: 600;
         font-size: 0.875rem;
@@ -741,9 +741,9 @@
     }
 
     .field-help {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         color: var(--gray-500);
         font-size: 0.875rem;
         margin-top: 0.75rem;
@@ -781,7 +781,7 @@
         position: relative;
         padding: 0.875rem 1.75rem;
         border: none;
-        border-radius: 12px;
+            border-radius: 12px;
         font-weight: 600;
         font-size: 0.875rem;
         cursor: pointer;
@@ -796,9 +796,9 @@
     .btn-content {
         position: relative;
         z-index: 2;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
     }
 
     .btn-bg {
@@ -918,17 +918,17 @@
 
     .info-content {
         padding: 1.5rem;
-    }
+        }
 
-    .info-grid {
+        .info-grid {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-    }
+            gap: 1rem;
+        }
 
-    .info-item {
+        .info-item {
         background: var(--gray-50);
-        padding: 1rem;
+            padding: 1rem;
         border-radius: 12px;
         border: 1px solid var(--gray-200);
         transition: var(--transition-normal);
@@ -938,34 +938,34 @@
         background: white;
         box-shadow: var(--shadow-sm);
         transform: translateY(-1px);
-    }
+        }
 
-    .info-label {
+        .info-label {
         font-size: 0.75rem;
         color: var(--gray-500);
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         letter-spacing: 0.5px;
-    }
+        }
 
-    .info-value {
-        font-size: 1rem;
+        .info-value {
+            font-size: 1rem;
         color: var(--gray-800);
         font-weight: 600;
-    }
+        }
 
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
 
-    .status-active {
+        .status-active {
         background: rgba(16, 185, 129, 0.1);
         color: #10b981;
     }
@@ -1047,7 +1047,7 @@
         }
     }
 
-    @media (max-width: 768px) {
+        @media (max-width: 768px) {
         .main-container {
             padding: 1rem;
         }
@@ -1070,17 +1070,17 @@
 
         .form-content {
             padding: 2rem;
-        }
+            }
 
-        .form-actions {
-            flex-direction: column;
+            .form-actions {
+                flex-direction: column;
             gap: 1rem;
-        }
+            }
 
         .actions-left, .actions-right {
-            width: 100%;
-            justify-content: center;
-        }
+                width: 100%;
+                justify-content: center;
+            }
 
         .btn-modern {
             width: 100%;
@@ -1124,14 +1124,14 @@
         .btn-glass {
             padding: 0.625rem 1.25rem;
             font-size: 0.875rem;
+            }
         }
-    }
-</style>
+    </style>
 @endpush
 
 @push('js')
-<script>
-    $(document).ready(function() {
+    <script>
+        $(document).ready(function() {
         // Variables globales
         let formChanged = false;
         let typingTimer;
@@ -1269,24 +1269,24 @@
             });
 
             // Validación al enviar
-            $('#categoryForm').on('submit', function(e) {
-                const name = $('#name').val().trim();
-                const description = $('#description').val().trim();
-                
-                // Validar nombre
-                if (name.length === 0) {
-                    e.preventDefault();
+                    $('#categoryForm').on('submit', function(e) {
+                        const name = $('#name').val().trim();
+                        const description = $('#description').val().trim();
+                        
+                        // Validar nombre
+                        if (name.length === 0) {
+                            e.preventDefault();
                     showValidationError('El nombre de la categoría es obligatorio');
-                    $('#name').focus();
-                    return false;
-                }
-                
-                if (name.length > 255) {
-                    e.preventDefault();
+                            $('#name').focus();
+                            return false;
+                        }
+                        
+                        if (name.length > 255) {
+                            e.preventDefault();
                     showValidationError('El nombre no puede exceder los 255 caracteres');
-                    $('#name').focus();
-                    return false;
-                }
+                            $('#name').focus();
+                            return false;
+                        }
 
                 if (description.length > 500) {
                     e.preventDefault();
@@ -1333,7 +1333,7 @@
                 counter.css('color', '#ef4444');
             } else if (currentLength > maxLength - 50) {
                 counter.css('color', '#f59e0b');
-            } else {
+                        } else {
                 counter.css('color', '#94a3b8');
             }
         }
@@ -1459,11 +1459,11 @@
         }
 
         // Confirmación antes de salir si hay cambios
-        window.onbeforeunload = function() {
-            if (formChanged) {
-                return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
-            }
-        };
+                    window.onbeforeunload = function() {
+                        if (formChanged) {
+                            return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
+                        }
+                    };
 
         // Inicializar contador de caracteres
         updateCharCounter();
@@ -1539,7 +1539,7 @@
                 }
             </style>
         `);
-    });
-</script>
+        });
+    </script>
 @endpush
 @endsection

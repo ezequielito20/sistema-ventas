@@ -516,6 +516,29 @@
     
     @stack('js')
     
+    <!-- Manejo de notificaciones de sesión -->
+    @if(session('message'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const message = '{{ session('message') }}';
+                const icon = '{{ session('icons', 'info') }}';
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: icon === 'success' ? '¡Éxito!' : icon === 'error' ? 'Error' : 'Información',
+                        text: message,
+                        icon: icon,
+                        confirmButtonText: 'Entendido',
+                        timer: icon === 'success' ? 3000 : undefined,
+                        timerProgressBar: icon === 'success'
+                    });
+                } else {
+                    alert(message);
+                }
+            });
+        </script>
+    @endif
+    
     <script>
         function appLayout() {
             return {

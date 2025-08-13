@@ -15,7 +15,7 @@
                 <div class="header-icon-wrapper">
                     <div class="header-icon">
                         <i class="fas fa-tag"></i>
-                    </div>
+        </div>
                     <div class="icon-glow"></div>
                 </div>
                 <div class="header-text">
@@ -28,12 +28,12 @@
                     <i class="fas fa-arrow-left"></i>
                     <span>Volver</span>
                     <div class="btn-ripple"></div>
-                </button>
+            </button>
                 <button type="submit" form="categoryForm" class="btn-glass btn-primary-glass">
                     <i class="fas fa-save"></i>
                     <span>Guardar</span>
                     <div class="btn-ripple"></div>
-                </button>
+            </button>
             </div>
         </div>
     </div>
@@ -45,8 +45,8 @@
             <div class="progress-indicator">
                 <div class="progress-step active">
                     <div class="step-icon">
-                        <i class="fas fa-tag"></i>
-                    </div>
+                    <i class="fas fa-tag"></i>
+                </div>
                     <span>Información Básica</span>
                 </div>
                 <div class="progress-line"></div>
@@ -55,91 +55,91 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <span>Completar</span>
-                </div>
             </div>
-
+        </div>
+        
             <!-- Form Content -->
             <div class="form-content">
-                <form id="categoryForm" action="{{ route('admin.categories.store') }}" method="POST">
-                    @csrf
-                    
-                    <!-- Name Field -->
+            <form id="categoryForm" action="{{ route('admin.categories.store') }}" method="POST">
+                @csrf
+                
+                <!-- Name Field -->
                     <div class="field-group">
                         <div class="field-wrapper">
                             <label for="name" class="field-label">
                                 <div class="label-content">
                                     <div class="label-icon">
-                                        <i class="fas fa-tag"></i>
+                        <i class="fas fa-tag"></i>
                                     </div>
                                     <span>Nombre de la Categoría</span>
                                     <span class="required-indicator">*</span>
                                 </div>
-                            </label>
+                    </label>
                             
                             <div class="input-container">
                                 <div class="input-wrapper">
                                     <div class="input-icon">
-                                        <i class="fas fa-tag"></i>
-                                    </div>
-                                    <input type="text" 
-                                           id="name" 
-                                           name="name" 
-                                           value="{{ old('name') }}" 
+                                <i class="fas fa-tag"></i>
+                        </div>
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               value="{{ old('name') }}" 
                                            class="modern-input @error('name') error @enderror"
-                                           placeholder="Ej: Electrónicos, Ropa, Hogar..."
-                                           required>
+                               placeholder="Ej: Electrónicos, Ropa, Hogar..."
+                               required>
                                     <div class="input-border"></div>
                                     <div class="input-focus-effect"></div>
-                                </div>
+                    </div>
                                 
-                                @error('name')
+                    @error('name')
                                     <div class="error-message">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fas fa-exclamation-triangle"></i>
                                         <span>{{ $message }}</span>
-                                    </div>
-                                @enderror
+                        </div>
+                    @enderror
                                 
                                 <div class="field-help">
-                                    <i class="fas fa-info-circle"></i>
+                        <i class="fas fa-info-circle"></i>
                                     <span>Nombre descriptivo y único (máximo 255 caracteres)</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                </div>
 
-                    <!-- Description Field -->
+                <!-- Description Field -->
                     <div class="field-group">
                         <div class="field-wrapper">
                             <label for="description" class="field-label">
                                 <div class="label-content">
                                     <div class="label-icon">
-                                        <i class="fas fa-align-left"></i>
+                        <i class="fas fa-align-left"></i>
                                     </div>
                                     <span>Descripción</span>
                                     <span class="optional-indicator">Opcional</span>
                                 </div>
-                            </label>
+                    </label>
                             
                             <div class="input-container">
                                 <div class="textarea-wrapper">
                                     <div class="input-icon">
-                                        <i class="fas fa-align-left"></i>
-                                    </div>
-                                    <textarea id="description" 
-                                              name="description" 
-                                              rows="4" 
+                                <i class="fas fa-align-left"></i>
+                        </div>
+                        <textarea id="description" 
+                                  name="description" 
+                                  rows="4" 
                                               class="modern-textarea @error('description') error @enderror"
                                               placeholder="Describe qué tipo de productos incluye esta categoría...">{{ old('description') }}</textarea>
                                     <div class="input-border"></div>
                                     <div class="input-focus-effect"></div>
-                                </div>
+                    </div>
                                 
-                                @error('description')
+                    @error('description')
                                     <div class="error-message">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fas fa-exclamation-triangle"></i>
                                         <span>{{ $message }}</span>
-                                    </div>
-                                @enderror
+                        </div>
+                    @enderror
                                 
                                 <div class="field-help">
                                     <i class="fas fa-lightbulb"></i>
@@ -148,10 +148,10 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                </div>
 
                     <!-- Action Buttons -->
-                    <div class="form-actions">
+                <div class="form-actions">
                         <div class="actions-left">
                             <button type="button" onclick="resetForm()" class="btn-modern btn-reset">
                                 <div class="btn-content">
@@ -159,7 +159,7 @@
                                     <span>Limpiar</span>
                                 </div>
                                 <div class="btn-bg"></div>
-                            </button>
+                    </button>
                         </div>
                         
                         <div class="actions-right">
@@ -169,7 +169,7 @@
                                     <span>Cancelar</span>
                                 </div>
                                 <div class="btn-bg"></div>
-                            </button>
+                    </button>
                             
                             <button type="submit" id="submitCategory" class="btn-modern btn-submit">
                                 <div class="btn-content">
@@ -178,10 +178,10 @@
                                 </div>
                                 <div class="btn-bg"></div>
                                 <div class="btn-shine"></div>
-                            </button>
+                    </button>
                         </div>
-                    </div>
-                </form>
+                </div>
+            </form>
             </div>
         </div>
         
@@ -875,7 +875,7 @@
 
     .preview-header {
         background: var(--gradient-secondary);
-        padding: 1.5rem;
+            padding: 1.5rem;
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -902,8 +902,8 @@
     }
 
     .preview-content {
-        padding: 1.5rem;
-    }
+            padding: 1.5rem;
+        }
 
     .category-preview {
         display: flex;
@@ -1124,11 +1124,11 @@
                 card.css('opacity', '0');
                 
                 setTimeout(() => {
-                    if (document.referrer) {
-                        window.history.back();
-                    } else {
-                        window.location.href = '{{ route("admin.categories.index") }}';
-                    }
+                if (document.referrer) {
+                    window.history.back();
+                } else {
+                    window.location.href = '{{ route("admin.categories.index") }}';
+                }
                 }, 300);
             };
 
@@ -1136,14 +1136,14 @@
             window.resetForm = function() {
                 // Verificar si SweetAlert2 está disponible
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: '¿Limpiar formulario?',
-                        text: 'Se borrarán todos los datos ingresados',
-                        icon: 'question',
-                        showCancelButton: true,
+                Swal.fire({
+                    title: '¿Limpiar formulario?',
+                    text: 'Se borrarán todos los datos ingresados',
+                    icon: 'question',
+                    showCancelButton: true,
                         confirmButtonColor: '#0ea5e9',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Sí, limpiar',
+                    confirmButtonText: 'Sí, limpiar',
                         cancelButtonText: 'Cancelar',
                         customClass: {
                             popup: 'swal-modern-popup',
@@ -1151,8 +1151,8 @@
                             cancelButton: 'swal-modern-cancel'
                         },
                         backdrop: 'rgba(0,0,0,0.4)'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                }).then((result) => {
+                    if (result.isConfirmed) {
                             resetFormAction();
                         }
                     });
@@ -1174,9 +1174,9 @@
                 });
 
                 setTimeout(() => {
-                    $('#categoryForm')[0].reset();
+                        $('#categoryForm')[0].reset();
                     updatePreview();
-                    formChanged = false;
+                        formChanged = false;
                     
                     // Restaurar campos
                     $('.field-wrapper').css('transform', 'scale(1)');
@@ -1361,7 +1361,7 @@
                     },
                     backdrop: 'rgba(0,0,0,0.4)'
                 });
-            } else {
+                } else {
                 // Fallback si SweetAlert2 no está disponible
                 alert('Error de validación: ' + message);
             }
@@ -1451,11 +1451,11 @@
         }
 
         // Confirmación antes de salir si hay cambios
-        window.onbeforeunload = function() {
-            if (formChanged) {
-                return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
-            }
-        };
+            window.onbeforeunload = function() {
+                if (formChanged) {
+                    return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
+                }
+            };
 
         // Agregar estilos adicionales para animaciones
         $('head').append(`

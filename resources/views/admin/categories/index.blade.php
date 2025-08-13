@@ -15,7 +15,7 @@
                 <div class="header-icon-wrapper">
                     <div class="header-icon">
                         <i class="fas fa-tags"></i>
-                    </div>
+        </div>
                     <div class="icon-glow"></div>
                 </div>
                 <div class="header-text">
@@ -24,20 +24,20 @@
                 </div>
             </div>
             <div class="header-actions">
-                @can('categories.report')
+            @can('categories.report')
                     <a href="{{ route('admin.categories.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i>
                         <span>Reporte</span>
                         <div class="btn-ripple"></div>
-                    </a>
-                @endcan
-                @can('categories.create')
+                </a>
+            @endcan
+            @can('categories.create')
                     <a href="{{ route('admin.categories.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
                         <span>Nueva Categoría</span>
                         <div class="btn-ripple"></div>
-                    </a>
-                @endcan
+                </a>
+            @endcan
             </div>
         </div>
     </div>
@@ -47,60 +47,60 @@
         <div class="stats-grid">
             <div class="stat-card stat-primary">
                 <div class="stat-icon">
-                    <i class="fas fa-tags"></i>
-                </div>
+                            <i class="fas fa-tags"></i>
+                        </div>
                 <div class="stat-glow"></div>
                 <div class="stat-content">
                     <div class="stat-value">{{ $categories->count() }}</div>
                     <div class="stat-label">Total de Categorías</div>
                     <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->count() }}%</span>
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+{{ $categories->count() }}%</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card stat-success">
                 <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
+                            <i class="fas fa-check-circle"></i>
+                        </div>
                 <div class="stat-glow"></div>
                 <div class="stat-content">
                     <div class="stat-value">{{ $categories->count() }}</div>
                     <div class="stat-label">Activas</div>
                     <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+100%</span>
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+100%</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card stat-warning">
                 <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
+                            <i class="fas fa-clock"></i>
+                        </div>
                 <div class="stat-glow"></div>
                 <div class="stat-content">
                     <div class="stat-value">{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}</div>
                     <div class="stat-label">Esta Semana</div>
                     <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}%</span>
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}%</span>
                     </div>
                 </div>
             </div>
 
             <div class="stat-card stat-info">
                 <div class="stat-icon">
-                    <i class="fas fa-box"></i>
-                </div>
+                            <i class="fas fa-box"></i>
+                        </div>
                 <div class="stat-glow"></div>
                 <div class="stat-content">
                     <div class="stat-value">{{ $categories->where('products_count', '>', 0)->count() }}</div>
                     <div class="stat-label">Con Productos</div>
                     <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->where('products_count', '>', 0)->count() }}%</span>
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+{{ $categories->where('products_count', '>', 0)->count() }}%</span>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@
         <div class="filters-header" id="filtersHeader">
             <div class="filters-title">
                 <div class="filters-icon">
-                    <i class="fas fa-filter"></i>
+                <i class="fas fa-filter"></i>
                 </div>
                 <div class="filters-text">
                     <h3>Filtros Avanzados</h3>
@@ -135,7 +135,7 @@
                         <div class="filter-input-icon">
                             <i class="fas fa-search"></i>
                         </div>
-                        <input type="text" class="filter-input" id="categorySearch" placeholder="Buscar por nombre o descripción...">
+                    <input type="text" class="filter-input" id="categorySearch" placeholder="Buscar por nombre o descripción...">
                         <div class="filter-input-border"></div>
                     </div>
                 </div>
@@ -149,11 +149,11 @@
                         <div class="filter-input-icon">
                             <i class="fas fa-sort"></i>
                         </div>
-                        <select class="filter-input" id="sortBy">
-                            <option value="name">Nombre</option>
-                            <option value="created_at">Fecha de creación</option>
-                            <option value="updated_at">Última actualización</option>
-                        </select>
+                    <select class="filter-input" id="sortBy">
+                        <option value="name">Nombre</option>
+                        <option value="created_at">Fecha de creación</option>
+                        <option value="updated_at">Última actualización</option>
+                    </select>
                         <div class="filter-input-border"></div>
                     </div>
                 </div>
@@ -167,10 +167,10 @@
                         <div class="filter-input-icon">
                             <i class="fas fa-sort-amount-down"></i>
                         </div>
-                        <select class="filter-input" id="sortOrder">
-                            <option value="asc">Ascendente</option>
-                            <option value="desc">Descendente</option>
-                        </select>
+                    <select class="filter-input" id="sortOrder">
+                        <option value="asc">Ascendente</option>
+                        <option value="desc">Descendente</option>
+                    </select>
                         <div class="filter-input-border"></div>
                     </div>
                 </div>
@@ -186,14 +186,14 @@
                 <div class="filters-buttons">
                     <button class="btn-modern btn-apply" id="applyFilters">
                         <div class="btn-content">
-                            <i class="fas fa-filter"></i>
+                        <i class="fas fa-filter"></i>
                             <span>Aplicar Filtros</span>
                         </div>
                         <div class="btn-bg"></div>
                     </button>
                     <button class="btn-modern btn-clear" id="clearFilters">
                         <div class="btn-content">
-                            <i class="fas fa-times"></i>
+                        <i class="fas fa-times"></i>
                             <span>Limpiar</span>
                         </div>
                         <div class="btn-bg"></div>
@@ -209,37 +209,37 @@
             <!-- Content Header -->
             <div class="content-header">
                 <div class="content-title">
-                    <div class="title-icon">
+                <div class="title-icon">
                         <i class="fas fa-list"></i>
-                    </div>
-                    <div class="title-text">
-                        <h3>Lista de Categorías</h3>
-                        <p>Gestiona y visualiza todas las categorías del sistema</p>
-                    </div>
                 </div>
-                <div class="content-actions">
-                    <div class="search-container">
-                        <div class="search-wrapper">
-                            <div class="search-icon">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <input type="text" placeholder="Buscar categorías..." id="searchInput" class="search-input">
-                            <div class="search-border"></div>
-                        </div>
-                    </div>
-                    <div class="view-toggles desktop-only">
-                        <button class="view-toggle active" data-view="table">
-                            <i class="fas fa-table"></i>
-                            <span>Tabla</span>
-                        </button>
-                        <button class="view-toggle" data-view="cards">
-                            <i class="fas fa-th-large"></i>
-                            <span>Tarjetas</span>
-                        </button>
-                    </div>
+                    <div class="title-text">
+                    <h3>Lista de Categorías</h3>
+                    <p>Gestiona y visualiza todas las categorías del sistema</p>
                 </div>
             </div>
-            
+                <div class="content-actions">
+                <div class="search-container">
+                        <div class="search-wrapper">
+                            <div class="search-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                            <input type="text" placeholder="Buscar categorías..." id="searchInput" class="search-input">
+                            <div class="search-border"></div>
+                </div>
+                    </div>
+                    <div class="view-toggles desktop-only">
+                    <button class="view-toggle active" data-view="table">
+                        <i class="fas fa-table"></i>
+                        <span>Tabla</span>
+                    </button>
+                    <button class="view-toggle" data-view="cards">
+                        <i class="fas fa-th-large"></i>
+                        <span>Tarjetas</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
             <!-- Content Body -->
             <div class="content-body">
                 {{-- Vista de tarjetas (por defecto) --}}
@@ -314,154 +314,154 @@
 
                 {{-- Vista de tabla (solo desktop) --}}
                 <div class="desktop-view" id="desktopTableView" style="display: none;">
-                    <div class="table-container">
-                        <table id="categoriesTable" class="modern-table">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <div class="th-content">
-                                            <span>#</span>
+                <div class="table-container">
+                    <table id="categoriesTable" class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="th-content">
+                                        <span>#</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Nombre</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-align-left"></i>
+                                        <span>Descripción</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Creada</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-cogs"></i>
+                                        <span>Acciones</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            @foreach ($categories as $category)
+                                <tr class="table-row" data-category-id="{{ $category->id }}">
+                                    <td>
+                                        <div class="row-number">
+                                            {{ $loop->iteration }}
                                         </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-tag"></i>
-                                            <span>Nombre</span>
+                                    </td>
+                                    <td>
+                                        <div class="category-info">
+                                            <div class="category-avatar">
+                                                <i class="fas fa-tag"></i>
+                                            </div>
+                                            <div class="category-details">
+                                                <span class="category-name">{{ $category->name }}</span>
+                                                <span class="category-id">ID: {{ $category->id }}</span>
+                                            </div>
                                         </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-align-left"></i>
-                                            <span>Descripción</span>
+                                    </td>
+                                    <td>
+                                        <div class="description-info">
+                                            <span class="description-text">{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</span>
                                         </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-calendar"></i>
-                                            <span>Creada</span>
+                                    </td>
+                                    <td>
+                                        <div class="date-info">
+                                            <span class="date-main">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y') }}</span>
+                                            <span class="date-time">{{ \Carbon\Carbon::parse($category->created_at)->format('H:i') }}</span>
                                         </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-cogs"></i>
-                                            <span>Acciones</span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            @can('categories.show')
+                                                <button type="button" class="btn-action btn-view" onclick="showCategoryDetails({{ $category->id }})" data-toggle="tooltip" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            @endcan
+                                            @can('categories.edit')
+                                                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            @can('categories.destroy')
+                                                <button type="button" class="btn-action btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" data-toggle="tooltip" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endcan
                                         </div>
-                                    </th>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody id="categoriesTableBody">
-                                @foreach ($categories as $category)
-                                    <tr class="table-row" data-category-id="{{ $category->id }}">
-                                        <td>
-                                            <div class="row-number">
-                                                {{ $loop->iteration }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="category-info">
-                                                <div class="category-avatar">
-                                                    <i class="fas fa-tag"></i>
-                                                </div>
-                                                <div class="category-details">
-                                                    <span class="category-name">{{ $category->name }}</span>
-                                                    <span class="category-id">ID: {{ $category->id }}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="description-info">
-                                                <span class="description-text">{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="date-info">
-                                                <span class="date-main">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y') }}</span>
-                                                <span class="date-time">{{ \Carbon\Carbon::parse($category->created_at)->format('H:i') }}</span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                @can('categories.show')
-                                                    <button type="button" class="btn-action btn-view" onclick="showCategoryDetails({{ $category->id }})" data-toggle="tooltip" title="Ver Detalles">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                @endcan
-                                                @can('categories.edit')
-                                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                @endcan
-                                                @can('categories.destroy')
-                                                    <button type="button" class="btn-action btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" data-toggle="tooltip" title="Eliminar">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                @endcan
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Paginación personalizada --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="paginationInfo">Mostrando 1-{{ min(10, $categories->count()) }} de {{ $categories->count() }} registros</span>
-                        </div>
-                        <div class="pagination-controls">
-                            <button id="prevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="pageNumbers" class="page-numbers"></div>
-                            <button id="nextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
 
-                {{-- Vista móvil (siempre tarjetas) --}}
-                <div class="mobile-view">
-                    <div class="mobile-cards" id="mobileCards">
-                        @foreach ($categories as $category)
-                            <div class="mobile-card" data-category-id="{{ $category->id }}" data-search="{{ strtolower($category->name . ' ' . ($category->description ?? '')) }}">
-                                <div class="mobile-card-header">
-                                    <div class="mobile-avatar">
-                                        <i class="fas fa-tag"></i>
-                                    </div>
-                                    <div class="mobile-info">
-                                        <h4 class="mobile-title">{{ $category->name }}</h4>
-                                        <span class="mobile-id">ID: {{ $category->id }}</span>
-                                    </div>
-                                    <div class="mobile-actions">
-                                        @can('categories.show')
-                                            <button type="button" class="mobile-btn mobile-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        @endcan
-                                        @can('categories.edit')
-                                            <a href="{{ route('admin.categories.edit', $category->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endcan
-                                        @can('categories.destroy')
-                                            <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endcan
-                                    </div>
+                {{-- Paginación personalizada --}}
+                <div class="custom-pagination">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando 1-{{ min(10, $categories->count()) }} de {{ $categories->count() }} registros</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="prevPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            Anterior
+                        </button>
+                        <div id="pageNumbers" class="page-numbers"></div>
+                        <button id="nextPage" class="pagination-btn">
+                            Siguiente
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Vista móvil (siempre tarjetas) --}}
+            <div class="mobile-view">
+                <div class="mobile-cards" id="mobileCards">
+                    @foreach ($categories as $category)
+                        <div class="mobile-card" data-category-id="{{ $category->id }}" data-search="{{ strtolower($category->name . ' ' . ($category->description ?? '')) }}">
+                            <div class="mobile-card-header">
+                                <div class="mobile-avatar">
+                                    <i class="fas fa-tag"></i>
                                 </div>
-                                <div class="mobile-card-body">
-                                    <p class="mobile-description">{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</p>
-                                    <div class="mobile-meta">
-                                        <span class="mobile-date">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y H:i') }}</span>
-                                    </div>
+                                <div class="mobile-info">
+                                    <h4 class="mobile-title">{{ $category->name }}</h4>
+                                    <span class="mobile-id">ID: {{ $category->id }}</span>
+                                </div>
+                                <div class="mobile-actions">
+                                    @can('categories.show')
+                                        <button type="button" class="mobile-btn mobile-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('categories.edit')
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('categories.destroy')
+                                        <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </div>
-                        @endforeach
+                            <div class="mobile-card-body">
+                                <p class="mobile-description">{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</p>
+                                <div class="mobile-meta">
+                                    <span class="mobile-date">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y H:i') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                     </div>
                 </div>
             </div>
