@@ -168,8 +168,7 @@ class Product extends Model
          return asset('img/no-image.svg');
       }
       
-      $imageUrlService = new ImageUrlService();
-      return $imageUrlService->getImageUrl($this->image);
+      return ImageUrlService::getImageUrl($this->image);
    }
 
    /**

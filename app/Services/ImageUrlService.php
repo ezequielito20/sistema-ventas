@@ -19,17 +19,13 @@ class ImageUrlService
         // Normalizar el path - remover 'storage/' si está presente
         $imagePath = self::normalizePath($imagePath);
 
-        // En desarrollo local
+        // En desarrollo local - siempre usar storage público local
         if (app()->environment('local')) {
-            // Si el disco por defecto es S3, usar el bucket (para testing)
-            if (config('filesystems.default') === 's3') {
-                return self::getProductionImageUrl($imagePath, $fallbackImage);
-            }
-            
-            // Si el archivo existe en storage público local, usarlo
+            // Verificar si el archivo existe en storage público local
             if (Storage::disk('public')->exists($imagePath)) {
                 return Storage::disk('public')->url($imagePath);
             }
+            
             // Si no existe localmente, usar la imagen por defecto
             return asset($fallbackImage);
         }
