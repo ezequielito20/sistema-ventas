@@ -13,7 +13,7 @@ class SupplierPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.index');
     }
 
     /**
@@ -21,7 +21,7 @@ class SupplierPolicy
      */
     public function view(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.show') && $user->company_id === $supplier->company_id;
     }
 
     /**
@@ -29,7 +29,7 @@ class SupplierPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.create');
     }
 
     /**
@@ -37,7 +37,7 @@ class SupplierPolicy
      */
     public function update(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.edit') && $user->company_id === $supplier->company_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class SupplierPolicy
      */
     public function delete(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.destroy') && $user->company_id === $supplier->company_id;
     }
 
     /**
@@ -53,7 +53,7 @@ class SupplierPolicy
      */
     public function restore(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.restore') && $user->company_id === $supplier->company_id;
     }
 
     /**
@@ -61,6 +61,6 @@ class SupplierPolicy
      */
     public function forceDelete(User $user, Supplier $supplier): bool
     {
-        return false;
+        return $user->hasPermissionTo('suppliers.forceDelete') && $user->company_id === $supplier->company_id;
     }
 }

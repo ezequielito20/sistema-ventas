@@ -160,6 +160,15 @@ class SupplierController extends Controller
             'company_id' => Auth::user()->company_id
          ]);
 
+         // Si es una petición AJAX, devolver JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => true,
+               'message' => '¡Proveedor creado exitosamente!',
+               'supplier' => $supplier
+            ]);
+         }
+
          // Verificar si hay una URL de referencia guardada
          $referrerUrl = session('suppliers_referrer');
          if ($referrerUrl) {
@@ -176,6 +185,15 @@ class SupplierController extends Controller
             ->with('message', '¡Proveedor creado exitosamente!')
             ->with('icons', 'success');
       } catch (\Illuminate\Validation\ValidationException $e) {
+         // Si es una petición AJAX, devolver errores en JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Por favor, corrija los errores en el formulario.',
+               'errors' => $e->errors()
+            ], 422);
+         }
+
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -187,6 +205,14 @@ class SupplierController extends Controller
             'company_id' => Auth::user()->company_id,
             'data' => $request->all()
          ]);
+
+         // Si es una petición AJAX, devolver error en JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Hubo un problema al crear el proveedor. Por favor, inténtelo de nuevo.'
+            ], 500);
+         }
 
          return redirect()->back()
             ->withInput()
@@ -288,6 +314,14 @@ class SupplierController extends Controller
                'supplier_id' => $id
             ]);
 
+            // Si es una petición AJAX, devolver error en JSON
+            if ($request->ajax() || $request->wantsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'No tiene permiso para actualizar este proveedor'
+               ], 403);
+            }
+
             return redirect()->route('admin.suppliers.index')
                ->with('message', 'No tiene permiso para actualizar este proveedor')
                ->with('icons', 'error');
@@ -345,6 +379,15 @@ class SupplierController extends Controller
             'company_id' => Auth::user()->company_id
          ]);
 
+         // Si es una petición AJAX, devolver JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => true,
+               'message' => '¡Proveedor actualizado exitosamente!',
+               'supplier' => $supplier
+            ]);
+         }
+
          // Verificar si hay una URL de referencia guardada
          $referrerUrl = session('suppliers_referrer');
          if ($referrerUrl) {
@@ -361,6 +404,15 @@ class SupplierController extends Controller
             ->with('message', '¡Proveedor actualizado exitosamente!')
             ->with('icons', 'success');
       } catch (\Illuminate\Validation\ValidationException $e) {
+         // Si es una petición AJAX, devolver errores en JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Por favor, corrija los errores en el formulario.',
+               'errors' => $e->errors()
+            ], 422);
+         }
+
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -370,8 +422,17 @@ class SupplierController extends Controller
          Log::error('Error al actualizar proveedor: ' . $e->getMessage(), [
             'user_id' => Auth::user()->id,
             'supplier_id' => $id,
+            'company_id' => Auth::user()->company_id,
             'data' => $request->all()
          ]);
+
+         // Si es una petición AJAX, devolver error en JSON
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Hubo un problema al actualizar el proveedor. Por favor, inténtelo de nuevo.'
+            ], 500);
+         }
 
          return redirect()->back()
             ->withInput()

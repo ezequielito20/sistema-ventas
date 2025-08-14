@@ -507,9 +507,12 @@
     <!-- jQuery (necesario para DataTables y otros scripts) -->
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     
-    <!-- Bootstrap CSS y JS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap CSS y JS locales -->
+    <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="{{ asset('vendor/alpinejs/alpine.min.js') }}"></script>
     
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
