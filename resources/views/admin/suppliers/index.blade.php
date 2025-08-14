@@ -490,115 +490,115 @@
 </div>
 
 {{-- Modal para mostrar proveedor --}}
-<div class="modal fade" id="showSupplierModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-truck mr-2"></i>
-                    Detalles del Proveedor
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+<div class="modal-overlay" id="showSupplierModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-title">
+                <div class="title-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="title-text">
+                    <h3>Detalles del Proveedor</h3>
+                    <p>Información completa del proveedor seleccionado</p>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    {{-- Información de la empresa --}}
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-building mr-2"></i>
-                                    Información de la Empresa
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-sm">
-                                    <tr>
-                                        <th>Nombre:</th>
-                                        <td id="companyName"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Email:</th>
-                                        <td id="companyEmail"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Teléfono:</th>
-                                        <td id="companyPhone"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Dirección:</th>
-                                        <td id="companyAddress"></td>
-                                    </tr>
-                                </table>
-                            </div>
+            <button type="button" class="modal-close" onclick="closeSupplierModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="modal-content-grid">
+                {{-- Información de la empresa --}}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-icon">
+                            <i class="fas fa-building"></i>
                         </div>
+                        <h4>Información de la Empresa</h4>
                     </div>
-
-                    {{-- Información del contacto --}}
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-user mr-2"></i>
-                                    Información del Contacto
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-sm">
-                                    <tr>
-                                        <th>Nombre:</th>
-                                        <td id="supplierName"></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Teléfono:</th>
-                                        <td id="supplierPhone"></td>
-                                    </tr>
-                                </table>
-                            </div>
+                    <div class="info-card-body">
+                        <div class="info-item">
+                            <span class="info-label">Nombre:</span>
+                            <span class="info-value" id="companyName"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value" id="companyEmail"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Teléfono:</span>
+                            <span class="info-value" id="companyPhone"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Dirección:</span>
+                            <span class="info-value" id="companyAddress"></span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Estadísticas del Proveedor --}}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">
-                                    <i class="fas fa-box mr-2"></i>
-                                    Resumen de Productos Distribuidos
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Producto</th>
-                                                <th class="text-center">Cantidad</th>
-                                                <th class="text-right">Precio Unitario</th>
-                                                <th class="text-right">Sub Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="productDetails">
-                                            <!-- Los detalles se cargarán dinámicamente -->
-                                        </tbody>
-                                        <tfoot>
-                                            <tr>
-                                                <td colspan="3" class="text-right"><strong>Total General:</strong>
-                                                </td>
-                                                <td class="text-right"><strong id="grandTotal">0.00</strong></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
+                {{-- Información del contacto --}}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h4>Información del Contacto</h4>
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-item">
+                            <span class="info-label">Nombre:</span>
+                            <span class="info-value" id="supplierName"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Teléfono:</span>
+                            <span class="info-value" id="supplierPhone"></span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {{-- Estadísticas del Proveedor --}}
+            <div class="stats-section" id="productsDistributedSection" style="display: none;">
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <div class="stats-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h4>Resumen de Productos Distribuidos</h4>
+                    </div>
+                    <div class="stats-card-body">
+                        <div class="table-responsive">
+                            <table class="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Precio Unitario</th>
+                                        <th class="text-right">Sub Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productDetails">
+                                    <!-- Los detalles se cargarán dinámicamente -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-right"><strong>Total General:</strong></td>
+                                        <td class="text-right"><strong id="grandTotal">0.00</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn-modern btn-secondary" onclick="closeSupplierModal()">
+                <i class="fas fa-times"></i>
+                <span>Cerrar</span>
+            </button>
         </div>
     </div>
 </div>
@@ -1984,6 +1984,396 @@
         }
     }
 
+    /* ===== MODAL MODERNO ===== */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: var(--spacing-md);
+    }
+
+    .modal-overlay.show {
+        display: flex;
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .modal-container {
+        background: white;
+        border-radius: var(--border-radius-2xl);
+        box-shadow: var(--shadow-2xl);
+        max-width: 900px;
+        width: 100%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        padding: var(--spacing-xl);
+        border-bottom: 1px solid var(--secondary-200);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--gradient-secondary);
+    }
+
+    .modal-title {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+    }
+
+    .modal-title .title-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--gradient-primary);
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .modal-title .title-text h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--secondary-900);
+        margin: 0;
+    }
+
+    .modal-title .title-text p {
+        color: var(--secondary-600);
+        margin: var(--spacing-xs) 0 0 0;
+        font-size: 0.875rem;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: var(--border-radius-lg);
+        background: var(--secondary-100);
+        color: var(--secondary-600);
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        background: var(--secondary-200);
+        color: var(--secondary-800);
+    }
+
+    .modal-body {
+        padding: var(--spacing-xl);
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .modal-content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .info-card {
+        background: var(--secondary-50);
+        border: 1px solid var(--secondary-200);
+        border-radius: var(--border-radius-xl);
+        overflow: hidden;
+    }
+
+    .info-card-header {
+        padding: var(--spacing-lg);
+        background: var(--gradient-secondary);
+        border-bottom: 1px solid var(--secondary-200);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--gradient-primary);
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .info-card-header h4 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--secondary-900);
+        margin: 0;
+    }
+
+    .info-card-body {
+        padding: var(--spacing-lg);
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px solid var(--secondary-100);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--secondary-700);
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        color: var(--secondary-900);
+        font-weight: 500;
+        font-size: 0.875rem;
+        text-align: right;
+        max-width: 60%;
+        word-break: break-word;
+    }
+
+    .stats-section {
+        margin-top: var(--spacing-xl);
+    }
+
+    .stats-card {
+        background: var(--secondary-50);
+        border: 1px solid var(--secondary-200);
+        border-radius: var(--border-radius-xl);
+        overflow: hidden;
+    }
+
+    .stats-card-header {
+        padding: var(--spacing-lg);
+        background: var(--gradient-secondary);
+        border-bottom: 1px solid var(--secondary-200);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .stats-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--gradient-info);
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+    }
+
+    .stats-card-header h4 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--secondary-900);
+        margin: 0;
+    }
+
+    .stats-card-body {
+        padding: var(--spacing-lg);
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stats-table th {
+        background: var(--secondary-100);
+        padding: var(--spacing-md);
+        text-align: left;
+        font-weight: 700;
+        color: var(--secondary-700);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stats-table td {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--secondary-100);
+        font-size: 0.875rem;
+    }
+
+    .stats-table tbody tr:hover {
+        background: var(--secondary-50);
+    }
+
+    .stats-table .text-center {
+        text-align: center;
+    }
+
+    .stats-table .text-right {
+        text-align: right;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: var(--border-radius-md);
+    }
+
+    .badge-primary {
+        color: white;
+        background: var(--gradient-primary);
+    }
+
+    .text-muted {
+        color: var(--secondary-500) !important;
+    }
+
+    .empty-state {
+        padding: var(--spacing-xl);
+        text-align: center;
+        color: var(--secondary-500);
+    }
+
+    .empty-state i {
+        font-size: 2rem;
+        margin-bottom: var(--spacing-md);
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .modal-footer {
+        padding: var(--spacing-lg) var(--spacing-xl);
+        border-top: 1px solid var(--secondary-200);
+        background: var(--secondary-50);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+    }
+
+    .btn-secondary {
+        background: var(--secondary-100);
+        color: var(--secondary-700);
+        border: 1px solid var(--secondary-200);
+    }
+
+    .btn-secondary:hover {
+        background: var(--secondary-200);
+        color: var(--secondary-800);
+    }
+
+    /* ===== RESPONSIVE MODAL ===== */
+    @media (max-width: 768px) {
+        .modal-overlay {
+            padding: var(--spacing-sm);
+        }
+
+        .modal-container {
+            max-height: 95vh;
+        }
+
+        .modal-header {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-title {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            text-align: center;
+        }
+
+        .modal-title .title-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .modal-title .title-text h3 {
+            font-size: 1.25rem;
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-content-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--spacing-xs);
+        }
+
+        .info-value {
+            text-align: left;
+            max-width: 100%;
+        }
+
+        .modal-footer {
+            padding: var(--spacing-md) var(--spacing-lg);
+            flex-direction: column;
+        }
+    }
+
     /* ===== UTILIDADES ===== */
     .desktop-only {
         display: block;
@@ -2190,37 +2580,72 @@
         console.log('Showing supplier details for ID:', supplierId);
         
         try {
+            // Mostrar loading en el modal
+            const modal = document.getElementById('showSupplierModal');
+            modal.classList.add('show');
+            
+            // Limpiar datos anteriores
+            document.getElementById('companyName').textContent = 'Cargando...';
+            document.getElementById('companyEmail').textContent = 'Cargando...';
+            document.getElementById('companyPhone').textContent = 'Cargando...';
+            document.getElementById('companyAddress').textContent = 'Cargando...';
+            document.getElementById('supplierName').textContent = 'Cargando...';
+            document.getElementById('supplierPhone').textContent = 'Cargando...';
+            
             const response = await fetch(`/suppliers/${supplierId}`);
             const data = await response.json();
             
             if (data.icons === 'success') {
                 // Llenar datos en el modal
-                document.getElementById('companyName').textContent = data.supplier.company_name;
-                document.getElementById('companyEmail').textContent = data.supplier.company_email;
-                document.getElementById('companyPhone').textContent = data.supplier.company_phone;
-                document.getElementById('companyAddress').textContent = data.supplier.company_address;
-                document.getElementById('supplierName').textContent = data.supplier.supplier_name;
-                document.getElementById('supplierPhone').textContent = data.supplier.supplier_phone;
+                document.getElementById('companyName').textContent = data.supplier.company_name || 'No disponible';
+                document.getElementById('companyEmail').textContent = data.supplier.company_email || 'No disponible';
+                document.getElementById('companyPhone').textContent = data.supplier.company_phone || 'No disponible';
+                document.getElementById('companyAddress').textContent = data.supplier.company_address || 'No disponible';
+                document.getElementById('supplierName').textContent = data.supplier.supplier_name || 'No disponible';
+                document.getElementById('supplierPhone').textContent = data.supplier.supplier_phone || 'No disponible';
                 
-                // Actualizar estadísticas de productos si existen
-                if (data.stats) {
-                    updateProductStats(data.stats);
+                // Mostrar la sección de productos distribuidos si hay datos
+                const productsSection = document.getElementById('productsDistributedSection');
+                if (productsSection) {
+                    if (data.stats && data.stats.length > 0) {
+                        productsSection.style.display = 'block';
+                        updateProductStats(data.stats);
+                    } else {
+                        productsSection.style.display = 'none';
+                    }
                 }
-                
-                // Mostrar modal
-                document.getElementById('showSupplierModal').style.display = 'flex';
             } else {
-                showAlert('Error', 'No se pudieron obtener los datos del proveedor', 'error');
+                const errorMessage = data.message || 'No se pudieron obtener los datos del proveedor';
+                showAlert('Error', errorMessage, 'error');
+                closeSupplierModal();
             }
         } catch (error) {
             console.error('Error fetching supplier details:', error);
-            showAlert('Error', 'No se pudieron obtener los datos del proveedor', 'error');
+            showAlert('Error', 'Error de conexión. Verifique su conexión a internet e inténtelo de nuevo.', 'error');
+            closeSupplierModal();
         }
     }
 
     // Cerrar modal de proveedor
     function closeSupplierModal() {
-        document.getElementById('showSupplierModal').style.display = 'none';
+        const modal = document.getElementById('showSupplierModal');
+        modal.classList.remove('show');
+        
+        // Limpiar datos del modal
+        setTimeout(() => {
+            document.getElementById('companyName').textContent = '';
+            document.getElementById('companyEmail').textContent = '';
+            document.getElementById('companyPhone').textContent = '';
+            document.getElementById('companyAddress').textContent = '';
+            document.getElementById('supplierName').textContent = '';
+            document.getElementById('supplierPhone').textContent = '';
+            
+            // Ocultar la sección de productos distribuidos
+            const productsSection = document.getElementById('productsDistributedSection');
+            if (productsSection) {
+                productsSection.style.display = 'none';
+            }
+        }, 300);
     }
 
     // Eliminar proveedor
@@ -2278,21 +2703,30 @@
                         <td class="text-center">
                             <span class="badge badge-primary">${product.stock}</span>
                         </td>
-                        <td class="text-right">{{ $currency->symbol }} ${number_format(product.purchase_price)}</td>
-                        <td class="text-right">{{ $currency->symbol }} ${number_format(subtotal)}</td>
+                        <td class="text-right">${formatCurrency(product.purchase_price)}</td>
+                        <td class="text-right">${formatCurrency(subtotal)}</td>
                     </tr>`;
             });
         } else {
             detailsHTML = `
                 <tr>
-                    <td colspan="4" class="text-center text-muted">
-                        No hay productos registrados para este proveedor
+                    <td colspan="4" class="text-center">
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <p>No hay productos registrados para este proveedor</p>
+                        </div>
                     </td>
                 </tr>`;
         }
 
         detailsContainer.innerHTML = detailsHTML;
-        document.getElementById('grandTotal').innerHTML = `{{ $currency->symbol }} ${number_format(grandTotal)}`;
+        document.getElementById('grandTotal').innerHTML = formatCurrency(grandTotal);
+    }
+
+    // Función para formatear moneda
+    function formatCurrency(amount) {
+        const currencySymbol = '{{ $currency->symbol ?? "$" }}';
+        return `${currencySymbol} ${number_format(amount)}`;
     }
 
     // Función para formatear números
@@ -2422,6 +2856,16 @@
         document.getElementById('showSupplierModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeSupplierModal();
+            }
+        });
+
+        // Cerrar modal con la tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('showSupplierModal');
+                if (modal.classList.contains('show')) {
+                    closeSupplierModal();
+                }
             }
         });
         

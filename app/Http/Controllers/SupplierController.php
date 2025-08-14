@@ -229,6 +229,19 @@ class SupplierController extends Controller
       try {
          $supplier = Supplier::findOrFail($id);
 
+         // Verificar que el proveedor pertenece a la compañía del usuario
+         if ($supplier->company_id !== Auth::user()->company_id) {
+            Log::warning('Intento de acceso no autorizado a proveedor', [
+               'user_id' => Auth::user()->id,
+               'supplier_id' => $id
+            ]);
+
+            return response()->json([
+               'icons' => 'error',
+               'message' => 'No tiene permiso para ver este proveedor'
+            ], 403);
+         }
+
          // Obtener productos del proveedor usando el modelo Product
          $productDetails = Product::where('supplier_id', $id)
             ->orderBy('name')
@@ -249,6 +262,11 @@ class SupplierController extends Controller
             'stats' => $productDetails
          ]);
       } catch (\Exception $e) {
+         Log::error('Error en SupplierController@show: ' . $e->getMessage(), [
+            'user_id' => Auth::user()->id,
+            'supplier_id' => $id
+         ]);
+
          return response()->json([
             'icons' => 'error',
             'message' => 'Error al cargar los datos del proveedor'
