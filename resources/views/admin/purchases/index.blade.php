@@ -230,7 +230,7 @@
                                         </td>
                                         <td>
                                             <div class="actions-group">
-                                                @can('purchases.edit')
+                                                @can('purchases.show')
                                                 <button type="button" class="action-btn details-btn view-details"
                                                     data-id="{{ $purchase->id }}"
                                                     title="Ver Detalles">
@@ -875,6 +875,35 @@
                 gap: 0.75rem !important;
             }
 
+            /* Forzar responsive en pantallas pequeñas */
+            @media (max-width: 480px) {
+                .stats-grid {
+                    display: grid !important;
+                    grid-template-columns: 1fr !important;
+                    grid-template-rows: auto !important;
+                    gap: 0.75rem !important;
+                }
+                
+                .stat-card {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
+            }
+
+            @media (max-width: 360px) {
+                .stats-grid {
+                    display: grid !important;
+                    grid-template-columns: 1fr !important;
+                    grid-template-rows: auto !important;
+                    gap: 0.5rem !important;
+                }
+                
+                .stat-card {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
+            }
+
             .stat-card {
                 border-radius: 12px;
                 padding: 1rem;
@@ -1070,6 +1099,37 @@
             }
 
             /* Responsividad de las estadísticas */
+            @media (max-width: 1024px) {
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 1rem !important;
+                }
+
+                .stat-card {
+                    padding: 1rem;
+                    gap: 0.75rem;
+                }
+
+                .stat-icon {
+                    width: 44px;
+                    height: 44px;
+                    font-size: 1.3rem;
+                }
+
+                .stat-value {
+                    font-size: 1.75rem;
+                }
+
+                .stat-label {
+                    font-size: 0.8rem;
+                }
+
+                .stat-trend {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.4rem;
+                }
+            }
+
             @media (max-width: 768px) {
                 .stats-dashboard {
                     padding: 1rem;
@@ -1077,12 +1137,12 @@
                 }
 
                 .stats-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 0.75rem;
+                    grid-template-columns: repeat(2, 1fr) !important;
+                    gap: 0.75rem !important;
                 }
 
                 .stat-card {
-                    padding: 1rem;
+                    padding: 0.875rem;
                     flex-direction: column;
                     text-align: center;
                     gap: 0.5rem;
@@ -1109,13 +1169,56 @@
             }
 
             @media (max-width: 480px) {
-                .stats-grid {
-                    grid-template-columns: 1fr;
+                .stats-dashboard {
+                    padding: 0.75rem;
+                    margin-bottom: 0.75rem;
+                }
+
+                .stat-card {
+                    padding: 1rem;
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 0.75rem;
+                }
+
+                .stat-icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2rem;
+                }
+
+                .stat-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
                     gap: 0.5rem;
+                }
+
+                .stat-value {
+                    font-size: 1.5rem;
+                    margin: 0;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                    margin: 0;
+                }
+
+                .stat-trend {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.4rem;
+                }
+            }
+
+            @media (max-width: 360px) {
+                .stats-dashboard {
+                    padding: 0.5rem;
                 }
 
                 .stat-card {
                     padding: 0.75rem;
+                    flex-direction: column;
+                    text-align: center;
                     gap: 0.5rem;
                 }
 
@@ -1125,12 +1228,21 @@
                     font-size: 1rem;
                 }
 
+                .stat-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.4rem;
+                }
+
                 .stat-value {
                     font-size: 1.25rem;
+                    margin: 0;
                 }
 
                 .stat-label {
                     font-size: 0.7rem;
+                    margin: 0;
                 }
 
                 .stat-trend {
