@@ -51,70 +51,70 @@
                 </div>
             </div>
         </div>
-        <!-- Stats Dashboard -->
-        <div class="stats-dashboard">
-            <div class="stats-grid">
-                <div class="stat-card stat-primary">
-                    <div class="stat-icon">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <div class="stat-glow"></div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ $totalPurchases }}</div>
-                        <div class="stat-label">Productos Únicos</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Comprados en total</span>
-                        </div>
+    <!-- Stats Dashboard -->
+    <div class="stats-dashboard">
+        <div class="stats-grid">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-glow"></div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $totalPurchases }}</div>
+                    <div class="stat-label">Productos Únicos</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Comprados en total</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="stat-card stat-success">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-glow"></div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</div>
-                        <div class="stat-label">Total Invertido</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-dollar-sign"></i>
-                            <span>Capital comprometido</span>
-                        </div>
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-glow"></div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</div>
+                    <div class="stat-label">Total Invertido</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Capital comprometido</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="stat-card stat-warning">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-glow"></div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ $monthlyPurchases }}</div>
-                        <div class="stat-label">Compras del Mes</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>Actividad reciente</span>
-                        </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-glow"></div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $monthlyPurchases }}</div>
+                    <div class="stat-label">Compras del Mes</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Actividad reciente</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="stat-card stat-info">
-                    <div class="stat-icon">
-                        <i class="fas fa-hourglass-half"></i>
-                    </div>
-                    <div class="stat-glow"></div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ $pendingDeliveries }}</div>
-                        <div class="stat-label">Pendientes</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-clock"></i>
-                            <span>Por entregar</span>
-                        </div>
+            <div class="stat-card stat-info">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-glow"></div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $pendingDeliveries }}</div>
+                    <div class="stat-label">Pendientes</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-clock"></i>
+                        <span>Por entregar</span>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- Data Container -->
         <div class="data-container">
@@ -230,8 +230,10 @@
                                         </td>
                                         <td>
                                             <div class="actions-group">
+                                                @can('purchases.edit')
                                                 <button type="button" class="action-btn details-btn view-details"
-                                                    data-id="{{ $purchase->id }}">
+                                                    data-id="{{ $purchase->id }}"
+                                                    title="Ver Detalles">
                                                     <i class="fas fa-list"></i>
                                                 </button>
                                                 <button type="button" class="action-btn supplier-btn" 
@@ -239,15 +241,18 @@
                                                     title="Ver Proveedor">
                                                     <i class="fas fa-truck"></i>
                                                 </button>
+                                                @endcan
                                                 @can('purchases.edit')
                                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                                        class="action-btn edit-btn">
+                                                        class="action-btn edit-btn"
+                                                        title="Editar Compra">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endcan
                                                 @can('purchases.destroy')
                                                     <button type="button" class="action-btn delete-btn delete-purchase"
-                                                        data-id="{{ $purchase->id }}">
+                                                        data-id="{{ $purchase->id }}"
+                                                        title="Eliminar Compra">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 @endcan
@@ -264,98 +269,114 @@
                 <div class="cards-view" id="cardsView" style="display: none;">
                     <div class="cards-grid">
                         @foreach ($purchases as $purchase)
-                            <div class="purchase-card">
-                                <div class="card-header">
-                                    <div class="card-number">
-                                        <span class="number-badge">{{ $loop->iteration }}</span>
+                            <div class="purchase-card-modern">
+                                <!-- Header with status and number -->
+                                <div class="card-header-modern">
+                                    <div class="purchase-number">
+                                        <div class="number-circle">
+                                            <span>{{ $loop->iteration }}</span>
+                                        </div>
                                     </div>
-                                    <div class="card-status">
+                                    <div class="purchase-status">
                                         @if ($purchase->payment_receipt)
-                                            <div class="status-badge completed">
-                                                <i class="fas fa-check-circle"></i>
+                                            <div class="status-indicator completed">
+                                                <div class="status-dot"></div>
                                                 <span>Completado</span>
                                             </div>
                                         @else
-                                            <div class="status-badge pending">
-                                                <i class="fas fa-clock"></i>
+                                            <div class="status-indicator pending">
+                                                <div class="status-dot"></div>
                                                 <span>Pendiente</span>
                                             </div>
                                         @endif
                                     </div>
                                 </div>
 
-                                <div class="card-content">
-                                    <div class="purchase-info">
-                                        <div class="info-icon">
-                                            <i class="fas fa-receipt"></i>
-                                        </div>
-                                        <div class="info-text">
-                                            <h6>{{ $purchase->payment_receipt ?: 'Sin recibo' }}</h6>
-                                            <div class="date-info">
-                                                <i class="fas fa-calendar-alt"></i>
-                                                <span>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y H:i') }}</span>
+                                <!-- Main content -->
+                                <div class="card-body-modern">
+                                    <!-- Receipt and date info -->
+                                    <div class="purchase-header-info">
+                                        <div class="receipt-info">
+                                            <div class="receipt-icon">
+                                                <i class="fas fa-receipt"></i>
+                                            </div>
+                                            <div class="receipt-details">
+                                                <h3 class="receipt-number">{{ $purchase->payment_receipt ?: 'Sin recibo' }}</h3>
+                                                <div class="purchase-date">
+                                                    <i class="fas fa-calendar-alt"></i>
+                                                    <span>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y H:i') }}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="stats-grid">
-                                        <div class="stat-item">
-                                            <div class="stat-icon">
+                                    <!-- Statistics grid -->
+                                    <div class="purchase-stats-grid">
+                                        <div class="stat-box products">
+                                            <div class="stat-icon-wrapper">
                                                 <i class="fas fa-boxes"></i>
                                             </div>
-                                            <div class="stat-content">
-                                                <div class="stat-value">{{ $purchase->details->count() }}</div>
-                                                <div class="stat-label">Productos Únicos</div>
+                                            <div class="stat-info">
+                                                <div class="stat-number">{{ $purchase->details->count() }}</div>
+                                                <div class="stat-text">Productos<br>Únicos</div>
                                             </div>
                                         </div>
 
-                                        <div class="stat-item">
-                                            <div class="stat-icon">
+                                        <div class="stat-box units">
+                                            <div class="stat-icon-wrapper">
                                                 <i class="fas fa-cubes"></i>
                                             </div>
-                                            <div class="stat-content">
-                                                <div class="stat-value">{{ $purchase->details->sum('quantity') }}</div>
-                                                <div class="stat-label">Total Unidades</div>
+                                            <div class="stat-info">
+                                                <div class="stat-number">{{ $purchase->details->sum('quantity') }}</div>
+                                                <div class="stat-text">Total<br>Unidades</div>
                                             </div>
                                         </div>
 
-                                        <div class="stat-item amount">
-                                            <div class="stat-icon">
+                                        <div class="stat-box amount">
+                                            <div class="stat-icon-wrapper">
                                                 <i class="fas fa-dollar-sign"></i>
                                             </div>
-                                            <div class="stat-content">
-                                                <div class="stat-value">{{ $currency->symbol }}
-                                                    {{ number_format($purchase->total_price, 2) }}</div>
-                                                <div class="stat-label">Monto Total</div>
+                                            <div class="stat-info">
+                                                <div class="stat-number">{{ $currency->symbol }}<br>{{ number_format($purchase->total_price, 2) }}</div>
+                                                <div class="stat-text">Monto<br>Total</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="card-actions">
-                                    <div class="actions-group">
-                                        <button type="button" class="action-btn details-btn view-details"
-                                            data-id="{{ $purchase->id }}">
-                                            <i class="fas fa-list"></i>
-                                        </button>
-                                        <button type="button" class="action-btn supplier-btn" 
-                                            onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})" 
+                                <!-- Action buttons -->
+                                <div class="card-actions-modern">
+                                    @can('purchases.show')
+                                    <button type="button" class="modern-action-btn primary view-details" 
+                                            data-id="{{ $purchase->id }}"
+                                            title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @endcan
+                                    
+                                    @can('purchases.show')
+                                    <button type="button" class="modern-action-btn info" 
+                                            onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
                                             title="Ver Proveedor">
-                                            <i class="fas fa-truck"></i>
-                                        </button>
-                                        @can('purchases.edit')
-                                            <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                                class="action-btn edit-btn">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endcan
-                                        @can('purchases.destroy')
-                                            <button type="button" class="action-btn delete-btn delete-purchase"
-                                                data-id="{{ $purchase->id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endcan
-                                    </div>
+                                        <i class="fas fa-truck"></i>
+                                    </button>
+                                    @endcan
+                                    
+                                    @can('purchases.edit')
+                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}" 
+                                       class="modern-action-btn secondary"
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @endcan
+                                    
+                                    @can('purchases.destroy')
+                                    <button type="button" class="modern-action-btn danger delete-purchase" 
+                                            data-id="{{ $purchase->id }}"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    @endcan
                                 </div>
                             </div>
                         @endforeach
@@ -583,6 +604,8 @@
 
                 --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
                 --gradient-secondary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
                 --gradient-info: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 
@@ -731,6 +754,53 @@
                 gap: var(--spacing-md);
             }
 
+            /* Responsividad del header */
+            @media (max-width: 768px) {
+                .floating-header {
+                    padding: var(--spacing-md);
+                    margin-bottom: var(--spacing-md);
+                }
+
+                .header-content {
+                    flex-direction: column;
+                    gap: var(--spacing-md);
+                    text-align: center;
+                }
+
+                .header-left {
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                }
+
+                .header-icon-wrapper {
+                    width: 48px;
+                    height: 48px;
+                }
+
+                .header-icon {
+                    font-size: 1.25rem;
+                }
+
+                .header-title {
+                    font-size: 1.5rem;
+                }
+
+                .header-subtitle {
+                    font-size: 0.875rem;
+                }
+
+                .header-actions {
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                }
+
+                .btn-glass {
+                    width: 100%;
+                    justify-content: center;
+                    padding: var(--spacing-sm) var(--spacing-md);
+                }
+            }
+
             /* ===== BOTONES ===== */
             .btn-glass {
                 position: relative;
@@ -791,111 +861,383 @@
 
             /* ===== ESTADÍSTICAS ===== */
             .stats-dashboard {
-                background: rgba(255, 255, 255, 0.9);
-                backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: var(--border-radius-2xl);
-                box-shadow: var(--shadow-lg);
-                padding: var(--spacing-xl);
-                margin-bottom: var(--spacing-xl);
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #e2e8f0;
             }
 
             .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: var(--spacing-lg);
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 0.75rem !important;
             }
 
             .stat-card {
-                background: rgba(255, 255, 255, 0.8);
-                border: 1px solid rgba(255, 255, 255, 0.4);
-                border-radius: var(--border-radius-xl);
-                padding: var(--spacing-lg);
+                border-radius: 12px;
+                padding: 1rem;
                 display: flex;
                 align-items: center;
-                gap: var(--spacing-lg);
-                transition: all var(--transition-normal);
+                gap: 0.75rem;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s ease;
                 position: relative;
                 overflow: hidden;
+                backdrop-filter: blur(10px);
+            }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                transition: opacity 0.3s ease;
             }
 
             .stat-card:hover {
-                transform: translateY(-4px);
-                box-shadow: var(--shadow-xl);
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            }
+
+            .stat-card:hover::before {
+                opacity: 1;
             }
 
             .stat-primary {
-                border-color: rgba(102, 126, 234, 0.2);
-                background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+                border-color: rgba(139, 92, 246, 0.2);
+            }
+
+            .stat-primary::before {
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.08) 100%);
             }
 
             .stat-success {
-                border-color: rgba(34, 197, 94, 0.2);
-                background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%);
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+                border-color: rgba(16, 185, 129, 0.2);
+            }
+
+            .stat-success::before {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%);
             }
 
             .stat-warning {
-                border-color: rgba(245, 158, 11, 0.2);
                 background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+                border-color: rgba(245, 158, 11, 0.2);
+            }
+
+            .stat-warning::before {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
             }
 
             .stat-info {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(29, 78, 216, 0.05) 100%);
                 border-color: rgba(59, 130, 246, 0.2);
-                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            }
+
+            .stat-info::before {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(29, 78, 216, 0.08) 100%);
             }
 
             .stat-icon {
-                width: 56px;
-                height: 56px;
-                border-radius: var(--border-radius-lg);
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: white;
-                font-size: 1.5rem;
-                flex-shrink: 0;
+                font-size: 1.2rem;
+                position: relative;
+                z-index: 2;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             }
 
             .stat-primary .stat-icon {
-                background: var(--gradient-primary);
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                background: linear-gradient(135deg, rgba(139, 92, 246, 0.9) 0%, rgba(99, 102, 241, 0.9) 100%);
+                box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
             }
 
             .stat-success .stat-icon {
-                background: var(--gradient-success);
-                box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
+                box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
             }
 
             .stat-warning .stat-icon {
-                background: var(--gradient-warning);
-                box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
+                box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
             }
 
             .stat-info .stat-icon {
-                background: var(--gradient-info);
-                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(29, 78, 216, 0.9) 100%);
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
             }
 
             .stat-glow {
                 position: absolute;
-                inset: -8px;
-                background: var(--gradient-primary);
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 120%;
+                height: 120%;
                 border-radius: 50%;
                 opacity: 0.3;
-                filter: blur(12px);
                 z-index: 1;
+                animation: pulse 3s ease-in-out infinite;
+            }
+
+            .stat-primary .stat-glow {
+                background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+            }
+
+            .stat-success .stat-glow {
+                background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+            }
+
+            .stat-warning .stat-glow {
+                background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%);
+            }
+
+            .stat-info .stat-glow {
+                background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
             }
 
             .stat-content {
                 flex: 1;
+                z-index: 2;
+                position: relative;
             }
 
             .stat-value {
-                font-size: 2.25rem;
-                font-weight: 800;
-                color: var(--secondary-900);
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #1f2937;
                 margin: 0;
                 line-height: 1;
+            }
+
+            .stat-label {
+                color: #64748b;
+                font-size: 0.75rem;
+                margin: 0.2rem 0;
+                font-weight: 600;
+            }
+
+            .stat-trend {
+                display: flex;
+                align-items: center;
+                gap: 0.2rem;
+                font-size: 0.65rem;
+                font-weight: 600;
+                margin-top: 0.2rem;
+                padding: 0.2rem 0.4rem;
+                border-radius: 8px;
+                backdrop-filter: blur(10px);
+                width: fit-content;
+            }
+
+            .stat-primary .stat-trend {
+                color: rgba(139, 92, 246, 0.9);
+                background: rgba(139, 92, 246, 0.1);
+            }
+
+            .stat-success .stat-trend {
+                color: rgba(16, 185, 129, 0.9);
+                background: rgba(16, 185, 129, 0.1);
+            }
+
+            .stat-warning .stat-trend {
+                color: rgba(245, 158, 11, 0.9);
+                background: rgba(245, 158, 11, 0.1);
+            }
+
+            .stat-info .stat-trend {
+                color: rgba(59, 130, 246, 0.9);
+                background: rgba(59, 130, 246, 0.1);
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 0.3;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                50% {
+                    opacity: 0.6;
+                    transform: translate(-50%, -50%) scale(1.05);
+                }
+            }
+
+            /* Responsividad de las estadísticas */
+            @media (max-width: 768px) {
+                .stats-dashboard {
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.75rem;
+                }
+
+                .stat-card {
+                    padding: 1rem;
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 0.5rem;
+                }
+
+                .stat-icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2rem;
+                }
+
+                .stat-value {
+                    font-size: 1.5rem;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
+                }
+
+                .stat-trend {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.4rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                    gap: 0.5rem;
+                }
+
+                .stat-card {
+                    padding: 0.75rem;
+                    gap: 0.5rem;
+                }
+
+                .stat-icon {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 1rem;
+                }
+
+                .stat-value {
+                    font-size: 1.25rem;
+                }
+
+                .stat-label {
+                    font-size: 0.7rem;
+                }
+
+                .stat-trend {
+                    font-size: 0.65rem;
+                    padding: 0.15rem 0.3rem;
+                }
+            }
+
+            /* Ajustes para pantallas muy pequeñas */
+            @media (max-width: 360px) {
+                .main-container {
+                    padding: var(--spacing-xs);
+                }
+
+                .floating-header {
+                    padding: var(--spacing-sm);
+                    margin-bottom: var(--spacing-sm);
+                }
+
+                .header-icon-wrapper {
+                    width: 40px;
+                    height: 40px;
+                }
+
+                .header-icon {
+                    font-size: 1rem;
+                }
+
+                .header-title {
+                    font-size: 1.25rem;
+                }
+
+                .header-subtitle {
+                    font-size: 0.8rem;
+                }
+
+                .btn-glass {
+                    padding: var(--spacing-xs) var(--spacing-sm);
+                    font-size: 0.8rem;
+                }
+
+                .stats-dashboard {
+                    padding: var(--spacing-sm);
+                    margin-bottom: var(--spacing-sm);
+                }
+
+                .stat-card {
+                    padding: var(--spacing-sm);
+                }
+
+                .stat-icon {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 0.875rem;
+                }
+
+                .stat-value {
+                    font-size: 1.125rem;
+                }
+
+                .stat-label {
+                    font-size: 0.65rem;
+                }
+
+                .data-header {
+                    padding: var(--spacing-sm);
+                }
+
+                .header-text h3 {
+                    font-size: 1.125rem;
+                }
+
+                .header-text p {
+                    font-size: 0.75rem;
+                }
+
+                .search-box input {
+                    padding: var(--spacing-xs) var(--spacing-sm);
+                    padding-left: 2rem;
+                    font-size: 0.8rem;
+                }
+
+                .data-content {
+                    padding: var(--spacing-sm);
+                }
+
+                .purchase-card {
+                    margin-bottom: var(--spacing-sm);
+                }
+
+                .card-header {
+                    padding: var(--spacing-sm);
+                }
+
+                .card-content {
+                    padding: var(--spacing-sm);
+                }
+
+                .card-actions {
+                    padding: var(--spacing-sm);
+                }
+
+                .action-btn {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
             }
 
             .stat-label {
@@ -996,6 +1338,70 @@
                 gap: var(--spacing-lg);
             }
 
+            /* Responsividad del contenedor de datos */
+            @media (max-width: 768px) {
+                .data-container {
+                    border-radius: var(--border-radius-lg);
+                }
+
+                .data-header {
+                    padding: var(--spacing-md);
+                    flex-direction: column;
+                    gap: var(--spacing-md);
+                    align-items: stretch;
+                }
+
+                .header-left {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: var(--spacing-sm);
+                }
+
+                .header-icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.125rem;
+                }
+
+                .header-text h3 {
+                    font-size: 1.25rem;
+                }
+
+                .header-text p {
+                    font-size: 0.8rem;
+                }
+
+                .header-controls {
+                    flex-direction: column;
+                    gap: var(--spacing-md);
+                    align-items: stretch;
+                }
+
+                .search-box {
+                    width: 100%;
+                }
+
+                .search-box input {
+                    width: 100%;
+                    padding: var(--spacing-sm) var(--spacing-md);
+                    padding-left: 2.5rem;
+                    font-size: 0.875rem;
+                }
+
+                .view-toggle {
+                    justify-content: center;
+                }
+
+                .view-btn {
+                    padding: var(--spacing-sm) var(--spacing-md);
+                    font-size: 0.875rem;
+                }
+
+                .data-content {
+                    padding: var(--spacing-md);
+                }
+            }
+
             .search-box {
                 position: relative;
                 display: flex;
@@ -1089,6 +1495,39 @@
                 border-collapse: separate;
                 border-spacing: 0;
                 background: white;
+            }
+
+            /* Responsividad de la tabla */
+            @media (max-width: 1024px) {
+                .table-wrapper {
+                    overflow-x: auto;
+                }
+
+                .modern-table {
+                    min-width: 800px;
+                }
+
+                .modern-table th,
+                .modern-table td {
+                    padding: var(--spacing-md);
+                    font-size: 0.875rem;
+                }
+
+                .purchase-info {
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                    align-items: flex-start;
+                }
+
+                .products-info {
+                    flex-direction: column;
+                    gap: var(--spacing-xs);
+                }
+
+                .product-badge {
+                    font-size: 0.7rem;
+                    padding: var(--spacing-xs) var(--spacing-sm);
+                }
             }
 
             .modern-table thead {
@@ -1215,6 +1654,9 @@
             .actions-group {
                 display: flex;
                 gap: var(--spacing-sm);
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
             }
 
             .action-btn {
@@ -1231,6 +1673,10 @@
                 width: 40px;
                 height: 40px;
                 font-size: 1rem;
+                margin: 0 2px;
+                box-shadow: var(--shadow-sm);
+                position: relative;
+                overflow: hidden;
             }
 
             .details-btn {
@@ -1241,11 +1687,13 @@
             .edit-btn {
                 background: var(--gradient-warning);
                 color: white;
+                border: 2px solid rgba(245, 158, 11, 0.3);
             }
 
             .delete-btn {
                 background: var(--gradient-danger);
                 color: white;
+                border: 2px solid rgba(239, 68, 68, 0.3);
             }
 
             .supplier-btn {
@@ -1259,6 +1707,22 @@
                 color: white;
             }
 
+            .edit-btn:hover {
+                background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            }
+
+            .delete-btn:hover {
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            }
+
+            .details-btn:hover {
+                background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            }
+
+            .supplier-btn:hover {
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            }
+
             /* ===== TARJETAS ===== */
             .cards-view {
                 display: none;
@@ -1270,19 +1734,662 @@
                 gap: var(--spacing-lg);
             }
 
-            .purchase-card {
-                background: white;
-                border-radius: var(--border-radius-xl);
-                box-shadow: var(--shadow-lg);
-                overflow: hidden;
-                transition: all var(--transition-normal);
-                border: 1px solid var(--secondary-200);
+            /* Vista móvil optimizada */
+            @media (max-width: 768px) {
+                .cards-grid {
+                    grid-template-columns: 1fr;
+                    gap: var(--spacing-md);
+                }
+
+                .purchase-card {
+                    border-radius: var(--border-radius-lg);
+                    margin-bottom: var(--spacing-sm);
+                }
+
+                .card-header {
+                    padding: var(--spacing-md);
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                    text-align: center;
+                }
+
+                .card-number {
+                    order: 1;
+                }
+
+                .card-status {
+                    order: 2;
+                }
+
+                .card-content {
+                    padding: var(--spacing-md);
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                    gap: var(--spacing-sm);
+                }
+
+                .stat-item {
+                    padding: var(--spacing-sm);
+                    text-align: center;
+                }
+
+                .stat-item .stat-icon {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 0.875rem;
+                }
+
+                .stat-item .stat-value {
+                    font-size: 1.125rem;
+                }
+
+                .stat-item .stat-label {
+                    font-size: 0.75rem;
+                }
+
+                .card-actions {
+                    padding: var(--spacing-md);
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                }
+
+                .actions-group {
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+
+                .action-btn {
+                    width: 44px;
+                    height: 44px;
+                    font-size: 1.125rem;
+                }
             }
 
-            .purchase-card:hover {
-                transform: translateY(-4px);
-                box-shadow: var(--shadow-xl);
+            /* ===== MODERN PURCHASE CARDS ===== */
+            .purchase-card-modern {
+                background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+                border-radius: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                position: relative;
+                margin-bottom: 1.5rem;
             }
+
+            .purchase-card-modern::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .purchase-card-modern:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            }
+
+            .purchase-card-modern:hover::before {
+                opacity: 1;
+            }
+
+            /* Card Header */
+            .card-header-modern {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.5rem 1.5rem 1rem 1.5rem;
+                background: transparent;
+            }
+
+            .purchase-number {
+                display: flex;
+                align-items: center;
+            }
+
+            .number-circle {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 1.1rem;
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .number-circle::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+                animation: float 3s ease-in-out infinite;
+            }
+
+            .purchase-status {
+                display: flex;
+                align-items: center;
+            }
+
+            .status-indicator {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                backdrop-filter: blur(10px);
+                border: 1px solid transparent;
+            }
+
+            .status-indicator.completed {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+                color: #059669;
+                border-color: rgba(16, 185, 129, 0.2);
+            }
+
+            .status-indicator.pending {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+                color: #d97706;
+                border-color: rgba(245, 158, 11, 0.2);
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            .status-indicator.completed .status-dot {
+                background: #10b981;
+            }
+
+            .status-indicator.pending .status-dot {
+                background: #f59e0b;
+            }
+
+            /* Card Body */
+            .card-body-modern {
+                padding: 0 1.5rem 1.5rem 1.5rem;
+            }
+
+            .purchase-header-info {
+                margin-bottom: 1.5rem;
+            }
+
+            .receipt-info {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.02) 100%);
+                border-radius: 16px;
+                border: 1px solid rgba(99, 102, 241, 0.1);
+            }
+
+            .receipt-icon {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.2rem;
+                box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+                flex-shrink: 0;
+            }
+
+            .receipt-details {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .receipt-number {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #1f2937;
+                margin: 0 0 0.5rem 0;
+                line-height: 1.2;
+                word-break: break-all;
+            }
+
+            .purchase-date {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: #6b7280;
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+
+            .purchase-date i {
+                color: #8b5cf6;
+                font-size: 0.8rem;
+            }
+
+            /* Statistics Grid */
+            .purchase-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-box {
+                background: white;
+                border-radius: 16px;
+                padding: 1.25rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stat-box::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .stat-box:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-box:hover::before {
+                opacity: 1;
+            }
+
+            .stat-box.products::before {
+                background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            }
+
+            .stat-box.units::before {
+                background: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);
+            }
+
+            .stat-box.amount::before {
+                background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            }
+
+            .stat-icon-wrapper {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 0.75rem;
+                font-size: 1.1rem;
+                color: white;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            }
+
+            .stat-box.products .stat-icon-wrapper {
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            }
+
+            .stat-box.units .stat-icon-wrapper {
+                background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            }
+
+            .stat-box.amount .stat-icon-wrapper {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            }
+
+            .stat-info {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stat-number {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #1f2937;
+                line-height: 1.1;
+                margin-bottom: 0.25rem;
+            }
+
+            .stat-text {
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                line-height: 1.2;
+            }
+
+            /* Action Buttons */
+            .card-actions-modern {
+                padding: 1rem 1.5rem 1.5rem 1.5rem;
+                display: flex;
+                gap: 0.75rem;
+                align-items: center;
+                justify-content: center;
+                border-top: 1px solid rgba(226, 232, 240, 0.5);
+                background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.4) 100%);
+            }
+
+            .modern-action-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+                backdrop-filter: blur(10px);
+                flex-shrink: 0;
+            }
+
+            .modern-action-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                transition: left 0.6s;
+            }
+
+            .modern-action-btn:hover::before {
+                left: 100%;
+            }
+
+            .modern-action-btn.primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            }
+
+            .modern-action-btn.primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+                background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            }
+
+            .modern-action-btn.secondary {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
+                color: white;
+                box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+            }
+
+            .modern-action-btn.secondary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            }
+
+            .modern-action-btn.info {
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(29, 78, 216, 0.9) 100%);
+                color: white;
+                box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+            }
+
+            .modern-action-btn.info:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            }
+
+            .modern-action-btn.danger {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%);
+                color: white;
+                box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+            }
+
+            .modern-action-btn.danger:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            }
+
+
+
+            /* ===== RESPONSIVE DESIGN FOR MODERN CARDS ===== */
+            @media (max-width: 768px) {
+                .purchase-card-modern {
+                    margin-bottom: 1rem;
+                    border-radius: 16px;
+                }
+
+                .card-header-modern {
+                    padding: 1rem 1rem 0.75rem 1rem;
+                    flex-direction: column;
+                    gap: 1rem;
+                    text-align: center;
+                }
+
+                .purchase-number {
+                    order: 1;
+                }
+
+                .purchase-status {
+                    order: 2;
+                }
+
+                .number-circle {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+
+                .status-indicator {
+                    font-size: 0.8rem;
+                    padding: 0.4rem 0.8rem;
+                }
+
+                .card-body-modern {
+                    padding: 0 1rem 1rem 1rem;
+                }
+
+                .receipt-info {
+                    padding: 0.75rem;
+                    gap: 0.75rem;
+                }
+
+                .receipt-icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+
+                .receipt-number {
+                    font-size: 1rem;
+                }
+
+                .purchase-date {
+                    font-size: 0.8rem;
+                }
+
+                .purchase-stats-grid {
+                    grid-template-columns: 1fr;
+                    gap: 0.75rem;
+                }
+
+                .stat-box {
+                    padding: 1rem;
+                    flex-direction: row;
+                    text-align: left;
+                    gap: 1rem;
+                }
+
+                .stat-icon-wrapper {
+                    margin-bottom: 0;
+                    width: 36px;
+                    height: 36px;
+                    font-size: 1rem;
+                    flex-shrink: 0;
+                }
+
+                .stat-info {
+                    align-items: flex-start;
+                    flex: 1;
+                }
+
+                .stat-number {
+                    font-size: 1.2rem;
+                }
+
+                .stat-text {
+                    font-size: 0.7rem;
+                    line-height: 1.1;
+                }
+
+                .card-actions-modern {
+                    padding: 0.75rem 1rem 1rem 1rem;
+                    gap: 0.5rem;
+                }
+
+                .modern-action-btn {
+                    width: 44px;
+                    height: 44px;
+                    font-size: 1rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .purchase-card-modern {
+                    margin-bottom: 0.75rem;
+                    border-radius: 12px;
+                }
+
+                .card-header-modern {
+                    padding: 0.75rem 0.75rem 0.5rem 0.75rem;
+                }
+
+                .number-circle {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 0.9rem;
+                }
+
+                .status-indicator {
+                    font-size: 0.75rem;
+                    padding: 0.3rem 0.6rem;
+                }
+
+                .card-body-modern {
+                    padding: 0 0.75rem 0.75rem 0.75rem;
+                }
+
+                .receipt-info {
+                    padding: 0.6rem;
+                    gap: 0.6rem;
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .receipt-icon {
+                    width: 36px;
+                    height: 36px;
+                    font-size: 0.9rem;
+                    align-self: center;
+                }
+
+                .receipt-number {
+                    font-size: 0.9rem;
+                }
+
+                .purchase-date {
+                    font-size: 0.75rem;
+                    justify-content: center;
+                }
+
+                .stat-box {
+                    padding: 0.75rem;
+                    gap: 0.75rem;
+                }
+
+                .stat-icon-wrapper {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 0.9rem;
+                }
+
+                .stat-number {
+                    font-size: 1.1rem;
+                }
+
+                .stat-text {
+                    font-size: 0.65rem;
+                }
+
+                .card-actions-modern {
+                    padding: 0.6rem 0.75rem 0.75rem 0.75rem;
+                    gap: 0.4rem;
+                }
+
+                .modern-action-btn {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 0.9rem;
+                }
+
+                .dropdown-item {
+                    padding: 0.6rem 0.75rem;
+                    font-size: 0.8rem;
+                }
+            }
+
+            /* ===== ANIMATIONS FOR MODERN CARDS ===== */
+            @keyframes float {
+                0%, 100% {
+                    transform: translate(0, 0) rotate(0deg);
+                }
+                33% {
+                    transform: translate(5px, -5px) rotate(60deg);
+                }
+                66% {
+                    transform: translate(-3px, 3px) rotate(120deg);
+                }
+            }
+
+            .purchase-card-modern {
+                animation: fadeInUp 0.6s ease-out;
+            }
+
+            .purchase-card-modern:nth-child(1) { animation-delay: 0.1s; }
+            .purchase-card-modern:nth-child(2) { animation-delay: 0.2s; }
+            .purchase-card-modern:nth-child(3) { animation-delay: 0.3s; }
+            .purchase-card-modern:nth-child(4) { animation-delay: 0.4s; }
+            .purchase-card-modern:nth-child(5) { animation-delay: 0.5s; }
 
             .card-header {
                 display: flex;
@@ -1942,6 +3049,21 @@
                 .amount-display {
                     font-size: 1.25rem;
                 }
+
+                /* Ocultar vista de tabla en móviles */
+                .table-view {
+                    display: none !important;
+                }
+
+                /* Mostrar solo vista de tarjetas en móviles */
+                .cards-view {
+                    display: block !important;
+                }
+
+                /* Ocultar botones de cambio de vista en móviles */
+                .view-toggle {
+                    display: none !important;
+                }
             }
 
             @media (max-width: 576px) {
@@ -1980,6 +3102,39 @@
                 .actions-group {
                     flex-wrap: wrap;
                     justify-content: center;
+                }
+
+                /* Ajustes específicos para móviles */
+                .purchase-card {
+                    margin-bottom: var(--spacing-md);
+                }
+
+                .card-header {
+                    padding: var(--spacing-md);
+                }
+
+                .card-content {
+                    padding: var(--spacing-md);
+                }
+
+                .card-actions {
+                    padding: var(--spacing-md);
+                }
+
+                .stats-grid {
+                    gap: var(--spacing-sm);
+                }
+
+                .stat-item {
+                    padding: var(--spacing-sm);
+                }
+
+                .stat-value {
+                    font-size: 1.5rem;
+                }
+
+                .stat-label {
+                    font-size: 0.75rem;
                 }
             }
 
@@ -2258,9 +3413,15 @@
 
     @push('js')
         <script>
+            // Suprimir warning de múltiples instancias de Alpine
+            if (window.Alpine) {
+                window.Alpine.config = {
+                    ...window.Alpine.config,
+                    suppressMultipleInstancesWarning: true
+                };
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('=== DOM CONTENT LOADED - PÁGINA DE COMPRAS ===');
-                
                 // Variables globales
                 let currentView = 'table';
                 let searchTerm = '';
@@ -2272,7 +3433,6 @@
                 if (purchaseDetailsModal) {
                     // Asegurar que el modal esté oculto al cargar la página
                     purchaseDetailsModal.style.display = 'none';
-                    console.log('Modal de detalles inicializado y oculto');
                     
                     // Cerrar modal al hacer clic fuera
                     purchaseDetailsModal.addEventListener('click', function(e) {
@@ -2287,14 +3447,11 @@
                             closePurchaseModal();
                         }
                     });
-                } else {
-                    console.error('Modal de detalles no encontrado');
                 }
                 
                 if (supplierInfoModal) {
                     // Asegurar que el modal de proveedor esté oculto al cargar la página
                     supplierInfoModal.style.display = 'none';
-                    console.log('Modal de proveedor inicializado y oculto');
                     
                     // Cerrar modal al hacer clic fuera
                     supplierInfoModal.addEventListener('click', function(e) {
@@ -2309,8 +3466,6 @@
                             closeSupplierModal();
                         }
                     });
-                } else {
-                    console.error('Modal de proveedor no encontrado');
                 }
 
                 // Elementos del DOM
@@ -2387,27 +3542,20 @@
 
                 // Ver detalles de compra
                 const viewDetailsButtons = document.querySelectorAll('.view-details');
-                console.log('Botones de detalles encontrados:', viewDetailsButtons.length);
                 
-                viewDetailsButtons.forEach((btn, index) => {
+                viewDetailsButtons.forEach((btn) => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log(`Botón de detalles ${index + 1} clickeado`);
                         const purchaseId = this.dataset.id;
-                        console.log('ID de compra:', purchaseId);
                         loadPurchaseDetails(purchaseId);
                     });
                 });
 
                 // Cargar detalles de la compra
                 function loadPurchaseDetails(purchaseId) {
-                    console.log('=== FUNCIÓN loadPurchaseDetails EJECUTADA ===');
-                    console.log('ID de compra recibido:', purchaseId);
-                    
                     const tableBody = document.getElementById('purchaseDetailsTableBody');
                     if (!tableBody) {
-                        console.error('TableBody no encontrado');
                         return;
                     }
                     
@@ -2417,9 +3565,6 @@
                     const modal = document.getElementById('purchaseDetailsModal');
                     if (modal) {
                         modal.style.display = 'flex';
-                        console.log('Modal mostrado');
-                    } else {
-                        console.error('Modal no encontrado');
                     }
                     
                     // Ocultar la sección de productos distribuidos en el modal de detalles
@@ -2437,11 +3582,9 @@
                         }
                     })
                     .then(response => {
-                        console.log('Respuesta del servidor:', response);
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Datos recibidos:', data);
                         if (data.success) {
                             let total = 0;
                             tableBody.innerHTML = '';
@@ -2473,8 +3616,6 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Error en fetch:', error);
-                        console.error('URL intentada:', `/purchases/${purchaseId}/details`);
                         tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-600">Error de conexión</td></tr>';
                         Swal.fire('Error', 'No se pudieron cargar los detalles: ' + error.message, 'error');
                     });
@@ -2528,7 +3669,6 @@
                             }
                         })
                         .catch(error => {
-                            console.error('Error:', error);
                             Swal.fire('Error', 'No se pudo eliminar la compra', 'error');
                         });
                 }
@@ -2559,14 +3699,18 @@
                     });
                 }, observerOptions);
 
-                                 // Observar elementos para animaciones
-                 document.querySelectorAll('.stat-card, .purchase-card').forEach(el => {
-                     el.style.opacity = '0';
-                     el.style.transform = 'translateY(20px)';
-                     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                     observer.observe(el);
-                 });
+                                                 // Observar elementos para animaciones
+                document.querySelectorAll('.stat-card, .purchase-card, .purchase-card-modern').forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    observer.observe(el);
+                });
+
+
              });
+
+
 
              // Función para cerrar el modal de detalles de compra
              function closePurchaseModal() {
@@ -2587,9 +3731,6 @@
 
              // Función para mostrar información del proveedor
              async function showSupplierInfo(supplierId) {
-                 console.log('=== FUNCIÓN showSupplierInfo EJECUTADA ===');
-                 console.log('Supplier ID:', supplierId);
-                 console.log('Stack trace:', new Error().stack);
                  
                  try {
                      // Mostrar loading en el modal
@@ -2634,7 +3775,6 @@
                          closeSupplierModal();
                      }
                  } catch (error) {
-                     console.error('Error fetching supplier details:', error);
                      showAlert('Error', 'Error de conexión. Verifique su conexión a internet e inténtelo de nuevo.', 'error');
                      closeSupplierModal();
                  }
@@ -2711,6 +3851,20 @@
                          productsSection.style.display = 'none';
                      }
                  }, 300);
+             }
+
+             // Función para mostrar alertas
+             function showAlert(title, text, icon) {
+                 if (typeof Swal !== 'undefined') {
+                     Swal.fire({
+                         title: title,
+                         text: text,
+                         icon: icon,
+                         confirmButtonText: 'Entendido'
+                     });
+                 } else {
+                     alert(`${title}: ${text}`);
+                 }
              }
 
              // Cerrar modal al hacer clic fuera
