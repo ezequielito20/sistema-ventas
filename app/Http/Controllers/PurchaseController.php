@@ -87,7 +87,7 @@ class PurchaseController extends Controller
          $company = $this->company;
          $companyId = $company->id;
          $currency = $this->currencies;
-         $products = Product::where('company_id', $companyId)
+         $products = Product::with('category')->where('company_id', $companyId)
             ->get();
 
          $suppliers = Supplier::where('company_id', $companyId)
@@ -602,7 +602,7 @@ class PurchaseController extends Controller
    public function getProductByCode($code)
    {
       try {
-         $product = Product::where('code', $code)
+         $product = Product::with('category')->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
 
@@ -618,11 +618,14 @@ class PurchaseController extends Controller
             'product' => [
                'id' => $product->id,
                'code' => $product->code,
-               'image' => $product->image_url,
+               'image_url' => $product->image_url,
                'name' => $product->name,
                'price' => $product->purchase_price,
                'purchase_price' => $product->purchase_price,
-               'stock' => $product->stock
+               'stock' => $product->stock,
+               'category' => [
+                  'name' => $product->category->name ?? 'Sin categoría'
+               ]
             ]
          ]);
       } catch (\Exception $e) {

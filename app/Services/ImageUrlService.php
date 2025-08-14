@@ -23,7 +23,8 @@ class ImageUrlService
         if (app()->environment('local')) {
             // Verificar si el archivo existe en storage público local
             if (Storage::disk('public')->exists($imagePath)) {
-                return Storage::disk('public')->url($imagePath);
+                // En desarrollo, devolver ruta relativa para mejor rendimiento
+                return '/storage/' . $imagePath;
             }
             
             // Si no existe localmente, usar la imagen por defecto

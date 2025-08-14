@@ -2,6 +2,10 @@
 
 @section('title', 'Nueva Compra')
 
+@push('head')
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+@endpush
+
 @section('content')
     <!-- Background Pattern -->
     <div class="page-background"></div>
@@ -32,44 +36,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Alertas Modernas -->
-        @if (session('message'))
-            <div class="alert-container">
-                <div class="alert-modern alert-{{ session('icons') == 'success' ? 'success' : 'danger' }}">
-                    <div class="alert-icon">
-                        <i class="fas fa-{{ session('icons') == 'success' ? 'check-circle' : 'exclamation-triangle' }}"></i>
-                    </div>
-                    <div class="alert-content">
-                        <span>{{ session('message') }}</span>
-                    </div>
-                    <button type="button" class="alert-close" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert-container">
-                <div class="alert-modern alert-danger">
-                    <div class="alert-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="alert-content">
-                        <strong>¡Errores encontrados!</strong>
-                        <ul class="error-list">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    <button type="button" class="alert-close" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        @endif
 
         <!-- Form Container -->
         <div class="form-container">
@@ -131,14 +97,16 @@
                                                         @click="openSearchModal()">
                                                         <div class="btn-content">
                                                             <i class="fas fa-search"></i>
-                                                            <span>Buscar</span>
+                                                            <span class="hidden sm:inline">Buscar</span>
+                                                            <span class="sm:hidden">🔍</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </button>
                                                     <a href="/products/create" class="btn-modern btn-success">
                                                         <div class="btn-content">
                                                             <i class="fas fa-plus"></i>
-                                                            <span>Nuevo</span>
+                                                            <span class="hidden sm:inline">Nuevo</span>
+                                                            <span class="sm:hidden">+</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </a>
@@ -257,46 +225,46 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Producto</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                                                     Stock</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Cantidad</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                                     Precio Unit.</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                                     Subtotal</th>
                                                 <th
-                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     Acción</th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             <template x-for="(product, index) in products" :key="product.id">
                                                 <tr class="hover:bg-gray-50 transition-colors">
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <div class="flex items-center">
-                                                            <div class="flex-shrink-0 h-10 w-10">
-                                                                <img class="h-10 w-10 rounded-lg object-cover"
+                                                            <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                                                                <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
                                                                     :src="product.image_url || '/img/no-image.png'"
                                                                     :alt="product.name">
                                                             </div>
-                                                            <div class="ml-4">
-                                                                <div class="text-sm font-medium text-gray-900"
+                                                            <div class="ml-2 sm:ml-4">
+                                                                <div class="text-xs sm:text-sm font-medium text-gray-900"
                                                                     x-text="product.name"></div>
-                                                                <div class="text-sm text-gray-500" x-text="product.code">
+                                                                <div class="text-xs sm:text-sm text-gray-500 hidden sm:block" x-text="product.code">
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
                                                         <span
-                                                            class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                                                            class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full"
                                                             :class="{
                                                                 'bg-red-100 text-red-800': product.stock < 10,
                                                                 'bg-yellow-100 text-yellow-800': product.stock >= 10 &&
@@ -305,32 +273,33 @@
                                                             }"
                                                             x-text="product.stock"></span>
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                         <input type="number" :value="product.quantity"
                                                             @input="updateProduct(index, 'quantity', $event.target.value)"
-                                                            class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                                                            class="w-16 sm:w-20 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-xs sm:text-sm"
                                                             min="1" step="1">
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden md:table-cell">
                                                         <div class="flex items-center">
                                                             <span
-                                                                class="text-gray-500 mr-2">{{ $currency->symbol }}</span>
+                                                                class="text-gray-500 mr-1 sm:mr-2 text-xs sm:text-sm">{{ $currency->symbol }}</span>
                                                             <input type="number" :value="product.price"
                                                                 @input="updateProduct(index, 'price', $event.target.value)"
-                                                                class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                class="w-20 sm:w-24 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                                                                 step="0.01">
                                                         </div>
                                                     </td>
-                                                    <td
-                                                        class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                                                        <span
-                                                            x-text="'{{ $currency->symbol }} ' + product.subtotal.toFixed(2)"></span>
-                                                    </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                                                        <td
+                                        class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
+                                        <span
+                                            x-text="'{{ $currency->symbol }} ' + (parseFloat(product.subtotal) || 0).toFixed(2)"></span>
+                                    </td>
+                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                                                         <button @click="removeProduct(index)"
-                                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                                                            <i class="fas fa-trash mr-2"></i>
-                                                            Eliminar
+                                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                                                            <i class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                                            <span class="hidden sm:inline">Eliminar</span>
+                                                            <span class="sm:hidden">🗑️</span>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -346,18 +315,7 @@
                                     <p class="text-gray-500 mb-3">Escanee un producto o use el botón "Buscar" para agregar
                                         productos a la compra</p>
                                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                            <p class="text-sm text-blue-700">
-                                                <strong>Consejo:</strong> Si solo hay un producto con stock disponible, se
-                                                agregará automáticamente.
-                                            </p>
-                                        </div>
-                                        <button @click="checkAndAddSingleProduct()"
-                                            class="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
-                                            <i class="fas fa-magic mr-1"></i>
-                                            Verificar producto único
-                                        </button>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -416,7 +374,7 @@
                                         </div>
                                         <div class="summary-content">
                                             <div class="summary-value total-amount"
-                                                x-text="'{{ $currency->symbol }} ' + totalAmount.toFixed(2)">
+                                                x-text="'{{ $currency->symbol }} ' + (parseFloat(totalAmount) || 0).toFixed(2)">
                                                 {{ $currency->symbol }} 0.00</div>
                                             <div class="summary-label">Total a Pagar</div>
                                         </div>
@@ -438,7 +396,8 @@
                                         title="Guardar esta compra y volver al listado">
                                         <div class="btn-content">
                                             <i class="fas fa-save"></i>
-                                            <span>Guardar</span>
+                                            <span class="hidden sm:inline">Guardar</span>
+                                            <span class="sm:hidden">💾</span>
                                         </div>
                                         <div class="btn-bg"></div>
                                         <div class="btn-shine"></div>
@@ -449,7 +408,8 @@
                                         title="Guardar esta compra y crear una nueva">
                                         <div class="btn-content">
                                             <i class="fas fa-plus-circle"></i>
-                                            <span>Guardar y Nueva</span>
+                                            <span class="hidden sm:inline">Guardar y Nueva</span>
+                                            <span class="sm:hidden">➕</span>
                                         </div>
                                         <div class="btn-bg"></div>
                                     </button>
@@ -457,7 +417,8 @@
                                     <button type="button" class="btn-modern btn-danger" @click="cancelPurchase()">
                                         <div class="btn-content">
                                             <i class="fas fa-times-circle"></i>
-                                            <span>Cancelar</span>
+                                            <span class="hidden sm:inline">Cancelar</span>
+                                            <span class="sm:hidden">❌</span>
                                         </div>
                                         <div class="btn-bg"></div>
                                     </button>
@@ -485,8 +446,8 @@
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="closeModal()"></div>
 
         <!-- Modal Content -->
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div class="relative w-full max-w-7xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all"
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-7xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all mx-4"
                 x-show="isOpen" x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -495,35 +456,35 @@
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
 
                 <!-- Modal Header -->
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4 text-white">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2 sm:space-x-4">
                             <div
-                                class="flex h-12 w-12 items-center justify-center rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
-                                <i class="fas fa-search text-xl"></i>
+                                class="flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
+                                <i class="fas fa-search text-sm sm:text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold">Búsqueda de Productos</h3>
-                                <p class="text-blue-100">Seleccione los productos para agregar a la compra</p>
+                                <h3 class="text-lg sm:text-xl font-bold">Búsqueda de Productos</h3>
+                                <p class="text-blue-100 text-sm sm:text-base">Seleccione los productos para agregar a la compra</p>
                             </div>
                         </div>
                         <button @click="closeModal()"
-                            class="rounded-full p-2 text-white hover:bg-white hover:bg-opacity-20 transition-colors">
-                            <i class="fas fa-times text-xl"></i>
+                            class="rounded-full p-1 sm:p-2 text-white hover:bg-white hover:bg-opacity-20 transition-colors">
+                            <i class="fas fa-times text-lg sm:text-xl"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Modal Body -->
-                <div class="p-6">
+                <div class="p-4 sm:p-6">
                     <!-- Search Bar -->
-                    <div class="mb-6">
+                    <div class="mb-4 sm:mb-6">
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
+                                <i class="fas fa-search text-gray-400 text-sm sm:text-base"></i>
                             </div>
                             <input type="text" x-model="searchTerm" @input="filterProductsInModal()"
-                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="block w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
                                 placeholder="Buscar productos por nombre o código...">
                         </div>
                     </div>
@@ -534,82 +495,83 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Código</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Producto</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                                         Categoría</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Stock</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                         Precio Compra</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                         Estado</th>
                                     <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($products as $product)
                                     <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="text-sm font-mono text-gray-900">{{ $product->code }}</span>
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                            <span class="text-xs sm:text-sm font-mono text-gray-900">{{ $product->code }}</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <img class="h-10 w-10 rounded-lg object-cover"
+                                                <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                                                    <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
                                                         src="{{ $product->image_url }}" alt="{{ $product->name }}">
                                                 </div>
-                                                <div class="ml-4">
-                                                    <div class="text-sm font-medium text-gray-900">{{ $product->name }}
+                                                <div class="ml-2 sm:ml-4">
+                                                    <div class="text-xs sm:text-sm font-medium text-gray-900">{{ $product->name }}
                                                     </div>
-                                                    <div class="text-sm text-gray-500">{{ $product->code }}</div>
+                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block">{{ $product->code }}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
                                             <span
-                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                                                 {{ $product->category->name }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <span
-                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                                class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full
                                             @if ($product->stock < 10) bg-red-100 text-red-800
                                             @elseif($product->stock < 50) bg-yellow-100 text-yellow-800
                                             @else bg-green-100 text-green-800 @endif">
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden md:table-cell">
                                             <span>{{ $currency->symbol }}
                                                 {{ number_format($product->purchase_price, 2) }}</span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden lg:table-cell">
                                             <span
-                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                                class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full
                                             @if ($product->stock_status_label === 'Bajo') bg-red-100 text-red-800
                                             @elseif($product->stock_status_label === 'Normal') bg-yellow-100 text-yellow-800
                                             @else bg-green-100 text-green-800 @endif">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                                             <button
                                                 @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
                                                 data-product-id="{{ $product->id }}"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                                <i class="fas fa-plus-circle mr-2"></i>
-                                                Agregar
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                                <span class="hidden sm:inline">Agregar</span>
+                                                <span class="sm:hidden">+</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -629,10 +591,10 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <div class="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 flex justify-end">
                     <button @click="closeModal()"
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                        <i class="fas fa-times mr-2"></i>
+                        class="inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        <i class="fas fa-times mr-1 sm:mr-2"></i>
                         Cerrar
                     </button>
                 </div>
@@ -728,6 +690,37 @@
             min-height: 100vh;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* Mejoras para dispositivos táctiles */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button, 
+        a, 
+        input[type="button"], 
+        input[type="submit"], 
+        .btn-modern,
+        .btn-glass {
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        input, 
+        textarea, 
+        select {
+            -webkit-user-select: auto;
+            -moz-user-select: auto;
+            -ms-user-select: auto;
+            user-select: auto;
         }
 
         /* ===== FONDO ANIMADO ===== */
@@ -807,38 +800,62 @@
             z-index: 1;
         }
 
-            /* Responsive Main Container */
-    @media (max-width: 768px) {
-        .main-container {
-            padding: 1rem;
+        /* Responsive Main Container */
+        @media (max-width: 1200px) {
+            .main-container {
+                max-width: 1200px;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-container {
+                max-width: 100%;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0.75rem;
+            }
+            
+            .form-container {
+                padding: 0;
+            }
         }
         
-        .form-container {
-            padding: 0;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .main-container {
-            padding: 0.5rem;
-        }
-        
-        .form-container {
-            padding: 0;
+        @media (max-width: 576px) {
+            .main-container {
+                padding: 0.5rem;
+            }
+            
+            .form-container {
+                padding: 0;
+            }
         }
         
-        /* Mejorar experiencia táctil en móviles */
-        .btn-modern,
-        .btn-glass,
-        .modern-input {
-            min-height: 44px; /* Tamaño mínimo recomendado para toques */
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 0.25rem;
+            }
+            
+            .form-container {
+                padding: 0;
+            }
+            
+            /* Mejorar experiencia táctil en móviles */
+            .btn-modern,
+            .btn-glass,
+            .modern-input {
+                min-height: 44px; /* Tamaño mínimo recomendado para toques */
+            }
+            
+            /* Asegurar que los botones sean fáciles de tocar */
+            .action-buttons .btn-modern {
+                min-height: 48px;
+            }
         }
-        
-        /* Asegurar que los botones sean fáciles de tocar */
-        .action-buttons .btn-modern {
-            min-height: 48px;
-        }
-    }
 
         /* ===== HEADER FLOTANTE ===== */
         .floating-header {
@@ -863,70 +880,131 @@
             overflow: hidden;
         }
 
-            /* Responsive Header */
-    @media (max-width: 768px) {
-        .header-content {
-            flex-direction: column;
-            text-align: center;
-            gap: 1.5rem;
-            padding: 1rem 1.5rem;
+        /* Responsive Header */
+        @media (max-width: 1200px) {
+            .header-content {
+                padding: 1.25rem 1.5rem;
+                gap: 1.5rem;
+            }
+            
+            .header-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 1.375rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1.625rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .floating-header {
+                margin-bottom: 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.25rem;
+                padding: 1rem 1.25rem;
+            }
+            
+            .header-left {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .floating-header {
+                margin-bottom: 1rem;
+            }
+            
+            .header-content {
+                gap: 1rem;
+                padding: 0.875rem 1rem;
+            }
+            
+            .header-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 1.125rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1.375rem;
+            }
+            
+            .header-text p {
+                font-size: 0.8rem;
+            }
+            
+            .btn-glass {
+                width: 100%;
+                max-width: 180px;
+                padding: 0.625rem 1.25rem;
+            }
         }
         
-        .header-left {
-            flex-direction: column;
-            gap: 1rem;
+        @media (max-width: 576px) {
+            .header-content {
+                padding: 0.75rem;
+                gap: 0.875rem;
+            }
+            
+            .header-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1.25rem;
+            }
+            
+            .header-text p {
+                font-size: 0.75rem;
+            }
+            
+            .btn-glass {
+                max-width: 160px;
+                font-size: 0.8rem;
+                padding: 0.5rem 1rem;
+            }
         }
         
-        .header-icon {
-            width: 56px;
-            height: 56px;
-            font-size: 1.25rem;
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0.625rem;
+                gap: 0.75rem;
+            }
+            
+            .header-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 0.875rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1.125rem;
+            }
+            
+            .header-text p {
+                font-size: 0.7rem;
+            }
+            
+            .btn-glass {
+                max-width: 140px;
+                font-size: 0.75rem;
+                padding: 0.5rem 0.875rem;
+            }
         }
-        
-        .header-text h1 {
-            font-size: 1.5rem;
-        }
-        
-        .header-text p {
-            font-size: 0.875rem;
-        }
-        
-        .header-actions {
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .btn-glass {
-            width: 100%;
-            max-width: 200px;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .header-content {
-            padding: 1rem;
-            gap: 1rem;
-        }
-        
-        .header-icon {
-            width: 48px;
-            height: 48px;
-            font-size: 1rem;
-        }
-        
-        .header-text h1 {
-            font-size: 1.25rem;
-        }
-        
-        .header-text p {
-            font-size: 0.8rem;
-        }
-        
-        .btn-glass {
-            max-width: 150px;
-            font-size: 0.875rem;
-        }
-    }
 
         .header-content::before {
             content: '';
@@ -1136,41 +1214,78 @@
             align-items: start;
         }
         
+        /* Responsive Grid - Mejorado */
         @media (max-width: 1400px) {
+            .content-grid {
+                grid-template-columns: 1fr 380px;
+                gap: 1.75rem;
+            }
+        }
+
+        @media (max-width: 1200px) {
             .content-grid {
                 grid-template-columns: 1fr 350px;
                 gap: 1.5rem;
             }
         }
 
-            /* Responsive Grid */
-    @media (max-width: 1200px) {
-        .content-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
+        @media (max-width: 992px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+            
+            .sidebar-panel {
+                order: -1;
+                position: static;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
         }
         
-        .sidebar-panel {
-            order: -1;
-            position: static;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .content-grid {
-            gap: 1rem;
+        @media (max-width: 768px) {
+            .content-grid {
+                gap: 1rem;
+            }
+            
+            .main-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .sidebar-panel {
+                margin-bottom: 0.75rem;
+            }
         }
         
-        .main-panel {
-            flex-direction: column;
+        @media (max-width: 576px) {
+            .content-grid {
+                gap: 0.75rem;
+            }
+            
+            .main-panel {
+                gap: 0.75rem;
+            }
+            
+            .sidebar-panel {
+                margin-bottom: 0.5rem;
+            }
         }
-    }
-    
-    @media (max-width: 640px) {
-        .content-grid {
-            gap: 0.75rem;
+        
+        @media (max-width: 480px) {
+            .content-grid {
+                gap: 0.5rem;
+            }
+            
+            .main-panel {
+                gap: 0.5rem;
+            }
+            
+            .sidebar-panel {
+                margin-bottom: 0.25rem;
+            }
         }
-    }
 
         .main-panel {
             display: flex;
@@ -1189,6 +1304,136 @@
             color: white;
             width: 100%;
             max-width: 400px;
+        }
+
+        /* Responsive Sidebar - Mejorado */
+        @media (max-width: 1200px) {
+            .sidebar-panel {
+                position: static;
+                margin-bottom: 1.25rem;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar-panel {
+                margin-bottom: 1rem;
+                border-radius: var(--border-radius-lg);
+            }
+            
+            .card-section {
+                padding: 1.25rem 1.75rem;
+            }
+            
+            .summary-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-panel {
+                border-radius: var(--border-radius);
+                max-width: 100%;
+            }
+            
+            .card-section {
+                padding: 1rem 1.5rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .summary-item {
+                padding: 0.75rem;
+                margin-bottom: 0;
+            }
+            
+            .summary-value {
+                font-size: 1rem;
+            }
+            
+            .summary-label {
+                font-size: 0.75rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .action-buttons .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .sidebar-panel {
+                margin: 0 -0.25rem 0.875rem -0.25rem;
+            }
+            
+            .card-section {
+                padding: 0.875rem 1.25rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.375rem;
+            }
+            
+            .summary-item {
+                padding: 0.625rem;
+            }
+            
+            .summary-value {
+                font-size: 0.9rem;
+            }
+            
+            .summary-label {
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .sidebar-panel {
+                margin: 0 -0.5rem 0.75rem -0.5rem;
+                border-radius: 0;
+            }
+            
+            .card-section {
+                padding: 0.75rem 1rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+            
+            .summary-item {
+                padding: 0.5rem;
+                margin-bottom: 0;
+            }
+            
+            .summary-value {
+                font-size: 0.875rem;
+            }
+            
+            .summary-label {
+                font-size: 0.65rem;
+            }
+            
+            .action-buttons {
+                gap: 0.375rem;
+            }
+            
+            .action-buttons .btn-modern {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
         }
 
         /* Asegurar que el texto del resumen sea visible */
@@ -1213,81 +1458,135 @@
             color: #ffffff !important;
         }
 
-            /* Responsive Sidebar */
-    @media (max-width: 1200px) {
-        .sidebar-panel {
-            position: static;
-            margin-bottom: 1rem;
-            max-width: 100%;
+        /* Responsive Sidebar */
+        @media (max-width: 1200px) {
+            .sidebar-panel {
+                position: static;
+                margin-bottom: 1.25rem;
+                max-width: 100%;
+            }
         }
-    }
-    
-    @media (max-width: 768px) {
-        .sidebar-panel {
-            border-radius: var(--border-radius);
-            max-width: 100%;
-        }
-        
-        .card-section {
-            padding: 1rem 1.5rem;
-        }
-        
-        .summary-item {
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .summary-value {
-            font-size: 1rem;
+
+        @media (max-width: 992px) {
+            .sidebar-panel {
+                margin-bottom: 1rem;
+                border-radius: var(--border-radius-lg);
+            }
+            
+            .card-section {
+                padding: 1.25rem 1.75rem;
+            }
+            
+            .summary-stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.75rem;
+            }
         }
         
-        .summary-label {
-            font-size: 0.75rem;
+        @media (max-width: 768px) {
+            .sidebar-panel {
+                border-radius: var(--border-radius);
+                max-width: 100%;
+            }
+            
+            .card-section {
+                padding: 1rem 1.5rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .summary-item {
+                padding: 0.75rem;
+                margin-bottom: 0;
+            }
+            
+            .summary-value {
+                font-size: 1rem;
+            }
+            
+            .summary-label {
+                font-size: 0.75rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .action-buttons .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
-        .action-buttons {
-            flex-direction: column;
-            gap: 0.5rem;
+        @media (max-width: 576px) {
+            .sidebar-panel {
+                margin: 0 -0.25rem 0.875rem -0.25rem;
+            }
+            
+            .card-section {
+                padding: 0.875rem 1.25rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.375rem;
+            }
+            
+            .summary-item {
+                padding: 0.625rem;
+            }
+            
+            .summary-value {
+                font-size: 0.9rem;
+            }
+            
+            .summary-label {
+                font-size: 0.7rem;
+            }
         }
         
-        .action-buttons .btn-modern {
-            width: 100%;
-            justify-content: center;
+        @media (max-width: 480px) {
+            .sidebar-panel {
+                margin: 0 -0.5rem 0.75rem -0.5rem;
+                border-radius: 0;
+            }
+            
+            .card-section {
+                padding: 0.75rem 1rem;
+            }
+            
+            .summary-stats {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+            
+            .summary-item {
+                padding: 0.5rem;
+                margin-bottom: 0;
+            }
+            
+            .summary-value {
+                font-size: 0.875rem;
+            }
+            
+            .summary-label {
+                font-size: 0.65rem;
+            }
+            
+            .action-buttons {
+                gap: 0.375rem;
+            }
+            
+            .action-buttons .btn-modern {
+                padding: 0.75rem;
+                font-size: 0.875rem;
+            }
         }
-    }
-    
-    @media (max-width: 480px) {
-        .sidebar-panel {
-            margin: 0 -0.5rem 1rem -0.5rem;
-            border-radius: 0;
-        }
-        
-        .card-section {
-            padding: 0.75rem 1rem;
-        }
-        
-        .summary-item {
-            padding: 0.5rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .summary-value {
-            font-size: 0.875rem;
-        }
-        
-        .summary-label {
-            font-size: 0.7rem;
-        }
-        
-        .action-buttons {
-            gap: 0.25rem;
-        }
-        
-        .action-buttons .btn-modern {
-            padding: 0.75rem;
-            font-size: 0.875rem;
-        }
-    }
     
             @media (max-width: 360px) {
             .sidebar-panel {
@@ -1416,67 +1715,122 @@
             position: relative;
         }
 
-            /* Responsive Card Header */
-    @media (max-width: 768px) {
-        .card-header {
-            padding: 1rem 1.5rem;
+        /* Responsive Card Header - Mejorado */
+        @media (max-width: 1200px) {
+            .card-header {
+                padding: 1.25rem 1.75rem;
+            }
+            
+            .title-icon {
+                width: 44px;
+                height: 44px;
+                font-size: 1.125rem;
+            }
+            
+            .panel-title {
+                font-size: 1.125rem;
+            }
+            
+            .panel-subtitle {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .card-header {
+                padding: 1rem 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 0.875rem;
+                text-align: center;
+            }
+            
+            .title-section {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .counter-badge {
+                align-self: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-header {
+                padding: 0.875rem 1.25rem;
+            }
+            
+            .title-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .panel-title {
+                font-size: 1rem;
+            }
+            
+            .panel-subtitle {
+                font-size: 0.75rem;
+            }
+            
+            .counter-badge {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
         }
         
-        .header-content {
-            flex-direction: column;
-            gap: 1rem;
-            text-align: center;
+        @media (max-width: 576px) {
+            .card-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .title-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 0.875rem;
+            }
+            
+            .panel-title {
+                font-size: 0.95rem;
+            }
+            
+            .panel-subtitle {
+                font-size: 0.7rem;
+            }
+            
+            .counter-badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+            }
         }
         
-        .title-section {
-            flex-direction: column;
-            gap: 0.5rem;
+        @media (max-width: 480px) {
+            .card-header {
+                padding: 0.625rem 0.875rem;
+            }
+            
+            .title-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+            
+            .panel-title {
+                font-size: 0.9rem;
+            }
+            
+            .panel-subtitle {
+                font-size: 0.65rem;
+            }
+            
+            .counter-badge {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.4rem;
+            }
         }
-        
-        .title-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-        
-        .panel-title {
-            font-size: 1.125rem;
-        }
-        
-        .panel-subtitle {
-            font-size: 0.8rem;
-        }
-        
-        .counter-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .card-header {
-            padding: 0.75rem 1rem;
-        }
-        
-        .title-icon {
-            width: 35px;
-            height: 35px;
-            font-size: 0.875rem;
-        }
-        
-        .panel-title {
-            font-size: 1rem;
-        }
-        
-        .panel-subtitle {
-            font-size: 0.75rem;
-        }
-        
-        .counter-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.4rem;
-        }
-    }
 
         .card-header::before {
             content: '';
@@ -1563,26 +1917,52 @@
             padding: 2rem;
         }
 
-            /* Responsive Card Body */
-    @media (max-width: 768px) {
-        .card-body {
-            padding: 1.5rem;
+        /* Responsive Card Body */
+        @media (max-width: 1200px) {
+            .card-body {
+                padding: 1.75rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .form-card {
+                margin-bottom: 1.25rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1.25rem;
+            }
+            
+            .form-card {
+                margin-bottom: 1rem;
+            }
         }
         
-        .form-card {
-            margin-bottom: 1rem;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .card-body {
-            padding: 1rem;
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .form-card {
+                margin-bottom: 0.875rem;
+            }
         }
         
-        .form-card {
-            margin-bottom: 0.75rem;
+        @media (max-width: 480px) {
+            .card-body {
+                padding: 0.875rem;
+            }
+            
+            .form-card {
+                margin-bottom: 0.75rem;
+            }
         }
-    }
 
         .card-section {
             padding: 1.5rem 2rem;
@@ -1610,52 +1990,99 @@
             grid-column: 1 / -1;
         }
 
-            /* Responsive Form Grid */
-    @media (max-width: 768px) {
-        .form-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
+        /* Responsive Form Grid - Mejorado */
+        @media (max-width: 1200px) {
+            .form-grid {
+                gap: 1.25rem;
+            }
+            
+            .field-group {
+                margin-bottom: 1.25rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .field-group {
+                margin-bottom: 1rem;
+            }
+            
+            .input-actions {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .input-actions .btn-modern {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                gap: 0.875rem;
+            }
+            
+            .field-group {
+                margin-bottom: 0.875rem;
+            }
+            
+            .input-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .input-actions .btn-modern {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
-        .field-group {
-            margin-bottom: 1rem;
+        @media (max-width: 576px) {
+            .form-grid {
+                gap: 0.75rem;
+            }
+            
+            .field-group {
+                margin-bottom: 0.75rem;
+            }
+            
+            .modern-input {
+                font-size: 0.9rem;
+                padding: 0.75rem 1rem;
+            }
+            
+            .btn-modern {
+                padding: 0.625rem 1rem;
+                font-size: 0.875rem;
+            }
         }
         
-        .input-container {
-            flex-direction: column;
-            gap: 0.5rem;
+        @media (max-width: 480px) {
+            .form-grid {
+                gap: 0.625rem;
+            }
+            
+            .field-group {
+                margin-bottom: 0.625rem;
+            }
+            
+            .modern-input {
+                font-size: 0.875rem;
+                padding: 0.625rem 0.875rem;
+            }
+            
+            .btn-modern {
+                padding: 0.5rem 0.875rem;
+                font-size: 0.8rem;
+            }
         }
-        
-        .input-actions {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .input-actions .btn-modern {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .form-grid {
-            gap: 0.75rem;
-        }
-        
-        .field-group {
-            margin-bottom: 0.75rem;
-        }
-        
-        .modern-input {
-            font-size: 0.875rem;
-            padding: 0.5rem 0.75rem;
-        }
-        
-        .btn-modern {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-    }
 
         .field-group {
             margin-bottom: 1.5rem;
@@ -1754,21 +2181,65 @@
         }
         
         /* Responsive Inputs */
+        @media (max-width: 1200px) {
+            .modern-input {
+                padding: 0.875rem 1.125rem;
+                font-size: 0.95rem;
+            }
+            
+            .input-icon {
+                width: 44px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .modern-input {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .input-icon {
+                width: 42px;
+                font-size: 0.9rem;
+            }
+            
+            .input-wrapper {
+                min-height: 48px;
+            }
+        }
+
         @media (max-width: 768px) {
             .modern-input {
                 padding: 0.75rem 1rem;
                 font-size: 0.875rem;
-            }
-            
-            .input-wrapper {
-                flex-direction: column;
-                gap: 0.5rem;
+                min-height: 44px;
             }
             
             .input-icon {
-                position: static;
-                transform: none;
-                margin-bottom: 0.25rem;
+                width: 40px;
+                font-size: 0.875rem;
+            }
+            
+            .input-wrapper {
+                min-height: 44px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .modern-input {
+                padding: 0.7rem 0.9rem;
+                font-size: 0.85rem;
+                min-height: 42px;
+            }
+            
+            .input-icon {
+                width: 38px;
+                font-size: 0.8rem;
+            }
+            
+            .input-wrapper {
+                min-height: 42px;
             }
         }
         
@@ -1776,6 +2247,16 @@
             .modern-input {
                 padding: 0.625rem 0.875rem;
                 font-size: 0.8rem;
+                min-height: 40px;
+            }
+            
+            .input-icon {
+                width: 36px;
+                font-size: 0.75rem;
+            }
+            
+            .input-wrapper {
+                min-height: 40px;
             }
         }
 
@@ -1819,6 +2300,25 @@
         }
 
         /* Responsive Input Actions */
+        @media (max-width: 1200px) {
+            .input-actions {
+                gap: 0.625rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .input-actions {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .input-actions .btn-modern {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .input-actions {
                 flex-direction: column;
@@ -1828,6 +2328,18 @@
             .input-actions .btn-modern {
                 width: 100%;
                 justify-content: center;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .input-actions {
+                gap: 0.375rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .input-actions {
+                gap: 0.25rem;
             }
         }
 
@@ -1863,17 +2375,43 @@
         }
         
         /* Responsive Buttons */
+        @media (max-width: 1200px) {
+            .btn-modern {
+                padding: 0.7rem 1.125rem;
+                font-size: 0.85rem;
+                min-height: 44px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .btn-modern {
+                padding: 0.65rem 1rem;
+                font-size: 0.8rem;
+                min-height: 42px;
+            }
+        }
+
         @media (max-width: 768px) {
             .btn-modern {
                 padding: 0.625rem 1rem;
                 font-size: 0.8rem;
+                min-height: 44px; /* Tamaño táctil recomendado */
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .btn-modern {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.775rem;
+                min-height: 42px;
             }
         }
         
         @media (max-width: 480px) {
             .btn-modern {
-                padding: 0.5rem 0.875rem;
+                padding: 0.55rem 0.875rem;
                 font-size: 0.75rem;
+                min-height: 40px;
             }
         }
 
@@ -2208,13 +2746,30 @@
         /* ===== BOTONES DE ACCIÓN ===== */
         .action-buttons {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 0.75rem;
+            justify-content: center;
+            align-items: center;
         }
 
             /* Responsive Action Buttons */
+    @media (max-width: 992px) and (min-width: 769px) {
+        .action-buttons {
+            flex-direction: row;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons .btn-modern {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.875rem;
+            font-size: 0.9rem;
+        }
+    }
+    
     @media (max-width: 768px) {
         .action-buttons {
+            flex-direction: column;
             gap: 0.5rem;
         }
         
@@ -2232,7 +2787,13 @@
     }
     
     @media (max-width: 480px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+        
         .action-buttons .btn-modern {
+            width: 100%;
             padding: 0.75rem;
             font-size: 0.875rem;
         }
@@ -2293,21 +2854,34 @@
             border: none;
         }
 
-        /* Responsive Table */
-        @media (max-width: 1024px) {
+        /* Responsive Table - Mejorado */
+        @media (max-width: 1200px) {
             .table-container {
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .modern-table {
+                min-width: 900px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .modern-table {
                 min-width: 800px;
+            }
+
+            .modern-table th,
+            .modern-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.875rem;
             }
         }
 
         @media (max-width: 768px) {
             .table-container {
-                overflow-x: auto;
-                border-radius: 0;
+                border-radius: 8px;
+                margin: 0 -0.5rem;
             }
 
             .modern-table {
@@ -2316,54 +2890,71 @@
 
             .modern-table th,
             .modern-table td {
-                padding: 0.5rem 0.25rem;
-                font-size: 0.75rem;
+                padding: 0.625rem 0.375rem;
+                font-size: 0.8rem;
                 white-space: nowrap;
             }
 
             .modern-table th {
-                font-size: 0.7rem;
+                font-size: 0.75rem;
             }
 
-            /* Ocultar columnas menos importantes en móvil */
-            .modern-table th:nth-child(3),
-            .modern-table td:nth-child(3) {
+            /* Ocultar columna de stock en tablet */
+            .modern-table th:nth-child(2),
+            .modern-table td:nth-child(2) {
                 display: none;
             }
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 576px) {
+            .table-container {
+                margin: 0 -0.75rem;
+                border-radius: 0;
+            }
+
             .modern-table {
                 min-width: 600px;
             }
 
             .modern-table th,
             .modern-table td {
-                padding: 0.25rem 0.125rem;
+                padding: 0.5rem 0.25rem;
+                font-size: 0.75rem;
+            }
+
+            .modern-table th {
                 font-size: 0.7rem;
             }
 
-            /* Ocultar más columnas en pantallas muy pequeñas */
-            .modern-table th:nth-child(5),
-            .modern-table td:nth-child(5) {
+            /* Ocultar más columnas en móvil */
+            .modern-table th:nth-child(4),
+            .modern-table td:nth-child(4) {
                 display: none;
             }
         }
 
         @media (max-width: 480px) {
+            .table-container {
+                margin: 0 -1rem;
+            }
+
             .modern-table {
                 min-width: 500px;
             }
 
             .modern-table th,
             .modern-table td {
-                padding: 0.125rem;
+                padding: 0.375rem 0.125rem;
+                font-size: 0.7rem;
+            }
+            
+            .modern-table th {
                 font-size: 0.65rem;
             }
             
-            /* Ocultar columnas menos importantes en pantallas muy pequeñas */
-            .modern-table th:nth-child(4),
-            .modern-table td:nth-child(4) {
+            /* Solo mostrar producto, cantidad y acción */
+            .modern-table th:nth-child(5),
+            .modern-table td:nth-child(5) {
                 display: none;
             }
         }
@@ -2375,13 +2966,17 @@
             
             .modern-table th,
             .modern-table td {
-                padding: 0.1rem;
+                padding: 0.25rem 0.1rem;
+                font-size: 0.65rem;
+            }
+            
+            .modern-table th {
                 font-size: 0.6rem;
             }
             
-            /* Solo mostrar columnas esenciales */
-            .modern-table th:not(:nth-child(1)):not(:nth-child(6)),
-            .modern-table td:not(:nth-child(1)):not(:nth-child(6)) {
+            /* Solo mostrar producto, cantidad y acción */
+            .modern-table th:not(:nth-child(1)):not(:nth-child(3)):not(:nth-child(6)),
+            .modern-table td:not(:nth-child(1)):not(:nth-child(3)):not(:nth-child(6)) {
                 display: none;
             }
         }
@@ -2421,11 +3016,33 @@
             overflow: hidden;
         }
 
-        /* Responsive Modal */
+        /* Responsive Modal - Mejorado */
+        @media (max-width: 1200px) {
+            .modern-modal {
+                max-width: 90vw;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .modern-modal {
+                max-width: 95vw;
+                margin: 1.5rem;
+            }
+            
+            .modern-modal .modal-header {
+                padding: 1.5rem;
+            }
+            
+            .modern-modal .modal-body {
+                padding: 1.5rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .modern-modal {
                 border-radius: var(--border-radius);
                 margin: 1rem;
+                max-width: calc(100vw - 2rem);
             }
 
             .modal-title {
@@ -2435,15 +3052,71 @@
             .modal-subtitle {
                 font-size: 0.8rem;
             }
+            
+            .modern-modal .modal-header {
+                padding: 1.25rem;
+            }
+            
+            .modern-modal .modal-body {
+                padding: 1.25rem;
+            }
+            
+            .modern-modal .modal-footer {
+                padding: 1rem 1.25rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .modern-modal {
+                margin: 0.75rem;
+                max-width: calc(100vw - 1.5rem);
+            }
+            
+            .modal-title {
+                font-size: 1.125rem;
+            }
+            
+            .modal-subtitle {
+                font-size: 0.75rem;
+            }
+            
+            .modern-modal .modal-header {
+                padding: 1rem;
+            }
+            
+            .modern-modal .modal-body {
+                padding: 1rem;
+            }
+            
+            .modern-modal .modal-footer {
+                padding: 0.875rem 1rem;
+            }
         }
 
         @media (max-width: 480px) {
             .modern-modal {
                 margin: 0.5rem;
+                max-width: calc(100vw - 1rem);
             }
 
             .modal-title {
-                font-size: 1.125rem;
+                font-size: 1rem;
+            }
+            
+            .modal-subtitle {
+                font-size: 0.7rem;
+            }
+            
+            .modern-modal .modal-header {
+                padding: 0.875rem;
+            }
+            
+            .modern-modal .modal-body {
+                padding: 0.875rem;
+            }
+            
+            .modern-modal .modal-footer {
+                padding: 0.75rem 0.875rem;
             }
         }
 
@@ -2623,15 +3296,163 @@
             }
         }
 
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 1200px) {
+        /* ===== RESPONSIVE DESIGN GLOBAL - MEJORADO ===== */
+        
+        /* Pantallas muy grandes (1400px+) */
+        @media (min-width: 1400px) {
+            .main-container {
+                max-width: 1400px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr 420px;
+                gap: 2.5rem;
+            }
+        }
+        
+        /* Laptops grandes (1200px - 1399px) */
+        @media (max-width: 1399px) and (min-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr 380px;
+                gap: 2rem;
+            }
+        }
+        
+        /* Laptops medianos (992px - 1199px) */
+        @media (max-width: 1199px) and (min-width: 992px) {
+            .content-grid {
+                grid-template-columns: 1fr 350px;
+                gap: 1.75rem;
+            }
+        }
+        
+        /* Tablets y pantallas medianas (768px - 991px) */
+        @media (max-width: 991px) and (min-width: 768px) {
             .content-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
             }
-
+            
             .sidebar-panel {
-                position: static;
                 order: -1;
+                position: static;
+            }
+        }
+        
+        /* Móviles grandes y tablets pequeñas (576px - 767px) */
+        @media (max-width: 767px) and (min-width: 576px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+            
+            .sidebar-panel {
+                order: -1;
+                position: static;
+            }
+        }
+        
+        /* Móviles medianos (480px - 575px) */
+        @media (max-width: 575px) and (min-width: 480px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Móviles pequeños (360px - 479px) */
+        @media (max-width: 479px) and (min-width: 360px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 0.875rem;
+            }
+        }
+        
+        /* Móviles muy pequeños (menos de 360px) */
+        @media (max-width: 359px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .main-container {
+                padding: 0.125rem;
+            }
+        }
+
+        /* Mejoras específicas para pantallas muy pequeñas */
+        @media (max-width: 320px) {
+            .main-container {
+                padding: 0.1rem;
+            }
+            
+            .floating-header {
+                margin-bottom: 0.5rem;
+            }
+            
+            .header-content {
+                padding: 0.5rem;
+                gap: 0.5rem;
+            }
+            
+            .header-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 0.8rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1rem;
+            }
+            
+            .header-text p {
+                font-size: 0.65rem;
+            }
+            
+            .btn-glass {
+                max-width: 120px;
+                font-size: 0.7rem;
+                padding: 0.4rem 0.75rem;
+            }
+            
+            .form-card {
+                border-radius: 8px;
+            }
+            
+            .card-header {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .card-body {
+                padding: 0.75rem;
+            }
+            
+            .card-section {
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .summary-item {
+                padding: 0.375rem;
+                gap: 0.25rem;
+            }
+            
+            .summary-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 0.6rem;
+            }
+            
+            .summary-value {
+                font-size: 0.75rem;
+            }
+            
+            .summary-label {
+                font-size: 0.6rem;
+            }
+            
+            .action-buttons .btn-modern {
+                padding: 0.5rem;
+                font-size: 0.75rem;
             }
         }
 
@@ -2839,7 +3660,7 @@
             return {
                 formChanged: false,
                 products: [],
-                totalAmount: 0,
+                totalAmount: 0.00,
                 totalProducts: 0,
                 totalQuantity: 0,
                 productCode: '',
@@ -2853,11 +3674,13 @@
                     
                     // Esperar a que Alpine.js esté completamente cargado
                     this.$nextTick(() => {
+                        console.log('🚀 Alpine.js listo, configurando...');
                         this.initializeEventListeners();
                         this.updateEmptyState();
                         window.purchaseFormInstance = this;
 
                         // Verificar producto único inmediatamente
+                        console.log('🎯 Llamando checkAndAddSingleProduct...');
                         this.checkAndAddSingleProduct();
                     });
                 },
@@ -2867,79 +3690,115 @@
                 // Verificar si hay un solo producto y agregarlo automáticamente
                 checkAndAddSingleProduct() {
                     try {
+                        console.log('🔍 Verificando producto único...');
+                        
                         // Verificar si ya se ejecutó
                         if (this.autoAddExecuted) {
+                            console.log('⚠️ Ya se ejecutó, saltando...');
                             return;
                         }
                         
-                        const productRows = document.querySelectorAll('#searchProductModal tbody tr');
-
-                        if (productRows.length === 1) {
-                            const row = productRows[0];
-                            const stockElement = row.querySelector('td:nth-child(4) span');
-                            const stock = parseInt(stockElement?.textContent || '0');
-
-                            if (stock > 0) {
-                                const addButton = row.querySelector('button[class*="bg-blue-600"]');
-
-                                if (addButton) {
-                                    const codeElement = row.querySelector('td:first-child span');
-                                    const nameElement = row.querySelector('td:nth-child(2) .text-sm.font-medium');
-                                    const priceElement = row.querySelector('td:nth-child(5) span');
-                                    const categoryElement = row.querySelector('td:nth-child(3) span');
-
-                                    if (codeElement && nameElement && priceElement && categoryElement) {
-                                        const code = codeElement.textContent.trim();
-                                        const name = nameElement.textContent.trim();
-                                        const priceText = priceElement.textContent.trim();
-                                        const categoryName = categoryElement.textContent.trim();
-
-                                        const price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.'));
-
-                                        if (!this.products.some(p => p.code === code)) {
-                                            // Obtener el ID real del producto desde el botón
-                                            let productId = Date.now(); // ID temporal por defecto
-
-                                            const dataProductId = addButton.getAttribute('data-product-id');
-                                            if (dataProductId) {
-                                                productId = parseInt(dataProductId);
-                                            }
-
-                                            // Obtener la imagen del producto desde el DOM
-                                            const imageElement = row.querySelector('img');
-                                            let imageUrl = '/img/no-image.png';
-                                            if (imageElement) {
-                                                imageUrl = imageElement.getAttribute('src');
-                                            }
-
-                                            // Crear objeto producto
-                                            const product = {
-                                                id: productId,
-                                                code: code,
-                                                name: name,
-                                                image_url: imageUrl,
-                                                stock: stock,
-                                                purchase_price: price,
-                                                category: {
-                                                    name: categoryName
-                                                },
-                                                quantity: 1,
-                                                price: price,
-                                                subtotal: price
-                                            };
-
-                                            this.addProductToTable(product);
-                                            this.showToast(`${name} se agregó automáticamente`, 'info');
-                                        }
-                                    }
-                                }
+                        // Verificar directamente en la base de datos usando los datos de Blade
+                        const availableProducts = {{ $products->count() }};
+                        console.log('📦 Productos disponibles en BD:', availableProducts);
+                        
+                        if (availableProducts === 1) {
+                            console.log('✅ Un producto en BD, agregando...');
+                            // Obtener el primer producto de la colección
+                            const productData = @json($products->first());
+                                                            console.log('🎯 Producto encontrado:', productData);
+                                if (productData) {
+                                    // Crear el objeto producto con la estructura correcta
+                                    const product = {
+                                        id: productData.id,
+                                        code: productData.code,
+                                        name: productData.name,
+                                        image_url: productData.image_url || '/img/no-image.svg',
+                                        stock: productData.stock,
+                                        purchase_price: productData.purchase_price,
+                                        price: productData.purchase_price,
+                                        category: {
+                                            name: productData.category?.name || 'Sin categoría'
+                                        },
+                                        quantity: 1,
+                                        subtotal: parseFloat(productData.purchase_price) || 0
+                                    };
+                                    console.log('🎯 Producto formateado:', product);
+                                    console.log('🖼️ URL de imagen:', product.image_url);
+                                this.addProductToTable(product);
+                                this.showToast(`${product.name} se agregó automáticamente`, 'info');
                             }
+                        } else {
+                            console.log('❌ No hay exactamente un producto');
                         }
                         
                         // Marcar como ejecutado
                         this.autoAddExecuted = true;
+                        console.log('✅ Verificación completada');
                     } catch (error) {
-                        // Silenciar errores
+                        console.error('💥 Error en checkAndAddSingleProduct:', error);
+                    }
+                },
+
+                // Agregar producto único desde el modal
+                addSingleProductFromModal(row) {
+                    const stockElement = row.querySelector('td:nth-child(4) span');
+                    const stock = parseInt(stockElement?.textContent || '0');
+
+                    if (stock > 0) {
+                        const addButton = row.querySelector('button[class*="bg-blue-600"]');
+
+                        if (addButton) {
+                            const codeElement = row.querySelector('td:first-child span');
+                            const nameElement = row.querySelector('td:nth-child(2) .text-sm.font-medium');
+                            const priceElement = row.querySelector('td:nth-child(5) span');
+                            const categoryElement = row.querySelector('td:nth-child(3) span');
+
+                            if (codeElement && nameElement && priceElement && categoryElement) {
+                                const code = codeElement.textContent.trim();
+                                const name = nameElement.textContent.trim();
+                                const priceText = priceElement.textContent.trim();
+                                const categoryName = categoryElement.textContent.trim();
+
+                                const price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.'));
+
+                                if (!this.products.some(p => p.code === code)) {
+                                    // Obtener el ID real del producto desde el botón
+                                    let productId = Date.now(); // ID temporal por defecto
+
+                                    const dataProductId = addButton.getAttribute('data-product-id');
+                                    if (dataProductId) {
+                                        productId = parseInt(dataProductId);
+                                    }
+
+                                    // Obtener la imagen del producto desde el DOM
+                                    const imageElement = row.querySelector('img');
+                                    let imageUrl = '/img/no-image.png';
+                                    if (imageElement) {
+                                        imageUrl = imageElement.getAttribute('src');
+                                    }
+
+                                    // Crear objeto producto
+                                    const product = {
+                                        id: productId,
+                                        code: code,
+                                        name: name,
+                                        image_url: imageUrl,
+                                        stock: stock,
+                                        purchase_price: price,
+                                        category: {
+                                            name: categoryName
+                                        },
+                                        quantity: 1,
+                                        price: price,
+                                        subtotal: price
+                                    };
+
+                                    this.addProductToTable(product);
+                                    this.showToast(`${product.name} se agregó automáticamente`, 'info');
+                                }
+                            }
+                        }
                     }
                 },
 
@@ -2971,7 +3830,7 @@
                         return;
                     }
 
-                    fetch(`/admin/purchases/product-by-code/${code}`)
+                    fetch(`/purchases/product-by-code/${code}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -2988,6 +3847,9 @@
 
                 // Agregar producto a la tabla
                 addProductToTable(product) {
+                    console.log('📥 Agregando producto a la tabla:', product);
+                    console.log('🖼️ URL de imagen en addProductToTable:', product.image_url);
+                    
                     if (!product.id) {
                         this.showToast('El producto no tiene un ID válido', 'error');
                         return;
@@ -3001,8 +3863,8 @@
                     this.products.push({
                         ...product,
                         quantity: 1,
-                        price: product.purchase_price || product.price || 0,
-                        subtotal: product.purchase_price || product.price || 0
+                        price: parseFloat(product.purchase_price || product.price || 0),
+                        subtotal: parseFloat(product.purchase_price || product.price || 0)
                     });
 
                     this.updateTotal();
@@ -3295,6 +4157,18 @@
                 console.warn('Alpine.js no se cargó correctamente');
             } else {
                 console.log('Alpine.js cargado correctamente');
+                
+                // Esperar a que Alpine.js esté completamente inicializado
+                Alpine.nextTick(() => {
+                    // Obtener la instancia del formulario principal
+                    const purchaseForm = document.querySelector('[x-data="purchaseForm()"]');
+                    if (purchaseForm && purchaseForm._x_dataStack && purchaseForm._x_dataStack[0]) {
+                        window.purchaseFormInstance = purchaseForm._x_dataStack[0];
+                        console.log('Instancia del formulario de compra inicializada:', window.purchaseFormInstance);
+                    } else {
+                        console.warn('No se pudo obtener la instancia del formulario de compra');
+                    }
+                });
             }
         });
     </script>
