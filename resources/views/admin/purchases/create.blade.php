@@ -24,7 +24,7 @@
                 </div>
             </div>
             <div class="header-actions">
-                <button onclick="goBack()" class="btn-glass btn-secondary-glass">
+                <button onclick="goBack()" class="btn-glass btn-secondary-glass" title="Volver a la página anterior">
                     <i class="fas fa-arrow-left"></i>
                     <span>Volver</span>
                     <div class="btn-ripple"></div>
@@ -299,22 +299,12 @@
                                                           x-text="product.stock"></span>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <button @click="updateProduct(index, 'quantity', Math.max(1, product.quantity - 1))" 
-                                                                class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-l-md transition-colors">
-                                                            <i class="fas fa-minus text-xs text-gray-600"></i>
-                                                        </button>
-                                                        <input type="number" 
-                                                               :value="product.quantity"
-                                                               @input="updateProduct(index, 'quantity', $event.target.value)"
-                                                               class="w-16 px-2 py-2 border-t border-b border-gray-300 text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                               min="1"
-                                                               step="1">
-                                                        <button @click="updateProduct(index, 'quantity', product.quantity + 1)" 
-                                                                class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-r-md transition-colors">
-                                                            <i class="fas fa-plus text-xs text-gray-600"></i>
-                                                        </button>
-                                                    </div>
+                                                    <input type="number" 
+                                                           :value="product.quantity"
+                                                           @input="updateProduct(index, 'quantity', $event.target.value)"
+                                                           class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                                                           min="1"
+                                                           step="1">
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center">
@@ -436,7 +426,8 @@
                             <div class="action-buttons">
                                 <button type="submit" 
                                         class="btn-modern btn-primary" 
-                                        @click="submitForm()">
+                                        @click="submitForm()"
+                                        title="Guardar esta compra y volver al listado">
                                     <div class="btn-content">
                                         <i class="fas fa-save"></i>
                                         <span>Guardar</span>
@@ -449,10 +440,11 @@
                                         class="btn-modern btn-success" 
                                         name="action" 
                                         value="save_and_new"
-                                        @click="submitForm()">
+                                        @click="submitForm()"
+                                        title="Guardar esta compra y crear una nueva">
                                     <div class="btn-content">
                                         <i class="fas fa-plus-circle"></i>
-                                        <span>+ Nueva</span>
+                                        <span>Guardar y Nueva</span>
                                     </div>
                                     <div class="btn-bg"></div>
                                 </button>
@@ -466,6 +458,7 @@
                                     </div>
                                     <div class="btn-bg"></div>
                                 </button>
+                                
                             </div>
                         </div>
                     </div>
@@ -604,6 +597,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')" 
+                                                data-product-id="{{ $product->id }}"
                                                 class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                             <i class="fas fa-plus-circle mr-2"></i>
                                             Agregar
@@ -1110,6 +1104,28 @@
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: white;
+    }
+    
+    /* Asegurar que el texto del resumen sea visible */
+    .sidebar-panel .summary-value,
+    .sidebar-panel .summary-label {
+        color: #000000 !important;
+    }
+    
+    .sidebar-panel .summary-item {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sidebar-panel .summary-item.total {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .sidebar-panel .summary-item.total .summary-value,
+    .sidebar-panel .summary-item.total .summary-label {
+        color: #ffffff !important;
     }
     
     /* Responsive Sidebar */
@@ -1777,12 +1793,14 @@
         font-size: 1.25rem;
         font-weight: 700;
         margin-bottom: 0.125rem;
+        color: #000000 !important;
     }
 
     .summary-label {
         font-size: 0.8rem;
         font-weight: 500;
-        opacity: 0.8;
+        opacity: 0.9;
+        color: #000000 !important;
     }
 
     .summary-divider {
@@ -1794,24 +1812,11 @@
     .total-amount {
         font-size: 1.75rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-        animation: pulse 2s ease-in-out infinite;
+        color: #000000 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .total-amount::before {
-        content: '';
-        position: absolute;
-        inset: -4px;
-        background: linear-gradient(135deg, #10b981, #059669, #047857);
-        border-radius: 12px;
-        opacity: 0.1;
-        filter: blur(8px);
-        animation: pulse 2s ease-in-out infinite;
-    }
+
 
     /* ===== BOTONES DE ACCIÓN ===== */
     .action-buttons {
@@ -2411,8 +2416,20 @@
                                     const price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.'));
                                     
                                     if (!this.products.some(p => p.code === code)) {
+                                        // Obtener el ID real del producto desde el botón
+                                        const addButton = row.querySelector('button[class*="bg-blue-600"]');
+                                        let productId = Date.now(); // ID temporal por defecto
+                                        
+                                        if (addButton) {
+                                            const dataProductId = addButton.getAttribute('data-product-id');
+                                            if (dataProductId) {
+                                                productId = parseInt(dataProductId);
+                                            }
+                                        }
+                                        
+                                        // Crear objeto producto
                                         const product = {
-                                            id: Date.now(),
+                                            id: productId,
                                             code: code,
                                             name: name,
                                             image_url: '/img/no-image.png',
@@ -2565,9 +2582,19 @@
             
             // Volver atrás
             goBack() {
-                if (document.referrer) {
+                // Verificar si hay una URL de referencia guardada en la sesión
+                const referrerUrl = '{{ session("purchases_referrer") }}';
+                
+                if (referrerUrl && referrerUrl !== '') {
+                    // Usar la URL guardada en la sesión
+                    window.location.href = referrerUrl;
+                } else if (document.referrer && 
+                          !document.referrer.includes('purchases/create') && 
+                          !document.referrer.includes('purchases/edit')) {
+                    // Usar document.referrer si no es del mismo formulario
                     window.history.back();
                 } else {
+                    // Fallback: ir al listado de compras
                     window.location.href = '{{ route("admin.purchases.index") }}';
                 }
             },
@@ -2733,6 +2760,32 @@
     
 
     
+    // Función global para volver atrás
+    window.goBack = function() {
+        console.log('Función goBack() ejecutada');
+        
+        // Verificar si hay una URL de referencia guardada en la sesión
+        const referrerUrl = '{{ session("purchases_referrer") }}';
+        console.log('URL de referencia en sesión:', referrerUrl);
+        console.log('Document referrer:', document.referrer);
+        
+        if (referrerUrl && referrerUrl !== '') {
+            console.log('Usando URL de sesión:', referrerUrl);
+            // Usar la URL guardada en la sesión
+            window.location.href = referrerUrl;
+        } else if (document.referrer && 
+                  !document.referrer.includes('purchases/create') && 
+                  !document.referrer.includes('purchases/edit')) {
+            console.log('Usando document.referrer');
+            // Usar document.referrer si no es del mismo formulario
+            window.history.back();
+        } else {
+            console.log('Usando fallback al listado');
+            // Fallback: ir al listado de compras
+            window.location.href = '{{ route("admin.purchases.index") }}';
+        }
+    };
+
     // Confirmación antes de salir
     window.addEventListener('beforeunload', (event) => {
         // Verificar si hay cambios en el formulario

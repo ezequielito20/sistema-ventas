@@ -95,7 +95,12 @@ class PurchaseController extends Controller
 
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
-         if ($referrerUrl && !str_contains($referrerUrl, 'purchases/create')) {
+         
+         // Solo guardar la URL si no es del mismo formulario de compra y es una URL válida
+         if ($referrerUrl && 
+             !str_contains($referrerUrl, 'purchases/create') && 
+             !str_contains($referrerUrl, 'purchases/edit') &&
+             filter_var($referrerUrl, FILTER_VALIDATE_URL)) {
             session(['purchases_referrer' => $referrerUrl]);
          }
 
@@ -185,6 +190,14 @@ class PurchaseController extends Controller
          ]);
 
          DB::commit();
+
+         // Verificar la acción solicitada
+         if ($request->has('action') && $request->action === 'save_and_new') {
+            // Redirigir al formulario de creación para hacer otra compra
+            return redirect()->route('admin.purchases.create')
+                ->with('message', '¡Compra registrada exitosamente! Puede crear otra compra.')
+                ->with('icons', 'success');
+         }
 
          // Verificar si hay una URL de referencia guardada
          $referrerUrl = session('purchases_referrer');
