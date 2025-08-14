@@ -54,11 +54,11 @@
         <!-- Stats Dashboard -->
         <div class="stats-dashboard">
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card stat-primary">
                     <div class="stat-icon">
                         <i class="fas fa-boxes"></i>
-                        <div class="stat-glow"></div>
                     </div>
+                    <div class="stat-glow"></div>
                     <div class="stat-content">
                         <div class="stat-value">{{ $totalPurchases }}</div>
                         <div class="stat-label">Productos Únicos</div>
@@ -69,11 +69,11 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card stat-success">
                     <div class="stat-icon">
                         <i class="fas fa-chart-line"></i>
-                        <div class="stat-glow"></div>
                     </div>
+                    <div class="stat-glow"></div>
                     <div class="stat-content">
                         <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</div>
                         <div class="stat-label">Total Invertido</div>
@@ -84,11 +84,11 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card stat-warning">
                     <div class="stat-icon">
                         <i class="fas fa-calendar-check"></i>
-                        <div class="stat-glow"></div>
                     </div>
+                    <div class="stat-glow"></div>
                     <div class="stat-content">
                         <div class="stat-value">{{ $monthlyPurchases }}</div>
                         <div class="stat-label">Compras del Mes</div>
@@ -99,11 +99,11 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card stat-info">
                     <div class="stat-icon">
                         <i class="fas fa-hourglass-half"></i>
-                        <div class="stat-glow"></div>
                     </div>
+                    <div class="stat-glow"></div>
                     <div class="stat-content">
                         <div class="stat-value">{{ $pendingDeliveries }}</div>
                         <div class="stat-label">Pendientes</div>
@@ -365,64 +365,60 @@
         </div>
 
         <!-- Modal para Detalles -->
-        <div class="modal fade" id="purchaseDetailsModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <div class="modal-title-section">
-                            <div class="modal-icon">
-                                <i class="fas fa-list-alt"></i>
-                            </div>
-                            <div class="modal-title-content">
-                                <h5 class="modal-title">Detalle de la Compra</h5>
-                                <p class="modal-subtitle">Información completa de productos y precios</p>
-                            </div>
-                        </div>
-                        <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
-                            <i class="fas fa-times"></i>
-                        </button>
+        <div class="modal-overlay" id="purchaseDetailsModal" style="display: none;">
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h3 class="modal-title">
+                        <i class="fas fa-list-alt mr-2"></i>
+                        Detalle de la Compra
+                    </h3>
+                    <button type="button" class="modal-close" onclick="closePurchaseModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-wrapper">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unit.</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseDetailsTableBody">
+                                <!-- Los detalles se cargarán aquí dinámicamente -->
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="5" class="total-label">
+                                        <div class="total-content">
+                                            <i class="fas fa-calculator"></i>
+                                            <span>Total de la Compra</span>
+                                        </div>
+                                    </td>
+                                    <td class="total-amount">
+                                        <div class="amount-display">
+                                            <span class="currency">{{ $currency->symbol }}</span>
+                                            <span class="amount" id="modalTotal">0.00</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
-                    <div class="modal-body">
-                        <div class="table-wrapper">
-                            <table class="modern-table">
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Producto</th>
-                                        <th>Categoría</th>
-                                        <th>Cantidad</th>
-                                        <th>Precio Unit.</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="purchaseDetailsTableBody">
-                                    <!-- Los detalles se cargarán aquí dinámicamente -->
-                                </tbody>
-                                <tfoot>
-                                    <tr class="total-row">
-                                        <td colspan="5" class="total-label">
-                                            <div class="total-content">
-                                                <i class="fas fa-calculator"></i>
-                                                <span>Total de la Compra</span>
-                                            </div>
-                                        </td>
-                                        <td class="total-amount">
-                                            <div class="amount-display">
-                                                <span class="currency">{{ $currency->symbol }}</span>
-                                                <span class="amount" id="modalTotal">0.00</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secondary" data-dismiss="modal">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modern btn-secondary" onclick="closePurchaseModal()">
+                        <div class="btn-content">
                             <i class="fas fa-times"></i>
                             <span>Cerrar</span>
-                        </button>
-                    </div>
+                        </div>
+                        <div class="btn-bg"></div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -432,100 +428,110 @@
     <div class="modal-overlay" id="supplierInfoModal" style="display: none;">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">
-                    <i class="fas fa-truck mr-2"></i>
-                    Información del Proveedor
-                </h3>
+                <div class="modal-title">
+                    <div class="title-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="title-text">
+                        <h3>Detalles del Proveedor</h3>
+                        <p>Información completa del proveedor seleccionado</p>
+                    </div>
+                </div>
                 <button type="button" class="modal-close" onclick="closeSupplierModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="modal-content-grid">
-                    <div class="modal-content-column">
-                        <div class="modal-detail-item">
-                            <div class="detail-label">
+                    {{-- Información de la empresa --}}
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <div class="info-icon">
                                 <i class="fas fa-building"></i>
-                                Información de la Empresa
                             </div>
-                            <div class="detail-content">
-                                <div class="detail-row">
-                                    <span class="detail-field">Nombre:</span>
-                                    <span class="detail-value" id="modalCompanyName">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-field">Email:</span>
-                                    <span class="detail-value" id="modalCompanyEmail">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-field">Teléfono:</span>
-                                    <span class="detail-value" id="modalCompanyPhone">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-field">Dirección:</span>
-                                    <span class="detail-value" id="modalCompanyAddress">-</span>
-                                </div>
+                            <h4>Información de la Empresa</h4>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-item">
+                                <span class="info-label">Nombre:</span>
+                                <span class="info-value" id="modalCompanyName"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value" id="modalCompanyEmail"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Teléfono:</span>
+                                <span class="info-value" id="modalCompanyPhone"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Dirección:</span>
+                                <span class="info-value" id="modalCompanyAddress"></span>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-content-column">
-                        <div class="modal-detail-item">
-                            <div class="detail-label">
+
+                    {{-- Información del contacto --}}
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <div class="info-icon">
                                 <i class="fas fa-user"></i>
-                                Información del Contacto
                             </div>
-                            <div class="detail-content">
-                                <div class="detail-row">
-                                    <span class="detail-field">Nombre:</span>
-                                    <span class="detail-value" id="modalContactName">-</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-field">Teléfono:</span>
-                                    <span class="detail-value" id="modalContactPhone">-</span>
-                                </div>
+                            <h4>Información del Contacto</h4>
+                        </div>
+                        <div class="info-card-body">
+                            <div class="info-item">
+                                <span class="info-label">Nombre:</span>
+                                <span class="info-value" id="modalContactName"></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Teléfono:</span>
+                                <span class="info-value" id="modalContactPhone"></span>
                             </div>
                         </div>
-                        <div class="modal-detail-item" id="productsDistributedSection" style="display: none;">
-                            <div class="detail-label">
-                                <i class="fas fa-boxes"></i>
-                                Resumen de Productos Distribuidos
+                    </div>
+                </div>
+
+                {{-- Estadísticas del Proveedor --}}
+                <div class="stats-section" id="productsDistributedSection" style="display: none;">
+                    <div class="stats-card">
+                        <div class="stats-card-header">
+                            <div class="stats-icon">
+                                <i class="fas fa-box"></i>
                             </div>
-                            <div class="detail-content">
-                                <div class="products-summary-table">
-                                    <table class="summary-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Producto</th>
-                                                <th>Cantidad</th>
-                                                <th>Precio Unit.</th>
-                                                <th>Sub Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="modalProductsTableBody">
-                                            <tr>
-                                                <td colspan="4" class="text-center">No hay productos registrados</td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr class="total-row">
-                                                <td colspan="3" class="total-label">Total General:</td>
-                                                <td class="total-amount" id="modalTotalAmount">$ 0.00</td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
+                            <h4>Resumen de Productos Distribuidos</h4>
+                        </div>
+                        <div class="stats-card-body">
+                            <div class="table-responsive">
+                                <table class="stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-right">Precio Unitario</th>
+                                            <th class="text-right">Sub Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modalProductsTableBody">
+                                        <!-- Los detalles se cargarán dinámicamente -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-right"><strong>Total General:</strong></td>
+                                            <td class="text-right"><strong id="modalTotalAmount">0.00</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="modal-footer">
                 <button type="button" class="btn-modern btn-secondary" onclick="closeSupplierModal()">
-                    <div class="btn-content">
-                        <i class="fas fa-times"></i>
-                        <span>Cerrar</span>
-                    </div>
-                    <div class="btn-bg"></div>
+                    <i class="fas fa-times"></i>
+                    <span>Cerrar</span>
                 </button>
             </div>
         </div>
@@ -785,22 +791,29 @@
 
             /* ===== ESTADÍSTICAS ===== */
             .stats-dashboard {
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: var(--border-radius-2xl);
+                box-shadow: var(--shadow-lg);
+                padding: var(--spacing-xl);
                 margin-bottom: var(--spacing-xl);
             }
 
             .stats-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                 gap: var(--spacing-lg);
             }
 
             .stat-card {
-                background: rgba(255, 255, 255, 0.9);
-                backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.4);
                 border-radius: var(--border-radius-xl);
-                padding: var(--spacing-xl);
-                box-shadow: var(--shadow-lg);
+                padding: var(--spacing-lg);
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-lg);
                 transition: all var(--transition-normal);
                 position: relative;
                 overflow: hidden;
@@ -811,29 +824,56 @@
                 box-shadow: var(--shadow-xl);
             }
 
-            .stat-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: var(--gradient-primary);
+            .stat-primary {
+                border-color: rgba(102, 126, 234, 0.2);
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+            }
+
+            .stat-success {
+                border-color: rgba(34, 197, 94, 0.2);
+                background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%);
+            }
+
+            .stat-warning {
+                border-color: rgba(245, 158, 11, 0.2);
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+            }
+
+            .stat-info {
+                border-color: rgba(59, 130, 246, 0.2);
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
             }
 
             .stat-icon {
-                position: relative;
-                width: 64px;
-                height: 64px;
-                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                border-radius: var(--border-radius-lg);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin-bottom: var(--spacing-lg);
-                background: var(--gradient-primary);
                 color: white;
                 font-size: 1.5rem;
-                box-shadow: var(--shadow-md);
+                flex-shrink: 0;
+            }
+
+            .stat-primary .stat-icon {
+                background: var(--gradient-primary);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            }
+
+            .stat-success .stat-icon {
+                background: var(--gradient-success);
+                box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+            }
+
+            .stat-warning .stat-icon {
+                background: var(--gradient-warning);
+                box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+            }
+
+            .stat-info .stat-icon {
+                background: var(--gradient-info);
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
             }
 
             .stat-glow {
@@ -843,6 +883,7 @@
                 border-radius: 50%;
                 opacity: 0.3;
                 filter: blur(12px);
+                z-index: 1;
             }
 
             .stat-content {
@@ -850,31 +891,52 @@
             }
 
             .stat-value {
-                font-size: 2.5rem;
+                font-size: 2.25rem;
                 font-weight: 800;
                 color: var(--secondary-900);
-                margin-bottom: var(--spacing-sm);
+                margin: 0;
                 line-height: 1;
             }
 
             .stat-label {
-                font-size: 1.125rem;
-                font-weight: 700;
-                color: var(--secondary-700);
-                margin-bottom: var(--spacing-xs);
+                color: var(--secondary-600);
+                font-size: 0.875rem;
+                font-weight: 600;
+                margin-top: var(--spacing-xs);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
             }
 
             .stat-trend {
                 display: flex;
                 align-items: center;
                 gap: var(--spacing-xs);
-                font-size: 0.875rem;
-                color: var(--secondary-600);
-                font-weight: 500;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-top: var(--spacing-sm);
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: var(--border-radius-md);
+                width: fit-content;
             }
 
-            .stat-trend i {
-                color: var(--success-500);
+            .stat-primary .stat-trend {
+                color: var(--primary-700);
+                background: rgba(102, 126, 234, 0.1);
+            }
+
+            .stat-success .stat-trend {
+                color: var(--success-700);
+                background: rgba(34, 197, 94, 0.1);
+            }
+
+            .stat-warning .stat-trend {
+                color: var(--warning-700);
+                background: rgba(245, 158, 11, 0.1);
+            }
+
+            .stat-info .stat-trend {
+                color: var(--info-700);
+                background: rgba(59, 130, 246, 0.1);
             }
 
             /* ===== CONTENEDOR DE DATOS ===== */
@@ -1446,361 +1508,355 @@
                 text-align: right;
             }
 
-            /* ===== MODAL DE PROVEEDOR ===== */
+            /* ===== MODAL MODERNO ===== */
             .modal-overlay {
                 position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.6);
+                background: rgba(0, 0, 0, 0.5);
                 backdrop-filter: blur(8px);
-                display: flex;
-                justify-content: center;
+                display: none;
                 align-items: center;
+                justify-content: center;
                 z-index: 9999;
-                padding: 1rem;
+                padding: var(--spacing-md);
+            }
+
+            .modal-overlay.show {
+                display: flex;
+                animation: modalFadeIn 0.3s ease-out;
+            }
+
+            @keyframes modalFadeIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
             }
 
             .modal-container {
                 background: white;
-                border-radius: 24px;
-                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-                width: 90%;
-                max-width: 1000px;
-                max-height: 90%;
+                border-radius: var(--border-radius-2xl);
+                box-shadow: var(--shadow-2xl);
+                max-width: 900px;
+                width: 100%;
+                max-height: 90vh;
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.1);
                 animation: modalSlideIn 0.3s ease-out;
             }
 
             @keyframes modalSlideIn {
                 from {
+                    transform: translateY(-20px);
                     opacity: 0;
-                    transform: translateY(-20px) scale(0.95);
                 }
                 to {
+                    transform: translateY(0);
                     opacity: 1;
-                    transform: translateY(0) scale(1);
                 }
             }
 
             .modal-header {
-                background: var(--gradient-primary);
-                color: white;
-                padding: 2rem 2.5rem;
-                position: relative;
-                overflow: hidden;
+                padding: var(--spacing-xl);
+                border-bottom: 1px solid var(--secondary-200);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
-
-            .modal-header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-                opacity: 0.3;
+                background: var(--gradient-secondary);
             }
 
             .modal-title {
                 display: flex;
                 align-items: center;
-                gap: 1rem;
+                gap: var(--spacing-lg);
+            }
+
+            .modal-title .title-icon {
+                width: 48px;
+                height: 48px;
+                background: var(--gradient-primary);
+                border-radius: var(--border-radius-lg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.25rem;
+            }
+
+            .modal-title .title-text h3 {
                 font-size: 1.5rem;
                 font-weight: 700;
-                position: relative;
-                z-index: 1;
+                color: var(--secondary-900);
                 margin: 0;
             }
 
-            .modal-title i {
-                background: rgba(255, 255, 255, 0.2);
-                padding: 0.75rem;
-                border-radius: 12px;
-                font-size: 1.2rem;
+            .modal-title .title-text p {
+                color: var(--secondary-600);
+                margin: var(--spacing-xs) 0 0 0;
+                font-size: 0.875rem;
             }
 
             .modal-close {
-                background: rgba(255, 255, 255, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                color: white;
-                padding: 0.75rem;
-                border-radius: 12px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                position: relative;
-                z-index: 1;
-                backdrop-filter: blur(10px);
+                width: 40px;
+                height: 40px;
                 border: none;
-                font-size: 1.2rem;
+                border-radius: var(--border-radius-lg);
+                background: var(--secondary-100);
+                color: var(--secondary-600);
+                font-size: 1.125rem;
+                cursor: pointer;
+                transition: all var(--transition-fast);
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .modal-close:hover {
-                background: rgba(255, 255, 255, 0.25);
-                transform: scale(1.05);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                background: var(--secondary-200);
+                color: var(--secondary-800);
             }
 
             .modal-body {
-                padding: 2.5rem;
-                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                padding: var(--spacing-xl);
                 overflow-y: auto;
-                flex-grow: 1;
+                flex: 1;
             }
 
             .modal-content-grid {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 2.5rem;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: var(--spacing-lg);
+                margin-bottom: var(--spacing-xl);
             }
 
-            .modal-content-column {
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-
-            .modal-detail-item {
-                background: white;
-                border-radius: 16px;
-                padding: 1.5rem;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                border: 1px solid rgba(102, 126, 234, 0.1);
-                position: relative;
+            .info-card {
+                background: var(--secondary-50);
+                border: 1px solid var(--secondary-200);
+                border-radius: var(--border-radius-xl);
                 overflow: hidden;
-                transition: all 0.3s ease;
             }
 
-            .modal-detail-item::before {
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                width: 4px;
-                background: var(--gradient-primary);
-                border-radius: 0 2px 2px 0;
-            }
-
-            .modal-detail-item:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            }
-
-            .detail-label {
-                color: #64748b;
-                font-size: 0.875rem;
-                font-weight: 600;
-                margin-bottom: 1rem;
+            .info-card-header {
+                padding: var(--spacing-lg);
+                background: var(--gradient-secondary);
+                border-bottom: 1px solid var(--secondary-200);
                 display: flex;
                 align-items: center;
-                gap: 0.75rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                gap: var(--spacing-md);
             }
 
-            .detail-label i {
-                color: var(--primary-500);
-                font-size: 1rem;
-                background: rgba(102, 126, 234, 0.1);
-                padding: 0.5rem;
-                border-radius: 8px;
-            }
-
-            .detail-content {
+            .info-icon {
+                width: 40px;
+                height: 40px;
+                background: var(--gradient-primary);
+                border-radius: var(--border-radius-lg);
                 display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
             }
 
-            .detail-row {
+            .info-card-header h4 {
+                font-size: 1.125rem;
+                font-weight: 700;
+                color: var(--secondary-900);
+                margin: 0;
+            }
+
+            .info-card-body {
+                padding: var(--spacing-lg);
+            }
+
+            .info-item {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0.5rem 0;
-                border-bottom: 1px solid #f1f5f9;
+                padding: var(--spacing-sm) 0;
+                border-bottom: 1px solid var(--secondary-100);
             }
 
-            .detail-row:last-child {
+            .info-item:last-child {
                 border-bottom: none;
             }
 
-            .detail-field {
+            .info-label {
                 font-weight: 600;
-                color: #64748b;
+                color: var(--secondary-700);
                 font-size: 0.875rem;
             }
 
-            .detail-value {
-                font-weight: 600;
+            .info-value {
                 color: var(--secondary-900);
+                font-weight: 500;
                 font-size: 0.875rem;
                 text-align: right;
+                max-width: 60%;
+                word-break: break-word;
             }
 
-            .products-summary-table {
-                overflow-x: auto;
+            .stats-section {
+                margin-top: var(--spacing-xl);
             }
 
-            .summary-table {
+            .stats-card {
+                background: var(--secondary-50);
+                border: 1px solid var(--secondary-200);
+                border-radius: var(--border-radius-xl);
+                overflow: hidden;
+            }
+
+            .stats-card-header {
+                padding: var(--spacing-lg);
+                background: var(--gradient-secondary);
+                border-bottom: 1px solid var(--secondary-200);
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+            }
+
+            .stats-icon {
+                width: 40px;
+                height: 40px;
+                background: var(--gradient-info);
+                border-radius: var(--border-radius-lg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
+            }
+
+            .stats-card-header h4 {
+                font-size: 1.125rem;
+                font-weight: 700;
+                color: var(--secondary-900);
+                margin: 0;
+            }
+
+            .stats-card-body {
+                padding: var(--spacing-lg);
+            }
+
+            .stats-table {
                 width: 100%;
                 border-collapse: collapse;
                 background: white;
-                border-radius: 12px;
+                border-radius: var(--border-radius-lg);
                 overflow: hidden;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+                box-shadow: var(--shadow-sm);
             }
 
-            .summary-table thead {
-                background: var(--gradient-primary);
-                color: white;
-            }
-
-            .summary-table th {
-                padding: 0.75rem;
+            .stats-table th {
+                background: var(--secondary-100);
+                padding: var(--spacing-md);
                 text-align: left;
-                font-weight: 600;
+                font-weight: 700;
+                color: var(--secondary-700);
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .stats-table td {
+                padding: var(--spacing-md);
+                border-bottom: 1px solid var(--secondary-100);
                 font-size: 0.875rem;
             }
 
-            .summary-table td {
-                padding: 0.75rem;
-                border-bottom: 1px solid #f1f5f9;
-                font-size: 0.875rem;
+            .stats-table tbody tr:hover {
+                background: var(--secondary-50);
             }
 
-            .summary-table tbody tr:hover {
-                background: #f8fafc;
+            .stats-table .text-center {
+                text-align: center;
             }
 
-            .total-row {
-                background: var(--gradient-success);
-                color: white;
-                font-weight: 600;
-            }
-
-            .total-label {
+            .stats-table .text-right {
                 text-align: right;
-                padding: 1rem 0.75rem;
-            }
-
-            .total-amount {
-                text-align: right;
-                padding: 1rem 0.75rem;
-                font-size: 1.1rem;
             }
 
             .modal-footer {
-                padding: 2rem 2.5rem;
-                background: white;
-                border-top: 1px solid #e2e8f0;
+                padding: var(--spacing-lg) var(--spacing-xl);
+                border-top: 1px solid var(--secondary-200);
+                background: var(--secondary-50);
                 display: flex;
                 justify-content: flex-end;
-                gap: 1rem;
-            }
-
-            .btn-modern {
-                position: relative;
-                overflow: hidden;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0.75rem 1.5rem;
-                border: 1px solid transparent;
-                border-radius: 12px;
-                font-size: 0.9rem;
-                font-weight: 600;
-                color: white;
-                transition: all 0.3s ease;
-                cursor: pointer;
-                box-shadow: var(--shadow-medium);
-                text-decoration: none;
-            }
-
-            .btn-modern:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow-heavy);
+                gap: var(--spacing-md);
             }
 
             .btn-secondary {
-                background: var(--secondary-500);
-                border-color: transparent;
+                background: var(--secondary-100);
+                color: var(--secondary-700);
+                border: 1px solid var(--secondary-200);
             }
 
             .btn-secondary:hover {
-                background: var(--secondary-600);
+                background: var(--secondary-200);
+                color: var(--secondary-800);
             }
 
-            .btn-content {
-                position: relative;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .btn-bg {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-                border-radius: 12px;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-                z-index: -1;
-            }
-
-            .btn-modern:hover .btn-bg {
-                opacity: 1;
-            }
-
-            /* Responsive para el modal */
+            /* ===== RESPONSIVE MODAL ===== */
             @media (max-width: 768px) {
+                .modal-overlay {
+                    padding: var(--spacing-sm);
+                }
+
                 .modal-container {
-                    max-width: 95%;
-                    border-radius: 16px;
+                    max-height: 95vh;
                 }
 
                 .modal-header {
-                    padding: 1rem 1.5rem;
+                    padding: var(--spacing-lg);
                 }
 
                 .modal-title {
-                    font-size: 1.1rem;
+                    flex-direction: column;
+                    gap: var(--spacing-sm);
+                    text-align: center;
+                }
+
+                .modal-title .title-icon {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1rem;
+                }
+
+                .modal-title .title-text h3 {
+                    font-size: 1.25rem;
                 }
 
                 .modal-body {
-                    padding: 1rem;
+                    padding: var(--spacing-lg);
                 }
 
                 .modal-content-grid {
                     grid-template-columns: 1fr;
-                    gap: 1rem;
+                    gap: var(--spacing-md);
                 }
 
-                .modal-detail-item {
-                    padding: 1rem;
+                .info-item {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: var(--spacing-xs);
                 }
 
-                .detail-label {
-                    font-size: 0.8rem;
-                }
-
-                .detail-value {
-                    font-size: 0.8rem;
+                .info-value {
+                    text-align: left;
+                    max-width: 100%;
                 }
 
                 .modal-footer {
-                    padding: 1rem 1.5rem;
+                    padding: var(--spacing-md) var(--spacing-lg);
+                    flex-direction: column;
                 }
             }
 
@@ -1969,6 +2025,233 @@
             .gradient-warning {
                 background: linear-gradient(135deg, var(--warning-500) 0%, var(--warning-600) 100%);
             }
+
+            /* ===== MODAL ESTILOS ===== */
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(8px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                padding: 1rem;
+            }
+
+            .modal-container {
+                background: white;
+                border-radius: 24px;
+                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+                width: 90%;
+                max-width: 1000px;
+                max-height: 90%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                animation: modalSlideIn 0.3s ease-out;
+            }
+
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px) scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .modal-header {
+                background: var(--gradient-primary);
+                color: white;
+                padding: 2rem 2.5rem;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .modal-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                opacity: 0.3;
+            }
+
+            .modal-title {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                font-size: 1.5rem;
+                font-weight: 700;
+                position: relative;
+                z-index: 1;
+            }
+
+            .modal-title i {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 0.75rem;
+                border-radius: 12px;
+                font-size: 1.2rem;
+            }
+
+            .modal-close {
+                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 0.75rem;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                z-index: 1;
+                backdrop-filter: blur(10px);
+            }
+
+            .modal-close:hover {
+                background: rgba(255, 255, 255, 0.25);
+                transform: scale(1.05);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            .modal-body {
+                padding: 2.5rem;
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                overflow-y: auto;
+                flex-grow: 1;
+            }
+
+            .table-wrapper {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                overflow: hidden;
+                border: 1px solid rgba(102, 126, 234, 0.1);
+            }
+
+            .modal-footer {
+                padding: 2rem 2.5rem;
+                background: white;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+            }
+
+            .btn-modern {
+                position: relative;
+                overflow: hidden;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.75rem 1.5rem;
+                border: 1px solid transparent;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: white;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                box-shadow: var(--shadow-medium);
+                text-decoration: none;
+            }
+
+            .btn-modern:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-heavy);
+            }
+
+            .btn-secondary {
+                background: white;
+                color: #64748b;
+                border: 2px solid #e2e8f0;
+            }
+
+            .btn-secondary:hover {
+                background: #f8fafc;
+                border-color: #cbd5e0;
+                color: #4a5568;
+            }
+
+            .btn-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .btn-bg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                border-radius: 12px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: -1;
+            }
+
+            .btn-modern:hover .btn-bg {
+                opacity: 1;
+            }
+
+            /* Responsive del modal */
+            @media (max-width: 768px) {
+                .modal-container {
+                    max-width: 95%;
+                    border-radius: 16px;
+                }
+
+                .modal-header {
+                    padding: 1rem 1.5rem;
+                }
+
+                .modal-title {
+                    font-size: 1.1rem;
+                }
+
+                .modal-body {
+                    padding: 1rem;
+                }
+
+                .modal-footer {
+                    padding: 1rem 1.5rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .modal-container {
+                    max-width: 98%;
+                    border-radius: 12px;
+                }
+
+                .modal-header {
+                    padding: 0.75rem 1rem;
+                }
+
+                .modal-title {
+                    font-size: 1rem;
+                }
+
+                .modal-body {
+                    padding: 0.75rem;
+                }
+
+                .modal-footer {
+                    padding: 0.75rem 1rem;
+                }
+            }
         </style>
     @endpush
 
@@ -1976,9 +2259,59 @@
     @push('js')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                console.log('=== DOM CONTENT LOADED - PÁGINA DE COMPRAS ===');
+                
                 // Variables globales
                 let currentView = 'table';
                 let searchTerm = '';
+                
+                // Event listeners para los modales
+                const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
+                const supplierInfoModal = document.getElementById('supplierInfoModal');
+                
+                if (purchaseDetailsModal) {
+                    // Asegurar que el modal esté oculto al cargar la página
+                    purchaseDetailsModal.style.display = 'none';
+                    console.log('Modal de detalles inicializado y oculto');
+                    
+                    // Cerrar modal al hacer clic fuera
+                    purchaseDetailsModal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closePurchaseModal();
+                        }
+                    });
+                    
+                    // Cerrar modal con Escape
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape' && purchaseDetailsModal.style.display === 'flex') {
+                            closePurchaseModal();
+                        }
+                    });
+                } else {
+                    console.error('Modal de detalles no encontrado');
+                }
+                
+                if (supplierInfoModal) {
+                    // Asegurar que el modal de proveedor esté oculto al cargar la página
+                    supplierInfoModal.style.display = 'none';
+                    console.log('Modal de proveedor inicializado y oculto');
+                    
+                    // Cerrar modal al hacer clic fuera
+                    supplierInfoModal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeSupplierModal();
+                        }
+                    });
+                    
+                    // Cerrar modal con Escape
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape' && supplierInfoModal.style.display === 'flex') {
+                            closeSupplierModal();
+                        }
+                    });
+                } else {
+                    console.error('Modal de proveedor no encontrado');
+                }
 
                 // Elementos del DOM
                 const tableView = document.getElementById('tableView');
@@ -2053,9 +2386,14 @@
                 }
 
                 // Ver detalles de compra
-                document.querySelectorAll('.view-details').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        console.log('Botón de detalles clickeado');
+                const viewDetailsButtons = document.querySelectorAll('.view-details');
+                console.log('Botones de detalles encontrados:', viewDetailsButtons.length);
+                
+                viewDetailsButtons.forEach((btn, index) => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log(`Botón de detalles ${index + 1} clickeado`);
                         const purchaseId = this.dataset.id;
                         console.log('ID de compra:', purchaseId);
                         loadPurchaseDetails(purchaseId);
@@ -2064,17 +2402,30 @@
 
                 // Cargar detalles de la compra
                 function loadPurchaseDetails(purchaseId) {
-                    console.log('Iniciando carga de detalles para compra:', purchaseId);
-                    const tableBody = document.getElementById('purchaseDetailsTableBody');
-                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Cargando...</td></tr>';
-
-                    // Mostrar el modal primero
-                    $('#purchaseDetailsModal').modal('show');
+                    console.log('=== FUNCIÓN loadPurchaseDetails EJECUTADA ===');
+                    console.log('ID de compra recibido:', purchaseId);
                     
-                    // Mostrar la sección de productos distribuidos en el modal de detalles
+                    const tableBody = document.getElementById('purchaseDetailsTableBody');
+                    if (!tableBody) {
+                        console.error('TableBody no encontrado');
+                        return;
+                    }
+                    
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Cargando...</td></tr>';
+
+                    // Mostrar el modal
+                    const modal = document.getElementById('purchaseDetailsModal');
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        console.log('Modal mostrado');
+                    } else {
+                        console.error('Modal no encontrado');
+                    }
+                    
+                    // Ocultar la sección de productos distribuidos en el modal de detalles
                     const productsSection = document.getElementById('productsDistributedSection');
                     if (productsSection) {
-                        productsSection.style.display = 'block';
+                        productsSection.style.display = 'none';
                     }
 
                     fetch(`/purchases/${purchaseId}/details`, {
@@ -2103,26 +2454,28 @@
 
                                 const row = document.createElement('tr');
                                 row.innerHTML = `
-                                    <td>${detail.product.code || ''}</td>
-                                    <td>${detail.product.name || ''}</td>
-                                    <td>${detail.product.category || 'Sin categoría'}</td>
-                                    <td class="text-center">${quantity}</td>
-                                    <td class="text-right">{{ $currency->symbol }} ${price.toFixed(2)}</td>
-                                    <td class="text-right">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">${detail.product.code || ''}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900">${detail.product.name || ''}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">${detail.product.category || 'Sin categoría'}</td>
+                                    <td class="px-4 py-3 text-sm text-center">
+                                        <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">${quantity}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-right text-gray-900">{{ $currency->symbol }} ${price.toFixed(2)}</td>
+                                    <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">{{ $currency->symbol }} ${subtotal.toFixed(2)}</td>
                                 `;
                                 tableBody.appendChild(row);
                             });
 
                             document.getElementById('modalTotal').textContent = total.toFixed(2);
                         } else {
-                            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error al cargar los detalles</td></tr>';
+                            tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-600">Error al cargar los detalles</td></tr>';
                             Swal.fire('Error', data.message || 'Error al cargar los detalles', 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error en fetch:', error);
                         console.error('URL intentada:', `/purchases/${purchaseId}/details`);
-                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error de conexión</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-600">Error de conexión</td></tr>';
                         Swal.fire('Error', 'No se pudieron cargar los detalles: ' + error.message, 'error');
                     });
                 }
@@ -2215,143 +2568,165 @@
                  });
              });
 
-             // Función para cerrar el modal
-             function closeModal() {
-                 $('#purchaseDetailsModal').modal('hide');
+             // Función para cerrar el modal de detalles de compra
+             function closePurchaseModal() {
+                 document.getElementById('purchaseDetailsModal').style.display = 'none';
+                 
+                 // Limpiar contenido cuando se cierra el modal
+                 setTimeout(() => {
+                     document.getElementById('purchaseDetailsTableBody').innerHTML = '';
+                     document.getElementById('modalTotal').textContent = '0.00';
+                     
+                     // Ocultar la sección de productos distribuidos
+                     const productsSection = document.getElementById('productsDistributedSection');
+                     if (productsSection) {
+                         productsSection.style.display = 'none';
+                     }
+                 }, 300);
              }
-
-                         // Eventos del modal
-            $('#purchaseDetailsModal').on('hidden.bs.modal', function () {
-                // Limpiar contenido cuando se cierra el modal
-                document.getElementById('purchaseDetailsTableBody').innerHTML = '';
-                document.getElementById('modalTotal').textContent = '0.00';
-                
-                // Ocultar la sección de productos distribuidos
-                const productsSection = document.getElementById('productsDistributedSection');
-                if (productsSection) {
-                    productsSection.style.display = 'none';
-                }
-            });
 
              // Función para mostrar información del proveedor
-             function showSupplierInfo(supplierId) {
-                 console.log('Mostrando información del proveedor:', supplierId);
+             async function showSupplierInfo(supplierId) {
+                 console.log('=== FUNCIÓN showSupplierInfo EJECUTADA ===');
+                 console.log('Supplier ID:', supplierId);
+                 console.log('Stack trace:', new Error().stack);
                  
-                 // Mostrar el modal
-                 document.getElementById('supplierInfoModal').style.display = 'flex';
-                 
-                 // Aquí puedes hacer una petición AJAX para obtener los datos del proveedor
-                 // Por ahora, mostraremos datos de ejemplo
-                 loadSupplierData(supplierId);
-             }
-
-             // Función para cargar datos del proveedor
-             async function loadSupplierData(supplierId) {
                  try {
+                     // Mostrar loading en el modal
+                     const modal = document.getElementById('supplierInfoModal');
+                     modal.style.display = 'flex';
+                     
+                     // Limpiar datos anteriores
+                     document.getElementById('modalCompanyName').textContent = 'Cargando...';
+                     document.getElementById('modalCompanyEmail').textContent = 'Cargando...';
+                     document.getElementById('modalCompanyPhone').textContent = 'Cargando...';
+                     document.getElementById('modalCompanyAddress').textContent = 'Cargando...';
+                     document.getElementById('modalContactName').textContent = 'Cargando...';
+                     document.getElementById('modalContactPhone').textContent = 'Cargando...';
+                     
                      const response = await fetch(`/suppliers/${supplierId}`);
                      const data = await response.json();
                      
-                     if (data.status === 'success') {
+                     if (data.icons === 'success') {
                          // Llenar datos de la empresa
-                         document.getElementById('modalCompanyName').textContent = data.supplier.company_name || 'N/A';
-                         document.getElementById('modalCompanyEmail').textContent = data.supplier.company_email || 'N/A';
-                         document.getElementById('modalCompanyPhone').textContent = data.supplier.company_phone || 'N/A';
-                         document.getElementById('modalCompanyAddress').textContent = data.supplier.company_address || 'N/A';
+                         document.getElementById('modalCompanyName').textContent = data.supplier.company_name || 'No disponible';
+                         document.getElementById('modalCompanyEmail').textContent = data.supplier.company_email || 'No disponible';
+                         document.getElementById('modalCompanyPhone').textContent = data.supplier.company_phone || 'No disponible';
+                         document.getElementById('modalCompanyAddress').textContent = data.supplier.company_address || 'No disponible';
                          
                          // Llenar datos del contacto
-                         document.getElementById('modalContactName').textContent = data.supplier.supplier_name || 'N/A';
-                         document.getElementById('modalContactPhone').textContent = data.supplier.supplier_phone || 'N/A';
+                         document.getElementById('modalContactName').textContent = data.supplier.supplier_name || 'No disponible';
+                         document.getElementById('modalContactPhone').textContent = data.supplier.supplier_phone || 'No disponible';
                          
-                         // Cargar productos del proveedor
-                         loadSupplierProducts(supplierId);
+                         // Mostrar la sección de productos distribuidos si hay datos
+                         const productsSection = document.getElementById('productsDistributedSection');
+                         if (productsSection) {
+                             if (data.stats && data.stats.length > 0) {
+                                 productsSection.style.display = 'block';
+                                 updateProductStats(data.stats);
+                             } else {
+                                 productsSection.style.display = 'none';
+                             }
+                         }
                      } else {
-                         console.error('Error al cargar datos del proveedor:', data.message);
+                         const errorMessage = data.message || 'No se pudieron obtener los datos del proveedor';
+                         showAlert('Error', errorMessage, 'error');
+                         closeSupplierModal();
                      }
                  } catch (error) {
-                     console.error('Error en la petición:', error);
-                     // Mostrar datos de ejemplo si hay error
-                     showExampleData();
+                     console.error('Error fetching supplier details:', error);
+                     showAlert('Error', 'Error de conexión. Verifique su conexión a internet e inténtelo de nuevo.', 'error');
+                     closeSupplierModal();
                  }
              }
 
-             // Función para cargar productos del proveedor
-             async function loadSupplierProducts(supplierId) {
-                 try {
-                     const response = await fetch(`/suppliers/${supplierId}/products`);
-                     const data = await response.json();
-                     
-                     const tableBody = document.getElementById('modalProductsTableBody');
-                     let total = 0;
-                     
-                     if (data.status === 'success' && data.products.length > 0) {
-                         tableBody.innerHTML = '';
-                         
-                         data.products.forEach(product => {
-                             const row = document.createElement('tr');
-                             row.innerHTML = `
+             // Actualizar estadísticas de productos
+             function updateProductStats(stats) {
+                 const detailsContainer = document.getElementById('modalProductsTableBody');
+                 let detailsHTML = '';
+                 let grandTotal = 0;
+
+                 if (stats && stats.length > 0) {
+                     stats.forEach(product => {
+                         const subtotal = product.stock * product.purchase_price;
+                         grandTotal += subtotal;
+
+                         detailsHTML += `
+                             <tr>
                                  <td>${product.name}</td>
-                                 <td>${product.quantity || 0}</td>
-                                 <td>{{ $currency->symbol }} ${(product.purchase_price || 0).toFixed(2)}</td>
-                                 <td>{{ $currency->symbol }} ${((product.quantity || 0) * (product.purchase_price || 0)).toFixed(2)}</td>
-                             `;
-                             tableBody.appendChild(row);
-                             
-                             total += (product.quantity || 0) * (product.purchase_price || 0);
-                         });
-                         
-                         document.getElementById('modalTotalAmount').textContent = `{{ $currency->symbol }} ${total.toFixed(2)}`;
-                     } else {
-                         tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No hay productos registrados para este proveedor</td></tr>';
-                         document.getElementById('modalTotalAmount').textContent = '{{ $currency->symbol }} 0.00';
-                     }
-                 } catch (error) {
-                     console.error('Error al cargar productos:', error);
-                     showExampleProducts();
+                                 <td class="text-center">
+                                     <span class="badge badge-primary">${product.stock}</span>
+                                 </td>
+                                 <td class="text-right">${formatCurrency(product.purchase_price)}</td>
+                                 <td class="text-right">${formatCurrency(subtotal)}</td>
+                             </tr>`;
+                     });
+                 } else {
+                     detailsHTML = `
+                         <tr>
+                             <td colspan="4" class="text-center">
+                                 <div class="empty-state">
+                                     <i class="fas fa-box-open"></i>
+                                     <p>No hay productos registrados para este proveedor</p>
+                                 </div>
+                             </td>
+                         </tr>`;
                  }
+
+                 detailsContainer.innerHTML = detailsHTML;
+                 document.getElementById('modalTotalAmount').innerHTML = formatCurrency(grandTotal);
              }
 
-             // Función para mostrar datos de ejemplo
-             function showExampleData() {
-                 document.getElementById('modalCompanyName').textContent = 'Empresa Ejemplo S.A.';
-                 document.getElementById('modalCompanyEmail').textContent = 'contacto@empresa.com';
-                 document.getElementById('modalCompanyPhone').textContent = '+1 234 567 8900';
-                 document.getElementById('modalCompanyAddress').textContent = '123 Calle Principal, Ciudad';
-                 document.getElementById('modalContactName').textContent = 'Juan Pérez';
-                 document.getElementById('modalContactPhone').textContent = '+1 234 567 8901';
-                 
-                 showExampleProducts();
+             // Función para formatear moneda
+             function formatCurrency(amount) {
+                 const currencySymbol = '{{ $currency->symbol ?? "$" }}';
+                 return `${currencySymbol} ${number_format(amount)}`;
              }
 
-             // Función para mostrar productos de ejemplo
-             function showExampleProducts() {
-                 const tableBody = document.getElementById('modalProductsTableBody');
-                 tableBody.innerHTML = `
-                     <tr>
-                         <td>Producto A</td>
-                         <td>10</td>
-                         <td>{{ $currency->symbol }} 25.00</td>
-                         <td>{{ $currency->symbol }} 250.00</td>
-                     </tr>
-                     <tr>
-                         <td>Producto B</td>
-                         <td>5</td>
-                         <td>{{ $currency->symbol }} 15.50</td>
-                         <td>{{ $currency->symbol }} 77.50</td>
-                     </tr>
-                 `;
-                 
-                 document.getElementById('modalTotalAmount').textContent = '{{ $currency->symbol }} 327.50';
+             // Función para formatear números
+             function number_format(number, decimals = 2) {
+                 return number.toLocaleString('es-PE', {
+                     minimumFractionDigits: decimals,
+                     maximumFractionDigits: decimals
+                 });
              }
 
              // Función para cerrar el modal de proveedor
              function closeSupplierModal() {
-                 document.getElementById('supplierInfoModal').style.display = 'none';
+                 const modal = document.getElementById('supplierInfoModal');
+                 modal.style.display = 'none';
+                 
+                 // Limpiar datos del modal
+                 setTimeout(() => {
+                     document.getElementById('modalCompanyName').textContent = '';
+                     document.getElementById('modalCompanyEmail').textContent = '';
+                     document.getElementById('modalCompanyPhone').textContent = '';
+                     document.getElementById('modalCompanyAddress').textContent = '';
+                     document.getElementById('modalContactName').textContent = '';
+                     document.getElementById('modalContactPhone').textContent = '';
+                     
+                     // Ocultar la sección de productos distribuidos
+                     const productsSection = document.getElementById('productsDistributedSection');
+                     if (productsSection) {
+                         productsSection.style.display = 'none';
+                     }
+                 }, 300);
              }
 
              // Cerrar modal al hacer clic fuera
              document.getElementById('supplierInfoModal').addEventListener('click', function(e) {
                  if (e.target === this) {
                      closeSupplierModal();
+                 }
+             });
+
+             // Cerrar modal con la tecla Escape
+             document.addEventListener('keydown', function(e) {
+                 if (e.key === 'Escape') {
+                     const modal = document.getElementById('supplierInfoModal');
+                     if (modal.classList.contains('show')) {
+                         closeSupplierModal();
+                     }
                  }
              });
         </script>
