@@ -2460,12 +2460,19 @@
                                                 }
                                             }
 
+                                            // Obtener la imagen del producto desde el DOM
+                                            const imageElement = row.querySelector('img');
+                                            let imageUrl = '/img/no-image.png';
+                                            if (imageElement) {
+                                                imageUrl = imageElement.getAttribute('src');
+                                            }
+
                                             // Crear objeto producto
                                             const product = {
                                                 id: productId,
                                                 code: code,
                                                 name: name,
-                                                image_url: '/img/no-image.png',
+                                                image_url: imageUrl,
                                                 stock: stock,
                                                 purchase_price: price,
                                                 category: {
