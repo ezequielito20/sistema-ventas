@@ -508,11 +508,11 @@
     <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
     
     <!-- Bootstrap CSS y JS locales -->
-    <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    {{-- <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script> --}}
     
-    <!-- Alpine.js -->
-    <script defer src="{{ asset('vendor/alpinejs/alpine.min.js') }}"></script>
+    <!-- Alpine.js - Comentado para evitar conflictos con Livewire -->
+    {{-- <script defer src="{{ asset('vendor/alpinejs/alpine.min.js') }}"></script> --}}
     
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
