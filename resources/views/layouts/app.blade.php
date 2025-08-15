@@ -222,7 +222,7 @@
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full"
              @click.stop
-             class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0 lg:inset-0">
+             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0">
         
         <!-- Logo -->
         <div class="flex items-center justify-between h-16 px-6 border-b border-blue-700">
@@ -511,8 +511,7 @@
     {{-- <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script> --}}
     
-    <!-- Alpine.js - Comentado para evitar conflictos con Livewire -->
-    {{-- <script defer src="{{ asset('vendor/alpinejs/alpine.min.js') }}"></script> --}}
+    <!-- Alpine.js ya está incluido en resources/js/app.js -->
     
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
