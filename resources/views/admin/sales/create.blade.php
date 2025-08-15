@@ -85,7 +85,7 @@
                                 </label>
                                 <div class="relative">
                                     <select name="customer_id" id="customer_id"
-                                        class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 select2 text-sm h-11 @error('customer_id') border-red-300 @enderror"
+                                        class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-gray-500 focus:bg-white transition-all duration-300 text-gray-800 select2 text-sm h-11 @error('customer_id') border-red-300 @enderror"
                                         required>
                                         <option value="">Seleccione un cliente</option>
                                         @foreach ($customers as $customer)
@@ -599,11 +599,40 @@
             right: 8px !important;
         }
 
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b {
+            border-color: #6b7280 transparent transparent transparent !important;
+        }
+
         .select2-container--bootstrap4 .select2-selection--single:focus-within,
         .select2-container--bootstrap4.select2-container--open .select2-selection--single {
-            border-color: #6366f1 !important;
+            border-color: #6b7280 !important;
             background: white !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+            box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1) !important;
+        }
+
+        /* Dropdown styles con color gris */
+        .select2-container--bootstrap4 .select2-dropdown {
+            border: 2px solid #6b7280 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            z-index: 9999 !important;
+            background: white !important;
+        }
+
+        /* Estilos para las opciones del dropdown - color gris */
+        .select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
+            background-color: #6b7280 !important;
+            color: white !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option[aria-selected=true] {
+            background-color: #9ca3af !important;
+            color: white !important;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option:hover {
+            background-color: #d1d5db !important;
+            color: #374151 !important;
         }
 
         /* Glassmorphism effect para algunos elementos */

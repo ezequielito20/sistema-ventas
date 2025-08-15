@@ -377,7 +377,7 @@ class SaleController extends Controller
          // Obtener los detalles de la venta una sola vez
          $saleDetails = $sale->saleDetails->map(function ($detail) {
             return [
-               'id' => $detail->product_id,
+               'product_id' => $detail->product_id,
                'code' => $detail->product->code,
                'name' => $detail->product->name,
                'quantity' => $detail->quantity,
@@ -418,6 +418,7 @@ class SaleController extends Controller
             'sale_time' => 'nullable|date_format:H:i',
             'customer_id' => 'required|exists:customers,id',
             'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|min:1',
             'items.*.quantity' => 'required|numeric|min:1',
             'total_price' => 'required|numeric|min:0',
             'note' => 'nullable|string|max:1000',
@@ -478,9 +479,25 @@ class SaleController extends Controller
 
          // Procesar cada producto en la venta
          foreach ($request->items as $productId => $item) {
+            // Validar que el productId sea un entero válido
+            if (!is_numeric($productId) || $productId <= 0) {
+               throw new \Exception("ID de producto inválido: {$productId}. Debe ser un número mayor a 0.");
+            }
+
             $product = Product::where('id', $productId)
                ->where('company_id', Auth::user()->company_id)
-               ->firstOrFail();
+               ->first();
+
+            // Verificar si el producto existe
+            if (!$product) {
+               // Intentar obtener información del producto para un mensaje más descriptivo
+               $productInfo = Product::find($productId);
+               if ($productInfo) {
+                  throw new \Exception("El producto '{$productInfo->name}' (ID: {$productId}) no pertenece a esta empresa.");
+               } else {
+                  throw new \Exception("El producto con ID {$productId} no existe en la base de datos.");
+               }
+            }
 
             // Buscar si ya existe el detalle
             $detail = SaleDetail::where('sale_id', $sale->id)
@@ -554,7 +571,8 @@ class SaleController extends Controller
 
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta actualizada exitosamente!')
-            ->with('icons', 'success');
+            ->with('icons', 'success')
+            ->with('update_success', true);
       } catch (\Exception $e) {
          DB::rollBack();
          Log::error('Error al actualizar venta: ' . $e->getMessage());
