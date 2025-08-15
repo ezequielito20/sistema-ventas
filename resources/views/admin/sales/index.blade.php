@@ -8,7 +8,6 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Gestión de Ventas</h1>
-            <p class="text-gray-600">Panel de control y análisis de ventas</p>
         </div>
         <div class="flex items-center space-x-3">
             @can('sales.report')
@@ -414,13 +413,14 @@
                                         <div class="action-buttons">
                                             @can('sales.edit')
                                                 <button type="button" class="btn-action btn-edit"
-                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" title="Editar">
+                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" 
+                                                    >
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
                                             @can('sales.destroy')
                                                 <button type="button" class="btn-action btn-delete delete-sale"
-                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
+                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" >
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             @endcan
