@@ -975,19 +975,36 @@ class CustomerController extends Controller
          $totalDebt = $customers->sum('total_debt');
          $exchangeRate = request('exchange_rate', 1);
 
-         // Devolver la vista parcial para el modal
-         return view('admin.customers.reports.debt-report-modal', compact(
-            'customers',
-            'customersData',
-            'company',
-            'currency',
-            'totalDebt',
-            'exchangeRate',
-            'defaultersCount',
-            'currentDebtorsCount',
-            'defaultersDebt',
-            'currentDebt'
-         ));
+         // Verificar si es una petición AJAX
+         if (request()->ajax() || request()->has('ajax')) {
+            // Devolver solo el contenido del modal para AJAX
+            return view('admin.customers.reports.debt-report-modal', compact(
+               'customers',
+               'customersData',
+               'company',
+               'currency',
+               'totalDebt',
+               'exchangeRate',
+               'defaultersCount',
+               'currentDebtorsCount',
+               'defaultersDebt',
+               'currentDebt'
+            ));
+         } else {
+            // Devolver la vista completa para peticiones normales
+            return view('admin.customers.reports.debt-report-modal', compact(
+               'customers',
+               'customersData',
+               'company',
+               'currency',
+               'totalDebt',
+               'exchangeRate',
+               'defaultersCount',
+               'currentDebtorsCount',
+               'defaultersDebt',
+               'currentDebt'
+            ));
+         }
       } catch (\Exception $e) {
          Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
          return response()->json([

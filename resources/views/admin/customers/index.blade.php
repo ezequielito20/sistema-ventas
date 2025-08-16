@@ -17,8 +17,9 @@
                 },
 
                 openDebtReport() {
-                    const debtBtn = document.getElementById('debtReportBtn');
-                    if (debtBtn) debtBtn.click();
+                    // Abrir el modal y cargar el reporte
+                    this.openModal('debtReportModal');
+                    this.loadDebtReport();
                 }
             }
         }
@@ -450,6 +451,227 @@
                         .catch(error => {
                             console.error('Error cargando datos de pago de deuda:', error);
                         });
+                },
+                
+                loadDebtReport() {
+                    console.log('loadDebtReport ejecutándose...');
+                    // Cargar el reporte de deudas
+                    const modalBody = document.querySelector('#debtReportModal .modal-body');
+                    console.log('modalBody encontrado:', modalBody);
+                    if (!modalBody) {
+                        console.error('No se encontró modalBody');
+                        return;
+                    }
+                    
+                    // Mostrar loading
+                    modalBody.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <div class="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+                            <div class="text-center">
+                                <h5 class="text-xl font-semibold text-gray-900 mb-2">Cargando reporte de deudas</h5>
+                                <p class="text-gray-600">Preparando información detallada...</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Obtener el tipo de cambio actual
+                    const exchangeRate = document.getElementById('exchangeRate')?.value || 134;
+                    
+                    // Cargar el reporte mediante fetch
+                    const url = '{{ route('admin.customers.debt-report') }}';
+                    console.log('Haciendo fetch a:', url);
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Respuesta recibida:', response);
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        console.log('HTML recibido:', html.substring(0, 200) + '...');
+                        
+                        // Crear un DOM temporal para extraer solo el contenido del modal
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Buscar el contenido del modal en el HTML
+                        const modalContentFromResponse = doc.querySelector('.modal-content') || 
+                                                       doc.querySelector('#debtReportModal') ||
+                                                       doc.querySelector('.debt-modal-body') ||
+                                                       doc.body;
+                        
+                        console.log('Contenido extraído:', modalContentFromResponse);
+                        
+                        // Actualizar el contenido del modal
+                        const modalContent = document.querySelector('#debtReportModal .modal-content');
+                        console.log('modalContent encontrado:', modalContent);
+                        if (modalContent && modalContentFromResponse) {
+                            modalContent.innerHTML = modalContentFromResponse.innerHTML;
+                            console.log('Contenido actualizado');
+                            
+                            // Inicializar event listeners después de cargar el contenido
+                            this.initializeDebtReportEvents();
+                        } else {
+                            console.error('No se encontró modalContent o contenido de respuesta');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error cargando reporte de deudas:', error);
+                        modalBody.innerHTML = `
+                            <div class="flex flex-col items-center justify-center py-12">
+                                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                                    <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+                                </div>
+                                <div class="text-center">
+                                    <h5 class="text-xl font-semibold text-gray-900 mb-2">Error al cargar el reporte</h5>
+                                    <p class="text-gray-600">No se pudo cargar el reporte de deudas. Inténtalo de nuevo.</p>
+                                    <button @click="loadDebtReport()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        Reintentar
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                },
+                
+                initializeDebtReportEvents() {
+                    console.log('Inicializando event listeners del reporte de deudas...');
+                    
+                    // Obtener el tipo de cambio actual
+                    const currentRate = document.getElementById('exchangeRate')?.value || 134;
+                    
+                    // Establecer el valor inicial en el modal
+                    const modalExchangeRateInput = document.getElementById('modalExchangeRate');
+                    if (modalExchangeRateInput) {
+                        modalExchangeRateInput.value = currentRate;
+                        console.log('Valor inicial establecido:', currentRate);
+                    }
+                    
+                    // Event listener para el input del tipo de cambio
+                    const exchangeRateInput = document.getElementById('modalExchangeRate');
+                    if (exchangeRateInput) {
+                        exchangeRateInput.addEventListener('input', (e) => {
+                            const rate = parseFloat(e.target.value);
+                            console.log('Evento input detectado, valor:', rate);
+                            
+                            if (rate > 0) {
+                                console.log('Valor válido, actualizando...');
+                                this.updateModalBsValues(rate);
+                            } else {
+                                console.log('Valor inválido o 0, no se actualiza');
+                            }
+                        });
+                        console.log('Event listener agregado al input del tipo de cambio');
+                    }
+                    
+                    // Event listener para el botón de actualizar
+                    const updateBtn = document.getElementById('updateModalExchangeRate');
+                    if (updateBtn) {
+                        updateBtn.addEventListener('click', () => {
+                            const rate = parseFloat(document.getElementById('modalExchangeRate').value);
+                            if (rate > 0) {
+                                // Actualizar la variable global
+                                window.currentExchangeRate = rate;
+                                
+                                // Actualizar el input en la tabla principal
+                                const mainExchangeRateInput = document.getElementById('exchangeRate');
+                                if (mainExchangeRateInput) {
+                                    mainExchangeRateInput.value = rate;
+                                }
+                                
+                                // Guardar en localStorage
+                                localStorage.setItem('exchangeRate', rate);
+                                
+                                // Actualizar valores en Bs en el modal
+                                this.updateModalBsValues(rate);
+                                
+                                // Actualizar valores en Bs en la tabla principal
+                                if (typeof window.updateBsValues === 'function') {
+                                    window.updateBsValues(rate);
+                                }
+                                
+                                // Mostrar mensaje de éxito
+                                if (typeof Swal !== 'undefined') {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Tipo de cambio actualizado',
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 3000
+                                    });
+                                }
+                            }
+                        });
+                        console.log('Event listener agregado al botón de actualizar');
+                    }
+                    
+                    // Actualizar valores iniciales
+                    this.updateModalBsValues(currentRate);
+                    console.log('Event listeners inicializados correctamente');
+                },
+                
+                updateModalBsValues(rate) {
+                    console.log('Actualizando valores en Bs con tasa:', rate);
+                    
+                    // Actualizar el resumen total (botones en la sección de estadísticas)
+                    const modalBsDebtElements = document.querySelectorAll('.modal-bs-debt');
+                    modalBsDebtElements.forEach(element => {
+                        const debtUsd = parseFloat(element.dataset.debt);
+                        if (!isNaN(debtUsd)) {
+                            const debtBs = debtUsd * rate;
+                            element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                            console.log('Actualizado modal-bs-debt:', debtUsd, '->', debtBs);
+                        }
+                    });
+                    
+                    // Actualizar cada fila de la tabla en el modal
+                    const bsDebtElements = document.querySelectorAll('#debtReportModal .bs-debt');
+                    bsDebtElements.forEach(element => {
+                        const debtUsd = parseFloat(element.dataset.debt);
+                        if (!isNaN(debtUsd)) {
+                            const debtBs = debtUsd * rate;
+                            element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                            console.log('Actualizado bs-debt en tabla:', debtUsd, '->', debtBs);
+                        }
+                    });
+                    
+                    // Buscar y actualizar cualquier elemento que contenga "Bs." en el modal
+                    const modal = document.getElementById('debtReportModal');
+                    if (modal) {
+                        const allElements = modal.querySelectorAll('*');
+                        allElements.forEach(element => {
+                            const text = element.textContent;
+                            
+                            // Buscar elementos que contengan "Bs." y que tengan un atributo data-debt
+                            if (text.includes('Bs.') && element.dataset.debt) {
+                                const debtUsd = parseFloat(element.dataset.debt);
+                                if (!isNaN(debtUsd)) {
+                                    const debtBs = debtUsd * rate;
+                                    element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                    console.log('Actualizado elemento con Bs.:', debtUsd, '->', debtBs);
+                                }
+                            }
+                        });
+                    }
+                    
+                    console.log('Actualización completada');
                 }
             }
         }
@@ -499,7 +721,7 @@
                     <div class="mt-6 lg:mt-0 lg:flex-shrink-0">
                         <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
                         @can('customers.report')
-                                <button @click="openModal('debtReportModal')"
+                                <button @click="openDebtReport()"
                                     class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte de Deudas">
                                     <i class="fas fa-file-invoice-dollar text-lg mr-2 text-blue-200"></i>
@@ -2190,7 +2412,7 @@
     </div>
 
     {{-- Modal para el reporte de deudas rediseñado con Alpine.js --}}
-    <div x-show="debtReportModal" x-cloak
+    <div id="debtReportModal" x-show="debtReportModal" x-cloak
          class="fixed inset-0 z-50 overflow-y-auto"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -2204,7 +2426,7 @@
         
         <!-- Modal Content -->
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
+            <div class="modal-content relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 transform scale-95"
                  x-transition:enter-end="opacity-100 transform scale-100"
@@ -2229,7 +2451,7 @@
                 </div>
                 
                 <!-- Body del Modal -->
-                <div class="p-8">
+                <div class="modal-body p-8">
                     <div class="flex flex-col items-center justify-center py-12">
                         <!-- Spinner de Carga -->
                         <div class="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-6"></div>
@@ -4822,73 +5044,9 @@
                 $('#debtReportModal').attr('aria-hidden', 'true');
             });
             
-            // Función para actualizar los valores en Bs en el modal
-            function updateModalBsValues(rate) {
-                // Actualizar el resumen total
-                $('.modal-bs-debt').each(function() {
-                    const debtUsd = parseFloat($(this).data('debt'));
-                    const debtBs = debtUsd * rate;
-                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }));
-                });
-                
-                // Actualizar cada fila de la tabla en el modal
-                $('#debtReportModal .bs-debt').each(function() {
-                    const debtUsd = parseFloat($(this).data('debt'));
-                    const debtBs = debtUsd * rate;
-                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }));
-                });
-                
-                // Actualizar el total de la tabla
-                $('#totalBsDebt').each(function() {
-                    const totalDebtElement = $('#debtReportModal .modal-bs-debt');
-                    if (totalDebtElement.length > 0) {
-                        const totalDebtUsd = parseFloat(totalDebtElement.data('debt'));
-                        const totalDebtBs = totalDebtUsd * rate;
-                                    $(this).html('Bs. ' + totalDebtBs.toLocaleString('es-VE', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }));
-                    }
-                });
-            }
-            
-            // Escuchar el evento de clic en el botón de actualizar en el modal
-            $(document).on('click', '#updateModalExchangeRate', function() {
-                const rate = parseFloat($('#modalExchangeRate').val());
-                if (rate > 0) {
-                    
-                    // Actualizar la variable global
-                    currentExchangeRate = rate;
-                    
-                    // Actualizar el input en la tabla principal
-                    $('#exchangeRate').val(rate);
-                    
-                    // Guardar en localStorage
-                    localStorage.setItem('exchangeRate', rate);
-                    
-                    // Actualizar valores en Bs en el modal
-                    updateModalBsValues(rate);
-                    
-                    // Actualizar valores en Bs en la tabla principal
-                    updateBsValues(rate);
-                    
-                    // Mostrar mensaje de éxito
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Tipo de cambio actualizado',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
-            });
+
+
+
 
             // Animación de contadores
             $('.counter').each(function() {
