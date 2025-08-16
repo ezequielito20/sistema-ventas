@@ -7,7 +7,6 @@
     <script>
         // Función global para actualizar valores en Bs
         window.updateBsValues = function(rate) {
-            console.log('Actualizando valores en Bs con tasa:', rate);
             
             // Actualizar elementos con clase bs-debt
             const bsDebtElements = document.querySelectorAll('.bs-debt');
@@ -19,7 +18,6 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
-                    console.log('Actualizado bs-debt:', debtUsd, '->', debtBs);
                 }
             });
             
@@ -33,11 +31,8 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
-                    console.log('Actualizado debt-bs-info:', debtUsd, '->', debtBs);
                 }
             });
-            
-            console.log('Actualización de valores en Bs completada');
         };
 
         // Inicializar el tipo de cambio inmediatamente al cargar el script
@@ -51,7 +46,6 @@
                 if (exchangeRateInput) {
                     exchangeRateInput.value = rate;
                 }
-                console.log('Tipo de cambio precargado:', rate);
             }
         })();
 
@@ -81,10 +75,6 @@
                 viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
                 searchTerm: '',
                 searchResultsCount: 0,
-                currentPage: 1,
-                itemsPerPage: 25,
-                totalPages: {{ $customers->lastPage() }},
-                totalItems: {{ $customers->total() }},
 
                 init() {
                     // Detectar cambios de tamaño de pantalla
@@ -94,8 +84,6 @@
                             this.viewMode = 'cards';
                         }
                     });
-
-                    console.log('DataTable inicializado con vista:', this.viewMode);
                 },
 
                 performSearch() {
@@ -114,165 +102,6 @@
                         mobileSearch.value = '';
                         mobileSearch.dispatchEvent(new Event('keyup'));
                     }
-                },
-
-                // Métodos de paginación
-                goToPage(page) {
-                    if (page >= 1 && page <= this.totalPages) {
-                        this.currentPage = page;
-                        this.loadPage(page);
-                    }
-                },
-
-                nextPage() {
-                    if (this.currentPage < this.totalPages) {
-                        this.goToPage(this.currentPage + 1);
-                    }
-                },
-
-                prevPage() {
-                    if (this.currentPage > 1) {
-                        this.goToPage(this.currentPage - 1);
-                    }
-                },
-
-                loadPage(page) {
-                    // Mostrar loading
-                    this.showLoading();
-                    
-                    // Construir URL con parámetros
-                    const url = new URL(window.location);
-                    url.searchParams.set('page', page);
-                    if (this.itemsPerPage !== 25) {
-                        url.searchParams.set('per_page', this.itemsPerPage);
-                    }
-                    
-                    // Hacer petición AJAX para cargar la página
-                    fetch(url.toString())
-                        .then(response => response.text())
-                        .then(html => {
-                            // Crear un DOM temporal para extraer solo la tabla/tarjetas
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            
-                            // Actualizar tabla
-                            const newTableBody = doc.querySelector('#customersTableBody');
-                            if (newTableBody) {
-                                document.querySelector('#customersTableBody').innerHTML = newTableBody.innerHTML;
-                            }
-                            
-                            // Actualizar tarjetas
-                            const newCardsContainer = doc.querySelector('#mobileCustomersContainer');
-                            if (newCardsContainer) {
-                                document.querySelector('#mobileCustomersContainer').innerHTML = newCardsContainer.innerHTML;
-                            }
-                            
-                            // Actualizar tarjetas móviles
-                            const newMobileContainer = doc.querySelector('#mobileOnlyContainer');
-                            if (newMobileContainer) {
-                                document.querySelector('#mobileOnlyContainer').innerHTML = newMobileContainer.innerHTML;
-                            }
-                            
-                            // Actualizar información de paginación
-                            const paginationInfo = doc.querySelector('[x-data*="dataTable"]');
-                            if (paginationInfo) {
-                                // Extraer valores de paginación del HTML
-                                const totalItemsMatch = html.match(/totalItems:\s*(\d+)/);
-                                const totalPagesMatch = html.match(/totalPages:\s*(\d+)/);
-                                
-                                if (totalItemsMatch) {
-                                    this.totalItems = parseInt(totalItemsMatch[1]);
-                                }
-                                if (totalPagesMatch) {
-                                    this.totalPages = parseInt(totalPagesMatch[1]);
-                                }
-                            }
-                            
-                            // Actualizar URL sin recargar la página
-                            window.history.pushState({}, '', url.toString());
-                            
-                            // Ocultar loading
-                            this.hideLoading();
-                            
-                            // Reinicializar eventos
-                            this.initializeEvents();
-                        })
-                        .catch(error => {
-                            console.error('Error cargando página:', error);
-                            this.hideLoading();
-                        });
-                },
-
-                // Cambiar elementos por página
-                changeItemsPerPage(newItemsPerPage) {
-                    this.itemsPerPage = newItemsPerPage;
-                    this.currentPage = 1;
-                    this.loadPage(1);
-                },
-
-                showLoading() {
-                    // Crear overlay de loading si no existe
-                    if (!document.getElementById('paginationLoading')) {
-                        const loading = document.createElement('div');
-                        loading.id = 'paginationLoading';
-                        loading.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                        loading.innerHTML = `
-                            <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
-                                <div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                <span class="text-gray-700">Cargando...</span>
-                            </div>
-                        `;
-                        document.body.appendChild(loading);
-                    }
-                },
-
-                hideLoading() {
-                    const loading = document.getElementById('paginationLoading');
-                    if (loading) {
-                        loading.remove();
-                    }
-                },
-
-                initializeEvents() {
-                    // Reinicializar eventos de botones y funcionalidades
-                    // Esto se ejecutará después de cargar nueva página
-                    if (typeof initializeCustomerEvents === 'function') {
-                        initializeCustomerEvents();
-                    }
-                },
-
-                // Getters para la paginación
-                get startItem() {
-                    return (this.currentPage - 1) * this.itemsPerPage + 1;
-                },
-
-                get endItem() {
-                    return Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
-                },
-
-                get hasNextPage() {
-                    return this.currentPage < this.totalPages;
-                },
-
-                get hasPrevPage() {
-                    return this.currentPage > 1;
-                },
-
-                get pageNumbers() {
-                    const pages = [];
-                    const maxVisible = 5;
-                    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
-                    let end = Math.min(this.totalPages, start + maxVisible - 1);
-                    
-                    if (end - start + 1 < maxVisible) {
-                        start = Math.max(1, end - maxVisible + 1);
-                    }
-                    
-                    for (let i = start; i <= end; i++) {
-                        pages.push(i);
-                    }
-                    
-                    return pages;
                 }
             }
         }
@@ -287,13 +116,11 @@
                 totalResults: {{ $totalCustomers ?? 0 }},
 
                 init() {
-                    console.log('Panel de filtros inicializado');
                     this.updateActiveFiltersIndicator();
                 },
 
                 toggleFilters() {
                     this.filtersOpen = !this.filtersOpen;
-                    console.log('Filtros toggled:', this.filtersOpen);
                 },
 
                 setFilter(filter) {
@@ -399,34 +226,26 @@
                 updating: false,
 
                 init() {
-                    console.log('Inicializando exchangeRateWidget...');
-                    
                     // Cargar el tipo de cambio guardado en localStorage
                     const savedRate = localStorage.getItem('exchangeRate');
                     if (savedRate) {
                         this.exchangeRate = parseFloat(savedRate);
-                        console.log('Tipo de cambio cargado desde localStorage:', this.exchangeRate);
                     } else {
                         // Si no hay valor guardado, usar el valor por defecto
                         this.exchangeRate = 134.0;
                         localStorage.setItem('exchangeRate', this.exchangeRate.toString());
-                        console.log('Usando tipo de cambio por defecto:', this.exchangeRate);
                     }
                     
                     // Actualizar valores en Bs inmediatamente después de inicializar
                     setTimeout(() => {
                         window.updateBsValues(this.exchangeRate);
-                        console.log('Valores en Bs actualizados al inicializar:', this.exchangeRate);
                     }, 100);
-                    
-                    console.log('exchangeRateWidget inicializado con valor:', this.exchangeRate);
                     
                     // Sincronizar con el modal si está abierto
                     setTimeout(() => {
                         const modalExchangeRateInput = document.getElementById('modalExchangeRate');
                         if (modalExchangeRateInput) {
                             modalExchangeRateInput.value = this.exchangeRate;
-                            console.log('Modal sincronizado desde widget al inicializar:', this.exchangeRate);
                         }
                     }, 500);
                 },
@@ -446,7 +265,6 @@
                     }
 
                     this.updating = true;
-                    console.log('Actualizando tipo de cambio desde widget:', this.exchangeRate);
 
                     // Usar la función centralizada para guardar
                     if (typeof saveExchangeRate === 'function') {
@@ -461,7 +279,6 @@
                     const modalExchangeRateInput = document.getElementById('modalExchangeRate');
                     if (modalExchangeRateInput) {
                         modalExchangeRateInput.value = this.exchangeRate;
-                        console.log('Sincronizado con modal:', this.exchangeRate);
                     }
 
                     // Actualizar valores en Bs en la tabla principal
@@ -499,7 +316,6 @@
                 syncFromModal(rate) {
                     if (rate > 0 && rate !== this.exchangeRate) {
                         this.exchangeRate = rate;
-                        console.log('Widget sincronizado desde modal:', rate);
                         
                         // Actualizar valores en Bs en la tabla principal
                         window.updateBsValues(rate);
@@ -509,8 +325,6 @@
                 // Método para sincronizar hacia el modal
                 syncToModal() {
                     if (this.exchangeRate > 0) {
-                        console.log('Sincronizando hacia modal:', this.exchangeRate);
-                        
                         // Guardar el valor en localStorage
                         localStorage.setItem('exchangeRate', this.exchangeRate.toString());
                         
@@ -524,7 +338,6 @@
                             
                             // Trigger el evento input para actualizar los valores
                             modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
-                            console.log('Modal sincronizado desde widget');
                         }
                     }
                 }
@@ -592,12 +405,10 @@
                                 
                                 // Cargar filtros guardados
                                 this.loadSavedCustomerFilters();
-                            } else {
-                                console.error('Error cargando detalles del cliente:', data.message);
                             }
                         })
                         .catch(error => {
-                            console.error('Error cargando detalles del cliente:', error);
+                            // Error cargando detalles del cliente
                         });
                 },
                 
@@ -614,7 +425,7 @@
                             if (data.success) {
                                                                 // Esperar un momento para que el modal esté completamente cargado
                                 setTimeout(() => {
-                                    // Llenar los campos del modal
+                            // Llenar los campos del modal
                                     const customerIdField = document.getElementById('payment_customer_id');
                                     const customerNameField = document.getElementById('customer_name');
                                     const customerPhoneField = document.getElementById('customer_phone');
@@ -659,12 +470,10 @@
                                     // Inicializar eventos del modal de pago
                                     this.initializeDebtPaymentEvents();
                                 }, 100); // Pequeño delay para asegurar que el modal esté cargado
-                            } else {
-                                console.error('Error en la respuesta:', data.message);
                             }
                         })
                         .catch(error => {
-                            console.error('Error cargando datos de pago de deuda:', error);
+                            // Error cargando datos de pago de deuda
                         });
                 },
 
@@ -1044,16 +853,13 @@
                     const debtElements = document.querySelectorAll(`[data-customer-id="${customerId}"] .debt-value`);
                     debtElements.forEach(element => {
                         element.textContent = formattedNewDebt;
-                    });
+                        });
                 },
                 
                 loadDebtReport() {
-                    console.log('loadDebtReport ejecutándose...');
                     // Cargar el reporte de deudas
                     const modalBody = document.querySelector('#debtReportModal .modal-body');
-                    console.log('modalBody encontrado:', modalBody);
                     if (!modalBody) {
-                        console.error('No se encontró modalBody');
                         return;
                     }
                     
@@ -1073,7 +879,6 @@
                     
                     // Cargar el reporte mediante fetch
                     const url = '{{ route('admin.customers.debt-report') }}';
-                    console.log('Haciendo fetch a:', url);
                     fetch(url, {
                         method: 'GET',
                         headers: {
@@ -1082,15 +887,12 @@
                         }
                     })
                     .then(response => {
-                        console.log('Respuesta recibida:', response);
                         if (!response.ok) {
                             throw new Error('Error en la respuesta del servidor');
                         }
                         return response.text();
                     })
                     .then(html => {
-                        console.log('HTML recibido:', html.substring(0, 200) + '...');
-                        
                         // Crear un DOM temporal para extraer solo el contenido del modal
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
@@ -1101,14 +903,10 @@
                                                        doc.querySelector('.debt-modal-body') ||
                                                        doc.body;
                         
-                        console.log('Contenido extraído:', modalContentFromResponse);
-                        
                         // Actualizar el contenido del modal
                         const modalContent = document.querySelector('#debtReportModal .modal-content');
-                        console.log('modalContent encontrado:', modalContent);
                         if (modalContent && modalContentFromResponse) {
                             modalContent.innerHTML = modalContentFromResponse.innerHTML;
-                            console.log('Contenido actualizado');
                             
                             // Inicializar event listeners después de cargar el contenido
                             this.initializeDebtReportEvents();
@@ -1118,16 +916,13 @@
                                 const savedRate = localStorage.getItem('exchangeRate');
                                 if (savedRate) {
                                     const rate = parseFloat(savedRate);
-                                    console.log('Sincronizando modal con valor guardado:', rate);
                                     syncAllExchangeRateElements(rate);
                                 }
                             }, 200);
-                        } else {
-                            console.error('No se encontró modalContent o contenido de respuesta');
                         }
                     })
                     .catch(error => {
-                        console.error('Error cargando reporte de deudas:', error);
+                        // Error cargando reporte de deudas
                         modalBody.innerHTML = `
                             <div class="flex flex-col items-center justify-center py-12">
                                 <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
@@ -1146,8 +941,6 @@
                 },
                 
                 initializeDebtReportEvents() {
-                    console.log('Inicializando event listeners del reporte de deudas...');
-                    
                     // Obtener el tipo de cambio actual usando la función centralizada
                     let currentRate;
                     if (typeof initializeExchangeRate === 'function') {
@@ -1157,28 +950,20 @@
                         const savedRate = localStorage.getItem('exchangeRate');
                         if (savedRate) {
                             currentRate = parseFloat(savedRate);
-                            console.log('Tipo de cambio cargado desde localStorage:', currentRate);
                         } else {
                             currentRate = document.getElementById('exchangeRate')?.value || 134;
-                            console.log('Tipo de cambio cargado desde input:', currentRate);
                         }
                     }
-                    
-                    console.log('Tipo de cambio para modal:', currentRate);
                     
                     // Establecer el valor inicial en el modal
                     const modalExchangeRateInput = document.getElementById('modalExchangeRate');
                     if (modalExchangeRateInput) {
                         modalExchangeRateInput.value = currentRate;
-                        console.log('Valor inicial establecido en modal:', currentRate);
                         
                         // Trigger el evento input para actualizar los valores en Bs inmediatamente
                         setTimeout(() => {
                             modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
-                            console.log('Evento input disparado para actualizar valores');
                         }, 100);
-                    } else {
-                        console.error('No se encontró el input modalExchangeRate');
                     }
                     
                     // Event listener para el input del tipo de cambio
@@ -1186,10 +971,8 @@
                     if (exchangeRateInput) {
                         exchangeRateInput.addEventListener('input', (e) => {
                             const rate = parseFloat(e.target.value);
-                            console.log('Evento input detectado en modal, valor:', rate);
                             
                             if (rate > 0) {
-                                console.log('Valor válido, actualizando modal...');
                                 this.updateModalBsValues(rate);
                                 
                                 // Sincronizar con el widget de Alpine.js
@@ -1202,11 +985,8 @@
                                         }
                                     }
                                 });
-                            } else {
-                                console.log('Valor inválido o 0, no se actualiza');
                             }
                         });
-                        console.log('Event listener agregado al input del tipo de cambio');
                     }
                     
                     // Event listener para el botón de actualizar
@@ -1215,8 +995,6 @@
                         updateBtn.addEventListener('click', () => {
                             const rate = parseFloat(document.getElementById('modalExchangeRate').value);
                             if (rate > 0) {
-                                console.log('Actualizando desde modal:', rate);
-                                
                                 // Usar la función centralizada para guardar
                                 if (typeof saveExchangeRate === 'function') {
                                     saveExchangeRate(rate);
@@ -1258,7 +1036,6 @@
                                 }
                             }
                         });
-                        console.log('Event listener agregado al botón de actualizar');
                     }
                     
                     // Actualizar valores iniciales
@@ -1266,13 +1043,9 @@
                     
                     // Inicializar filtros del modal
                     this.initializeModalFilters();
-                    
-                    console.log('Event listeners inicializados correctamente');
                 },
                 
                 updateModalBsValues(rate) {
-                    console.log('Actualizando valores en Bs con tasa:', rate);
-                    
                     // Actualizar el resumen total (botones en la sección de estadísticas)
                     const modalBsDebtElements = document.querySelectorAll('.modal-bs-debt');
                     modalBsDebtElements.forEach(element => {
@@ -1283,7 +1056,6 @@
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
-                            console.log('Actualizado modal-bs-debt:', debtUsd, '->', debtBs);
                         }
                     });
                     
@@ -1297,7 +1069,6 @@
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });
-                            console.log('Actualizado bs-debt en tabla:', debtUsd, '->', debtBs);
                         }
                     });
                     
@@ -1317,19 +1088,14 @@
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     });
-                                    console.log('Actualizado elemento con Bs.:', debtUsd, '->', debtBs);
                                 }
                             }
                         });
                     }
-                    
-                    console.log('Actualización completada');
                 },
 
                 // ===== FUNCIONALIDAD DE FILTROS DEL MODAL =====
                 initializeModalFilters() {
-                    console.log('Inicializando filtros del modal...');
-                    
                     // Cargar filtros guardados desde localStorage
                     this.loadSavedFilters();
                     
@@ -1380,14 +1146,12 @@
                         });
                     }
                     
-                    console.log('Filtros del modal inicializados');
                 },
 
                 saveFilter(key, value) {
                     const filters = JSON.parse(localStorage.getItem('debtReportFilters') || '{}');
                     filters[key] = value;
                     localStorage.setItem('debtReportFilters', JSON.stringify(filters));
-                    console.log('Filtro guardado:', key, value);
                 },
 
                 loadSavedFilters() {
@@ -1408,8 +1172,6 @@
                     if (debtTypeFilter && filters.debtType) {
                         debtTypeFilter.value = filters.debtType;
                     }
-                    
-                    console.log('Filtros cargados desde localStorage:', filters);
                 },
 
                 clearAllFilters() {
@@ -1427,13 +1189,9 @@
                     
                     // Recargar datos sin filtros
                     this.applyFilters();
-                    
-                    console.log('Todos los filtros limpiados');
                 },
 
                 applyFilters() {
-                    console.log('Aplicando filtros...');
-                    
                     // Obtener valores de filtros
                     const searchTerm = document.getElementById('searchFilter')?.value || '';
                     const orderBy = document.getElementById('orderFilter')?.value || 'debt_desc';
@@ -1451,8 +1209,6 @@
                     if (searchTerm) url.searchParams.set('search', searchTerm);
                     if (orderBy) url.searchParams.set('order', orderBy);
                     if (debtType) url.searchParams.set('debt_type', debtType);
-                    
-                    console.log('Fetching URL:', url.toString());
                     
                     // Hacer petición AJAX
                     fetch(url, {
@@ -1477,12 +1233,10 @@
                             // Reinicializar eventos después de actualizar contenido
                             this.initializeDebtReportEvents();
                             this.initializeModalFilters();
-                            
-                            console.log('Modal actualizado con filtros aplicados');
                         }
                     })
                     .catch(error => {
-                        console.error('Error al aplicar filtros:', error);
+                        // Error al aplicar filtros
                         this.hideFilterLoading();
                         
                         // Mostrar mensaje de error
@@ -1536,8 +1290,6 @@
                 },
 
                 downloadPdfWithFilters() {
-                    console.log('Descargando PDF con filtros...');
-                    
                     // Obtener filtros actuales
                     const filters = this.getCurrentFilters();
                     
@@ -1550,8 +1302,6 @@
                             url.searchParams.set(key, filters[key]);
                         }
                     });
-                    
-                    console.log('URL del PDF:', url.toString());
                     
                     // Abrir PDF en nueva pestaña
                     window.open(url.toString(), '_blank');
@@ -2757,7 +2507,7 @@
                                             @endif
                                         </div>
                                     @else
-                                        <div class="debt-amount flex items-center gap-2">
+                                                <div class="debt-amount flex items-center gap-2">
                                             <span class="no-debt-badge">Sin deuda</span>
                                         </div>
                                     @endif
@@ -3110,30 +2860,7 @@
         </div>
     </div>
 
-        {{-- Paginación (igual que categorías) --}}
-    <div class="custom-pagination">
-        <div class="pagination-info">
-            <span id="paginationInfo">Mostrando 1-{{ min(25, $customers->count()) }} de {{ $customers->total() }} clientes</span>
-        </div>
-        <div class="pagination-controls">
-            <button id="prevPage" class="pagination-btn" disabled>
-                <i class="fas fa-chevron-left"></i>
-                Anterior
-            </button>
-            <div id="pageNumbers" class="page-numbers"></div>
-            <button id="nextPage" class="pagination-btn">
-                Siguiente
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-    </div>
 
-     {{-- Paginación de Laravel (fallback para carga inicial) --}}
-     @if($customers->hasPages())
-         <div class="mt-4 flex justify-center">
-             {{ $customers->appends(request()->query())->links() }}
-         </div>
-     @endif
 
     {{-- Modal de Detalles del Cliente Rediseñado con Alpine.js --}}
     <div x-show="showCustomerModal" x-cloak
@@ -3433,13 +3160,13 @@
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-user text-gray-400"></i>
-                                            </div>
-                                            <input type="text" id="customer_name" readonly
-                                                class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                    <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-user text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="customer_name" readonly
+                                            class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
                                         </div>
                                     </div>
                                     <div class="space-y-2">
@@ -3606,6 +3333,21 @@
         /* Alpine.js x-cloak directive */
         [x-cloak] {
             display: none !important;
+        }
+
+
+
+        /* Smooth transitions */
+        .customer-row, .customer-card, .mobile-card {
+            @apply transition-all duration-300 ease-in-out;
+        }
+
+        .customer-row.hidden, .customer-card.hidden, .mobile-card.hidden {
+            @apply opacity-0 transform scale-95;
+        }
+
+        .customer-row.visible, .customer-card.visible, .mobile-card.visible {
+            @apply opacity-100 transform scale-100;
         }
 
         /* ===== MEJORAS CON TAILWIND ===== */
@@ -4819,175 +4561,12 @@
         /* ===== MODALS ===== */
         /* Los modales ahora usan Tailwind CSS completamente */
 
-        /* ===== PAGINACIÓN (igual que categorías) ===== */
-        .custom-pagination {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            padding: 2rem !important;
-            background: white !important;
-            border-top: 1px solid var(--border-color) !important;
-            border-radius: 0 0 24px 24px !important;
-        }
 
-        .pagination-info {
-            color: #64748b !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-        }
 
-        .pagination-controls {
-            display: flex !important;
-            align-items: center !important;
-            gap: 1rem !important;
-        }
 
-        .pagination-btn {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.75rem !important;
-            padding: 0.75rem 1.25rem !important;
-            border: 2px solid var(--border-color) !important;
-            background: white !important;
-            color: #64748b !important;
-            border-radius: 12px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-            background: var(--light-color) !important;
-            border-color: var(--primary-color) !important;
-            color: var(--primary-color) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: var(--shadow-light) !important;
-        }
-
-        .pagination-btn:disabled {
-            opacity: 0.5 !important;
-            cursor: not-allowed !important;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .page-numbers {
-            display: flex !important;
-            gap: 0.5rem !important;
-        }
-
-        .page-number {
-            width: 40px !important;
-            height: 40px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            border: 2px solid var(--border-color) !important;
-            background: white !important;
-            color: #64748b !important;
-            border-radius: 10px !important;
-            cursor: pointer !important;
-            transition: all 0.3s ease !important;
-            font-size: 1rem !important;
-            font-weight: 600 !important;
-        }
-
-        .page-number:hover {
-            background: var(--light-color) !important;
-            border-color: var(--primary-color) !important;
-            color: var(--primary-color) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: var(--shadow-light) !important;
-        }
-
-        .page-number.active {
-            background: var(--gradient-primary) !important;
-            color: white !important;
-            border-color: var(--primary-color) !important;
-            box-shadow: var(--shadow-medium) !important;
-        }
-
-        /* Paginación de Laravel (fallback) */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .pagination .page-item {
-            list-style: none;
-        }
-
-        .pagination .page-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            color: #6b7280;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        .pagination .page-link:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #374151;
-        }
-
-        .pagination .page-item.active .page-link {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: transparent;
-            color: white;
-        }
-
-        .pagination .page-item.disabled .page-link {
-            background: #f9fafb;
-            border-color: #e5e7eb;
-            color: #9ca3af;
-            cursor: not-allowed;
-        }
-
-        .pagination .page-item.disabled .page-link:hover {
-            background: #f9fafb;
-            border-color: #e5e7eb;
-            color: #9ca3af;
-        }
 
         /* ===== RESPONSIVE DESIGN ===== */
         @media (max-width: 768px) {
-            .custom-pagination {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-                padding: 1rem;
-            }
-
-            .pagination-info {
-                font-size: 0.9rem;
-            }
-
-            .pagination-controls {
-                gap: 0.5rem;
-            }
-
-            .pagination-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-            }
-
-            .page-number {
-                width: 36px;
-                height: 36px;
-                font-size: 0.85rem;
-            }
             .hero-section {
                 padding: 1.5rem;
             }
@@ -5819,22 +5398,17 @@
 
         // Función centralizada para manejar la persistencia del tipo de cambio
         function initializeExchangeRate() {
-            console.log('Inicializando tipo de cambio...');
-            
             // Cargar el tipo de cambio guardado en localStorage
             const savedRate = localStorage.getItem('exchangeRate');
             if (savedRate) {
                 currentExchangeRate = parseFloat(savedRate);
-                console.log('Tipo de cambio cargado desde localStorage:', currentExchangeRate);
             } else {
                 // Si no hay valor guardado, usar el valor por defecto del input
                 const exchangeRateInput = document.getElementById('exchangeRate');
                 if (exchangeRateInput && exchangeRateInput.value) {
                     currentExchangeRate = parseFloat(exchangeRateInput.value);
-                    console.log('Tipo de cambio cargado desde input:', currentExchangeRate);
                 } else {
                     currentExchangeRate = 134.0; // Valor por defecto
-                    console.log('Usando tipo de cambio por defecto:', currentExchangeRate);
                 }
                 
                 // Guardar el valor por defecto en localStorage
@@ -5855,7 +5429,6 @@
                 window.updateBsValues(currentExchangeRate);
             }
             
-            console.log('Tipo de cambio inicializado:', currentExchangeRate);
             return currentExchangeRate;
         }
 
@@ -5864,7 +5437,6 @@
             if (rate > 0) {
                 currentExchangeRate = rate;
                 localStorage.setItem('exchangeRate', rate.toString());
-                console.log('Tipo de cambio guardado:', rate);
                 return true;
             }
             return false;
@@ -5872,8 +5444,6 @@
 
         // Función para sincronizar todos los elementos con el tipo de cambio
         function syncAllExchangeRateElements(rate) {
-            console.log('Sincronizando todos los elementos con tasa:', rate);
-            
             // Sincronizar input principal
             const exchangeRateInput = document.getElementById('exchangeRate');
             if (exchangeRateInput) {
@@ -5901,8 +5471,6 @@
             
             // Actualizar valores en Bs
             window.updateBsValues(rate);
-            
-            console.log('Sincronización completada');
         }
 
         $(document).ready(function() {
@@ -5967,8 +5535,8 @@
                     if (typeof saveExchangeRate === 'function') {
                         saveExchangeRate(rate);
                     } else {
-                        currentExchangeRate = rate;
-                        localStorage.setItem('exchangeRate', rate);
+                    currentExchangeRate = rate;
+                    localStorage.setItem('exchangeRate', rate);
                     }
                     
                     window.updateBsValues(rate);
@@ -5984,7 +5552,7 @@
                     });
                 }
             });
-
+            
             // Guardar automáticamente cuando se cambie el valor en el input principal
             $(document).on('input', '#exchangeRate', function() {
                 const rate = parseFloat($(this).val());
@@ -5999,8 +5567,6 @@
                     
                     // Actualizar valores en Bs en tiempo real
                     window.updateBsValues(rate);
-                    
-                    console.log('Tipo de cambio guardado automáticamente:', rate);
                 }
             });
             
@@ -6648,10 +6214,8 @@
                         });
                     },
                     error: function(xhr) {
-                        console.error('Error en la solicitud:', xhr);
-                        
-                                    let errorMessage =
-                                        'Ha ocurrido un error al registrar el pago';
+                        let errorMessage =
+                            'Ha ocurrido un error al registrar el pago';
                         
                         if (xhr.responseJSON && xhr.responseJSON.errors) {
                                         errorMessage = Object.values(xhr.responseJSON.errors)[0]
@@ -6700,7 +6264,6 @@
                     clearSalesFilters();
                 });
                 
-                console.log('Eventos de clientes reinicializados');
             }
             
             // Llamar a la función al cargar la página
@@ -6708,178 +6271,7 @@
                 initializeCustomerEvents();
             });
             
-            // ===== PAGINACIÓN (igual que categorías) =====
-            // Variables globales para paginación
-            let currentPage = 1;
-            const itemsPerPage = 25;
-            let allCustomers = [];
-            let filteredCustomers = [];
 
-            // Inicializar la página
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Clientes page loaded');
-                console.log('Pagination elements:', {
-                    container: document.querySelector('.custom-pagination'),
-                    info: document.getElementById('paginationInfo'),
-                    prevBtn: document.getElementById('prevPage'),
-                    nextBtn: document.getElementById('nextPage'),
-                    pageNumbers: document.getElementById('pageNumbers')
-                });
-                initializeCustomersPage();
-                initializeEventListeners();
-            });
-
-            // Inicializar la página de clientes
-            function initializeCustomersPage() {
-                console.log('Initializing customers page...');
-                
-                // Obtener todas las categorías
-                getAllCustomers();
-                
-                // Mostrar primera página
-                showPage(1);
-            }
-
-            // Obtener todas las categorías
-            function getAllCustomers() {
-                const tableRows = document.querySelectorAll('#customersTableBody tr');
-                const customerCards = document.querySelectorAll('.customer-card');
-                const mobileCards = document.querySelectorAll('.mobile-card');
-                
-                allCustomers = [];
-                
-                // Procesar filas de tabla
-                tableRows.forEach((row, index) => {
-                    const customerName = row.querySelector('.customer-name').textContent.trim();
-                    const customerEmail = row.querySelector('.customer-email').textContent.trim();
-                    
-                    allCustomers.push({
-                        element: row,
-                        cardElement: customerCards[index],
-                        mobileElement: mobileCards[index],
-                        data: {
-                            id: row.dataset.customerId,
-                            name: customerName,
-                            email: customerEmail
-                        }
-                    });
-                });
-                
-                filteredCustomers = [...allCustomers];
-                console.log('Customers loaded:', allCustomers.length);
-            }
-
-            // Mostrar página específica
-            function showPage(page) {
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                
-                // Ocultar todas las filas/tarjetas
-                document.querySelectorAll('#customersTableBody tr').forEach(row => row.style.display = 'none');
-                document.querySelectorAll('.customer-card').forEach(card => card.style.display = 'none');
-                document.querySelectorAll('.mobile-card').forEach(card => card.style.display = 'none');
-                
-                // Mostrar solo los elementos de la página actual
-                filteredCustomers.slice(startIndex, endIndex).forEach((customer, index) => {
-                    if (customer.element) customer.element.style.display = 'table-row';
-                    if (customer.cardElement) customer.cardElement.style.display = 'block';
-                    if (customer.mobileElement) customer.mobileElement.style.display = 'block';
-                    
-                    // Actualizar números de fila
-                    if (customer.element) {
-                        customer.element.querySelector('.row-number').textContent = startIndex + index + 1;
-                    }
-                });
-                
-                // Actualizar información de paginación
-                updatePaginationInfo(page, filteredCustomers.length);
-                updatePaginationControls(page, Math.ceil(filteredCustomers.length / itemsPerPage));
-            }
-
-            // Actualizar información de paginación
-            function updatePaginationInfo(currentPage, totalItems) {
-                const startItem = (currentPage - 1) * itemsPerPage + 1;
-                const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-                document.getElementById('paginationInfo').textContent = `Mostrando ${startItem}-${endItem} de ${totalItems} clientes`;
-            }
-
-            // Actualizar controles de paginación
-            function updatePaginationControls(currentPage, totalPages) {
-                const prevBtn = document.getElementById('prevPage');
-                const nextBtn = document.getElementById('nextPage');
-                const pageNumbers = document.getElementById('pageNumbers');
-                
-                // Habilitar/deshabilitar botones
-                prevBtn.disabled = currentPage === 1;
-                nextBtn.disabled = currentPage === totalPages;
-                
-                // Generar números de página
-                let pageNumbersHTML = '';
-                const maxVisiblePages = 5;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
-                
-                for (let i = startPage; i <= endPage; i++) {
-                    pageNumbersHTML += `
-                        <button class="page-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
-                            ${i}
-                        </button>
-                    `;
-                }
-                
-                pageNumbers.innerHTML = pageNumbersHTML;
-            }
-
-            // Ir a página específica
-            function goToPage(page) {
-                currentPage = page;
-                showPage(page);
-            }
-
-            // Función de búsqueda
-            function filterCustomers(searchTerm) {
-                const searchLower = searchTerm.toLowerCase().trim();
-                
-                if (!searchLower) {
-                    filteredCustomers = [...allCustomers];
-                } else {
-                    filteredCustomers = allCustomers.filter(customer => {
-                        const nameMatch = customer.data.name.toLowerCase().includes(searchLower);
-                        const emailMatch = customer.data.email.toLowerCase().includes(searchLower);
-                        return nameMatch || emailMatch;
-                    });
-                }
-                
-                currentPage = 1;
-                showPage(1);
-            }
-
-            // Inicializar event listeners
-            function initializeEventListeners() {
-                console.log('Initializing event listeners...');
-                
-                // Paginación
-                document.getElementById('prevPage').addEventListener('click', function() {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        showPage(currentPage);
-                    }
-                });
-                
-                document.getElementById('nextPage').addEventListener('click', function() {
-                    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        showPage(currentPage);
-                    }
-                });
-                
-                console.log('Event listeners initialized');
-            }
             
             })
         });
@@ -6926,93 +6318,6 @@
                 min-height: 100vh;
             }
 
-            /* ===== ESTILOS FINALES DE PAGINACIÓN ===== */
-            .custom-pagination {
-                background: white !important;
-                border-top: 1px solid #e2e8f0 !important;
-                border-radius: 0 0 24px 24px !important;
-                padding: 2rem !important;
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-            }
 
-            .pagination-info {
-                color: #64748b !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-            }
-
-            .pagination-controls {
-                display: flex !important;
-                align-items: center !important;
-                gap: 1rem !important;
-            }
-
-            .pagination-btn {
-                display: flex !important;
-                align-items: center !important;
-                gap: 0.75rem !important;
-                padding: 0.75rem 1.25rem !important;
-                border: 2px solid #e2e8f0 !important;
-                background: white !important;
-                color: #64748b !important;
-                border-radius: 12px !important;
-                cursor: pointer !important;
-                transition: all 0.3s ease !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-            }
-
-            .pagination-btn:hover:not(:disabled) {
-                background: #f8fafc !important;
-                border-color: #667eea !important;
-                color: #667eea !important;
-                transform: translateY(-2px) !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
-            }
-
-            .pagination-btn:disabled {
-                opacity: 0.5 !important;
-                cursor: not-allowed !important;
-                transform: none !important;
-                box-shadow: none !important;
-            }
-
-            .page-numbers {
-                display: flex !important;
-                gap: 0.5rem !important;
-            }
-
-            .page-number {
-                width: 40px !important;
-                height: 40px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                border: 2px solid #e2e8f0 !important;
-                background: white !important;
-                color: #64748b !important;
-                border-radius: 10px !important;
-                cursor: pointer !important;
-                transition: all 0.3s ease !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-            }
-
-            .page-number:hover {
-                background: #f8fafc !important;
-                border-color: #667eea !important;
-                color: #667eea !important;
-                transform: translateY(-2px) !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
-            }
-
-            .page-number.active {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                color: white !important;
-                border-color: #667eea !important;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
-            }
         </style>
 @stop

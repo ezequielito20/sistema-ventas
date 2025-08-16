@@ -44,12 +44,11 @@ class CustomerController extends Controller
          
 
 
-         // Obtener todos los clientes con sus ventas (paginados)
-         $perPage = $request->get('per_page', 25);
+         // Obtener todos los clientes con sus ventas (sin paginación)
          $customers = Customer::with('sales')
             ->where('company_id', $this->company->id)
             ->orderBy('name')
-            ->paginate($perPage);
+            ->get();
          $currency = $this->currencies;
          $company = $this->company;
 
@@ -170,7 +169,7 @@ class CustomerController extends Controller
             'company'
          ));
       } catch (\Exception $e) {
-         Log::error('Error en CustomerController@index: ' . $e->getMessage());
+
          return redirect()->route('admin.dashboard')
             ->with('message', 'Error al cargar la lista de clientes: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -186,7 +185,7 @@ class CustomerController extends Controller
          $company = $this->company;
          return view('admin.customers.create', compact('company'));
       } catch (\Exception $e) {
-         Log::error('Error en CustomerController@create: ' . $e->getMessage());
+
          return redirect()->route('admin.customers.index')
             ->with('message', 'Error al cargar el formulario de creación')
             ->with('icons', 'error');
@@ -259,12 +258,7 @@ class CustomerController extends Controller
          // Crear el cliente
          $customer = Customer::create($customerData);
 
-         // Registrar la acción en el log
-         Log::info('Cliente creado exitosamente', [
-            'user_id' => Auth::id(),
-            'customer_id' => $customer->id,
-            'customer_name' => $customer->name
-         ]);
+
 
          DB::commit();
 
@@ -290,7 +284,7 @@ class CustomerController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error en CustomerController@store: ' . $e->getMessage());
+
 
          return redirect()->back()
             ->withInput()
@@ -358,10 +352,7 @@ class CustomerController extends Controller
                   'customer_status' => $isDefaulter ? 'Moroso' : 'Actual'
                ]);
             } catch (\Exception $e) {
-               Log::error('Error al obtener datos de pago de deuda: ' . $e->getMessage(), [
-                  'user_id' => Auth::id(),
-                  'customer_id' => $customer->id
-               ]);
+
 
                return response()->json([
                   'success' => false,
@@ -437,10 +428,7 @@ class CustomerController extends Controller
                   'sales' => $sales
                ]);
             } catch (\Exception $e) {
-               Log::error('Error al obtener detalles del cliente: ' . $e->getMessage(), [
-                  'customer_id' => $customer->id,
-                  'error' => $e->getMessage()
-               ]);
+
                
                return response()->json([
                   'success' => false,
@@ -481,10 +469,7 @@ class CustomerController extends Controller
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al mostrar cliente: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id
-         ]);
+
 
          return response()->json([
             'success' => false,
@@ -536,10 +521,7 @@ class CustomerController extends Controller
          // Retornar vista con datos del cliente
          return view('admin.customers.edit', compact('customer', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en CustomerController@edit: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id
-         ]);
+
 
          return redirect()->route('admin.customers.index')
             ->with('message', 'No se pudo cargar el formulario de edición')
@@ -616,12 +598,7 @@ class CustomerController extends Controller
          // Actualizar el cliente
          $customer->update($validated);
 
-         // Log de la actualización
-         Log::info('Cliente actualizado exitosamente', [
-            'user_id' => Auth::id(),
-            'customer_id' => $customer->id,
-            'customer_name' => $customer->name
-         ]);
+
 
          // Redireccionar con mensaje de éxito
          return redirect()->route('admin.customers.index')
@@ -634,11 +611,7 @@ class CustomerController extends Controller
             ->with('message', 'Por favor, corrija los errores en el formulario.')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-         Log::error('Error al actualizar cliente: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id,
-            'data' => $request->all()
-         ]);
+
 
          return redirect()->back()
             ->withInput()
@@ -727,10 +700,7 @@ class CustomerController extends Controller
          $customer->delete();
 
          // Log de la eliminación
-         Log::info('Cliente eliminado exitosamente', [
-            'user_id' => Auth::id(),
-            'customer_info' => $customerInfo
-         ]);
+
 
          // Retornar respuesta exitosa
          return response()->json([
@@ -740,11 +710,7 @@ class CustomerController extends Controller
          ]);
       } catch (\Illuminate\Database\QueryException $e) {
          // Capturar errores específicos de base de datos
-         Log::error('Error de base de datos al eliminar cliente: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id,
-            'error_code' => $e->getCode()
-         ]);
+
 
          // Verificar si es un error de restricción de clave foránea
          if ($e->getCode() == 23000) { // Código de error de MySQL para restricción de clave foránea
@@ -766,10 +732,7 @@ class CustomerController extends Controller
             'icons' => 'error'
          ], 500);
       } catch (\Exception $e) {
-         Log::error('Error al eliminar cliente: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id
-         ]);
+
 
          return response()->json([
             'success' => false,
@@ -816,23 +779,14 @@ class CustomerController extends Controller
          $customer->total_debt = $validated['total_debt'];
          $customer->save();
 
-         // Log de la actualización
-         Log::info('Deuda de cliente actualizada', [
-            'user_id' => Auth::id(),
-            'customer_id' => $customer->id,
-            'previous_debt' => $previousDebt,
-            'new_debt' => $customer->total_debt
-         ]);
+
 
          return response()->json([
             'success' => true,
             'message' => 'Deuda actualizada correctamente',
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al actualizar deuda: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'customer_id' => $id
-         ]);
+
 
          return response()->json([
             'success' => false,
@@ -993,13 +947,7 @@ class CustomerController extends Controller
          // Configurar PDF
          $pdf->setPaper('a4', 'portrait');
 
-         // Log de la generación del reporte
-         Log::info('Reporte de deudas generado', [
-            'user_id' => Auth::id(),
-            'total_customers' => $customers->count(),
-            'total_debt' => $totalDebt,
-            'filters' => $request->only(['search', 'debt_range', 'debt_min', 'debt_max', 'order', 'exchange_rate'])
-         ]);
+
 
          // Nombre del archivo con filtros aplicados
          $fileName = 'reporte-deudas-clientes-' . date('Y-m-d');
@@ -1017,7 +965,7 @@ class CustomerController extends Controller
          // Mostrar PDF en el navegador
          return $pdf->stream($fileName);
       } catch (\Exception $e) {
-         Log::error('Error al generar reporte de deudas: ' . $e->getMessage());
+
          return redirect()->route('admin.customers.index')
             ->with('message', 'Error al generar el reporte de deudas: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -1198,7 +1146,7 @@ class CustomerController extends Controller
             ));
          }
       } catch (\Exception $e) {
-         Log::error('Error al generar reporte de deudas modal: ' . $e->getMessage());
+
          return response()->json([
             'success' => false,
             'message' => 'Error al generar el reporte de deudas: ' . $e->getMessage()
@@ -1248,17 +1196,7 @@ class CustomerController extends Controller
       // Verificar que la actualización se haya realizado correctamente
       $customer->refresh();
       
-      // Registrar en el log para depuración
-      Log::info('Pago de deuda registrado', [
-         'customer_id' => $customer->id,
-         'previous_debt' => $previousDebt,
-         'payment_amount' => $paymentAmount,
-         'payment_date' => $paymentDate,
-         'payment_time' => $paymentTime,
-         'payment_datetime' => $paymentDateTime->toDateTimeString(),
-         'remaining_debt' => $remainingDebt,
-         'new_total_debt' => $customer->total_debt
-      ]);
+
 
       return response()->json([
          'success' => true,
@@ -1418,7 +1356,7 @@ class CustomerController extends Controller
          
          return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
       } catch (\Exception $e) {
-         Log::error('Error al exportar historial de pagos: ' . $e->getMessage());
+
          return redirect()->route('admin.customers.payment-history')
             ->with('message', 'Error al exportar el historial de pagos: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -1460,7 +1398,7 @@ class CustomerController extends Controller
 
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al eliminar pago de deuda: ' . $e->getMessage());
+
          
          return response()->json([
             'success' => false,
