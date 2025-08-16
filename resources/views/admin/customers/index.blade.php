@@ -5,6 +5,21 @@
 @section('content')
     <!-- Definir funciones Alpine.js ANTES del HTML -->
     <script>
+        // Inicializar el tipo de cambio inmediatamente al cargar el script
+        (function() {
+            // Cargar el tipo de cambio guardado en localStorage
+            const savedRate = localStorage.getItem('exchangeRate');
+            if (savedRate) {
+                const rate = parseFloat(savedRate);
+                // Actualizar el input si existe
+                const exchangeRateInput = document.getElementById('exchangeRate');
+                if (exchangeRateInput) {
+                    exchangeRateInput.value = rate;
+                }
+                console.log('Tipo de cambio precargado:', rate);
+            }
+        })();
+
         // Definir funciones Alpine.js globalmente ANTES de que se evalúen
         window.heroSection = function() {
             return {
@@ -349,20 +364,38 @@
                 updating: false,
 
                 init() {
-                    // Cargar valor guardado del localStorage o del input existente
-                    const savedRate = localStorage.getItem('exchangeRate');
-                    const exchangeRateInput = document.getElementById('exchangeRate');
+                    // Usar la función centralizada para cargar el tipo de cambio
+                    if (typeof initializeExchangeRate === 'function') {
+                        this.exchangeRate = initializeExchangeRate();
+                    } else {
+                        // Fallback si la función no está disponible
+                        const savedRate = localStorage.getItem('exchangeRate');
+                        const exchangeRateInput = document.getElementById('exchangeRate');
 
-                    if (savedRate) {
-                        this.exchangeRate = parseFloat(savedRate);
-                    } else if (exchangeRateInput && exchangeRateInput.value) {
-                        this.exchangeRate = parseFloat(exchangeRateInput.value);
-                    }
+                        if (savedRate) {
+                            this.exchangeRate = parseFloat(savedRate);
+                        } else if (exchangeRateInput && exchangeRateInput.value) {
+                            this.exchangeRate = parseFloat(exchangeRateInput.value);
+                        } else {
+                            this.exchangeRate = 134.0; // Valor por defecto
+                        }
 
-                    // Sincronizar con el input original
-                    if (exchangeRateInput) {
-                        exchangeRateInput.value = this.exchangeRate;
+                        // Sincronizar con el input original
+                        if (exchangeRateInput) {
+                            exchangeRateInput.value = this.exchangeRate;
+                        }
                     }
+                    
+                    console.log('exchangeRateWidget inicializado con valor:', this.exchangeRate);
+                    
+                    // Sincronizar con el modal si está abierto
+                    setTimeout(() => {
+                        const modalExchangeRateInput = document.getElementById('modalExchangeRate');
+                        if (modalExchangeRateInput) {
+                            modalExchangeRateInput.value = this.exchangeRate;
+                            console.log('Modal sincronizado desde widget al inicializar:', this.exchangeRate);
+                        }
+                    }, 500);
                 },
 
                 updateRate() {
@@ -380,21 +413,85 @@
                     }
 
                     this.updating = true;
+                    console.log('Actualizando tipo de cambio desde widget:', this.exchangeRate);
 
-                    // Actualizar el input original y trigger el evento
-                    const exchangeRateInput = document.getElementById('exchangeRate');
-                    if (exchangeRateInput) {
-                        exchangeRateInput.value = this.exchangeRate;
+                    // Usar la función centralizada para guardar
+                    if (typeof saveExchangeRate === 'function') {
+                        saveExchangeRate(this.exchangeRate);
+                    } else {
+                        // Fallback si la función no está disponible
+                        window.currentExchangeRate = this.exchangeRate;
+                        localStorage.setItem('exchangeRate', this.exchangeRate);
                     }
 
+                    // Sincronizar con el modal si está abierto
+                    const modalExchangeRateInput = document.getElementById('modalExchangeRate');
+                    if (modalExchangeRateInput) {
+                        modalExchangeRateInput.value = this.exchangeRate;
+                        console.log('Sincronizado con modal:', this.exchangeRate);
+                    }
+
+                    // Actualizar valores en Bs en la tabla principal
+                    if (typeof window.updateBsValues === 'function') {
+                        window.updateBsValues(this.exchangeRate);
+                    }
+
+                    // Actualizar valores en Bs en el modal si está abierto
+                    if (typeof window.modalManager !== 'undefined' && window.modalManager().updateModalBsValues) {
+                        window.modalManager().updateModalBsValues(this.exchangeRate);
+                    }
+
+                    // Trigger el evento del botón original si existe
                     const updateBtn = document.querySelector('.update-exchange-rate');
                     if (updateBtn) {
                         updateBtn.click();
                     }
 
+                    // Mostrar mensaje de éxito
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tipo de cambio actualizado',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+
                     setTimeout(() => {
                         this.updating = false;
                     }, 1000);
+                },
+
+                // Método para sincronizar desde el modal
+                syncFromModal(rate) {
+                    if (rate > 0 && rate !== this.exchangeRate) {
+                        this.exchangeRate = rate;
+                        console.log('Widget sincronizado desde modal:', rate);
+                        
+                        // Actualizar valores en Bs en la tabla principal
+                        if (typeof window.updateBsValues === 'function') {
+                            window.updateBsValues(rate);
+                        }
+                    }
+                },
+
+                // Método para sincronizar hacia el modal
+                syncToModal() {
+                    if (this.exchangeRate > 0) {
+                        console.log('Sincronizando hacia modal:', this.exchangeRate);
+                        
+                        // Sincronizar con el modal si está abierto
+                        const modalExchangeRateInput = document.getElementById('modalExchangeRate');
+                        if (modalExchangeRateInput) {
+                            modalExchangeRateInput.value = this.exchangeRate;
+                            
+                            // Trigger el evento input para actualizar los valores
+                            modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            console.log('Modal sincronizado desde widget');
+                        }
+                    }
                 }
             }
         }
@@ -518,6 +615,16 @@
                             
                             // Inicializar event listeners después de cargar el contenido
                             this.initializeDebtReportEvents();
+                            
+                            // Sincronizar con el valor guardado después de un breve delay
+                            setTimeout(() => {
+                                const savedRate = localStorage.getItem('exchangeRate');
+                                if (savedRate) {
+                                    const rate = parseFloat(savedRate);
+                                    console.log('Sincronizando modal con valor guardado:', rate);
+                                    syncAllExchangeRateElements(rate);
+                                }
+                            }, 200);
                         } else {
                             console.error('No se encontró modalContent o contenido de respuesta');
                         }
@@ -544,14 +651,37 @@
                 initializeDebtReportEvents() {
                     console.log('Inicializando event listeners del reporte de deudas...');
                     
-                    // Obtener el tipo de cambio actual
-                    const currentRate = document.getElementById('exchangeRate')?.value || 134;
+                    // Obtener el tipo de cambio actual usando la función centralizada
+                    let currentRate;
+                    if (typeof initializeExchangeRate === 'function') {
+                        currentRate = initializeExchangeRate();
+                    } else {
+                        // Fallback: cargar desde localStorage directamente
+                        const savedRate = localStorage.getItem('exchangeRate');
+                        if (savedRate) {
+                            currentRate = parseFloat(savedRate);
+                            console.log('Tipo de cambio cargado desde localStorage:', currentRate);
+                        } else {
+                            currentRate = document.getElementById('exchangeRate')?.value || 134;
+                            console.log('Tipo de cambio cargado desde input:', currentRate);
+                        }
+                    }
+                    
+                    console.log('Tipo de cambio para modal:', currentRate);
                     
                     // Establecer el valor inicial en el modal
                     const modalExchangeRateInput = document.getElementById('modalExchangeRate');
                     if (modalExchangeRateInput) {
                         modalExchangeRateInput.value = currentRate;
-                        console.log('Valor inicial establecido:', currentRate);
+                        console.log('Valor inicial establecido en modal:', currentRate);
+                        
+                        // Trigger el evento input para actualizar los valores en Bs inmediatamente
+                        setTimeout(() => {
+                            modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            console.log('Evento input disparado para actualizar valores');
+                        }, 100);
+                    } else {
+                        console.error('No se encontró el input modalExchangeRate');
                     }
                     
                     // Event listener para el input del tipo de cambio
@@ -559,11 +689,22 @@
                     if (exchangeRateInput) {
                         exchangeRateInput.addEventListener('input', (e) => {
                             const rate = parseFloat(e.target.value);
-                            console.log('Evento input detectado, valor:', rate);
+                            console.log('Evento input detectado en modal, valor:', rate);
                             
                             if (rate > 0) {
-                                console.log('Valor válido, actualizando...');
+                                console.log('Valor válido, actualizando modal...');
                                 this.updateModalBsValues(rate);
+                                
+                                // Sincronizar con el widget de Alpine.js
+                                const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+                                widgetElements.forEach(element => {
+                                    if (element._x_dataStack && element._x_dataStack[0]) {
+                                        const widget = element._x_dataStack[0];
+                                        if (widget.syncFromModal) {
+                                            widget.syncFromModal(rate);
+                                        }
+                                    }
+                                });
                             } else {
                                 console.log('Valor inválido o 0, no se actualiza');
                             }
@@ -577,17 +718,27 @@
                         updateBtn.addEventListener('click', () => {
                             const rate = parseFloat(document.getElementById('modalExchangeRate').value);
                             if (rate > 0) {
-                                // Actualizar la variable global
-                                window.currentExchangeRate = rate;
+                                console.log('Actualizando desde modal:', rate);
                                 
-                                // Actualizar el input en la tabla principal
-                                const mainExchangeRateInput = document.getElementById('exchangeRate');
-                                if (mainExchangeRateInput) {
-                                    mainExchangeRateInput.value = rate;
+                                // Usar la función centralizada para guardar
+                                if (typeof saveExchangeRate === 'function') {
+                                    saveExchangeRate(rate);
+                                } else {
+                                    // Fallback si la función no está disponible
+                                    window.currentExchangeRate = rate;
+                                    localStorage.setItem('exchangeRate', rate);
                                 }
                                 
-                                // Guardar en localStorage
-                                localStorage.setItem('exchangeRate', rate);
+                                // Sincronizar con el widget de Alpine.js
+                                const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+                                widgetElements.forEach(element => {
+                                    if (element._x_dataStack && element._x_dataStack[0]) {
+                                        const widget = element._x_dataStack[0];
+                                        if (widget.syncFromModal) {
+                                            widget.syncFromModal(rate);
+                                        }
+                                    }
+                                });
                                 
                                 // Actualizar valores en Bs en el modal
                                 this.updateModalBsValues(rate);
@@ -1019,7 +1170,7 @@
                                 <div class="flex items-center space-x-2">
                                     <span class="text-sm font-medium text-gray-600">1 USD =</span>
                                     <input type="number" x-model="exchangeRate" step="0.01" min="0"
-                                        @cannot('customers.edit') readonly @endcannot @keyup.enter="updateRate()"
+                                        @cannot('customers.edit') readonly @endcannot @keyup.enter="updateRate()" @input="syncToModal()"
                                         class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-semibold text-gray-900 text-sm"
                                         placeholder="0.00">
                                     <span class="text-sm font-medium text-gray-600">VES</span>
@@ -4886,7 +5037,99 @@
 
 
         // Variable global para almacenar el tipo de cambio actual
-        let currentExchangeRate = 1.0;
+        let currentExchangeRate = 134.0; // Valor por defecto
+
+        // Función centralizada para manejar la persistencia del tipo de cambio
+        function initializeExchangeRate() {
+            console.log('Inicializando tipo de cambio...');
+            
+            // Cargar el tipo de cambio guardado en localStorage
+            const savedRate = localStorage.getItem('exchangeRate');
+            if (savedRate) {
+                currentExchangeRate = parseFloat(savedRate);
+                console.log('Tipo de cambio cargado desde localStorage:', currentExchangeRate);
+            } else {
+                // Si no hay valor guardado, usar el valor por defecto del input
+                const exchangeRateInput = document.getElementById('exchangeRate');
+                if (exchangeRateInput && exchangeRateInput.value) {
+                    currentExchangeRate = parseFloat(exchangeRateInput.value);
+                    console.log('Tipo de cambio cargado desde input:', currentExchangeRate);
+                } else {
+                    currentExchangeRate = 134.0; // Valor por defecto
+                    console.log('Usando tipo de cambio por defecto:', currentExchangeRate);
+                }
+                
+                // Guardar el valor por defecto en localStorage
+                localStorage.setItem('exchangeRate', currentExchangeRate.toString());
+            }
+            
+            // Actualizar el input principal
+            const exchangeRateInput = document.getElementById('exchangeRate');
+            if (exchangeRateInput) {
+                exchangeRateInput.value = currentExchangeRate;
+            }
+            
+            // Sincronizar todos los elementos
+            if (typeof syncAllExchangeRateElements === 'function') {
+                syncAllExchangeRateElements(currentExchangeRate);
+            } else {
+                // Fallback: solo actualizar valores en Bs
+                if (typeof updateBsValues === 'function') {
+                    updateBsValues(currentExchangeRate);
+                }
+            }
+            
+            console.log('Tipo de cambio inicializado:', currentExchangeRate);
+            return currentExchangeRate;
+        }
+
+        // Función para guardar el tipo de cambio
+        function saveExchangeRate(rate) {
+            if (rate > 0) {
+                currentExchangeRate = rate;
+                localStorage.setItem('exchangeRate', rate.toString());
+                console.log('Tipo de cambio guardado:', rate);
+                return true;
+            }
+            return false;
+        }
+
+        // Función para sincronizar todos los elementos con el tipo de cambio
+        function syncAllExchangeRateElements(rate) {
+            console.log('Sincronizando todos los elementos con tasa:', rate);
+            
+            // Sincronizar input principal
+            const exchangeRateInput = document.getElementById('exchangeRate');
+            if (exchangeRateInput) {
+                exchangeRateInput.value = rate;
+            }
+            
+            // Sincronizar modal si está abierto
+            const modalExchangeRateInput = document.getElementById('modalExchangeRate');
+            if (modalExchangeRateInput) {
+                modalExchangeRateInput.value = rate;
+                // Trigger evento para actualizar valores en Bs
+                modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            // Sincronizar widget de Alpine.js
+            const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+            widgetElements.forEach(element => {
+                if (element._x_dataStack && element._x_dataStack[0]) {
+                    const widget = element._x_dataStack[0];
+                    if (widget.syncFromModal) {
+                        widget.syncFromModal(rate);
+                    }
+                }
+            });
+            
+            // Actualizar valores en Bs
+            if (typeof updateBsValues === 'function') {
+                updateBsValues(rate);
+            }
+            
+            console.log('Sincronización completada');
+        }
 
         $(document).ready(function() {
             // Cargar DataTables dinámicamente
@@ -4939,25 +5182,21 @@
                 $('#clearSearch').toggle(hasValue);
             });
 
-            // Cargar el tipo de cambio guardado en localStorage (si existe)
-            const savedRate = localStorage.getItem('exchangeRate');
-            if (savedRate) {
-                currentExchangeRate = parseFloat(savedRate);
-                $('#exchangeRate').val(currentExchangeRate);
-                updateBsValues(currentExchangeRate);
-            } else {
-                // Si no hay valor guardado, usar el valor por defecto del input
-                currentExchangeRate = parseFloat($('#exchangeRate').val());
-                updateBsValues(currentExchangeRate);
-            }
+            // Inicializar el tipo de cambio usando la función centralizada
+            initializeExchangeRate();
             
             // Actualizar valores en Bs cuando se cambia el tipo de cambio - Usar delegación de eventos
             $(document).on('click', '.update-exchange-rate', function() {
                 const rate = parseFloat($('#exchangeRate').val());
                 if (rate > 0) {
-                    currentExchangeRate = rate;
-                    // Guardar en localStorage para futuras visitas
-                    localStorage.setItem('exchangeRate', rate);
+                    // Usar la función centralizada para guardar
+                    if (typeof saveExchangeRate === 'function') {
+                        saveExchangeRate(rate);
+                    } else {
+                        currentExchangeRate = rate;
+                        localStorage.setItem('exchangeRate', rate);
+                    }
+                    
                     updateBsValues(rate);
                     
                     // Mostrar mensaje de éxito
@@ -4969,6 +5208,21 @@
                         showConfirmButton: false,
                         timer: 3000
                     });
+                }
+            });
+
+            // Guardar automáticamente cuando se cambie el valor en el input principal
+            $(document).on('input', '#exchangeRate', function() {
+                const rate = parseFloat($(this).val());
+                if (rate > 0) {
+                    // Guardar automáticamente en localStorage
+                    if (typeof saveExchangeRate === 'function') {
+                        saveExchangeRate(rate);
+                    } else {
+                        currentExchangeRate = rate;
+                        localStorage.setItem('exchangeRate', rate);
+                    }
+                    console.log('Tipo de cambio guardado automáticamente:', rate);
                 }
             });
             
