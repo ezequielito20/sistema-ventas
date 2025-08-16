@@ -5,6 +5,41 @@
 @section('content')
     <!-- Definir funciones Alpine.js ANTES del HTML -->
     <script>
+        // Función global para actualizar valores en Bs
+        window.updateBsValues = function(rate) {
+            console.log('Actualizando valores en Bs con tasa:', rate);
+            
+            // Actualizar elementos con clase bs-debt
+            const bsDebtElements = document.querySelectorAll('.bs-debt');
+            bsDebtElements.forEach(function(element) {
+                const debtUsd = parseFloat(element.dataset.debt);
+                if (!isNaN(debtUsd)) {
+                    const debtBs = debtUsd * rate;
+                    element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    console.log('Actualizado bs-debt:', debtUsd, '->', debtBs);
+                }
+            });
+            
+            // Actualizar elementos con clase debt-bs-info (para la tabla)
+            const debtBsInfoElements = document.querySelectorAll('.debt-bs-info .bs-debt');
+            debtBsInfoElements.forEach(function(element) {
+                const debtUsd = parseFloat(element.dataset.debt);
+                if (!isNaN(debtUsd)) {
+                    const debtBs = debtUsd * rate;
+                    element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    console.log('Actualizado debt-bs-info:', debtUsd, '->', debtBs);
+                }
+            });
+            
+            console.log('Actualización de valores en Bs completada');
+        };
+
         // Inicializar el tipo de cambio inmediatamente al cargar el script
         (function() {
             // Cargar el tipo de cambio guardado en localStorage
@@ -360,31 +395,29 @@
 
         window.exchangeRateWidget = function() {
             return {
-                exchangeRate: 120.00,
+                exchangeRate: 134.0, // Valor por defecto
                 updating: false,
 
                 init() {
-                    // Usar la función centralizada para cargar el tipo de cambio
-                    if (typeof initializeExchangeRate === 'function') {
-                        this.exchangeRate = initializeExchangeRate();
+                    console.log('Inicializando exchangeRateWidget...');
+                    
+                    // Cargar el tipo de cambio guardado en localStorage
+                    const savedRate = localStorage.getItem('exchangeRate');
+                    if (savedRate) {
+                        this.exchangeRate = parseFloat(savedRate);
+                        console.log('Tipo de cambio cargado desde localStorage:', this.exchangeRate);
                     } else {
-                        // Fallback si la función no está disponible
-                        const savedRate = localStorage.getItem('exchangeRate');
-                        const exchangeRateInput = document.getElementById('exchangeRate');
-
-                        if (savedRate) {
-                            this.exchangeRate = parseFloat(savedRate);
-                        } else if (exchangeRateInput && exchangeRateInput.value) {
-                            this.exchangeRate = parseFloat(exchangeRateInput.value);
-                        } else {
-                            this.exchangeRate = 134.0; // Valor por defecto
-                        }
-
-                        // Sincronizar con el input original
-                        if (exchangeRateInput) {
-                            exchangeRateInput.value = this.exchangeRate;
-                        }
+                        // Si no hay valor guardado, usar el valor por defecto
+                        this.exchangeRate = 134.0;
+                        localStorage.setItem('exchangeRate', this.exchangeRate.toString());
+                        console.log('Usando tipo de cambio por defecto:', this.exchangeRate);
                     }
+                    
+                    // Actualizar valores en Bs inmediatamente después de inicializar
+                    setTimeout(() => {
+                        window.updateBsValues(this.exchangeRate);
+                        console.log('Valores en Bs actualizados al inicializar:', this.exchangeRate);
+                    }, 100);
                     
                     console.log('exchangeRateWidget inicializado con valor:', this.exchangeRate);
                     
@@ -432,9 +465,7 @@
                     }
 
                     // Actualizar valores en Bs en la tabla principal
-                    if (typeof window.updateBsValues === 'function') {
-                        window.updateBsValues(this.exchangeRate);
-                    }
+                    window.updateBsValues(this.exchangeRate);
 
                     // Actualizar valores en Bs en el modal si está abierto
                     if (typeof window.modalManager !== 'undefined' && window.modalManager().updateModalBsValues) {
@@ -471,9 +502,7 @@
                         console.log('Widget sincronizado desde modal:', rate);
                         
                         // Actualizar valores en Bs en la tabla principal
-                        if (typeof window.updateBsValues === 'function') {
-                            window.updateBsValues(rate);
-                        }
+                        window.updateBsValues(rate);
                     }
                 },
 
@@ -481,6 +510,12 @@
                 syncToModal() {
                     if (this.exchangeRate > 0) {
                         console.log('Sincronizando hacia modal:', this.exchangeRate);
+                        
+                        // Guardar el valor en localStorage
+                        localStorage.setItem('exchangeRate', this.exchangeRate.toString());
+                        
+                        // Actualizar valores en Bs en tiempo real
+                        window.updateBsValues(this.exchangeRate);
                         
                         // Sincronizar con el modal si está abierto
                         const modalExchangeRateInput = document.getElementById('modalExchangeRate');
@@ -5074,9 +5109,7 @@
                 syncAllExchangeRateElements(currentExchangeRate);
             } else {
                 // Fallback: solo actualizar valores en Bs
-                if (typeof updateBsValues === 'function') {
-                    updateBsValues(currentExchangeRate);
-                }
+                window.updateBsValues(currentExchangeRate);
             }
             
             console.log('Tipo de cambio inicializado:', currentExchangeRate);
@@ -5124,9 +5157,7 @@
             });
             
             // Actualizar valores en Bs
-            if (typeof updateBsValues === 'function') {
-                updateBsValues(rate);
-            }
+            window.updateBsValues(rate);
             
             console.log('Sincronización completada');
         }
@@ -5197,7 +5228,7 @@
                         localStorage.setItem('exchangeRate', rate);
                     }
                     
-                    updateBsValues(rate);
+                    window.updateBsValues(rate);
                     
                     // Mostrar mensaje de éxito
                     Swal.fire({
@@ -5224,44 +5255,13 @@
                     }
                     
                     // Actualizar valores en Bs en tiempo real
-                    updateBsValues(rate);
+                    window.updateBsValues(rate);
                     
                     console.log('Tipo de cambio guardado automáticamente:', rate);
                 }
             });
             
-            // Función para actualizar todos los valores en Bs
-            function updateBsValues(rate) {
-                console.log('Actualizando valores en Bs con tasa:', rate);
-                
-                // Actualizar elementos con clase bs-debt
-                $('.bs-debt').each(function() {
-                    const debtUsd = parseFloat($(this).data('debt'));
-                    if (!isNaN(debtUsd)) {
-                        const debtBs = debtUsd * rate;
-                        $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }));
-                        console.log('Actualizado bs-debt:', debtUsd, '->', debtBs);
-                    }
-                });
-                
-                // Actualizar elementos con clase debt-bs-info (para la tabla)
-                $('.debt-bs-info .bs-debt').each(function() {
-                    const debtUsd = parseFloat($(this).data('debt'));
-                    if (!isNaN(debtUsd)) {
-                        const debtBs = debtUsd * rate;
-                        $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }));
-                        console.log('Actualizado debt-bs-info:', debtUsd, '->', debtBs);
-                    }
-                });
-                
-                console.log('Actualización de valores en Bs completada');
-            }
+            // La función updateBsValues ya está definida globalmente arriba
             
             // Botón de reporte de deudas
             $('#debtReportBtn').click(function() {
