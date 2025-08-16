@@ -801,6 +801,10 @@
                     
                     // Actualizar valores iniciales
                     this.updateModalBsValues(currentRate);
+                    
+                    // Inicializar filtros del modal
+                    this.initializeModalFilters();
+                    
                     console.log('Event listeners inicializados correctamente');
                 },
                 
@@ -858,6 +862,237 @@
                     }
                     
                     console.log('Actualización completada');
+                },
+
+                // ===== FUNCIONALIDAD DE FILTROS DEL MODAL =====
+                initializeModalFilters() {
+                    console.log('Inicializando filtros del modal...');
+                    
+                    // Cargar filtros guardados desde localStorage
+                    this.loadSavedFilters();
+                    
+                    // Event listeners para filtros en tiempo real
+                    const searchFilter = document.getElementById('searchFilter');
+                    const orderFilter = document.getElementById('orderFilter');
+                    const debtTypeFilter = document.getElementById('debtTypeFilter');
+                    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+                    
+                    if (searchFilter) {
+                        let searchTimeout;
+                        searchFilter.addEventListener('input', (e) => {
+                            this.saveFilter('search', e.target.value);
+                            
+                            // Debounce para evitar demasiadas peticiones
+                            clearTimeout(searchTimeout);
+                            searchTimeout = setTimeout(() => {
+                                this.applyFilters();
+                            }, 500); // Esperar 500ms después de que el usuario deje de escribir
+                        });
+                    }
+                    
+                    if (orderFilter) {
+                        orderFilter.addEventListener('change', (e) => {
+                            this.saveFilter('order', e.target.value);
+                            this.applyFilters();
+                        });
+                    }
+                    
+                    if (debtTypeFilter) {
+                        debtTypeFilter.addEventListener('change', (e) => {
+                            this.saveFilter('debtType', e.target.value);
+                            this.applyFilters();
+                        });
+                    }
+                    
+                    if (clearFiltersBtn) {
+                        clearFiltersBtn.addEventListener('click', () => {
+                            this.clearAllFilters();
+                        });
+                    }
+                    
+                    // Event listener para el botón de descarga PDF
+                    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+                    if (downloadPdfBtn) {
+                        downloadPdfBtn.addEventListener('click', () => {
+                            this.downloadPdfWithFilters();
+                        });
+                    }
+                    
+                    console.log('Filtros del modal inicializados');
+                },
+
+                saveFilter(key, value) {
+                    const filters = JSON.parse(localStorage.getItem('debtReportFilters') || '{}');
+                    filters[key] = value;
+                    localStorage.setItem('debtReportFilters', JSON.stringify(filters));
+                    console.log('Filtro guardado:', key, value);
+                },
+
+                loadSavedFilters() {
+                    const filters = JSON.parse(localStorage.getItem('debtReportFilters') || '{}');
+                    
+                    const searchFilter = document.getElementById('searchFilter');
+                    const orderFilter = document.getElementById('orderFilter');
+                    const debtTypeFilter = document.getElementById('debtTypeFilter');
+                    
+                    if (searchFilter && filters.search) {
+                        searchFilter.value = filters.search;
+                    }
+                    
+                    if (orderFilter && filters.order) {
+                        orderFilter.value = filters.order;
+                    }
+                    
+                    if (debtTypeFilter && filters.debtType) {
+                        debtTypeFilter.value = filters.debtType;
+                    }
+                    
+                    console.log('Filtros cargados desde localStorage:', filters);
+                },
+
+                clearAllFilters() {
+                    // Limpiar localStorage
+                    localStorage.removeItem('debtReportFilters');
+                    
+                    // Limpiar inputs
+                    const searchFilter = document.getElementById('searchFilter');
+                    const orderFilter = document.getElementById('orderFilter');
+                    const debtTypeFilter = document.getElementById('debtTypeFilter');
+                    
+                    if (searchFilter) searchFilter.value = '';
+                    if (orderFilter) orderFilter.value = 'debt_desc';
+                    if (debtTypeFilter) debtTypeFilter.value = '';
+                    
+                    // Recargar datos sin filtros
+                    this.applyFilters();
+                    
+                    console.log('Todos los filtros limpiados');
+                },
+
+                applyFilters() {
+                    console.log('Aplicando filtros...');
+                    
+                    // Obtener valores de filtros
+                    const searchTerm = document.getElementById('searchFilter')?.value || '';
+                    const orderBy = document.getElementById('orderFilter')?.value || 'debt_desc';
+                    const debtType = document.getElementById('debtTypeFilter')?.value || '';
+                    const exchangeRate = document.getElementById('modalExchangeRate')?.value || 134;
+                    
+                    // Mostrar loading
+                    this.showFilterLoading();
+                    
+                    // Construir URL con filtros
+                    const url = new URL('{{ route('admin.customers.debt-report') }}', window.location.origin);
+                    url.searchParams.set('ajax', '1');
+                    url.searchParams.set('exchange_rate', exchangeRate);
+                    
+                    if (searchTerm) url.searchParams.set('search', searchTerm);
+                    if (orderBy) url.searchParams.set('order', orderBy);
+                    if (debtType) url.searchParams.set('debt_type', debtType);
+                    
+                    console.log('Fetching URL:', url.toString());
+                    
+                    // Hacer petición AJAX
+                    fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // Actualizar contenido del modal
+                        const modalContent = document.querySelector('#debtReportModal .modal-content');
+                        if (modalContent) {
+                            modalContent.innerHTML = html;
+                            
+                            // Reinicializar eventos después de actualizar contenido
+                            this.initializeDebtReportEvents();
+                            this.initializeModalFilters();
+                            
+                            console.log('Modal actualizado con filtros aplicados');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al aplicar filtros:', error);
+                        this.hideFilterLoading();
+                        
+                        // Mostrar mensaje de error
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error al aplicar filtros',
+                                text: 'No se pudieron aplicar los filtros. Inténtalo de nuevo.',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        }
+                    });
+                },
+
+                showFilterLoading() {
+                    const tableBody = document.querySelector('#debtReportModal tbody');
+                    if (tableBody) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="w-8 h-8 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-2"></div>
+                                        <span class="text-sm text-gray-600">Aplicando filtros...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                },
+
+                hideFilterLoading() {
+                    // El loading se oculta automáticamente cuando se actualiza el contenido
+                },
+
+                // Función para obtener filtros actuales (usada para PDF)
+                getCurrentFilters() {
+                    const searchTerm = document.getElementById('searchFilter')?.value || '';
+                    const orderBy = document.getElementById('orderFilter')?.value || 'debt_desc';
+                    const debtType = document.getElementById('debtTypeFilter')?.value || '';
+                    const exchangeRate = document.getElementById('modalExchangeRate')?.value || 134;
+                    
+                    return {
+                        search: searchTerm,
+                        order: orderBy,
+                        debt_type: debtType,
+                        exchange_rate: exchangeRate
+                    };
+                },
+
+                downloadPdfWithFilters() {
+                    console.log('Descargando PDF con filtros...');
+                    
+                    // Obtener filtros actuales
+                    const filters = this.getCurrentFilters();
+                    
+                    // Construir URL con filtros
+                    const url = new URL('{{ route('admin.customers.debt-report') }}', window.location.origin);
+                    
+                    // Agregar parámetros de filtros
+                    Object.keys(filters).forEach(key => {
+                        if (filters[key]) {
+                            url.searchParams.set(key, filters[key]);
+                        }
+                    });
+                    
+                    console.log('URL del PDF:', url.toString());
+                    
+                    // Abrir PDF en nueva pestaña
+                    window.open(url.toString(), '_blank');
                 }
             }
         }

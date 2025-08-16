@@ -46,10 +46,10 @@
                         <i class="fas fa-sync-alt mr-1"></i>
                         <span class="hidden md:inline">Actualizar</span>
                     </button>
-                    <a href="{{ route('admin.customers.debt-report.download') }}" target="_blank" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors duration-200" title="Ver PDF de deudores">
+                    <button type="button" id="downloadPdfBtn" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors duration-200" title="Ver PDF de deudores">
                         <i class="fas fa-file-pdf mr-1"></i>
                         <span class="hidden md:inline">PDF</span>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>

@@ -887,7 +887,7 @@ class CustomerController extends Controller
    /**
     * Muestra un modal con el reporte de deudas de clientes
     */
-   public function debtReportModal()
+   public function debtReportModal(Request $request)
    {
       try {
          // Obtener el arqueo de caja actual una sola vez
@@ -898,17 +898,40 @@ class CustomerController extends Controller
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
          // Obtener clientes con deudas pendientes en una sola consulta optimizada
-         $customers = Customer::where('company_id', $this->company->id)
+         $query = Customer::where('company_id', $this->company->id)
             ->where('total_debt', '>', 0)
-            ->select('id', 'name', 'phone', 'email', 'nit_number', 'total_debt', 'created_at', 'updated_at')
-            ->orderBy('total_debt', 'desc')
-            ->get();
+            ->select('id', 'name', 'phone', 'email', 'nit_number', 'total_debt', 'created_at', 'updated_at');
 
-         // Calcular estadísticas de manera más eficiente
-         $defaultersCount = 0;
-         $currentDebtorsCount = 0;
-         $defaultersDebt = 0;
-         $currentDebt = 0;
+         // Aplicar filtros si existen
+         if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+               $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+            });
+         }
+
+         // Aplicar ordenamiento según el parámetro order
+         $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
+         switch($order) {
+            case 'name_asc':
+               $query->orderBy('name', 'asc');
+               break;
+            case 'name_desc':
+               $query->orderBy('name', 'desc');
+               break;
+            case 'debt_asc':
+               $query->orderBy('total_debt', 'asc');
+               break;
+            case 'debt_desc':
+            default:
+               $query->orderBy('total_debt', 'desc');
+               break;
+         }
+
+         $customers = $query->get();
 
          // Obtener información de ventas y pagos en consultas consolidadas
          $customerIds = $customers->pluck('id')->toArray();
@@ -930,8 +953,9 @@ class CustomerController extends Controller
 
          // Crear un array para almacenar los datos calculados de cada cliente
          $customersData = [];
+         $filteredCustomers = collect();
          
-         // Procesar estadísticas optimizadas
+         // Procesar estadísticas optimizadas y aplicar filtro de tipo de deuda
          foreach ($customers as $customer) {
             $customerSales = $salesInfo->get($customer->id, collect());
             $customerPayments = $paymentsInfo->get($customer->id, collect());
@@ -961,7 +985,35 @@ class CustomerController extends Controller
                'hasOldSales' => $hasOldSales
             ];
             
-            if ($isDefaulter) {
+            // Aplicar filtro por tipo de deuda
+            $debtType = $request->get('debt_type', '');
+            $shouldInclude = true;
+            
+            if ($debtType === 'defaulters' && !$isDefaulter) {
+               $shouldInclude = false;
+            } elseif ($debtType === 'current' && $isDefaulter) {
+               $shouldInclude = false;
+            }
+            
+            if ($shouldInclude) {
+               $filteredCustomers->push($customer);
+            }
+         }
+
+         // Usar los clientes filtrados para las estadísticas
+         $customers = $filteredCustomers;
+         
+         // Inicializar variables de estadísticas
+         $defaultersCount = 0;
+         $currentDebtorsCount = 0;
+         $defaultersDebt = 0;
+         $currentDebt = 0;
+         
+         // Calcular estadísticas finales con los clientes filtrados
+         foreach ($customers as $customer) {
+            $customerData = $customersData[$customer->id];
+            
+            if ($customerData['isDefaulter']) {
                $defaultersCount++;
                $defaultersDebt += $customer->total_debt;
             } else {
