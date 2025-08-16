@@ -570,19 +570,254 @@
                 },
                 
                 loadDebtPaymentData(customerId) {
+                    // Verificar que el modal esté abierto
+                    if (!this.debtPaymentModal) {
+                        this.debtPaymentModal = true;
+                    }
+                    
                     // Cargar datos para el modal de pago de deuda
-                    fetch(`/admin/customers/${customerId}/debt-payment-data`)
+                    fetch(`/customers/${customerId}?debt_payment_data=1`)
                         .then(response => response.json())
                         .then(data => {
-                            // Llenar los campos del modal
-                            document.getElementById('payment_customer_id').value = data.customer_id;
-                            document.getElementById('customer_name').value = data.customer_name;
-                            document.getElementById('current_debt').value = data.current_debt;
-                            document.getElementById('remaining_debt').value = data.remaining_debt;
+                            if (data.success) {
+                                                                // Esperar un momento para que el modal esté completamente cargado
+                                setTimeout(() => {
+                                    // Llenar los campos del modal
+                                    const customerIdField = document.getElementById('payment_customer_id');
+                                    const customerNameField = document.getElementById('customer_name');
+                                    const customerPhoneField = document.getElementById('customer_phone');
+                                    
+                                    if (customerIdField) customerIdField.value = data.customer_id;
+                                    if (customerNameField) customerNameField.value = data.customer_name;
+                                    if (customerPhoneField) customerPhoneField.value = data.customer_phone || 'No disponible';
+                                    
+                                    // Actualizar estado del cliente
+                                    const statusElement = document.getElementById('customer_status');
+                                    if (statusElement) {
+                                        if (data.is_defaulter) {
+                                            statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                                            statusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
+                                        } else {
+                                            statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                                            statusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
+                                        }
+                                    }
+                                    
+                                    // Guardar la deuda actual para cálculos
+                                    window.currentCustomerDebt = parseFloat(data.current_debt.replace(/,/g, ''));
+                                    
+                                    const currentDebtField = document.getElementById('current_debt');
+                                    const remainingDebtField = document.getElementById('remaining_debt');
+                                    
+                                    if (currentDebtField) currentDebtField.value = data.current_debt;
+                                    if (remainingDebtField) remainingDebtField.value = data.current_debt;
+                                    
+                                    // Establecer fecha y hora actual
+                                    const today = new Date().toISOString().split('T')[0];
+                                    const now = new Date().toTimeString().slice(0, 5);
+                                    
+                                    const paymentDateField = document.getElementById('payment_date');
+                                    const paymentTimeField = document.getElementById('payment_time');
+                                    const paymentAmountField = document.getElementById('payment_amount');
+                                    
+                                    if (paymentDateField) paymentDateField.value = today;
+                                    if (paymentTimeField) paymentTimeField.value = now;
+                                    if (paymentAmountField) paymentAmountField.value = '';
+                                    
+                                    // Inicializar eventos del modal de pago
+                                    this.initializeDebtPaymentEvents();
+                                }, 100); // Pequeño delay para asegurar que el modal esté cargado
+                            } else {
+                                console.error('Error en la respuesta:', data.message);
+                            }
                         })
                         .catch(error => {
                             console.error('Error cargando datos de pago de deuda:', error);
                         });
+                },
+
+                initializeDebtPaymentEvents() {
+                    // Botón para pagar deuda completa
+                    const maxPaymentBtn = document.getElementById('max_payment_btn');
+                    if (maxPaymentBtn) {
+                        maxPaymentBtn.addEventListener('click', () => {
+                            if (window.currentCustomerDebt) {
+                                document.getElementById('payment_amount').value = window.currentCustomerDebt.toFixed(2);
+                                this.calculateRemainingDebt();
+                            }
+                        });
+                    }
+
+                    // Event listener para calcular deuda restante en tiempo real
+                    const paymentAmountInput = document.getElementById('payment_amount');
+                    if (paymentAmountInput) {
+                        paymentAmountInput.addEventListener('input', () => {
+                            this.calculateRemainingDebt();
+                        });
+                    }
+
+                    // Event listener para validar fecha
+                    const paymentDateInput = document.getElementById('payment_date');
+                    if (paymentDateInput) {
+                        paymentDateInput.addEventListener('change', () => {
+                            this.validatePaymentDate();
+                        });
+                    }
+
+                    // Event listener para el formulario
+                    const debtPaymentForm = document.getElementById('debtPaymentForm');
+                    if (debtPaymentForm) {
+                        debtPaymentForm.addEventListener('submit', (e) => {
+                            e.preventDefault();
+                            this.submitDebtPayment();
+                        });
+                    }
+                },
+
+                calculateRemainingDebt() {
+                    const paymentAmount = parseFloat(document.getElementById('payment_amount').value) || 0;
+                    const currentDebt = window.currentCustomerDebt || 0;
+                    
+                    if (paymentAmount > currentDebt) {
+                        // Mostrar error y ajustar el valor
+                        document.getElementById('payment_amount').value = currentDebt.toFixed(2);
+                        this.showPaymentError('El monto no puede ser mayor a la deuda actual');
+                        return;
+                    }
+                    
+                    const remainingDebt = currentDebt - paymentAmount;
+                    document.getElementById('remaining_debt').value = remainingDebt.toFixed(2);
+                },
+
+                validatePaymentDate() {
+                    const paymentDate = new Date(document.getElementById('payment_date').value);
+                    const today = new Date();
+                    today.setHours(23, 59, 59, 999); // Fin del día actual
+                    
+                    if (paymentDate > today) {
+                        this.showPaymentError('La fecha del pago no puede ser mayor a hoy');
+                        document.getElementById('payment_date').value = today.toISOString().split('T')[0];
+                    }
+                },
+
+                showPaymentError(message) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Validación',
+                            text: message,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                },
+
+                submitDebtPayment() {
+                    const customerId = document.getElementById('payment_customer_id').value;
+                    const paymentAmount = parseFloat(document.getElementById('payment_amount').value);
+                    const paymentDate = document.getElementById('payment_date').value;
+                    const paymentTime = document.getElementById('payment_time').value;
+                    const notes = document.getElementById('payment_notes').value;
+
+                    // Validaciones
+                    if (!paymentAmount || paymentAmount <= 0) {
+                        this.showPaymentError('El monto del pago es obligatorio y debe ser mayor a 0');
+                        return;
+                    }
+
+                    if (paymentAmount > window.currentCustomerDebt) {
+                        this.showPaymentError('El monto no puede ser mayor a la deuda actual');
+                        return;
+                    }
+
+                    // Confirmar antes de enviar
+                    Swal.fire({
+                        title: '¿Confirmar pago?',
+                        text: `¿Estás seguro de que deseas registrar un pago de $${paymentAmount.toFixed(2)}?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Sí, registrar pago',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.processDebtPayment(customerId, paymentAmount, paymentDate, paymentTime, notes);
+                        }
+                    });
+                },
+
+                processDebtPayment(customerId, paymentAmount, paymentDate, paymentTime, notes) {
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Procesando pago...',
+                        html: '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div>',
+                        showConfirmButton: false,
+                        allowOutsideClick: false
+                    });
+
+                    $.ajax({
+                        url: `/admin/customers/${customerId}/register-payment`,
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            payment_amount: paymentAmount,
+                            payment_date: paymentDate,
+                            payment_time: paymentTime,
+                            notes: notes
+                        },
+                        success: (response) => {
+                            if (response.success) {
+                                // Cerrar modal
+                                this.closeModal('debtPaymentModal');
+                                
+                                // Mostrar mensaje de éxito
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Pago registrado!',
+                                    text: response.message,
+                                    timer: 3000,
+                                    showConfirmButton: false
+                                });
+
+                                // Actualizar la deuda en todas las vistas
+                                this.updateDebtInViews(customerId, response.new_debt, response.formatted_new_debt);
+                                
+                                // Recargar la página para actualizar estadísticas
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 2000);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message || 'Error al registrar el pago'
+                                });
+                            }
+                        },
+                        error: (xhr) => {
+                            let errorMessage = 'Error al registrar el pago';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage
+                            });
+                        }
+                    });
+                },
+
+                updateDebtInViews(customerId, newDebt, formattedNewDebt) {
+                    // Actualizar en tabla y tarjetas
+                    const debtElements = document.querySelectorAll(`[data-customer-id="${customerId}"] .debt-value`);
+                    debtElements.forEach(element => {
+                        element.textContent = formattedNewDebt;
+                    });
                 },
                 
                 loadDebtReport() {
@@ -2285,6 +2520,7 @@
                                                 <button class="edit-debt-btn-small" @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})">
                                                     <i class="fas fa-dollar-sign"></i>
                                                 </button>
+
                                             @else
                                                 @can('customers.edit')
                                                     <button class="edit-debt-btn-small">
@@ -2294,13 +2530,8 @@
                                             @endif
                                         </div>
                                     @else
-                                                <div class="debt-amount flex items-center gap-2">
+                                        <div class="debt-amount flex items-center gap-2">
                                             <span class="no-debt-badge">Sin deuda</span>
-                                            @can('customers.edit')
-                                                        <button class="edit-debt-btn-small">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            @endcan
                                         </div>
                                     @endif
                                         </div>
@@ -2940,14 +3171,32 @@
                                     </div>
                                     <h6 class="text-lg font-semibold text-gray-900">Información del Cliente</h6>
                                 </div>
-                                <div class="space-y-3">
-                                    <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="fas fa-user text-gray-400"></i>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-user text-gray-400"></i>
+                                            </div>
+                                            <input type="text" id="customer_name" readonly
+                                                class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
                                         </div>
-                                        <input type="text" id="customer_name" readonly
-                                            class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="customer_phone" class="text-sm font-semibold text-gray-700">Teléfono</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-phone text-gray-400"></i>
+                                            </div>
+                                            <input type="text" id="customer_phone" readonly
+                                                class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-semibold text-gray-700">Estado:</span>
+                                        <span id="customer_status" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"></span>
                                     </div>
                                 </div>
                             </div>
@@ -3000,7 +3249,10 @@
                                                 <i class="fas fa-dollar-sign text-gray-400"></i>
                                             </div>
                                             <input type="number" id="payment_amount" name="payment_amount" step="0.01" min="0.01" required
-                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                                class="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                            <button type="button" id="max_payment_btn" class="absolute inset-y-0 right-0 px-3 bg-green-500 hover:bg-green-600 text-white rounded-r-lg transition-colors duration-200" title="Pagar deuda completa">
+                                                <i class="fas fa-plus text-sm"></i>
+                                            </button>
                                         </div>
                                         <small class="text-xs text-gray-500">El monto no puede ser mayor que la deuda actual</small>
                                     </div>
@@ -3050,10 +3302,6 @@
 
                     <!-- Footer del Modal -->
                     <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-                        <button type="button" class="flex items-center space-x-2 px-6 py-2.5 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500" data-dismiss="modal">
-                            <i class="fas fa-times text-sm"></i>
-                            <span class="text-sm font-medium">Cancelar</span>
-                        </button>
                         <button type="submit" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg">
                             <i class="fas fa-save text-sm"></i>
                             <span class="text-sm font-medium">Registrar Pago</span>

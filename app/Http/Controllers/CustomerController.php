@@ -309,6 +309,67 @@ class CustomerController extends Controller
             $query->orderBy('sale_date', 'desc');
          }, 'sales.saleDetails'])->findOrFail($id);
 
+         // Verificar si es una petición para datos de pago de deuda
+         if (request()->has('debt_payment_data')) {
+            try {
+               // Obtener el arqueo de caja actual para determinar si es moroso
+               $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+                  ->whereNull('closing_date')
+                  ->first();
+               
+               $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+               // Obtener información de ventas y pagos del cliente
+               $customerSales = \App\Models\Sale::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->select('sale_date', 'total_price')
+                  ->get();
+
+               $customerPayments = [];
+               if (Schema::hasTable('debt_payments')) {
+                  $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                     ->where('company_id', $this->company->id)
+                     ->select('payment_amount')
+                     ->get();
+               }
+
+               // Calcular ventas antes del arqueo actual
+               $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
+               $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
+               $totalPayments = $customerPayments->sum('payment_amount');
+               
+               // Calcular deuda anterior
+               $previousDebt = 0;
+               if ($totalSalesBefore > 0) {
+                  $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+               }
+               
+               // Determinar si es moroso
+               $isDefaulter = $previousDebt > 0;
+
+               return response()->json([
+                  'success' => true,
+                  'customer_id' => $customer->id,
+                  'customer_name' => $customer->name,
+                  'customer_phone' => $customer->phone,
+                  'current_debt' => number_format($customer->total_debt, 2),
+                  'remaining_debt' => number_format($customer->total_debt, 2), // Inicialmente igual a la deuda actual
+                  'is_defaulter' => $isDefaulter,
+                  'customer_status' => $isDefaulter ? 'Moroso' : 'Actual'
+               ]);
+            } catch (\Exception $e) {
+               Log::error('Error al obtener datos de pago de deuda: ' . $e->getMessage(), [
+                  'user_id' => Auth::id(),
+                  'customer_id' => $customer->id
+               ]);
+
+               return response()->json([
+                  'success' => false,
+                  'message' => 'Error al cargar los datos del cliente'
+               ], 500);
+            }
+         }
+
          // Obtener estadísticas del cliente
          $stats = [
             'total_purchases' => $customer->sales->count(),
@@ -1065,6 +1126,8 @@ class CustomerController extends Controller
          ], 500);
       }
    }
+
+
 
    public function registerDebtPayment(Request $request, Customer $customer)
    {
