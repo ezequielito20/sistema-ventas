@@ -1,50 +1,337 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Gestión de Clientes')
 
-@section('content_header')
-    <div class="hero-section mb-4">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-lg-8 col-md-7 col-12">
-                    <div class="hero-content">
-                        <h1 class="hero-title">
-                            <i class="fas fa-users-gradient"></i>
+@section('content')
+    <!-- Definir funciones Alpine.js ANTES del HTML -->
+    <script>
+        // Definir funciones Alpine.js globalmente ANTES de que se evalúen
+        window.heroSection = function() {
+            return {
+                showStats: true,
+
+                init() {
+                    setTimeout(() => {
+                        this.showStats = true;
+                    }, 500);
+                },
+
+                openDebtReport() {
+                    const debtBtn = document.getElementById('debtReportBtn');
+                    if (debtBtn) debtBtn.click();
+                }
+            }
+        }
+
+        // statsWidgets ya no es necesario - widgets optimizados sin animaciones
+
+        window.dataTable = function() {
+            return {
+                viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
+                searchTerm: '',
+                searchResultsCount: 0,
+
+                init() {
+                    // Detectar cambios de tamaño de pantalla
+                    window.addEventListener('resize', () => {
+                        // En móvil siempre mostrar cards, en desktop permitir toggle
+                        if (window.innerWidth < 768) {
+                            this.viewMode = 'cards';
+                        }
+                    });
+
+                    console.log('DataTable inicializado con vista:', this.viewMode);
+                },
+
+                performSearch() {
+                    const mobileSearch = document.getElementById('mobileSearch');
+                    if (mobileSearch) {
+                        mobileSearch.value = this.searchTerm;
+                        mobileSearch.dispatchEvent(new Event('keyup'));
+                    }
+                },
+
+                clearSearch() {
+                    this.searchTerm = '';
+                    this.searchResultsCount = 0;
+                    const mobileSearch = document.getElementById('mobileSearch');
+                    if (mobileSearch) {
+                        mobileSearch.value = '';
+                        mobileSearch.dispatchEvent(new Event('keyup'));
+                    }
+                }
+            }
+        }
+
+        window.filtersPanel = function() {
+            return {
+                filtersOpen: false,
+                hasActiveFilters: false,
+                currentFilter: 'all',
+                searchTerm: '',
+                searchResultsCount: 0,
+                totalResults: {{ $totalCustomers ?? 0 }},
+
+                init() {
+                    console.log('Panel de filtros inicializado');
+                    this.updateActiveFiltersIndicator();
+                },
+
+                toggleFilters() {
+                    this.filtersOpen = !this.filtersOpen;
+                    console.log('Filtros toggled:', this.filtersOpen);
+                },
+
+                setFilter(filter) {
+                    this.currentFilter = filter;
+                    this.updateActiveFiltersIndicator();
+
+                    // Aplicar filtro usando la función existente
+                    const filterButtons = document.querySelectorAll('.filter-btn');
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    const activeBtn = document.querySelector(`.filter-btn[data-filter="${filter}"]`);
+                    if (activeBtn) activeBtn.classList.add('active');
+
+                    // Trigger existing filter functionality
+                    if (typeof applyFiltersAndSearch === 'function') {
+                        applyFiltersAndSearch();
+                    }
+                },
+
+                performSearch() {
+                    const mobileSearch = document.getElementById('mobileSearch');
+                    if (mobileSearch) {
+                        mobileSearch.value = this.searchTerm;
+                        mobileSearch.dispatchEvent(new Event('keyup'));
+                    }
+                    this.updateActiveFiltersIndicator();
+                },
+
+                clearSearch() {
+                    this.searchTerm = '';
+                    const mobileSearch = document.getElementById('mobileSearch');
+                    if (mobileSearch) {
+                        mobileSearch.value = '';
+                        mobileSearch.dispatchEvent(new Event('keyup'));
+                    }
+                    this.searchResultsCount = 0;
+                    this.updateActiveFiltersIndicator();
+                },
+
+                clearAllFilters() {
+                    this.currentFilter = 'all';
+                    this.searchTerm = '';
+                    this.searchResultsCount = 0;
+
+                    // Limpiar filtros existentes
+                    const filterButtons = document.querySelectorAll('.filter-btn');
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
+                    if (allBtn) allBtn.classList.add('active');
+
+                    const mobileSearch = document.getElementById('mobileSearch');
+                    if (mobileSearch) mobileSearch.value = '';
+
+                    if (typeof applyFiltersAndSearch === 'function') {
+                        applyFiltersAndSearch();
+                    }
+
+                    this.updateActiveFiltersIndicator();
+                },
+
+                applyFilters() {
+                    if (typeof applyFiltersAndSearch === 'function') {
+                        applyFiltersAndSearch();
+                    }
+                    this.updateActiveFiltersIndicator();
+                },
+
+                updateActiveFiltersIndicator() {
+                    this.hasActiveFilters = (this.currentFilter !== 'all' || this.searchTerm.length > 0);
+
+                    // Actualizar badges de filtros activos
+                    const container = document.getElementById('activeFiltersContainer');
+                    if (container) {
+                        let badges = '';
+
+                        if (this.currentFilter !== 'all') {
+                            const filterNames = {
+                                'active': 'Activos',
+                                'inactive': 'Inactivos',
+                                'defaulters': 'Morosos'
+                            };
+                            badges += `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                    <i class="fas fa-filter mr-1"></i>
+                                    ${filterNames[this.currentFilter] || this.currentFilter}
+                                  </span>`;
+                        }
+
+                        if (this.searchTerm.length > 0) {
+                            badges += `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                    <i class="fas fa-search mr-1"></i>
+                                    "${this.searchTerm}"
+                                  </span>`;
+                        }
+
+                        container.innerHTML = badges;
+                    }
+                }
+            }
+        }
+
+        window.exchangeRateWidget = function() {
+            return {
+                exchangeRate: 120.00,
+                updating: false,
+
+                init() {
+                    // Cargar valor guardado del localStorage o del input existente
+                    const savedRate = localStorage.getItem('exchangeRate');
+                    const exchangeRateInput = document.getElementById('exchangeRate');
+
+                    if (savedRate) {
+                        this.exchangeRate = parseFloat(savedRate);
+                    } else if (exchangeRateInput && exchangeRateInput.value) {
+                        this.exchangeRate = parseFloat(exchangeRateInput.value);
+                    }
+
+                    // Sincronizar con el input original
+                    if (exchangeRateInput) {
+                        exchangeRateInput.value = this.exchangeRate;
+                    }
+                },
+
+                updateRate() {
+                    if (this.exchangeRate <= 0) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'El tipo de cambio debe ser mayor a 0'
+                            });
+                        } else {
+                            alert('El tipo de cambio debe ser mayor a 0');
+                        }
+                        return;
+                    }
+
+                    this.updating = true;
+
+                    // Actualizar el input original y trigger el evento
+                    const exchangeRateInput = document.getElementById('exchangeRate');
+                    if (exchangeRateInput) {
+                        exchangeRateInput.value = this.exchangeRate;
+                    }
+
+                    const updateBtn = document.querySelector('.update-exchange-rate');
+                    if (updateBtn) {
+                        updateBtn.click();
+                    }
+
+                    setTimeout(() => {
+                        this.updating = false;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
+
+    <!-- Contenedor Principal con Gradiente de Fondo -->
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+
+        <!-- Hero Section con Tailwind y Alpine.js -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl mb-8"
+            x-data="heroSection()">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-black bg-opacity-10">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
+                <!-- Decorative circles -->
+                <div
+                    class="absolute top-0 left-0 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob">
+                </div>
+                <div
+                    class="absolute top-0 right-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000">
+                </div>
+                <div
+                    class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000">
+                </div>
+            </div>
+
+            <div class="relative px-6 py-8 sm:px-8 lg:px-12">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <!-- Hero Content -->
+                    <div class="flex-1 lg:pr-8">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div
+                                    class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                    <i class="fas fa-users text-3xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h1 class="text-3xl sm:text-4xl font-bold text-white">
                             Gestión de Clientes
                         </h1>
-                        <p class="hero-subtitle">Administra y visualiza todos tus clientes con herramientas avanzadas de control</p>
-                        <div class="hero-stats"></div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-5 col-12">
-                    <div class="hero-action-buttons d-flex justify-content-lg-end justify-content-center align-items-center gap-3 flex-wrap">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-6 lg:mt-0 lg:flex-shrink-0">
+                        <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
                         @can('customers.report')
-                            <button 
-                                class="hero-btn hero-btn-info" 
-                                id="debtReportBtn" 
-                                data-toggle="tooltip" 
-                                title="Reporte de Deudas"
-                            >
-                                <i class="fas fa-file-invoice-dollar"></i>
-                                <span class="d-none d-md-inline">Deudas</span>
+                                <button @click="openDebtReport()"
+                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    title="Reporte de Deudas">
+                                    <i class="fas fa-file-invoice-dollar text-lg mr-2 text-blue-200"></i>
+                                    <span class="hidden sm:inline">Deudas</span>
+                                    <!-- Tooltip -->
+                                    <div
+                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        Reporte de Deudas
+                                    </div>
                             </button>
                         @endcan
+
                         @can('customers.report')
-                            <a href="{{ route('admin.customers.report') }}" class="hero-btn hero-btn-secondary" target="_blank" data-toggle="tooltip" title="Reporte PDF">
-                                <i class="fas fa-file-pdf"></i>
-                                <span class="d-none d-md-inline">Reporte PDF</span>
+                                <a href="{{ route('admin.customers.report') }}" target="_blank"
+                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    title="Reporte PDF">
+                                    <i class="fas fa-file-pdf text-lg mr-2 text-red-200"></i>
+                                    <span class="hidden sm:inline">PDF</span>
+                                    <!-- Tooltip -->
+                                    <div
+                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        Reporte PDF
+                                    </div>
                             </a>
                         @endcan
+
                         @can('customers.report')
-                            <a href="{{ route('admin.customers.payment-history') }}" class="hero-btn hero-btn-warning" data-toggle="tooltip" title="Historial de Pagos">
-                                <i class="fas fa-history"></i>
-                                <span class="d-none d-md-inline">Historial</span>
+                                <a href="{{ route('admin.customers.payment-history') }}"
+                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    title="Historial de Pagos">
+                                    <i class="fas fa-history text-lg mr-2 text-yellow-200"></i>
+                                    <span class="hidden sm:inline">Historial</span>
+                                    <!-- Tooltip -->
+                                    <div
+                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        Historial de Pagos
+                                    </div>
                             </a>
                         @endcan
+
                         @can('customers.create')
-                            <a href="{{ route('admin.customers.create') }}" class="hero-btn hero-btn-primary" data-toggle="tooltip" title="Nuevo Cliente">
-                                <i class="fas fa-plus"></i>
-                                <span class="d-none d-md-inline">Nuevo Cliente</span>
+                                <a href="{{ route('admin.customers.create') }}"
+                                    class="group relative inline-flex items-center px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-lg"
+                                    title="Nuevo Cliente">
+                                    <i class="fas fa-plus text-lg mr-2"></i>
+                                    <span class="hidden sm:inline">Nuevo Cliente</span>
+                                    <!-- Tooltip -->
+                                    <div
+                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        Crear Nuevo Cliente
+                                    </div>
                             </a>
                         @endcan
                     </div>
@@ -53,242 +340,299 @@
         </div>
     </div>
 
-    <style>
-    .hero-action-buttons {
-        gap: 1rem !important;
-    }
-    .hero-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(255,255,255,0.85);
-        color: var(--primary-color);
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        padding: 0.7rem 1.2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        transition: all 0.2s;
-        cursor: pointer;
-        min-width: 44px;
-        min-height: 44px;
-        position: relative;
-        text-decoration: none;
-        outline: none;
-    }
-    .hero-btn i {
-        font-size: 1.3rem;
-        color: var(--primary-color);
-        margin-right: 0.2rem;
-    }
-    .hero-btn-info { color: #3b82f6; }
-    .hero-btn-info i { color: #3b82f6; }
-    .hero-btn-secondary { color: #f5576c; }
-    .hero-btn-secondary i { color: #f5576c; }
-    .hero-btn-warning { color: #38f9d7; }
-    .hero-btn-warning i { color: #38f9d7; }
-    .hero-btn-primary { color: #764ba2; }
-    .hero-btn-primary i { color: #764ba2; }
-    .hero-btn:hover, .hero-btn:focus {
-        background: #fff;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-        transform: translateY(-2px) scale(1.04);
-        color: var(--primary-color);
-        text-decoration: none;
-    }
-    .hero-btn:active {
-        transform: scale(0.97);
-    }
-    .hero-btn span {
-        font-size: 1rem;
-        font-weight: 600;
-        color: inherit;
-        white-space: nowrap;
-    }
-    @media (max-width: 991px) {
-        .hero-action-buttons {
-            justify-content: center !important;
-        }
-    }
-    @media (max-width: 767px) {
-        .hero-btn span {
-            display: none !important;
-        }
-        .hero-btn {
-            padding: 0.7rem !important;
-            min-width: 44px;
-        }
-    }
-    </style>
-@stop
+        <!-- Stats Widgets optimizados sin animaciones -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+            <!-- Total de Clientes -->
+            <div
+                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <!-- Gradient Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
+                </div>
 
-@section('content')
-    {{-- Widgets de Estadísticas Rediseñados --}}
-    <div class="stats-grid mb-4">
-        <div class="stat-card stat-card-primary">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
+                <!-- Content -->
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-users text-white text-xl"></i>
             </div>
-            <div class="stat-content">
-                <div class="stat-header">
-                    <h3 class="stat-number">{{ $totalCustomers }}</h3>
                     @if ($customerGrowth > 0)
-                        <span class="growth-badge growth-positive">
-                            <i class="fas fa-arrow-up"></i>
-                            {{ $customerGrowth }}%
-                        </span>
+                            <div
+                                class="flex items-center space-x-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                <i class="fas fa-arrow-up text-xs"></i>
+                                <span>{{ $customerGrowth }}%</span>
+                            </div>
                     @endif
                 </div>
-                <p class="stat-label">Total de Clientes</p>
-                <div class="stat-progress">
-                    <div class="progress-bar" style="width: 100%"></div>
+
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">
+                            {{ $totalCustomers }}
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">Total de Clientes</div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: 100%">
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>
 
-        <div class="stat-card stat-card-success">
-            <div class="stat-icon">
-                <i class="fas fa-user-check"></i>
+            <!-- Clientes Activos -->
+            <div
+                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <!-- Gradient Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
-            <div class="stat-content">
-                <div class="stat-header">
-                    <h3 class="stat-number">{{ $activeCustomers }}/{{ $totalCustomers }}</h3>
+
+                <!-- Content -->
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-user-check text-white text-xl"></i>
                 </div>
-                <p class="stat-label">Clientes Activos</p>
-                <div class="stat-progress">
-                    <div class="progress-bar" style="width: {{ $totalCustomers > 0 ? ($activeCustomers / $totalCustomers) * 100 : 0 }}%"></div>
                 </div>
+
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">
+                            <span>{{ $activeCustomers }}</span>
+                            <span class="text-lg text-gray-500">/{{ $totalCustomers }}</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">Clientes Activos</div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                                style="width: {{ $totalCustomers > 0 ? ($activeCustomers / $totalCustomers) * 100 : 0 }}%">
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
 
-        <div class="stat-card stat-card-warning">
-            <div class="stat-icon">
-                <i class="fas fa-user-plus"></i>
+            <!-- Nuevos este Mes -->
+            <div
+                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <!-- Gradient Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
-            <div class="stat-content">
-                <div class="stat-header">
-                    <h3 class="stat-number">{{ $newCustomers }}</h3>
+
+                <!-- Content -->
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-user-plus text-white text-xl"></i>
                 </div>
-                <p class="stat-label">Nuevos este Mes</p>
-                <div class="stat-progress">
-                    <div class="progress-bar" style="width: {{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%"></div>
                 </div>
+
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">
+                            {{ $newCustomers }}
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">Nuevos este Mes</div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full"
+                                style="width: {{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%">
+                            </div>
+                        </div>
+                    </div>
             </div>
         </div>
 
-        <div class="stat-card stat-card-purple">
-            <div class="stat-icon">
-                <i class="fas fa-money-bill-wave"></i>
+            <!-- Ingresos Totales -->
+            <div
+                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <!-- Gradient Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
-            <div class="stat-content">
-                <div class="stat-header">
-                    <h3 class="stat-number">{{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}</h3>
+
+                <!-- Content -->
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-money-bill-wave text-white text-xl"></i>
                 </div>
-                <p class="stat-label">Ingresos Totales</p>
-                <div class="stat-progress">
-                    <div class="progress-bar" style="width: 100%"></div>
                 </div>
+
+                    <div class="space-y-2">
+                        <div class="text-2xl font-bold text-gray-900">
+                            {{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">Ingresos Totales</div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full"
+                                style="width: 100%"></div>
+                        </div>
+                    </div>
             </div>
         </div>
 
-        <div class="stat-card stat-card-danger">
-            <div class="stat-icon">
-                <i class="fas fa-exclamation-triangle"></i>
+            <!-- Clientes Morosos -->
+            <div
+                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <!-- Gradient Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
-            <div class="stat-content">
-                <div class="stat-header">
-                    <h3 class="stat-number">{{ $defaultersCount }}</h3>
+
+                <!-- Content -->
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-exclamation-triangle text-white text-xl"></i>
                 </div>
-                <p class="stat-label">Clientes Morosos</p>
-                <div class="stat-progress">
-                    <div class="progress-bar" style="width: {{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%"></div>
+                        @if ($defaultersCount > 0)
+                            <div
+                                class="flex items-center space-x-1 bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                <i class="fas fa-exclamation-circle text-xs"></i>
+                                <span>Atención</span>
                 </div>
+                        @endif
             </div>
+
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">
+                            {{ $defaultersCount }}
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">Clientes Morosos</div>
+
+                        <!-- Progress Bar -->
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-red-500 to-pink-600 h-2 rounded-full"
+                                style="width: {{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
         </div>
     </div>
 
-    {{-- Bloque unificado de Tipo de Cambio + Filtros + Búsqueda --}}
-    <div class="exchange-filters-card mb-4" x-data="exchangeFilters()">
-        <div class="exchange-filters-content redesigned">
-            <div class="exchange-block redesigned-left">
-                <div class="rate-row redesigned-rate-row">
-                    <span class="currency-symbol">1 USD =</span>
-                    <input 
-                        type="number" 
-                        id="exchangeRate" 
-                        class="rate-input" 
-                        x-model="exchangeRate"
-                        step="0.01" 
-                        min="0" 
-                        @cannot('customers.edit') readonly @endcannot
-                        @keyup.enter="updateExchangeRate()"
-                    >
-                    <span class="currency-code">VES</span>
+        <!-- Filtros Rediseñados y Compactos -->
+        <div class="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden" x-data="filtersPanel()">
+            <!-- Header del Panel de Filtros -->
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-filter text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Filtros y Búsqueda</h3>
+                            <p class="text-sm text-gray-500">Personaliza la vista de tus clientes</p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Button -->
+                    <button @click="toggleFilters()"
+                        class="group flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <span class="text-sm font-medium text-gray-700"
+                            x-text="filtersOpen ? 'Ocultar Filtros' : 'Mostrar Filtros'"></span>
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform duration-200 group-hover:text-gray-700"
+                            :class="{ 'rotate-180': filtersOpen }"></i>
+                    </button>
+                </div>
+
+                <!-- Active Filters Indicator -->
+                <div x-show="hasActiveFilters" x-transition class="mt-3 flex items-center space-x-2">
+                    <span class="text-xs font-medium text-blue-600">Filtros activos:</span>
+                    <div class="flex flex-wrap gap-2" id="activeFiltersContainer">
+                        <!-- Los filtros activos se mostrarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Filtros Colapsable -->
+            <div x-show="filtersOpen" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform -translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-2"
+                class="p-6 bg-gray-50 border-t border-gray-100">
+
+                <!-- Sección Unificada de Filtros -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        
+                        <!-- Tipo de Cambio -->
+                        <div x-data="exchangeRateWidget()">
+                            
+
+                            <!-- Input y Botón en línea -->
+                            <div class="flex items-center justify-start space-x-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-medium text-gray-600">1 USD =</span>
+                                    <input type="number" x-model="exchangeRate" step="0.01" min="0"
+                                        @cannot('customers.edit') readonly @endcannot @keyup.enter="updateRate()"
+                                        class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-semibold text-gray-900 text-sm"
+                                        placeholder="0.00">
+                                    <span class="text-sm font-medium text-gray-600">VES</span>
+                                </div>
+
                     @can('customers.edit')
-                        <button 
-                            type="button" 
-                            class="update-rate-btn update-exchange-rate ml-2"
-                            @click="updateExchangeRate()"
-                            :disabled="updating"
-                        >
-                            <i class="fas fa-sync-alt" :class="{ 'fa-spin': updating }"></i>
-                            <span x-text="updating ? 'Actualizando...' : 'Actualizar'"></span>
+                                    <button @click="updateRate()" :disabled="updating"
+                                        class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Actualizar tipo de cambio">
+                                        <i class="fas fa-sync-alt text-sm" :class="{ 'animate-spin': updating }"></i>
                         </button>
                     @endcan
                 </div>
             </div>
-            <div class="filters-block redesigned-right">
-                <div class="filters-search-row">
-                    <div class="filters-btns filters-btns-scroll mb-0">
-                        <button 
-                            type="button" 
-                            class="filter-btn filter-btn-all active" 
-                            data-filter="all"
-                        >
-                            <i class="fas fa-list"></i>
-                            <span class="d-none d-sm-inline">Todos</span>
+
+                        <!-- Filtros por Estado -->
+                        <div>
+
+                            <!-- Botones de Filtro por Estado -->
+                            <div class="flex items-center justify-end space-x-3">
+                                <!-- Botón Todos - Azul -->
+                                <button type="button" @click="setFilter('all')" title="Todos los clientes"
+                                    :class="currentFilter === 'all' ?
+                                        'bg-blue-500 border-blue-600 text-white shadow-lg transform scale-105' :
+                                        'bg-blue-100 border-blue-300 text-blue-600 hover:bg-blue-200 hover:border-blue-400'"
+                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    <i class="fas fa-list text-lg"></i>
                         </button>
-                        <button 
-                            type="button" 
-                            class="filter-btn filter-btn-active" 
-                            data-filter="active"
-                        >
-                            <i class="fas fa-check-circle"></i>
-                            <span class="d-none d-sm-inline">Activos</span>
+
+                                <!-- Botón Activos - Verde -->
+                                <button type="button" @click="setFilter('active')" title="Clientes activos"
+                                    :class="currentFilter === 'active' ?
+                                        'bg-green-500 border-green-600 text-white shadow-lg transform scale-105' :
+                                        'bg-green-100 border-green-300 text-green-600 hover:bg-green-200 hover:border-green-400'"
+                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    <i class="fas fa-check-circle text-lg"></i>
                         </button>
-                        <button 
-                            type="button" 
-                            class="filter-btn filter-btn-inactive" 
-                            data-filter="inactive"
-                        >
-                            <i class="fas fa-times-circle"></i>
-                            <span class="d-none d-sm-inline">Inactivos</span>
+
+                                <!-- Botón Inactivos - Gris -->
+                                <button type="button" @click="setFilter('inactive')" title="Clientes inactivos"
+                                    :class="currentFilter === 'inactive' ?
+                                        'bg-gray-500 border-gray-600 text-white shadow-lg transform scale-105' :
+                                        'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200 hover:border-gray-400'"
+                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                    <i class="fas fa-times-circle text-lg"></i>
                         </button>
-                        <button 
-                            type="button" 
-                            class="filter-btn filter-btn-defaulters" 
-                            data-filter="defaulters"
-                        >
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span class="d-none d-sm-inline">Morosos</span>
-                        </button>
-                    </div>
-                    <div class="search-group redesigned-search-group ml-3">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input 
-                                type="text" 
-                                class="search-input" 
-                                id="mobileSearch" 
-                                placeholder="Buscar cliente..."
-                            >
-                            <button 
-                                type="button" 
-                                class="search-clear" 
-                                id="clearSearch"
-                            >
-                                <i class="fas fa-times"></i>
+
+                                <!-- Botón Morosos - Rojo -->
+                                <button type="button" @click="setFilter('defaulters')" title="Clientes morosos"
+                                    :class="currentFilter === 'defaulters' ?
+                                        'bg-red-500 border-red-600 text-white shadow-lg transform scale-105' :
+                                        'bg-red-100 border-red-300 text-red-600 hover:bg-red-200 hover:border-red-400'"
+                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                    <i class="fas fa-exclamation-triangle text-lg"></i>
                             </button>
                         </div>
                     </div>
@@ -304,6 +648,7 @@
         padding: 2rem 2rem 1.5rem 2rem;
         margin-bottom: 2rem;
     }
+
     .exchange-filters-content {
         display: flex;
         gap: 2rem;
@@ -311,6 +656,7 @@
         flex-wrap: wrap;
         justify-content: space-between;
     }
+
     .exchange-block {
         flex: 1 1 340px;
         min-width: 260px;
@@ -319,6 +665,7 @@
         flex-direction: column;
         gap: 0.5rem;
     }
+
     .header-icon {
         width: 50px;
         height: 50px;
@@ -331,16 +678,19 @@
         font-size: 1.2rem;
         margin-bottom: 0.5rem;
     }
+
     .header-text h4 {
         margin: 0;
         font-weight: 600;
         color: var(--dark-color);
     }
+
     .header-text p {
         margin: 0 0 0.5rem 0;
         color: #666;
         font-size: 0.95rem;
     }
+
     .rate-row {
         display: flex;
         align-items: center;
@@ -348,11 +698,13 @@
         margin-top: 0.5rem;
         flex-wrap: wrap;
     }
+
     .rate-label {
         font-size: 0.95rem;
         color: #666;
         margin-right: 0.5rem;
     }
+
     .rate-input {
         border: 2px solid #e9ecef;
         border-radius: var(--border-radius-sm);
@@ -363,15 +715,19 @@
         transition: var(--transition);
         width: 120px;
     }
+
     .rate-input:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    .currency-symbol, .currency-code {
+
+            .currency-symbol,
+            .currency-code {
         font-weight: 600;
         color: var(--dark-color);
     }
+
     .update-rate-btn {
         background: var(--primary-gradient);
         color: white;
@@ -386,11 +742,13 @@
         gap: 0.5rem;
         margin-left: 0.5rem;
     }
+
     .update-rate-btn:hover {
         filter: brightness(1.1);
         transform: translateY(-2px);
         box-shadow: var(--shadow-hover);
     }
+
     .filters-block.redesigned-right {
         display: flex;
         flex-direction: column;
@@ -401,12 +759,14 @@
         max-width: 700px;
         padding-left: 2rem;
     }
+
     .filters-title {
         font-weight: 600;
         color: var(--dark-color);
         font-size: 1rem;
         margin-bottom: 0.5rem;
     }
+
     .filters-search-row {
         display: flex;
         align-items: center;
@@ -414,12 +774,14 @@
         width: 100%;
         justify-content: flex-start;
     }
+
     .filters-btns {
         display: flex;
         gap: 0.7rem;
         margin-bottom: 0;
         flex-wrap: wrap;
     }
+
     .redesigned-search-group {
         max-width: 260px;
         min-width: 120px;
@@ -427,47 +789,585 @@
         margin-left: 0.7rem;
         flex: 0 0 auto;
     }
+
     .search-container {
         position: relative;
         display: flex;
         align-items: center;
         width: 100%;
     }
+
     @media (max-width: 991px) {
         .filters-search-row {
             flex-direction: column;
             align-items: stretch;
             gap: 1rem;
         }
+
         .redesigned-search-group {
             margin-left: 0;
             max-width: 100%;
         }
     }
+
+            /* ===== TABLA MODERNA ESTILO ESTÁNDAR ===== */
+            .table-container {
+                overflow-x: auto;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                background: white;
+            }
+
+            .modern-table {
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+            }
+
+            .modern-table thead {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .modern-table th {
+                padding: 1rem;
+                text-align: left;
+                border: none;
+                position: relative;
+            }
+
+            .th-content {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                color: white;
+                font-weight: 600;
+                font-size: 1rem;
+            }
+
+            .modern-table td {
+                padding: 1.25rem;
+                border-bottom: 1px solid #e2e8f0;
+                vertical-align: middle;
+            }
+
+            .table-row {
+                transition: all 0.2s ease;
+            }
+
+            .table-row:hover {
+                background: #f8fafc;
+                transform: scale(1.01);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            }
+
+            /* Número de fila */
+            .row-number {
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: 700;
+                font-size: 1rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            }
+
+            /* Información del cliente */
+            .customer-info {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .customer-avatar .avatar-circle {
+                width: 45px;
+                height: 45px;
+                background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #64748b;
+                font-size: 1.3rem;
+                font-weight: bold;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            }
+
+            .customer-details {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .customer-name {
+                font-weight: 700;
+                color: #1f2937;
+                font-size: 1rem;
+            }
+
+            .customer-email {
+                color: #718096;
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .customer-email i {
+                color: #64748b;
+            }
+
+            /* Información de contacto */
+            .contact-info {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: #4a5568;
+                font-size: 0.95rem;
+                font-weight: 500;
+            }
+
+            .contact-info i {
+                color: #64748b;
+            }
+
+            /* Badge de ID */
+            .id-info {
+                display: flex;
+                align-items: center;
+            }
+
+            .id-badge {
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                color: #4a5568;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border: 1px solid #e2e8f0;
+            }
+
+            /* Información de ventas */
+            .sales-info {
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .sales-amount {
+                font-weight: 700;
+                color: #1f2937;
+                font-size: 0.95rem;
+            }
+
+            .sales-count {
+                color: #718096;
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+
+            .no-sales {
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                color: #718096;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border: 1px solid #e2e8f0;
+            }
+
+            /* Información de deuda */
+            .debt-info {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .debt-amount {
+                font-weight: 700;
+                color: #e53e3e;
+                font-size: 0.95rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .debt-warning-badge {
+                background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+                color: #c53030;
+                padding: 0.25rem 0.5rem;
+                border-radius: 12px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border: 1px solid #fbb6ce;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .no-debt-badge {
+                background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+                color: #22543d;
+                padding: 0.4rem 0.8rem;
+                border-radius: 16px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                border: 1px solid #9ae6b4;
+                white-space: nowrap;
+            }
+
+            .edit-debt-btn {
+                background: none;
+                border: none;
+                color: #667eea;
+                cursor: pointer;
+                padding: 0.5rem;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                font-size: 0.9rem;
+            }
+
+            .edit-debt-btn:hover {
+                background: rgba(102, 126, 234, 0.1);
+                color: #5a67d8;
+                transform: scale(1.1);
+            }
+
+            .edit-debt-btn-small {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: none;
+                color: white;
+                cursor: pointer;
+                padding: 0.25rem;
+                border-radius: 4px;
+                transition: all 0.3s ease;
+                font-size: 0.75rem;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .edit-debt-btn-small:hover {
+                background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+                transform: scale(1.1);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            /* Información de deuda en Bs */
+            .debt-bs-info {
+                color: #4a5568;
+                font-size: 0.95rem;
+                font-weight: 500;
+            }
+
+            .bs-debt {
+                color: #4a5568;
+                font-weight: 600;
+            }
+
+            /* Estado */
+            .status-info {
+                display: flex;
+                align-items: center;
+            }
+
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border: 1px solid;
+            }
+
+            .status-active {
+                background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+                color: #22543d;
+                border-color: #9ae6b4;
+            }
+
+            .status-inactive {
+                background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+                color: #718096;
+                border-color: #e2e8f0;
+            }
+
+            /* Botones de acción */
+            .action-buttons {
+                display: flex;
+                gap: 0.75rem;
+                justify-content: center;
+            }
+
+            .btn-action {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 1rem;
+                text-decoration: none;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+            }
+
+            .btn-view {
+                background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+                color: white;
+            }
+
+            .btn-edit {
+                background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+                color: white;
+            }
+
+            .btn-delete {
+                background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+                color: white;
+            }
+
+            .btn-sale {
+                background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+                color: white;
+            }
+
+            .btn-action:hover {
+                transform: scale(1.15);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            }
+
+            .btn-view:hover {
+                background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            }
+
+            .btn-edit:hover {
+                background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%);
+            }
+
+            .btn-delete:hover {
+                background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            }
+
+            .btn-sale:hover {
+                background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+            }
+
+            /* Responsive para tabla */
+            @media (max-width: 1024px) {
+
+                .modern-table th,
+                .modern-table td {
+                    padding: 0.75rem;
+                }
+
+                .th-content {
+                    font-size: 0.9rem;
+                    gap: 0.5rem;
+                }
+
+                .row-number {
+                    width: 35px;
+                    height: 35px;
+                    font-size: 0.9rem;
+                }
+
+                .customer-avatar .avatar-circle {
+                    width: 35px;
+                    height: 35px;
+                    font-size: 1.1rem;
+                }
+
+                .btn-action {
+                    width: 35px;
+                    height: 35px;
+                    font-size: 0.9rem;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .table-container {
+                    border-radius: 12px;
+                }
+
+                .modern-table th,
+                .modern-table td {
+                    padding: 0.5rem;
+                }
+
+                .th-content {
+                    font-size: 0.8rem;
+                    gap: 0.4rem;
+                }
+
+                .row-number {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 0.8rem;
+                }
+
+                .customer-avatar .avatar-circle {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 1rem;
+                }
+
+                .btn-action {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 0.8rem;
+                }
+
+                .action-buttons {
+                    gap: 0.5rem;
+                }
+            }
     </style>
 
-    {{-- Tabla de Clientes Rediseñada --}}
-    <div class="customers-container">
-        {{-- Vista de tabla para pantallas grandes --}}
-        <div class="table-view d-none d-lg-block">
+        <!-- Tabla de Clientes Rediseñada con Tailwind y Alpine.js -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden" x-data="dataTable()">
+
+            <!-- Header de la Tabla con Toggle de Vista -->
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <div class="flex items-center space-x-3">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Lista de Clientes</h3>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Búsqueda -->
+                    <div class="flex-1 max-w-sm mx-auto lg:mx-0 lg:ml-8">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" x-model="searchTerm" @input="performSearch()"
+                                class="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 text-sm"
+                                placeholder="Buscar por nombre, email o teléfono...">
+                            <button x-show="searchTerm.length > 0" @click="clearSearch()"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <!-- Search Results Counter -->
+                        <div x-show="searchTerm.length > 0" x-transition class="mt-1">
+                            <div class="flex items-center space-x-2 text-xs text-gray-600">
+                                <i class="fas fa-info-circle"></i>
+                                <span x-text="`${searchResultsCount} resultado(s) encontrado(s)`"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Vista - Solo visible en desktop/tablet -->
+                    <div class="hidden md:flex items-center space-x-3">
+                        <span class="text-sm font-medium text-gray-700">Vista:</span>
+                        <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                            <button @click="viewMode = 'table'"
+                                :class="viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' :
+                                    'text-gray-600 hover:text-gray-900'"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none">
+                                <i class="fas fa-table text-sm"></i>
+                                <span class="text-sm font-medium">Tabla</span>
+                            </button>
+                            <button @click="viewMode = 'cards'"
+                                :class="viewMode === 'cards' ? 'bg-white text-gray-900 shadow-sm' :
+                                    'text-gray-600 hover:text-gray-900'"
+                                class="flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-200 focus:outline-none">
+                                <i class="fas fa-th-large text-sm"></i>
+                                <span class="text-sm font-medium">Tarjetas</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de Tabla - Desktop/Tablet -->
+            <div x-show="viewMode === 'table'" class="hidden md:block">
             <div class="table-container">
-                <table id="customersTable" class="customers-table">
+                    <table id="customersTable" class="modern-table">
                     <thead>
                         <tr>
-                            <th class="th-customer">Cliente</th>
-                            <th class="th-contact">Contacto</th>
-                            <th class="th-id">C.I</th>
-                            <th class="th-sales">Total en Compras</th>
-                            <th class="th-debt">Deuda Total</th>
-                            <th class="th-debt-bs">Deuda en Bs</th>
-                            <th class="th-status">Estado</th>
-                            <th class="th-actions">Acciones</th>
+                                <th>
+                                    <div class="th-content">
+                                        <span>#</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-user"></i>
+                                        <span>Cliente</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-phone"></i>
+                                        <span>Contacto</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-id-card"></i>
+                                        <span>C.I</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span>Total Compras</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span>Deuda Total</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-coins"></i>
+                                        <span>Deuda Bs</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-toggle-on"></i>
+                                        <span>Estado</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-cogs"></i>
+                                        <span>Acciones</span>
+                                    </div>
+                                </th>
                         </tr>
                     </thead>
-                    <tbody>
+                        <tbody id="customersTableBody">
                         @foreach ($customers as $customer)
-                            <tr class="customer-row" data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}">
-                                <td class="td-customer">
+                                <tr class="table-row" data-customer-id="{{ $customer->id }}"
+                                    data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}">
+                                    <td>
+                                        <div class="row-number">
+                                            {{ $loop->iteration }}
+                                        </div>
+                                    </td>
+                                    <td>
                                     <div class="customer-info">
                                         <div class="customer-avatar">
                                             <div class="avatar-circle">
@@ -475,7 +1375,7 @@
                                             </div>
                                         </div>
                                         <div class="customer-details">
-                                            <div class="customer-name">{{ $customer->name }}</div>
+                                                <span class="customer-name">{{ $customer->name }}</span>
                                             <div class="customer-email">
                                                 <i class="fas fa-envelope"></i>
                                                 {{ $customer->email }}
@@ -483,57 +1383,62 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="td-contact">
+                                    <td>
                                     <div class="contact-info">
                                         <i class="fas fa-phone"></i>
                                         <span>{{ $customer->phone }}</span>
                                     </div>
                                 </td>
-                                <td class="td-id">
+                                    <td>
+                                        <div class="id-info">
                                     <span class="id-badge">{{ $customer->nit_number }}</span>
-                                </td>
-                                <td class="td-sales">
-                                    @if ($customer->sales->count() > 0)
-                                        <div class="sales-info">
-                                            <div class="sales-amount">{{ $currency->symbol }} {{ number_format($customer->sales->sum('total_price'), 2) }}</div>
-                                            <div class="sales-count">{{ $customer->sales->count() }} venta(s)</div>
                                         </div>
+                                </td>
+                                    <td>
+                                        <div class="sales-info">
+                                            @if ($customer->sales->count() > 0)
+                                                <div class="sales-amount">{{ $currency->symbol }}
+                                                    {{ number_format($customer->sales->sum('total_price'), 2) }}</div>
+                                            <div class="sales-count">{{ $customer->sales->count() }} venta(s)</div>
                                     @else
                                         <span class="no-sales">Sin ventas</span>
                                     @endif
+                                        </div>
                                 </td>
-                                <td class="td-debt">
-                                    @if ($customer->total_debt > 0)
+                                    <td>
                                         <div class="debt-info">
-                                            <div class="debt-amount debt-value" 
+                                            @if ($customer->total_debt > 0)
+                                                <div class="debt-amount debt-value flex items-center gap-2"
                                                  data-customer-id="{{ $customer->id }}" 
                                                  data-original-value="{{ $customer->total_debt }}">
-                                                {{ $currency->symbol }}
-                                                <span class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                                    <span>{{ $currency->symbol }} <span
+                                                            class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span></span>
                                                 @if ($customersData[$customer->id]['isDefaulter'])
-                                                    <span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores">
+                                                        <span class="debt-warning-badge"
+                                                            title="Cliente con deudas de arqueos anteriores">
                                                         <i class="fas fa-exclamation-triangle"></i>
                                                     </span>
                                                 @endif
-                                            </div>
                                             @can('customers.edit')
-                                                <button class="edit-debt-btn">
+                                                        <button class="edit-debt-btn-small">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
                                         </div>
                                     @else
-                                        <div class="debt-info">
+                                                <div class="debt-amount flex items-center gap-2">
                                             <span class="no-debt-badge">Sin deuda</span>
                                             @can('customers.edit')
-                                                <button class="edit-debt-btn">
+                                                        <button class="edit-debt-btn-small">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
                                         </div>
                                     @endif
+                                        </div>
                                 </td>
-                                <td class="td-debt-bs">
+                                    <td>
+                                        <div class="debt-bs-info">
                                     @if ($customer->total_debt > 0)
                                         <span class="bs-debt" data-debt="{{ $customer->total_debt }}">
                                             Bs. {{ number_format($customer->total_debt, 2) }}
@@ -541,8 +1446,10 @@
                                     @else
                                         <span class="no-debt-badge">Sin deuda</span>
                                     @endif
+                                        </div>
                                 </td>
-                                <td class="td-status">
+                                    <td>
+                                        <div class="status-info">
                                     @if ($customer->sales->count() > 0)
                                         <span class="status-badge status-active">
                                             <i class="fas fa-check-circle"></i>
@@ -554,30 +1461,32 @@
                                             Inactivo
                                         </span>
                                     @endif
+                                        </div>
                                 </td>
-                                <td class="td-actions">
+                                    <td>
                                     <div class="action-buttons">
                                         @can('customers.show')
-                                            <button type="button" class="action-btn action-btn-view show-customer"
-                                                data-id="{{ $customer->id }}" data-toggle="tooltip" title="Ver detalles">
+                                                <button type="button" class="btn-action btn-view show-customer"
+                                                    data-id="{{ $customer->id }}" data-toggle="tooltip"
+                                                    title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         @endcan
                                         @can('customers.edit')
                                             <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                                class="action-btn action-btn-edit" data-toggle="tooltip" title="Editar">
+                                                    class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endcan
                                         @can('customers.destroy')
-                                            <button type="button" class="action-btn action-btn-delete delete-customer"
+                                                <button type="button" class="btn-action btn-delete delete-customer"
                                                 data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @endcan
                                         @can('sales.create')
                                             <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
-                                                class="action-btn action-btn-sale" data-toggle="tooltip" title="Nueva venta">
+                                                    class="btn-action btn-sale" data-toggle="tooltip" title="Nueva venta">
                                                 <i class="fas fa-cart-plus"></i>
                                             </a>
                                         @endcan
@@ -590,147 +1499,277 @@
             </div>
         </div>
 
-        {{-- Vista de tarjetas para móviles rediseñada --}}
-        <div class="cards-view d-lg-none">
-            <div class="cards-container" id="mobileCustomersContainer">
+            <!-- Vista de Tarjetas - Móvil y Desktop (cuando se selecciona) -->
+            <div x-show="viewMode === 'cards'" class="md:block" :class="{ 'block': true, 'hidden': false }">
+                <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="mobileCustomersContainer">
                 @foreach ($customers as $customer)
-                    <div 
-                        class="customer-card" 
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $customer->sales->count() > 0 ? 'border-green-500' : 'border-gray-400' }}"
                         data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" 
-                        data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
+                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}">
 
-                    >
-                        <div class="card-header">
-                            <div class="customer-avatar">
-                                <div class="avatar-circle">
+                            <!-- Header de la Tarjeta -->
+                            <div class="p-6 pb-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div
+                                            class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                     {{ strtoupper(substr($customer->name, 0, 1)) }}
                                 </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $customer->name }}
+                                            </h3>
+                                            <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
+                                                <i class="fas fa-envelope text-xs"></i>
+                                                <span class="truncate">{{ $customer->email }}</span>
                             </div>
-                            <div class="customer-info">
-                                <h6 class="customer-name">{{ $customer->name }}</h6>
-                                <div class="customer-email">
-                                    <i class="fas fa-envelope"></i>
-                                    {{ $customer->email }}
                                 </div>
                             </div>
-                            <div class="status-indicator">
+
+                                    <!-- Estado -->
+                                    <div class="flex-shrink-0">
                                 @if ($customer->sales->count() > 0)
-                                    <span class="status-badge status-active">
-                                        <i class="fas fa-check-circle"></i>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                                Activo
                                     </span>
                                 @else
-                                    <span class="status-badge status-inactive">
-                                        <i class="fas fa-times-circle"></i>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-times-circle mr-1"></i>
+                                                Inactivo
                                     </span>
                                 @endif
+                                    </div>
                             </div>
                         </div>
                         
-                        <div class="card-body">
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <div class="info-label">
+                            <!-- Información Principal -->
+                            <div class="px-6 pb-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- Teléfono -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
                                         <i class="fas fa-phone"></i>
-                                        Teléfono
+                                            <span>Teléfono</span>
                                     </div>
-                                    <div class="info-value">{{ $customer->phone }}</div>
+                                        <p class="text-sm font-medium text-gray-900">{{ $customer->phone }}</p>
                                 </div>
-                                <div class="info-item">
-                                    <div class="info-label">
+
+                                    <!-- C.I -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
                                         <i class="fas fa-id-card"></i>
-                                        C.I
+                                            <span>C.I</span>
                                     </div>
-                                    <div class="info-value">
-                                        <span class="id-badge">{{ $customer->nit_number }}</span>
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ $customer->nit_number }}
+                                        </span>
                                     </div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="info-label">
+
+                                    <!-- Total Compras -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
                                         <i class="fas fa-shopping-cart"></i>
-                                        Total Compras
+                                            <span>Total Compras</span>
                                     </div>
-                                    <div class="info-value">
                                         @if ($customer->sales->count() > 0)
-                                            {{ $currency->symbol }} {{ number_format($customer->sales->sum('total_price'), 2) }}
-                                            <small>({{ $customer->sales->count() }} ventas)</small>
-                                        @else
-                                            <span class="no-sales">Sin ventas</span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="info-label">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        Deuda
-                                    </div>
-                                    <div class="info-value">
-                                        @if ($customer->total_debt > 0)
-                                            <div class="debt-info">
-                                                <div class="debt-amount debt-value" 
-                                                     data-customer-id="{{ $customer->id }}" 
-                                                     data-original-value="{{ $customer->total_debt }}">
-                                                    {{ $currency->symbol }}
-                                                    <span class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
-                                                </div>
-                                                <div class="bs-debt" data-debt="{{ $customer->total_debt }}">
-                                                    Bs. {{ number_format($customer->total_debt, 2) }}
-                                                </div>
-                                                <div class="debt-type-info">
-                                                    @if ($customersData[$customer->id]['isDefaulter'])
-                                                        <span class="debt-type-badge debt-type-defaulters" title="Cliente con deudas de arqueos de caja anteriores">
-                                                            <i class="fas fa-exclamation-triangle"></i>
-                                                            Moroso
-                                                        </span>
-                                                    @else
-                                                        <span class="debt-type-badge debt-type-current" title="Cliente con deudas del arqueo de caja actual">
-                                                            <i class="fas fa-clock"></i>
-                                                            Actual
-                                                        </span>
-                                                    @endif
-                                                </div>
+                                            <div>
+                                                <p class="text-sm font-semibold text-gray-900">{{ $currency->symbol }}
+                                                    {{ number_format($customer->sales->sum('total_price'), 2) }}</p>
+                                                <p class="text-xs text-gray-500">({{ $customer->sales->count() }} ventas)
+                                                </p>
                                             </div>
                                         @else
-                                            <span class="no-debt-badge">Sin deuda</span>
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                                                Sin ventas
+                                            </span>
                                         @endif
                                     </div>
+
+                                    <!-- Deuda -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                            <span>Deuda</span>
+                                    </div>
+                                        @if ($customer->total_debt > 0)
+                                            <div class="space-y-1">
+                                                <div class="debt-value" data-customer-id="{{ $customer->id }}"
+                                                     data-original-value="{{ $customer->total_debt }}">
+                                                    <p class="text-sm font-semibold text-red-600">
+                                                        {{ $currency->symbol }} <span
+                                                            class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                                    </p>
+                                                    <p class="bs-debt text-xs text-gray-600"
+                                                        data-debt="{{ $customer->total_debt }}">
+                                                    Bs. {{ number_format($customer->total_debt, 2) }}
+                                                    </p>
+                                                </div>
+                                                    @if ($customersData[$customer->id]['isDefaulter'])
+                                                    <span
+                                                        class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                                                        title="Cliente con deudas de arqueos anteriores">
+                                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                            Moroso
+                                                        </span>
+                                                    @endif
+                                            </div>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                                Sin deuda
+                                            </span>
+                                        @endif
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="card-actions">
-                            <div class="action-buttons">
+                            <!-- Acciones -->
+                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div class="flex justify-center gap-3">
                                 @can('customers.show')
-                                    <button type="button" class="action-btn action-btn-view show-customer"
-                                        data-id="{{ $customer->id }}">
+                                        <button type="button"
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 show-customer"
+                                            data-id="{{ $customer->id }}" title="Ver detalles">
                                         <i class="fas fa-eye"></i>
-                                        <span>Ver</span>
                                     </button>
                                 @endcan
                                 @can('customers.edit')
                                     <a href="{{ route('admin.customers.edit', $customer->id) }}"
-                                        class="action-btn action-btn-edit">
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            title="Editar">
                                         <i class="fas fa-edit"></i>
-                                        <span>Editar</span>
                                     </a>
                                 @endcan
                                 @if ($customer->total_debt > 0)
-                                    <button class="action-btn action-btn-payment edit-debt-btn">
+                                        <button
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 edit-debt-btn"
+                                            title="Pagar deuda">
                                         <i class="fas fa-dollar-sign"></i>
-                                        <span>Pagar</span>
                                     </button>
                                 @endif
                                 @can('sales.create')
                                     <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
-                                        class="action-btn action-btn-sale">
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            title="Nueva venta">
                                         <i class="fas fa-cart-plus"></i>
-                                        <span>Venta</span>
                                     </a>
                                 @endcan
                                 @can('customers.destroy')
-                                    <button type="button" class="action-btn action-btn-delete delete-customer"
-                                        data-id="{{ $customer->id }}">
+                                        <button type="button"
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 delete-customer"
+                                            data-id="{{ $customer->id }}" title="Eliminar">
                                         <i class="fas fa-trash"></i>
-                                        <span>Eliminar</span>
+                                        </button>
+                                    @endcan
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Vista Solo Móvil (automática) -->
+            <div class="block md:hidden">
+                <div class="p-4 space-y-4" id="mobileOnlyContainer">
+                    @foreach ($customers as $customer)
+                        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border-l-4 {{ $customer->sales->count() > 0 ? 'border-green-500' : 'border-gray-400' }}"
+                            data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}"
+                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}">
+
+                            <!-- Header Compacto -->
+                            <div class="p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div
+                                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                            {{ strtoupper(substr($customer->name, 0, 1)) }}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-sm font-semibold text-gray-900 truncate">{{ $customer->name }}
+                                            </h3>
+                                            <p class="text-xs text-gray-500 truncate">{{ $customer->email }}</p>
+                                        </div>
+                                    </div>
+                                    @if ($customer->sales->count() > 0)
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                        </span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <!-- Info Compacta -->
+                                <div class="mt-3 grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                        <span class="text-gray-500">📞</span>
+                                        <span class="ml-1 text-gray-900">{{ $customer->phone }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">🆔</span>
+                                        <span class="ml-1 text-gray-900">{{ $customer->nit_number }}</span>
+                                    </div>
+                                    @if ($customer->total_debt > 0)
+                                        <div class="col-span-2">
+                                            <span class="text-red-600 font-medium debt-value"
+                                                data-customer-id="{{ $customer->id }}"
+                                                data-original-value="{{ $customer->total_debt }}">
+                                                💰 {{ $currency->symbol }} <span
+                                                    class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
+                                            </span>
+                                            @if ($customersData[$customer->id]['isDefaulter'])
+                                                <span
+                                                    class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    ⚠️ Moroso
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Acciones Compactas -->
+                                <div class="mt-3 flex justify-center gap-2">
+                                    @can('customers.show')
+                                        <button type="button"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 show-customer"
+                                            data-id="{{ $customer->id }}" title="Ver detalles">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </button>
+                                    @endcan
+                                    @can('customers.edit')
+                                        <a href="{{ route('admin.customers.edit', $customer->id) }}"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            title="Editar">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </a>
+                                    @endcan
+                                    @if ($customer->total_debt > 0)
+                                        <button
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 edit-debt-btn"
+                                            title="Pagar deuda">
+                                            <i class="fas fa-dollar-sign text-xs"></i>
+                                        </button>
+                                    @endif
+                                    @can('sales.create')
+                                        <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            title="Nueva venta">
+                                            <i class="fas fa-cart-plus text-xs"></i>
+                                        </a>
+                                    @endcan
+                                    @can('customers.destroy')
+                                        <button type="button"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 delete-customer"
+                                            data-id="{{ $customer->id }}" title="Eliminar">
+                                            <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 @endcan
                             </div>
@@ -793,12 +1832,14 @@
                                         <div class="amount-range">
                                             <div class="amount-input">
                                                 <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                <input type="number" id="amountFrom" placeholder="Mínimo" step="0.01" min="0">
+                                                    <input type="number" id="amountFrom" placeholder="Mínimo"
+                                                        step="0.01" min="0">
                                             </div>
                                             <div class="amount-separator">-</div>
                                             <div class="amount-input">
                                                 <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                <input type="number" id="amountTo" placeholder="Máximo" step="0.01" min="0">
+                                                    <input type="number" id="amountTo" placeholder="Máximo"
+                                                        step="0.01" min="0">
                                             </div>
                                         </div>
                                     </div>
@@ -851,7 +1892,8 @@
     </div>
 
     {{-- Modal para el reporte de deudas rediseñado --}}
-    <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog" aria-labelledby="debtReportModalLabel">
+        <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog"
+            aria-labelledby="debtReportModalLabel">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content modern-modal">
                 <div class="modal-body">
@@ -870,7 +1912,8 @@
     </div>
 
     {{-- Modal para registrar pagos de deuda rediseñado --}}
-    <div class="modal fade" id="debtPaymentModal" tabindex="-1" role="dialog" aria-labelledby="debtPaymentModalLabel" aria-hidden="true">
+        <div class="modal fade" id="debtPaymentModal" tabindex="-1" role="dialog"
+            aria-labelledby="debtPaymentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content modern-modal">
                 <div class="modal-header">
@@ -901,7 +1944,8 @@
                                     <label for="customer_name">Cliente</label>
                                     <div class="input-wrapper">
                                         <i class="fas fa-user input-icon"></i>
-                                        <input type="text" class="form-control modern-input" id="customer_name" readonly>
+                                            <input type="text" class="form-control modern-input" id="customer_name"
+                                                readonly>
                                     </div>
                                 </div>
                             </div>
@@ -916,14 +1960,16 @@
                                         <label>Deuda Actual</label>
                                         <div class="debt-amount-display">
                                             <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                            <input type="text" class="form-control modern-input" id="current_debt" readonly>
+                                                <input type="text" class="form-control modern-input" id="current_debt"
+                                                    readonly>
                                         </div>
                                     </div>
                                     <div class="debt-remaining">
                                         <label>Deuda Restante</label>
                                         <div class="debt-amount-display">
                                             <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                            <input type="text" class="form-control modern-input" id="remaining_debt" readonly>
+                                                <input type="text" class="form-control modern-input"
+                                                    id="remaining_debt" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -939,16 +1985,20 @@
                                         <label for="payment_amount">Monto del Pago</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-dollar-sign input-icon"></i>
-                                            <input type="number" class="form-control modern-input" id="payment_amount" name="payment_amount" step="0.01" min="0.01" required>
+                                                <input type="number" class="form-control modern-input"
+                                                    id="payment_amount" name="payment_amount" step="0.01"
+                                                    min="0.01" required>
                                         </div>
-                                        <small class="form-text">El monto no puede ser mayor que la deuda actual</small>
+                                            <small class="form-text">El monto no puede ser mayor que la deuda
+                                                actual</small>
                                     </div>
                                     
                                     <div class="form-group">
                                         <label for="payment_date">Fecha del Pago</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-calendar input-icon"></i>
-                                            <input type="date" class="form-control modern-input" id="payment_date" name="payment_date" required>
+                                                <input type="date" class="form-control modern-input" id="payment_date"
+                                                    name="payment_date" required>
                                         </div>
                                         <small class="form-text">La fecha no puede ser mayor a hoy</small>
                                     </div>
@@ -957,7 +2007,8 @@
                                         <label for="payment_time">Hora del Pago</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-clock input-icon"></i>
-                                            <input type="time" class="form-control modern-input" id="payment_time" name="payment_time" required>
+                                                <input type="time" class="form-control modern-input" id="payment_time"
+                                                    name="payment_time" required>
                                         </div>
                                         <small class="form-text">Hora en que se realizó el pago</small>
                                     </div>
@@ -972,7 +2023,8 @@
                                 <div class="form-group">
                                     <label for="payment_notes">Notas</label>
                                     <div class="textarea-wrapper">
-                                        <textarea class="form-control modern-textarea" id="payment_notes" name="notes" rows="3" placeholder="Detalles adicionales sobre este pago..."></textarea>
+                                            <textarea class="form-control modern-textarea" id="payment_notes" name="notes" rows="3"
+                                                placeholder="Detalles adicionales sobre este pago..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -995,9 +2047,7 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/datatables/buttons.bootstrap4.min.css') }}">
+    
     <style>
         /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
         :root {
@@ -1103,6 +2153,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1250,7 +2301,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.5s;
         }
 
@@ -1307,11 +2358,25 @@
             background: var(--primary-gradient);
         }
 
-        .stat-card-primary::before { background: var(--primary-gradient); }
-        .stat-card-success::before { background: var(--success-gradient); }
-        .stat-card-warning::before { background: var(--warning-gradient); }
-        .stat-card-purple::before { background: var(--purple-gradient); }
-        .stat-card-danger::before { background: var(--danger-gradient); }
+            .stat-card-primary::before {
+                background: var(--primary-gradient);
+            }
+
+            .stat-card-success::before {
+                background: var(--success-gradient);
+            }
+
+            .stat-card-warning::before {
+                background: var(--warning-gradient);
+            }
+
+            .stat-card-purple::before {
+                background: var(--purple-gradient);
+            }
+
+            .stat-card-danger::before {
+                background: var(--danger-gradient);
+            }
 
         .stat-card:hover {
             transform: translateY(-5px);
@@ -1330,11 +2395,25 @@
             margin-bottom: 1rem;
         }
 
-        .stat-card-primary .stat-icon { background: var(--primary-gradient); }
-        .stat-card-success .stat-icon { background: var(--success-gradient); }
-        .stat-card-warning .stat-icon { background: var(--warning-gradient); }
-        .stat-card-purple .stat-icon { background: var(--purple-gradient); }
-        .stat-card-danger .stat-icon { background: var(--danger-gradient); }
+            .stat-card-primary .stat-icon {
+                background: var(--primary-gradient);
+            }
+
+            .stat-card-success .stat-icon {
+                background: var(--success-gradient);
+            }
+
+            .stat-card-warning .stat-icon {
+                background: var(--warning-gradient);
+            }
+
+            .stat-card-purple .stat-icon {
+                background: var(--purple-gradient);
+            }
+
+            .stat-card-danger .stat-icon {
+                background: var(--danger-gradient);
+            }
 
         .stat-content {
             position: relative;
@@ -1623,10 +2702,21 @@
             box-shadow: var(--shadow);
         }
 
-        .filter-btn-all.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .filter-btn-active.active { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .filter-btn-inactive.active { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .filter-btn-defaulters.active { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+            .filter-btn-all.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .filter-btn-active.active {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+
+            .filter-btn-inactive.active {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+
+            .filter-btn-defaulters.active {
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            }
 
         .search-group {
             flex: 1;
@@ -1852,12 +2942,12 @@
             justify-content: center;
             font-size: 0.7rem;
             cursor: help;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .debt-warning-badge:hover {
             transform: scale(1.1);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
         }
 
         .debt-status {
@@ -2285,8 +3375,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
         }
 
         .loading-text h5 {
@@ -2373,18 +3468,21 @@
             font-size: 0.9rem;
         }
 
-        .date-range, .amount-range {
+            .date-range,
+            .amount-range {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .date-input, .amount-input {
+            .date-input,
+            .amount-input {
             position: relative;
             flex: 1;
         }
 
-        .date-input i, .amount-input .currency-symbol {
+            .date-input i,
+            .amount-input .currency-symbol {
             position: absolute;
             left: 0.75rem;
             top: 50%;
@@ -2393,7 +3491,8 @@
             z-index: 2;
         }
 
-        .date-input input, .amount-input input {
+            .date-input input,
+            .amount-input input {
             width: 100%;
             padding: 0.75rem 0.75rem 0.75rem 2rem;
             border: 2px solid #e9ecef;
@@ -2406,13 +3505,15 @@
             padding-left: 2.5rem;
         }
 
-        .date-input input:focus, .amount-input input:focus {
+            .date-input input:focus,
+            .amount-input input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .date-separator, .amount-separator {
+            .date-separator,
+            .amount-separator {
             color: #666;
             font-weight: 500;
         }
@@ -2551,13 +3652,15 @@
             gap: 1rem;
         }
 
-        .debt-current, .debt-remaining {
+            .debt-current,
+            .debt-remaining {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
 
-        .debt-current label, .debt-remaining label {
+            .debt-current label,
+            .debt-remaining label {
             font-weight: 600;
             color: var(--dark-color);
             font-size: 0.9rem;
@@ -2793,21 +3896,38 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .customer-card, .stat-card, .exchange-rate-card {
+            .customer-card,
+            .stat-card,
+            .exchange-rate-card {
             animation: fadeInUp 0.6s ease-out;
         }
 
-        .customer-card:nth-child(1) { animation-delay: 0.1s; }
-        .customer-card:nth-child(2) { animation-delay: 0.2s; }
-        .customer-card:nth-child(3) { animation-delay: 0.3s; }
-        .customer-card:nth-child(4) { animation-delay: 0.4s; }
-        .customer-card:nth-child(5) { animation-delay: 0.5s; }
+            .customer-card:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+
+            .customer-card:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .customer-card:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+
+            .customer-card:nth-child(4) {
+                animation-delay: 0.4s;
+            }
+
+            .customer-card:nth-child(5) {
+                animation-delay: 0.5s;
+            }
 
         /* ===== SCROLLBAR STYLING ===== */
         .table-wrapper::-webkit-scrollbar,
@@ -2840,7 +3960,9 @@
         }
 
         /* ===== ESTILOS ADICIONALES PARA LA TABLA DE VENTAS ===== */
-        .sale-date, .sale-products, .sale-amount {
+            .sale-date,
+            .sale-products,
+            .sale-amount {
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -2860,7 +3982,9 @@
             font-weight: 600;
         }
 
-        .sale-date i, .sale-products i, .sale-amount i {
+            .sale-date i,
+            .sale-products i,
+            .sale-amount i {
             color: var(--primary-color);
             font-size: 0.9rem;
         }
@@ -2875,6 +3999,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -2892,13 +4017,17 @@
         }
 
         /* Mejora en la legibilidad de los textos */
-        .customer-name, .stat-number, .debt-amount {
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            .customer-name,
+            .stat-number,
+            .debt-amount {
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         /* Efecto de sombra dinámica */
-        .stat-card:hover, .customer-card:hover, .exchange-rate-card:hover {
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            .stat-card:hover,
+            .customer-card:hover,
+            .exchange-rate-card:hover {
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         /* Transiciones suaves para todos los elementos interactivos */
@@ -2978,6 +4107,7 @@
             justify-content: flex-start;
             align-items: center;
         }
+
         .action-btn {
             width: 36px;
             height: 36px;
@@ -2992,44 +4122,71 @@
             transition: var(--transition);
             color: white;
             font-size: 1.1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             background: #bdbdbd;
             padding: 0;
         }
-        .action-btn-view { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .action-btn-edit { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .action-btn-delete { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .action-btn-sale { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: var(--dark-color); }
-        .action-btn:hover, .action-btn:focus {
-            filter: brightness(1.1) drop-shadow(0 2px 8px rgba(0,0,0,0.08));
+
+            .action-btn-view {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            }
+
+            .action-btn-edit {
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            }
+
+            .action-btn-delete {
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            }
+
+            .action-btn-sale {
+                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                color: var(--dark-color);
+            }
+
+            .action-btn:hover,
+            .action-btn:focus {
+                filter: brightness(1.1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
             transform: scale(1.08);
             outline: none;
         }
+
         .action-btn i {
             margin: 0;
             font-size: 1.1rem;
         }
+
         /* --- BOTONES GENERALES --- */
-        .action-btn, .modern-btn, .update-rate-btn, .filter-btn, .search-clear {
+            .action-btn,
+            .modern-btn,
+            .update-rate-btn,
+            .filter-btn,
+            .search-clear {
             border-radius: 10px !important;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-        .modern-btn, .update-rate-btn {
+
+            .modern-btn,
+            .update-rate-btn {
             padding: 0.6rem 1.2rem;
             font-size: 1rem;
         }
+
         .update-rate-btn {
             background: var(--primary-gradient);
             color: #fff;
         }
+
         .update-rate-btn:hover {
             filter: brightness(1.1);
         }
+
         .filter-btn {
             font-size: 0.95rem;
             padding: 0.5rem 1.1rem;
         }
+
         .search-clear {
             width: 32px;
             height: 32px;
@@ -3039,22 +4196,27 @@
             background: #e0e0e0;
             color: #666;
         }
+
         .search-clear:hover {
             background: #bdbdbd;
             color: #222;
         }
+
         /* --- Ajuste para iconos en botones --- */
-        .action-btn span, .action-btn i {
+            .action-btn span,
+            .action-btn i {
             display: flex;
             align-items: center;
             justify-content: center;
         }
+
         /* --- Responsive para botones en tabla --- */
         @media (max-width: 768px) {
             .td-actions .action-buttons {
                 flex-wrap: wrap;
                 gap: 0.3rem !important;
             }
+
             .action-btn {
                 width: 32px;
                 height: 32px;
@@ -3063,6 +4225,7 @@
                 font-size: 1rem;
             }
         }
+
         .redesigned-rate-row {
             display: flex;
             align-items: center;
@@ -3070,6 +4233,7 @@
             margin-top: 0.5rem;
             flex-wrap: wrap;
         }
+
         .update-rate-btn {
             margin-left: 1rem;
             align-self: stretch;
@@ -3077,18 +4241,21 @@
             display: flex;
             align-items: center;
         }
+
         @media (max-width: 767px) {
             .redesigned-rate-row {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.5rem;
             }
+
             .update-rate-btn {
                 margin-left: 0 !important;
                 width: 100%;
                 height: auto;
             }
         }
+
         .exchange-block.redesigned-left {
             display: flex;
             flex-direction: row;
@@ -3100,6 +4267,7 @@
             border-right: 1.5px solid #f0f0f0;
             gap: 0;
         }
+
         .redesigned-rate-row {
             display: flex;
             align-items: center;
@@ -3108,6 +4276,7 @@
             flex-wrap: nowrap;
             width: 100%;
         }
+
         .update-rate-btn {
             margin-left: 1rem;
             height: 48px;
@@ -3116,6 +4285,7 @@
             padding-top: 0;
             padding-bottom: 0;
         }
+
         @media (max-width: 991px) {
             .exchange-block.redesigned-left {
                 flex-direction: column;
@@ -3123,22 +4293,26 @@
                 padding-right: 0;
                 border-right: none;
             }
+
             .redesigned-rate-row {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.5rem;
                 width: 100%;
             }
+
             .update-rate-btn {
                 margin-left: 0 !important;
                 width: 100%;
                 height: auto;
             }
         }
+
         @media (max-width: 576px) {
             .card-actions {
                 padding: 0.75rem 0.5rem;
             }
+
             .action-buttons {
                 display: flex !important;
                 flex-direction: row !important;
@@ -3147,11 +4321,15 @@
                 justify-content: flex-start;
                 align-items: center;
                 padding-bottom: 0.2rem;
-                scrollbar-width: none; /* Firefox */
+                    scrollbar-width: none;
+                    /* Firefox */
             }
+
             .action-buttons::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
+                    display: none;
+                    /* Chrome/Safari */
             }
+
             .action-btn {
                 min-width: 44px;
                 min-height: 44px;
@@ -3162,14 +4340,17 @@
                 border-radius: 12px !important;
                 justify-content: center;
             }
+
             .action-btn span {
                 display: none !important;
             }
+
             .action-btn:active {
                 transform: scale(0.93);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
             }
         }
+
         @media (max-width: 576px) {
             .redesigned-rate-row {
                 flex-direction: row !important;
@@ -3178,6 +4359,7 @@
                 flex-wrap: nowrap !important;
                 justify-content: flex-start !important;
             }
+
             .update-rate-btn {
                 margin-left: 0.5rem !important;
                 width: auto !important;
@@ -3189,6 +4371,7 @@
                 align-items: center;
                 justify-content: center;
             }
+
             .rate-input {
                 width: 90px !important;
                 min-width: 70px;
@@ -3196,9 +4379,12 @@
                 padding: 0.5rem !important;
                 font-size: 1.1rem !important;
             }
-            .currency-symbol, .currency-code {
+
+                .currency-symbol,
+                .currency-code {
                 font-size: 1rem !important;
             }
+
             .filters-search-row {
                 flex-direction: row !important;
                 align-items: center !important;
@@ -3206,44 +4392,53 @@
                 flex-wrap: nowrap !important;
                 justify-content: flex-start !important;
             }
+
             .filters-btns {
                 flex-direction: row !important;
                 gap: 0.3rem !important;
                 flex-wrap: nowrap !important;
             }
+
             .redesigned-search-group {
                 margin-left: 0.5rem !important;
                 max-width: 140px !important;
                 min-width: 80px !important;
             }
+
             .search-input {
                 font-size: 0.95rem !important;
                 padding: 0.5rem 1rem 0.5rem 2.2rem !important;
                 height: 38px !important;
             }
         }
+
         @media (max-width: 576px) {
+
             /* ...otros estilos responsivos... */
             .update-rate-btn span {
                 display: none !important;
             }
+
             .filters-search-row {
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 0.5rem !important;
             }
+
             .redesigned-search-group {
                 margin-left: 0 !important;
                 max-width: 100% !important;
                 min-width: 0 !important;
             }
         }
+
         /* --- FILTROS: BOTONES RESPONSIVOS Y CENTRADOS --- */
         .filters-btns-scroll {
             display: flex;
             gap: 0.7rem;
             flex-wrap: nowrap;
         }
+
         .redesigned-search-group {
             max-width: 260px;
             min-width: 120px;
@@ -3251,12 +4446,14 @@
             margin-left: 0.7rem;
             flex: 0 0 auto;
         }
+
         .search-container {
              position: relative;
              display: flex;
              align-items: center;
              width: 100%;
          }
+
         .search-input {
             width: 100%;
             min-width: 0;
@@ -3267,11 +4464,13 @@
             font-size: 1rem;
             transition: var(--transition);
         }
+
         .search-input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
+
         .search-clear {
             position: absolute;
             right: 0.75rem;
@@ -3289,10 +4488,12 @@
             justify-content: center;
             background: #e0e0e0;
         }
+
         .search-clear:hover {
             background: #bdbdbd;
             color: #222;
         }
+
         /* Ocultar campo de búsqueda visual de DataTables pero mantener funcionalidad */
         .dataTables_filter {
             display: none !important;
@@ -3316,10 +4517,13 @@
                 width: 100%;
                 overflow-x: auto;
                 padding-bottom: 0.5rem;
-                scrollbar-width: none; /* Firefox */
+                    scrollbar-width: none;
+                    /* Firefox */
             }
+
             .filters-btns-scroll::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
+                    display: none;
+                    /* Chrome/Safari */
             }
             
             .filter-btn {
@@ -3347,8 +4551,8 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script>
+
+            <script src="{{ asset('vendor/config.js') }}"></script><script>
         // Funciones de Alpine.js
 
         function exchangeFilters() {
@@ -3407,26 +4611,26 @@
                 searching: true, // Mantener búsqueda habilitada para filtros personalizados
                 lengthChange: false,
                 language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
+                                "sProcessing": "Procesando...",
+                                "sLengthMenu": "Mostrar _MENU_ registros",
+                                "sZeroRecords": "No se encontraron resultados",
+                                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                                "sInfoPostFix": "",
+                                "sSearch": "Buscar:",
+                                "sUrl": "",
+                                "sInfoThousands": ",",
                     "sLoadingRecords": "Cargando...",
                     "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
+                                    "sFirst": "Primero",
+                                    "sLast": "Último",
+                                    "sNext": "Siguiente",
                         "sPrevious": "Anterior"
                     },
                     "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
                         "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                     },
                     "buttons": {
@@ -3485,7 +4689,10 @@
                 $('.bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
                     const debtBs = debtUsd * rate;
-                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
                 });
             }
             
@@ -3499,7 +4706,7 @@
                 
                 // Cargar el reporte mediante AJAX con timeout
                 $.ajax({
-                    url: '{{ route("admin.customers.debt-report") }}',
+                                url: '{{ route('admin.customers.debt-report') }}',
                     type: 'GET',
                     data: {
                         exchange_rate: currentExchangeRate
@@ -3510,16 +4717,21 @@
                         $('#debtReportModal .modal-content').html(response);
                         
                         // Pasar el tipo de cambio actual al modal
-                        $('#debtReportModal').data('exchangeRate', currentExchangeRate);
+                                    $('#debtReportModal').data('exchangeRate',
+                                        currentExchangeRate);
                     },
                     error: function(xhr, status, error) {
                         // Cerrar el modal de carga
                         $('#debtReportModal').modal('hide');
                         
                         if (status === 'timeout') {
-                            Swal.fire('Error', 'El reporte tardó demasiado en cargar. Inténtalo de nuevo.', 'error');
+                                        Swal.fire('Error',
+                                            'El reporte tardó demasiado en cargar. Inténtalo de nuevo.',
+                                            'error');
                         } else {
-                            Swal.fire('Error', 'No se pudo cargar el reporte de deudas', 'error');
+                                        Swal.fire('Error',
+                                            'No se pudo cargar el reporte de deudas',
+                                            'error');
                         }
                     }
                 });
@@ -3550,14 +4762,20 @@
                 $('.modal-bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
                     const debtBs = debtUsd * rate;
-                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
                 });
                 
                 // Actualizar cada fila de la tabla en el modal
                 $('#debtReportModal .bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
                     const debtBs = debtUsd * rate;
-                    $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }));
                 });
                 
                 // Actualizar el total de la tabla
@@ -3566,7 +4784,10 @@
                     if (totalDebtElement.length > 0) {
                         const totalDebtUsd = parseFloat(totalDebtElement.data('debt'));
                         const totalDebtBs = totalDebtUsd * rate;
-                        $(this).html('Bs. ' + totalDebtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                    $(this).html('Bs. ' + totalDebtBs.toLocaleString('es-VE', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }));
                     }
                 });
             }
@@ -3681,7 +4902,8 @@
                         $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
                             // Verificar si la fila tiene el icono de advertencia (moroso)
                             const row = table.row(dataIndex).node();
-                            const hasWarningIcon = $(row).find('.debt-warning-badge').length > 0;
+                                        const hasWarningIcon = $(row).find('.debt-warning-badge').length >
+                                            0;
                             return hasWarningIcon;
                         });
                         table.draw();
@@ -3717,7 +4939,8 @@
                     // Aplicar búsqueda si hay término de búsqueda
                     if (shouldShow && searchTerm) {
                         const customerName = $card.find('.customer-name').text().toLowerCase();
-                        const customerEmail = $card.find('.customer-email').text().toLowerCase();
+                                    const customerEmail = $card.find('.customer-email').text()
+                                        .toLowerCase();
                         const customerPhone = $card.find('.info-value').text().toLowerCase();
                         
                         shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
@@ -3783,7 +5006,9 @@
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'No se pudieron cargar los detalles del cliente', 'error');
+                                    Swal.fire('Error',
+                                        'No se pudieron cargar los detalles del cliente',
+                                        'error');
                     }
                 });
             });
@@ -3863,7 +5088,8 @@
                                     }
                                     
                                     // Filtro de monto
-                                    const amountMatch = sale.total_amount >= amountFrom && sale.total_amount <= amountTo;
+                                const amountMatch = sale.total_amount >= amountFrom && sale.total_amount <=
+                                    amountTo;
                                     
                                     return dateMatch && amountMatch;
                                 });
@@ -3911,7 +5137,8 @@
                             url: `/customers/delete/${id}`,
                             type: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
+                                                .attr('content')
                             },
                             success: function(response) {
                                 if (response.success) {
@@ -3936,48 +5163,73 @@
                                     }
                                     
                                     Swal.fire({
-                                        title: response.icons === 'warning' ? 'No se puede eliminar' : 'Error',
-                                        html: response.message.replace(/\n/g, '<br>'),
+                                                    title: response.icons ===
+                                                        'warning' ?
+                                                        'No se puede eliminar' :
+                                                        'Error',
+                                                    html: response.message
+                                                        .replace(/\n/g, '<br>'),
                                         icon: response.icons,
                                         showCancelButton: showCancelButton,
-                                        confirmButtonColor: response.icons === 'warning' ? '#ed8936' : '#667eea',
+                                                    confirmButtonColor: response
+                                                        .icons === 'warning' ?
+                                                        '#ed8936' : '#667eea',
                                         cancelButtonColor: '#667eea',
                                         confirmButtonText: confirmButtonText,
                                         cancelButtonText: cancelButtonText
                                     }).then((result) => {
-                                        if (result.dismiss === Swal.DismissReason.cancel && response.has_sales) {
+                                                    if (result.dismiss === Swal
+                                                        .DismissReason.cancel &&
+                                                        response.has_sales) {
                                             // Redirigir a la página de ventas con filtro por cliente
-                                            window.location.href = '/sales?search=' + encodeURIComponent(response.customer_name || '');
+                                                        window.location.href =
+                                                            '/sales?search=' +
+                                                            encodeURIComponent(
+                                                                response
+                                                                .customer_name ||
+                                                                '');
                                         }
                                     });
                                 }
                             },
                             error: function(xhr, status, error) {
-                                let errorMessage = 'No se pudo eliminar el cliente';
+                                            let errorMessage =
+                                                'No se pudo eliminar el cliente';
                                 let iconType = 'error';
                                 
                                 // Intentar obtener el mensaje de error del servidor
-                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                            if (xhr.responseJSON && xhr.responseJSON
+                                                .message) {
                                     errorMessage = xhr.responseJSON.message;
                                     // Determinar el tipo de icono basado en la respuesta del servidor
-                                    if (xhr.responseJSON.icons === 'warning') {
+                                                if (xhr.responseJSON.icons ===
+                                                    'warning') {
                                         iconType = 'warning';
                                     }
                                 } else if (xhr.status === 422) {
-                                    errorMessage = 'No se puede eliminar este cliente debido a restricciones del sistema';
+                                                errorMessage =
+                                                    'No se puede eliminar este cliente debido a restricciones del sistema';
                                 } else if (xhr.status === 404) {
-                                    errorMessage = 'El cliente no fue encontrado';
+                                                errorMessage =
+                                                    'El cliente no fue encontrado';
                                 } else if (xhr.status === 403) {
-                                    errorMessage = 'No tienes permisos para eliminar este cliente';
+                                                errorMessage =
+                                                    'No tienes permisos para eliminar este cliente';
                                 } else if (xhr.status === 500) {
-                                    errorMessage = 'Error interno del servidor al eliminar el cliente';
+                                                errorMessage =
+                                                    'Error interno del servidor al eliminar el cliente';
                                 }
                                 
                                 Swal.fire({
-                                    title: iconType === 'warning' ? 'No se puede eliminar' : 'Error',
-                                    html: errorMessage.replace(/\n/g, '<br>'),
+                                                title: iconType === 'warning' ?
+                                                    'No se puede eliminar' :
+                                                    'Error',
+                                                html: errorMessage.replace(
+                                                    /\n/g, '<br>'),
                                     icon: iconType,
-                                    confirmButtonColor: iconType === 'warning' ? '#ed8936' : '#667eea',
+                                                confirmButtonColor: iconType ===
+                                                    'warning' ? '#ed8936' :
+                                                    '#667eea',
                                     confirmButtonText: 'Entendido'
                                 });
                             }
@@ -4004,7 +5256,7 @@
             });
 
             // Manejar el botón de editar deuda
-            $(document).on('click', '.edit-debt-btn', function() {
+                        $(document).on('click', '.edit-debt-btn, .edit-debt-btn-small', function() {
                 let $debtValue, customerId, currentDebt, customerName;
                 
                 // Verificar si estamos en la vista de escritorio (tabla) o móvil (tarjetas)
@@ -4019,7 +5271,8 @@
                     $debtValue = $(this).closest('.customer-card').find('.debt-value');
                     customerId = $debtValue.data('customer-id');
                     currentDebt = parseFloat($debtValue.data('original-value'));
-                    customerName = $(this).closest('.customer-card').find('.customer-name').text();
+                                customerName = $(this).closest('.customer-card').find('.customer-name')
+                                    .text();
                 }
                 
                 // Obtener la fecha actual en formato YYYY-MM-DD usando la fecha del servidor
@@ -4101,27 +5354,39 @@
                     success: function(response) {
                         
                         // Actualizar la deuda en todas las vistas (tabla y tarjetas)
-                        const $debtValues = $(`.debt-value[data-customer-id="${customerId}"]`);
+                                    const $debtValues = $(
+                                        `.debt-value[data-customer-id="${customerId}"]`);
                         $debtValues.each(function() {
-                            $(this).data('original-value', response.new_debt);
-                            $(this).find('.debt-amount').text(response.formatted_new_debt);
+                                        $(this).data('original-value', response
+                                            .new_debt);
+                                        $(this).find('.debt-amount').text(response
+                                            .formatted_new_debt);
                         });
                         
                         // Actualizar la deuda en Bs para todas las vistas
-                        const $bsDebts = $(`.bs-debt[data-debt]`).filter(function() {
+                                    const $bsDebts = $(`.bs-debt[data-debt]`).filter(
+                                        function() {
                             return $(this).data('debt') !== undefined;
                         });
                         
                         $bsDebts.each(function() {
                             // Verificar si esta deuda pertenece al cliente actual
-                            const $relatedDebtValue = $(this).closest('tr, .customer-card').find(`.debt-value[data-customer-id="${customerId}"]`);
+                                        const $relatedDebtValue = $(this).closest(
+                                            'tr, .customer-card').find(
+                                            `.debt-value[data-customer-id="${customerId}"]`
+                                        );
                             if ($relatedDebtValue.length > 0) {
                                 $(this).data('debt', response.new_debt);
                                 
                                 // Recalcular el valor en Bs con el tipo de cambio actual
-                                const rate = parseFloat($('#exchangeRate').val());
+                                            const rate = parseFloat($('#exchangeRate')
+                                                .val());
                                 const debtBs = response.new_debt * rate;
-                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                                            $(this).html('Bs. ' + debtBs.toLocaleString(
+                                                'es-VE', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                }));
                             }
                         });
                         
@@ -4139,10 +5404,12 @@
                     error: function(xhr) {
                         console.error('Error en la solicitud:', xhr);
                         
-                        let errorMessage = 'Ha ocurrido un error al registrar el pago';
+                                    let errorMessage =
+                                        'Ha ocurrido un error al registrar el pago';
                         
                         if (xhr.responseJSON && xhr.responseJSON.errors) {
-                            errorMessage = Object.values(xhr.responseJSON.errors)[0][0];
+                                        errorMessage = Object.values(xhr.responseJSON.errors)[0]
+                                            [0];
                         }
                         
                         Swal.fire({
@@ -4157,5 +5424,47 @@
             
             })
         });
-    </script>
+            </script>< !-- JavaScript adicional ya está definido arriba -->< !-- CSS adicional --><style>
+
+            /* Animaciones personalizadas */
+            @keyframes blob {
+                0% {
+                    transform: translate(0px, 0px) scale(1);
+                }
+
+                33% {
+                    transform: translate(30px, -50px) scale(1.1);
+                }
+
+                66% {
+                    transform: translate(-20px, 20px) scale(0.9);
+                }
+
+                100% {
+                    transform: translate(0px, 0px) scale(1);
+                }
+            }
+
+            .animate-blob {
+                animation: blob 7s infinite;
+            }
+
+            .animation-delay-2000 {
+                animation-delay: 2s;
+            }
+
+            .animation-delay-4000 {
+                animation-delay: 4s;
+            }
+
+            /* Mejoras visuales adicionales */
+            .backdrop-blur-sm {
+                backdrop-filter: blur(4px);
+            }
+
+            /* Asegurar que el gradiente de fondo cubra toda la página */
+            .min-h-screen {
+                min-height: 100vh;
+            }
+        </style>
 @stop
