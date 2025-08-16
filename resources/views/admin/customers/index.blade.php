@@ -30,6 +30,10 @@
                 viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
                 searchTerm: '',
                 searchResultsCount: 0,
+                currentPage: 1,
+                itemsPerPage: 25,
+                totalPages: {{ $customers->lastPage() }},
+                totalItems: {{ $customers->total() }},
 
                 init() {
                     // Detectar cambios de tamaño de pantalla
@@ -59,6 +63,165 @@
                         mobileSearch.value = '';
                         mobileSearch.dispatchEvent(new Event('keyup'));
                     }
+                },
+
+                // Métodos de paginación
+                goToPage(page) {
+                    if (page >= 1 && page <= this.totalPages) {
+                        this.currentPage = page;
+                        this.loadPage(page);
+                    }
+                },
+
+                nextPage() {
+                    if (this.currentPage < this.totalPages) {
+                        this.goToPage(this.currentPage + 1);
+                    }
+                },
+
+                prevPage() {
+                    if (this.currentPage > 1) {
+                        this.goToPage(this.currentPage - 1);
+                    }
+                },
+
+                loadPage(page) {
+                    // Mostrar loading
+                    this.showLoading();
+                    
+                    // Construir URL con parámetros
+                    const url = new URL(window.location);
+                    url.searchParams.set('page', page);
+                    if (this.itemsPerPage !== 25) {
+                        url.searchParams.set('per_page', this.itemsPerPage);
+                    }
+                    
+                    // Hacer petición AJAX para cargar la página
+                    fetch(url.toString())
+                        .then(response => response.text())
+                        .then(html => {
+                            // Crear un DOM temporal para extraer solo la tabla/tarjetas
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            
+                            // Actualizar tabla
+                            const newTableBody = doc.querySelector('#customersTableBody');
+                            if (newTableBody) {
+                                document.querySelector('#customersTableBody').innerHTML = newTableBody.innerHTML;
+                            }
+                            
+                            // Actualizar tarjetas
+                            const newCardsContainer = doc.querySelector('#mobileCustomersContainer');
+                            if (newCardsContainer) {
+                                document.querySelector('#mobileCustomersContainer').innerHTML = newCardsContainer.innerHTML;
+                            }
+                            
+                            // Actualizar tarjetas móviles
+                            const newMobileContainer = doc.querySelector('#mobileOnlyContainer');
+                            if (newMobileContainer) {
+                                document.querySelector('#mobileOnlyContainer').innerHTML = newMobileContainer.innerHTML;
+                            }
+                            
+                            // Actualizar información de paginación
+                            const paginationInfo = doc.querySelector('[x-data*="dataTable"]');
+                            if (paginationInfo) {
+                                // Extraer valores de paginación del HTML
+                                const totalItemsMatch = html.match(/totalItems:\s*(\d+)/);
+                                const totalPagesMatch = html.match(/totalPages:\s*(\d+)/);
+                                
+                                if (totalItemsMatch) {
+                                    this.totalItems = parseInt(totalItemsMatch[1]);
+                                }
+                                if (totalPagesMatch) {
+                                    this.totalPages = parseInt(totalPagesMatch[1]);
+                                }
+                            }
+                            
+                            // Actualizar URL sin recargar la página
+                            window.history.pushState({}, '', url.toString());
+                            
+                            // Ocultar loading
+                            this.hideLoading();
+                            
+                            // Reinicializar eventos
+                            this.initializeEvents();
+                        })
+                        .catch(error => {
+                            console.error('Error cargando página:', error);
+                            this.hideLoading();
+                        });
+                },
+
+                // Cambiar elementos por página
+                changeItemsPerPage(newItemsPerPage) {
+                    this.itemsPerPage = newItemsPerPage;
+                    this.currentPage = 1;
+                    this.loadPage(1);
+                },
+
+                showLoading() {
+                    // Crear overlay de loading si no existe
+                    if (!document.getElementById('paginationLoading')) {
+                        const loading = document.createElement('div');
+                        loading.id = 'paginationLoading';
+                        loading.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                        loading.innerHTML = `
+                            <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+                                <div class="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <span class="text-gray-700">Cargando...</span>
+                            </div>
+                        `;
+                        document.body.appendChild(loading);
+                    }
+                },
+
+                hideLoading() {
+                    const loading = document.getElementById('paginationLoading');
+                    if (loading) {
+                        loading.remove();
+                    }
+                },
+
+                initializeEvents() {
+                    // Reinicializar eventos de botones y funcionalidades
+                    // Esto se ejecutará después de cargar nueva página
+                    if (typeof initializeCustomerEvents === 'function') {
+                        initializeCustomerEvents();
+                    }
+                },
+
+                // Getters para la paginación
+                get startItem() {
+                    return (this.currentPage - 1) * this.itemsPerPage + 1;
+                },
+
+                get endItem() {
+                    return Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
+                },
+
+                get hasNextPage() {
+                    return this.currentPage < this.totalPages;
+                },
+
+                get hasPrevPage() {
+                    return this.currentPage > 1;
+                },
+
+                get pageNumbers() {
+                    const pages = [];
+                    const maxVisible = 5;
+                    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+                    let end = Math.min(this.totalPages, start + maxVisible - 1);
+                    
+                    if (end - start + 1 < maxVisible) {
+                        start = Math.max(1, end - maxVisible + 1);
+                    }
+                    
+                    for (let i = start; i <= end; i++) {
+                        pages.push(i);
+                    }
+                    
+                    return pages;
                 }
             }
         }
@@ -234,10 +397,66 @@
                 }
             }
         }
+
+        window.modalManager = function() {
+            return {
+                showCustomerModal: false,
+                debtReportModal: false,
+                debtPaymentModal: false,
+                
+                openModal(modalName) {
+                    this[modalName] = true;
+                    document.body.style.overflow = 'hidden';
+                },
+                
+                closeModal(modalName) {
+                    this[modalName] = false;
+                    document.body.style.overflow = 'auto';
+                },
+                
+                closeAllModals() {
+                    this.showCustomerModal = false;
+                    this.debtReportModal = false;
+                    this.debtPaymentModal = false;
+                    document.body.style.overflow = 'auto';
+                },
+                
+                loadCustomerDetails(customerId) {
+                    // Cargar detalles del cliente usando AJAX
+                    fetch(`/admin/customers/${customerId}/show`)
+                        .then(response => response.text())
+                        .then(html => {
+                            const modalBody = document.querySelector('#showCustomerModal .modal-body');
+                            if (modalBody) {
+                                modalBody.innerHTML = html;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error cargando detalles del cliente:', error);
+                        });
+                },
+                
+                loadDebtPaymentData(customerId) {
+                    // Cargar datos para el modal de pago de deuda
+                    fetch(`/admin/customers/${customerId}/debt-payment-data`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Llenar los campos del modal
+                            document.getElementById('payment_customer_id').value = data.customer_id;
+                            document.getElementById('customer_name').value = data.customer_name;
+                            document.getElementById('current_debt').value = data.current_debt;
+                            document.getElementById('remaining_debt').value = data.remaining_debt;
+                        })
+                        .catch(error => {
+                            console.error('Error cargando datos de pago de deuda:', error);
+                        });
+                }
+            }
+        }
     </script>
 
     <!-- Contenedor Principal con Gradiente de Fondo -->
-    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100" x-data="modalManager()">
 
         <!-- Hero Section con Tailwind y Alpine.js -->
         <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl mb-8"
@@ -280,7 +499,7 @@
                     <div class="mt-6 lg:mt-0 lg:flex-shrink-0">
                         <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
                         @can('customers.report')
-                                <button @click="openDebtReport()"
+                                <button @click="openModal('debtReportModal')"
                                     class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte de Deudas">
                                     <i class="fas fa-file-invoice-dollar text-lg mr-2 text-blue-200"></i>
@@ -1419,11 +1638,17 @@
                                                         <i class="fas fa-exclamation-triangle"></i>
                                                     </span>
                                                 @endif
-                                            @can('customers.edit')
-                                                        <button class="edit-debt-btn-small">
-                                                    <i class="fas fa-edit"></i>
+                                            @if ($customer->total_debt > 0)
+                                                <button class="edit-debt-btn-small" @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})">
+                                                    <i class="fas fa-dollar-sign"></i>
                                                 </button>
-                                            @endcan
+                                            @else
+                                                @can('customers.edit')
+                                                    <button class="edit-debt-btn-small">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                @endcan
+                                            @endif
                                         </div>
                                     @else
                                                 <div class="debt-amount flex items-center gap-2">
@@ -1466,9 +1691,9 @@
                                     <td>
                                     <div class="action-buttons">
                                         @can('customers.show')
-                                                <button type="button" class="btn-action btn-view show-customer"
-                                                    data-id="{{ $customer->id }}" data-toggle="tooltip"
-                                                    title="Ver detalles">
+                                                <button type="button" class="btn-action btn-view"
+                                                    @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
+                                                    data-toggle="tooltip" title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         @endcan
@@ -1632,8 +1857,9 @@
                                 <div class="flex justify-center gap-3">
                                 @can('customers.show')
                                         <button type="button"
-                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 show-customer"
-                                            data-id="{{ $customer->id }}" title="Ver detalles">
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
+                                            title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 @endcan
@@ -1646,7 +1872,8 @@
                                 @endcan
                                 @if ($customer->total_debt > 0)
                                         <button
-                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 edit-debt-btn"
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})" 
                                             title="Pagar deuda">
                                         <i class="fas fa-dollar-sign"></i>
                                     </button>
@@ -1739,8 +1966,9 @@
                                 <div class="mt-3 flex justify-center gap-2">
                                     @can('customers.show')
                                         <button type="button"
-                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 show-customer"
-                                            data-id="{{ $customer->id }}" title="Ver detalles">
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
+                                            title="Ver detalles">
                                             <i class="fas fa-eye text-xs"></i>
                                         </button>
                                     @endcan
@@ -1753,7 +1981,8 @@
                                     @endcan
                                     @if ($customer->total_debt > 0)
                                         <button
-                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 edit-debt-btn"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})" 
                                             title="Pagar deuda">
                                             <i class="fas fa-dollar-sign text-xs"></i>
                                         </button>
@@ -1780,108 +2009,177 @@
         </div>
     </div>
 
-    {{-- Modal de Detalles del Cliente Rediseñado --}}
-    <div class="modal fade" id="showCustomerModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content modern-modal">
-                <div class="modal-header">
-                    <div class="modal-title-section">
-                        <div class="title-icon">
-                            <i class="fas fa-user-tie"></i>
+        {{-- Paginación (igual que categorías) --}}
+    <div class="custom-pagination">
+        <div class="pagination-info">
+            <span id="paginationInfo">Mostrando 1-{{ min(25, $customers->count()) }} de {{ $customers->total() }} clientes</span>
+        </div>
+        <div class="pagination-controls">
+            <button id="prevPage" class="pagination-btn" disabled>
+                <i class="fas fa-chevron-left"></i>
+                Anterior
+            </button>
+            <div id="pageNumbers" class="page-numbers"></div>
+            <button id="nextPage" class="pagination-btn">
+                Siguiente
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+     {{-- Paginación de Laravel (fallback para carga inicial) --}}
+     @if($customers->hasPages())
+         <div class="mt-4 flex justify-center">
+             {{ $customers->appends(request()->query())->links() }}
+         </div>
+     @endif
+
+    {{-- Modal de Detalles del Cliente Rediseñado con Alpine.js --}}
+    <div x-show="showCustomerModal" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal('showCustomerModal')"></div>
+        
+        <!-- Modal Content -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
+                
+                <!-- Header del Modal -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-2xl">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-tie text-white text-lg"></i>
                         </div>
-                        <div class="title-content">
-                            <h5 class="modal-title">Detalles del Cliente</h5>
-                            <p class="modal-subtitle">Información completa y historial de ventas</p>
+                        <div>
+                            <h5 class="text-xl font-bold text-gray-900">Detalles del Cliente</h5>
+                            <p class="text-sm text-gray-600">Información completa y historial de ventas</p>
                         </div>
                     </div>
-                    <button type="button" class="modal-close" data-dismiss="modal">
+                    <button type="button" @click="closeModal('showCustomerModal')" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="customer-details-container">
-                        <div class="sales-history-section">
-                            <div class="section-header">
-                                <div class="section-icon">
-                                    <i class="fas fa-shopping-cart"></i>
+
+                <!-- Body del Modal -->
+                <div class="p-6 max-h-[70vh] overflow-y-auto">
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                        <!-- Header de la Sección -->
+                        <div class="flex items-center space-x-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shopping-cart text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-lg font-semibold text-gray-900">Historial de Ventas</h6>
+                                <p class="text-sm text-gray-600">Cliente: <span id="customerName" class="font-semibold text-blue-600"></span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Filtros -->
+                        <div class="p-6 border-b border-gray-100">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                <!-- Rango de Fechas -->
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700">Rango de Fechas</label>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="relative flex-1">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-calendar text-gray-400"></i>
+                                            </div>
+                                            <input type="date" id="dateFrom" placeholder="Desde" 
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        </div>
+                                        <span class="text-sm text-gray-500 font-medium">hasta</span>
+                                        <div class="relative flex-1">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-calendar text-gray-400"></i>
+                                            </div>
+                                            <input type="date" id="dateTo" placeholder="Hasta" 
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="section-title">
-                                    <h6>Historial de Ventas</h6>
-                                    <p>Cliente: <span id="customerName" class="customer-name-highlight"></span></p>
+
+                                <!-- Rango de Monto -->
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700">Rango de Monto</label>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="relative flex-1">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            </div>
+                                            <input type="number" id="amountFrom" placeholder="Mínimo" step="0.01" min="0"
+                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        </div>
+                                        <span class="text-sm text-gray-500 font-medium">-</span>
+                                        <div class="relative flex-1">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            </div>
+                                            <input type="number" id="amountTo" placeholder="Máximo" step="0.01" min="0"
+                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <!-- Botones de Filtro -->
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" id="clearFilters" 
+                                    class="flex items-center space-x-2 px-4 py-2.5 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                    <i class="fas fa-times text-sm"></i>
+                                    <span class="text-sm font-medium">Limpiar</span>
+                                </button>
+                                <button type="button" id="applyFilters" 
+                                    class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md hover:shadow-lg">
+                                    <i class="fas fa-filter text-sm"></i>
+                                    <span class="text-sm font-medium">Aplicar Filtros</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Ventas -->
+                        <div class="p-6">
+                            <div class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                                <table class="w-full">
+                                    <thead class="bg-gradient-to-r from-gray-50 to-blue-50 sticky top-0">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Fecha</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Productos</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="salesHistoryTable">
+                                        <tr>
+                                            <td colspan="3" class="px-4 py-12 text-center">
+                                                <div class="flex flex-col items-center space-y-3">
+                                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                        <i class="fas fa-info-circle text-2xl text-gray-400"></i>
+                                                    </div>
+                                                    <p class="text-gray-500">No hay ventas registradas</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                             
-                            <div class="filters-section">
-                                <div class="filters-grid">
-                                    <div class="filter-group">
-                                        <label class="filter-label">Rango de Fechas</label>
-                                        <div class="date-range">
-                                            <div class="date-input">
-                                                <i class="fas fa-calendar"></i>
-                                                <input type="date" id="dateFrom" placeholder="Desde">
-                                            </div>
-                                            <div class="date-separator">hasta</div>
-                                            <div class="date-input">
-                                                <i class="fas fa-calendar"></i>
-                                                <input type="date" id="dateTo" placeholder="Hasta">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="filter-group">
-                                        <label class="filter-label">Rango de Monto</label>
-                                        <div class="amount-range">
-                                            <div class="amount-input">
-                                                <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                    <input type="number" id="amountFrom" placeholder="Mínimo"
-                                                        step="0.01" min="0">
-                                            </div>
-                                            <div class="amount-separator">-</div>
-                                            <div class="amount-input">
-                                                <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                    <input type="number" id="amountTo" placeholder="Máximo"
-                                                        step="0.01" min="0">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="filter-actions">
-                                    <button type="button" class="filter-btn filter-btn-apply" id="applyFilters">
-                                        <i class="fas fa-filter"></i>
-                                        <span>Aplicar Filtros</span>
-                                    </button>
-                                    <button type="button" class="filter-btn filter-btn-clear" id="clearFilters">
-                                        <i class="fas fa-times"></i>
-                                        <span>Limpiar</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="sales-table-container">
-                                <div class="table-wrapper">
-                                    <table class="sales-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Fecha</th>
-                                                <th>Productos</th>
-                                                <th>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="salesHistoryTable">
-                                            <tr>
-                                                <td colspan="3" class="empty-state">
-                                                    <div class="empty-icon">
-                                                        <i class="fas fa-info-circle"></i>
-                                                    </div>
-                                                    <p>No hay ventas registradas</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="table-footer">
-                                    <div class="sales-count">
-                                        <span id="salesCount">0</span> ventas mostradas
-                                    </div>
+                            <!-- Footer de la Tabla -->
+                            <div class="mt-4 pt-4 border-t border-gray-200 text-center">
+                                <div class="text-sm text-gray-600">
+                                    <span id="salesCount" class="font-semibold">0</span> ventas mostradas
                                 </div>
                             </div>
                         </div>
@@ -1891,153 +2189,231 @@
         </div>
     </div>
 
-    {{-- Modal para el reporte de deudas rediseñado --}}
-        <div class="modal fade" id="debtReportModal" tabindex="-1" role="dialog"
-            aria-labelledby="debtReportModalLabel">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content modern-modal">
-                <div class="modal-body">
-                    <div class="loading-container">
-                        <div class="loading-spinner">
-                            <div class="spinner-ring"></div>
+    {{-- Modal para el reporte de deudas rediseñado con Alpine.js --}}
+    <div x-show="debtReportModal" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal('debtReportModal')"></div>
+        
+        <!-- Modal Content -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
+                
+                <!-- Header del Modal -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-pink-50 rounded-t-2xl">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-file-invoice-dollar text-white text-lg"></i>
                         </div>
-                        <div class="loading-text">
-                            <h5>Cargando reporte de deudas</h5>
-                            <p>Preparando información detallada...</p>
+                        <div>
+                            <h5 class="text-xl font-bold text-gray-900">Reporte de Deudas</h5>
+                            <p class="text-sm text-gray-600">Análisis detallado de deudas por cliente</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal para registrar pagos de deuda rediseñado --}}
-        <div class="modal fade" id="debtPaymentModal" tabindex="-1" role="dialog"
-            aria-labelledby="debtPaymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content modern-modal">
-                <div class="modal-header">
-                    <div class="modal-title-section">
-                        <div class="title-icon payment-icon">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <div class="title-content">
-                            <h5 class="modal-title">Registrar Pago de Deuda</h5>
-                            <p class="modal-subtitle">Gestiona los pagos de tus clientes de forma eficiente</p>
-                        </div>
-                    </div>
-                    <button type="button" class="modal-close" data-dismiss="modal">
+                    <button type="button" @click="closeModal('debtReportModal')" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
+                
+                <!-- Body del Modal -->
+                <div class="p-8">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <!-- Spinner de Carga -->
+                        <div class="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+                        
+                        <!-- Texto de Carga -->
+                        <div class="text-center">
+                            <h5 class="text-xl font-semibold text-gray-900 mb-2">Cargando reporte de deudas</h5>
+                            <p class="text-gray-600">Preparando información detallada...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal para registrar pagos de deuda rediseñado con Alpine.js --}}
+    <div x-show="debtPaymentModal" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal('debtPaymentModal')"></div>
+        
+        <!-- Modal Content -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
+                
+                <!-- Header del Modal -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-2xl">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="text-xl font-bold text-gray-900">Registrar Pago de Deuda</h5>
+                            <p class="text-sm text-gray-600">Gestiona los pagos de tus clientes de forma eficiente</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeModal('debtPaymentModal')" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
                 <form id="debtPaymentForm">
-                    <div class="modal-body">
+                    <div class="p-6 max-h-[70vh] overflow-y-auto">
                         <input type="hidden" id="payment_customer_id" name="customer_id">
                         
-                        <div class="form-sections">
-                            <div class="form-section">
-                                <div class="section-title">
-                                    <i class="fas fa-user"></i>
-                                    <span>Información del Cliente</span>
+                        <div class="space-y-6">
+                            <!-- Información del Cliente -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-user text-white text-sm"></i>
+                                    </div>
+                                    <h6 class="text-lg font-semibold text-gray-900">Información del Cliente</h6>
                                 </div>
-                                <div class="form-group">
-                                    <label for="customer_name">Cliente</label>
-                                    <div class="input-wrapper">
-                                        <i class="fas fa-user input-icon"></i>
-                                            <input type="text" class="form-control modern-input" id="customer_name"
-                                                readonly>
+                                <div class="space-y-3">
+                                    <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-user text-gray-400"></i>
+                                        </div>
+                                        <input type="text" id="customer_name" readonly
+                                            class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="form-section">
-                                <div class="section-title">
-                                    <i class="fas fa-chart-line"></i>
-                                    <span>Estado de Deuda</span>
+                            <!-- Estado de Deuda -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-white text-sm"></i>
+                                    </div>
+                                    <h6 class="text-lg font-semibold text-gray-900">Estado de Deuda</h6>
                                 </div>
-                                <div class="debt-status-card">
-                                    <div class="debt-current">
-                                        <label>Deuda Actual</label>
-                                        <div class="debt-amount-display">
-                                            <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                <input type="text" class="form-control modern-input" id="current_debt"
-                                                    readonly>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-semibold text-gray-700">Deuda Actual</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            </div>
+                                            <input type="text" id="current_debt" readonly
+                                                class="w-full pl-8 pr-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 font-semibold text-sm">
                                         </div>
                                     </div>
-                                    <div class="debt-remaining">
-                                        <label>Deuda Restante</label>
-                                        <div class="debt-amount-display">
-                                            <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                                <input type="text" class="form-control modern-input"
-                                                    id="remaining_debt" readonly>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-semibold text-gray-700">Deuda Restante</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            </div>
+                                            <input type="text" id="remaining_debt" readonly
+                                                class="w-full pl-8 pr-3 py-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 font-semibold text-sm">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="form-section">
-                                <div class="section-title">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span>Detalles del Pago</span>
+                            <!-- Detalles del Pago -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-credit-card text-white text-sm"></i>
+                                    </div>
+                                    <h6 class="text-lg font-semibold text-gray-900">Detalles del Pago</h6>
                                 </div>
-                                <div class="payment-details-grid">
-                                    <div class="form-group">
-                                        <label for="payment_amount">Monto del Pago</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-dollar-sign input-icon"></i>
-                                                <input type="number" class="form-control modern-input"
-                                                    id="payment_amount" name="payment_amount" step="0.01"
-                                                    min="0.01" required>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="space-y-2">
+                                        <label for="payment_amount" class="text-sm font-semibold text-gray-700">Monto del Pago</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                                            </div>
+                                            <input type="number" id="payment_amount" name="payment_amount" step="0.01" min="0.01" required
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                         </div>
-                                            <small class="form-text">El monto no puede ser mayor que la deuda
-                                                actual</small>
+                                        <small class="text-xs text-gray-500">El monto no puede ser mayor que la deuda actual</small>
                                     </div>
                                     
-                                    <div class="form-group">
-                                        <label for="payment_date">Fecha del Pago</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-calendar input-icon"></i>
-                                                <input type="date" class="form-control modern-input" id="payment_date"
-                                                    name="payment_date" required>
+                                    <div class="space-y-2">
+                                        <label for="payment_date" class="text-sm font-semibold text-gray-700">Fecha del Pago</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-calendar text-gray-400"></i>
+                                            </div>
+                                            <input type="date" id="payment_date" name="payment_date" required
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                         </div>
-                                        <small class="form-text">La fecha no puede ser mayor a hoy</small>
+                                        <small class="text-xs text-gray-500">La fecha no puede ser mayor a hoy</small>
                                     </div>
                                     
-                                    <div class="form-group">
-                                        <label for="payment_time">Hora del Pago</label>
-                                        <div class="input-wrapper">
-                                            <i class="fas fa-clock input-icon"></i>
-                                                <input type="time" class="form-control modern-input" id="payment_time"
-                                                    name="payment_time" required>
+                                    <div class="space-y-2">
+                                        <label for="payment_time" class="text-sm font-semibold text-gray-700">Hora del Pago</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-clock text-gray-400"></i>
+                                            </div>
+                                            <input type="time" id="payment_time" name="payment_time" required
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                         </div>
-                                        <small class="form-text">Hora en que se realizó el pago</small>
+                                        <small class="text-xs text-gray-500">Hora en que se realizó el pago</small>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="form-section">
-                                <div class="section-title">
-                                    <i class="fas fa-sticky-note"></i>
-                                    <span>Notas Adicionales</span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="payment_notes">Notas</label>
-                                    <div class="textarea-wrapper">
-                                            <textarea class="form-control modern-textarea" id="payment_notes" name="notes" rows="3"
-                                                placeholder="Detalles adicionales sobre este pago..."></textarea>
+                            <!-- Notas Adicionales -->
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center space-x-3 mb-4">
+                                    <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-sticky-note text-white text-sm"></i>
                                     </div>
+                                    <h6 class="text-lg font-semibold text-gray-900">Notas Adicionales</h6>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="payment_notes" class="text-sm font-semibold text-gray-700">Notas</label>
+                                    <textarea id="payment_notes" name="notes" rows="3" placeholder="Detalles adicionales sobre este pago..."
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm resize-vertical"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modern-btn" data-dismiss="modal">
-                            <i class="fas fa-times"></i>
-                            <span>Cancelar</span>
+
+                    <!-- Footer del Modal -->
+                    <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+                        <button type="button" class="flex items-center space-x-2 px-6 py-2.5 text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500" data-dismiss="modal">
+                            <i class="fas fa-times text-sm"></i>
+                            <span class="text-sm font-medium">Cancelar</span>
                         </button>
-                        <button type="submit" class="btn btn-primary modern-btn">
-                            <i class="fas fa-save"></i>
-                            <span>Registrar Pago</span>
+                        <button type="submit" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg">
+                            <i class="fas fa-save text-sm"></i>
+                            <span class="text-sm font-medium">Registrar Pago</span>
                         </button>
                     </div>
                 </form>
@@ -2052,7 +2428,7 @@
         /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
         :root {
             --primary-color: #667eea;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-color: #f093fb;
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --success-color: #4facfe;
@@ -2064,12 +2440,21 @@
             --purple-color: #a8edea;
             --purple-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             --dark-color: #2c3e50;
-            --light-color: #ecf0f1;
+            --light-color: #f8fafc;
+            --border-color: #e2e8f0;
             --border-radius: 12px;
             --border-radius-sm: 8px;
+            --shadow-light: 0 2px 8px rgba(0,0,0,0.07);
+            --shadow-medium: 0 4px 16px rgba(0,0,0,0.12);
+            --shadow-heavy: 0 20px 40px rgba(0,0,0,0.1);
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Alpine.js x-cloak directive */
+        [x-cloak] {
+            display: none !important;
         }
 
         /* ===== MEJORAS CON TAILWIND ===== */
@@ -3281,501 +3666,177 @@
         }
 
         /* ===== MODALS ===== */
-        .modern-modal {
-            border-radius: var(--border-radius);
-            border: none;
-            box-shadow: var(--shadow-hover);
+        /* Los modales ahora usan Tailwind CSS completamente */
+
+        /* ===== PAGINACIÓN (igual que categorías) ===== */
+        .custom-pagination {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 2rem !important;
+            background: white !important;
+            border-top: 1px solid var(--border-color) !important;
+            border-radius: 0 0 24px 24px !important;
         }
 
-        .modal-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 1px solid #dee2e6;
-            padding: 1.5rem;
+        .pagination-info {
+            color: #64748b !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
         }
 
-        .modal-title-section {
+        .pagination-controls {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+
+        .pagination-btn {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1.25rem !important;
+            border: 2px solid var(--border-color) !important;
+            background: white !important;
+            color: #64748b !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--light-color) !important;
+            border-color: var(--primary-color) !important;
+            color: var(--primary-color) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: var(--shadow-light) !important;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .page-numbers {
+            display: flex !important;
+            gap: 0.5rem !important;
+        }
+
+        .page-number {
+            width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 2px solid var(--border-color) !important;
+            background: white !important;
+            color: #64748b !important;
+            border-radius: 10px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+        }
+
+        .page-number:hover {
+            background: var(--light-color) !important;
+            border-color: var(--primary-color) !important;
+            color: var(--primary-color) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: var(--shadow-light) !important;
+        }
+
+        .page-number.active {
+            background: var(--gradient-primary) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: var(--shadow-medium) !important;
+        }
+
+        /* Paginación de Laravel (fallback) */
+        .pagination {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .title-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .payment-icon {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .title-content h5 {
-            margin: 0;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .modal-subtitle {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: var(--transition);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-close:hover {
-            background: #f8f9fa;
-            color: #333;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        /* Loading Container */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            text-align: center;
-        }
-
-        .loading-spinner {
-            margin-bottom: 1.5rem;
-        }
-
-        .spinner-ring {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-
-                100% {
-                    transform: rotate(360deg);
-                }
-        }
-
-        .loading-text h5 {
-            color: var(--dark-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .loading-text p {
-            color: #666;
-        }
-
-        /* Customer Details Modal */
-        .customer-details-container {
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .sales-history-section {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .section-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .section-title h6 {
-            margin: 0;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .section-title p {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .customer-name-highlight {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .filters-section {
-            padding: 1.5rem;
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-label {
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 0.9rem;
-        }
-
-            .date-range,
-            .amount-range {
-            display: flex;
             align-items: center;
             gap: 0.5rem;
+            margin-top: 1rem;
         }
 
-            .date-input,
-            .amount-input {
-            position: relative;
-            flex: 1;
+        .pagination .page-item {
+            list-style: none;
         }
 
-            .date-input i,
-            .amount-input .currency-symbol {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            z-index: 2;
-        }
-
-            .date-input input,
-            .amount-input input {
-            width: 100%;
-            padding: 0.75rem 0.75rem 0.75rem 2rem;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .amount-input input {
-            padding-left: 2.5rem;
-        }
-
-            .date-input input:focus,
-            .amount-input input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-            .date-separator,
-            .amount-separator {
-            color: #666;
+        .pagination .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            color: #6b7280;
+            text-decoration: none;
             font-weight: 500;
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        .filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius-sm);
+            transition: all 0.2s;
             background: white;
-            color: #666;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
         }
 
-        .filter-btn-apply {
-            background: var(--primary-gradient);
+        .pagination .page-link:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            color: #374151;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-color: transparent;
             color: white;
         }
 
-        .filter-btn-clear {
-            background: white;
-            border-color: #e9ecef;
-            color: #666;
+        .pagination .page-item.disabled .page-link {
+            background: #f9fafb;
+            border-color: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
         }
 
-        .filter-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .sales-table-container {
-            padding: 1.5rem;
-        }
-
-        .table-wrapper {
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: var(--border-radius-sm);
-            border: 1px solid #e9ecef;
-        }
-
-        .sales-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .sales-table th {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--dark-color);
-            border-bottom: 1px solid #dee2e6;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .sales-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .sales-table tr:hover {
-            background: #f8f9fa;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-
-        .empty-icon {
-            font-size: 3rem;
-            color: #ccc;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state p {
-            color: #666;
-            margin: 0;
-        }
-
-        .table-footer {
-            padding: 1rem 0 0 0;
-            text-align: center;
-            border-top: 1px solid #f8f9fa;
-            margin-top: 1rem;
-        }
-
-        .sales-count {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        /* Payment Modal */
-        .form-sections {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .form-section {
-            background: #f8f9fa;
-            border-radius: var(--border-radius-sm);
-            padding: 1.5rem;
-        }
-
-        .form-section .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .form-section .section-title i {
-            color: var(--primary-color);
-        }
-
-        .debt-status-card {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-            .debt-current,
-            .debt-remaining {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-            .debt-current label,
-            .debt-remaining label {
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 0.9rem;
-        }
-
-        .debt-amount-display {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .payment-details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 0.9rem;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            z-index: 2;
-        }
-
-        .modern-input {
-            width: 100%;
-            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .modern-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .modern-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.9rem;
-            transition: var(--transition);
-            resize: vertical;
-        }
-
-        .modern-textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-text {
-            color: #666;
-            font-size: 0.8rem;
-        }
-
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid #dee2e6;
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-
-        .modern-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-primary.modern-btn {
-            background: var(--primary-gradient);
-            color: white;
-        }
-
-        .btn-secondary.modern-btn {
-            background: #6c757d;
-            color: white;
-        }
-
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
+        .pagination .page-item.disabled .page-link:hover {
+            background: #f9fafb;
+            border-color: #e5e7eb;
+            color: #9ca3af;
         }
 
         /* ===== RESPONSIVE DESIGN ===== */
         @media (max-width: 768px) {
+            .custom-pagination {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            .pagination-info {
+                font-size: 0.9rem;
+            }
+
+            .pagination-controls {
+                gap: 0.5rem;
+            }
+
+            .pagination-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .page-number {
+                width: 36px;
+                height: 36px;
+                font-size: 0.85rem;
+            }
             .hero-section {
                 padding: 1.5rem;
             }
@@ -3848,6 +3909,25 @@
         }
 
         @media (max-width: 576px) {
+            .custom-pagination {
+                padding: 0.75rem;
+            }
+
+            .pagination-info {
+                font-size: 0.8rem;
+            }
+
+            .pagination-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .page-number {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+
             .hero-title {
                 font-size: 1.5rem;
             }
@@ -4083,21 +4163,7 @@
             outline-offset: 2px;
         }
 
-        /* Efecto de profundidad para los modales */
-        .modal-backdrop {
-            backdrop-filter: blur(5px);
-        }
-
-        .modern-modal {
-            transform: scale(0.9);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .modal.show .modern-modal {
-            transform: scale(1);
-            opacity: 1;
-        }
+        /* Los modales ahora usan Tailwind CSS completamente */
 
         /* --- BOTONES DE ACCIÓN EN TABLA --- */
         .td-actions .action-buttons {
@@ -5422,6 +5488,219 @@
                 });
             });
             
+            // Función para reinicializar eventos después de cargar nueva página
+            function initializeCustomerEvents() {
+                // Reinicializar tooltips
+                if (typeof $ !== 'undefined' && $.fn.tooltip) {
+                    $('[data-toggle="tooltip"]').tooltip();
+                }
+                
+                // Reinicializar eventos de botones de acción
+                $('.show-customer').off('click').on('click', function() {
+                    const customerId = $(this).data('id');
+                    showCustomerDetails(customerId);
+                });
+                
+                $('.delete-customer').off('click').on('click', function() {
+                    const customerId = $(this).data('id');
+                    deleteCustomer(customerId);
+                });
+                
+                $('.edit-debt-btn, .edit-debt-btn-small').off('click').on('click', function() {
+                    const customerId = $(this).closest('[data-customer-id]').data('customer-id');
+                    showDebtPaymentModal(customerId);
+                });
+                
+                // Reinicializar eventos de filtros
+                $('#applyFilters').off('click').on('click', function() {
+                    applySalesFilters();
+                });
+                
+                $('#clearFilters').off('click').on('click', function() {
+                    clearSalesFilters();
+                });
+                
+                console.log('Eventos de clientes reinicializados');
+            }
+            
+            // Llamar a la función al cargar la página
+            $(document).ready(function() {
+                initializeCustomerEvents();
+            });
+            
+            // ===== PAGINACIÓN (igual que categorías) =====
+            // Variables globales para paginación
+            let currentPage = 1;
+            const itemsPerPage = 25;
+            let allCustomers = [];
+            let filteredCustomers = [];
+
+            // Inicializar la página
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Clientes page loaded');
+                console.log('Pagination elements:', {
+                    container: document.querySelector('.custom-pagination'),
+                    info: document.getElementById('paginationInfo'),
+                    prevBtn: document.getElementById('prevPage'),
+                    nextBtn: document.getElementById('nextPage'),
+                    pageNumbers: document.getElementById('pageNumbers')
+                });
+                initializeCustomersPage();
+                initializeEventListeners();
+            });
+
+            // Inicializar la página de clientes
+            function initializeCustomersPage() {
+                console.log('Initializing customers page...');
+                
+                // Obtener todas las categorías
+                getAllCustomers();
+                
+                // Mostrar primera página
+                showPage(1);
+            }
+
+            // Obtener todas las categorías
+            function getAllCustomers() {
+                const tableRows = document.querySelectorAll('#customersTableBody tr');
+                const customerCards = document.querySelectorAll('.customer-card');
+                const mobileCards = document.querySelectorAll('.mobile-card');
+                
+                allCustomers = [];
+                
+                // Procesar filas de tabla
+                tableRows.forEach((row, index) => {
+                    const customerName = row.querySelector('.customer-name').textContent.trim();
+                    const customerEmail = row.querySelector('.customer-email').textContent.trim();
+                    
+                    allCustomers.push({
+                        element: row,
+                        cardElement: customerCards[index],
+                        mobileElement: mobileCards[index],
+                        data: {
+                            id: row.dataset.customerId,
+                            name: customerName,
+                            email: customerEmail
+                        }
+                    });
+                });
+                
+                filteredCustomers = [...allCustomers];
+                console.log('Customers loaded:', allCustomers.length);
+            }
+
+            // Mostrar página específica
+            function showPage(page) {
+                const startIndex = (page - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                
+                // Ocultar todas las filas/tarjetas
+                document.querySelectorAll('#customersTableBody tr').forEach(row => row.style.display = 'none');
+                document.querySelectorAll('.customer-card').forEach(card => card.style.display = 'none');
+                document.querySelectorAll('.mobile-card').forEach(card => card.style.display = 'none');
+                
+                // Mostrar solo los elementos de la página actual
+                filteredCustomers.slice(startIndex, endIndex).forEach((customer, index) => {
+                    if (customer.element) customer.element.style.display = 'table-row';
+                    if (customer.cardElement) customer.cardElement.style.display = 'block';
+                    if (customer.mobileElement) customer.mobileElement.style.display = 'block';
+                    
+                    // Actualizar números de fila
+                    if (customer.element) {
+                        customer.element.querySelector('.row-number').textContent = startIndex + index + 1;
+                    }
+                });
+                
+                // Actualizar información de paginación
+                updatePaginationInfo(page, filteredCustomers.length);
+                updatePaginationControls(page, Math.ceil(filteredCustomers.length / itemsPerPage));
+            }
+
+            // Actualizar información de paginación
+            function updatePaginationInfo(currentPage, totalItems) {
+                const startItem = (currentPage - 1) * itemsPerPage + 1;
+                const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+                document.getElementById('paginationInfo').textContent = `Mostrando ${startItem}-${endItem} de ${totalItems} clientes`;
+            }
+
+            // Actualizar controles de paginación
+            function updatePaginationControls(currentPage, totalPages) {
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                const pageNumbers = document.getElementById('pageNumbers');
+                
+                // Habilitar/deshabilitar botones
+                prevBtn.disabled = currentPage === 1;
+                nextBtn.disabled = currentPage === totalPages;
+                
+                // Generar números de página
+                let pageNumbersHTML = '';
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    pageNumbersHTML += `
+                        <button class="page-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                }
+                
+                pageNumbers.innerHTML = pageNumbersHTML;
+            }
+
+            // Ir a página específica
+            function goToPage(page) {
+                currentPage = page;
+                showPage(page);
+            }
+
+            // Función de búsqueda
+            function filterCustomers(searchTerm) {
+                const searchLower = searchTerm.toLowerCase().trim();
+                
+                if (!searchLower) {
+                    filteredCustomers = [...allCustomers];
+                } else {
+                    filteredCustomers = allCustomers.filter(customer => {
+                        const nameMatch = customer.data.name.toLowerCase().includes(searchLower);
+                        const emailMatch = customer.data.email.toLowerCase().includes(searchLower);
+                        return nameMatch || emailMatch;
+                    });
+                }
+                
+                currentPage = 1;
+                showPage(1);
+            }
+
+            // Inicializar event listeners
+            function initializeEventListeners() {
+                console.log('Initializing event listeners...');
+                
+                // Paginación
+                document.getElementById('prevPage').addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        showPage(currentPage);
+                    }
+                });
+                
+                document.getElementById('nextPage').addEventListener('click', function() {
+                    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        showPage(currentPage);
+                    }
+                });
+                
+                console.log('Event listeners initialized');
+            }
+            
             })
         });
             </script>< !-- JavaScript adicional ya está definido arriba -->< !-- CSS adicional --><style>
@@ -5465,6 +5744,95 @@
             /* Asegurar que el gradiente de fondo cubra toda la página */
             .min-h-screen {
                 min-height: 100vh;
+            }
+
+            /* ===== ESTILOS FINALES DE PAGINACIÓN ===== */
+            .custom-pagination {
+                background: white !important;
+                border-top: 1px solid #e2e8f0 !important;
+                border-radius: 0 0 24px 24px !important;
+                padding: 2rem !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+
+            .pagination-info {
+                color: #64748b !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+
+            .pagination-controls {
+                display: flex !important;
+                align-items: center !important;
+                gap: 1rem !important;
+            }
+
+            .pagination-btn {
+                display: flex !important;
+                align-items: center !important;
+                gap: 0.75rem !important;
+                padding: 0.75rem 1.25rem !important;
+                border: 2px solid #e2e8f0 !important;
+                background: white !important;
+                color: #64748b !important;
+                border-radius: 12px !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+
+            .pagination-btn:hover:not(:disabled) {
+                background: #f8fafc !important;
+                border-color: #667eea !important;
+                color: #667eea !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+            }
+
+            .pagination-btn:disabled {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            .page-numbers {
+                display: flex !important;
+                gap: 0.5rem !important;
+            }
+
+            .page-number {
+                width: 40px !important;
+                height: 40px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border: 2px solid #e2e8f0 !important;
+                background: white !important;
+                color: #64748b !important;
+                border-radius: 10px !important;
+                cursor: pointer !important;
+                transition: all 0.3s ease !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+
+            .page-number:hover {
+                background: #f8fafc !important;
+                border-color: #667eea !important;
+                color: #667eea !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+            }
+
+            .page-number.active {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: white !important;
+                border-color: #667eea !important;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
             }
         </style>
 @stop

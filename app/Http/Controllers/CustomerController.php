@@ -32,7 +32,7 @@ class CustomerController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
          // Obtener el arqueo de caja actual una sola vez para evitar N+1 queries
@@ -44,31 +44,31 @@ class CustomerController extends Controller
          
 
 
-         // Obtener todos los clientes con sus ventas
+         // Obtener todos los clientes con sus ventas (paginados)
+         $perPage = $request->get('per_page', 25);
          $customers = Customer::with('sales')
             ->where('company_id', $this->company->id)
             ->orderBy('name')
-            ->get();
+            ->paginate($perPage);
          $currency = $this->currencies;
          $company = $this->company;
 
-         // Calcular estadísticas básicas
-         $totalCustomers = $customers->count();
-         $activeCustomers = $customers->filter(function ($customer) {
-            return $customer->sales->count() > 0;
-         })->count();
-         $newCustomers = $customers->filter(function ($customer) {
-            return $customer->created_at->isCurrentMonth();
-         })->count();
+         // Calcular estadísticas básicas (usando consultas separadas para totales)
+         $totalCustomers = Customer::where('company_id', $this->company->id)->count();
+         $activeCustomers = Customer::where('company_id', $this->company->id)
+            ->whereHas('sales')
+            ->count();
+         $newCustomers = Customer::where('company_id', $this->company->id)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
          $customerGrowth = $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100) : 0;
 
          // Calcular la deuda total de todos los clientes
-         $totalDebt = $customers->sum('total_debt');
+         $totalDebt = Customer::where('company_id', $this->company->id)->sum('total_debt');
 
          // Calcular ingresos totales
-         $totalRevenue = $customers->sum(function ($customer) {
-            return $customer->sales->sum('total_price');
-         });
+         $totalRevenue = \App\Models\Sale::where('company_id', $this->company->id)->sum('total_price');
 
          // Optimizar cálculo de estadísticas de deudas usando consultas consolidadas
          $customerIds = $customers->pluck('id')->toArray();
@@ -89,7 +89,7 @@ class CustomerController extends Controller
                ->groupBy('customer_id');
          }
 
-         // Calcular estadísticas optimizadas
+         // Calcular estadísticas optimizadas (solo para la página actual)
          $defaultersCount = 0;
          $currentDebtorsCount = 0;
          $previousCashCountDebtTotal = 0;
@@ -127,8 +127,6 @@ class CustomerController extends Controller
             $hasOldSales = $salesBeforeCashCount->count() > 0;
             $isDefaulter = $previousDebt > 0;
             
-
-            
             // Almacenar datos calculados
             $customersData[$customer->id] = [
                'isDefaulter' => $isDefaulter,
@@ -147,6 +145,13 @@ class CustomerController extends Controller
                $currentCashCountDebtTotal += $currentDebt;
             }
          }
+
+         // Calcular estadísticas totales de morosos (para toda la base de datos)
+         $totalDefaultersCount = Customer::where('company_id', $this->company->id)
+            ->whereHas('sales', function($query) use ($openingDate) {
+               $query->where('sale_date', '<', $openingDate);
+            })
+            ->count();
 
          return view('admin.customers.index', compact(
             'customers',
