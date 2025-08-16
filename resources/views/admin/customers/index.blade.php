@@ -555,13 +555,45 @@
                 },
                 
                 loadCustomerDetails(customerId) {
-                    // Cargar detalles del cliente usando AJAX
-                    fetch(`/admin/customers/${customerId}/show`)
-                        .then(response => response.text())
-                        .then(html => {
-                            const modalBody = document.querySelector('#showCustomerModal .modal-body');
-                            if (modalBody) {
-                                modalBody.innerHTML = html;
+                    // Cargar datos del cliente y su historial de ventas
+                    fetch(`/customers/${customerId}?customer_details=1`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Llenar información del cliente
+                                const customerNameElement = document.getElementById('customerName');
+                                const customerNameField = document.getElementById('customer_name_details');
+                                const customerPhoneField = document.getElementById('customer_phone_details');
+                                const customerStatusElement = document.getElementById('customer_status_details');
+                                
+                                if (customerNameElement) customerNameElement.textContent = data.customer.name;
+                                if (customerNameField) customerNameField.value = data.customer.name;
+                                if (customerPhoneField) customerPhoneField.value = data.customer.phone || 'No disponible';
+                                
+                                // Actualizar estado del cliente
+                                if (customerStatusElement) {
+                                    if (data.customer.is_defaulter) {
+                                        customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                                        customerStatusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
+                                    } else {
+                                        customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                                        customerStatusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
+                                    }
+                                }
+                                
+                                // Guardar datos de ventas para filtrado
+                                window.customerSalesData = data.sales || [];
+                                
+                                // Cargar historial de ventas
+                                this.loadSalesHistory();
+                                
+                                // Inicializar filtros
+                                this.initializeCustomerDetailsFilters();
+                                
+                                // Cargar filtros guardados
+                                this.loadSavedCustomerFilters();
+                            } else {
+                                console.error('Error cargando detalles del cliente:', data.message);
                             }
                         })
                         .catch(error => {
@@ -634,6 +666,201 @@
                         .catch(error => {
                             console.error('Error cargando datos de pago de deuda:', error);
                         });
+                },
+
+                loadSalesHistory() {
+                    if (!window.customerSalesData) return;
+                    
+                    const tableBody = document.getElementById('salesHistoryTable');
+                    const salesCountElement = document.getElementById('salesCount');
+                    
+                    if (tableBody && salesCountElement) {
+                        if (window.customerSalesData.length === 0) {
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="3" class="px-4 py-12 text-center">
+                                        <div class="flex flex-col items-center space-y-3">
+                                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-info-circle text-2xl text-gray-400"></i>
+                                            </div>
+                                            <p class="text-gray-500">No hay ventas registradas</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            salesCountElement.textContent = '0';
+                        } else {
+                            const rows = window.customerSalesData.map(sale => `
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                        ${new Date(sale.created_at).toLocaleDateString('es-ES')}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">${sale.unique_products} productos únicos</span>
+                                            <span class="text-xs text-gray-500">${sale.total_products} unidades totales</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100">
+                                        $ ${parseFloat(sale.total).toFixed(2)}
+                                    </td>
+                                </tr>
+                            `).join('');
+                            
+                            tableBody.innerHTML = rows;
+                            salesCountElement.textContent = window.customerSalesData.length;
+                        }
+                    }
+                },
+
+                initializeCustomerDetailsFilters() {
+                    // Event listeners para filtros en tiempo real
+                    const dateFromInput = document.getElementById('dateFrom');
+                    const dateToInput = document.getElementById('dateTo');
+                    const amountFromInput = document.getElementById('amountFrom');
+                    const amountToInput = document.getElementById('amountTo');
+                    const clearFiltersBtn = document.getElementById('clearFilters');
+                    
+                    // Filtros en tiempo real con debounce
+                    let filterTimeout;
+                    const applyFilters = () => {
+                        clearTimeout(filterTimeout);
+                        filterTimeout = setTimeout(() => {
+                            this.filterSalesHistory();
+                        }, 300);
+                    };
+                    
+                    if (dateFromInput) dateFromInput.addEventListener('input', applyFilters);
+                    if (dateToInput) dateToInput.addEventListener('input', applyFilters);
+                    if (amountFromInput) amountFromInput.addEventListener('input', applyFilters);
+                    if (amountToInput) amountToInput.addEventListener('input', applyFilters);
+                    
+                    // Botón limpiar filtros
+                    if (clearFiltersBtn) {
+                        clearFiltersBtn.addEventListener('click', () => {
+                            this.clearCustomerFilters();
+                        });
+                    }
+                },
+
+                filterSalesHistory() {
+                    if (!window.customerSalesData) return;
+                    
+                    const dateFrom = document.getElementById('dateFrom')?.value;
+                    const dateTo = document.getElementById('dateTo')?.value;
+                    const amountFrom = parseFloat(document.getElementById('amountFrom')?.value) || 0;
+                    const amountTo = parseFloat(document.getElementById('amountTo')?.value) || Infinity;
+                    
+                    // Guardar filtros actuales
+                    this.saveCustomerFilters({ dateFrom, dateTo, amountFrom, amountTo });
+                    
+                    // Filtrar datos
+                    let filteredData = window.customerSalesData.filter(sale => {
+                        const saleDate = new Date(sale.created_at);
+                        const saleAmount = parseFloat(sale.total);
+                        
+                        // Filtro de fecha
+                        if (dateFrom && saleDate < new Date(dateFrom)) return false;
+                        if (dateTo && saleDate > new Date(dateTo + 'T23:59:59')) return false;
+                        
+                        // Filtro de monto
+                        if (saleAmount < amountFrom) return false;
+                        if (amountTo !== Infinity && saleAmount > amountTo) return false;
+                        
+                        return true;
+                    });
+                    
+                    // Actualizar tabla
+                    this.updateSalesTable(filteredData);
+                },
+
+                updateSalesTable(filteredData) {
+                    const tableBody = document.getElementById('salesHistoryTable');
+                    const salesCountElement = document.getElementById('salesCount');
+                    
+                    if (tableBody && salesCountElement) {
+                        if (filteredData.length === 0) {
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="3" class="px-4 py-12 text-center">
+                                        <div class="flex flex-col items-center space-y-3">
+                                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-search text-2xl text-gray-400"></i>
+                                            </div>
+                                            <p class="text-gray-500">No se encontraron ventas con los filtros aplicados</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        } else {
+                            const rows = filteredData.map(sale => `
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                        ${new Date(sale.created_at).toLocaleDateString('es-ES')}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">${sale.unique_products} productos únicos</span>
+                                            <span class="text-xs text-gray-500">${sale.total_products} unidades totales</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100">
+                                        $ ${parseFloat(sale.total).toFixed(2)}
+                                    </td>
+                                </tr>
+                            `).join('');
+                            
+                            tableBody.innerHTML = rows;
+                        }
+                        
+                        salesCountElement.textContent = filteredData.length;
+                    }
+                },
+
+                saveCustomerFilters(filters) {
+                    localStorage.setItem('customerDetailsFilters', JSON.stringify(filters));
+                },
+
+                loadSavedCustomerFilters() {
+                    const savedFilters = localStorage.getItem('customerDetailsFilters');
+                    if (savedFilters) {
+                        const filters = JSON.parse(savedFilters);
+                        
+                        const dateFromInput = document.getElementById('dateFrom');
+                        const dateToInput = document.getElementById('dateTo');
+                        const amountFromInput = document.getElementById('amountFrom');
+                        const amountToInput = document.getElementById('amountTo');
+                        
+                        if (dateFromInput && filters.dateFrom) dateFromInput.value = filters.dateFrom;
+                        if (dateToInput && filters.dateTo) dateToInput.value = filters.dateTo;
+                        if (amountFromInput && filters.amountFrom) amountFromInput.value = filters.amountFrom;
+                        if (amountToInput && filters.amountTo) amountToInput.value = filters.amountTo;
+                        
+                        // Aplicar filtros si hay datos
+                        if (window.customerSalesData) {
+                            this.filterSalesHistory();
+                        }
+                    }
+                },
+
+                clearCustomerFilters() {
+                    const dateFromInput = document.getElementById('dateFrom');
+                    const dateToInput = document.getElementById('dateTo');
+                    const amountFromInput = document.getElementById('amountFrom');
+                    const amountToInput = document.getElementById('amountTo');
+                    
+                    if (dateFromInput) dateFromInput.value = '';
+                    if (dateToInput) dateToInput.value = '';
+                    if (amountFromInput) amountFromInput.value = '';
+                    if (amountToInput) amountToInput.value = '';
+                    
+                    // Limpiar filtros guardados
+                    localStorage.removeItem('customerDetailsFilters');
+                    
+                    // Recargar datos originales
+                    if (window.customerSalesData) {
+                        this.updateSalesTable(window.customerSalesData);
+                    }
                 },
 
                 initializeDebtPaymentEvents() {
@@ -2949,21 +3176,59 @@
 
                 <!-- Body del Modal -->
                 <div class="p-6 max-h-[70vh] overflow-y-auto">
+                    <!-- Información del Cliente -->
+                    <div class="bg-gradient-to-br from-blue-50/90 via-indigo-50/75 to-purple-50/90 rounded-xl shadow-sm border border-blue-200/60 p-6 mb-6 backdrop-blur-sm">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <h6 class="text-lg font-semibold text-gray-900">Información del Cliente</h6>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-gray-700">Cliente</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="customer_name_details" readonly
+                                        class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-gray-700">Teléfono</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-phone text-gray-400"></i>
+                                    </div>
+                                    <input type="text" id="customer_phone_details" readonly
+                                        class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-semibold text-gray-700">Estado:</span>
+                                <span id="customer_status_details" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                         <!-- Header de la Sección -->
-                        <div class="flex items-center space-x-4 p-6 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <div class="flex items-center space-x-4 p-6 bg-gradient-to-r from-blue-500 to-indigo-600 border-b border-gray-200">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-shopping-cart text-white"></i>
                             </div>
                             <div>
-                                <h6 class="text-lg font-semibold text-gray-900">Historial de Ventas</h6>
-                                <p class="text-sm text-gray-600">Cliente: <span id="customerName" class="font-semibold text-blue-600"></span></p>
+                                <h6 class="text-lg font-semibold text-white">Historial de Ventas</h6>
+                                <p class="text-sm text-blue-100">Cliente: <span id="customerName" class="font-semibold text-white"></span></p>
                             </div>
                         </div>
                         
                         <!-- Filtros -->
-                        <div class="p-6 border-b border-gray-100">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="p-6 border-b border-gray-100 bg-gradient-to-br from-purple-50/90 via-pink-50/75 to-rose-50/90 backdrop-blur-sm">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <!-- Rango de Fechas -->
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-gray-700">Rango de Fechas</label>
@@ -2973,7 +3238,7 @@
                                                 <i class="fas fa-calendar text-gray-400"></i>
                                             </div>
                                             <input type="date" id="dateFrom" placeholder="Desde" 
-                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                         </div>
                                         <span class="text-sm text-gray-500 font-medium">hasta</span>
                                         <div class="relative flex-1">
@@ -2981,7 +3246,7 @@
                                                 <i class="fas fa-calendar text-gray-400"></i>
                                             </div>
                                             <input type="date" id="dateTo" placeholder="Hasta" 
-                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                         </div>
                                     </div>
                                 </div>
@@ -2995,7 +3260,7 @@
                                                 <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
                                             </div>
                                             <input type="number" id="amountFrom" placeholder="Mínimo" step="0.01" min="0"
-                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                         </div>
                                         <span class="text-sm text-gray-500 font-medium">-</span>
                                         <div class="relative flex-1">
@@ -3003,23 +3268,18 @@
                                                 <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
                                             </div>
                                             <input type="number" id="amountTo" placeholder="Máximo" step="0.01" min="0"
-                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                                class="w-full pl-8 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Botones de Filtro -->
-                            <div class="flex justify-end space-x-3">
+                            <!-- Botón Limpiar Filtros -->
+                            <div class="flex justify-end mt-4">
                                 <button type="button" id="clearFilters" 
                                     class="flex items-center space-x-2 px-4 py-2.5 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
                                     <i class="fas fa-times text-sm"></i>
-                                    <span class="text-sm font-medium">Limpiar</span>
-                                </button>
-                                <button type="button" id="applyFilters" 
-                                    class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md hover:shadow-lg">
-                                    <i class="fas fa-filter text-sm"></i>
-                                    <span class="text-sm font-medium">Aplicar Filtros</span>
+                                    <span class="text-sm font-medium">Limpiar Filtros</span>
                                 </button>
                             </div>
                         </div>
@@ -3028,11 +3288,11 @@
                         <div class="p-6">
                             <div class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
                                 <table class="w-full">
-                                    <thead class="bg-gradient-to-r from-gray-50 to-blue-50 sticky top-0">
+                                    <thead class="bg-gradient-to-r from-blue-500 to-indigo-600 sticky top-0">
                                         <tr>
-                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Fecha</th>
-                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Productos</th>
-                                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Total</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">Fecha</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">Productos</th>
+                                            <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody id="salesHistoryTable">

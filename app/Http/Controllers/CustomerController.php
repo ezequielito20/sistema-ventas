@@ -369,6 +369,85 @@ class CustomerController extends Controller
                ], 500);
             }
          }
+         
+         // Verificar si es una petición para detalles del cliente
+         if (request()->has('customer_details')) {
+            try {
+               // Obtener el arqueo de caja actual para determinar si es moroso
+               $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+                  ->whereNull('closing_date')
+                  ->first();
+               
+               $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+               // Obtener información de ventas y pagos del cliente
+               $customerSales = \App\Models\Sale::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->select('sale_date', 'total_price')
+                  ->get();
+
+               $customerPayments = [];
+               if (Schema::hasTable('debt_payments')) {
+                  $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                     ->where('company_id', $this->company->id)
+                     ->select('payment_amount')
+                     ->get();
+               }
+
+               // Calcular ventas antes del arqueo actual
+               $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
+               $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
+               $totalPayments = $customerPayments->sum('payment_amount');
+               
+               // Calcular deuda anterior
+               $previousDebt = 0;
+               if ($totalSalesBefore > 0) {
+                  $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+               }
+               
+               // Determinar si es moroso
+               $isDefaulter = $previousDebt > 0;
+               
+               // Obtener historial de ventas con información de productos
+               $sales = $customer->sales()
+                  ->with(['saleDetails.product'])
+                  ->orderBy('sale_date', 'desc')
+                  ->get()
+                  ->map(function ($sale) {
+                     $uniqueProducts = $sale->saleDetails->count();
+                     $totalProducts = $sale->saleDetails->sum('quantity');
+                     
+                     return [
+                        'id' => $sale->id,
+                        'created_at' => $sale->sale_date,
+                        'total' => $sale->total_price,
+                        'unique_products' => $uniqueProducts,
+                        'total_products' => $totalProducts
+                     ];
+                  });
+               
+               return response()->json([
+                  'success' => true,
+                  'customer' => [
+                     'id' => $customer->id,
+                     'name' => $customer->name,
+                     'phone' => $customer->phone,
+                     'is_defaulter' => $isDefaulter
+                  ],
+                  'sales' => $sales
+               ]);
+            } catch (\Exception $e) {
+               Log::error('Error al obtener detalles del cliente: ' . $e->getMessage(), [
+                  'customer_id' => $customer->id,
+                  'error' => $e->getMessage()
+               ]);
+               
+               return response()->json([
+                  'success' => false,
+                  'message' => 'Error al obtener detalles del cliente'
+               ], 500);
+            }
+         }
 
          // Obtener estadísticas del cliente
          $stats = [
