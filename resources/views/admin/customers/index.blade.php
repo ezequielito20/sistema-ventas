@@ -2039,7 +2039,7 @@
                                         <div class="debt-bs-info">
                                     @if ($customer->total_debt > 0)
                                         <span class="bs-debt" data-debt="{{ $customer->total_debt }}">
-                                            Bs. {{ number_format($customer->total_debt, 2) }}
+                                            Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 134), 2) }}
                                         </span>
                                     @else
                                         <span class="no-debt-badge">Sin deuda</span>
@@ -2203,7 +2203,7 @@
                                                     </p>
                                                     <p class="bs-debt text-xs text-gray-600"
                                                         data-debt="{{ $customer->total_debt }}">
-                                                    Bs. {{ number_format($customer->total_debt, 2) }}
+                                                    Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 134), 2) }}
                                                     </p>
                                                 </div>
                                                     @if ($customersData[$customer->id]['isDefaulter'])
@@ -5222,20 +5222,45 @@
                         currentExchangeRate = rate;
                         localStorage.setItem('exchangeRate', rate);
                     }
+                    
+                    // Actualizar valores en Bs en tiempo real
+                    updateBsValues(rate);
+                    
                     console.log('Tipo de cambio guardado automáticamente:', rate);
                 }
             });
             
             // Función para actualizar todos los valores en Bs
             function updateBsValues(rate) {
+                console.log('Actualizando valores en Bs con tasa:', rate);
+                
+                // Actualizar elementos con clase bs-debt
                 $('.bs-debt').each(function() {
                     const debtUsd = parseFloat($(this).data('debt'));
-                    const debtBs = debtUsd * rate;
-                                $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }));
+                    if (!isNaN(debtUsd)) {
+                        const debtBs = debtUsd * rate;
+                        $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
+                        console.log('Actualizado bs-debt:', debtUsd, '->', debtBs);
+                    }
                 });
+                
+                // Actualizar elementos con clase debt-bs-info (para la tabla)
+                $('.debt-bs-info .bs-debt').each(function() {
+                    const debtUsd = parseFloat($(this).data('debt'));
+                    if (!isNaN(debtUsd)) {
+                        const debtBs = debtUsd * rate;
+                        $(this).html('Bs. ' + debtBs.toLocaleString('es-VE', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
+                        console.log('Actualizado debt-bs-info:', debtUsd, '->', debtBs);
+                    }
+                });
+                
+                console.log('Actualización de valores en Bs completada');
             }
             
             // Botón de reporte de deudas
