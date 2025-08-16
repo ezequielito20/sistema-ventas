@@ -19,22 +19,22 @@
     <!-- Información de la Empresa y Tipo de Cambio -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Información de la Empresa -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div class="bg-gradient-to-br from-blue-50/90 via-indigo-50/75 to-purple-50/90 rounded-xl shadow-sm border border-blue-200/60 p-4 backdrop-blur-sm">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
                     <i class="fas fa-building text-white"></i>
                 </div>
                 <div>
                     <h6 class="font-semibold text-gray-900">{{ $company->name }}</h6>
-                    <p class="text-sm text-gray-500">
-                        <i class="far fa-clock mr-1"></i>{{ date('d/m/Y H:i:s') }}
+                    <p class="text-sm text-gray-600">
+                        <i class="far fa-clock mr-1 text-blue-500"></i>{{ date('d/m/Y H:i:s') }}
                     </p>
                 </div>
             </div>
         </div>
 
         <!-- Tipo de Cambio -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div class="bg-gradient-to-br from-green-50/90 via-emerald-50/75 to-teal-50/90 rounded-xl shadow-sm border border-green-200/60 p-4 backdrop-blur-sm">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <span class="text-sm font-medium text-gray-700">Conversión:</span>
@@ -56,7 +56,7 @@
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="bg-gradient-to-br from-orange-50/90 via-amber-50/75 to-yellow-50/90 rounded-xl shadow-sm border border-orange-200/60 p-4 mb-6 backdrop-blur-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Búsqueda -->
             <div class="space-y-1">
@@ -102,48 +102,48 @@
     </div>
 
     <!-- Resumen de Estadísticas -->
-    <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-sm border border-purple-200 p-6 mb-6">
+    <div class="bg-gradient-to-br from-purple-50/95 via-pink-50/80 to-rose-50/95 rounded-xl shadow-sm border border-purple-200/70 p-6 mb-6 backdrop-blur-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <!-- Total Clientes -->
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
                     <i class="fas fa-users text-white"></i>
                 </div>
                 <div>
-                    <div class="text-sm font-medium text-gray-600">Total Clientes</div>
+                    <div class="text-sm font-medium text-gray-700">Total Clientes</div>
                     <div class="text-2xl font-bold text-gray-900">{{ $customers->count() }}</div>
                 </div>
             </div>
 
             <!-- Morosos -->
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
                     <i class="fas fa-user-clock text-white"></i>
                 </div>
                 <div>
-                    <div class="text-sm font-medium text-gray-600">Morosos</div>
+                    <div class="text-sm font-medium text-gray-700">Morosos</div>
                     <div class="text-2xl font-bold text-red-600">{{ $defaultersCount }} / $ {{ number_format($defaultersDebt, 2) }}</div>
                 </div>
             </div>
 
             <!-- Deuda Actual -->
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
                     <i class="fas fa-user-check text-white"></i>
                 </div>
                 <div>
-                    <div class="text-sm font-medium text-gray-600">Deuda Actual</div>
+                    <div class="text-sm font-medium text-gray-700">Deuda Actual</div>
                     <div class="text-2xl font-bold text-yellow-600">{{ $currentDebtorsCount }} / $ {{ number_format($currentDebt, 2) }}</div>
                 </div>
             </div>
 
             <!-- Deuda Total -->
             <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
                     <i class="fas fa-dollar-sign text-white"></i>
                 </div>
                 <div>
-                    <div class="text-sm font-medium text-gray-600">Deuda Total</div>
+                    <div class="text-sm font-medium text-gray-700">Deuda Total</div>
                     <div class="text-2xl font-bold text-red-600">$ {{ number_format($totalDebt, 2) }}</div>
                 </div>
             </div>
@@ -164,13 +164,38 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
-                <thead class="bg-gradient-to-r from-gray-50 to-blue-50">
+                <thead class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
                     <tr>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">#</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Cliente</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Contacto</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Deuda Total</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Deuda en Bs</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-hashtag text-blue-200"></i>
+                                <span>#</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-user text-blue-200"></i>
+                                <span>Cliente</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-phone text-blue-200"></i>
+                                <span>Contacto</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-dollar-sign text-blue-200"></i>
+                                <span>Deuda Total</span>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-500">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-coins text-blue-200"></i>
+                                <span>Deuda en Bs</span>
+                            </div>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
