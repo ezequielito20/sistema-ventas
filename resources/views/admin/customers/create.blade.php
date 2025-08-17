@@ -1,766 +1,453 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Crear Cliente')
 
-@section('content_header')
-    <div class="hero-section mb-4">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-lg-8 col-md-7 col-12">
-                    <div class="hero-content">
-                        <h1 class="hero-title">
-                            <i class="fas fa-user-plus-gradient"></i>
-                            Crear Nuevo Cliente
-                        </h1>
-                        <p class="hero-subtitle">Ingrese la información del cliente en el formulario para registrarlo en el sistema</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-5 col-12">
-                    <div class="hero-action-buttons d-flex justify-content-lg-end justify-content-center align-items-center gap-3 flex-wrap">
-                        <button onclick="goBack()" class="hero-btn hero-btn-secondary" data-toggle="tooltip" title="Volver">
-                            <i class="fas fa-arrow-left"></i>
-                            <span class="d-none d-md-inline">Volver</span>
-                        </button>
-                        <button type="submit" form="customerForm" class="hero-btn hero-btn-primary" data-toggle="tooltip" title="Guardar Cliente">
-                            <i class="fas fa-save"></i>
-                            <span class="d-none d-md-inline">Guardar</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-    .hero-action-buttons {
-        gap: 1rem !important;
-    }
-    .hero-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(255,255,255,0.85);
-        color: var(--primary-color);
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1.1rem;
-        padding: 0.7rem 1.2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        transition: all 0.2s;
-        cursor: pointer;
-        min-width: 44px;
-        min-height: 44px;
-        position: relative;
-        text-decoration: none;
-        outline: none;
-    }
-    .hero-btn i {
-        font-size: 1.3rem;
-        color: var(--primary-color);
-        margin-right: 0.2rem;
-    }
-    .hero-btn-secondary { color: #6c757d; }
-    .hero-btn-secondary i { color: #6c757d; }
-    .hero-btn-primary { color: #667eea; }
-    .hero-btn-primary i { color: #667eea; }
-    .hero-btn:hover, .hero-btn:focus {
-        background: #fff;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-        transform: translateY(-2px) scale(1.04);
-        color: var(--primary-color);
-        text-decoration: none;
-    }
-    .hero-btn:active {
-        transform: scale(0.97);
-    }
-    .hero-btn span {
-        font-size: 1rem;
-        font-weight: 600;
-        color: inherit;
-        white-space: nowrap;
-    }
-    @media (max-width: 991px) {
-        .hero-action-buttons {
-            justify-content: center !important;
-        }
-    }
-    @media (max-width: 767px) {
-        .hero-btn span {
-            display: none !important;
-        }
-        .hero-btn {
-            padding: 0.7rem !important;
-            min-width: 44px;
-        }
-    }
-    </style>
-@stop
-
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <form action="{{ route('admin.customers.store') }}" method="POST" id="customerForm" class="needs-validation"
-                    novalidate>
-                    @csrf
-                    @if(request('return_to'))
-                        <input type="hidden" name="return_to" value="{{ request('return_to') }}">
-                    @endif
-                    
-                    <div class="form-card">
-                        <div class="form-card-header">
-                            <div class="header-content">
-                                <div class="header-icon">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <div class="header-text">
-                                    <h4>Información del Cliente</h4>
-                                    <p>Complete todos los campos requeridos para crear el nuevo cliente</p>
-                                </div>
-                            </div>
-                            <button type="button" class="collapse-btn" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
+<div x-data="customerForm()" class="space-y-6">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="relative px-6 py-8 sm:px-8 sm:py-12">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-user-plus text-white text-2xl"></i>
                         </div>
-
-                        <div class="form-card-body">
-                            <div class="form-grid">
-                                {{-- Nombre Completo --}}
-                                <div class="form-group modern-form-group">
-                                    <label for="name" class="modern-label required">
-                                        <i class="fas fa-user"></i>
-                                        Nombre Completo
-                                    </label>
-                                    <div class="input-wrapper">
-                                        <input type="text"
-                                            class="modern-input @error('name') is-invalid @enderror"
-                                            id="name" name="name" value="{{ old('name') }}"
-                                            placeholder="Ingrese el nombre completo" required autofocus>
-                                        <div class="valid-feedback">
-                                            <i class="fas fa-check-circle"></i>
-                                            ¡Se ve bien!
-                                        </div>
-                                        @error('name')
-                                            <div class="invalid-feedback">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                {{-- NIT --}}
-                                <div class="form-group modern-form-group">
-                                    <label for="nit_number" class="modern-label">
-                                        <i class="fas fa-id-card"></i>
-                                        Número de Cédula
-                                    </label>
-                                    <div class="input-wrapper">
-                                        <input type="text"
-                                            class="modern-input @error('nit_number') is-invalid @enderror"
-                                            id="nit_number" name="nit_number" value="{{ old('nit_number') }}"
-                                            placeholder="Ingrese la Cédula">
-                                        @error('nit_number')
-                                            <div class="invalid-feedback">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                {{-- Teléfono --}}
-                                <div class="form-group modern-form-group">
-                                    <label for="phone" class="modern-label">
-                                        <i class="fas fa-phone"></i>
-                                        Teléfono
-                                    </label>
-                                    <div class="input-wrapper">
-                                        <input type="tel"
-                                            class="modern-input @error('phone') is-invalid @enderror"
-                                            id="phone" name="phone" value="{{ old('phone') }}"
-                                            placeholder="(123) 456-7890" autocomplete="off">
-                                        @error('phone')
-                                            <div class="invalid-feedback">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                {{-- Email --}}
-                                <div class="form-group modern-form-group">
-                                    <label for="email" class="modern-label">
-                                        <i class="fas fa-envelope"></i>
-                                        Correo Electrónico
-                                    </label>
-                                    <div class="input-wrapper">
-                                        <input type="email"
-                                            class="modern-input @error('email') is-invalid @enderror"
-                                            id="email" name="email" value="{{ old('email') }}"
-                                            placeholder="ejemplo@correo.com">
-                                        @error('email')
-                                            <div class="invalid-feedback">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-card-footer">
-                            <div class="footer-actions">
-                                <button type="submit" class="action-btn action-btn-primary" name="action" value="save" id="submitCustomer">
-                                    <i class="fas fa-save"></i>
-                                    <span>Guardar Cliente</span>
-                                </button>
-                                <button type="submit" class="action-btn action-btn-success" name="action" value="save_and_new" id="submitCustomerAndNew">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Guardar y Crear Otro</span>
-                                </button>
-                            </div>
+                        <div>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
+                                Crear Nuevo Cliente
+                            </h1>
+                            <p class="text-blue-100 text-lg">
+                                Ingrese la información del cliente para registrarlo en el sistema
+                            </p>
                         </div>
                     </div>
-                </form>
+                </div>
+                <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row gap-3">
+                    <button @click="goBack()" 
+                            class="inline-flex items-center justify-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span class="hidden sm:inline">Volver</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-@stop
 
-@section('css')
-    <style>
-        /* ===== VARIABLES Y CONFIGURACIÓN GLOBAL ===== */
-        :root {
-            --primary-color: #667eea;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-color: #f093fb;
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-color: #4facfe;
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --warning-color: #43e97b;
-            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --danger-color: #fa709a;
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --purple-color: #a8edea;
-            --purple-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            --dark-color: #2c3e50;
-            --light-color: #ecf0f1;
-            --border-radius: 12px;
-            --border-radius-sm: 8px;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    <!-- Form Card -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-user-plus text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Información del Cliente</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        /* ===== HERO SECTION ===== */
+        <form @submit.prevent="submitForm('save')" class="p-6 space-y-8">
+            @csrf
+            @if(request('return_to'))
+                <input type="hidden" name="return_to" value="{{ request('return_to') }}">
+            @endif
+
+            <!-- Form Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Nombre Completo -->
+                <div class="space-y-2">
+                    <label for="name" class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                        <i class="fas fa-user text-blue-500"></i>
+                        <span>Nombre Completo</span>
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text"
+                               id="name"
+                               name="name"
+                               x-model="form.name"
+                               @input="validateField('name')"
+                               @blur="validateField('name')"
+                               :class="getFieldClasses('name')"
+                               placeholder="Ingrese el nombre completo"
+                               required
+                               autofocus>
+                        <div x-show="errors.name" x-cloak class="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span x-text="errors.name"></span>
+                        </div>
+                        <div x-show="!errors.name && form.name" class="mt-2 flex items-center space-x-2 text-sm text-green-600">
+                            <i class="fas fa-check-circle"></i>
+                            <span>¡Se ve bien!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Número de Cédula -->
+                <div class="space-y-2">
+                    <label for="nit_number" class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                        <i class="fas fa-id-card text-blue-500"></i>
+                        <span>Número de Cédula</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text"
+                               id="nit_number"
+                               name="nit_number"
+                               x-model="form.nit_number"
+                               @input="validateField('nit_number')"
+                               @blur="validateField('nit_number')"
+                               :class="getFieldClasses('nit_number')"
+                               placeholder="Ingrese la Cédula">
+                        <div x-show="errors.nit_number" x-cloak class="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span x-text="errors.nit_number"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="space-y-2">
+                    <label for="phone" class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                        <i class="fas fa-phone text-blue-500"></i>
+                        <span>Teléfono</span>
+                    </label>
+                    <div class="relative">
+                        <input type="tel"
+                               id="phone"
+                               name="phone"
+                               x-model="form.phone"
+                               @input="validateField('phone'); formatPhone()"
+                               @blur="validateField('phone')"
+                               :class="getFieldClasses('phone')"
+                               placeholder="(123) 456-7890"
+                               autocomplete="off">
+                        <div x-show="errors.phone" x-cloak class="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span x-text="errors.phone"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-2">
+                    <label for="email" class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
+                        <i class="fas fa-envelope text-blue-500"></i>
+                        <span>Correo Electrónico</span>
+                    </label>
+                    <div class="relative">
+                        <input type="email"
+                               id="email"
+                               name="email"
+                               x-model="form.email"
+                               @input="validateField('email')"
+                               @blur="validateField('email')"
+                               :class="getFieldClasses('email')"
+                               placeholder="ejemplo@correo.com">
+                        <div x-show="errors.email" x-cloak class="mt-2 flex items-center space-x-2 text-sm text-red-600">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span x-text="errors.email"></span>
+                        </div>
+                        <div x-show="!errors.email && form.email" class="mt-2 flex items-center space-x-2 text-sm text-green-600">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Email válido</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="space-y-4 pt-6 border-t border-gray-200">
+                <div class="text-center sm:text-left">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Acciones</h3>
+                </div>
+                                <div class="flex flex-row gap-4 justify-end">
+                    <button type="submit" 
+                            @click="submitForm('save')"
+                            :disabled="isSubmitting || !isFormValid"
+                            class="w-32 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                            title="Guardar Cliente">
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button type="button" 
+                            @click="submitForm('save_and_new')"
+                            :disabled="isSubmitting || !isFormValid"
+                            class="w-32 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                            title="Guardar y Crear Otro">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+
+@push('css')
+<style>
+    /* Input styles */
+    input[type="text"], input[type="tel"], input[type="email"] {
+        @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    }
+
+    input:focus {
+        @apply transform -translate-y-0.5;
+    }
+
+    /* Validation states */
+    .input-valid {
+        @apply border-green-300 bg-green-50;
+    }
+
+    .input-invalid {
+        @apply border-red-300 bg-red-50;
+    }
+
+    /* Loading states */
+    .loading {
+        @apply opacity-75 cursor-not-allowed;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
         .hero-section {
-            background: var(--primary-gradient);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
+            @apply px-4 py-6;
         }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
-
+        
         .hero-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            @apply text-2xl;
         }
-
-        .hero-title i {
-            font-size: 3rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            display: block;
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* ===== FORM CARD ===== */
-        .form-card {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            transition: var(--transition);
-        }
-
-        .form-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .form-card-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 1.5rem;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .header-text h4 {
-            margin: 0;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .header-text p {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .collapse-btn {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .collapse-btn:hover {
-            color: var(--primary-color);
-            transform: scale(1.1);
-        }
-
-        .form-card-body {
-            padding: 2rem;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        /* ===== MODERN FORM GROUPS ===== */
-        .modern-form-group {
-            position: relative;
-        }
-
-        .modern-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-        }
-
-        .modern-label i {
-            color: var(--primary-color);
-            font-size: 1.1rem;
-        }
-
-        .modern-label.required::after {
-            content: ' *';
-            color: #dc3545;
-            font-weight: bold;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .modern-input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius-sm);
-            font-size: 1rem;
-            transition: var(--transition);
-            background: white;
-        }
-
-        .modern-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .modern-input::placeholder {
-            color: #adb5bd;
-        }
-
-        /* ===== VALIDATION FEEDBACK ===== */
-        .valid-feedback,
-        .invalid-feedback {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .valid-feedback {
-            color: #28a745;
-        }
-
-        .invalid-feedback {
-            color: #dc3545;
-        }
-
-        .valid-feedback i,
-        .invalid-feedback i {
-            font-size: 1rem;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ===== FORM CARD FOOTER ===== */
-        .form-card-footer {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-top: 1px solid #dee2e6;
-        }
-
-        .footer-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
-
-        /* ===== ACTION BUTTONS ===== */
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            font-weight: 600;
-            text-decoration: none;
-            transition: var(--transition);
-            color: white;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .action-btn:hover::before {
-            left: 100%;
-        }
-
-        .action-btn-primary {
-            background: var(--primary-gradient);
-        }
-
-        .action-btn-success {
-            background: var(--success-gradient);
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 1.5rem;
-            }
-
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .hero-stats {
-                gap: 1rem;
-            }
-
-            .stat-number {
-                font-size: 1.5rem;
-            }
-
-            .form-card-body {
-                padding: 1.5rem;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .footer-actions {
-                justify-content: center;
-            }
-
-            .action-btn {
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .hero-title {
-                font-size: 1.5rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1rem;
-            }
-
-            .form-card-header {
-                padding: 1rem;
-            }
-
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-                gap: 0.5rem;
-            }
-
-            .header-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .footer-actions {
-                flex-direction: column;
-            }
-
-            .action-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-card {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        /* ===== FOCUS STATES ===== */
-        .modern-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        /* ===== DISABLED STATES ===== */
-        .action-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .action-btn:disabled:hover {
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        /* ===== SCROLLBAR STYLING ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5a6fd8;
-        }
-    </style>
-@stop
-
-@section('js')
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            // Cargar Inputmask
-            loadInputmask(function() {
-                // Guardar la URL original cuando se carga la página por primera vez
-                if (!sessionStorage.getItem('customers_original_referrer')) {
-                    const referrer = document.referrer;
-                    if (referrer && !referrer.includes('/customers/create')) {
-                        sessionStorage.setItem('customers_original_referrer', referrer);
-                    }
+    }
+</style>
+@endpush
+
+@push('js')
+<script>
+function customerForm() {
+    return {
+        form: {
+            name: '{{ old('name') }}',
+            nit_number: '{{ old('nit_number') }}',
+            phone: '{{ old('phone') }}',
+            email: '{{ old('email') }}'
+        },
+        errors: {},
+        isSubmitting: false,
+        action: 'save',
+
+        init() {
+            // Guardar la URL original cuando se carga la página por primera vez
+            if (!sessionStorage.getItem('customers_original_referrer')) {
+                const referrer = document.referrer;
+                if (referrer && !referrer.includes('/customers/create')) {
+                    sessionStorage.setItem('customers_original_referrer', referrer);
                 }
-                
-                // Inicializar máscaras
-                $('#phone').inputmask('(999) 999-9999');
-                // $('#nit_number').inputmask('999-999999-999-9');
+            }
 
-                // Validación del formulario
-                $('#customerForm').on('submit', function(e) {
-                    // Deshabilitar botones para prevenir múltiples envíos
-                    $('#submitCustomer, #submitCustomerAndNew').prop('disabled', true);
-                    
-                    if (!this.checkValidity()) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Rehabilitar botones si hay error
-                        $('#submitCustomer, #submitCustomerAndNew').prop('disabled', false);
-                    }
-                    $(this).addClass('was-validated');
-                });
-
-                // Validación en tiempo real del email
-                $('#email').on('input', function() {
-                    const email = $(this).val();
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-                    if (emailRegex.test(email)) {
-                        $(this).removeClass('is-invalid').addClass('is-valid');
-                    } else {
-                        $(this).removeClass('is-valid').addClass('is-invalid');
-                    }
-                });
-
-                // Capitalizar automáticamente el nombre
-                $('#name').on('input', function() {
-                    let words = $(this).val().split(' ');
+            // Capitalizar automáticamente el nombre
+            this.$watch('form.name', (value) => {
+                if (value) {
+                    let words = value.split(' ');
                     words = words.map(word => {
                         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
                     });
-                    $(this).val(words.join(' '));
-                });
+                    this.form.name = words.join(' ');
+                }
+            });
 
-                // Mostrar tooltip con el formato requerido
-                $('[data-toggle="tooltip"]').tooltip();
+            // Validar campos iniciales
+            this.validateAllFields();
+        },
 
-                // Animación suave al hacer focus en los inputs
-                $('.modern-input').on('focus', function() {
-                    $(this).closest('.modern-form-group').addClass('focused');
-                }).on('blur', function() {
-                    $(this).closest('.modern-form-group').removeClass('focused');
-                });
-
-                // Función para navegar de vuelta a la vista original
-                window.goBack = function() {
-                    // Verificar si hay una URL de referencia guardada en sessionStorage
-                    const originalReferrer = sessionStorage.getItem('customers_original_referrer');
-                    
-                    if (originalReferrer && originalReferrer !== window.location.href) {
-                        // Si tenemos una URL original guardada, ir allí
-                        window.location.href = originalReferrer;
+        validateField(fieldName) {
+            const value = this.form[fieldName];
+            
+            switch(fieldName) {
+                case 'name':
+                    if (!value) {
+                        this.errors.name = 'El nombre es requerido';
+                    } else if (value.length < 2) {
+                        this.errors.name = 'El nombre debe tener al menos 2 caracteres';
                     } else {
-                        // Comportamiento normal del botón volver
-                        window.history.back();
+                        delete this.errors.name;
+                    }
+                    break;
+
+                case 'nit_number':
+                    if (value && !/^\d{7,11}$/.test(value.replace(/\D/g, ''))) {
+                        this.errors.nit_number = 'La cédula debe tener entre 7 y 11 dígitos';
+                    } else {
+                        delete this.errors.nit_number;
+                    }
+                    break;
+
+                case 'phone':
+                    if (value) {
+                        const cleanPhone = value.replace(/\D/g, '');
+                        if (cleanPhone.length < 10) {
+                            this.errors.phone = 'El teléfono debe tener al menos 10 dígitos';
+                        } else {
+                            delete this.errors.phone;
+                        }
+                    } else {
+                        delete this.errors.phone;
+                    }
+                    break;
+
+                case 'email':
+                    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                        this.errors.email = 'Ingrese un email válido';
+                    } else {
+                        delete this.errors.email;
+                    }
+                    break;
+            }
+        },
+
+        validateAllFields() {
+            ['name', 'nit_number', 'phone', 'email'].forEach(field => {
+                this.validateField(field);
+            });
+        },
+
+        getFieldClasses(fieldName) {
+            const baseClasses = 'w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+            
+            if (this.errors[fieldName]) {
+                return baseClasses + ' border-red-300 bg-red-50';
+            } else if (this.form[fieldName] && !this.errors[fieldName]) {
+                return baseClasses + ' border-green-300 bg-green-50';
+            } else {
+                return baseClasses + ' border-gray-200';
+            }
+        },
+
+        formatPhone() {
+            let value = this.form.phone.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            }
+            this.form.phone = value;
+        },
+
+        get isFormValid() {
+            return !this.errors.name && this.form.name;
+        },
+
+        async submitForm(action) {
+            this.action = action;
+            
+            // Validar todos los campos
+            this.validateAllFields();
+            
+            if (!this.isFormValid) {
+                this.showAlert('Por favor, complete todos los campos requeridos', 'error');
+                return;
+            }
+
+            this.isSubmitting = true;
+
+            try {
+                // Preparar datos del formulario
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('name', this.form.name);
+                formData.append('nit_number', this.form.nit_number);
+                formData.append('phone', this.form.phone.replace(/\D/g, '')); // Guardar solo números
+                formData.append('email', this.form.email);
+                formData.append('action', action);
+
+                @if(request('return_to'))
+                    formData.append('return_to', '{{ request('return_to') }}');
+                @endif
+
+                const response = await fetch('{{ route('admin.customers.store') }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    this.showAlert(result.message || 'Cliente creado exitosamente', 'success');
+                    
+                    if (action === 'save_and_new') {
+                        // Limpiar formulario y volver a crear
+                        setTimeout(() => {
+                            this.resetForm();
+                        }, 1500);
+                    } else {
+                        // Redirigir según el contexto
+                        setTimeout(() => {
+                            this.goBack();
+                        }, 1500);
+                    }
+                } else {
+                    // Manejar errores de validación del servidor
+                    if (result.errors) {
+                        this.errors = result.errors;
+                        this.showAlert('Por favor, corrija los errores en el formulario', 'error');
+                    } else {
+                        this.showAlert(result.message || 'Error al crear el cliente', 'error');
                     }
                 }
-                
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert('Error de conexión. Intente nuevamente.', 'error');
+            } finally {
+                this.isSubmitting = false;
+            }
+        },
+
+        resetForm() {
+            this.form = {
+                name: '',
+                nit_number: '',
+                phone: '',
+                email: ''
+            };
+            this.errors = {};
+            this.$nextTick(() => {
+                document.getElementById('name').focus();
             });
-        });
-    </script>
-@stop
+        },
+
+        showAlert(message, type = 'info') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+                    text: message,
+                    icon: type,
+                    confirmButtonText: 'Entendido',
+                    timer: type === 'success' ? 3000 : undefined,
+                    timerProgressBar: type === 'success'
+                });
+            } else {
+                alert(message);
+            }
+        },
+
+        goBack() {
+            // Verificar si hay una URL de referencia guardada en sessionStorage
+            const originalReferrer = sessionStorage.getItem('customers_original_referrer');
+            
+            if (originalReferrer && originalReferrer !== window.location.href) {
+                // Si tenemos una URL original guardada, ir allí
+                window.location.href = originalReferrer;
+            } else {
+                // Comportamiento normal del botón volver
+                window.history.back();
+            }
+        }
+    }
+}
+</script>
+@endpush

@@ -238,6 +238,14 @@ class CustomerController extends Controller
          ]);
 
          if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'Error de validación',
+                  'errors' => $validator->errors()
+               ], 422);
+            }
+            
             return redirect()->back()
                ->withErrors($validator)
                ->withInput();
@@ -258,9 +266,22 @@ class CustomerController extends Controller
          // Crear el cliente
          $customer = Customer::create($customerData);
 
-
-
          DB::commit();
+
+         // Respuesta para peticiones AJAX
+         if ($request->ajax() || $request->wantsJson()) {
+            $message = '¡Cliente creado exitosamente!';
+            
+            if ($request->input('action') === 'save_and_new') {
+               $message = '¡Cliente creado exitosamente! Puedes crear otro cliente.';
+            }
+            
+            return response()->json([
+               'success' => true,
+               'message' => $message,
+               'customer' => $customer
+            ]);
+         }
 
          // Determinar la redirección basada en el botón presionado o el parámetro return_to
          $returnTo = $request->input('return_to');
@@ -285,6 +306,12 @@ class CustomerController extends Controller
       } catch (\Exception $e) {
          DB::rollBack();
 
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error al crear el cliente: ' . $e->getMessage()
+            ], 500);
+         }
 
          return redirect()->back()
             ->withInput()
@@ -539,7 +566,7 @@ class CustomerController extends Controller
          $customer = Customer::findOrFail($id);
 
          // Validación personalizada
-         $validated = $request->validate([
+         $validator = Validator::make($request->all(), [
             'name' => [
                'required',
                'string',
@@ -556,7 +583,7 @@ class CustomerController extends Controller
             'phone' => [
                'nullable',
                'string',
-               'regex:/^\(\d{3}\)\s\d{3}-\d{4}$/',
+               'max:20',
                'unique:customers,phone,' . $id,
             ],
             'email' => [
@@ -584,7 +611,6 @@ class CustomerController extends Controller
 
             'phone.required' => 'El teléfono es obligatorio',
             'phone.string' => 'El teléfono debe ser texto',
-            'phone.regex' => 'El formato del teléfono debe ser: (XXX) XXX-XXXX',
             'phone.unique' => 'Este teléfono ya está registrado',
 
             'email.required' => 'El correo electrónico es obligatorio',
@@ -595,23 +621,66 @@ class CustomerController extends Controller
             'total_debt.min' => 'La deuda no puede ser un valor negativo',
          ]);
 
+         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'Error de validación',
+                  'errors' => $validator->errors()
+               ], 422);
+            }
+            
+            return redirect()->back()
+               ->withErrors($validator)
+               ->withInput();
+         }
+
+         // Formatear datos
+         $customerData = [
+            'name' => ucwords(strtolower($request->name)),
+            'nit_number' => $request->filled('nit_number') ? $request->nit_number : null,
+            'phone' => $request->filled('phone') ? $request->phone : null,
+            'email' => $request->filled('email') ? strtolower($request->email) : null,
+            'total_debt' => $request->filled('total_debt') ? $request->total_debt : 0,
+         ];
+
          // Actualizar el cliente
-         $customer->update($validated);
+         $customer->update($customerData);
 
-
+         // Respuesta para peticiones AJAX
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => true,
+               'message' => '¡Cliente actualizado exitosamente!',
+               'customer' => $customer
+            ]);
+         }
 
          // Redireccionar con mensaje de éxito
          return redirect()->route('admin.customers.index')
             ->with('message', '¡Cliente actualizado exitosamente!')
             ->with('icons', 'success');
       } catch (\Illuminate\Validation\ValidationException $e) {
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error de validación',
+               'errors' => $e->validator->errors()
+            ], 422);
+         }
+         
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
             ->with('message', 'Por favor, corrija los errores en el formulario.')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-
+         if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Hubo un problema al actualizar el cliente. Por favor, inténtelo de nuevo.'
+            ], 500);
+         }
 
          return redirect()->back()
             ->withInput()
