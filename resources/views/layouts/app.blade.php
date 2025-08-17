@@ -513,6 +513,9 @@
     
     <!-- Alpine.js ya está incluido en resources/js/app.js -->
     
+    <!-- Chart.js -->
+    <script src="{{ asset('vendor/chartjs/chart.min.js') }}"></script>
+    
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
     

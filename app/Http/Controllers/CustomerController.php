@@ -1284,8 +1284,10 @@ class CustomerController extends Controller
          ->with(['customer', 'user']);
 
       // Aplicar filtros
-      if ($request->has('customer_id') && $request->customer_id) {
-         $query->where('customer_id', $request->customer_id);
+      if ($request->has('customer_search') && $request->customer_search) {
+         $query->whereHas('customer', function ($q) use ($request) {
+            $q->where('name', 'ilike', '%' . $request->customer_search . '%');
+         });
       }
 
       if ($request->has('date_from') && $request->date_from) {
@@ -1338,12 +1340,10 @@ class CustomerController extends Controller
          $monthlyDataArray[] = $monthlyData[$i] ?? 0;
       }
 
-      $customers = Customer::where('company_id', $this->company->id)->orderBy('name')->get();
       $currency = $this->currencies;
 
       return view('admin.customers.payment-history', [
          'payments' => $payments,
-         'customers' => $customers,
          'totalPayments' => $totalPayments,
          'paymentsCount' => $paymentsCount,
          'averagePayment' => $averagePayment,
@@ -1366,8 +1366,10 @@ class CustomerController extends Controller
             ->with(['customer', 'user']);
          
          // Aplicar filtros
-         if ($request->has('customer_id') && $request->customer_id) {
-            $query->where('customer_id', $request->customer_id);
+         if ($request->has('customer_search') && $request->customer_search) {
+            $query->whereHas('customer', function ($q) use ($request) {
+               $q->where('name', 'ilike', '%' . $request->customer_search . '%');
+            });
          }
          
          if ($request->has('date_from') && $request->date_from) {
