@@ -431,119 +431,542 @@
 
                 <!-- Content -->
                 <div x-show="!loading && cashCountData && Object.keys(cashCountData).length > 0" class="p-6">
-                    <!-- Información General -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-blue-50 rounded-xl p-6">
-                            <div class="flex items-center space-x-3 mb-3">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-calendar-alt text-blue-600"></i>
+                    <!-- Sistema de Pestañas -->
+                    <div class="space-y-6">
+                        <!-- Navegación de Pestañas -->
+                        <div class="border-b border-gray-200">
+                            <nav class="flex space-x-8" aria-label="Tabs">
+                                <!-- Pestaña Clientes -->
+                                <button @click="activeTab = 'clientes'" 
+                                        :class="activeTab === 'clientes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-users"></i>
+                                        <span>Clientes</span>
+                                    </div>
+                                </button>
+
+                                <!-- Pestaña Ventas -->
+                                <button @click="activeTab = 'ventas'" 
+                                        :class="activeTab === 'ventas' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <span>Ventas</span>
+                                    </div>
+                                </button>
+
+                                <!-- Pestaña Compras -->
+                                <button @click="activeTab = 'compras'" 
+                                        :class="activeTab === 'compras' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-shopping-bag"></i>
+                                        <span>Compras</span>
+                                    </div>
+                                </button>
+
+                                <!-- Pestaña Productos -->
+                                <button @click="activeTab = 'productos'" 
+                                        :class="activeTab === 'productos' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-box"></i>
+                                        <span>Productos</span>
+                                    </div>
+                                </button>
+
+                                <!-- Pestaña Pedidos -->
+                                <button @click="activeTab = 'pedidos'" 
+                                        :class="activeTab === 'pedidos' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-clipboard-list"></i>
+                                        <span>Pedidos</span>
+                                    </div>
+                                </button>
+                            </nav>
+                        </div>
+
+                        <!-- Contenido de Pestañas -->
+                        <div class="space-y-6">
+                            <!-- Pestaña Clientes -->
+                            <div x-show="activeTab === 'clientes'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-users text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Información por Clientes</h3>
+                                        <p class="text-gray-600">Análisis detallado de la actividad de clientes en este arqueo</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-sm text-blue-600 font-medium">Fecha de Apertura</div>
-                                    <div class="text-lg font-bold text-blue-900" x-text="cashCountData ? formatDate(cashCountData.opening_date) : 'N/A'"></div>
+
+                                <!-- 4 Widgets de Clientes -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-user-friends text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-blue-100 text-sm">Total Clientes</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-blue-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-shopping-cart text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-green-100 text-sm">Ventas Totales</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-green-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-red-100 text-sm">Deudas Pendientes</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-red-100 text-sm">
+                                            <i class="fas fa-arrow-down mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-purple-100 text-sm">Promedio por Cliente</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-purple-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-blue-900">Pestaña de Clientes</h4>
+                                            <p class="text-blue-700">Aquí se mostrará la información detallada de clientes para este arqueo de caja</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="bg-green-50 rounded-xl p-6">
-                            <div class="flex items-center space-x-3 mb-3">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-dollar-sign text-green-600"></i>
+                            <!-- Pestaña Ventas -->
+                            <div x-show="activeTab === 'ventas'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-chart-bar text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Ventas</h3>
+                                        <p class="text-gray-600">Estadísticas detalladas de ventas en este arqueo de caja</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-sm text-green-600 font-medium">Monto Inicial</div>
-                                    <div class="text-lg font-bold text-green-900" x-text="cashCountData ? formatCurrency(cashCountData.initial_amount) : 'N/A'"></div>
+
+                                <!-- 4 Widgets de Ventas -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-dollar-sign text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-green-100 text-sm">Ventas Totales</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-green-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-receipt text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-blue-100 text-sm">Facturas</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-blue-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-purple-100 text-sm">Promedio por Venta</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-purple-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-calendar-day text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-orange-100 text-sm">Ventas Hoy</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-orange-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-green-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-green-900">Pestaña de Ventas</h4>
+                                            <p class="text-green-700">Aquí se mostrará la información detallada de ventas para este arqueo de caja</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="bg-purple-50 rounded-xl p-6">
-                            <div class="flex items-center space-x-3 mb-3">
-                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-clock text-purple-600"></i>
+                            <!-- Pestaña Compras -->
+                            <div x-show="activeTab === 'compras'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-shopping-bag text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Compras</h3>
+                                        <p class="text-gray-600">Estadísticas detalladas de compras en este arqueo de caja</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-sm text-purple-600 font-medium">Estado</div>
-                                    <div class="text-lg font-bold text-purple-900" x-text="cashCountData ? (cashCountData.closing_date ? 'Cerrado' : 'Abierto') : 'N/A'"></div>
+
+                                <!-- 4 Widgets de Compras -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-shopping-cart text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-orange-100 text-sm">Compras Totales</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-orange-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-truck text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-red-100 text-sm">Proveedores</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-red-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-boxes text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-yellow-100 text-sm">Productos Comprados</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-yellow-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-pie text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-indigo-100 text-sm">Promedio por Compra</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-indigo-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-orange-50 border border-orange-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-orange-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-orange-900">Pestaña de Compras</h4>
+                                            <p class="text-orange-700">Aquí se mostrará la información detallada de compras para este arqueo de caja</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Estadísticas -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white">
-                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.total_income || 0) : formatCurrency(0)"></div>
-                            <div class="text-blue-100 text-sm">Total Ingresos</div>
-                        </div>
-                        <div class="bg-gradient-to-r from-red-600 to-pink-600 rounded-xl p-4 text-white">
-                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.total_expenses || 0) : formatCurrency(0)"></div>
-                            <div class="text-red-100 text-sm">Total Egresos</div>
-                        </div>
-                        <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 text-white">
-                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.current_balance || 0) : formatCurrency(0)"></div>
-                            <div class="text-green-100 text-sm">Balance Actual</div>
-                        </div>
-                        <div class="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl p-4 text-white">
-                            <div class="text-2xl font-bold" x-text="cashCountData ? (cashCountData.movements_count || 0) : 0"></div>
-                            <div class="text-yellow-100 text-sm">Movimientos</div>
-                        </div>
-                    </div>
-
-                    <!-- Tabla de Movimientos -->
-                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">Movimientos de Caja</h3>
-                        </div>
-                        
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <template x-for="movement in (cashCountData ? cashCountData.movements : [])" :key="movement.id">
-                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                                      :class="movement.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                                                    <i class="fas fa-arrow-up mr-1" x-show="movement.type === 'income'"></i>
-                                                    <i class="fas fa-arrow-down mr-1" x-show="movement.type === 'expense'"></i>
-                                                    <span x-text="movement.type === 'income' ? 'Ingreso' : 'Egreso'"></span>
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="font-semibold" 
-                                                      :class="movement.type === 'income' ? 'text-green-600' : 'text-red-600'"
-                                                      x-text="formatCurrency(movement.amount)"></span>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="text-gray-900" x-text="movement.description || 'Sin descripción'"></span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="text-gray-500" x-text="formatDateTime(movement.created_at)"></span>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Estado vacío -->
-                        <div x-show="!cashCountData || !cashCountData.movements || cashCountData.movements.length === 0" 
-                             class="px-6 py-12 text-center">
-                            <div class="flex flex-col items-center space-y-4">
-                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-exchange-alt text-gray-400 text-2xl"></i>
+                            <!-- Pestaña Productos -->
+                            <div x-show="activeTab === 'productos'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-box text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Productos</h3>
+                                        <p class="text-gray-600">Estadísticas detalladas de productos en este arqueo de caja</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">No hay movimientos registrados</h3>
-                                    <p class="text-gray-600">Este arqueo de caja no tiene movimientos registrados</p>
+
+                                <!-- 4 Widgets de Productos -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-boxes text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-purple-100 text-sm">Total Productos</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-purple-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-red-100 text-sm">Stock Bajo</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-red-100 text-sm">
+                                            <i class="fas fa-arrow-down mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-fire text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-green-100 text-sm">Más Vendidos</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-green-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-dollar-sign text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-blue-100 text-sm">Valor Inventario</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-blue-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-purple-50 border border-purple-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-purple-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-purple-900">Pestaña de Productos</h4>
+                                            <p class="text-purple-700">Aquí se mostrará la información detallada de productos para este arqueo de caja</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Pedidos -->
+                            <div x-show="activeTab === 'pedidos'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-clipboard-list text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Pedidos</h3>
+                                        <p class="text-gray-600">Estadísticas detalladas de pedidos en este arqueo de caja</p>
+                                    </div>
+                                </div>
+
+                                <!-- 4 Widgets de Pedidos -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-clipboard-list text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-red-100 text-sm">Total Pedidos</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-red-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-clock text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-yellow-100 text-sm">Pendientes</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-yellow-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-check-circle text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-green-100 text-sm">Completados</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-green-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-dollar-sign text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-blue-100 text-sm">Valor Total</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-blue-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-red-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-red-900">Pestaña de Pedidos</h4>
+                                            <p class="text-red-700">Aquí se mostrará la información detallada de pedidos para este arqueo de caja</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -645,6 +1068,7 @@ function cashCountModal() {
         isOpen: false,
         loading: false,
         cashCountData: null,
+        activeTab: 'clientes', // Pestaña activa por defecto
         currencySymbol: '{{ $currency->symbol }}',
 
         init() {
