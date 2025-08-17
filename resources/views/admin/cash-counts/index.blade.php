@@ -248,12 +248,19 @@
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center space-x-2">
                                 @can('cash-counts.show')
-                                    <a href="{{ route('admin.cash-counts.show', $cashCount->id) }}"
-                                       class="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200"
-                                       title="Ver movimientos">
+                                    <button @click="window.openCashCountModal({{ $cashCount->id }})"
+                                            class="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                            title="Ver movimientos">
                                         <i class="fas fa-eye text-sm"></i>
-                                    </a>
+                                    </button>
                                 @endcan
+                                
+                                <!-- Botón de prueba temporal -->
+                                <button @click="window.testModal()"
+                                        class="w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg flex items-center justify-center transition-all duration-200 ml-1"
+                                        title="Probar modal">
+                                    <i class="fas fa-bug text-sm"></i>
+                                </button>
                                 @if (!$cashCount->closing_date)
                                     @can('cash-counts.edit')
                                         <a href="{{ route('admin.cash-counts.edit', $cashCount->id) }}"
@@ -349,6 +356,202 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal para mostrar detalles del arqueo de caja -->
+    <div x-data="cashCountModal()" 
+         x-init="init()"
+         x-show="isOpen" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        
+        <!-- Modal -->
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div x-show="isOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95"
+                 class="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+                 @click.away="closeModal()">
+                
+                <!-- Header del Modal -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-cash-register text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">Detalles del Arqueo de Caja</h2>
+                                <p class="text-blue-100" x-text="cashCountData ? 'ID: #' + cashCountData.id : ''"></p>
+                            </div>
+                        </div>
+                        <button @click="closeModal()" 
+                                class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl flex items-center justify-center transition-all duration-200">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div x-show="loading" class="p-12 text-center">
+                    <div class="inline-flex items-center space-x-3">
+                        <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <span class="text-gray-600 font-medium">Cargando información...</span>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div x-show="!loading && !cashCountData" class="p-12 text-center">
+                    <div class="flex flex-col items-center space-y-4">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Error al cargar datos</h3>
+                            <p class="text-gray-600">No se pudieron cargar los datos del arqueo de caja</p>
+                        </div>
+                        <button @click="closeModal()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div x-show="!loading && cashCountData && Object.keys(cashCountData).length > 0" class="p-6">
+                    <!-- Información General -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-blue-50 rounded-xl p-6">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-alt text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-blue-600 font-medium">Fecha de Apertura</div>
+                                    <div class="text-lg font-bold text-blue-900" x-text="cashCountData ? formatDate(cashCountData.opening_date) : 'N/A'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 rounded-xl p-6">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-dollar-sign text-green-600"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-green-600 font-medium">Monto Inicial</div>
+                                    <div class="text-lg font-bold text-green-900" x-text="cashCountData ? formatCurrency(cashCountData.initial_amount) : 'N/A'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 rounded-xl p-6">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-clock text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-purple-600 font-medium">Estado</div>
+                                    <div class="text-lg font-bold text-purple-900" x-text="cashCountData ? (cashCountData.closing_date ? 'Cerrado' : 'Abierto') : 'N/A'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-4 text-white">
+                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.total_income || 0) : formatCurrency(0)"></div>
+                            <div class="text-blue-100 text-sm">Total Ingresos</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-red-600 to-pink-600 rounded-xl p-4 text-white">
+                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.total_expenses || 0) : formatCurrency(0)"></div>
+                            <div class="text-red-100 text-sm">Total Egresos</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-4 text-white">
+                            <div class="text-2xl font-bold" x-text="cashCountData ? formatCurrency(cashCountData.current_balance || 0) : formatCurrency(0)"></div>
+                            <div class="text-green-100 text-sm">Balance Actual</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl p-4 text-white">
+                            <div class="text-2xl font-bold" x-text="cashCountData ? (cashCountData.movements_count || 0) : 0"></div>
+                            <div class="text-yellow-100 text-sm">Movimientos</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Movimientos -->
+                    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900">Movimientos de Caja</h3>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="movement in (cashCountData ? cashCountData.movements : [])" :key="movement.id">
+                                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                      :class="movement.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                                                    <i class="fas fa-arrow-up mr-1" x-show="movement.type === 'income'"></i>
+                                                    <i class="fas fa-arrow-down mr-1" x-show="movement.type === 'expense'"></i>
+                                                    <span x-text="movement.type === 'income' ? 'Ingreso' : 'Egreso'"></span>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="font-semibold" 
+                                                      :class="movement.type === 'income' ? 'text-green-600' : 'text-red-600'"
+                                                      x-text="formatCurrency(movement.amount)"></span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-gray-900" x-text="movement.description || 'Sin descripción'"></span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-gray-500" x-text="formatDateTime(movement.created_at)"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Estado vacío -->
+                        <div x-show="!cashCountData || !cashCountData.movements || cashCountData.movements.length === 0" 
+                             class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center space-y-4">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-exchange-alt text-gray-400 text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">No hay movimientos registrados</h3>
+                                    <p class="text-gray-600">Este arqueo de caja no tiene movimientos registrados</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -433,6 +636,211 @@
 
 @push('js')
 <script>
+// Variables globales para el modal
+let cashCountModalInstance = null;
+
+// Función Alpine.js para el modal de arqueos de caja
+function cashCountModal() {
+    return {
+        isOpen: false,
+        loading: false,
+        cashCountData: null,
+        currencySymbol: '{{ $currency->symbol }}',
+
+        init() {
+            // Guardar referencia global
+            cashCountModalInstance = this;
+        },
+
+        closeModal() {
+            this.isOpen = false;
+            this.cashCountData = null;
+            
+            // Restaurar scroll del body
+            document.body.style.overflow = 'auto';
+        },
+
+        async loadCashCountData(cashCountId) {
+            try {
+                console.log('Cargando datos para arqueo ID:', cashCountId);
+                
+                const response = await fetch(`/cash-counts/${cashCountId}/details`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success && data.data) {
+                    this.cashCountData = data.data;
+                    console.log('Datos cargados exitosamente:', this.cashCountData);
+                } else {
+                    throw new Error(data.message || 'Error al cargar los datos');
+                }
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                this.cashCountData = null;
+                this.showNotification(`Error al cargar los datos del arqueo: ${error.message}`, 'error');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        formatCurrency(amount) {
+            if (amount === null || amount === undefined || amount === '') {
+                return this.currencySymbol + ' 0.00';
+            }
+            const num = parseFloat(amount);
+            if (isNaN(num)) {
+                return this.currencySymbol + ' 0.00';
+            }
+            return this.currencySymbol + ' ' + num.toFixed(2);
+        },
+
+        formatDate(dateString) {
+            if (!dateString || dateString === 'null' || dateString === 'undefined') {
+                return 'N/A';
+            }
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return 'N/A';
+                }
+                return date.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            } catch (error) {
+                console.error('Error formateando fecha:', error);
+                return 'N/A';
+            }
+        },
+
+        formatDateTime(dateString) {
+            if (!dateString || dateString === 'null' || dateString === 'undefined') {
+                return 'N/A';
+            }
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return 'N/A';
+                }
+                return date.toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                console.error('Error formateando fecha/hora:', error);
+                return 'N/A';
+            }
+        },
+
+        showNotification(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // Implementar notificación (puedes usar SweetAlert2 o similar)
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: type === 'error' ? 'Error' : 'Información',
+                    text: message,
+                    icon: type,
+                    confirmButtonText: 'OK',
+                    timer: type === 'error' ? null : 3000,
+                    timerProgressBar: type !== 'error'
+                });
+            } else {
+                // Fallback a alert nativo
+                const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+                alert(`${icon} ${message}`);
+            }
+        }
+    }
+}
+
+// Funciones globales para abrir el modal
+window.openCashCountModal = function(cashCountId) {
+    if (cashCountModalInstance) {
+        cashCountModalInstance.isOpen = true;
+        cashCountModalInstance.loading = true;
+        cashCountModalInstance.cashCountData = null;
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+        
+        // Cargar datos del arqueo
+        cashCountModalInstance.loadCashCountData(cashCountId);
+    } else {
+        console.error('Modal instance not found');
+        alert('Error: Modal no disponible');
+    }
+};
+
+window.testModal = function() {
+    if (cashCountModalInstance) {
+        console.log('Probando modal...');
+        cashCountModalInstance.isOpen = true;
+        cashCountModalInstance.loading = false;
+        cashCountModalInstance.cashCountData = {
+            id: 999,
+            initial_amount: 1000.00,
+            final_amount: null,
+            opening_date: '2024-01-01T00:00:00.000000Z',
+            closing_date: null,
+            observations: 'Arqueo de prueba',
+            total_income: 500.00,
+            total_expenses: 200.00,
+            current_balance: 1300.00,
+            movements_count: 3,
+            movements: [
+                {
+                    id: 1,
+                    type: 'income',
+                    amount: 300.00,
+                    description: 'Venta de productos',
+                    created_at: '2024-01-01T10:00:00.000000Z'
+                },
+                {
+                    id: 2,
+                    type: 'income',
+                    amount: 200.00,
+                    description: 'Pago de deuda',
+                    created_at: '2024-01-01T11:00:00.000000Z'
+                },
+                {
+                    id: 3,
+                    type: 'expense',
+                    amount: 200.00,
+                    description: 'Compra de suministros',
+                    created_at: '2024-01-01T12:00:00.000000Z'
+                }
+            ]
+        };
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+        
+        cashCountModalInstance.showNotification('Modal de prueba cargado exitosamente', 'success');
+    } else {
+        console.error('Modal instance not found');
+        alert('Error: Modal no disponible');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicialización de gráficos
     if (typeof Chart !== 'undefined') {

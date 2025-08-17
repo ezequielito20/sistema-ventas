@@ -930,4 +930,57 @@ class CashCountController extends Controller
          ], 500);
       }
    }
+
+   /**
+    * Get detailed information for cash count modal
+    */
+   public function getDetails($id)
+   {
+      try {
+         $cashCount = CashCount::with(['movements' => function($query) {
+            $query->orderBy('created_at', 'desc');
+         }])
+         ->where('company_id', $this->company->id)
+         ->findOrFail($id);
+
+         // Calcular estadísticas
+         $totalIncome = $cashCount->movements->where('type', 'income')->sum('amount');
+         $totalExpenses = $cashCount->movements->where('type', 'expense')->sum('amount');
+         $currentBalance = $cashCount->initial_amount + $totalIncome - $totalExpenses;
+
+         $data = [
+            'id' => $cashCount->id,
+            'initial_amount' => $cashCount->initial_amount,
+            'final_amount' => $cashCount->final_amount,
+            'opening_date' => $cashCount->opening_date,
+            'closing_date' => $cashCount->closing_date,
+            'observations' => $cashCount->observations,
+            'total_income' => $totalIncome,
+            'total_expenses' => $totalExpenses,
+            'current_balance' => $currentBalance,
+            'movements_count' => $cashCount->movements->count(),
+            'movements' => $cashCount->movements->map(function($movement) {
+               return [
+                  'id' => $movement->id,
+                  'type' => $movement->type,
+                  'amount' => $movement->amount,
+                  'description' => $movement->description,
+                  'created_at' => $movement->created_at->toISOString()
+               ];
+            })
+         ];
+
+         return response()->json([
+            'success' => true,
+            'data' => $data
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error getting cash count details: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener detalles del arqueo: ' . $e->getMessage()
+         ], 500);
+      }
+   }
 }
