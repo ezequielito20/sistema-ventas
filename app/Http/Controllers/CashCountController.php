@@ -868,4 +868,44 @@ class CashCountController extends Controller
          ];
       });
    }
+
+   /**
+    * Get customers data for cash count details
+    */
+   public function getCustomers($id)
+   {
+      try {
+         // Datos de prueba para verificar que el modal funcione
+         $customers = [
+            [
+               'id' => 1,
+               'name' => 'Cliente de Prueba 1',
+               'phone' => '123-456-7890',
+               'sales_count' => 3,
+               'total_sales' => 1500.00,
+               'total_debt' => 200.00
+            ],
+            [
+               'id' => 2,
+               'name' => 'Cliente de Prueba 2',
+               'phone' => '098-765-4321',
+               'sales_count' => 2,
+               'total_sales' => 800.00,
+               'total_debt' => 0.00
+            ]
+         ];
+
+         return response()->json([
+            'success' => true,
+            'data' => $customers
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error getting customers data: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener datos de clientes: ' . $e->getMessage()
+         ], 500);
+      }
+   }
 }

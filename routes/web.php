@@ -162,6 +162,13 @@ Route::post('/cash-counts/store-movement', [CashCountController::class, 'storeMo
 Route::put('/cash-counts/close/{id}', [CashCountController::class, 'closeCash'])->name('admin.cash-counts.close')->middleware(['auth', 'can:cash-counts.close']);
 Route::get('/cash-counts/{id}/history', [CashCountController::class, 'history'])->name('admin.cash-counts.history')->middleware(['auth', 'can:cash-counts.show']);
 
+// Rutas para detalles del arqueo de caja
+Route::get('/cash-counts/{id}/details', [CashCountController::class, 'getDetails'])->name('admin.cash-counts.details')->middleware(['auth', 'can:cash-counts.show']);
+Route::get('/cash-counts/{id}/customers', [CashCountController::class, 'getCustomers'])->name('admin.cash-counts.customers')->middleware(['auth', 'can:cash-counts.show']);
+Route::get('/cash-counts/{id}/sales', [CashCountController::class, 'getSales'])->name('admin.cash-counts.sales')->middleware(['auth', 'can:cash-counts.show']);
+Route::get('/cash-counts/{id}/purchases', [CashCountController::class, 'getPurchases'])->name('admin.cash-counts.purchases')->middleware(['auth', 'can:cash-counts.show']);
+Route::get('/cash-counts/{id}/products', [CashCountController::class, 'getProducts'])->name('admin.cash-counts.products')->middleware(['auth', 'can:cash-counts.show']);
+
 
 // Permissions
 Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware(['auth', 'can:permissions.index']);
