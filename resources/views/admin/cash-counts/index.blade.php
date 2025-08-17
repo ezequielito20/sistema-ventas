@@ -394,7 +394,7 @@
                             </div>
                             <div>
                                 <h2 class="text-2xl font-bold text-white">Detalles del Arqueo de Caja</h2>
-                                <p class="text-blue-100" x-text="cashCountData ? 'ID: #' + cashCountData.id : ''"></p>
+                                <p class="text-blue-100" x-text="cashCountData ? 'Desde ' + formatDate(cashCountData.opening_date) + ' hasta ' + (cashCountData.closing_date ? formatDate(cashCountData.closing_date) : 'actualidad') : ''"></p>
                             </div>
                         </div>
                         <button @click="closeModal()" 
