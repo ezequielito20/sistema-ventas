@@ -30,36 +30,36 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row gap-3">
+                <div class="mt-6 lg:mt-0 hero-buttons">
                     @if ($currentCashCount)
                         @can('cash-counts.store-movement')
                             <a href="{{ route('admin.cash-counts.create-movement') }}" 
-                               class="inline-flex items-center justify-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30">
-                                <i class="fas fa-money-bill-wave mr-2"></i>
-                                <span class="hidden sm:inline">Nuevo Movimiento</span>
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                                <i class="fas fa-money-bill-wave mr-1 sm:mr-2"></i>
+                                <span class="text-xs sm:text-sm">Nuevo Movimiento</span>
                             </a>
                         @endcan
                         @can('cash-counts.close')
                             <a href="{{ route('admin.cash-counts.close', $currentCashCount->id) }}" 
-                               class="inline-flex items-center justify-center px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30">
-                                <i class="fas fa-cash-register mr-2"></i>
-                                <span class="hidden sm:inline">Cerrar Caja</span>
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                                <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
+                                <span class="text-xs sm:text-sm">Cerrar Caja</span>
                             </a>
                         @endcan
                     @else
                         @can('cash-counts.report')
                             <a href="{{ route('admin.cash-counts.report') }}" 
-                               class="inline-flex items-center justify-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30"
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]"
                                target="_blank">
-                                <i class="fas fa-file-pdf mr-2"></i>
-                                <span class="hidden sm:inline">Reporte</span>
+                                <i class="fas fa-file-pdf mr-1 sm:mr-2"></i>
+                                <span class="text-xs sm:text-sm">Reporte</span>
                             </a>
                         @endcan
                         @can('cash-counts.create')
                             <a href="{{ route('admin.cash-counts.create') }}" 
-                               class="inline-flex items-center justify-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30">
-                                <i class="fas fa-cash-register mr-2"></i>
-                                <span class="hidden sm:inline">Abrir Caja</span>
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                                <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
+                                <span class="text-xs sm:text-sm">Abrir Caja</span>
                             </a>
                         @endcan
                     @endif
@@ -149,158 +149,354 @@
     </div>
 
     <!-- Tabla de Arqueos -->
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div x-data="dataTable()" class="bg-white rounded-2xl shadow-xl overflow-hidden">
         <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-6 border-b border-gray-200">
-            <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-list text-white text-xl"></i>
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-list text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Historial de Arqueos</h2>
+                        <p class="text-gray-600">Registro de todos los arqueos de caja realizados</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Historial de Arqueos</h2>
-                    <p class="text-gray-600">Registro de todos los arqueos de caja realizados</p>
+                
+                <!-- Controles de Vista -->
+                <div class="flex items-center space-x-2">
+                    <!-- Botones de cambio de vista (solo en desktop/tablet) -->
+                    <div class="hidden md:flex items-center bg-gray-100 rounded-lg p-1">
+                        <button @click="viewMode = 'table'"
+                                :class="viewMode === 'table' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+                                class="px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-table"></i>
+                            <span>Tabla</span>
+                        </button>
+                        <button @click="viewMode = 'cards'"
+                                :class="viewMode === 'cards' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'"
+                                class="px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-th-large"></i>
+                            <span>Tarjetas</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha Apertura</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha Cierre</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Monto Inicial</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Monto Final</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Diferencia</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Estado</th>
-                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse($cashCounts as $cashCount)
-                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y') }}</span>
-                                <span class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i') }}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            @if ($cashCount->closing_date)
+        <!-- Vista de Tabla - Desktop/Tablet -->
+        <div x-show="viewMode === 'table'" class="hidden md:block">
+            <div class="overflow-x-auto">
+                <table class="w-full modern-table">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha Apertura</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha Cierre</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Monto Inicial</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Monto Final</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Diferencia</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Estado</th>
+                            <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($cashCounts as $cashCount)
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    {{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <span class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y') }}</span>
-                                    <span class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('H:i') }}</span>
+                                    <span class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y') }}</span>
+                                    <span class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i') }}</span>
                                 </div>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                    En curso
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($cashCount->closing_date)
+                                    <div class="flex flex-col">
+                                        <span class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y') }}</span>
+                                        <span class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('H:i') }}</span>
+                                    </div>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        En curso
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    {{ $currency->symbol }} {{ number_format($cashCount->initial_amount, 2) }}
                                 </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {{ $currency->symbol }} {{ number_format($cashCount->initial_amount, 2) }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            @if ($cashCount->final_amount)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                    {{ $currency->symbol }} {{ number_format($cashCount->final_amount, 2) }}
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                    Pendiente
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            @if ($cashCount->final_amount)
-                                @php
-                                    $difference = $cashCount->final_amount - $cashCount->initial_amount;
-                                    $badgeClass = $difference >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                                @endphp
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $badgeClass }}">
-                                    {{ $currency->symbol }} {{ number_format(abs($difference), 2) }}
-                                    <i class="fas fa-{{ $difference >= 0 ? 'arrow-up' : 'arrow-down' }} ml-1"></i>
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                    Pendiente
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4">
-                            @if ($cashCount->closing_date)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                    Cerrado
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                    Abierto
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-center">
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($cashCount->final_amount)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        {{ $currency->symbol }} {{ number_format($cashCount->final_amount, 2) }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        Pendiente
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($cashCount->final_amount)
+                                    @php
+                                        $difference = $cashCount->final_amount - $cashCount->initial_amount;
+                                        $badgeClass = $difference >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                                    @endphp
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $badgeClass }}">
+                                        {{ $currency->symbol }} {{ number_format(abs($difference), 2) }}
+                                        <i class="fas fa-{{ $difference >= 0 ? 'arrow-up' : 'arrow-down' }} ml-1"></i>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        Pendiente
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4">
+                                @if ($cashCount->closing_date)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        Cerrado
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        Abierto
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    @can('cash-counts.show')
+                                        <button @click="window.openCashCountModal({{ $cashCount->id }})"
+                                                class="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                title="Ver movimientos">
+                                            <i class="fas fa-eye text-sm"></i>
+                                        </button>
+                                    @endcan
+                                    @if (!$cashCount->closing_date)
+                                        @can('cash-counts.edit')
+                                            <a href="{{ route('admin.cash-counts.edit', $cashCount->id) }}"
+                                               class="w-8 h-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                               title="Editar">
+                                                <i class="fas fa-edit text-sm"></i>
+                                            </a>
+                                        @endcan
+                                    @endif
+                                    @can('cash-counts.destroy')
+                                        <form action="{{ route('admin.cash-counts.destroy', $cashCount->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este arqueo?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center space-y-4">
+                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-cash-register text-gray-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">No hay arqueos de caja registrados</h3>
+                                        <p class="text-gray-600">Comienza creando tu primer arqueo de caja</p>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Vista de Tarjetas - Móvil y Desktop (cuando se selecciona) -->
+        <div x-show="viewMode === 'cards'" class="md:block" :class="{ 'block': true, 'hidden': false }">
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @forelse($cashCounts as $cashCount)
+                    <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $cashCount->closing_date ? 'border-green-500' : 'border-yellow-500' }} card-hover">
+                        
+                        <!-- Header de la Tarjeta -->
+                        <div class="p-6 pb-4">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                        <i class="fas fa-cash-register"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-lg font-semibold text-gray-900">
+                                            Arqueo #{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}
+                                        </h3>
+                                        <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
+                                            <i class="fas fa-calendar text-xs"></i>
+                                            <span>{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Estado -->
+                                <div class="flex-shrink-0">
+                                    @if ($cashCount->closing_date)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Cerrado
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            Abierto
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Información Principal -->
+                        <div class="px-6 pb-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Fecha Apertura -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        <span>Apertura</span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <p class="text-sm font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('d/m/Y') }}</p>
+                                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i') }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Fecha Cierre -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span>Cierre</span>
+                                    </div>
+                                    @if ($cashCount->closing_date)
+                                        <div class="flex flex-col">
+                                            <p class="text-sm font-semibold text-gray-900">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('d/m/Y') }}</p>
+                                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($cashCount->closing_date)->format('H:i') }}</p>
+                                        </div>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                                            En curso
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <!-- Monto Inicial -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span>Inicial</span>
+                                    </div>
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $currency->symbol }} {{ number_format($cashCount->initial_amount, 2) }}
+                                    </span>
+                                </div>
+
+                                <!-- Monto Final -->
+                                <div class="space-y-1">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span>Final</span>
+                                    </div>
+                                    @if ($cashCount->final_amount)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                            {{ $currency->symbol }} {{ number_format($cashCount->final_amount, 2) }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                                            Pendiente
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Diferencia -->
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Diferencia</span>
+                                    </div>
+                                    @if ($cashCount->final_amount)
+                                        @php
+                                            $difference = $cashCount->final_amount - $cashCount->initial_amount;
+                                            $badgeClass = $difference >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                                        @endphp
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium {{ $badgeClass }}">
+                                            {{ $currency->symbol }} {{ number_format(abs($difference), 2) }}
+                                            <i class="fas fa-{{ $difference >= 0 ? 'arrow-up' : 'arrow-down' }} ml-1"></i>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                                            Pendiente
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="px-6 pb-6">
                             <div class="flex items-center justify-center space-x-2">
                                 @can('cash-counts.show')
                                     <button @click="window.openCashCountModal({{ $cashCount->id }})"
-                                            class="w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                            class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-600 py-2 px-3 rounded-lg flex items-center justify-center transition-all duration-200 text-sm font-medium"
                                             title="Ver movimientos">
-                                        <i class="fas fa-eye text-sm"></i>
+                                        <i class="fas fa-eye mr-2"></i>
                                     </button>
                                 @endcan
                                 
-                                <!-- Botón de prueba temporal -->
-                                <button @click="window.testModal()"
-                                        class="w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg flex items-center justify-center transition-all duration-200 ml-1"
-                                        title="Probar modal">
-                                    <i class="fas fa-bug text-sm"></i>
-                                </button>
                                 @if (!$cashCount->closing_date)
                                     @can('cash-counts.edit')
                                         <a href="{{ route('admin.cash-counts.edit', $cashCount->id) }}"
-                                           class="w-8 h-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                           class="flex-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-600 py-2 px-3 rounded-lg flex items-center justify-center transition-all duration-200 text-sm font-medium"
                                            title="Editar">
-                                            <i class="fas fa-edit text-sm"></i>
+                                            <i class="fas fa-edit mr-2"></i>
                                         </a>
                                     @endcan
                                 @endif
+                                
                                 @can('cash-counts.destroy')
-                                    <form action="{{ route('admin.cash-counts.destroy', $cashCount->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este arqueo?')">
+                                    <form action="{{ route('admin.cash-counts.destroy', $cashCount->id) }}" method="POST" class="flex-1" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este arqueo?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
-                                                class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2 px-3 rounded-lg flex items-center justify-center transition-all duration-200 text-sm font-medium"
                                                 title="Eliminar">
-                                            <i class="fas fa-trash text-sm"></i>
+                                            <i class="fas fa-trash mr-2"></i>
                                         </button>
                                     </form>
                                 @endcan
                             </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
-                            <div class="flex flex-col items-center space-y-4">
-                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-cash-register text-gray-400 text-2xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">No hay arqueos de caja registrados</h3>
-                                    <p class="text-gray-600">Comienza creando tu primer arqueo de caja</p>
-                                </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full">
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-cash-register text-gray-400 text-2xl"></i>
                             </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            <div class="text-center mt-4">
+                                <h3 class="text-lg font-semibold text-gray-900">No hay arqueos de caja registrados</h3>
+                                <p class="text-gray-600">Comienza creando tu primer arqueo de caja</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         <!-- Paginación -->
@@ -1092,6 +1288,43 @@
 
 @push('css')
 <style>
+    /* Estilos para la tabla moderna */
+    .modern-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .modern-table th {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-bottom: 2px solid #e2e8f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.75rem;
+    }
+
+    .modern-table td {
+        border-bottom: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Estilos para las tarjetas */
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
     /* Estilos para la paginación de Laravel */
     .pagination {
         display: flex;
@@ -1166,6 +1399,34 @@
             min-width: 40px;
         }
     }
+
+    /* Estilos para botones del hero section */
+    .hero-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+    }
+
+    .hero-buttons a {
+        flex-shrink: 0;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    /* Responsive para botones del hero */
+    @media (max-width: 480px) {
+        .hero-buttons {
+            gap: 0.25rem;
+        }
+        
+        .hero-buttons a {
+            min-width: 100px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+    }
 </style>
 @endpush
 
@@ -1173,6 +1434,23 @@
 <script>
 // Variables globales para el modal
 let cashCountModalInstance = null;
+
+// Función Alpine.js para el dataTable
+function dataTable() {
+    return {
+        viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
+
+        init() {
+            // Detectar cambios de tamaño de pantalla
+            window.addEventListener('resize', () => {
+                // En móvil siempre mostrar cards, en desktop permitir toggle
+                if (window.innerWidth < 768) {
+                    this.viewMode = 'cards';
+                }
+            });
+        }
+    }
+}
 
 // Función Alpine.js para el modal de arqueos de caja
 function cashCountModal() {
