@@ -456,6 +456,16 @@
                                     </div>
                                 </button>
 
+                                <!-- Pestaña Pagos -->
+                                <button @click="activeTab = 'pagos'" 
+                                        :class="activeTab === 'pagos' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-credit-card"></i>
+                                        <span>Pagos</span>
+                                    </div>
+                                </button>
+
                                 <!-- Pestaña Compras -->
                                 <button @click="activeTab = 'compras'" 
                                         :class="activeTab === 'compras' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
@@ -677,6 +687,102 @@
                                         <div>
                                             <h4 class="text-lg font-semibold text-green-900">Pestaña de Ventas</h4>
                                             <p class="text-green-700">Aquí se mostrará la información detallada de ventas para este arqueo de caja</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pestaña Pagos -->
+                            <div x-show="activeTab === 'pagos'" class="space-y-6">
+                                <!-- Header de la Pestaña -->
+                                <div class="flex items-center space-x-4 mb-6">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-credit-card text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Pagos</h3>
+                                        <p class="text-gray-600">Estadísticas detalladas de pagos en este arqueo de caja</p>
+                                    </div>
+                                </div>
+
+                                <!-- 4 Widgets de Pagos -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <!-- Widget 1 -->
+                                    <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-credit-card text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-teal-100 text-sm">Pagos Totales</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-teal-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2 -->
+                                    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-money-bill-wave text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-cyan-100 text-sm">Transacciones</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-cyan-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3 -->
+                                    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
+                                                <div class="text-emerald-100 text-sm">Promedio por Pago</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-emerald-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4 -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-calendar-day text-white text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-blue-100 text-sm">Pagos Hoy</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-blue-100 text-sm">
+                                            <i class="fas fa-arrow-up mr-1"></i>
+                                            <span>0% vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mensaje de Estado -->
+                                <div class="bg-teal-50 border border-teal-200 rounded-xl p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-3">
+                                        <i class="fas fa-info-circle text-teal-600 text-xl"></i>
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-teal-900">Pestaña de Pagos</h4>
+                                            <p class="text-teal-700">Aquí se mostrará la información detallada de pagos para este arqueo de caja</p>
                                         </div>
                                     </div>
                                 </div>
