@@ -102,6 +102,86 @@
                         mobileSearch.value = '';
                         mobileSearch.dispatchEvent(new Event('keyup'));
                     }
+                },
+
+                deleteCustomer(customerId) {
+                    console.log('Función deleteCustomer llamada para ID:', customerId);
+                    
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: "Esta acción no se puede revertir",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            console.log('Confirmación aceptada, enviando petición fetch...');
+                            
+                            // Obtener el token CSRF
+                            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                            
+                            fetch(`/customers/delete/${customerId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': token,
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log('Respuesta recibida:', data);
+                                
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: '¡Eliminado!',
+                                        text: data.message,
+                                        icon: data.icons
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    // Mostrar mensaje de error
+                                    let showCancelButton = false;
+                                    let cancelButtonText = '';
+                                    let confirmButtonText = 'Entendido';
+                                    
+                                    if (data.has_sales) {
+                                        showCancelButton = true;
+                                        cancelButtonText = 'Ver Ventas';
+                                        confirmButtonText = 'Entendido';
+                                    }
+                                    
+                                    Swal.fire({
+                                        title: data.icons === 'warning' ? 'No se puede eliminar' : 'Error',
+                                        html: data.message.replace(/\n/g, '<br>'),
+                                        icon: data.icons,
+                                        showCancelButton: showCancelButton,
+                                        confirmButtonColor: data.icons === 'warning' ? '#ed8936' : '#667eea',
+                                        cancelButtonColor: '#667eea',
+                                        confirmButtonText: confirmButtonText,
+                                        cancelButtonText: cancelButtonText
+                                    }).then((result) => {
+                                        if (result.dismiss === Swal.DismissReason.cancel && data.has_sales) {
+                                            window.location.href = '/sales?search=' + encodeURIComponent(data.customer_name || '');
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error en la petición:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'No se pudo eliminar el cliente',
+                                    confirmButtonText: 'Aceptar'
+                                });
+                            });
+                        }
+                    });
                 }
             }
         }
@@ -2555,8 +2635,8 @@
                                             </a>
                                         @endcan
                                         @can('customers.destroy')
-                                                <button type="button" class="btn-action btn-delete delete-customer"
-                                                data-id="{{ $customer->id }}" data-toggle="tooltip" title="Eliminar">
+                                                <button type="button" class="btn-action btn-delete"
+                                                @click="deleteCustomer({{ $customer->id }})" data-toggle="tooltip" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @endcan
@@ -2738,8 +2818,8 @@
                                 @endcan
                                 @can('customers.destroy')
                                         <button type="button"
-                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 delete-customer"
-                                            data-id="{{ $customer->id }}" title="Eliminar">
+                                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="deleteCustomer({{ $customer->id }})" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                         </button>
                                     @endcan
@@ -2847,8 +2927,8 @@
                                     @endcan
                                     @can('customers.destroy')
                                         <button type="button"
-                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 delete-customer"
-                                            data-id="{{ $customer->id }}" title="Eliminar">
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                                            @click="deleteCustomer({{ $customer->id }})" title="Eliminar">
                                             <i class="fas fa-trash text-xs"></i>
                                     </button>
                                 @endcan
@@ -5930,9 +6010,9 @@
                                 }
             });
 
-            // Eliminar cliente - Usar delegación de eventos para funcionar con DataTable
-            $(document).on('click', '.delete-customer', function() {
-                const id = $(this).data('id');
+
+
+
 
                 Swal.fire({
                     title: '¿Estás seguro?',
@@ -5945,19 +6025,27 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $.ajax({
-                            url: `/customers/delete/${id}`,
-                            type: 'DELETE',
+                        console.log('Confirmación aceptada, enviando petición fetch...');
+                        
+                        // Obtener el token CSRF
+                        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
+                        fetch(`/customers/delete/${customerId}`, {
+                            method: 'DELETE',
                             headers: {
-                                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]')
-                                                .attr('content')
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    Swal.fire({
-                                        title: '¡Eliminado!',
-                                        text: response.message,
-                                        icon: response.icons
+                                'X-CSRF-TOKEN': token,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                                                            console.log('Respuesta recibida:', data);
+                            if (data.success) {
+                                Swal.fire({
+                                    title: '¡Eliminado!',
+                                    text: data.message,
+                                    icon: data.icons
                                     }).then(() => {
                                         location.reload();
                                     });
@@ -5968,22 +6056,22 @@
                                     let confirmButtonText = 'Entendido';
                                     
                                     // Si tiene ventas, mostrar botón para ir a ventas
-                                    if (response.has_sales) {
+                                    if (data.has_sales) {
                                         showCancelButton = true;
                                         cancelButtonText = 'Ver Ventas';
                                         confirmButtonText = 'Entendido';
                                     }
                                     
                                     Swal.fire({
-                                                    title: response.icons ===
+                                                    title: data.icons ===
                                                         'warning' ?
                                                         'No se puede eliminar' :
                                                         'Error',
-                                                    html: response.message
+                                                    html: data.message
                                                         .replace(/\n/g, '<br>'),
-                                        icon: response.icons,
+                                        icon: data.icons,
                                         showCancelButton: showCancelButton,
-                                                    confirmButtonColor: response
+                                                    confirmButtonColor: data
                                                         .icons === 'warning' ?
                                                         '#ed8936' : '#667eea',
                                         cancelButtonColor: '#667eea',
@@ -5992,57 +6080,47 @@
                                     }).then((result) => {
                                                     if (result.dismiss === Swal
                                                         .DismissReason.cancel &&
-                                                        response.has_sales) {
+                                                        data.has_sales) {
                                             // Redirigir a la página de ventas con filtro por cliente
                                                         window.location.href =
                                                             '/sales?search=' +
                                                             encodeURIComponent(
-                                                                response
+                                                                data
                                                                 .customer_name ||
                                                                 '');
                                         }
                                     });
                                 }
-                            },
-                            error: function(xhr, status, error) {
-                                            let errorMessage =
-                                                'No se pudo eliminar el cliente';
-                                let iconType = 'error';
+                            })
+                            .catch(error => {
+                                console.error('Error en la petición:', error);
+
+
                                 
-                                // Intentar obtener el mensaje de error del servidor
-                                            if (xhr.responseJSON && xhr.responseJSON
-                                                .message) {
-                                    errorMessage = xhr.responseJSON.message;
-                                    // Determinar el tipo de icono basado en la respuesta del servidor
+
+            
+
+
+
                                                 if (xhr.responseJSON.icons ===
                                                     'warning') {
-                                        iconType = 'warning';
+
                                     }
-                                } else if (xhr.status === 422) {
-                                                errorMessage =
-                                                    'No se puede eliminar este cliente debido a restricciones del sistema';
-                                } else if (xhr.status === 404) {
-                                                errorMessage =
-                                                    'El cliente no fue encontrado';
-                                } else if (xhr.status === 403) {
-                                                errorMessage =
-                                                    'No tienes permisos para eliminar este cliente';
-                                } else if (xhr.status === 500) {
-                                                errorMessage =
-                                                    'Error interno del servidor al eliminar el cliente';
+
+
+
+
+
+
+
+
                                 }
                                 
                                 Swal.fire({
-                                                title: iconType === 'warning' ?
-                                                    'No se puede eliminar' :
-                                                    'Error',
-                                                html: errorMessage.replace(
-                                                    /\n/g, '<br>'),
-                                    icon: iconType,
-                                                confirmButtonColor: iconType ===
-                                                    'warning' ? '#ed8936' :
-                                                    '#667eea',
-                                    confirmButtonText: 'Entendido'
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'No se pudo eliminar el cliente',
+                                    confirmButtonText: 'Aceptar'
                                 });
                             }
                         });
@@ -6245,10 +6323,8 @@
                     showCustomerDetails(customerId);
                 });
                 
-                $('.delete-customer').off('click').on('click', function() {
-                    const customerId = $(this).data('id');
-                    deleteCustomer(customerId);
-                });
+                // El evento de eliminar ya está manejado por delegación de eventos arriba
+                // No necesitamos agregar otro evento aquí
                 
                 $('.edit-debt-btn, .edit-debt-btn-small').off('click').on('click', function() {
                     const customerId = $(this).closest('[data-customer-id]').data('customer-id');
@@ -6269,6 +6345,8 @@
             // Llamar a la función al cargar la página
             $(document).ready(function() {
                 initializeCustomerEvents();
+                
+
             });
             
 
