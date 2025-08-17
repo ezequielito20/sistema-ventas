@@ -374,7 +374,7 @@
         <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
         
         <!-- Modal -->
-        <div class="flex min-h-full items-center justify-center p-4">
+        <div class="flex min-h-full items-center justify-center p-2 sm:p-4">
             <div x-show="isOpen"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 transform scale-95"
@@ -382,117 +382,123 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 transform scale-100"
                  x-transition:leave-end="opacity-0 transform scale-95"
-                 class="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+                 class="relative w-full max-w-7xl mx-auto bg-white rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl overflow-hidden"
                  @click.away="closeModal()">
                 
                 <!-- Header del Modal -->
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-3 sm:px-4 md:px-6 py-4 sm:py-6">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                                <i class="fas fa-cash-register text-white text-2xl"></i>
+                        <div class="flex items-center space-x-2 sm:space-x-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                <i class="fas fa-cash-register text-white text-lg sm:text-xl md:text-2xl"></i>
                             </div>
-                            <div>
-                                <h2 class="text-2xl font-bold text-white">Detalles del Arqueo de Caja</h2>
-                                <p class="text-blue-100" x-text="cashCountData ? 'Desde ' + formatDate(cashCountData.opening_date) + ' hasta ' + (cashCountData.closing_date ? formatDate(cashCountData.closing_date) : 'actualidad') : ''"></p>
+                            <div class="min-w-0 flex-1">
+                                <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-white truncate">Detalles del Arqueo de Caja</h2>
+                                <p class="text-blue-100 text-sm sm:text-base truncate" x-text="cashCountData ? 'Desde ' + formatDate(cashCountData.opening_date) + ' hasta ' + (cashCountData.closing_date ? formatDate(cashCountData.closing_date) : 'actualidad') : ''"></p>
                             </div>
                         </div>
                         <button @click="closeModal()" 
-                                class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl flex items-center justify-center transition-all duration-200">
-                            <i class="fas fa-times"></i>
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ml-2 sm:ml-4">
+                            <i class="fas fa-times text-sm sm:text-base"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Loading State -->
-                <div x-show="loading" class="p-12 text-center">
-                    <div class="inline-flex items-center space-x-3">
-                        <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                        <span class="text-gray-600 font-medium">Cargando información...</span>
+                <div x-show="loading" class="p-6 sm:p-8 md:p-12 text-center">
+                    <div class="inline-flex items-center space-x-2 sm:space-x-3">
+                        <div class="w-6 h-6 sm:w-8 sm:h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <span class="text-gray-600 font-medium text-sm sm:text-base">Cargando información...</span>
                     </div>
                 </div>
 
                 <!-- Error State -->
-                <div x-show="!loading && !cashCountData" class="p-12 text-center">
-                    <div class="flex flex-col items-center space-y-4">
-                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                <div x-show="!loading && !cashCountData" class="p-6 sm:p-8 md:p-12 text-center">
+                    <div class="flex flex-col items-center space-y-3 sm:space-y-4">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-2xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Error al cargar datos</h3>
-                            <p class="text-gray-600">No se pudieron cargar los datos del arqueo de caja</p>
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Error al cargar datos</h3>
+                            <p class="text-gray-600 text-sm sm:text-base">No se pudieron cargar los datos del arqueo de caja</p>
                         </div>
                         <button @click="closeModal()" 
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                                class="px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm sm:text-base">
                             Cerrar
                         </button>
                     </div>
                 </div>
 
                 <!-- Content -->
-                <div x-show="!loading && cashCountData && Object.keys(cashCountData).length > 0" class="p-6">
+                <div x-show="!loading && cashCountData && Object.keys(cashCountData).length > 0" class="p-3 sm:p-4 md:p-6">
                     <!-- Sistema de Pestañas -->
-                    <div class="space-y-6">
+                    <div class="space-y-4 sm:space-y-6">
                         <!-- Navegación de Pestañas -->
-                        <div class="border-b border-gray-200">
-                            <nav class="flex space-x-8" aria-label="Tabs">
+                        <div class="border-b border-gray-200 overflow-x-auto">
+                            <nav class="flex space-x-2 sm:space-x-4 md:space-x-8 min-w-max" aria-label="Tabs">
                                 <!-- Pestaña Clientes -->
                                 <button @click="activeTab = 'clientes'" 
                                         :class="activeTab === 'clientes' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-users"></i>
-                                        <span>Clientes</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-users text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Clientes</span>
+                                        <span class="xs:hidden">Cli</span>
                                     </div>
                                 </button>
 
                                 <!-- Pestaña Ventas -->
                                 <button @click="activeTab = 'ventas'" 
                                         :class="activeTab === 'ventas' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-chart-bar"></i>
-                                        <span>Ventas</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-chart-bar text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Ventas</span>
+                                        <span class="xs:hidden">Ven</span>
                                     </div>
                                 </button>
 
                                 <!-- Pestaña Pagos -->
                                 <button @click="activeTab = 'pagos'" 
                                         :class="activeTab === 'pagos' ? 'border-teal-500 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Pagos</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-credit-card text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Pagos</span>
+                                        <span class="xs:hidden">Pag</span>
                                     </div>
                                 </button>
 
                                 <!-- Pestaña Compras -->
                                 <button @click="activeTab = 'compras'" 
                                         :class="activeTab === 'compras' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-shopping-bag"></i>
-                                        <span>Compras</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-shopping-bag text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Compras</span>
+                                        <span class="xs:hidden">Com</span>
                                     </div>
                                 </button>
 
                                 <!-- Pestaña Productos -->
                                 <button @click="activeTab = 'productos'" 
                                         :class="activeTab === 'productos' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-box"></i>
-                                        <span>Productos</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-box text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Productos</span>
+                                        <span class="xs:hidden">Pro</span>
                                     </div>
                                 </button>
 
                                 <!-- Pestaña Pedidos -->
                                 <button @click="activeTab = 'pedidos'" 
                                         :class="activeTab === 'pedidos' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                        class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                                    <div class="flex items-center space-x-2">
-                                        <i class="fas fa-clipboard-list"></i>
-                                        <span>Pedidos</span>
+                                        class="whitespace-nowrap py-2 px-2 sm:px-3 md:px-4 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200">
+                                    <div class="flex items-center space-x-1 sm:space-x-2">
+                                        <i class="fas fa-clipboard-list text-xs sm:text-sm"></i>
+                                        <span class="hidden xs:inline">Pedidos</span>
+                                        <span class="xs:hidden">Ped</span>
                                     </div>
                                 </button>
                             </nav>
@@ -501,32 +507,32 @@
                         <!-- Contenido de Pestañas -->
                         <div class="space-y-6">
                             <!-- Pestaña Clientes -->
-                            <div x-show="activeTab === 'clientes'" class="space-y-6">
+                            <div x-show="activeTab === 'clientes'" class="space-y-4 sm:space-y-6">
                                 <!-- Header de la Pestaña -->
-                                <div class="flex items-center space-x-4 mb-6">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-users text-white text-xl"></i>
+                                <div class="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-users text-white text-sm sm:text-lg md:text-xl"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold text-gray-900">Información por Clientes</h3>
-                                        <p class="text-gray-600">Análisis detallado de la actividad de clientes en este arqueo</p>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Información por Clientes</h3>
+                                        <p class="text-gray-600 text-sm sm:text-base">Análisis detallado de la actividad de clientes en este arqueo</p>
                                     </div>
                                 </div>
 
                                 <!-- 4 Widgets de Clientes -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                     <!-- Widget 1 -->
-                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-user-friends text-white text-xl"></i>
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-user-friends text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-blue-100 text-sm">Total Clientes</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-blue-100 text-xs sm:text-sm">Total Clientes</div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center text-blue-100 text-sm">
+                                        <div class="flex items-center text-blue-100 text-xs sm:text-sm">
                                             <i class="fas fa-arrow-up mr-1"></i>
                                             <span>0% vs anterior</span>
                                         </div>
@@ -585,12 +591,12 @@
                                 </div>
 
                                 <!-- Mensaje de Estado -->
-                                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-3">
-                                        <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-center">
+                                    <div class="flex items-center justify-center space-x-2 sm:space-x-3">
+                                        <i class="fas fa-info-circle text-blue-600 text-lg sm:text-xl"></i>
                                         <div>
-                                            <h4 class="text-lg font-semibold text-blue-900">Pestaña de Clientes</h4>
-                                            <p class="text-blue-700">Aquí se mostrará la información detallada de clientes para este arqueo de caja</p>
+                                            <h4 class="text-base sm:text-lg font-semibold text-blue-900">Pestaña de Clientes</h4>
+                                            <p class="text-blue-700 text-sm sm:text-base">Aquí se mostrará la información detallada de clientes para este arqueo de caja</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1483,4 +1489,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- CSS para breakpoint personalizado xs -->
+<style>
+    @media (min-width: 475px) {
+        .xs\:inline {
+            display: inline !important;
+        }
+        .xs\:hidden {
+            display: none !important;
+        }
+    }
+</style>
 @endpush
