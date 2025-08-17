@@ -479,6 +479,28 @@ class CashCountController extends Controller
    }
 
    /**
+    * Show the form for creating a new cash movement.
+    */
+   public function createMovement()
+   {
+      // Verificar si hay una caja abierta
+      $currentCashCount = CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
+
+      if (!$currentCashCount) {
+         return redirect()->route('admin.cash-counts.index')
+            ->with('message', 'No hay una caja abierta para registrar movimientos')
+            ->with('icons', 'error');
+      }
+
+      return view('admin.cash-counts.create-movement', [
+         'currentCashCount' => $currentCashCount,
+         'currency' => $this->currencies
+      ]);
+   }
+
+   /**
     * Store a new cash movement.
     */
    public function storeMovement(Request $request)

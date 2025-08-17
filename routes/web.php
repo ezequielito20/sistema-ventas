@@ -154,6 +154,7 @@ Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('adm
 Route::get('/cash-counts', [CashCountController::class, 'index'])->name('admin.cash-counts.index')->middleware(['auth', 'can:cash-counts.index']);
 Route::get('/cash-counts/create', [CashCountController::class, 'create'])->name('admin.cash-counts.create')->middleware(['auth', 'can:cash-counts.create']);
 Route::post('/cash-counts/create', [CashCountController::class, 'store'])->name('admin.cash-counts.store')->middleware(['auth', 'can:cash-counts.create']);
+Route::get('/cash-counts/create-movement', [CashCountController::class, 'createMovement'])->name('admin.cash-counts.create-movement')->middleware(['auth', 'can:cash-counts.store-movement']);
 Route::get('/cash-counts/edit/{id}', [CashCountController::class, 'edit'])->name('admin.cash-counts.edit')->middleware(['auth', 'can:cash-counts.edit']);
 Route::put('/cash-counts/edit/{id}', [CashCountController::class, 'update'])->name('admin.cash-counts.update')->middleware(['auth', 'can:cash-counts.edit']);
 Route::delete('/cash-counts/delete/{id}', [CashCountController::class, 'destroy'])->name('admin.cash-counts.destroy')->middleware(['auth', 'can:cash-counts.destroy']);
