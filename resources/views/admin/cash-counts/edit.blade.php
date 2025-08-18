@@ -1,149 +1,191 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
 @section('title', 'Editar Caja')
 
-@section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-dark font-weight-bold">Editar Caja #{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}</h1>
-        <a href="{{ route('admin.cash-counts.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-1"></i>
-            Volver
-        </a>
-    </div>
-@stop
-
 @section('content')
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('admin.cash-counts.update', $cashCount->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-
-                <div class="row">
-                    {{-- Información General --}}
-                    <div class="col-md-6">
-                        <div class="card card-outline card-primary">
-                            <div class="card-header">
-                                <h3 class="card-title">Información General</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="opening_date">Fecha de Apertura</label>
-                                    <input type="datetime-local"
-                                        class="form-control @error('opening_date') is-invalid @enderror" id="opening_date"
-                                        name="opening_date"
-                                        value="{{ old('opening_date', \Carbon\Carbon::parse($cashCount->opening_date)->format('Y-m-d\TH:i')) }}">
-                                    @error('opening_date')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="initial_amount">Monto Inicial ({{ $currency->symbol }})</label>
-                                    <input type="number" step="0.01"
-                                        class="form-control @error('initial_amount') is-invalid @enderror"
-                                        id="initial_amount" name="initial_amount"
-                                        value="{{ old('initial_amount', $cashCount->initial_amount) }}">
-                                    @error('initial_amount')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="observations">Observaciones</label>
-                                    <textarea class="form-control @error('observations') is-invalid @enderror" id="observations" name="observations"
-                                        rows="3">{{ old('observations', $cashCount->observations) }}</textarea>
-                                    @error('observations')
-                                        <span class="invalid-feedback">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+<div class="space-y-6" x-data="editCashCountForm()">
+    <!-- Hero -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="relative px-6 py-8 sm:px-8 sm:py-12">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-cash-register text-white text-2xl"></i>
                         </div>
-                    </div>
-
-                    {{-- Resumen de Movimientos --}}
-                    <div class="col-md-6">
-                        <div class="card card-outline card-info">
-                            <div class="card-header">
-                                <h3 class="card-title">Resumen de Movimientos</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="info-box bg-success">
-                                    <span class="info-box-icon"><i class="fas fa-arrow-up"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Ingresos</span>
-                                        <span class="info-box-number">
-                                            {{ $currency->symbol }}
-                                            {{ number_format($cashCount->movements()->where('type', 'income')->sum('amount'), 2) }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="info-box bg-danger">
-                                    <span class="info-box-icon"><i class="fas fa-arrow-down"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Egresos</span>
-                                        <span class="info-box-number">
-                                            {{ $currency->symbol }}
-                                            {{ number_format($cashCount->movements()->where('type', 'expense')->sum('amount'), 2) }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="info-box bg-warning">
-                                    <span class="info-box-icon"><i class="fas fa-exchange-alt"></i></span>
-                                    <div class="info-box-content">
-                                        <span class="info-box-text">Total Movimientos</span>
-                                        <span class="info-box-number">
-                                            {{ $cashCount->movements()->count() }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Editar Caja #{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}</h1>
+                            <p class="text-blue-100 text-lg">Modifica los datos del arqueo seleccionado</p>
                         </div>
                     </div>
                 </div>
+                <div class="mt-6 lg:mt-0 hero-buttons">
+                    <a href="{{ route('admin.cash-counts.index') }}"
+                       class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                        <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
+                        <span class="text-xs sm:text-sm">Volver</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="text-right mt-3">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save mr-1"></i>
+    <!-- Formulario -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-6 border-b border-gray-200">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-edit text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Información General</h2>
+                    <p class="text-gray-600">Actualiza la información de la caja</p>
+                </div>
+            </div>
+        </div>
+
+        <form x-ref="form" action="{{ route('admin.cash-counts.update', $cashCount->id) }}" method="POST" @submit.prevent="handleSubmit">
+            @csrf
+            @method('PUT')
+
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <!-- Fecha de apertura -->
+                <div>
+                    <label for="opening_date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de apertura</label>
+                    <input type="date" id="opening_date" name="opening_date" x-model="openingDate"
+                           class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
+                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_date" x-show="errors.opening_date"></p>
+                </div>
+
+                <!-- Hora de apertura -->
+                <div>
+                    <label for="opening_time" class="block text-sm font-medium text-gray-700 mb-1">Hora de apertura</label>
+                    <input type="time" id="opening_time" name="opening_time" x-model="openingTime"
+                           class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
+                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_time" x-show="errors.opening_time"></p>
+                </div>
+
+                <!-- Monto inicial -->
+                <div>
+                    <label for="initial_amount" class="block text-sm font-medium text-gray-700 mb-1">Monto inicial ({{ $currency->symbol }})</label>
+                    <input type="number" step="0.01" id="initial_amount" name="initial_amount" x-model="initialAmount" @blur="formatAmount"
+                           class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
+                    <p class="mt-1 text-xs text-red-600" x-text="errors.initial_amount" x-show="errors.initial_amount"></p>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="sm:col-span-2 md:col-span-3 lg:col-span-5">
+                    <label for="observations" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                    <textarea id="observations" name="observations" rows="3" x-model="observations"
+                              class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex items-center justify-end hero-buttons">
+                    <a href="{{ url()->previous() }}" class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver
+                    </a>
+                    <button type="submit" class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition">
+                        <i class="fas fa-save mr-2"></i>
                         Guardar Cambios
                     </button>
                 </div>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen de Movimientos -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-6 border-b border-gray-200">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-pie text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Resumen de Movimientos</h2>
+                    <p class="text-gray-600">Ingresos, egresos y total de movimientos</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-6">
+            <div class="flex gap-4 items-stretch overflow-x-auto no-scrollbar">
+            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-up"></i></div>
+                    <div class="text-right">
+                        <div class="text-xl font-bold">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'income')->sum('amount'), 2) }}</div>
+                        <div class="text-emerald-100 text-sm">Total Ingresos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-red-500 to-pink-600 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-down"></i></div>
+                    <div class="text-right">
+                        <div class="text-xl font-bold">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'expense')->sum('amount'), 2) }}</div>
+                        <div class="text-pink-100 text-sm">Total Egresos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-yellow-500 to-orange-600 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-exchange-alt"></i></div>
+                    <div class="text-right">
+                        <div class="text-xl font-bold">{{ $cashCount->movements()->count() }}</div>
+                        <div class="text-yellow-100 text-sm">Total Movimientos</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-@stop
+</div>
+@endsection
 
-@section('css')
-    <style>
-        .info-box-number {
-            font-size: 1.5rem;
+@push('css')
+<style>
+    .hero-buttons { display: flex; gap: 0.5rem; flex-wrap: nowrap; }
+    .hero-buttons > * { min-width: 120px; }
+    @media (max-width: 480px) { .hero-buttons { gap: 0.25rem; } .hero-buttons > * { min-width: 100px; } }
+</style>
+@endpush
+
+@push('js')
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+<script>
+function editCashCountForm() {
+    return {
+        openingDate: '{{ old('opening_date', \Carbon\Carbon::parse($cashCount->opening_date)->format('Y-m-d')) }}',
+        openingTime: '{{ old('opening_time', \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i')) }}',
+        initialAmount: '{{ old('initial_amount', $cashCount->initial_amount) }}',
+        observations: @json(old('observations', $cashCount->observations)),
+        errors: {},
+
+        formatAmount() {
+            const n = parseFloat(this.initialAmount);
+            this.initialAmount = isNaN(n) ? '0.00' : n.toFixed(2);
+        },
+        validate() {
+            this.errors = {};
+            if (!this.openingDate) this.errors.opening_date = 'La fecha es obligatoria';
+            if (!this.openingTime) this.errors.opening_time = 'La hora es obligatoria';
+            const n = parseFloat(this.initialAmount);
+            if (isNaN(n)) this.errors.initial_amount = 'Monto inválido';
+            else if (n < 0) this.errors.initial_amount = 'El monto no puede ser negativo';
+            return Object.keys(this.errors).length === 0;
+        },
+        handleSubmit() {
+            if (!this.validate()) {
+                if (typeof Swal !== 'undefined') { Swal.fire({ icon: 'error', title: 'Verifica los datos', text: 'Corrige los campos marcados.' }); }
+                else { alert('Corrige los campos marcados.'); }
+                return;
+            }
+            this.$refs.form.submit();
         }
-    </style>
-@stop
-
-@section('js')
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            // Cargar SweetAlert2
-            loadSweetAlert2(function() {
-                // Validación de formulario
-                $('form').submit(function(e) {
-                    const initialAmount = parseFloat($('#initial_amount').val());
-
-                    if (initialAmount < 0) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'El monto inicial no puede ser negativo'
-                        });
-                    }
-                });
-                
-            });
-        });
-    </script>
-@stop
+    }
+}
+</script>
+@endpush

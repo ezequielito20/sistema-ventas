@@ -88,8 +88,8 @@
     <!-- Estadísticas -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Balance Actual -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600">
+            <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-wallet text-white text-xl"></i>
@@ -103,8 +103,8 @@
         </div>
 
         <!-- Ingresos del Día -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-green-600 to-emerald-600 p-6">
+        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600">
+            <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-arrow-up text-white text-xl"></i>
@@ -118,8 +118,8 @@
         </div>
 
         <!-- Egresos del Día -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-red-600 to-pink-600 p-6">
+        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-red-600 to-pink-600">
+            <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-arrow-down text-white text-xl"></i>
@@ -133,8 +133,8 @@
         </div>
 
         <!-- Movimientos del Día -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-yellow-600 to-orange-600 p-6">
+        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-yellow-600 to-orange-600">
+            <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-exchange-alt text-white text-xl"></i>
@@ -187,7 +187,7 @@
         <div x-show="viewMode === 'table'" class="hidden md:block">
             <div class="overflow-x-auto">
                 <table class="w-full modern-table">
-                    <thead class="bg-gray-50">
+                    <thead>
                         <tr>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">ID</th>
                             <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha Apertura</th>
@@ -1623,8 +1623,9 @@
     }
 
     .modern-table th {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        border-bottom: 2px solid #e2e8f0;
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        color: #ffffff;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.25);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
