@@ -715,85 +715,144 @@
                                     </div>
                                 </div>
 
-                                <!-- 4 Widgets de Clientes -->
+                                <!-- 4 Widgets de Clientes con datos reales -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                                    <!-- Widget 1 -->
+                                    <!-- Widget 1: Total Clientes -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
                                             <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
                                                 <i class="fas fa-user-friends text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="0">0</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.unique_customers : 0">0</div>
                                                 <div class="text-blue-100 text-xs sm:text-sm">Total Clientes</div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center text-blue-100 text-xs sm:text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.unique_customers ? 
+                                                    (cashCountData.customer_stats.comparison.unique_customers.is_positive ? 'text-green-200' : 'text-red-200') : 'text-blue-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.unique_customers ? 
+                                                              (cashCountData.customer_stats.comparison.unique_customers.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.unique_customers ? 
+                                                        (cashCountData.customer_stats.comparison.unique_customers.is_positive ? '+' : '') + cashCountData.customer_stats.comparison.unique_customers.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
                                         </div>
                                     </div>
 
-                                    <!-- Widget 2 -->
-                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-shopping-cart text-white text-xl"></i>
+                                    <!-- Widget 2: Ventas Totales -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-green-100 text-sm">Ventas Totales</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_sales : 0)">$0.00</div>
+                                                <div class="text-green-100 text-xs sm:text-sm">Ventas Totales</div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center text-green-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_sales ? 
+                                                    (cashCountData.customer_stats.comparison.total_sales.is_positive ? 'text-green-200' : 'text-red-200') : 'text-green-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_sales ? 
+                                                              (cashCountData.customer_stats.comparison.total_sales.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_sales ? 
+                                                        (cashCountData.customer_stats.comparison.total_sales.is_positive ? '+' : '') + cashCountData.customer_stats.comparison.total_sales.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
                                         </div>
                                     </div>
 
-                                    <!-- Widget 3 -->
-                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                                    <!-- Widget 3: Deudas Pendientes -->
+                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-exclamation-triangle text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-red-100 text-sm">Deudas Pendientes</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_debt : 0)">$0.00</div>
+                                                <div class="text-red-100 text-xs sm:text-sm">Deudas Pendientes</div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center text-red-100 text-sm">
-                                            <i class="fas fa-arrow-down mr-1"></i>
-                                            <span>0% vs anterior</span>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_debt ? 
+                                                    (cashCountData.customer_stats.comparison.total_debt.is_positive ? 'text-red-200' : 'text-green-200') : 'text-red-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_debt ? 
+                                                              (cashCountData.customer_stats.comparison.total_debt.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.total_debt ? 
+                                                        (cashCountData.customer_stats.comparison.total_debt.is_positive ? '+' : '') + cashCountData.customer_stats.comparison.total_debt.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
                                         </div>
                                     </div>
 
-                                    <!-- Widget 4 -->
-                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-chart-line text-white text-xl"></i>
+                                    <!-- Widget 4: Promedio por Cliente -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-purple-100 text-sm">Promedio por Cliente</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.average_per_customer : 0)">$0.00</div>
+                                                <div class="text-purple-100 text-xs sm:text-sm">Promedio por Cliente</div>
                                             </div>
                                         </div>
-                                        <div class="flex items-center text-purple-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.average_per_customer ? 
+                                                    (cashCountData.customer_stats.comparison.average_per_customer.is_positive ? 'text-purple-200' : 'text-red-200') : 'text-purple-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.average_per_customer ? 
+                                                              (cashCountData.customer_stats.comparison.average_per_customer.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.customer_stats && cashCountData.customer_stats.comparison.average_per_customer ? 
+                                                        (cashCountData.customer_stats.comparison.average_per_customer.is_positive ? '+' : '') + cashCountData.customer_stats.comparison.average_per_customer.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Mensaje de Estado -->
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-2 sm:space-x-3">
-                                        <i class="fas fa-info-circle text-blue-600 text-lg sm:text-xl"></i>
-                                        <div>
-                                            <h4 class="text-base sm:text-lg font-semibold text-blue-900">Pestaña de Clientes</h4>
-                                            <p class="text-blue-700 text-sm sm:text-base">Aquí se mostrará la información detallada de clientes para este arqueo de caja</p>
-                                        </div>
+                                <!-- Tabla de Clientes -->
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                                        <h4 class="text-base sm:text-lg font-semibold text-gray-900">Clientes del Arqueo</h4>
+                                        <p class="text-xs sm:text-sm text-gray-600">Detalle de clientes que realizaron compras durante este período</p>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Compras</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deuda Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="customer in (cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.customers_data : [])" :key="customer.name">
+                                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="customer.name"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-500" x-text="customer.phone"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-green-600" x-text="formatCurrency(customer.total_purchases)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium" :class="customer.total_debt > 0 ? 'text-red-600' : 'text-green-600'" x-text="formatCurrency(customer.total_debt)"></div>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <!-- Estado vacío -->
+                                                <tr x-show="!cashCountData || !cashCountData.customer_stats || !cashCountData.customer_stats.current.customers_data || cashCountData.customer_stats.current.customers_data.length === 0">
+                                                    <td colspan="4" class="px-3 sm:px-4 md:px-6 py-6 sm:py-8 text-center">
+                                                        <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                                                            <i class="fas fa-users text-gray-400 text-2xl sm:text-3xl"></i>
+                                                            <div class="text-gray-500">
+                                                                <p class="font-medium text-sm sm:text-base">No hay clientes registrados</p>
+                                                                <p class="text-xs sm:text-sm">No se encontraron clientes con compras en este arqueo</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

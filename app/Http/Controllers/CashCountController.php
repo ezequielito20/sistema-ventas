@@ -948,6 +948,9 @@ class CashCountController extends Controller
          $totalExpenses = $cashCount->movements->where('type', 'expense')->sum('amount');
          $currentBalance = $cashCount->initial_amount + $totalIncome - $totalExpenses;
 
+         // Obtener estadísticas de clientes
+         $customerStats = $cashCount->getCustomerStats();
+
          $data = [
             'id' => $cashCount->id,
             'initial_amount' => $cashCount->initial_amount,
@@ -967,7 +970,8 @@ class CashCountController extends Controller
                   'description' => $movement->description,
                   'created_at' => $movement->created_at->toISOString()
                ];
-            })
+            }),
+            'customer_stats' => $customerStats
          ];
 
          return response()->json([

@@ -19,6 +19,7 @@ return new class extends Migration
 
          $table->unsignedBigInteger('company_id')->nullable()->comment('ID de la empresa asociada a la venta');
          $table->foreignId('customer_id')->nullable()->constrained('customers')->comment('ID del cliente asociado a la venta');
+         $table->foreignId('cash_count_id')->nullable()->constrained('cash_counts')->comment('ID del arqueo de caja asociado a la venta');
 
          $table->timestamps();
       });
