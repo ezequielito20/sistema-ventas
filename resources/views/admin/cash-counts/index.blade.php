@@ -40,11 +40,12 @@
                             </a>
                         @endcan
                         @can('cash-counts.close')
-                            <a href="{{ route('admin.cash-counts.close', $currentCashCount->id) }}" 
-                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                            <button type="button" 
+                                    onclick="closeCashCount({{ $currentCashCount->id }})"
+                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
                                 <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
                                 <span class="text-xs sm:text-sm">Cerrar Caja</span>
-                            </a>
+                            </button>
                         @endcan
                     @else
                         @can('cash-counts.report')
@@ -1982,6 +1983,66 @@ window.testModal = function() {
         alert('Error: Modal no disponible');
     }
 };
+
+// Función para cerrar caja con confirmación
+function closeCashCount(cashCountId) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Cerrar Caja?',
+            text: '¿Estás seguro de que quieres cerrar la caja actual? Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, cerrar caja',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Crear formulario dinámicamente y enviarlo
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/cash-counts/close/${cashCountId}`;
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'PUT';
+                
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    } else {
+        if (confirm('¿Estás seguro de que quieres cerrar la caja actual?')) {
+            // Crear formulario dinámicamente y enviarlo
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/cash-counts/close/${cashCountId}`;
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'PUT';
+            
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicialización de gráficos
