@@ -2,6 +2,24 @@
 
 @section('title', 'Abrir Caja')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/cash-counts/create.css') }}">
+@endpush
+
+@push('js')
+    <script>
+        // Datos globales para JavaScript
+        window.cashCountCreateData = {
+            currencySymbol: '{{ $currency->symbol }}',
+            openingDate: '{{ old('opening_date', now()->format('Y-m-d')) }}',
+            openingTime: '{{ old('opening_time', now()->format('H:i')) }}',
+            initialAmount: '{{ old('initial_amount', '0.00') }}',
+            observations: @json(old('observations', ''))
+        };
+    </script>
+    <script src="{{ asset('js/admin/cash-counts/create.js') }}" defer></script>
+@endpush
+
 @section('content')
 <div class="space-y-6">
     <!-- Hero -->
@@ -49,16 +67,17 @@
             @csrf
             <input type="hidden" name="redirect_to" value="{{ request()->headers->get('referer') }}">
 
-            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 form-grid">
                 <!-- Fecha de apertura -->
                 <div>
                     <label for="opening_date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de apertura <span class="text-red-500">*</span></label>
                     <input type="date" id="opening_date" name="opening_date"
                            x-model="openingDate"
+                           :class="errors.opening_date ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500" required>
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_date" x-show="errors.opening_date"></p>
+                    <p class="error-message" x-text="errors.opening_date" x-show="errors.opening_date"></p>
                     @error('opening_date')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -67,8 +86,9 @@
                     <label for="opening_time" class="block text-sm font-medium text-gray-700 mb-1">Hora de apertura <span class="text-red-500">*</span></label>
                     <input type="time" id="opening_time" name="opening_time"
                            x-model="openingTime"
+                           :class="errors.opening_time ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500" required>
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_time" x-show="errors.opening_time"></p>
+                    <p class="error-message" x-text="errors.opening_time" x-show="errors.opening_time"></p>
                 </div>
 
                 <!-- Monto inicial -->
@@ -76,10 +96,11 @@
                     <label for="initial_amount" class="block text-sm font-medium text-gray-700 mb-1">Monto inicial ({{ $currency->symbol }}) <span class="text-red-500">*</span></label>
                     <input type="number" step="0.01" id="initial_amount" name="initial_amount"
                            x-model="initialAmount" @blur="formatAmount"
+                           :class="errors.initial_amount ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500" required>
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.initial_amount" x-show="errors.initial_amount"></p>
+                    <p class="error-message" x-text="errors.initial_amount" x-show="errors.initial_amount"></p>
                     @error('initial_amount')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -87,7 +108,7 @@
                 <div class="sm:col-span-2 md:col-span-3 lg:col-span-5">
                     <label for="observations" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
                     <textarea id="observations" name="observations" rows="3" x-model="observations"
-                              class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                              class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500 form-input"></textarea>
                 </div>
             </div>
 
@@ -98,9 +119,11 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Volver
                     </a>
-                    <button type="submit" class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition">
-                        <i class="fas fa-save mr-2"></i>
-                        Abrir Caja
+                    <button type="submit" 
+                            :disabled="isSubmitting"
+                            class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-save mr-2" :class="isSubmitting ? 'animate-spin' : ''"></i>
+                        <span x-text="isSubmitting ? 'Abriendo...' : 'Abrir Caja'"></span>
                     </button>
                 </div>
             </div>
@@ -109,53 +132,4 @@
 </div>
 @endsection
 
-@push('css')
-<style>
-    .hero-buttons { display: flex; gap: 0.5rem; flex-wrap: nowrap; }
-    .hero-buttons > * { min-width: 120px; }
-    @media (max-width: 480px) {
-        .hero-buttons { gap: 0.25rem; }
-        .hero-buttons > * { min-width: 100px; }
-    }
-</style>
-@endpush
 
-@push('js')
-<script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
-<script>
-function cashCountForm() {
-    return {
-        openingDate: '{{ old('opening_date', now()->format('Y-m-d')) }}',
-        openingTime: '{{ old('opening_time', now()->format('H:i')) }}',
-        initialAmount: '{{ old('initial_amount', '0.00') }}',
-        observations: @json(old('observations', '')),
-        errors: {},
-
-        formatAmount() {
-            const n = parseFloat(this.initialAmount);
-            this.initialAmount = isNaN(n) ? '0.00' : n.toFixed(2);
-        },
-
-        validate() {
-            this.errors = {};
-            if (!this.openingDate) this.errors.opening_date = 'La fecha es obligatoria';
-            if (!this.openingTime) this.errors.opening_time = 'La hora es obligatoria';
-            const n = parseFloat(this.initialAmount);
-            if (isNaN(n)) this.errors.initial_amount = 'Monto inválido';
-            else if (n < 0) this.errors.initial_amount = 'El monto no puede ser negativo';
-            return Object.keys(this.errors).length === 0;
-        },
-
-        handleSubmit() {
-            if (!this.validate()) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'error', title: 'Verifica los datos', text: 'Corrige los campos marcados.' });
-                } else { alert('Corrige los campos marcados.'); }
-                return;
-            }
-            this.$refs.form.submit();
-        }
-    }
-}
-</script>
-@endpush

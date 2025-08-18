@@ -1,0 +1,90 @@
+/* ===== ESTILOS ESPECÍFICOS PARA CASH-COUNTS/CREATE ===== */
+
+/* Importar componentes compartidos */
+/* Los componentes compartidos se cargan desde el layout principal */
+
+/* ===== ESTILOS ESPECÍFICOS DE LA VISTA ===== */
+
+/* Estilos para botones del hero section */
+.hero-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.hero-buttons > * {
+    min-width: 120px;
+}
+
+/* Responsive para botones del hero */
+@media (max-width: 480px) {
+    .hero-buttons {
+        gap: 0.25rem;
+    }
+    
+    .hero-buttons > * {
+        min-width: 100px;
+    }
+}
+
+/* ===== ESTILOS DEL FORMULARIO ===== */
+
+/* Campos del formulario */
+.form-input {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Validación de campos */
+.input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .hero-buttons > * {
+        width: 100%;
+        min-width: auto;
+    }
+}

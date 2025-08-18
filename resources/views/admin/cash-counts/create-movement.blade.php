@@ -2,6 +2,28 @@
 
 @section('title', 'Nuevo Movimiento de Caja')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/cash-counts/create-movement.css') }}">
+@endpush
+
+@push('js')
+    <script>
+        // Datos globales para JavaScript
+        window.movementCreateData = {
+            currencySymbol: '{{ $currency->symbol }}',
+            type: '{{ old('type', '') }}',
+            amount: '{{ old('amount', '') }}',
+            description: @json(old('description', '')),
+            currentCashCount: @json($currentCashCount ? [
+                'id' => $currentCashCount->id,
+                'opening_date' => $currentCashCount->opening_date,
+                'initial_amount' => $currentCashCount->initial_amount
+            ] : null)
+        };
+    </script>
+    <script src="{{ asset('js/admin/cash-counts/create-movement.js') }}" defer></script>
+@endpush
+
 @section('content')
     <div class="space-y-6">
         <!-- Hero Section -->
@@ -58,7 +80,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.cash-counts.store-movement') }}" method="POST" class="p-6 space-y-6">
+            <form x-ref="form" action="{{ route('admin.cash-counts.store-movement') }}" method="POST" class="p-6 space-y-6" x-data="movementForm()" @submit.prevent="handleSubmit">
                 @csrf
 
                 <!-- Tipo de Movimiento -->
@@ -66,11 +88,10 @@
                     <label for="type" class="block text-sm font-semibold text-gray-700 mb-2">
                         Tipo de Movimiento <span class="text-red-500">*</span>
                     </label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <label class="relative cursor-pointer">
-                            <input type="radio" name="type" value="income" class="sr-only" required>
-                            <div
-                                class="border-2 border-gray-200 rounded-xl p-4 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 radio-options">
+                        <label class="radio-option">
+                            <input type="radio" name="type" value="income" x-model="type" class="sr-only" required>
+                            <div class="radio-content income">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                                         <i class="fas fa-arrow-up text-green-600"></i>
@@ -83,10 +104,9 @@
                             </div>
                         </label>
 
-                        <label class="relative cursor-pointer">
-                            <input type="radio" name="type" value="expense" class="sr-only" required>
-                            <div
-                                class="border-2 border-gray-200 rounded-xl p-4 transition-all duration-200 hover:border-red-300 hover:bg-red-50">
+                        <label class="radio-option">
+                            <input type="radio" name="type" value="expense" x-model="type" class="sr-only" required>
+                            <div class="radio-content expense">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                                         <i class="fas fa-arrow-down text-red-600"></i>
@@ -99,59 +119,70 @@
                             </div>
                         </label>
                     </div>
+                    <p class="error-message" x-text="errors.type" x-show="errors.type"></p>
                     @error('type')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
-                                 <!-- Monto -->
-                 <div>
-                     <label for="amount" class="block text-sm font-semibold text-gray-700 mb-2">
-                         Monto <span class="text-red-500">*</span>
-                     </label>
-                     <div class="relative amount-input-container">
-                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                             
-                         </div>
-                         <input type="number" 
-                                id="amount" 
-                                name="amount" 
-                                step="0.01" 
-                                min="0" 
-                                required
-                                class="block w-full pl-16 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg font-semibold bg-white"
-                                placeholder="0.00">
-                     </div>
-                     @error('amount')
-                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                     @enderror
-                 </div>
+                <!-- Monto -->
+                <div>
+                    <label for="amount" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Monto <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative amount-input-container">
+                        <div class="currency-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <input type="number" 
+                               id="amount" 
+                               name="amount" 
+                               x-model="amount"
+                               step="0.01" 
+                               min="0" 
+                               required
+                               :class="errors.amount ? 'form-input input-error' : 'form-input'"
+                               class="block w-full pl-16 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg font-semibold bg-white"
+                               placeholder="0.00">
+                    </div>
+                    <p class="error-message" x-text="errors.amount" x-show="errors.amount"></p>
+                    @error('amount')
+                        <p class="error-message">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <!-- Descripción -->
                 <div>
                     <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">
                         Descripción
                     </label>
-                    <textarea id="description" name="description" rows="3" maxlength="255"
-                        class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none"
+                    <textarea id="description" name="description" rows="3" maxlength="255" x-model="description"
+                        class="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none form-input"
                         placeholder="Describe el motivo del movimiento (opcional)"></textarea>
-                    <div class="mt-1 text-sm text-gray-500 text-right">
-                        <span id="char-count">0</span>/255 caracteres
+                    <div class="char-counter">
+                        <span class="count" :class="getCharCountClass(charCount, 255)" x-text="charCount"></span>
+                        <span>/255 caracteres</span>
                     </div>
+                    <p class="error-message" x-text="errors.description" x-show="errors.description"></p>
                     @error('description')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Botones -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                    <button type="submit"
-                        class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <i class="fas fa-save mr-2"></i>
-                        Registrar Movimiento
+                    <button type="button" @click="confirmReset()" class="flex-1 btn-secondary">
+                        <i class="fas fa-undo mr-2"></i>
+                        Limpiar
+                    </button>
+                    <button type="submit" 
+                            :disabled="isSubmitting"
+                            class="flex-1 btn-primary">
+                        <i class="fas fa-save mr-2" :class="isSubmitting ? 'loading-spinner' : ''"></i>
+                        <span x-text="isSubmitting ? 'Registrando...' : 'Registrar Movimiento'"></span>
                     </button>
                     <a href="{{ route('admin.cash-counts.index') }}"
-                        class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200 text-center">
+                        class="flex-1 btn-secondary text-center">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </a>
@@ -175,11 +206,11 @@
                     </div>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-blue-50 rounded-xl p-4">
+                    <div class="cash-info-grid">
+                        <div class="cash-info-card blue">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-cash-register text-blue-600"></i>
+                                <div class="icon">
+                                    <i class="fas fa-cash-register"></i>
                                 </div>
                                 <div>
                                     <div class="text-sm text-blue-600 font-medium">Monto Inicial</div>
@@ -189,10 +220,10 @@
                             </div>
                         </div>
 
-                        <div class="bg-green-50 rounded-xl p-4">
+                        <div class="cash-info-card green">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-calendar-alt text-green-600"></i>
+                                <div class="icon">
+                                    <i class="fas fa-calendar-alt"></i>
                                 </div>
                                 <div>
                                     <div class="text-sm text-green-600 font-medium">Fecha de Apertura</div>
@@ -202,10 +233,10 @@
                             </div>
                         </div>
 
-                        <div class="bg-purple-50 rounded-xl p-4">
+                        <div class="cash-info-card purple">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-clock text-purple-600"></i>
+                                <div class="icon">
+                                    <i class="fas fa-clock"></i>
                                 </div>
                                 <div>
                                     <div class="text-sm text-purple-600 font-medium">Hora de Apertura</div>
@@ -221,130 +252,4 @@
     </div>
 @endsection
 
-@push('css')
-<style>
-    /* Estilos personalizados para el campo de monto */
-    .amount-input-container {
-        position: relative;
-    }
-    
-    .amount-input-container input[type="number"] {
-        -moz-appearance: textfield;
-    }
-    
-    .amount-input-container input[type="number"]::-webkit-outer-spin-button,
-    .amount-input-container input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    
-    .amount-input-container .currency-icon {
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .amount-input-container input:focus ~ .currency-icon {
-        transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-        background-color: #DBEAFE;
-    }
-    
-    .amount-input-container input:focus ~ .currency-icon i {
-        color: #2563EB;
-    }
-    
-    /* Animación suave para el placeholder */
-    .amount-input-container input::placeholder {
-        color: #9CA3AF;
-        transition: color 0.2s ease;
-    }
-    
-    .amount-input-container input:focus::placeholder {
-        color: #D1D5DB;
-    }
-    
-    /* Efecto hover en el ícono */
-    .amount-input-container:hover .currency-icon {
-        transform: scale(1.05);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-    }
-</style>
-@endpush
 
-@push('js')
-     <script>
-         document.addEventListener('DOMContentLoaded', function() {
-             // Contador de caracteres para la descripción
-             const descriptionTextarea = document.getElementById('description');
-             const charCount = document.getElementById('char-count');
- 
-             if (descriptionTextarea && charCount) {
-                 descriptionTextarea.addEventListener('input', function() {
-                     charCount.textContent = this.value.length;
-                 });
-             }
- 
-             // Estilos para los radio buttons personalizados
-             const radioButtons = document.querySelectorAll('input[type="radio"]');
-             radioButtons.forEach(radio => {
-                 radio.addEventListener('change', function() {
-                     // Remover estilos activos de todos los contenedores
-                     document.querySelectorAll('input[type="radio"]').forEach(rb => {
-                         const container = rb.closest('label').querySelector('div');
-                         container.classList.remove('border-blue-500', 'bg-blue-50',
-                             'border-red-500', 'bg-red-50');
-                         container.classList.add('border-gray-200');
-                     });
- 
-                     // Aplicar estilos al seleccionado
-                     const container = this.closest('label').querySelector('div');
-                     if (this.value === 'income') {
-                         container.classList.remove('border-gray-200');
-                         container.classList.add('border-blue-500', 'bg-blue-50');
-                     } else if (this.value === 'expense') {
-                         container.classList.remove('border-gray-200');
-                         container.classList.add('border-red-500', 'bg-red-50');
-                     }
-                 });
-             });
- 
-             // Formateo automático del monto con mejor UX
-             const amountInput = document.getElementById('amount');
-             if (amountInput) {
-                 amountInput.addEventListener('input', function() {
-                     // Remover caracteres no numéricos excepto punto decimal
-                     let value = this.value.replace(/[^\d.]/g, '');
- 
-                     // Asegurar que solo haya un punto decimal
-                     const parts = value.split('.');
-                     if (parts.length > 2) {
-                         value = parts[0] + '.' + parts.slice(1).join('');
-                     }
- 
-                     // Limitar a 2 decimales
-                     if (parts.length === 2 && parts[1].length > 2) {
-                         value = parts[0] + '.' + parts[1].substring(0, 2);
-                     }
- 
-                     this.value = value;
-                     
-                     // Agregar efecto visual cuando hay valor
-                     if (value && parseFloat(value) > 0) {
-                         this.classList.add('has-value');
-                     } else {
-                         this.classList.remove('has-value');
-                     }
-                 });
-                 
-                 // Efecto de focus mejorado
-                 amountInput.addEventListener('focus', function() {
-                     this.parentElement.classList.add('focused');
-                 });
-                 
-                 amountInput.addEventListener('blur', function() {
-                     this.parentElement.classList.remove('focused');
-                 });
-             }
-         });
-     </script>
-@endpush

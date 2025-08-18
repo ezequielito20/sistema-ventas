@@ -1,0 +1,376 @@
+/* ===== ESTILOS ESPECÍFICOS PARA CASH-COUNTS/CREATE-MOVEMENT ===== */
+
+/* Importar componentes compartidos */
+/* Los componentes compartidos se cargan desde el layout principal */
+
+/* ===== ESTILOS ESPECÍFICOS DE LA VISTA ===== */
+
+/* ===== ESTILOS DEL FORMULARIO ===== */
+
+/* Campos del formulario */
+.form-input {
+    transition: all 0.2s ease;
+}
+
+.form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Validación de campos */
+.input-error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-error:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    animation: fadeIn 0.3s ease;
+}
+
+/* ===== ESTILOS PARA RADIO BUTTONS PERSONALIZADOS ===== */
+
+.radio-option {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.radio-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.radio-option .radio-content {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.radio-option input[type="radio"]:checked + .radio-content {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.radio-option input[type="radio"]:checked + .radio-content.income {
+    border-color: #10b981;
+    background-color: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.radio-option input[type="radio"]:checked + .radio-content.expense {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+/* ===== ESTILOS PARA EL CAMPO DE MONTO ===== */
+
+.amount-input-container {
+    position: relative;
+}
+
+.amount-input-container input[type="number"] {
+    -moz-appearance: textfield;
+    transition: all 0.3s ease;
+}
+
+.amount-input-container input[type="number"]::-webkit-outer-spin-button,
+.amount-input-container input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.amount-input-container .currency-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.amount-input-container input:focus ~ .currency-icon {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+.amount-input-container input:focus ~ .currency-icon i {
+    color: white;
+}
+
+.amount-input-container input.has-value ~ .currency-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.amount-input-container input.has-value:focus ~ .currency-icon {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Animación suave para el placeholder */
+.amount-input-container input::placeholder {
+    color: #9ca3af;
+    transition: color 0.2s ease;
+}
+
+.amount-input-container input:focus::placeholder {
+    color: #d1d5db;
+}
+
+/* Efecto hover en el ícono */
+.amount-input-container:hover .currency-icon {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== ESTILOS PARA EL CONTADOR DE CARACTERES ===== */
+
+.char-counter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.char-counter .count {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.char-counter .count.near-limit {
+    color: #f59e0b;
+}
+
+.char-counter .count.at-limit {
+    color: #ef4444;
+}
+
+/* ===== ESTILOS PARA LA INFORMACIÓN DE LA CAJA ===== */
+
+.cash-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.cash-info-card {
+    background: linear-gradient(135deg, var(--card-bg-start), var(--card-bg-end));
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.cash-info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.cash-info-card.blue {
+    --card-bg-start: #dbeafe;
+    --card-bg-end: #bfdbfe;
+}
+
+.cash-info-card.green {
+    --card-bg-start: #dcfce7;
+    --card-bg-end: #bbf7d0;
+}
+
+.cash-info-card.purple {
+    --card-bg-start: #f3e8ff;
+    --card-bg-end: #e9d5ff;
+}
+
+.cash-info-card .icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.cash-info-card.blue .icon {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.cash-info-card.green .icon {
+    background-color: #10b981;
+    color: white;
+}
+
+.cash-info-card.purple .icon {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.radio-options {
+    animation: slideInUp 0.5s ease;
+}
+
+.amount-input-container {
+    animation: slideInUp 0.6s ease;
+}
+
+.cash-info-grid {
+    animation: slideInUp 0.7s ease;
+}
+
+/* ===== ESTADOS DE CARGA ===== */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .radio-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .cash-info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .amount-input-container .currency-icon {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .radio-option .radio-content {
+        padding: 0.75rem;
+    }
+    
+    .cash-info-card {
+        padding: 0.75rem;
+    }
+    
+    .cash-info-card .icon {
+        width: 2rem;
+        height: 2rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ===== ESTILOS PARA BOTONES ===== */
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}

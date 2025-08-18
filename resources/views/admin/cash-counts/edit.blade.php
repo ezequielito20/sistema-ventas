@@ -2,6 +2,30 @@
 
 @section('title', 'Editar Caja')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/cash-counts/edit.css') }}">
+@endpush
+
+@push('js')
+    <script>
+        // Datos globales para JavaScript
+        window.cashCountEditData = {
+            cashCountId: {{ $cashCount->id }},
+            currencySymbol: '{{ $currency->symbol }}',
+            openingDate: '{{ old('opening_date', \Carbon\Carbon::parse($cashCount->opening_date)->format('Y-m-d')) }}',
+            openingTime: '{{ old('opening_time', \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i')) }}',
+            initialAmount: '{{ old('initial_amount', $cashCount->initial_amount) }}',
+            observations: @json(old('observations', $cashCount->observations)),
+            movementsSummary: {
+                income: {{ $cashCount->movements()->where('type', 'income')->sum('amount') }},
+                expense: {{ $cashCount->movements()->where('type', 'expense')->sum('amount') }},
+                totalMovements: {{ $cashCount->movements()->count() }}
+            }
+        };
+    </script>
+    <script src="{{ asset('js/admin/cash-counts/edit.js') }}" defer></script>
+@endpush
+
 @section('content')
 <div class="space-y-6" x-data="editCashCountForm()">
     <!-- Hero -->
@@ -49,36 +73,39 @@
             @csrf
             @method('PUT')
 
-            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 form-grid">
                 <!-- Fecha de apertura -->
                 <div>
                     <label for="opening_date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de apertura</label>
                     <input type="date" id="opening_date" name="opening_date" x-model="openingDate"
+                           :class="errors.opening_date ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_date" x-show="errors.opening_date"></p>
+                    <p class="error-message" x-text="errors.opening_date" x-show="errors.opening_date"></p>
                 </div>
 
                 <!-- Hora de apertura -->
                 <div>
                     <label for="opening_time" class="block text-sm font-medium text-gray-700 mb-1">Hora de apertura</label>
                     <input type="time" id="opening_time" name="opening_time" x-model="openingTime"
+                           :class="errors.opening_time ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.opening_time" x-show="errors.opening_time"></p>
+                    <p class="error-message" x-text="errors.opening_time" x-show="errors.opening_time"></p>
                 </div>
 
                 <!-- Monto inicial -->
                 <div>
                     <label for="initial_amount" class="block text-sm font-medium text-gray-700 mb-1">Monto inicial ({{ $currency->symbol }})</label>
                     <input type="number" step="0.01" id="initial_amount" name="initial_amount" x-model="initialAmount" @blur="formatAmount"
+                           :class="errors.initial_amount ? 'form-input input-error' : 'form-input'"
                            class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500">
-                    <p class="mt-1 text-xs text-red-600" x-text="errors.initial_amount" x-show="errors.initial_amount"></p>
+                    <p class="error-message" x-text="errors.initial_amount" x-show="errors.initial_amount"></p>
                 </div>
 
                 <!-- Observaciones -->
                 <div class="sm:col-span-2 md:col-span-3 lg:col-span-5">
                     <label for="observations" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
                     <textarea id="observations" name="observations" rows="3" x-model="observations"
-                              class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                              class="w-full rounded-lg border-gray-300 focus:ring-purple-500 focus:border-purple-500 form-input"></textarea>
                 </div>
             </div>
 
@@ -89,9 +116,15 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                         Volver
                     </a>
-                    <button type="submit" class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition">
-                        <i class="fas fa-save mr-2"></i>
-                        Guardar Cambios
+                    <button type="button" @click="confirmReset()" class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-undo mr-2"></i>
+                        Restablecer
+                    </button>
+                    <button type="submit" 
+                            :disabled="isSubmitting"
+                            class="inline-flex items-center justify-center px-4 sm:px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-save mr-2" :class="isSubmitting ? 'loading-spinner' : ''"></i>
+                        <span x-text="isSubmitting ? 'Guardando...' : 'Guardar Cambios'"></span>
                     </button>
                 </div>
             </div>
@@ -112,31 +145,38 @@
             </div>
         </div>
         <div class="p-6">
-            <div class="flex gap-4 items-stretch overflow-x-auto no-scrollbar">
-            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-up"></i></div>
-                    <div class="text-right">
-                        <div class="text-xl font-bold">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'income')->sum('amount'), 2) }}</div>
-                        <div class="text-emerald-100 text-sm">Total Ingresos</div>
+            <div class="summary-cards">
+                <div class="summary-card income">
+                    <div class="flex items-center justify-between">
+                        <div class="icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="amount">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'income')->sum('amount'), 2) }}</div>
+                            <div class="label">Total Ingresos</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-red-500 to-pink-600 text-white">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-arrow-down"></i></div>
-                    <div class="text-right">
-                        <div class="text-xl font-bold">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'expense')->sum('amount'), 2) }}</div>
-                        <div class="text-pink-100 text-sm">Total Egresos</div>
+                <div class="summary-card expense">
+                    <div class="flex items-center justify-between">
+                        <div class="icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="amount">{{ $currency->symbol }} {{ number_format($cashCount->movements()->where('type', 'expense')->sum('amount'), 2) }}</div>
+                            <div class="label">Total Egresos</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="min-w-[260px] flex-1 rounded-xl p-4 bg-gradient-to-br from-yellow-500 to-orange-600 text-white">
-                <div class="flex items-center justify-between">
-                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center"><i class="fas fa-exchange-alt"></i></div>
-                    <div class="text-right">
-                        <div class="text-xl font-bold">{{ $cashCount->movements()->count() }}</div>
-                        <div class="text-yellow-100 text-sm">Total Movimientos</div>
+                <div class="summary-card movements">
+                    <div class="flex items-center justify-between">
+                        <div class="icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="amount">{{ $cashCount->movements()->count() }}</div>
+                            <div class="label">Total Movimientos</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -145,47 +185,4 @@
 </div>
 @endsection
 
-@push('css')
-<style>
-    .hero-buttons { display: flex; gap: 0.5rem; flex-wrap: nowrap; }
-    .hero-buttons > * { min-width: 120px; }
-    @media (max-width: 480px) { .hero-buttons { gap: 0.25rem; } .hero-buttons > * { min-width: 100px; } }
-</style>
-@endpush
 
-@push('js')
-<script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
-<script>
-function editCashCountForm() {
-    return {
-        openingDate: '{{ old('opening_date', \Carbon\Carbon::parse($cashCount->opening_date)->format('Y-m-d')) }}',
-        openingTime: '{{ old('opening_time', \Carbon\Carbon::parse($cashCount->opening_date)->format('H:i')) }}',
-        initialAmount: '{{ old('initial_amount', $cashCount->initial_amount) }}',
-        observations: @json(old('observations', $cashCount->observations)),
-        errors: {},
-
-        formatAmount() {
-            const n = parseFloat(this.initialAmount);
-            this.initialAmount = isNaN(n) ? '0.00' : n.toFixed(2);
-        },
-        validate() {
-            this.errors = {};
-            if (!this.openingDate) this.errors.opening_date = 'La fecha es obligatoria';
-            if (!this.openingTime) this.errors.opening_time = 'La hora es obligatoria';
-            const n = parseFloat(this.initialAmount);
-            if (isNaN(n)) this.errors.initial_amount = 'Monto inválido';
-            else if (n < 0) this.errors.initial_amount = 'El monto no puede ser negativo';
-            return Object.keys(this.errors).length === 0;
-        },
-        handleSubmit() {
-            if (!this.validate()) {
-                if (typeof Swal !== 'undefined') { Swal.fire({ icon: 'error', title: 'Verifica los datos', text: 'Corrige los campos marcados.' }); }
-                else { alert('Corrige los campos marcados.'); }
-                return;
-            }
-            this.$refs.form.submit();
-        }
-    }
-}
-</script>
-@endpush
