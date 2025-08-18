@@ -601,15 +601,10 @@
                 </div>
 
                 <!-- Loading State -->
-                <div x-show="loading" class="p-6 sm:p-8 md:p-12 text-center">
-                    <div class="inline-flex items-center space-x-2 sm:space-x-3">
-                        <div class="w-6 h-6 sm:w-8 sm:h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                        <span class="text-gray-600 font-medium text-sm sm:text-base">Cargando información...</span>
-                    </div>
-                </div>
+
 
                 <!-- Error State -->
-                <div x-show="!loading && !cashCountData" class="p-6 sm:p-8 md:p-12 text-center">
+                <div x-show="!cashCountData" class="p-6 sm:p-8 md:p-12 text-center">
                     <div class="flex flex-col items-center space-y-3 sm:space-y-4">
                         <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center">
                             <i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-2xl"></i>
@@ -626,7 +621,7 @@
                 </div>
 
                 <!-- Content -->
-                <div x-show="!loading && cashCountData && Object.keys(cashCountData).length > 0" class="p-3 sm:p-4 md:p-6">
+                <div x-show="cashCountData && Object.keys(cashCountData).length > 0" class="p-3 sm:p-4 md:p-6">
                     <!-- Sistema de Pestañas -->
                     <div class="space-y-4 sm:space-y-6">
                         <!-- Navegación de Pestañas -->
@@ -1580,7 +1575,7 @@ function dataTable() {
 function cashCountModal() {
     return {
         isOpen: false,
-        loading: false,
+        
         cashCountData: null,
         activeTab: 'clientes', // Pestaña activa por defecto
         currencySymbol: '{{ $currency->symbol }}',
@@ -1600,8 +1595,6 @@ function cashCountModal() {
 
         async loadCashCountData(cashCountId) {
             try {
-                console.log('Cargando datos para arqueo ID:', cashCountId);
-                
                 const response = await fetch(`/cash-counts/${cashCountId}/details`, {
                     method: 'GET',
                     headers: {
@@ -1611,18 +1604,14 @@ function cashCountModal() {
                     }
                 });
 
-                console.log('Response status:', response.status);
-
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const data = await response.json();
-                console.log('Response data:', data);
                 
                 if (data.success && data.data) {
                     this.cashCountData = data.data;
-                    console.log('Datos cargados exitosamente:', this.cashCountData);
                 } else {
                     throw new Error(data.message || 'Error al cargar los datos');
                 }
@@ -1630,8 +1619,6 @@ function cashCountModal() {
                 console.error('Error cargando datos:', error);
                 this.cashCountData = null;
                 this.showNotification(`Error al cargar los datos del arqueo: ${error.message}`, 'error');
-            } finally {
-                this.loading = false;
             }
         },
 
@@ -1714,13 +1701,12 @@ function cashCountModal() {
 window.openCashCountModal = function(cashCountId) {
     if (cashCountModalInstance) {
         cashCountModalInstance.isOpen = true;
-        cashCountModalInstance.loading = true;
         cashCountModalInstance.cashCountData = null;
         
         // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
         
-        // Cargar datos del arqueo
+        // Cargar datos del arqueo de forma asíncrona
         cashCountModalInstance.loadCashCountData(cashCountId);
     } else {
         console.error('Modal instance not found');
@@ -1732,7 +1718,7 @@ window.testModal = function() {
     if (cashCountModalInstance) {
         console.log('Probando modal...');
         cashCountModalInstance.isOpen = true;
-        cashCountModalInstance.loading = false;
+
         cashCountModalInstance.cashCountData = {
             id: 999,
             initial_amount: 1000.00,
