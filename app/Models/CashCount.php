@@ -390,8 +390,10 @@ class CashCount extends Model
          ->with(['customer', 'saleDetails.product'])
          ->get()
          ->map(function ($sale) {
-            // Calcular si la venta está pagada
-            $isPaid = $this->isSalePaid($sale);
+            // Calcular deuda restante por venta con FIFO hasta la fecha de cierre (o ahora)
+            $endDate = $this->closing_date ?: now();
+            $remainingForSale = $this->calculateRemainingForSaleFIFO($sale, $endDate);
+            $isPaid = $remainingForSale <= 0.00001;
             
             return [
                'invoice_number' => $sale->getFormattedInvoiceNumber(),
@@ -399,6 +401,7 @@ class CashCount extends Model
                'customer_name' => $sale->customer->name ?? 'Cliente sin nombre',
                'total_amount' => $sale->total_price,
                'payment_status' => $isPaid ? 'Pagado' : 'Pendiente',
+               'remaining_amount' => max(0, round($remainingForSale, 2)),
                'products_count' => $sale->saleDetails->count()
             ];
          });
@@ -409,12 +412,175 @@ class CashCount extends Model
     */
    private function isSalePaid($sale)
    {
-      // Buscar pagos relacionados con esta venta en los movimientos
-      $paymentsForSale = $this->movements()
-         ->where('type', 'income')
-         ->where('description', 'like', '%' . $sale->customer->name . '%')
-         ->sum('amount');
-      
-      return $paymentsForSale >= $sale->total_price;
+      // Calcular usando FIFO de pagos por cliente hasta la fecha fin del arqueo
+      $endDate = $this->closing_date ?: now();
+      $remaining = $this->calculateRemainingForSaleFIFO($sale, $endDate);
+      return $remaining <= 0.00001;
+   }
+
+   /**
+    * Calcula la deuda restante de una venta aplicando pagos FIFO del cliente hasta $endDate
+    */
+   private function calculateRemainingForSaleFIFO(Sale $sale, $endDate)
+   {
+      // Traer todas las ventas del cliente (histórico) hasta la fecha fin
+      $customerSales = Sale::where('company_id', $this->company_id)
+         ->where('customer_id', $sale->customer_id)
+         ->where('sale_date', '<=', $endDate)
+         ->orderBy('sale_date', 'asc')
+         ->orderBy('id', 'asc')
+         ->get(['id', 'total_price', 'sale_date']);
+
+      // Total de pagos del cliente hasta la fecha fin
+      $totalPayments = DebtPayment::where('company_id', $this->company_id)
+         ->where('customer_id', $sale->customer_id)
+         ->where('created_at', '<=', $endDate)
+         ->sum('payment_amount');
+
+      $remainingPayments = (float) $totalPayments;
+      foreach ($customerSales as $cs) {
+         $saleOutstanding = (float) $cs->total_price;
+         if ($remainingPayments > 0) {
+            $applied = min($saleOutstanding, $remainingPayments);
+            $saleOutstanding -= $applied;
+            $remainingPayments -= $applied;
+         }
+
+         if ($cs->id === $sale->id) {
+            return max(0.0, $saleOutstanding);
+         }
+      }
+
+      // Si no se encontró la venta (caso atípico), retornar total
+      return (float) $sale->total_price;
+   }
+
+   /**
+    * Obtiene estadísticas de pagos para el modal
+    */
+   public function getPaymentsStats()
+   {
+      $current = $this->getCurrentPaymentsStats();
+      $previous = $this->getPreviousPaymentsStats();
+      return [
+         'current' => $current,
+         'previous' => $previous,
+         'comparison' => $this->calculatePaymentsComparison($current, $previous)
+      ];
+   }
+
+   /**
+    * Estadísticas de pagos del arqueo actual (fuente: debt_payments)
+    */
+   private function getCurrentPaymentsStats()
+   {
+      $payments = DebtPayment::where('company_id', $this->company_id)
+         ->where('created_at', '>=', $this->opening_date)
+         ->when($this->closing_date, function($q) { return $q->where('created_at', '<=', $this->closing_date); })
+         ->with('customer')
+         ->orderBy('created_at', 'asc')
+         ->get();
+
+      $totalPayments = (float) $payments->sum('payment_amount');
+      $paymentsCount = (int) $payments->count();
+      $averagePerPayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0.0;
+
+      // Deuda restante del arqueo = Ventas del periodo - Pagos del periodo
+      $periodSales = Sale::where('company_id', $this->company_id)
+         ->where('sale_date', '>=', $this->opening_date)
+         ->when($this->closing_date, function($q) { return $q->where('sale_date', '<=', $this->closing_date); })
+         ->sum('total_price');
+      $remainingDebt = max(0, (float) $periodSales - $totalPayments);
+
+      return [
+         'total_payments' => $totalPayments,
+         'payments_count' => $paymentsCount,
+         'average_per_payment' => $averagePerPayment,
+         'remaining_debt' => $remainingDebt,
+         'payments_data' => $this->getPaymentsDetailedData($payments)
+      ];
+   }
+
+   /**
+    * Estadísticas de pagos del arqueo anterior
+    */
+   private function getPreviousPaymentsStats()
+   {
+      $previous = $this->getPreviousCashCount();
+      if (!$previous) {
+         return [
+            'total_payments' => 0.0,
+            'payments_count' => 0,
+            'average_per_payment' => 0.0,
+            'remaining_debt' => 0.0,
+         ];
+      }
+
+      $payments = DebtPayment::where('company_id', $this->company_id)
+         ->where('created_at', '>=', $previous->opening_date)
+         ->when($previous->closing_date, function($q) use ($previous) { return $q->where('created_at', '<=', $previous->closing_date); })
+         ->get();
+
+      $totalPayments = (float) $payments->sum('payment_amount');
+      $paymentsCount = (int) $payments->count();
+      $averagePerPayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0.0;
+
+      $periodSales = Sale::where('company_id', $this->company_id)
+         ->where('sale_date', '>=', $previous->opening_date)
+         ->when($previous->closing_date, function($q) use ($previous) { return $q->where('sale_date', '<=', $previous->closing_date); })
+         ->sum('total_price');
+      $remainingDebt = max(0, (float) $periodSales - $totalPayments);
+
+      return [
+         'total_payments' => $totalPayments,
+         'payments_count' => $paymentsCount,
+         'average_per_payment' => $averagePerPayment,
+         'remaining_debt' => $remainingDebt,
+      ];
+   }
+
+   /**
+    * Calcula la comparación de pagos entre arqueos
+    */
+   private function calculatePaymentsComparison(array $current, array $previous)
+   {
+      $keys = ['total_payments', 'payments_count', 'average_per_payment', 'remaining_debt'];
+      $out = [];
+      foreach ($keys as $key) {
+         $prev = $previous[$key] ?? 0;
+         $cur = $current[$key] ?? 0;
+         if ($prev > 0) {
+            $pct = (($cur - $prev) / $prev) * 100;
+            $out[$key] = ['percentage' => round($pct, 1), 'is_positive' => $key === 'remaining_debt' ? $pct <= 0 : $pct >= 0];
+         } else {
+            $out[$key] = ['percentage' => $cur > 0 ? 100 : 0, 'is_positive' => $key === 'remaining_debt' ? $cur <= 0 : $cur > 0];
+         }
+      }
+      return $out;
+   }
+
+   /**
+    * Detalle de pagos del periodo
+    */
+   private function getPaymentsDetailedData($preloadedPayments = null)
+   {
+      $payments = $preloadedPayments ?: DebtPayment::where('company_id', $this->company_id)
+         ->where('created_at', '>=', $this->opening_date)
+         ->when($this->closing_date, function($q) { return $q->where('created_at', '<=', $this->closing_date); })
+         ->with('customer')
+         ->orderBy('created_at', 'asc')
+         ->get();
+
+      return $payments->map(function($p) {
+         return [
+            'id' => (int) $p->id,
+            'customer_id' => (int) $p->customer_id,
+            'payment_date' => $p->created_at ? $p->created_at->toISOString() : null,
+            'customer_name' => optional($p->customer)->name ?? 'Cliente',
+            'payment_amount' => (float) $p->payment_amount,
+            'remaining_debt' => (float) $p->remaining_debt,
+            'notes' => (string) ($p->notes ?? '')
+         ];
+      });
    }
 }

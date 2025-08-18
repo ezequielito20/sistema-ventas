@@ -1014,97 +1014,160 @@
                             </div>
 
                             <!-- Pestaña Pagos -->
-                            <div x-show="activeTab === 'pagos'" class="space-y-6">
+                            <div x-show="activeTab === 'pagos'" class="space-y-4 sm:space-y-6">
                                 <!-- Header de la Pestaña -->
-                                <div class="flex items-center space-x-4 mb-6">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-credit-card text-white text-xl"></i>
+                                <div class="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-credit-card text-white text-sm sm:text-lg md:text-xl"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Pagos</h3>
-                                        <p class="text-gray-600">Estadísticas detalladas de pagos en este arqueo de caja</p>
-                                    </div>
-                                </div>
-
-                                <!-- 4 Widgets de Pagos -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <!-- Widget 1 -->
-                                    <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-credit-card text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-teal-100 text-sm">Pagos Totales</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-teal-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 2 -->
-                                    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-money-bill-wave text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-cyan-100 text-sm">Transacciones</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-cyan-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 3 -->
-                                    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-chart-line text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-emerald-100 text-sm">Promedio por Pago</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-emerald-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 4 -->
-                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-calendar-day text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-blue-100 text-sm">Pagos Hoy</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-blue-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Análisis de Pagos</h3>
+                                        <p class="text-gray-600 text-sm sm:text-base">Estadísticas detalladas de pagos en este arqueo de caja</p>
                                     </div>
                                 </div>
 
-                                <!-- Mensaje de Estado -->
-                                <div class="bg-teal-50 border border-teal-200 rounded-xl p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-3">
-                                        <i class="fas fa-info-circle text-teal-600 text-xl"></i>
-                                        <div>
-                                            <h4 class="text-lg font-semibold text-teal-900">Pestaña de Pagos</h4>
-                                            <p class="text-teal-700">Aquí se mostrará la información detallada de pagos para este arqueo de caja</p>
+                                <!-- 4 Widgets de Pagos con datos reales -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <!-- Total Pagos Recibidos -->
+                                    <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.total_payments : 0)">$0.00</div>
+                                                <div class="text-teal-100 text-xs sm:text-sm">Pagos Totales</div>
+                                            </div>
                                         </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.total_payments ? 
+                                                    (cashCountData.payments_stats.comparison.total_payments.is_positive ? 'text-teal-200' : 'text-red-200') : 'text-teal-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.total_payments ? 
+                                                              (cashCountData.payments_stats.comparison.total_payments.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.total_payments ? 
+                                                        (cashCountData.payments_stats.comparison.total_payments.is_positive ? '+' : '') + cashCountData.payments_stats.comparison.total_payments.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cantidad de Pagos -->
+                                    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-money-bill-wave text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.payments_count : 0">0</div>
+                                                <div class="text-cyan-100 text-xs sm:text-sm">Transacciones</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.payments_count ? 
+                                                    (cashCountData.payments_stats.comparison.payments_count.is_positive ? 'text-cyan-200' : 'text-red-200') : 'text-cyan-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.payments_count ? 
+                                                              (cashCountData.payments_stats.comparison.payments_count.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.payments_count ? 
+                                                        (cashCountData.payments_stats.comparison.payments_count.is_positive ? '+' : '') + cashCountData.payments_stats.comparison.payments_count.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Promedio por Pago -->
+                                    <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.average_per_payment : 0)">$0.00</div>
+                                                <div class="text-emerald-100 text-xs sm:text-sm">Promedio por Pago</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.average_per_payment ? 
+                                                    (cashCountData.payments_stats.comparison.average_per_payment.is_positive ? 'text-emerald-200' : 'text-red-200') : 'text-emerald-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.average_per_payment ? 
+                                                              (cashCountData.payments_stats.comparison.average_per_payment.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.average_per_payment ? 
+                                                        (cashCountData.payments_stats.comparison.average_per_payment.is_positive ? '+' : '') + cashCountData.payments_stats.comparison.average_per_payment.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Deuda Restante -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-balance-scale text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.remaining_debt : 0)">$0.00</div>
+                                                <div class="text-blue-100 text-xs sm:text-sm">Deuda Restante</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.remaining_debt ? 
+                                                    (cashCountData.payments_stats.comparison.remaining_debt.is_positive ? 'text-blue-200' : 'text-green-200') : 'text-blue-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.remaining_debt ? 
+                                                              (cashCountData.payments_stats.comparison.remaining_debt.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.payments_stats && cashCountData.payments_stats.comparison.remaining_debt ? 
+                                                        (cashCountData.payments_stats.comparison.remaining_debt.is_positive ? '+' : '') + cashCountData.payments_stats.comparison.remaining_debt.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de Pagos -->
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-gray-200">
+                                        <h4 class="text-base sm:text-lg font-semibold text-gray-900">Pagos del Arqueo</h4>
+                                        <p class="text-xs sm:text-sm text-gray-600">Detalle de pagos realizados durante este período</p>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deuda Restante</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="payment in (cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.payments_data : [])" :key="payment.id">
+                                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-500" x-text="formatDateTime(payment.payment_date)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="payment.customer_name"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-green-600" x-text="formatCurrency(payment.payment_amount)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium" :class="payment.remaining_debt > 0 ? 'text-red-600' : 'text-green-600'" x-text="formatCurrency(payment.remaining_debt)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4">
+                                                            <div class="text-xs sm:text-sm text-gray-600" x-text="payment.notes || '-' "></div>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <!-- Estado vacío -->
+                                                <tr x-show="!cashCountData || !cashCountData.payments_stats || !cashCountData.payments_stats.current.payments_data || cashCountData.payments_stats.current.payments_data.length === 0">
+                                                    <td colspan="5" class="px-3 sm:px-4 md:px-6 py-6 sm:py-8 text-center">
+                                                        <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                                                            <i class="fas fa-receipt text-gray-400 text-2xl sm:text-3xl"></i>
+                                                            <div class="text-gray-500">
+                                                                <p class="font-medium text-sm sm:text-base">No hay pagos registrados</p>
+                                                                <p class="text-xs sm:text-sm">No se encontraron pagos en este arqueo</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
