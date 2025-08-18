@@ -1328,97 +1328,121 @@
                             </div>
 
                             <!-- Pestaña Productos -->
-                            <div x-show="activeTab === 'productos'" class="space-y-6">
+                            <div x-show="activeTab === 'productos'" class="space-y-4 sm:space-y-6">
                                 <!-- Header de la Pestaña -->
-                                <div class="flex items-center space-x-4 mb-6">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-box text-white text-xl"></i>
+                                <div class="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-box text-white text-sm sm:text-lg md:text-xl"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Productos</h3>
-                                        <p class="text-gray-600">Estadísticas detalladas de productos en este arqueo de caja</p>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Análisis de Productos</h3>
+                                        <p class="text-gray-600 text-sm sm:text-base">Solo productos vendidos durante este arqueo</p>
                                     </div>
                                 </div>
 
-                                <!-- 4 Widgets de Productos -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <!-- Widget 1 -->
-                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-boxes text-white text-xl"></i>
+                                <!-- 2 Widgets reales -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+                                    <!-- Total de productos vendidos (totales y únicos) -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-boxes text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-purple-100 text-sm">Total Productos</div>
+                                                <div class="text-sm sm:text-base text-purple-100">Vendidos (totales / únicos)</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="(cashCountData && cashCountData.products_stats ? cashCountData.products_stats.current.total_quantity_sold : 0) + ' / ' + (cashCountData && cashCountData.products_stats ? cashCountData.products_stats.current.unique_products_sold : 0)">0 / 0</div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center text-purple-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
                                         </div>
                                     </div>
 
-                                    <!-- Widget 2 -->
-                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                                    <!-- Valor de inventario (stock * costo) -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-red-100 text-sm">Stock Bajo</div>
+                                                <div class="text-sm sm:text-base text-blue-100">Valor Inventario (costo)</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.products_stats ? cashCountData.products_stats.current.inventory_value_cost : 0)">$0.00</div>
                                             </div>
-                                        </div>
-                                        <div class="flex items-center text-red-100 text-sm">
-                                            <i class="fas fa-arrow-down mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 3 -->
-                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-fire text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-green-100 text-sm">Más Vendidos</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-green-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 4 -->
-                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-dollar-sign text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-blue-100 text-sm">Valor Inventario</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-blue-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Mensaje de Estado -->
-                                <div class="bg-purple-50 border border-purple-200 rounded-xl p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-3">
-                                        <i class="fas fa-info-circle text-purple-600 text-xl"></i>
+                                <!-- Tabla de Productos Vendidos -->
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 flex items-center justify-between">
                                         <div>
-                                            <h4 class="text-lg font-semibold text-purple-900">Pestaña de Productos</h4>
-                                            <p class="text-purple-700">Aquí se mostrará la información detallada de productos para este arqueo de caja</p>
+                                            <h4 class="text-base sm:text-lg font-semibold text-gray-900">Productos vendidos en el arqueo</h4>
+                                            <p class="text-xs sm:text-sm text-gray-600">Ordenados del más vendido al menos vendido</p>
                                         </div>
+                                        <div class="text-xs sm:text-sm text-gray-500" x-show="cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data">
+                                            <span x-text="'Total: ' + ((cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data) ? (cashCountData.products_stats.current.products_data.length || 0) : 0) + ' items'"></span>
+                                        </div>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendidos</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingresos</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Compra</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Venta</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Margen</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="row in (((cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data) ? cashCountData.products_stats.current.products_data : []).slice(((productsPage||1)-1)*(productsPerPage||10), (productsPage||1)*(productsPerPage||10)))" :key="row.id">
+                                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="row.product_name"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800" x-text="row.stock"></span>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="row.quantity_sold"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-green-600" x-text="formatCurrency(row.income)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-blue-600" x-text="formatCurrency(row.cost)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-900" x-text="formatCurrency(row.purchase_price)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-900" x-text="formatCurrency(row.sale_price)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" :class="row.margin_percentage >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" x-text="row.margin_percentage.toFixed(1) + '%' "></span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <!-- Estado vacío -->
+                                                <tr x-show="!cashCountData || !cashCountData.products_stats || !cashCountData.products_stats.current.products_data || cashCountData.products_stats.current.products_data.length === 0">
+                                                    <td colspan="6" class="px-3 sm:px-4 md:px-6 py-6 sm:py-8 text-center">
+                                                        <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                                                            <i class="fas fa-box-open text-gray-400 text-2xl sm:text-3xl"></i>
+                                                            <div class="text-gray-500">
+                                                                <p class="font-medium text-sm sm:text-base">No hay productos vendidos</p>
+                                                                <p class="text-xs sm:text-sm">No se encontraron ventas de productos en este arqueo</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Paginación -->
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex items-center justify-between">
+                                        <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-xs sm:text-sm disabled:opacity-50" @click="productsPage = Math.max(1, (productsPage||1) - 1)" :disabled="(productsPage||1) === 1">Anterior</button>
+                                        <div class="text-xs sm:text-sm text-gray-600" x-text="(productsPage||1) + ' / ' + Math.max(1, Math.ceil((((cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data) ? cashCountData.products_stats.current.products_data.length : 0) || 0) / (productsPerPage||10)))"></div>
+                                        <button class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-xs sm:text-sm disabled:opacity-50" @click="productsPage = Math.min(Math.ceil((((cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data) ? cashCountData.products_stats.current.products_data.length : 0) || 0) / (productsPerPage||10)), (productsPage||1) + 1)" :disabled="(productsPage||1) >= Math.ceil((((cashCountData && cashCountData.products_stats && cashCountData.products_stats.current && cashCountData.products_stats.current.products_data) ? cashCountData.products_stats.current.products_data.length : 0) || 0) / (productsPerPage||10))">Siguiente</button>
                                     </div>
                                 </div>
                             </div>
@@ -1701,6 +1725,9 @@ function cashCountModal() {
         cashCountData: null,
         activeTab: 'clientes', // Pestaña activa por defecto
         currencySymbol: '{{ $currency->symbol }}',
+        // Estado de paginación para productos
+        productsPage: 1,
+        productsPerPage: 10,
 
         init() {
             // Guardar referencia global
@@ -1710,6 +1737,8 @@ function cashCountModal() {
         closeModal() {
             this.isOpen = false;
             this.cashCountData = null;
+            // Reset paginación productos al cerrar
+            this.productsPage = 1;
             
             // Restaurar scroll del body
             document.body.style.overflow = 'auto';

@@ -736,4 +736,115 @@ class CashCount extends Model
           ];
        });
     }
+
+    /**
+     * Estadísticas de productos vendidos en el periodo
+     */
+    public function getProductsStats()
+    {
+       $current = $this->getCurrentProductsStats();
+       $previous = $this->getPreviousProductsStats();
+       return [
+          'current' => $current,
+          'previous' => $previous,
+       ];
+    }
+
+    /**
+     * Productos vendidos durante este arqueo
+     */
+    private function getCurrentProductsStats()
+    {
+       $start = $this->opening_date;
+       $end = $this->closing_date ?: now();
+
+       // Productos vendidos en el periodo: cantidades, ingresos y costos
+       $rows = DB::table('sale_details as sd')
+          ->join('sales as s', 'sd.sale_id', '=', 's.id')
+          ->join('products as p', 'sd.product_id', '=', 'p.id')
+          ->where('s.company_id', $this->company_id)
+          ->whereBetween('s.sale_date', [$start, $end])
+          ->groupBy('p.id', 'p.name', 'p.stock', 'p.purchase_price', 'p.sale_price')
+          ->select(
+             'p.id', 'p.name', 'p.stock', 'p.purchase_price', 'p.sale_price',
+             DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'),
+             DB::raw('COALESCE(SUM(sd.quantity * p.sale_price),0) as income'),
+             DB::raw('COALESCE(SUM(sd.quantity * p.purchase_price),0) as cost')
+          )
+          ->orderByDesc(DB::raw('COALESCE(SUM(sd.quantity),0)'))
+          ->get();
+
+       $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
+       $uniqueProducts = (int) $rows->count();
+
+       // Valor de inventario (stock * purchase_price) para toda la empresa
+       $inventoryRow = DB::table('products')
+          ->where('company_id', $this->company_id)
+          ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
+          ->first();
+
+       $productsData = $rows->map(function ($r) {
+          $income = (float) $r->income;
+          $cost = (float) $r->cost;
+          $marginPct = $income > 0 ? (($income - $cost) / $income) * 100.0 : 0.0;
+          return [
+             'id' => (int) $r->id,
+             'product_name' => (string) $r->name,
+             'stock' => (int) $r->stock,
+             'quantity_sold' => (int) $r->quantity_sold,
+             'income' => $income,
+             'cost' => $cost,
+             'purchase_price' => (float) $r->purchase_price,
+             'sale_price' => (float) $r->sale_price,
+             'margin_percentage' => round($marginPct, 1),
+          ];
+       });
+
+       return [
+          'total_quantity_sold' => $totalQty,
+          'unique_products_sold' => $uniqueProducts,
+          'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
+          'products_data' => $productsData,
+       ];
+    }
+
+    /**
+     * Productos vendidos en el arqueo anterior (para comparación básica)
+     */
+    private function getPreviousProductsStats()
+    {
+       $previous = $this->getPreviousCashCount();
+       if (!$previous) {
+          return [
+             'total_quantity_sold' => 0,
+             'unique_products_sold' => 0,
+             'inventory_value_cost' => 0.0,
+             'products_data' => collect([]),
+          ];
+       }
+
+       $start = $previous->opening_date;
+       $end = $previous->closing_date ?: now();
+
+       $rows = DB::table('sale_details as sd')
+          ->join('sales as s', 'sd.sale_id', '=', 's.id')
+          ->where('s.company_id', $this->company_id)
+          ->whereBetween('s.sale_date', [$start, $end])
+          ->select(DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'))
+          ->get();
+
+       $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
+       $uniqueProducts = (int) $rows->count();
+
+       $inventoryRow = DB::table('products')
+          ->where('company_id', $this->company_id)
+          ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
+          ->first();
+
+       return [
+          'total_quantity_sold' => $totalQty,
+          'unique_products_sold' => $uniqueProducts,
+          'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
+       ];
+    }
 }
