@@ -5,6 +5,159 @@
 
 /* ===== ESTILOS ESPECÍFICOS DE LA VISTA ===== */
 
+/* Estilos para la tabla moderna */
+.modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.modern-table th {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: #ffffff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.25);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.modern-table td {
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para las tarjetas */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos para la paginación de Laravel */
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-item {
+    list-style: none;
+    margin: 0;
+}
+
+.page-link {
+    background: white;
+    border: 2px solid #e9ecef;
+    color: #374151;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-link:hover {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.page-item.disabled .page-link {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.page-item.disabled .page-link:hover {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #6c757d;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive para paginación */
+@media (max-width: 640px) {
+    .pagination {
+        gap: 0.3rem;
+    }
+
+    .page-link {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+        min-width: 40px;
+    }
+}
+
+/* Estilos para botones del hero section */
+.hero-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.hero-buttons a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Responsive para botones del hero */
+@media (max-width: 480px) {
+    .hero-buttons {
+        gap: 0.25rem;
+    }
+    
+    .hero-buttons a {
+        min-width: 100px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* CSS para breakpoint personalizado xs */
+@media (min-width: 475px) {
+    .xs\:inline {
+        display: inline !important;
+    }
+    .xs\:hidden {
+        display: none !important;
+    }
+}
+
+/* ===== ESTILOS ESPECÍFICOS DE LA VISTA ===== */
+
 /* Dashboard de estadísticas */
 .stats-dashboard {
     margin-bottom: 2rem;

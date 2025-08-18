@@ -6,6 +6,23 @@
     <link rel="stylesheet" href="{{ asset('css/admin/cash-counts/index.css') }}">
 @endpush
 
+@push('js')
+    <script>
+        // Datos globales para JavaScript
+        window.cashCountsData = {
+            currencySymbol: '{{ $currency->symbol }}',
+            todayIncome: {{ $todayIncome }},
+            todayExpenses: {{ $todayExpenses }},
+            chartData: {
+                labels: {!! json_encode($chartData['labels']) !!},
+                income: {!! json_encode($chartData['income']) !!},
+                expenses: {!! json_encode($chartData['expenses']) !!}
+            }
+        };
+    </script>
+    <script src="{{ asset('js/admin/cash-counts/index.js') }}" defer></script>
+@endpush
+
 @section('content')
 <div class="space-y-6">
     <!-- Hero Section -->
@@ -43,14 +60,14 @@
                                 <span class="text-xs sm:text-sm">Nuevo Movimiento</span>
                             </a>
                         @endcan
-                        @can('cash-counts.close')
-                            <button type="button" 
-                                    onclick="closeCashCount({{ $currentCashCount->id }})"
-                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
-                                <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
-                                <span class="text-xs sm:text-sm">Cerrar Caja</span>
-                            </button>
-                        @endcan
+                                                            @can('cash-counts.close')
+                                        <button type="button" 
+                                                onclick="cashCountsIndex.closeCashCount({{ $currentCashCount->id }})"
+                                                class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                                            <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
+                                            <span class="text-xs sm:text-sm">Cerrar Caja</span>
+                                        </button>
+                                    @endcan
                     @else
                         @can('cash-counts.report')
                             <a href="{{ route('admin.cash-counts.report') }}" 
@@ -292,15 +309,12 @@
                                         @endcan
                                     @endif
                                     @can('cash-counts.destroy')
-                                        <form action="{{ route('admin.cash-counts.destroy', $cashCount->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este arqueo?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200"
-                                                    title="Eliminar">
-                                                <i class="fas fa-trash text-sm"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button"
+                                                onclick="cashCountsIndex.deleteCashCount({{ $cashCount->id }})"
+                                                class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200"
+                                                title="Eliminar">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
                                     @endcan
                                 </div>
                             </td>
@@ -475,15 +489,12 @@
                                 @endif
                                 
                                 @can('cash-counts.destroy')
-                                    <form action="{{ route('admin.cash-counts.destroy', $cashCount->id) }}" method="POST" class="flex-1" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este arqueo?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2 px-3 rounded-lg flex items-center justify-center transition-all duration-200 text-sm font-medium"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash mr-2"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            onclick="cashCountsIndex.deleteCashCount({{ $cashCount->id }})"
+                                            class="w-full bg-red-100 hover:bg-red-200 text-red-600 py-2 px-3 rounded-lg flex items-center justify-center transition-all duration-200 text-sm font-medium"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash mr-2"></i>
+                                    </button>
                                 @endcan
                             </div>
                         </div>
@@ -1618,561 +1629,21 @@
 </div>
 @endsection
 
-@push('css')
-<style>
-    /* Estilos para la tabla moderna */
-    .modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
 
-    .modern-table th {
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-        color: #ffffff;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.25);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-size: 0.75rem;
-    }
-
-    .modern-table td {
-        border-bottom: 1px solid #f1f5f9;
-        transition: all 0.2s ease;
-    }
-
-    .modern-table tbody tr:hover {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Estilos para las tarjetas */
-    .card-hover {
-        transition: all 0.3s ease;
-    }
-
-    .card-hover:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    /* Estilos para la paginación de Laravel */
-    .pagination {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .page-item {
-        list-style: none;
-        margin: 0;
-    }
-
-    .page-link {
-        background: white;
-        border: 2px solid #e9ecef;
-        color: #374151;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        text-decoration: none;
-        transition: all 0.2s;
-        font-weight: 500;
-        min-width: 44px;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .page-link:hover {
-        background: #667eea;
-        border-color: #667eea;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: transparent;
-        color: white;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .page-item.disabled .page-link {
-        background: #f8f9fa;
-        border-color: #e9ecef;
-        color: #6c757d;
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    .page-item.disabled .page-link:hover {
-        background: #f8f9fa;
-        border-color: #e9ecef;
-        color: #6c757d;
-        transform: none;
-        box-shadow: none;
-    }
-
-    /* Responsive para paginación */
-    @media (max-width: 640px) {
-        .pagination {
-            gap: 0.3rem;
-        }
-
-        .page-link {
-            padding: 0.6rem 0.8rem;
-            font-size: 0.9rem;
-            min-width: 40px;
-        }
-    }
-
-    /* Estilos para botones del hero section */
-    .hero-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-    }
-
-    .hero-buttons a {
-        flex-shrink: 0;
-        white-space: nowrap;
-        text-align: center;
-    }
-
-    /* Responsive para botones del hero */
-    @media (max-width: 480px) {
-        .hero-buttons {
-            gap: 0.25rem;
-        }
-        
-        .hero-buttons a {
-            min-width: 100px;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.75rem;
-        }
-    }
-</style>
-@endpush
 
 @push('js')
-<script>
-// Variables globales para el modal
-let cashCountModalInstance = null;
-
-// Función Alpine.js para el dataTable
-function dataTable() {
-    return {
-        viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
-
-        init() {
-            // Detectar cambios de tamaño de pantalla
-            window.addEventListener('resize', () => {
-                // En móvil siempre mostrar cards, en desktop permitir toggle
-                if (window.innerWidth < 768) {
-                    this.viewMode = 'cards';
-                }
-            });
-        }
-    }
-}
-
-// Función Alpine.js para el modal de arqueos de caja
-function cashCountModal() {
-    return {
-        isOpen: false,
-        
-        cashCountData: null,
-        activeTab: 'clientes', // Pestaña activa por defecto
-        currencySymbol: '{{ $currency->symbol }}',
-        // Estado de paginación para productos
-        productsPage: 1,
-        productsPerPage: 10,
-        // Estado de paginación para pedidos
-        ordersPage: 1,
-        ordersPerPage: 10,
-
-        init() {
-            // Guardar referencia global
-            cashCountModalInstance = this;
-        },
-
-        closeModal() {
-            this.isOpen = false;
-            this.cashCountData = null;
-            // Reset paginación productos al cerrar
-            this.productsPage = 1;
-            this.ordersPage = 1;
-            
-            // Restaurar scroll del body
-            document.body.style.overflow = 'auto';
-        },
-
-        async loadCashCountData(cashCountId) {
-            try {
-                const response = await fetch(`/cash-counts/${cashCountId}/details`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.success && data.data) {
-                    this.cashCountData = data.data;
-                } else {
-                    throw new Error(data.message || 'Error al cargar los datos');
-                }
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                this.cashCountData = null;
-                this.showNotification(`Error al cargar los datos del arqueo: ${error.message}`, 'error');
+    <script>
+        // Datos globales para JavaScript
+        window.cashCountsData = {
+            currencySymbol: '{{ $currency->symbol }}',
+            todayIncome: {{ $todayIncome }},
+            todayExpenses: {{ $todayExpenses }},
+            chartData: {
+                labels: {!! json_encode($chartData['labels']) !!},
+                income: {!! json_encode($chartData['income']) !!},
+                expenses: {!! json_encode($chartData['expenses']) !!}
             }
-        },
-
-        formatCurrency(amount) {
-            if (amount === null || amount === undefined || amount === '') {
-                return this.currencySymbol + ' 0.00';
-            }
-            const num = parseFloat(amount);
-            if (isNaN(num)) {
-                return this.currencySymbol + ' 0.00';
-            }
-            return this.currencySymbol + ' ' + num.toFixed(2);
-        },
-
-        formatDate(dateString) {
-            if (!dateString || dateString === 'null' || dateString === 'undefined') {
-                return 'N/A';
-            }
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) {
-                    return 'N/A';
-                }
-                return date.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            } catch (error) {
-                console.error('Error formateando fecha:', error);
-                return 'N/A';
-            }
-        },
-
-        formatDateTime(dateString) {
-            if (!dateString || dateString === 'null' || dateString === 'undefined') {
-                return 'N/A';
-            }
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) {
-                    return 'N/A';
-                }
-                return date.toLocaleString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } catch (error) {
-                console.error('Error formateando fecha/hora:', error);
-                return 'N/A';
-            }
-        },
-
-        showNotification(message, type = 'info') {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            
-            // Implementar notificación (puedes usar SweetAlert2 o similar)
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: type === 'error' ? 'Error' : 'Información',
-                    text: message,
-                    icon: type,
-                    confirmButtonText: 'OK',
-                    timer: type === 'error' ? null : 3000,
-                    timerProgressBar: type !== 'error'
-                });
-            } else {
-                // Fallback a alert nativo
-                const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
-                alert(`${icon} ${message}`);
-            }
-        }
-    }
-}
-
-// Funciones globales para abrir el modal
-window.openCashCountModal = function(cashCountId) {
-    if (cashCountModalInstance) {
-        cashCountModalInstance.isOpen = true;
-        cashCountModalInstance.cashCountData = null;
-        
-        // Prevenir scroll del body
-        document.body.style.overflow = 'hidden';
-        
-        // Cargar datos del arqueo de forma asíncrona
-        cashCountModalInstance.loadCashCountData(cashCountId);
-    } else {
-        console.error('Modal instance not found');
-        alert('Error: Modal no disponible');
-    }
-};
-
-window.testModal = function() {
-    if (cashCountModalInstance) {
-        console.log('Probando modal...');
-        cashCountModalInstance.isOpen = true;
-
-        cashCountModalInstance.cashCountData = {
-            id: 999,
-            initial_amount: 1000.00,
-            final_amount: null,
-            opening_date: '2024-01-01T00:00:00.000000Z',
-            closing_date: null,
-            observations: 'Arqueo de prueba',
-            total_income: 500.00,
-            total_expenses: 200.00,
-            current_balance: 1300.00,
-            movements_count: 3,
-            movements: [
-                {
-                    id: 1,
-                    type: 'income',
-                    amount: 300.00,
-                    description: 'Venta de productos',
-                    created_at: '2024-01-01T10:00:00.000000Z'
-                },
-                {
-                    id: 2,
-                    type: 'income',
-                    amount: 200.00,
-                    description: 'Pago de deuda',
-                    created_at: '2024-01-01T11:00:00.000000Z'
-                },
-                {
-                    id: 3,
-                    type: 'expense',
-                    amount: 200.00,
-                    description: 'Compra de suministros',
-                    created_at: '2024-01-01T12:00:00.000000Z'
-                }
-            ]
         };
-        
-        // Prevenir scroll del body
-        document.body.style.overflow = 'hidden';
-        
-        cashCountModalInstance.showNotification('Modal de prueba cargado exitosamente', 'success');
-    } else {
-        console.error('Modal instance not found');
-        alert('Error: Modal no disponible');
-    }
-};
-
-// Función para cerrar caja con confirmación
-function closeCashCount(cashCountId) {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: '¿Cerrar Caja?',
-            text: '¿Estás seguro de que quieres cerrar la caja actual? Esta acción no se puede deshacer.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, cerrar caja',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Crear formulario dinámicamente y enviarlo
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/cash-counts/close/${cashCountId}`;
-                
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'PUT';
-                
-                form.appendChild(csrfToken);
-                form.appendChild(methodField);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    } else {
-        if (confirm('¿Estás seguro de que quieres cerrar la caja actual?')) {
-            // Crear formulario dinámicamente y enviarlo
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/cash-counts/close/${cashCountId}`;
-            
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            const methodField = document.createElement('input');
-            methodField.type = 'hidden';
-            methodField.name = '_method';
-            methodField.value = 'PUT';
-            
-            form.appendChild(csrfToken);
-            form.appendChild(methodField);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicialización de gráficos
-    if (typeof Chart !== 'undefined') {
-        console.log('Inicializando gráficos...');
-
-        // Gráfico de Movimientos
-        const movementsCtx = document.getElementById('cashMovementsChart');
-        if (movementsCtx) {
-            new Chart(movementsCtx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($chartData['labels']) !!},
-                    datasets: [{
-                        label: 'Ingresos',
-                        data: {!! json_encode($chartData['income']) !!},
-                        borderColor: '#4facfe',
-                        backgroundColor: 'rgba(79, 172, 254, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#4facfe',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }, {
-                        label: 'Egresos',
-                        data: {!! json_encode($chartData['expenses']) !!},
-                        borderColor: '#fa709a',
-                        backgroundColor: 'rgba(250, 112, 154, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#fa709a',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Gráfico de Distribución
-        const distributionCtx = document.getElementById('movementsDistributionChart');
-        if (distributionCtx) {
-            new Chart(distributionCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ingresos', 'Egresos'],
-                    datasets: [{
-                        data: [{{ $todayIncome }}, {{ $todayExpenses }}],
-                        backgroundColor: ['#4facfe', '#fa709a'],
-                        borderWidth: 0,
-                        hoverBorderWidth: 3,
-                        hoverBorderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                }
-                            }
-                        }
-                    },
-                    cutout: '60%'
-                }
-            });
-        }
-        
-        console.log('Gráficos inicializados correctamente');
-    }
-});
-</script>
-
-<!-- CSS para breakpoint personalizado xs -->
-<style>
-    @media (min-width: 475px) {
-        .xs\:inline {
-            display: inline !important;
-        }
-        .xs\:hidden {
-            display: none !important;
-        }
-    }
-</style>
-
-@push('js')
+    </script>
     <script src="{{ asset('js/admin/cash-counts/index.js') }}" defer></script>
 @endpush
