@@ -952,6 +952,7 @@ class CashCountController extends Controller
          $customerStats = $cashCount->getCustomerStats();
          $salesStats = $cashCount->getSalesStats();
          $paymentsStats = $cashCount->getPaymentsStats();
+         $purchasesStats = $cashCount->getPurchasesStats();
 
          $data = [
             'id' => $cashCount->id,
@@ -975,7 +976,8 @@ class CashCountController extends Controller
             }),
             'customer_stats' => $customerStats,
             'sales_stats' => $salesStats,
-            'payments_stats' => $paymentsStats
+            'payments_stats' => $paymentsStats,
+            'purchases_stats' => $purchasesStats
          ];
 
          return response()->json([

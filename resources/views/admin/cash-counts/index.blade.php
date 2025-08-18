@@ -1173,97 +1173,156 @@
                             </div>
 
                             <!-- Pestaña Compras -->
-                            <div x-show="activeTab === 'compras'" class="space-y-6">
+                            <div x-show="activeTab === 'compras'" class="space-y-4 sm:space-y-6">
                                 <!-- Header de la Pestaña -->
-                                <div class="flex items-center space-x-4 mb-6">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-shopping-bag text-white text-xl"></i>
+                                <div class="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-shopping-bag text-white text-sm sm:text-lg md:text-xl"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Compras</h3>
-                                        <p class="text-gray-600">Estadísticas detalladas de compras en este arqueo de caja</p>
-                                    </div>
-                                </div>
-
-                                <!-- 4 Widgets de Compras -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <!-- Widget 1 -->
-                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-shopping-cart text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-orange-100 text-sm">Compras Totales</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-orange-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 2 -->
-                                    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-truck text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-red-100 text-sm">Proveedores</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-red-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 3 -->
-                                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-boxes text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-yellow-100 text-sm">Productos Comprados</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-yellow-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 4 -->
-                                    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-chart-pie text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-indigo-100 text-sm">Promedio por Compra</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-indigo-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Análisis de Compras</h3>
+                                        <p class="text-gray-600 text-sm sm:text-base">Estadísticas de compras en este arqueo</p>
                                     </div>
                                 </div>
 
-                                <!-- Mensaje de Estado -->
-                                <div class="bg-orange-50 border border-orange-200 rounded-xl p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-3">
-                                        <i class="fas fa-info-circle text-orange-600 text-xl"></i>
-                                        <div>
-                                            <h4 class="text-lg font-semibold text-orange-900">Pestaña de Compras</h4>
-                                            <p class="text-orange-700">Aquí se mostrará la información detallada de compras para este arqueo de caja</p>
+                                <!-- 4 Widgets de Compras con datos reales -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <!-- Compras Totales -->
+                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.total_purchases : 0)">$0.00</div>
+                                                <div class="text-orange-100 text-xs sm:text-sm">Compras Totales</div>
+                                            </div>
                                         </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.total_purchases ? 
+                                                    (cashCountData.purchases_stats.comparison.total_purchases.is_positive ? 'text-orange-200' : 'text-red-200') : 'text-orange-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.total_purchases ? 
+                                                              (cashCountData.purchases_stats.comparison.total_purchases.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.total_purchases ? 
+                                                        (cashCountData.purchases_stats.comparison.total_purchases.is_positive ? '+' : '') + cashCountData.purchases_stats.comparison.total_purchases.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Cantidad de Compras -->
+                                    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-receipt text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.purchases_count : 0">0</div>
+                                                <div class="text-indigo-100 text-xs sm:text-sm">Cantidad de Compras</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.purchases_count ? 
+                                                    (cashCountData.purchases_stats.comparison.purchases_count.is_positive ? 'text-indigo-200' : 'text-red-200') : 'text-indigo-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.purchases_count ? 
+                                                              (cashCountData.purchases_stats.comparison.purchases_count.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.purchases_count ? 
+                                                        (cashCountData.purchases_stats.comparison.purchases_count.is_positive ? '+' : '') + cashCountData.purchases_stats.comparison.purchases_count.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Promedio por Compra -->
+                                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.average_per_purchase : 0)">$0.00</div>
+                                                <div class="text-yellow-100 text-xs sm:text-sm">Promedio por Compra</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.average_per_purchase ? 
+                                                    (cashCountData.purchases_stats.comparison.average_per_purchase.is_positive ? 'text-yellow-200' : 'text-red-200') : 'text-yellow-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.average_per_purchase ? 
+                                                              (cashCountData.purchases_stats.comparison.average_per_purchase.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.average_per_purchase ? 
+                                                        (cashCountData.purchases_stats.comparison.average_per_purchase.is_positive ? '+' : '') + cashCountData.purchases_stats.comparison.average_per_purchase.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Margen (%) Ventas vs Compras de productos adquiridos -->
+                                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-percentage text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.margin_percentage : 0) + '%'">0%</div>
+                                                <div class="text-emerald-100 text-xs sm:text-sm">Margen (%)</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.margin_percentage ? 
+                                                    (cashCountData.purchases_stats.comparison.margin_percentage.is_positive ? 'text-emerald-200' : 'text-red-200') : 'text-emerald-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.margin_percentage ? 
+                                                              (cashCountData.purchases_stats.comparison.margin_percentage.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.purchases_stats && cashCountData.purchases_stats.comparison.margin_percentage ? 
+                                                        (cashCountData.purchases_stats.comparison.margin_percentage.is_positive ? '+' : '') + cashCountData.purchases_stats.comparison.margin_percentage.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de Compras -->
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-gradient-to-r from-orange-50 to-red-50 border-b border-gray-200">
+                                        <h4 class="text-base sm:text-lg font-semibold text-gray-900">Compras del Arqueo</h4>
+                                        <p class="text-xs sm:text-sm text-gray-600">Fecha, productos únicos, totales y monto por compra</p>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Únicos</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Totales</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="row in (cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.purchases_data : [])" :key="row.id">
+                                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-500" x-text="formatDate(row.purchase_date)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="row.unique_products"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="row.total_products"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-blue-600" x-text="formatCurrency(row.total_amount)"></div>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <!-- Estado vacío -->
+                                                <tr x-show="!cashCountData || !cashCountData.purchases_stats || !cashCountData.purchases_stats.current.purchases_data || cashCountData.purchases_stats.current.purchases_data.length === 0">
+                                                    <td colspan="4" class="px-3 sm:px-4 md:px-6 py-6 sm:py-8 text-center">
+                                                        <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                                                            <i class="fas fa-boxes text-gray-400 text-2xl sm:text-3xl"></i>
+                                                            <div class="text-gray-500">
+                                                                <p class="font-medium text-sm sm:text-base">No hay compras registradas</p>
+                                                                <p class="text-xs sm:text-sm">No se encontraron compras en este arqueo</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

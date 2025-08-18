@@ -583,4 +583,157 @@ class CashCount extends Model
          ];
       });
    }
+
+   /**
+    * Obtiene estadísticas de compras para el modal
+    */
+   public function getPurchasesStats()
+   {
+      $current = $this->getCurrentPurchasesStats();
+      $previous = $this->getPreviousPurchasesStats();
+      return [
+         'current' => $current,
+         'previous' => $previous,
+         'comparison' => $this->calculatePurchasesComparison($current, $previous)
+      ];
+   }
+
+   /**
+    * Compras del arqueo actual
+    */
+   private function getCurrentPurchasesStats()
+   {
+      // Compras del periodo
+      $purchases = Purchase::where('company_id', $this->company_id)
+         ->whereBetween('created_at', [$this->opening_date, $this->closing_date ?: now()])
+         ->get(['id', 'total_price', 'purchase_date', 'created_at']);
+
+      $totalPurchases = (float) $purchases->sum('total_price');
+      $purchasesCount = (int) $purchases->count();
+      $averagePerPurchase = $purchasesCount > 0 ? $totalPurchases / $purchasesCount : 0.0;
+
+      // Calcular suma de valores de venta y compra de productos adquiridos en el periodo
+      $details = DB::table('purchase_details as pd')
+         ->join('purchases as p', 'pd.purchase_id', '=', 'p.id')
+         ->join('products as pr', 'pd.product_id', '=', 'pr.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('p.created_at', [$this->opening_date, $this->closing_date ?: now()])
+         ->select(
+            DB::raw('COALESCE(SUM(pd.quantity * pr.sale_price), 0) as total_sale_value'),
+            DB::raw('COALESCE(SUM(pd.quantity * pr.purchase_price), 0) as total_purchase_cost')
+         )
+         ->first();
+
+      $sumSale = (float) ($details->total_sale_value ?? 0);
+      $sumPurchase = (float) ($details->total_purchase_cost ?? 0);
+      $marginPercentage = $sumSale > 0 ? (($sumSale - $sumPurchase) / $sumSale) * 100.0 : 0.0;
+
+      return [
+         'total_purchases' => $totalPurchases,
+         'purchases_count' => $purchasesCount,
+         'average_per_purchase' => $averagePerPurchase,
+         'margin_percentage' => round($marginPercentage, 1),
+         'purchases_data' => $this->getPurchasesDetailedData()
+      ];
+   }
+
+   /**
+    * Compras del arqueo anterior
+    */
+   private function getPreviousPurchasesStats()
+   {
+      $previous = $this->getPreviousCashCount();
+      if (!$previous) {
+         return [
+            'total_purchases' => 0.0,
+            'purchases_count' => 0,
+            'average_per_purchase' => 0.0,
+            'margin_percentage' => 0.0,
+         ];
+      }
+
+      $purchases = Purchase::where('company_id', $this->company_id)
+         ->whereBetween('created_at', [$previous->opening_date, $previous->closing_date ?: now()])
+         ->get(['id', 'total_price', 'purchase_date', 'created_at']);
+
+      $totalPurchases = (float) $purchases->sum('total_price');
+      $purchasesCount = (int) $purchases->count();
+      $averagePerPurchase = $purchasesCount > 0 ? $totalPurchases / $purchasesCount : 0.0;
+
+      $details = DB::table('purchase_details as pd')
+         ->join('purchases as p', 'pd.purchase_id', '=', 'p.id')
+         ->join('products as pr', 'pd.product_id', '=', 'pr.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('p.created_at', [$previous->opening_date, $previous->closing_date ?: now()])
+         ->select(
+            DB::raw('COALESCE(SUM(pd.quantity * pr.sale_price), 0) as total_sale_value'),
+            DB::raw('COALESCE(SUM(pd.quantity * pr.purchase_price), 0) as total_purchase_cost')
+         )
+         ->first();
+
+      $sumSale = (float) ($details->total_sale_value ?? 0);
+      $sumPurchase = (float) ($details->total_purchase_cost ?? 0);
+      $marginPercentage = $sumSale > 0 ? (($sumSale - $sumPurchase) / $sumSale) * 100.0 : 0.0;
+
+      return [
+         'total_purchases' => $totalPurchases,
+         'purchases_count' => $purchasesCount,
+         'average_per_purchase' => $averagePerPurchase,
+         'margin_percentage' => round($marginPercentage, 1),
+      ];
+   }
+
+   /**
+    * Comparación de compras
+    */
+   private function calculatePurchasesComparison(array $current, array $previous)
+   {
+      $keys = ['total_purchases', 'purchases_count', 'average_per_purchase', 'margin_percentage'];
+      $out = [];
+      foreach ($keys as $key) {
+         $prev = $previous[$key] ?? 0;
+         $cur = $current[$key] ?? 0;
+         if ($prev > 0) {
+            $pct = (($cur - $prev) / $prev) * 100;
+            $out[$key] = ['percentage' => round($pct, 1), 'is_positive' => $cur >= $prev];
+         } else {
+            $out[$key] = ['percentage' => $cur > 0 ? 100 : 0, 'is_positive' => $cur > 0];
+         }
+      }
+      return $out;
+   }
+
+   /**
+    * Detalle de compras por compra
+    */
+    private function getPurchasesDetailedData()
+    {
+       // Datos por compra: fecha, productos únicos, productos totales, total compra
+       $rows = DB::table('purchases as p')
+          ->leftJoin('purchase_details as pd', 'pd.purchase_id', '=', 'p.id')
+          ->where('p.company_id', $this->company_id)
+          ->whereBetween('p.created_at', [$this->opening_date, $this->closing_date ?: now()])
+          ->groupBy('p.id', 'p.purchase_date', 'p.created_at', 'p.total_price')
+          ->select(
+             'p.id',
+             'p.purchase_date',
+             'p.created_at',
+             'p.total_price',
+             DB::raw('COUNT(DISTINCT pd.product_id) as unique_products'),
+             DB::raw('COALESCE(SUM(pd.quantity), 0) as total_products')
+          )
+          ->orderBy('p.created_at', 'desc')
+          ->get();
+
+       return $rows->map(function($r) {
+          $date = $r->purchase_date ?: $r->created_at;
+          return [
+             'id' => (int) $r->id,
+             'purchase_date' => $date ? (new \Carbon\Carbon($date))->toISOString() : null,
+             'unique_products' => (int) $r->unique_products,
+             'total_products' => (int) $r->total_products,
+             'total_amount' => (float) ($r->total_price ?? 0),
+          ];
+       });
+    }
 }
