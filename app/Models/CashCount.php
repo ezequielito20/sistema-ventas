@@ -847,4 +847,120 @@ class CashCount extends Model
           'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
        ];
     }
+
+     /**
+      * Estadísticas de pedidos (orders) para el modal
+      */
+     public function getOrdersStats()
+     {
+        $current = $this->getCurrentOrdersStats();
+        $previous = $this->getPreviousOrdersStats();
+        return [
+           'current' => $current,
+           'previous' => $previous,
+           'comparison' => $this->calculateOrdersComparison($current, $previous)
+        ];
+     }
+
+     private function getCurrentOrdersStats()
+     {
+        $start = $this->opening_date;
+        $end = $this->closing_date ?: now();
+
+        // Filtrar por compañía a través de products.company_id
+        $orders = DB::table('orders as o')
+           ->join('products as p', 'o.product_id', '=', 'p.id')
+           ->where('p.company_id', $this->company_id)
+           ->whereBetween('o.created_at', [$start, $end])
+           ->select('o.*')
+           ->orderBy('o.created_at', 'desc')
+           ->get();
+
+        $totalOrders = (int) $orders->count();
+        $totalValue = (float) $orders->sum('total_price');
+        $pending = (int) $orders->where('status', 'pending')->count();
+        $completed = (int) $orders->where('status', 'processed')->count();
+
+        return [
+           'total_orders' => $totalOrders,
+           'pending' => $pending,
+           'completed' => $completed,
+           'total_value' => $totalValue,
+           'orders_data' => $this->getOrdersDetailedData($orders)
+        ];
+     }
+
+     private function getPreviousOrdersStats()
+     {
+        $previous = $this->getPreviousCashCount();
+        if (!$previous) {
+           return [
+              'total_orders' => 0,
+              'pending' => 0,
+              'completed' => 0,
+              'total_value' => 0.0,
+           ];
+        }
+
+        $orders = DB::table('orders as o')
+           ->join('products as p', 'o.product_id', '=', 'p.id')
+           ->where('p.company_id', $this->company_id)
+           ->whereBetween('o.created_at', [$previous->opening_date, $previous->closing_date ?: now()])
+           ->select('o.*')
+           ->get();
+
+        $totalOrders = (int) $orders->count();
+        $totalValue = (float) $orders->sum('total_price');
+        $pending = (int) $orders->where('status', 'pending')->count();
+        $completed = (int) $orders->where('status', 'processed')->count();
+
+        return [
+           'total_orders' => $totalOrders,
+           'pending' => $pending,
+           'completed' => $completed,
+           'total_value' => $totalValue,
+        ];
+     }
+
+     private function calculateOrdersComparison(array $current, array $previous)
+     {
+        $keys = ['total_orders', 'pending', 'completed', 'total_value'];
+        $out = [];
+        foreach ($keys as $k) {
+           $prev = $previous[$k] ?? 0;
+           $cur = $current[$k] ?? 0;
+           if ($prev > 0) {
+              $pct = (($cur - $prev) / $prev) * 100;
+              $out[$k] = ['percentage' => round($pct, 1), 'is_positive' => ($k === 'pending') ? $pct <= 0 : $pct >= 0];
+           } else {
+              $out[$k] = ['percentage' => $cur > 0 ? 100 : 0, 'is_positive' => ($k === 'pending') ? $cur <= 0 : $cur > 0];
+           }
+        }
+        return $out;
+     }
+
+     private function getOrdersDetailedData($preloaded = null)
+     {
+        $rows = $preloaded ?: DB::table('orders as o')
+           ->join('products as p', 'o.product_id', '=', 'p.id')
+           ->where('p.company_id', $this->company_id)
+           ->whereBetween('o.created_at', [$this->opening_date, $this->closing_date ?: now()])
+           ->select('o.*')
+           ->orderBy('o.created_at', 'desc')
+           ->get();
+
+        return $rows->map(function ($o) {
+           return [
+              'id' => (int) $o->id,
+              'order_date' => $o->created_at ? (new \Carbon\Carbon($o->created_at))->toISOString() : null,
+              'customer_name' => (string) $o->customer_name,
+              'customer_phone' => (string) $o->customer_phone,
+              'unique_products' => 1,
+              'total_products' => (int) $o->quantity,
+              'total_amount' => (float) $o->total_price,
+              'status' => (string) $o->status,
+           ];
+        });
+     }
+
 }
