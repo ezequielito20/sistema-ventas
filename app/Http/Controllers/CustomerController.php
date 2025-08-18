@@ -1232,14 +1232,27 @@ class CustomerController extends Controller
    {
       $request->validate([
          'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
-         'payment_date' => 'required|date|before_or_equal:today',
+         'payment_date' => 'required|date',
          'payment_time' => 'required|date_format:H:i',
          'notes' => 'nullable|string|max:500',
       ]);
 
+      // Validación manual de fecha usando la zona horaria de Venezuela
+      $paymentDate = $request->payment_date;
+      $today = now()->setTimezone('America/Caracas')->format('Y-m-d');
+      
+      if ($paymentDate > $today) {
+         return response()->json([
+            'success' => false,
+            'message' => 'La fecha del pago no puede ser mayor a hoy',
+            'errors' => [
+               'payment_date' => ['La fecha del pago no puede ser mayor a hoy']
+            ]
+         ], 422);
+      }
+
       $previousDebt = $customer->total_debt;
       $paymentAmount = $request->payment_amount;
-      $paymentDate = $request->payment_date;
       $paymentTime = $request->payment_time;
       $remainingDebt = $previousDebt - $paymentAmount;
 
@@ -1255,7 +1268,7 @@ class CustomerController extends Controller
       ]);
 
       // Actualizar las fechas created_at y updated_at con la fecha y hora proporcionadas
-      $paymentDateTime = Carbon::parse($paymentDate . ' ' . $paymentTime);
+      $paymentDateTime = Carbon::parse($paymentDate . ' ' . $paymentTime, 'America/Caracas');
       $debtPayment->created_at = $paymentDateTime;
       $debtPayment->updated_at = $paymentDateTime;
       $debtPayment->save();

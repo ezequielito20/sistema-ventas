@@ -535,16 +535,21 @@
                                     if (currentDebtField) currentDebtField.value = data.current_debt;
                                     if (remainingDebtField) remainingDebtField.value = data.current_debt;
                                     
-                                    // Establecer fecha y hora actual
-                                    const today = new Date().toISOString().split('T')[0];
-                                    const now = new Date().toTimeString().slice(0, 5);
+                                    // Establecer fecha y hora actual en zona horaria local (UTC-4)
+                                    const now = new Date();
+                                    const today = now.toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
+                                    const timeString = now.toLocaleTimeString('en-US', { 
+                                        hour12: false, 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                    });
                                     
                                     const paymentDateField = document.getElementById('payment_date');
                                     const paymentTimeField = document.getElementById('payment_time');
                                     const paymentAmountField = document.getElementById('payment_amount');
                                     
                                     if (paymentDateField) paymentDateField.value = today;
-                                    if (paymentTimeField) paymentTimeField.value = now;
+                                    if (paymentTimeField) paymentTimeField.value = timeString;
                                     if (paymentAmountField) paymentAmountField.value = '';
                                     
                                     // Inicializar eventos del modal de pago
@@ -812,7 +817,9 @@
                     
                     if (paymentDate > today) {
                         this.showPaymentError('La fecha del pago no puede ser mayor a hoy');
-                        document.getElementById('payment_date').value = today.toISOString().split('T')[0];
+                        // Usar zona horaria local para la fecha
+                        const todayLocal = today.toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
+                        document.getElementById('payment_date').value = todayLocal;
                     }
                 },
 
@@ -915,14 +922,39 @@
                         },
                         error: (xhr) => {
                             let errorMessage = 'Error al registrar el pago';
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
+                            let errorTitle = 'Error';
+                            
+                            if (xhr.responseJSON) {
+                                if (xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+                                
+                                // Si hay errores de validación específicos, mostrarlos
+                                if (xhr.responseJSON.errors) {
+                                    const errors = xhr.responseJSON.errors;
+                                    const errorMessages = [];
+                                    
+                                    // Recopilar todos los mensajes de error
+                                    Object.keys(errors).forEach(field => {
+                                        if (Array.isArray(errors[field])) {
+                                            errorMessages.push(...errors[field]);
+                                        } else {
+                                            errorMessages.push(errors[field]);
+                                        }
+                                    });
+                                    
+                                    if (errorMessages.length > 0) {
+                                        errorMessage = errorMessages.join('<br>');
+                                        errorTitle = 'Error de Validación';
+                                    }
+                                }
                             }
                             
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Error',
-                                text: errorMessage
+                                title: errorTitle,
+                                html: errorMessage,
+                                confirmButtonText: 'Entendido'
                             });
                         }
                     });
@@ -6165,9 +6197,9 @@
                                     .text();
                 }
                 
-                // Obtener la fecha actual en formato YYYY-MM-DD usando la fecha del servidor
-                const todayString = '{{ date('Y-m-d') }}';
-                const currentTime = '{{ date('H:i') }}';
+                // Obtener la fecha actual en formato YYYY-MM-DD usando la zona horaria de Venezuela
+                const todayString = '{{ now()->setTimezone('America/Caracas')->format('Y-m-d') }}';
+                const currentTime = '{{ now()->setTimezone('America/Caracas')->format('H:i') }}';
                 
                 // Llenar el modal con los datos del cliente
                 $('#payment_customer_id').val(customerId);
@@ -6208,8 +6240,8 @@
                 const paymentTime = $('#payment_time').val();
                 const notes = $('#payment_notes').val();
                 
-                // Validar que la fecha no sea mayor a hoy usando la fecha del servidor
-                const todayString = '{{ date('Y-m-d') }}';
+                // Validar que la fecha no sea mayor a hoy usando la zona horaria de Venezuela
+                const todayString = '{{ now()->setTimezone('America/Caracas')->format('Y-m-d') }}';
                 const selectedDate = new Date(paymentDate);
                 const todayDate = new Date(todayString);
                 

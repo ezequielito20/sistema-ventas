@@ -858,97 +858,162 @@
                             </div>
 
                             <!-- Pestaña Ventas -->
-                            <div x-show="activeTab === 'ventas'" class="space-y-6">
+                            <div x-show="activeTab === 'ventas'" class="space-y-4 sm:space-y-6">
                                 <!-- Header de la Pestaña -->
-                                <div class="flex items-center space-x-4 mb-6">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-chart-bar text-white text-xl"></i>
+                                <div class="flex items-center space-x-2 sm:space-x-4 mb-4 sm:mb-6">
+                                    <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-chart-bar text-white text-sm sm:text-lg md:text-xl"></i>
                                     </div>
-                                    <div>
-                                        <h3 class="text-2xl font-bold text-gray-900">Análisis de Ventas</h3>
-                                        <p class="text-gray-600">Estadísticas detalladas de ventas en este arqueo de caja</p>
-                                    </div>
-                                </div>
-
-                                <!-- 4 Widgets de Ventas -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <!-- Widget 1 -->
-                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-dollar-sign text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-green-100 text-sm">Ventas Totales</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-green-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 2 -->
-                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-receipt text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-blue-100 text-sm">Facturas</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-blue-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 3 -->
-                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-chart-line text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="formatCurrency(0)">$0.00</div>
-                                                <div class="text-purple-100 text-sm">Promedio por Venta</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-purple-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Widget 4 -->
-                                    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                                                <i class="fas fa-calendar-day text-white text-xl"></i>
-                                            </div>
-                                            <div class="text-right">
-                                                <div class="text-3xl font-bold" x-text="0">0</div>
-                                                <div class="text-orange-100 text-sm">Ventas Hoy</div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center text-orange-100 text-sm">
-                                            <i class="fas fa-arrow-up mr-1"></i>
-                                            <span>0% vs anterior</span>
-                                        </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Análisis de Ventas</h3>
+                                        <p class="text-gray-600 text-sm sm:text-base">Estadísticas detalladas de ventas en este arqueo de caja</p>
                                     </div>
                                 </div>
 
-                                <!-- Mensaje de Estado -->
-                                <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-                                    <div class="flex items-center justify-center space-x-3">
-                                        <i class="fas fa-info-circle text-green-600 text-xl"></i>
-                                        <div>
-                                            <h4 class="text-lg font-semibold text-green-900">Pestaña de Ventas</h4>
-                                            <p class="text-green-700">Aquí se mostrará la información detallada de ventas para este arqueo de caja</p>
+                                <!-- 4 Widgets de Ventas con datos reales -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <!-- Widget 1: Ventas Totales -->
+                                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.total_sales : 0)">$0.00</div>
+                                                <div class="text-green-100 text-xs sm:text-sm">Ventas Totales</div>
+                                            </div>
                                         </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.total_sales ? 
+                                                    (cashCountData.sales_stats.comparison.total_sales.is_positive ? 'text-green-200' : 'text-red-200') : 'text-green-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.total_sales ? 
+                                                              (cashCountData.sales_stats.comparison.total_sales.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.total_sales ? 
+                                                        (cashCountData.sales_stats.comparison.total_sales.is_positive ? '+' : '') + cashCountData.sales_stats.comparison.total_sales.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 2: Balance Teórico -->
+                                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-calculator text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.theoretical_balance : 0)">$0.00</div>
+                                                <div class="text-blue-100 text-xs sm:text-sm">Balance Teórico</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.theoretical_balance ? 
+                                                    (cashCountData.sales_stats.comparison.theoretical_balance.is_positive ? 'text-blue-200' : 'text-red-200') : 'text-blue-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.theoretical_balance ? 
+                                                              (cashCountData.sales_stats.comparison.theoretical_balance.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.theoretical_balance ? 
+                                                        (cashCountData.sales_stats.comparison.theoretical_balance.is_positive ? '+' : '') + cashCountData.sales_stats.comparison.theoretical_balance.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 3: Promedio por Venta -->
+                                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.average_per_sale : 0)">$0.00</div>
+                                                <div class="text-yellow-100 text-xs sm:text-sm">Promedio por Venta</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.average_per_sale ? 
+                                                    (cashCountData.sales_stats.comparison.average_per_sale.is_positive ? 'text-yellow-200' : 'text-red-200') : 'text-yellow-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.average_per_sale ? 
+                                                              (cashCountData.sales_stats.comparison.average_per_sale.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.average_per_sale ? 
+                                                        (cashCountData.sales_stats.comparison.average_per_sale.is_positive ? '+' : '') + cashCountData.sales_stats.comparison.average_per_sale.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Widget 4: Balance Real -->
+                                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
+                                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.real_balance : 0)">$0.00</div>
+                                                <div class="text-purple-100 text-xs sm:text-sm">Balance Real</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center text-xs sm:text-sm" 
+                                             :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.real_balance ? 
+                                                    (cashCountData.sales_stats.comparison.real_balance.is_positive ? 'text-purple-200' : 'text-red-200') : 'text-purple-100'">
+                                            <i class="mr-1" :class="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.real_balance ? 
+                                                              (cashCountData.sales_stats.comparison.real_balance.is_positive ? 'fas fa-arrow-up' : 'fas fa-arrow-down') : 'fas fa-minus'"></i>
+                                            <span x-text="cashCountData && cashCountData.sales_stats && cashCountData.sales_stats.comparison.real_balance ? 
+                                                        (cashCountData.sales_stats.comparison.real_balance.is_positive ? '+' : '') + cashCountData.sales_stats.comparison.real_balance.percentage + '%' : '0%'">0%</span>
+                                            <span class="ml-1">vs anterior</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabla de Ventas -->
+                                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden">
+                                    <div class="px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
+                                        <h4 class="text-base sm:text-lg font-semibold text-gray-900">Ventas del Arqueo</h4>
+                                        <p class="text-xs sm:text-sm text-gray-600">Detalle de todas las ventas realizadas durante este período</p>
+                                    </div>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Factura</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="sale in (cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.sales_data : [])" :key="sale.invoice_number">
+                                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="sale.invoice_number"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm text-gray-500" x-text="formatDate(sale.sale_date)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-gray-900" x-text="sale.customer_name"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="text-xs sm:text-sm font-medium text-green-600" x-text="formatCurrency(sale.total_amount)"></div>
+                                                        </td>
+                                                        <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" 
+                                                                  :class="sale.payment_status === 'Pagado' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                                                  x-text="sale.payment_status"></span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                                <!-- Estado vacío -->
+                                                <tr x-show="!cashCountData || !cashCountData.sales_stats || !cashCountData.sales_stats.current.sales_data || cashCountData.sales_stats.current.sales_data.length === 0">
+                                                    <td colspan="5" class="px-3 sm:px-4 md:px-6 py-6 sm:py-8 text-center">
+                                                        <div class="flex flex-col items-center space-y-2 sm:space-y-3">
+                                                            <i class="fas fa-shopping-cart text-gray-400 text-2xl sm:text-3xl"></i>
+                                                            <div class="text-gray-500">
+                                                                <p class="font-medium text-sm sm:text-base">No hay ventas registradas</p>
+                                                                <p class="text-xs sm:text-sm">No se encontraron ventas en este arqueo</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
