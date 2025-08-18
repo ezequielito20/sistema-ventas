@@ -167,6 +167,15 @@
             display: none !important;
         }
         
+        /* Optimización de carga - ocultar sidebar hasta que Alpine.js esté listo */
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        
+        .sidebar-visible {
+            transform: translateX(0);
+        }
+        
         /* Estilos para el header de la página */
         .flex.items-center.justify-between {
             display: flex;
@@ -222,19 +231,20 @@
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full"
              @click.stop
-             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-blue-800 to-blue-900 transform lg:translate-x-0">
+             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform lg:translate-x-0"
+             :class="sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'">
         
         <!-- Logo -->
-        <div class="flex items-center justify-between h-16 px-6 border-b border-blue-700">
-            <div class="flex items-center">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-white/20">
+            <a href="{{ route('admin.index') }}" class="flex items-center group">
                 <div class="flex-shrink-0">
-                    <i class="fas fa-store text-white text-2xl"></i>
+                    <i class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
                 </div>
                 <div class="ml-3">
-                    <h1 class="text-white text-lg font-semibold">Test Company</h1>
+                    <h1 class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">Test Company</h1>
                 </div>
-            </div>
-            <button @click="sidebarOpen = false" class="lg:hidden text-white hover:text-gray-300">
+            </a>
+            <button @click="sidebarOpen = false" class="lg:hidden text-white hover:text-purple-200 transition-colors duration-200">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
@@ -242,16 +252,11 @@
         <!-- Navigation -->
         <nav class="mt-6 px-3">
             <div class="space-y-1">
-                <!-- Dashboard -->
-                <a href="{{ route('admin.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.index') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
-                    <i class="fas fa-tachometer-alt mr-3 text-lg"></i>
-                    Dashboard
-                </a>
+
 
                 <!-- Pedidos Online -->
                 <a href="{{ route('admin.orders.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.orders.*') ? 'bg-orange-600 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-shopping-cart mr-3 text-lg"></i>
                     Pedidos Online
                 </a>
@@ -259,7 +264,7 @@
                 <!-- Configuración -->
                 <div x-data="{ open: false }">
                     <button @click="open = !open" 
-                            class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 hover:text-white transition-colors duration-200">
+                            class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200">
                         <div class="flex items-center">
                             <i class="fas fa-cog mr-3 text-lg"></i>
                             Config empresa
@@ -274,10 +279,10 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="ml-6 mt-1 space-y-1">
-                        <a href="#" class="block px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <a href="#" class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
                             Configuración General
                         </a>
-                        <a href="#" class="block px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <a href="#" class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
                             Configuración Avanzada
                         </a>
                     </div>
@@ -286,7 +291,7 @@
                 <!-- Roles y Permisos -->
                 <div x-data="{ open: false }">
                     <button @click="open = !open" 
-                            class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md text-blue-100 hover:bg-blue-700 hover:text-white transition-colors duration-200">
+                            class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200">
                         <div class="flex items-center">
                             <i class="fas fa-users-cog mr-3 text-lg"></i>
                             Roles y Permisos
@@ -301,10 +306,10 @@
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="ml-6 mt-1 space-y-1">
-                        <a href="{{ route('admin.roles.index') }}" class="block px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <a href="{{ route('admin.roles.index') }}" class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
                             Lista de Roles
                         </a>
-                        <a href="{{ route('admin.permissions.index') }}" class="block px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-700 rounded-md transition-colors duration-200">
+                        <a href="{{ route('admin.permissions.index') }}" class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
                             Permisos
                         </a>
                     </div>
@@ -312,56 +317,56 @@
 
                 <!-- Usuarios -->
                 <a href="{{ route('admin.users.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.users.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.users.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-users mr-3 text-lg"></i>
                     Usuarios
                 </a>
 
                 <!-- Categorías -->
                 <a href="{{ route('admin.categories.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.categories.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-tags mr-3 text-lg"></i>
                     Categorías
                 </a>
 
                 <!-- Productos -->
                 <a href="{{ route('admin.products.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.products.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.products.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-box mr-3 text-lg"></i>
                     Productos
                 </a>
 
                 <!-- Proveedores -->
                 <a href="{{ route('admin.suppliers.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.suppliers.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.suppliers.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-truck mr-3 text-lg"></i>
                     Proveedores
                 </a>
 
                 <!-- Compras -->
                 <a href="{{ route('admin.purchases.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.purchases.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.purchases.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-shopping-bag mr-3 text-lg"></i>
                     Compras
                 </a>
 
                 <!-- Ventas -->
                 <a href="{{ route('admin.sales.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.sales.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.sales.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-chart-line mr-3 text-lg"></i>
                     Ventas
                 </a>
 
                 <!-- Clientes -->
                 <a href="{{ route('admin.customers.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.customers.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.customers.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-user-friends mr-3 text-lg"></i>
                     Clientes
                 </a>
 
                 <!-- Arqueo de Caja -->
                 <a href="{{ route('admin.cash-counts.index') }}" 
-                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 {{ request()->routeIs('admin.cash-counts.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700 hover:text-white' }}">
+                   class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.cash-counts.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                     <i class="fas fa-cash-register mr-3 text-lg"></i>
                     Arqueo de Caja
                 </a>
@@ -369,16 +374,16 @@
         </nav>
 
         <!-- User Info -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-700">
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                         <i class="fas fa-user text-white text-sm"></i>
                     </div>
                 </div>
                 <div class="ml-3">
                     <p class="text-sm font-medium text-white">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-blue-200">{{ Auth::user()->email }}</p>
+                    <p class="text-xs text-white/70">{{ Auth::user()->email }}</p>
                 </div>
             </div>
         </div>
@@ -504,15 +509,6 @@
     @vite(['resources/js/app.js'])
     @livewireScripts
     
-    <!-- jQuery (necesario para DataTables y otros scripts) -->
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    
-    <!-- Bootstrap CSS y JS locales -->
-    {{-- <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script> --}}
-    
-    <!-- Alpine.js ya está incluido en resources/js/app.js -->
-    
     <!-- Chart.js -->
     <script src="{{ asset('vendor/chartjs/chart.min.js') }}"></script>
     
@@ -550,56 +546,59 @@
                 sidebarOpen: false, // Estado inicial cerrado
                 
                 init() {
-                    // Mostrar/ocultar botón de toggle según el tamaño de pantalla
-                    const toggleButton = document.querySelector('.sidebar-toggle-btn');
-                    
-                    function updateButtonVisibility() {
-                        if (window.innerWidth >= 1024) {
-                            toggleButton.style.display = 'flex';
-                        } else {
-                            toggleButton.style.display = 'none';
-                        }
-                    }
-                    
-                    // Ejecutar al inicio
-                    setTimeout(updateButtonVisibility, 100);
-                    
-                    // Ejecutar cuando cambie el tamaño de la ventana
-                    window.addEventListener('resize', updateButtonVisibility);
-                    
-                    // Manejar el estado del sidebar en localStorage
-                    const savedState = localStorage.getItem('sidebarOpen');
-                    if (savedState !== null) {
-                        // Solo cargar el estado guardado si estamos en desktop
-                        if (window.innerWidth >= 1024) {
-                            this.sidebarOpen = JSON.parse(savedState);
-                        }
-                    } else {
-                        // Si no hay estado guardado, establecer según el tamaño de pantalla
-                        this.sidebarOpen = window.innerWidth >= 1024;
-                    }
-
-                    // Guardar el estado cuando cambie (solo en desktop)
-                    this.$watch('sidebarOpen', value => {
-                        if (window.innerWidth >= 1024) {
-                            localStorage.setItem('sidebarOpen', JSON.stringify(value));
-                        }
-                    });
-                    
-                    // Manejar cambios de tamaño de ventana
-                    window.addEventListener('resize', () => {
-                        if (window.innerWidth < 1024) {
-                            // En móviles, siempre cerrar el sidebar
-                            this.sidebarOpen = false;
-                        } else {
-                            // En desktop, restaurar el estado guardado
-                            const savedState = localStorage.getItem('sidebarOpen');
-                            if (savedState !== null) {
-                                this.sidebarOpen = JSON.parse(savedState);
+                    // Inicializar después de que Alpine.js esté completamente cargado
+                    this.$nextTick(() => {
+                        // Mostrar/ocultar botón de toggle según el tamaño de pantalla
+                        const toggleButton = document.querySelector('.sidebar-toggle-btn');
+                        
+                        function updateButtonVisibility() {
+                            if (window.innerWidth >= 1024) {
+                                toggleButton.style.display = 'flex';
                             } else {
-                                this.sidebarOpen = true; // Por defecto abierto en desktop
+                                toggleButton.style.display = 'none';
                             }
                         }
+                        
+                        // Ejecutar al inicio
+                        setTimeout(updateButtonVisibility, 100);
+                        
+                        // Ejecutar cuando cambie el tamaño de la ventana
+                        window.addEventListener('resize', updateButtonVisibility);
+                        
+                        // Manejar el estado del sidebar en localStorage
+                        const savedState = localStorage.getItem('sidebarOpen');
+                        if (savedState !== null) {
+                            // Solo cargar el estado guardado si estamos en desktop
+                            if (window.innerWidth >= 1024) {
+                                this.sidebarOpen = JSON.parse(savedState);
+                            }
+                        } else {
+                            // Si no hay estado guardado, establecer según el tamaño de pantalla
+                            this.sidebarOpen = window.innerWidth >= 1024;
+                        }
+
+                        // Guardar el estado cuando cambie (solo en desktop)
+                        this.$watch('sidebarOpen', value => {
+                            if (window.innerWidth >= 1024) {
+                                localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                            }
+                        });
+                        
+                        // Manejar cambios de tamaño de ventana
+                        window.addEventListener('resize', () => {
+                            if (window.innerWidth < 1024) {
+                                // En móviles, siempre cerrar el sidebar
+                                this.sidebarOpen = false;
+                            } else {
+                                // En desktop, restaurar el estado guardado
+                                const savedState = localStorage.getItem('sidebarOpen');
+                                if (savedState !== null) {
+                                    this.sidebarOpen = JSON.parse(savedState);
+                                } else {
+                                    this.sidebarOpen = true; // Por defecto abierto en desktop
+                                }
+                            }
+                        });
                     });
                 }
             }
