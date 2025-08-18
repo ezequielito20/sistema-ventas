@@ -7,6 +7,7 @@
 
 // Script de prueba para verificar carga
 console.log('✅ cash-counts/index.js cargado correctamente');
+console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
 
 // ===== VARIABLES GLOBALES =====
 let cashCountModalInstance = null;
@@ -83,7 +84,7 @@ function deleteCashCount(cashCountId) {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: '¿Eliminar Arqueo?',
-            text: '¿Estás seguro de que quieres eliminar este arqueo? Esta acción no se puede deshacer.',
+            text: '¿Estás seguro de que quieres eliminar este arqueo? Solo se pueden eliminar arqueos sin movimientos registrados.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -96,7 +97,7 @@ function deleteCashCount(cashCountId) {
             }
         });
     } else {
-        if (confirm('¿Estás seguro de que quieres eliminar este arqueo?')) {
+        if (confirm('¿Estás seguro de que quieres eliminar este arqueo? Solo se pueden eliminar arqueos sin movimientos registrados.')) {
             submitDeleteCashCount(cashCountId);
         }
     }
@@ -105,25 +106,74 @@ function deleteCashCount(cashCountId) {
 /**
  * Enviar formulario de eliminación de arqueo
  */
-function submitDeleteCashCount(cashCountId) {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `/cash-counts/${cashCountId}`;
-    
-    const csrfToken = document.createElement('input');
-    csrfToken.type = 'hidden';
-    csrfToken.name = '_token';
-    csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
-    const methodField = document.createElement('input');
-    methodField.type = 'hidden';
-    methodField.name = '_method';
-    methodField.value = 'DELETE';
-    
-    form.appendChild(csrfToken);
-    form.appendChild(methodField);
-    document.body.appendChild(form);
-    form.submit();
+async function submitDeleteCashCount(cashCountId) {
+    try {
+        console.log('Eliminando arqueo:', cashCountId);
+        
+        const response = await fetch(`/cash-counts/delete/${cashCountId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        console.log('Respuesta del servidor:', response);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Datos de respuesta:', data);
+
+        if (data.success) {
+            // Mostrar notificación de éxito
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Redirigir al index después de cerrar la alerta
+                    window.location.href = '/cash-counts';
+                });
+            } else {
+                alert(data.message);
+                window.location.href = '/cash-counts';
+            }
+        } else {
+            // Mostrar notificación de error
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
+    } catch (error) {
+        console.error('Error eliminando arqueo:', error);
+        
+        // Mostrar notificación de error
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al eliminar el arqueo. Inténtalo de nuevo.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            alert('Error al eliminar el arqueo. Inténtalo de nuevo.');
+        }
+    }
 }
 
 /**
