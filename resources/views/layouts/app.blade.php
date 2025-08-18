@@ -515,6 +515,15 @@
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
     
+    <!-- CSS compartido -->
+    <link rel="stylesheet" href="{{ asset('css/shared/components.css') }}">
+    
+    <!-- Utilidades compartidas -->
+    <script src="{{ asset('js/shared/utils.js') }}"></script>
+    
+    <!-- Sistema de carga optimizada -->
+    <script src="{{ asset('js/shared/loader.js') }}"></script>
+    
     @stack('js')
     
     <!-- Manejo de notificaciones de sesión -->

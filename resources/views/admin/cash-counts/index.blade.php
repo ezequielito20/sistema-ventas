@@ -2,6 +2,10 @@
 
 @section('title', 'Gestión de Caja')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/cash-counts/index.css') }}">
+@endpush
+
 @section('content')
 <div class="space-y-6">
     <!-- Hero Section -->
@@ -2168,4 +2172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 </style>
+
+@push('js')
+    <script src="{{ asset('js/admin/cash-counts/index.js') }}" defer></script>
 @endpush
