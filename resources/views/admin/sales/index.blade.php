@@ -311,10 +311,8 @@
                                     </td>
                                     <td>
                                         <div class="date-info">
-                                            <span
-                                                class="date-main">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</span>
-                                            <span
-                                                class="date-time">{{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}</span>
+                                            <span class="date-main">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</span>
+                                            <span class="date-time">{{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -331,14 +329,13 @@
                                     </td>
                                     <td>
                                         <div class="price-info">
-                                            <span class="price-amount">{{ $currency->symbol }}
-                                                {{ number_format($sale->total_price, 2) }}</span>
+                                            <span class="price-amount">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn-modern btn-primary view-details"
-                                            data-id="{{ $sale->id }}" data-toggle="modal"
-                                            data-target="#saleDetailsModal">
+                                        <button type="button" class="btn-modern btn-primary view-details" 
+                                                data-id="{{ $sale->id }}" 
+                                                onclick="showSaleDetails({{ $sale->id }})">
                                             <i class="fas fa-list"></i>
                                             <span>Ver Detalle</span>
                                         </button>
@@ -346,15 +343,18 @@
                                     <td>
                                         <div class="action-buttons">
                                             @can('sales.edit')
-                                                <button type="button" class="btn-action btn-edit"
-                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" 
-                                                    >
+                                                <button type="button" class="btn-action btn-edit" 
+                                                        data-id="{{ $sale->id }}" 
+                                                        title="Editar venta"
+                                                        onclick="editSale({{ $sale->id }})">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
                                             @can('sales.destroy')
-                                                <button type="button" class="btn-action btn-delete delete-sale"
-                                                    data-id="{{ $sale->id }}" data-toggle="tooltip" >
+                                                <button type="button" class="btn-action btn-delete delete-sale" 
+                                                        data-id="{{ $sale->id }}" 
+                                                        title="Eliminar venta"
+                                                        onclick="deleteSale({{ $sale->id }})">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             @endcan
@@ -421,7 +421,8 @@
                             <div class="mobile-card-footer">
                                 <div class="mobile-actions">
                                     <button type="button" class="mobile-btn mobile-btn-primary view-details"
-                                        data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                            data-id="{{ $sale->id }}" 
+                                            onclick="showSaleDetails({{ $sale->id }})">
                                         <i class="fas fa-list"></i>
                                         <span>Ver Detalle</span>
                                     </button>
@@ -429,13 +430,17 @@
                                     <div class="mobile-action-buttons">
                                         @can('sales.edit')
                                             <button type="button" class="mobile-btn-action btn-edit"
-                                                data-id="{{ $sale->id }}" title="Editar">
+                                                    data-id="{{ $sale->id }}" 
+                                                    title="Editar venta"
+                                                    onclick="editSale({{ $sale->id }})">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         @endcan
                                         @can('sales.destroy')
                                             <button type="button" class="mobile-btn-action delete-sale"
-                                                data-id="{{ $sale->id }}" title="Eliminar">
+                                                    data-id="{{ $sale->id }}" 
+                                                    title="Eliminar venta"
+                                                    onclick="deleteSale({{ $sale->id }})">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @endcan
@@ -494,10 +499,8 @@
                                         </div>
                                         <div class="detail-value">
                                             <div class="product-badges">
-                                                <span class="mini-badge unique">{{ $sale->saleDetails->count() }}
-                                                    únicos</span>
-                                                <span class="mini-badge total">{{ $sale->saleDetails->sum('quantity') }}
-                                                    totales</span>
+                                                <span class="mini-badge unique">{{ $sale->saleDetails->count() }} únicos</span>
+                                                <span class="mini-badge total">{{ $sale->saleDetails->sum('quantity') }} totales</span>
                                             </div>
                                         </div>
                                     </div>
@@ -516,7 +519,8 @@
 
                             <div class="sale-card-footer">
                                 <button type="button" class="btn-card-primary view-details"
-                                    data-id="{{ $sale->id }}" data-toggle="modal" data-target="#saleDetailsModal">
+                                        data-id="{{ $sale->id }}" 
+                                        onclick="showSaleDetails({{ $sale->id }})">
                                     <i class="fas fa-list"></i>
                                     <span>Ver Detalle</span>
                                 </button>
@@ -524,19 +528,24 @@
                                 <div class="card-actions">
                                     @can('sales.edit')
                                         <button type="button" class="btn-card-action btn-edit"
-                                            data-id="{{ $sale->id }}" data-toggle="tooltip" title="Editar">
+                                                data-id="{{ $sale->id }}" 
+                                                title="Editar venta"
+                                                onclick="editSale({{ $sale->id }})">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                     @endcan
                                     @can('sales.destroy')
                                         <button type="button" class="btn-card-action delete delete-sale"
-                                            data-id="{{ $sale->id }}" data-toggle="tooltip" title="Eliminar">
+                                                data-id="{{ $sale->id }}" 
+                                                title="Eliminar venta"
+                                                onclick="deleteSale({{ $sale->id }})">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @endcan
                                     @can('sales.print')
-                                        <button type="button" class="btn-card-action print" data-toggle="tooltip"
-                                            title="Imprimir">
+                                        <button type="button" class="btn-card-action print" 
+                                                title="Imprimir venta"
+                                                onclick="printSale({{ $sale->id }})">
                                             <i class="fas fa-print"></i>
                                         </button>
                                     @endcan
@@ -550,173 +559,169 @@
     </div>
 
     {{-- Modal moderno para mostrar detalles --}}
-    <div class="modal fade" id="saleDetailsModal" tabindex="-1" role="dialog"
-        aria-labelledby="saleDetailsModalLabel">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content modern-modal">
-                {{-- Header moderno con gradiente --}}
-                <div class="modal-header-modern">
-                    <div class="modal-header-background">
-                        <div class="modal-header-gradient"></div>
-                        <div class="modal-header-pattern">
-                            <div class="pattern-circle"></div>
-                            <div class="pattern-circle"></div>
-                            <div class="pattern-circle"></div>
+    <div class="modal-overlay" id="modalOverlay" style="display: none;">
+        <div class="modal-container" id="modalContainer" style="display: none;">
+        <div class="modal-content modern-modal">
+            {{-- Header moderno con gradiente --}}
+            <div class="modal-header-modern">
+                <div class="modal-header-background">
+                    <div class="modal-header-gradient"></div>
+                    <div class="modal-header-pattern">
+                        <div class="pattern-circle"></div>
+                        <div class="pattern-circle"></div>
+                        <div class="pattern-circle"></div>
+                    </div>
+                </div>
+                <div class="modal-header-content">
+                    <div class="modal-title-section">
+                        <div class="modal-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="modal-title-text">
+                            <h4 class="modal-title-main">Detalle de la Venta</h4>
+                            <p class="modal-subtitle">Información completa de la transacción</p>
                         </div>
                     </div>
-                    <div class="modal-header-content">
-                        <div class="modal-title-section">
-                            <div class="modal-icon">
+                    <button type="button" class="modal-close-btn" onclick="closeModal()" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Cuerpo del modal --}}
+            <div class="modal-body-modern">
+                {{-- Información del cliente y venta --}}
+                <div class="sale-info-section">
+                    <div class="flex flex-wrap -mx-4">
+                        <div class="w-full md:w-1/2 px-4">
+                            <div class="info-card customer-info-card">
+                                <div class="info-card-header">
+                                    <div class="info-icon customer-icon">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h6 class="info-title">Información del Cliente</h6>
+                                </div>
+                                <div class="info-card-content" id="customerInfo">
+                                    <!-- Se llena dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2 px-4">
+                            <div class="info-card date-info-card">
+                                <div class="info-card-header">
+                                    <div class="info-icon date-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <h6 class="info-title">Fecha de Venta</h6>
+                                </div>
+                                <div class="info-card-content" id="saleDate">
+                                    <!-- Se llena dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tabla de productos moderna --}}
+                <div class="products-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h5 class="section-title">Productos Vendidos</h5>
+                    </div>
+
+                    <div class="modern-table-wrapper">
+                        <table class="modern-details-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="th-content">
+                                            <i class="fas fa-barcode"></i>
+                                            <span>Código</span>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="th-content">
+                                            <i class="fas fa-box"></i>
+                                            <span>Producto</span>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="th-content">
+                                            <i class="fas fa-tags"></i>
+                                            <span>Categoría</span>
+                                        </div>
+                                    </th>
+                                    <th class="text-center">
+                                        <div class="th-content">
+                                            <i class="fas fa-sort-numeric-up"></i>
+                                            <span>Cantidad</span>
+                                        </div>
+                                    </th>
+                                    <th class="text-right">
+                                        <div class="th-content">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            <span>Precio Unit.</span>
+                                        </div>
+                                    </th>
+                                    <th class="text-right">
+                                        <div class="th-content">
+                                            <i class="fas fa-calculator"></i>
+                                            <span>Subtotal</span>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="saleDetailsTableBody">
+                                <!-- Los detalles se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Total destacado y Nota --}}
+                    <div class="total-section">
+                        <!-- Campo de Nota -->
+                        <div class="note-card" id="noteCard" style="display: none;">
+                            <div class="note-icon">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <div class="note-content">
+                                <span class="note-label">Nota de la Venta</span>
+                                <div class="note-text" id="noteText"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Total de la venta -->
+                        <div class="total-card">
+                            <div class="total-icon">
                                 <i class="fas fa-receipt"></i>
                             </div>
-                            <div class="modal-title-text">
-                                <h4 class="modal-title-main" id="saleDetailsModalLabel">Detalle de la Venta</h4>
-                                <p class="modal-subtitle">Información completa de la transacción</p>
+                            <div class="total-content">
+                                <span class="total-label">Total de la Venta</span>
+                                <span class="total-amount"><span id="modalTotal">0.00</span></span>
                             </div>
                         </div>
-                        <button type="button" class="modal-close-btn" data-dismiss="modal" aria-label="Close">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Cuerpo del modal --}}
-                <div class="modal-body-modern">
-                    {{-- Información del cliente y venta --}}
-                    <div class="sale-info-section">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-card customer-info-card">
-                                    <div class="info-card-header">
-                                        <div class="info-icon customer-icon">
-                                            <i class="fas fa-user-circle"></i>
-                                        </div>
-                                        <h6 class="info-title">Información del Cliente</h6>
-                                    </div>
-                                    <div class="info-card-content" id="customerInfo">
-                                        <!-- Se llena dinámicamente -->
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-card date-info-card">
-                                    <div class="info-card-header">
-                                        <div class="info-icon date-icon">
-                                            <i class="fas fa-calendar-alt"></i>
-                                        </div>
-                                        <h6 class="info-title">Fecha de Venta</h6>
-                                    </div>
-                                    <div class="info-card-content" id="saleDate">
-                                        <!-- Se llena dinámicamente -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Tabla de productos moderna --}}
-                    <div class="products-section">
-                        <div class="section-header">
-                            <div class="section-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <h5 class="section-title">Productos Vendidos</h5>
-                        </div>
-
-                        <div class="modern-table-wrapper">
-                            <table class="modern-details-table">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <div class="th-content">
-                                                <i class="fas fa-barcode"></i>
-                                                <span>Código</span>
-                                            </div>
-                                        </th>
-                                        <th>
-                                            <div class="th-content">
-                                                <i class="fas fa-box"></i>
-                                                <span>Producto</span>
-                                            </div>
-                                        </th>
-                                        <th>
-                                            <div class="th-content">
-                                                <i class="fas fa-tags"></i>
-                                                <span>Categoría</span>
-                                            </div>
-                                        </th>
-                                        <th class="text-center">
-                                            <div class="th-content">
-                                                <i class="fas fa-sort-numeric-up"></i>
-                                                <span>Cantidad</span>
-                                            </div>
-                                        </th>
-                                        <th class="text-right">
-                                            <div class="th-content">
-                                                <i class="fas fa-dollar-sign"></i>
-                                                <span>Precio Unit.</span>
-                                            </div>
-                                        </th>
-                                        <th class="text-right">
-                                            <div class="th-content">
-                                                <i class="fas fa-calculator"></i>
-                                                <span>Subtotal</span>
-                                            </div>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="saleDetailsTableBody">
-                                    <!-- Los detalles se cargarán aquí dinámicamente -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {{-- Total destacado y Nota --}}
-                        <div class="total-section">
-                            <!-- Campo de Nota -->
-                            <div class="note-card" id="noteCard" style="display: none;">
-                                <div class="note-icon">
-                                    <i class="fas fa-sticky-note"></i>
-                                </div>
-                                <div class="note-content">
-                                    <span class="note-label">Nota de la Venta</span>
-                                    <div class="note-text" id="noteText"></div>
-                                </div>
-                            </div>
-                            
-                            <!-- Total de la venta -->
-                            <div class="total-card">
-                                <div class="total-icon">
-                                    <i class="fas fa-receipt"></i>
-                                </div>
-                                <div class="total-content">
-                                    <span class="total-label">Total de la Venta</span>
-                                    <span class="total-amount"><span id="currencySymbol">{{ $currency->symbol }}</span><span
-                                            id="modalTotal">0.00</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Footer moderno --}}
-                <div class="modal-footer-modern">
-                    <div class="footer-actions">
-                        @can('sales.print')
-                            <button type="button" class="btn-modal-action btn-print print-details">
-                                <i class="fas fa-print"></i>
-                                <span>Imprimir</span>
-                            </button>
-                        @endcan
-                        <button type="button" class="btn-modal-action btn-secondary" data-dismiss="modal">
-                            <i class="fas fa-times"></i>
-                            <span>Cerrar</span>
-                        </button>
                     </div>
                 </div>
             </div>
+
+            {{-- Footer moderno --}}
+            <div class="modal-footer-modern">
+                <div class="footer-actions">
+                    @can('sales.print')
+                        <button type="button" class="btn-modal-action btn-print print-details">
+                            <i class="fas fa-print"></i>
+                            <span>Imprimir</span>
+                        </button>
+                    @endcan
+                    <button type="button" class="btn-modal-action btn-secondary" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                        <span>Cerrar</span>
+                    </button>
+                </div>
+            </div>
         </div>
-    </div>
     </div>
 </div>
 @endsection

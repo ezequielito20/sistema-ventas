@@ -1856,3 +1856,649 @@
         justify-content: center;
     }
 } 
+
+/* ===== MODAL MODERNO Y RESPONSIVO ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-container {
+    position: relative;
+    width: 100%;
+    max-width: 95vw;
+    max-height: 95vh;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 95vh;
+    width: 100%;
+}
+
+/* Header moderno con gradiente */
+.modal-header-modern {
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1.75rem 1.75rem 1.25rem;
+    color: white;
+    overflow: hidden;
+}
+
+.modal-header-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+}
+
+.modal-header-gradient {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.modal-header-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.pattern-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+.pattern-circle:nth-child(1) {
+    width: 60px;
+    height: 60px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.pattern-circle:nth-child(2) {
+    width: 40px;
+    height: 40px;
+    top: 60%;
+    right: 15%;
+    animation-delay: 1s;
+}
+
+.pattern-circle:nth-child(3) {
+    width: 80px;
+    height: 80px;
+    bottom: 10%;
+    left: 20%;
+    animation-delay: 2s;
+}
+
+.modal-header-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal-icon {
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-icon i {
+    font-size: 1.375rem;
+    color: white;
+}
+
+.modal-title-text h4 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.modal-subtitle {
+    font-size: 0.8125rem;
+    opacity: 0.9;
+    margin: 0.25rem 0 0 0;
+}
+
+.modal-close-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Cuerpo del modal */
+.modal-body-modern {
+    flex: 1;
+    padding: 1.75rem;
+    overflow-y: auto;
+    background: #f8fafc;
+}
+
+/* Sección de información */
+.sale-info-section {
+    margin-bottom: 1.75rem;
+}
+
+.info-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.875rem;
+}
+
+.info-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.125rem;
+}
+
+.customer-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.date-icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.info-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.info-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #64748b;
+    font-size: 0.8125rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: #1e293b;
+    text-align: right;
+    font-size: 0.8125rem;
+}
+
+/* Sección de productos */
+.products-section {
+    background: white;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1.25rem;
+}
+
+.section-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.125rem;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* Tabla moderna */
+.modern-table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.25rem;
+}
+
+.modern-details-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.modern-details-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.875rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modern-details-table th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.modern-details-table th:last-child {
+    border-top-right-radius: 10px;
+}
+
+.th-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.th-content i {
+    font-size: 0.8125rem;
+    opacity: 0.9;
+}
+
+.modern-details-table td {
+    padding: 0.875rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 0.8125rem;
+}
+
+/* Sección de total */
+.total-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.note-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 10px;
+    padding: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border: 1px solid #f59e0b;
+}
+
+.note-icon {
+    width: 36px;
+    height: 36px;
+    background: #f59e0b;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9375rem;
+}
+
+.note-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.1875rem;
+}
+
+.note-text {
+    color: #92400e;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.total-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    color: white;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+}
+
+.total-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.375rem;
+    backdrop-filter: blur(10px);
+}
+
+.total-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    opacity: 0.9;
+    display: block;
+    margin-bottom: 0.1875rem;
+}
+
+.total-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer del modal */
+.modal-footer-modern {
+    background: #f8fafc;
+    padding: 1.25rem 1.75rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.875rem;
+    flex-shrink: 0;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-modal-action {
+    padding: 0.6875rem 1.375rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-width: 110px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.btn-print {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+}
+
+.btn-print:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(245, 158, 11, 0.4);
+}
+
+.btn-secondary {
+    background: #64748b;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(100, 116, 139, 0.3);
+}
+
+.btn-secondary:hover {
+    background: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(100, 116, 139, 0.4);
+}
+
+/* Animaciones */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 0.5rem;
+    }
+    
+    .modal-container {
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 16px;
+    }
+    
+    .modal-header-modern {
+        padding: 1.25rem 1rem 1rem;
+    }
+    
+    .modal-title-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.625rem;
+    }
+    
+    .modal-icon {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .modal-title-text h4 {
+        font-size: 1.25rem;
+    }
+    
+    .modal-body-modern {
+        padding: 1.25rem;
+    }
+    
+    .info-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .products-section {
+        padding: 1rem;
+    }
+    
+    .modern-details-table {
+        font-size: 0.75rem;
+    }
+    
+    .modern-details-table th,
+    .modern-details-table td {
+        padding: 0.625rem 0.5rem;
+    }
+    
+    .total-card {
+        padding: 1rem;
+    }
+    
+    .total-amount {
+        font-size: 1.5rem;
+    }
+    
+    .modal-footer-modern {
+        padding: 1rem;
+        flex-direction: column;
+    }
+    
+    .footer-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .btn-modal-action {
+        flex: 1;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.875rem;
+    }
+    
+    .modal-close-btn {
+        align-self: flex-end;
+    }
+    
+    .info-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .info-value {
+        text-align: left;
+    }
+    
+    .th-content {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+    
+    .modern-details-table th,
+    .modern-details-table td {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* Utilidades de Tailwind para el modal */
+.flex {
+    display: flex;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.w-1\/2 {
+    width: 50%;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.-mx-4 {
+    margin-left: -1rem;
+    margin-right: -1rem;
+}
+
+@media (min-width: 768px) {
+    .md\:w-1\/2 {
+        width: 50%;
+    }
+} 

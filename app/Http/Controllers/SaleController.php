@@ -759,52 +759,61 @@ class SaleController extends Controller
    {
       try {
          Log::info('getDetails llamado con ID: ' . $id);
+         Log::info('Usuario autenticado: ' . Auth::user()->name);
+         Log::info('Compañía del usuario: ' . Auth::user()->company_id);
          
          // Verificar que la venta existe primero
          $sale = Sale::with('customer')->find($id);
          
          if (!$sale) {
+            Log::warning('Venta no encontrada con ID: ' . $id);
             return response()->json([
                'success' => false,
                'message' => 'Venta no encontrada'
             ], 404);
          }
          
+         Log::info('Venta encontrada: ' . $sale->id . ' - Cliente: ' . $sale->customer->name);
+         
          $saleDetails = SaleDetail::with(['product.category', 'sale.customer'])
             ->where('sale_id', $id)
             ->get();
 
+         Log::info('Detalles encontrados: ' . $saleDetails->count());
+
          $details = $saleDetails->map(function ($detail) {
             return [
                'quantity' => $detail->quantity,
-               'product_price' => $detail->product->sale_price,
+               'unit_price' => $detail->product->sale_price,
+               'subtotal' => $detail->quantity * $detail->product->sale_price,
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
-                  'category' => $detail->product->category->name ?? 'Sin categoría',
-                  'image_url' => $detail->product->image,
-               ],
-               'subtotal' => $detail->quantity * $detail->product->sale_price
+                  'category' => [
+                     'name' => $detail->product->category->name ?? 'Sin categoría'
+                  ]
+               ]
             ];
          });
 
          $response = [
-            'success' => true,
-            'sale' => [
-               'id' => $sale->id,
-               'date' => $sale->sale_date->format('d/m/Y'),
-               'customer_name' => $sale->customer->name,
-               'customer_email' => $sale->customer->email,
-               'customer_phone' => $sale->customer->phone,
-               'total_price' => $sale->total_price,
-               'note' => $sale->note
+            'customer' => [
+               'name' => $sale->customer->name,
+               'email' => $sale->customer->email,
+               'phone' => $sale->customer->phone
             ],
+            'sale_date' => $sale->sale_date->format('d/m/Y'),
+            'sale_time' => $sale->sale_date->format('H:i'),
+            'total_price' => $sale->total_price,
+            'note' => $sale->note,
             'details' => $details
          ];
 
+         Log::info('Respuesta preparada correctamente');
          return response()->json($response);
       } catch (\Exception $e) {
          Log::error('Error en getDetails de ventas: ' . $e->getMessage());
+         Log::error('Stack trace: ' . $e->getTraceAsString());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los detalles de la venta'
