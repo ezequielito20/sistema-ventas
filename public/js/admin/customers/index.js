@@ -100,757 +100,141 @@ window.customersIndex = {
                             html: data.message.replace(/\n/g, '<br>'),
                             icon: data.icons,
                             showCancelButton: showCancelButton,
-                            confirmButtonColor: data.icons === 'warning' ? '#ed8936' : '#667eea',
-                            cancelButtonColor: '#667eea',
-                            confirmButtonText: confirmButtonText,
-                            cancelButtonText: cancelButtonText
+                            cancelButtonText: cancelButtonText,
+                            confirmButtonText: confirmButtonText
                         }).then((result) => {
                             if (result.dismiss === Swal.DismissReason.cancel && data.has_sales) {
-                                window.location.href = '/sales?search=' + encodeURIComponent(data.customer_name || '');
+                                // Redirigir a las ventas del cliente
+                                window.location.href = data.sales_url;
                             }
                         });
                     }
                 })
                 .catch(error => {
-                    console.error('Error en la petición:', error);
+                    console.error('Error:', error);
                     Swal.fire({
-                        icon: 'error',
                         title: 'Error',
-                        text: 'No se pudo eliminar el cliente',
-                        confirmButtonText: 'Aceptar'
+                        text: 'Ocurrió un error al eliminar el cliente',
+                        icon: 'error'
                     });
                 });
             }
         });
-    },
-
-    // Función para mostrar notificaciones
-    showNotification: function(message, type = 'success') {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: type === 'success' ? '¡Éxito!' : '¡Error!',
-                text: message,
-                icon: type,
-                confirmButtonText: 'Aceptar',
-                confirmButtonColor: type === 'success' ? '#28a745' : '#d33',
-                customClass: {
-                    confirmButton: `btn btn-${type === 'success' ? 'success' : 'danger'}`
-                },
-                buttonsStyling: true,
-                background: '#fff',
-                showCloseButton: true,
-                timer: 10000,
-                timerProgressBar: true,
-                toast: false,
-                position: 'center'
-            });
-        } else {
-            // Fallback si SweetAlert2 no está disponible
-            alert(type.toUpperCase() + ': ' + message);
-        }
     }
 };
 
 // ===== FUNCIONES DE ALPINE.JS =====
-window.heroSection = function() {
+
+// Función para el hero section
+function heroSection() {
     return {
-        showStats: true,
-
         init() {
-            setTimeout(() => {
-                this.showStats = true;
-            }, 500);
-        },
-
-        openDebtReport() {
-            // Abrir el modal y cargar el reporte
-            this.openModal('debtReportModal');
-            this.loadDebtReport();
+            // Inicialización del hero section
+            console.log('Hero section inicializado');
         }
     }
 }
 
-window.dataTable = function() {
-    return {
-        viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
-        searchTerm: '',
-        searchResultsCount: 0,
-
-        init() {
-            // Detectar cambios de tamaño de pantalla
-            window.addEventListener('resize', () => {
-                // En móvil siempre mostrar cards, en desktop permitir toggle
-                if (window.innerWidth < 768) {
-                    this.viewMode = 'cards';
-                }
-            });
-        },
-
-        performSearch() {
-            const mobileSearch = document.getElementById('mobileSearch');
-            if (mobileSearch) {
-                mobileSearch.value = this.searchTerm;
-                mobileSearch.dispatchEvent(new Event('keyup'));
-            }
-        },
-
-        clearSearch() {
-            this.searchTerm = '';
-            this.searchResultsCount = 0;
-            const mobileSearch = document.getElementById('mobileSearch');
-            if (mobileSearch) {
-                mobileSearch.value = '';
-                mobileSearch.dispatchEvent(new Event('keyup'));
-            }
-        }
-    }
-}
-
-window.filtersPanel = function() {
+// Función para el panel de filtros
+function filtersPanel() {
     return {
         filtersOpen: false,
-        hasActiveFilters: false,
         currentFilter: 'all',
         searchTerm: '',
         searchResultsCount: 0,
-        totalResults: window.totalCustomers || 0,
-
+        hasActiveFilters: false,
+        
         init() {
-            this.updateActiveFiltersIndicator();
+            // Cargar filtros guardados
+            const savedFilter = localStorage.getItem('customerFilter');
+            if (savedFilter) {
+                this.currentFilter = savedFilter;
+            }
+            
+            // Actualizar contador de resultados
+            this.updateSearchResultsCount();
         },
-
+        
         toggleFilters() {
             this.filtersOpen = !this.filtersOpen;
         },
-
+        
         setFilter(filter) {
             this.currentFilter = filter;
-            this.updateActiveFiltersIndicator();
-
-            // Aplicar filtro usando la función existente
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            const activeBtn = document.querySelector(`.filter-btn[data-filter="${filter}"]`);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            // Trigger existing filter functionality
-            if (typeof applyFiltersAndSearch === 'function') {
-                applyFiltersAndSearch();
-            }
+            localStorage.setItem('customerFilter', filter);
+            this.applyFilters();
         },
-
+        
         performSearch() {
-            const mobileSearch = document.getElementById('mobileSearch');
-            if (mobileSearch) {
-                mobileSearch.value = this.searchTerm;
-                mobileSearch.dispatchEvent(new Event('keyup'));
-            }
-            this.updateActiveFiltersIndicator();
+            this.applyFilters();
         },
-
+        
         clearSearch() {
             this.searchTerm = '';
-            const mobileSearch = document.getElementById('mobileSearch');
-            if (mobileSearch) {
-                mobileSearch.value = '';
-                mobileSearch.dispatchEvent(new Event('keyup'));
-            }
-            this.searchResultsCount = 0;
-            this.updateActiveFiltersIndicator();
+            this.applyFilters();
         },
-
-        clearAllFilters() {
-            this.currentFilter = 'all';
-            this.searchTerm = '';
-            this.searchResultsCount = 0;
-
-            // Limpiar filtros existentes
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            const allBtn = document.querySelector('.filter-btn[data-filter="all"]');
-            if (allBtn) allBtn.classList.add('active');
-
-            const mobileSearch = document.getElementById('mobileSearch');
-            if (mobileSearch) mobileSearch.value = '';
-
-            if (typeof applyFiltersAndSearch === 'function') {
-                applyFiltersAndSearch();
-            }
-
-            this.updateActiveFiltersIndicator();
-        },
-
+        
         applyFilters() {
-            if (typeof applyFiltersAndSearch === 'function') {
-                applyFiltersAndSearch();
-            }
-            this.updateActiveFiltersIndicator();
-        },
-
-        updateActiveFiltersIndicator() {
-            this.hasActiveFilters = (this.currentFilter !== 'all' || this.searchTerm.length > 0);
-
-            // Actualizar badges de filtros activos
-            const container = document.getElementById('activeFiltersContainer');
-            if (container) {
-                let badges = '';
-
-                if (this.currentFilter !== 'all') {
-                    const filterNames = {
-                        'active': 'Activos',
-                        'inactive': 'Inactivos',
-                        'defaulters': 'Morosos'
-                    };
-                    badges += `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                            <i class="fas fa-filter mr-1"></i>
-                            ${filterNames[this.currentFilter] || this.currentFilter}
-                          </span>`;
-                }
-
-                if (this.searchTerm.length > 0) {
-                    badges += `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                            <i class="fas fa-search mr-1"></i>
-                            "${this.searchTerm}"
-                          </span>`;
-                }
-
-                container.innerHTML = badges;
-            }
-        }
-    }
-}
-
-window.exchangeRateWidget = function() {
-    return {
-        exchangeRate: 134.0, // Valor por defecto
-        updating: false,
-
-        init() {
-            // Cargar el tipo de cambio guardado en localStorage
-            const savedRate = localStorage.getItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey);
-            if (savedRate) {
-                this.exchangeRate = parseFloat(savedRate);
-            } else {
-                // Si no hay valor guardado, usar el valor por defecto
-                this.exchangeRate = CUSTOMERS_CONFIG.exchangeRate.default;
-                localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, this.exchangeRate.toString());
-            }
-            
-            // Actualizar valores en Bs inmediatamente después de inicializar
-            setTimeout(() => {
-                window.customersIndex.updateBsValues(this.exchangeRate);
-            }, 100);
-            
-            // Sincronizar con el modal si está abierto
-            setTimeout(() => {
-                const modalExchangeRateInput = document.getElementById('modalExchangeRate');
-                if (modalExchangeRateInput) {
-                    modalExchangeRateInput.value = this.exchangeRate;
-                }
-            }, 500);
-        },
-
-        updateRate() {
-            if (this.exchangeRate <= 0) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'El tipo de cambio debe ser mayor a 0'
-                    });
-                } else {
-                    alert('El tipo de cambio debe ser mayor a 0');
-                }
-                return;
-            }
-
-            this.updating = true;
-
-            // Usar la función centralizada para guardar
-            if (typeof saveExchangeRate === 'function') {
-                saveExchangeRate(this.exchangeRate);
-            } else {
-                // Fallback si la función no está disponible
-                window.currentExchangeRate = this.exchangeRate;
-                localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, this.exchangeRate);
-            }
-
-            // Sincronizar con el modal si está abierto
-            const modalExchangeRateInput = document.getElementById('modalExchangeRate');
-            if (modalExchangeRateInput) {
-                modalExchangeRateInput.value = this.exchangeRate;
-            }
-
-            // Actualizar valores en Bs en la tabla principal
-            window.customersIndex.updateBsValues(this.exchangeRate);
-
-            // Actualizar valores en Bs en el modal si está abierto
-            if (typeof window.modalManager !== 'undefined' && window.modalManager().updateModalBsValues) {
-                window.modalManager().updateModalBsValues(this.exchangeRate);
-            }
-
-            // Trigger el evento del botón original si existe
-            const updateBtn = document.querySelector('.update-exchange-rate');
-            if (updateBtn) {
-                updateBtn.click();
-            }
-
-            // Mostrar mensaje de éxito
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Tipo de cambio actualizado',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
-
-            setTimeout(() => {
-                this.updating = false;
-            }, 1000);
-        },
-
-        // Método para sincronizar desde el modal
-        syncFromModal(rate) {
-            if (rate > 0 && rate !== this.exchangeRate) {
-                this.exchangeRate = rate;
-                
-                // Actualizar valores en Bs en la tabla principal
-                window.customersIndex.updateBsValues(rate);
-            }
-        },
-
-        // Método para sincronizar hacia el modal
-        syncToModal() {
-            if (this.exchangeRate > 0) {
-                // Guardar el valor en localStorage
-                localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, this.exchangeRate.toString());
-                
-                // Actualizar valores en Bs en tiempo real
-                window.customersIndex.updateBsValues(this.exchangeRate);
-                
-                // Sincronizar con el modal si está abierto
-                const modalExchangeRateInput = document.getElementById('modalExchangeRate');
-                if (modalExchangeRateInput) {
-                    modalExchangeRateInput.value = this.exchangeRate;
-                    
-                    // Trigger el evento input para actualizar los valores
-                    modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            }
-        }
-    }
-}
-
-// ===== FUNCIÓN PRINCIPAL DE INICIALIZACIÓN =====
-function initializeCustomersIndex() {
-    // Inicializar el tipo de cambio inmediatamente al cargar el script
-    (function() {
-        // Cargar el tipo de cambio guardado en localStorage
-        const savedRate = localStorage.getItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey);
-        if (savedRate) {
-            const rate = parseFloat(savedRate);
-            // Actualizar el input si existe
-            const exchangeRateInput = document.getElementById('exchangeRate');
-            if (exchangeRateInput) {
-                exchangeRateInput.value = rate;
-            }
-        }
-    })();
-
-    // Cargar DataTables dinámicamente
-    loadDataTables(function() {
-        // Inicializar DataTable
-        const table = $('#customersTable').DataTable({
-            responsive: true,
-            autoWidth: false,
-            stateSave: true, // Guarda la página y el estado del paginador
-            searching: true, // Mantener búsqueda habilitada para filtros personalizados
-            lengthChange: false,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sLast": "Último",
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                },
-                "buttons": {
-                    "copy": "Copiar",
-                    "colvis": "Visibilidad"
-                }
-            }
-        });
-
-        // Conectar el campo de búsqueda con DataTables (vista desktop)
-        $('#mobileSearch').on('keyup', function() {
-            applyFiltersAndSearch();
-        });
-
-        // Mostrar/ocultar botón de limpiar búsqueda
-        $('#mobileSearch').on('input', function() {
-            const hasValue = $(this).val().length > 0;
-            $('#clearSearch').toggle(hasValue);
-        });
-
-        // Inicializar el tipo de cambio usando la función centralizada
-        initializeExchangeRate();
-        
-        // Actualizar valores en Bs cuando se cambia el tipo de cambio - Usar delegación de eventos
-        $(document).on('click', '.update-exchange-rate', function() {
-            const rate = parseFloat($('#exchangeRate').val());
-            if (rate > 0) {
-                // Usar la función centralizada para guardar
-                if (typeof saveExchangeRate === 'function') {
-                    saveExchangeRate(rate);
-                } else {
-                    window.currentExchangeRate = rate;
-                    localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
-                }
-                
-                window.customersIndex.updateBsValues(rate);
-                
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Tipo de cambio actualizado',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
-        });
-        
-        // Guardar automáticamente cuando se cambie el valor en el input principal
-        $(document).on('input', '#exchangeRate', function() {
-            const rate = parseFloat($(this).val());
-            if (rate > 0) {
-                // Guardar automáticamente en localStorage
-                if (typeof saveExchangeRate === 'function') {
-                    saveExchangeRate(rate);
-                } else {
-                    window.currentExchangeRate = rate;
-                    localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
-                }
-                
-                // Actualizar valores en Bs en tiempo real
-                window.customersIndex.updateBsValues(rate);
-            }
-        });
-
-        // Animación de contadores
-        $('.counter').each(function() {
-            const $this = $(this);
-            const countTo = parseInt($this.text());
-
-            $({
-                countNum: 0
-            }).animate({
-                countNum: countTo
-            }, {
-                duration: 1000,
-                easing: 'swing',
-                step: function() {
-                    $this.text(Math.floor(this.countNum));
-                },
-                complete: function() {
-                    $this.text(this.countNum);
-                }
-            });
-        });
-
-        // Variable para mantener el filtro actual
-        let currentFilter = 'all';
-        
-        // Filtros de estado - Mantener compatibilidad con Alpine.js
-        $(document).on('click touchstart', '.filter-btn', function(e) {
-            e.stopPropagation();
-            
-            // Si Alpine.js está disponible, usar su sistema
-            if (window.Alpine && window.Alpine.store) {
-                const filter = $(this).data('filter');
-                if (window.Alpine.store('filters')) {
-                    window.Alpine.store('filters').currentFilter = filter;
-                }
-            } else {
-                // Fallback al sistema original
-                $('.filter-btn').removeClass('active');
-                $(this).addClass('active');
-                currentFilter = $(this).data('filter');
-            }
-            
-            applyFiltersAndSearch();
-        });
-        
-        // Función para aplicar filtros y búsqueda
-        function applyFiltersAndSearch() {
-            // Obtener el término de búsqueda
-            const searchTerm = $('#mobileSearch').val();
-            
-            // Obtener el filtro actual
-            let currentFilter = 'all';
-            
-            // Verificar si hay un botón activo
-            const activeButton = $('.filter-btn.active');
-            if (activeButton.length > 0) {
-                currentFilter = activeButton.data('filter');
-            }
-            
-            // Si Alpine.js está disponible, usar su estado
-            if (window.Alpine && window.Alpine.store && window.Alpine.store('filters')) {
-                currentFilter = window.Alpine.store('filters').currentFilter || currentFilter;
-            }
-            
-            // Filtrar tabla (vista desktop)
-            if (table) {
-                // Limpiar filtros previos
-                table.search('').columns().search('').draw();
-                
-                // Aplicar filtro de estado
-                if (currentFilter === 'active') {
-                    table.column(6).search('Activo').draw();
-                } else if (currentFilter === 'inactive') {
-                    table.column(6).search('Inactivo').draw();
-                } else if (currentFilter === 'defaulters') {
-                    // Filtrar clientes morosos usando una función personalizada
-                    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                        // Verificar si la fila tiene el icono de advertencia (moroso)
-                        const row = table.row(dataIndex).node();
-                        const hasWarningIcon = $(row).find('.debt-warning-badge').length > 0;
-                        return hasWarningIcon;
-                    });
-                    table.draw();
-                    // Remover el filtro personalizado después de aplicarlo
-                    $.fn.dataTable.ext.search.pop();
-                }
-                
-                // Aplicar búsqueda si hay término de búsqueda
-                if (searchTerm) {
-                    table.search(searchTerm).draw();
-                }
-            }
-            
             // Filtrar tarjetas móviles
-            $('.customer-card').each(function() {
-                const $card = $(this);
-                const cardStatus = $card.data('status');
-                const dataDefaulter = $card.data('defaulter');
-                const isDefaulter = dataDefaulter === true || dataDefaulter === 'true';
+            const customerCards = document.querySelectorAll('.customer-card');
+            let visibleCount = 0;
+            
+            customerCards.forEach(function(card) {
+                const cardStatus = card.dataset.status;
+                const dataDefaulter = card.dataset.defaulter;
+                const isDefaulter = dataDefaulter === 'true';
                 let shouldShow = false;
                 
                 // Aplicar filtro de estado
-                if (currentFilter === 'all') {
+                if (this.currentFilter === 'all') {
                     shouldShow = true;
-                } else if (currentFilter === 'active' && cardStatus === 'active') {
+                } else if (this.currentFilter === 'active' && cardStatus === 'active') {
                     shouldShow = true;
-                } else if (currentFilter === 'inactive' && cardStatus === 'inactive') {
+                } else if (this.currentFilter === 'inactive' && cardStatus === 'inactive') {
                     shouldShow = true;
-                } else if (currentFilter === 'defaulters' && isDefaulter) {
+                } else if (this.currentFilter === 'defaulters' && isDefaulter) {
                     shouldShow = true;
                 }
                 
                 // Aplicar búsqueda si hay término de búsqueda
-                if (shouldShow && searchTerm) {
-                    const customerName = $card.find('.customer-name').text().toLowerCase();
-                    const customerEmail = $card.find('.customer-email').text().toLowerCase();
-                    const customerPhone = $card.find('.info-value').text().toLowerCase();
+                if (shouldShow && this.searchTerm) {
+                    const customerName = card.querySelector('.customer-name')?.textContent?.toLowerCase() || '';
+                    const customerEmail = card.querySelector('.customer-email')?.textContent?.toLowerCase() || '';
+                    const customerPhone = card.querySelector('.info-value')?.textContent?.toLowerCase() || '';
                     
-                    shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
-                               customerEmail.includes(searchTerm.toLowerCase()) || 
-                               customerPhone.includes(searchTerm.toLowerCase());
+                    shouldShow = customerName.includes(this.searchTerm.toLowerCase()) || 
+                               customerEmail.includes(this.searchTerm.toLowerCase()) || 
+                               customerPhone.includes(this.searchTerm.toLowerCase());
                 }
                 
                 // Mostrar/ocultar tarjeta
-                if (shouldShow) {
-                    $card.show();
-                } else {
-                    $card.hide();
-                }
-            });
-        }
-
-        // Limpiar búsqueda
-        $('#clearSearch').click(function() {
-            $('#mobileSearch').val('');
-            applyFiltersAndSearch();
-        });
-
-        // Tooltips
-        $('[data-toggle="tooltip"]').tooltip();
+                card.style.display = shouldShow ? '' : 'none';
+                if (shouldShow) visibleCount++;
+            }.bind(this));
+            
+            this.searchResultsCount = visibleCount;
+            this.hasActiveFilters = this.currentFilter !== 'all' || this.searchTerm.length > 0;
+        },
         
-        // Inicializar filtros al cargar la página
-        applyFiltersAndSearch();
-    });
-}
-
-// ===== FUNCIONES DE UTILIDAD =====
-function loadDataTables(callback) {
-    if (typeof $.fn.DataTable !== 'undefined') {
-        callback();
-        return;
-    }
-
-    // Cargar DataTables dinámicamente
-    const script = document.createElement('script');
-    script.src = '/vendor/datatables/datatables.min.js';
-    script.onload = function() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/vendor/datatables/datatables.min.css';
-        document.head.appendChild(link);
-        callback();
-    };
-    script.onerror = function() {
-        console.warn('DataTables no se pudo cargar');
-        callback();
-    };
-    document.head.appendChild(script);
-}
-
-function loadSweetAlert2(callback) {
-    if (typeof Swal !== 'undefined') {
-        callback();
-        return;
-    }
-
-    // Cargar SweetAlert2 dinámicamente si no está disponible
-    const script = document.createElement('script');
-    script.src = '/vendor/sweetalert2/sweetalert2.min.js';
-    script.onload = function() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/vendor/sweetalert2/sweetalert2.min.css';
-        document.head.appendChild(link);
-        callback();
-    };
-    script.onerror = function() {
-        console.warn('SweetAlert2 no se pudo cargar, usando alertas nativas');
-        callback();
-    };
-    document.head.appendChild(script);
-}
-
-// ===== INICIALIZAR CUANDO EL DOM ESTÉ LISTO =====
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        // Cargar SweetAlert2 si está disponible
-        loadSweetAlert2(function() {
-            initializeCustomersIndex();
-        });
-    });
-} else {
-    // Si el DOM ya está listo
-    loadSweetAlert2(function() {
-        initializeCustomersIndex();
-    });
-}
-
-// ===== FUNCIONES DE EXCHANGE RATE =====
-
-// Variable global para almacenar el tipo de cambio actual
-let currentExchangeRate = 134.0; // Valor por defecto
-
-// Función centralizada para manejar la persistencia del tipo de cambio
-function initializeExchangeRate() {
-    // Cargar el tipo de cambio guardado en localStorage
-    const savedRate = localStorage.getItem('exchangeRate');
-    if (savedRate) {
-        currentExchangeRate = parseFloat(savedRate);
-    } else {
-        // Si no hay valor guardado, usar el valor por defecto del input
-        const exchangeRateInput = document.getElementById('exchangeRate');
-        if (exchangeRateInput && exchangeRateInput.value) {
-            currentExchangeRate = parseFloat(exchangeRateInput.value);
-        } else {
-            currentExchangeRate = 134.0; // Valor por defecto
-        }
+        updateSearchResultsCount() {
+            const visibleCards = document.querySelectorAll('.customer-card[style*="display: none"]');
+            this.searchResultsCount = document.querySelectorAll('.customer-card').length - visibleCards.length;
+        },
         
-        // Guardar el valor por defecto en localStorage
-        localStorage.setItem('exchangeRate', currentExchangeRate.toString());
-    }
-    
-    // Actualizar el input principal
-    const exchangeRateInput = document.getElementById('exchangeRate');
-    if (exchangeRateInput) {
-        exchangeRateInput.value = currentExchangeRate;
-    }
-    
-    // Sincronizar todos los elementos
-    if (typeof syncAllExchangeRateElements === 'function') {
-        syncAllExchangeRateElements(currentExchangeRate);
-    } else {
-        // Fallback: solo actualizar valores en Bs
-        window.customersIndex.updateBsValues(currentExchangeRate);
-    }
-    
-    return currentExchangeRate;
-}
-
-// Función para guardar el tipo de cambio
-function saveExchangeRate(rate) {
-    if (rate > 0) {
-        currentExchangeRate = rate;
-        localStorage.setItem('exchangeRate', rate.toString());
-        return true;
-    }
-    return false;
-}
-
-// Función para sincronizar todos los elementos con el tipo de cambio
-function syncAllExchangeRateElements(rate) {
-    // Sincronizar input principal
-    const exchangeRateInput = document.getElementById('exchangeRate');
-    if (exchangeRateInput) {
-        exchangeRateInput.value = rate;
-    }
-    
-    // Sincronizar modal si está abierto
-    const modalExchangeRateInput = document.getElementById('modalExchangeRate');
-    if (modalExchangeRateInput) {
-        modalExchangeRateInput.value = rate;
-        // Trigger evento para actualizar valores en Bs
-        modalExchangeRateInput.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    
-    // Sincronizar widget de Alpine.js
-    const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
-    widgetElements.forEach(element => {
-        if (element._x_dataStack && element._x_dataStack[0]) {
-            const widget = element._x_dataStack[0];
-            if (widget.syncFromModal) {
-                widget.syncFromModal(rate);
-            }
+        clearAllFilters() {
+            this.currentFilter = 'all';
+            this.searchTerm = '';
+            this.filtersOpen = false;
+            localStorage.removeItem('customerFilter');
+            this.applyFilters();
         }
-    });
-    
-    // Actualizar valores en Bs
-    window.customersIndex.updateBsValues(rate);
+    }
 }
 
-// ===== FUNCIONES DE ALPINE.JS =====
-
-// Función para filtros de exchange rate
-function exchangeFilters() {
+// Función para el widget de tipo de cambio
+function exchangeRateWidget() {
     return {
-        exchangeRate: 120.00,
+        exchangeRate: 134.0,
         updating: false,
         
         init() {
@@ -858,17 +242,19 @@ function exchangeFilters() {
             const savedRate = localStorage.getItem('exchangeRate');
             if (savedRate) {
                 this.exchangeRate = parseFloat(savedRate);
+            } else {
+                this.exchangeRate = window.exchangeRate || 134.0;
             }
         },
         
-        updateExchangeRate() {
+        updateRate() {
             if (this.exchangeRate <= 0) return;
             
             this.updating = true;
             
             // Simular actualización
             setTimeout(() => {
-                currentExchangeRate = this.exchangeRate;
+                window.currentExchangeRate = this.exchangeRate;
                 localStorage.setItem('exchangeRate', this.exchangeRate);
                 window.customersIndex.updateBsValues(this.exchangeRate);
                 
@@ -890,7 +276,107 @@ function exchangeFilters() {
     }
 }
 
-// ===== FUNCIONES DE UTILIDAD ADICIONALES =====
+// Función para la tabla de datos
+function dataTable() {
+    return {
+        viewMode: window.innerWidth >= 768 ? 'table' : 'cards',
+        searchTerm: '',
+        searchResultsCount: 0,
+        
+        init() {
+            // Detectar el modo de vista inicial basado en el tamaño de pantalla
+            this.updateViewMode();
+            
+            // Escuchar cambios de tamaño de ventana
+            window.addEventListener('resize', () => {
+                this.updateViewMode();
+            });
+            
+            // Actualizar contador de resultados
+            this.updateSearchResultsCount();
+        },
+        
+        updateViewMode() {
+            this.viewMode = window.innerWidth >= 768 ? 'table' : 'cards';
+        },
+        
+        setViewMode(mode) {
+            this.viewMode = mode;
+        },
+        
+        performSearch() {
+            // Aplicar búsqueda usando la función global
+            if (typeof applyFiltersAndSearch === 'function') {
+                applyFiltersAndSearch();
+            }
+            this.updateSearchResultsCount();
+        },
+        
+        clearSearch() {
+            this.searchTerm = '';
+            this.searchResultsCount = 0;
+            
+            // Limpiar búsqueda usando la función global
+            if (typeof clearSearch === 'function') {
+                clearSearch();
+            }
+        },
+        
+        updateSearchResultsCount() {
+            // Contar elementos visibles en la tabla
+            const visibleRows = document.querySelectorAll('#customersTable tbody tr:not([style*="display: none"])');
+            this.searchResultsCount = visibleRows.length;
+        },
+        
+        applyFilters(currentFilter, searchTerm) {
+            // Esta función se puede usar para filtrar la tabla si es necesario
+            console.log('Aplicando filtros:', currentFilter, searchTerm);
+            this.updateSearchResultsCount();
+        }
+    }
+}
+
+// ===== FUNCIONES DE INICIALIZACIÓN =====
+
+// Función para inicializar el tipo de cambio
+function initializeExchangeRate() {
+    const savedRate = localStorage.getItem('exchangeRate');
+    const rate = savedRate ? parseFloat(savedRate) : (window.exchangeRate || CUSTOMERS_CONFIG.exchangeRate.default);
+    
+    // Actualizar el input si existe
+    const exchangeRateInput = document.getElementById('exchangeRate');
+    if (exchangeRateInput) {
+        exchangeRateInput.value = rate;
+    }
+    
+    // Actualizar valores en Bs
+    window.customersIndex.updateBsValues(rate);
+    
+    return rate;
+}
+
+// Función para guardar el tipo de cambio
+function saveExchangeRate(rate) {
+    window.currentExchangeRate = rate;
+    localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
+    window.customersIndex.updateBsValues(rate);
+}
+
+// Función para sincronizar todos los elementos de tipo de cambio
+function syncAllExchangeRateElements() {
+    const rate = window.currentExchangeRate || initializeExchangeRate();
+    
+    // Actualizar todos los inputs de tipo de cambio
+    const exchangeRateInputs = document.querySelectorAll('input[name="exchange_rate"], #exchangeRate');
+    exchangeRateInputs.forEach(input => {
+        input.value = rate;
+    });
+    
+    // Actualizar valores en Bs
+    window.customersIndex.updateBsValues(rate);
+}
+
+// ===== FUNCIONES DE UTILIDAD =====
 
 // Función para mostrar notificaciones
 function showNotification(message, type = 'success') {
@@ -931,12 +417,235 @@ function formatDateTime(date) {
     return new Date(date).toLocaleString('es-ES');
 }
 
+// ===== INICIALIZACIÓN CUANDO EL DOM ESTÉ LISTO =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ customers/index.js cargado correctamente');
+    
+    // Inicializar el tipo de cambio
+    initializeExchangeRate();
+    
+    // Configurar eventos para el tipo de cambio
+    setupExchangeRateEvents();
+    
+    // Configurar eventos de búsqueda
+    setupSearchEvents();
+    
+    // Configurar eventos de filtros
+    setupFilterEvents();
+    
+    // Inicializar contadores animados
+    initializeCounters();
+});
+
+// ===== FUNCIONES DE CONFIGURACIÓN DE EVENTOS =====
+
+function setupExchangeRateEvents() {
+    // Actualizar valores en Bs cuando se cambia el tipo de cambio
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.update-exchange-rate')) {
+            const exchangeRateInput = document.getElementById('exchangeRate');
+            if (exchangeRateInput) {
+                const rate = parseFloat(exchangeRateInput.value);
+                if (rate > 0) {
+                    // Usar la función centralizada para guardar
+                    if (typeof saveExchangeRate === 'function') {
+                        saveExchangeRate(rate);
+                    } else {
+                        window.currentExchangeRate = rate;
+                        localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
+                    }
+                    
+                    window.customersIndex.updateBsValues(rate);
+                    
+                    // Mostrar mensaje de éxito
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tipo de cambio actualizado',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                }
+            }
+        }
+    });
+}
+
+function setupSearchEvents() {
+    // Conectar el campo de búsqueda (vista desktop)
+    const mobileSearch = document.getElementById('mobileSearch');
+    if (mobileSearch) {
+        mobileSearch.addEventListener('keyup', function() {
+            applyFiltersAndSearch();
+        });
+
+        // Mostrar/ocultar botón de limpiar búsqueda
+        mobileSearch.addEventListener('input', function() {
+            const hasValue = this.value.length > 0;
+            const clearSearch = document.getElementById('clearSearch');
+            if (clearSearch) {
+                clearSearch.style.display = hasValue ? 'block' : 'none';
+            }
+        });
+    }
+}
+
+function setupFilterEvents() {
+    // Configurar eventos para filtros
+    const filterInputs = document.querySelectorAll('.filter-input');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', applyFiltersAndSearch);
+    });
+    
+    // Configurar botón de limpiar filtros
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAllFilters);
+    }
+}
+
+function initializeCounters() {
+    // Animar contadores cuando sean visibles
+    const counters = document.querySelectorAll('.counter-animation');
+    if (counters.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounter(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+        
+        counters.forEach(counter => observer.observe(counter));
+    }
+}
+
+function animateCounter(element) {
+    const target = parseInt(element.dataset.target) || 0;
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString();
+    }, 16);
+}
+
+// Función para aplicar filtros y búsqueda
+function applyFiltersAndSearch() {
+    // Obtener el término de búsqueda
+    const mobileSearch = document.getElementById('mobileSearch');
+    const searchTerm = mobileSearch ? mobileSearch.value : '';
+    
+    // Obtener el filtro actual
+    let currentFilter = 'all';
+    
+    // Verificar si hay un botón activo
+    const activeButton = document.querySelector('.filter-btn.active');
+    if (activeButton) {
+        currentFilter = activeButton.dataset.filter || 'all';
+    }
+    
+    // Si Alpine.js está disponible, usar su estado
+    if (window.Alpine && window.Alpine.store && window.Alpine.store('filters')) {
+        currentFilter = window.Alpine.store('filters').currentFilter || currentFilter;
+    }
+    
+    // Filtrar tarjetas móviles
+    const customerCards = document.querySelectorAll('.customer-card');
+    customerCards.forEach(function(card) {
+        const cardStatus = card.dataset.status;
+        const dataDefaulter = card.dataset.defaulter;
+        const isDefaulter = dataDefaulter === 'true';
+        let shouldShow = false;
+        
+        // Aplicar filtro de estado
+        if (currentFilter === 'all') {
+            shouldShow = true;
+        } else if (currentFilter === 'active' && cardStatus === 'active') {
+            shouldShow = true;
+        } else if (currentFilter === 'inactive' && cardStatus === 'inactive') {
+            shouldShow = true;
+        } else if (currentFilter === 'defaulters' && isDefaulter) {
+            shouldShow = true;
+        }
+        
+        // Aplicar búsqueda si hay término de búsqueda
+        if (shouldShow && searchTerm) {
+            const customerName = card.querySelector('.customer-name')?.textContent?.toLowerCase() || '';
+            const customerEmail = card.querySelector('.customer-email')?.textContent?.toLowerCase() || '';
+            const customerPhone = card.querySelector('.info-value')?.textContent?.toLowerCase() || '';
+            
+            shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
+                       customerEmail.includes(searchTerm.toLowerCase()) || 
+                       customerPhone.includes(searchTerm.toLowerCase());
+        }
+        
+        // Mostrar/ocultar tarjeta
+        card.style.display = shouldShow ? '' : 'none';
+    });
+    
+    // Filtrar tabla (vista desktop) - usar Alpine.js si está disponible
+    if (window.Alpine && window.Alpine.store && window.Alpine.store('dataTable')) {
+        const dataTableStore = window.Alpine.store('dataTable');
+        if (dataTableStore && typeof dataTableStore.applyFilters === 'function') {
+            dataTableStore.applyFilters(currentFilter, searchTerm);
+        }
+    }
+}
+
+// Limpiar búsqueda
+function clearSearch() {
+    const mobileSearch = document.getElementById('mobileSearch');
+    if (mobileSearch) {
+        mobileSearch.value = '';
+        applyFiltersAndSearch();
+    }
+}
+
+// Limpiar todos los filtros
+function clearAllFilters() {
+    // Limpiar búsqueda
+    const mobileSearch = document.getElementById('mobileSearch');
+    if (mobileSearch) {
+        mobileSearch.value = '';
+    }
+    
+    // Limpiar filtros de estado
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Activar filtro "todos"
+    const allFilterBtn = document.querySelector('.filter-btn[data-filter="all"]');
+    if (allFilterBtn) {
+        allFilterBtn.classList.add('active');
+    }
+    
+    // Aplicar filtros
+    applyFiltersAndSearch();
+}
+
 // ===== EXPONER FUNCIONES GLOBALMENTE =====
 window.initializeExchangeRate = initializeExchangeRate;
 window.saveExchangeRate = saveExchangeRate;
 window.syncAllExchangeRateElements = syncAllExchangeRateElements;
-window.exchangeFilters = exchangeFilters;
+window.heroSection = heroSection;
+window.filtersPanel = filtersPanel;
+window.exchangeRateWidget = exchangeRateWidget;
+window.dataTable = dataTable;
 window.showNotification = showNotification;
 window.formatCurrency = formatCurrency;
 window.formatDate = formatDate;
 window.formatDateTime = formatDateTime;
+window.clearSearch = clearSearch;
+window.clearAllFilters = clearAllFilters;
+window.applyFiltersAndSearch = applyFiltersAndSearch;
