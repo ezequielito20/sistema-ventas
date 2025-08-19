@@ -2,6 +2,14 @@
 
 @section('title', 'Detalles del Pedido #' . $order->id)
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/orders/show.css') }}">
+@endpush
+
+@push('js')
+    <script src="{{ asset('js/admin/orders/show.js') }}" defer></script>
+@endpush
+
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>
@@ -9,17 +17,17 @@
             Pedido #{{ $order->id }}
             @switch($order->status)
                 @case('pending')
-                    <span class="badge badge-warning ml-2">
+                    <span class="status-badge pending ml-2">
                         <i class="fas fa-clock"></i> Pendiente
                     </span>
                     @break
                 @case('processed')
-                    <span class="badge badge-success ml-2">
+                    <span class="status-badge processed ml-2">
                         <i class="fas fa-check"></i> Procesado
                     </span>
                     @break
                 @case('cancelled')
-                    <span class="badge badge-danger ml-2">
+                    <span class="status-badge cancelled ml-2">
                         <i class="fas fa-times"></i> Cancelado
                     </span>
                     @break
@@ -35,7 +43,7 @@
     <div class="row">
         <!-- Order Information -->
         <div class="col-md-8">
-            <div class="card">
+            <div class="card order-info-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-info-circle"></i>
@@ -44,9 +52,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 customer-info-section">
                             <h5><i class="fas fa-user"></i> Información del Cliente</h5>
-                            <table class="table table-sm table-borderless">
+                            <table class="table table-sm table-borderless info-table">
                                 <tr>
                                     <td><strong>Nombre:</strong></td>
                                     <td>{{ $order->customer_name }}</td>
@@ -82,9 +90,9 @@
                             </table>
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-md-6 product-info-section">
                             <h5><i class="fas fa-box"></i> Información del Producto</h5>
-                            <table class="table table-sm table-borderless">
+                            <table class="table table-sm table-borderless info-table">
                                 <tr>
                                     <td><strong>Producto:</strong></td>
                                     <td>{{ $order->product->name ?? 'Producto eliminado' }}</td>
@@ -100,9 +108,11 @@
                                 <tr>
                                     <td><strong>Total:</strong></td>
                                     <td>
-                                        <h4 class="text-primary">
-                                            <strong>${{ number_format($order->total_price, 2) }}</strong>
-                                        </h4>
+                                        <div class="total-price">
+                                            <h4>
+                                                <strong>${{ number_format($order->total_price, 2) }}</strong>
+                                            </h4>
+                                        </div>
                                     </td>
                                 </tr>
                             </table>
@@ -110,12 +120,10 @@
                     </div>
                     
                     @if($order->notes)
-                        <div class="mt-4">
+                        <div class="notes-section">
                             <h5><i class="fas fa-sticky-note"></i> Notas del Cliente</h5>
-                            <div class="alert alert-info">
-                                <i class="fas fa-quote-left"></i>
+                            <div class="notes-content">
                                 {{ $order->notes }}
-                                <i class="fas fa-quote-right"></i>
                             </div>
                         </div>
                     @endif
@@ -125,7 +133,7 @@
         
         <!-- Order Status & Actions -->
         <div class="col-md-4">
-            <div class="card">
+            <div class="card actions-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-cogs"></i>
@@ -134,29 +142,28 @@
                 </div>
                 <div class="card-body">
                     @if($order->status === 'pending')
-                        <div class="alert alert-warning">
+                        <div class="status-alert warning">
                             <i class="fas fa-clock"></i>
                             <strong>Pedido Pendiente</strong><br>
                             Este pedido está esperando ser procesado.
                         </div>
                         
                         <button type="button" 
-                                class="btn btn-success btn-block mb-3" 
+                                class="action-button success" 
                                 data-toggle="modal" 
                                 data-target="#processModal">
                             <i class="fas fa-check"></i> Procesar Pedido
                         </button>
                         
                         <form action="{{ route('admin.orders.cancel', $order) }}" 
-                              method="POST" 
-                              onsubmit="return confirm('¿Está seguro de cancelar este pedido?')">
+                              method="POST">
                             @csrf
-                            <button type="submit" class="btn btn-danger btn-block">
+                            <button type="submit" class="action-button danger">
                                 <i class="fas fa-times"></i> Cancelar Pedido
                             </button>
                         </form>
                     @else
-                        <div class="alert alert-info">
+                        <div class="status-alert info">
                             <i class="fas fa-info-circle"></i>
                             <strong>Estado:</strong> {{ $order->status_label }}<br>
                             @if($order->processed_at)
@@ -169,7 +176,7 @@
                         
                         @if($order->sale)
                             <a href="{{ route('admin.sales.show', $order->sale) }}" 
-                               class="btn btn-primary btn-block">
+                               class="action-button primary">
                                 <i class="fas fa-receipt"></i> Ver Venta Generada
                             </a>
                         @endif
@@ -178,7 +185,7 @@
             </div>
             
             <!-- Timeline -->
-            <div class="card">
+            <div class="card actions-card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-history"></i>
@@ -234,7 +241,7 @@
 
     @if($order->status === 'pending')
         <!-- Process Modal -->
-        <div class="modal fade" id="processModal" tabindex="-1">
+        <div class="modal fade process-modal" id="processModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header bg-success">
@@ -286,14 +293,11 @@
                                             <i class="fas fa-calculator"></i>
                                             Resumen del pedido
                                         </label>
-                                        <div class="card bg-light">
-                                            <div class="card-body p-3">
-                                                <strong>{{ $order->product->name ?? 'Producto' }}</strong><br>
-                                                <small>{{ $order->quantity }} × ${{ number_format($order->unit_price, 2) }}</small><br>
-                                                <hr class="my-2">
-                                                <strong class="text-primary">
-                                                    Total: ${{ number_format($order->total_price, 2) }}
-                                                </strong>
+                                        <div class="summary-card">
+                                            <div class="product-name">{{ $order->product->name ?? 'Producto' }}</div>
+                                            <div class="product-details">{{ $order->quantity }} × ${{ number_format($order->unit_price, 2) }}</div>
+                                            <div class="total-amount">
+                                                Total: ${{ number_format($order->total_price, 2) }}
                                             </div>
                                         </div>
                                     </div>
@@ -301,10 +305,10 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <button type="button" class="action-button secondary" data-dismiss="modal">
                                 <i class="fas fa-times"></i> Cancelar
                             </button>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="action-button success">
                                 <i class="fas fa-check"></i> Confirmar y Procesar
                             </button>
                         </div>
@@ -315,92 +319,5 @@
     @endif
 @stop
 
-@section('css')
-    <style>
-        .timeline {
-            position: relative;
-            margin: 0 0 30px 0;
-            padding: 0;
-            list-style: none;
-        }
 
-        .timeline:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 31px;
-            width: 2px;
-            margin-left: -1.5px;
-            background-color: #dee2e6;
-        }
-
-        .timeline > div {
-            position: relative;
-            margin-right: 10px;
-            margin-bottom: 15px;
-        }
-
-        .timeline > div > .timeline-item {
-            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-            border-radius: 3px;
-            margin-top: 0;
-            background: #fff;
-            color: #495057;
-            margin-left: 60px;
-            margin-right: 15px;
-            padding: 0;
-            position: relative;
-        }
-
-        .timeline > div > .fas {
-            width: 30px;
-            height: 30px;
-            font-size: 15px;
-            line-height: 30px;
-            position: absolute;
-            color: #666;
-            background: #dee2e6;
-            border-radius: 50%;
-            text-align: center;
-            left: 18px;
-            top: 0;
-        }
-
-        .timeline > .time-label > span {
-            font-weight: 600;
-            color: #fff;
-            border-radius: 4px;
-            display: inline-block;
-            padding: 5px 10px;
-        }
-
-        .timeline-header {
-            margin: 0;
-            color: #495057;
-            border-bottom: 1px solid #dee2e6;
-            padding: 10px 15px;
-            font-size: 16px;
-            line-height: 1.1;
-        }
-
-        .timeline-body {
-            padding: 10px 15px;
-        }
-
-        .timeline .time {
-            color: #999;
-            float: right;
-            padding: 10px;
-            font-size: 12px;
-        }
-
-        .modal-header.bg-success {
-            color: white;
-        }
-
-        .badge {
-            font-size: 0.9rem;
-        }
-    </style>
 @stop

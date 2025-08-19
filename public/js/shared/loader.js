@@ -123,9 +123,8 @@ class ResourceLoader {
      * @param {Object} options - Opciones de carga
      */
     async loadViewResources(view, options = {}) {
-        const basePath = '/admin';
-        const cssPath = `${basePath}/${view}/index.css`;
-        const jsPath = `${basePath}/${view}/index.js`;
+        const cssPath = `/css/admin/${view}/index.css`;
+        const jsPath = `/js/admin/${view}/index.js`;
 
         try {
             // Cargar CSS y JS en paralelo
