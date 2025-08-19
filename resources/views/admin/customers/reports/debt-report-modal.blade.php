@@ -234,4 +234,24 @@
     <button type="button" @click="closeModal('debtReportModal')" class="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors duration-200">
         <i class="fas fa-times mr-2"></i>Cerrar
     </button>
-</div> 
+</div>
+
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/customers/debt-report-modal.css') }}">
+@endpush
+
+@push('js')
+    <script>
+        // Pasar datos de PHP a JavaScript
+        window.debtReportModalData = {
+            exchangeRate: {{ $exchangeRate ?? 134 }},
+            totalDebt: {{ $totalDebt }},
+            defaultersCount: {{ $defaultersCount }},
+            defaultersDebt: {{ $defaultersDebt }},
+            currentDebtorsCount: {{ $currentDebtorsCount }},
+            currentDebt: {{ $currentDebt }},
+            customersCount: {{ $customers->count() }}
+        };
+    </script>
+    <script src="{{ asset('js/admin/customers/debt-report-modal.js') }}" defer></script>
+@endpush 

@@ -2,6 +2,23 @@
 
 @section('title', 'Crear Cliente')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/customers/create.css') }}">
+@endpush
+
+@push('js')
+    <script>
+        // Pasar datos de PHP a JavaScript
+        window.oldValues = {
+            name: '{{ old('name') }}',
+            nit_number: '{{ old('nit_number') }}',
+            phone: '{{ old('phone') }}',
+            email: '{{ old('email') }}'
+        };
+    </script>
+    <script src="{{ asset('js/admin/customers/create.js') }}" defer></script>
+@endpush
+
 @section('content')
 <div x-data="customerForm()" class="space-y-6">
     <!-- Hero Section -->
@@ -164,7 +181,7 @@
                 <div class="text-center sm:text-left">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">Acciones</h3>
                 </div>
-                                <div class="flex flex-row gap-4 justify-end">
+                <div class="flex flex-row gap-4 justify-end">
                     <button type="submit" 
                             @click="submitForm('save')"
                             :disabled="isSubmitting || !isFormValid"
@@ -185,269 +202,3 @@
     </div>
 </div>
 @endsection
-
-@push('css')
-<style>
-    /* Input styles */
-    input[type="text"], input[type="tel"], input[type="email"] {
-        @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-    }
-
-    input:focus {
-        @apply transform -translate-y-0.5;
-    }
-
-    /* Validation states */
-    .input-valid {
-        @apply border-green-300 bg-green-50;
-    }
-
-    .input-invalid {
-        @apply border-red-300 bg-red-50;
-    }
-
-    /* Loading states */
-    .loading {
-        @apply opacity-75 cursor-not-allowed;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-        .hero-section {
-            @apply px-4 py-6;
-        }
-        
-        .hero-title {
-            @apply text-2xl;
-        }
-    }
-</style>
-@endpush
-
-@push('js')
-<script>
-function customerForm() {
-    return {
-        form: {
-            name: '{{ old('name') }}',
-            nit_number: '{{ old('nit_number') }}',
-            phone: '{{ old('phone') }}',
-            email: '{{ old('email') }}'
-        },
-        errors: {},
-        isSubmitting: false,
-        action: 'save',
-
-        init() {
-            // Guardar la URL original cuando se carga la página por primera vez
-            if (!sessionStorage.getItem('customers_original_referrer')) {
-                const referrer = document.referrer;
-                if (referrer && !referrer.includes('/customers/create')) {
-                    sessionStorage.setItem('customers_original_referrer', referrer);
-                }
-            }
-
-            // Capitalizar automáticamente el nombre
-            this.$watch('form.name', (value) => {
-                if (value) {
-                    let words = value.split(' ');
-                    words = words.map(word => {
-                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                    });
-                    this.form.name = words.join(' ');
-                }
-            });
-
-            // Validar campos iniciales
-            this.validateAllFields();
-        },
-
-        validateField(fieldName) {
-            const value = this.form[fieldName];
-            
-            switch(fieldName) {
-                case 'name':
-                    if (!value) {
-                        this.errors.name = 'El nombre es requerido';
-                    } else if (value.length < 2) {
-                        this.errors.name = 'El nombre debe tener al menos 2 caracteres';
-                    } else {
-                        delete this.errors.name;
-                    }
-                    break;
-
-                case 'nit_number':
-                    if (value && !/^\d{7,11}$/.test(value.replace(/\D/g, ''))) {
-                        this.errors.nit_number = 'La cédula debe tener entre 7 y 11 dígitos';
-                    } else {
-                        delete this.errors.nit_number;
-                    }
-                    break;
-
-                case 'phone':
-                    if (value) {
-                        const cleanPhone = value.replace(/\D/g, '');
-                        if (cleanPhone.length < 10) {
-                            this.errors.phone = 'El teléfono debe tener al menos 10 dígitos';
-                        } else {
-                            delete this.errors.phone;
-                        }
-                    } else {
-                        delete this.errors.phone;
-                    }
-                    break;
-
-                case 'email':
-                    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                        this.errors.email = 'Ingrese un email válido';
-                    } else {
-                        delete this.errors.email;
-                    }
-                    break;
-            }
-        },
-
-        validateAllFields() {
-            ['name', 'nit_number', 'phone', 'email'].forEach(field => {
-                this.validateField(field);
-            });
-        },
-
-        getFieldClasses(fieldName) {
-            const baseClasses = 'w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-            
-            if (this.errors[fieldName]) {
-                return baseClasses + ' border-red-300 bg-red-50';
-            } else if (this.form[fieldName] && !this.errors[fieldName]) {
-                return baseClasses + ' border-green-300 bg-green-50';
-            } else {
-                return baseClasses + ' border-gray-200';
-            }
-        },
-
-        formatPhone() {
-            let value = this.form.phone.replace(/\D/g, '');
-            if (value.length >= 6) {
-                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-            } else if (value.length >= 3) {
-                value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
-            }
-            this.form.phone = value;
-        },
-
-        get isFormValid() {
-            return !this.errors.name && this.form.name;
-        },
-
-        async submitForm(action) {
-            this.action = action;
-            
-            // Validar todos los campos
-            this.validateAllFields();
-            
-            if (!this.isFormValid) {
-                this.showAlert('Por favor, complete todos los campos requeridos', 'error');
-                return;
-            }
-
-            this.isSubmitting = true;
-
-            try {
-                // Preparar datos del formulario
-                const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('name', this.form.name);
-                formData.append('nit_number', this.form.nit_number);
-                formData.append('phone', this.form.phone.replace(/\D/g, '')); // Guardar solo números
-                formData.append('email', this.form.email);
-                formData.append('action', action);
-
-                @if(request('return_to'))
-                    formData.append('return_to', '{{ request('return_to') }}');
-                @endif
-
-                const response = await fetch('{{ route('admin.customers.store') }}', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    this.showAlert(result.message || 'Cliente creado exitosamente', 'success');
-                    
-                    if (action === 'save_and_new') {
-                        // Limpiar formulario y volver a crear
-                        setTimeout(() => {
-                            this.resetForm();
-                        }, 1500);
-                    } else {
-                        // Redirigir según el contexto
-                        setTimeout(() => {
-                            this.goBack();
-                        }, 1500);
-                    }
-                } else {
-                    // Manejar errores de validación del servidor
-                    if (result.errors) {
-                        this.errors = result.errors;
-                        this.showAlert('Por favor, corrija los errores en el formulario', 'error');
-                    } else {
-                        this.showAlert(result.message || 'Error al crear el cliente', 'error');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                this.showAlert('Error de conexión. Intente nuevamente.', 'error');
-            } finally {
-                this.isSubmitting = false;
-            }
-        },
-
-        resetForm() {
-            this.form = {
-                name: '',
-                nit_number: '',
-                phone: '',
-                email: ''
-            };
-            this.errors = {};
-            this.$nextTick(() => {
-                document.getElementById('name').focus();
-            });
-        },
-
-        showAlert(message, type = 'info') {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
-                    text: message,
-                    icon: type,
-                    confirmButtonText: 'Entendido',
-                    timer: type === 'success' ? 3000 : undefined,
-                    timerProgressBar: type === 'success'
-                });
-            } else {
-                alert(message);
-            }
-        },
-
-        goBack() {
-            // Verificar si hay una URL de referencia guardada en sessionStorage
-            const originalReferrer = sessionStorage.getItem('customers_original_referrer');
-            
-            if (originalReferrer && originalReferrer !== window.location.href) {
-                // Si tenemos una URL original guardada, ir allí
-                window.location.href = originalReferrer;
-            } else {
-                // Comportamiento normal del botón volver
-                window.history.back();
-            }
-        }
-    }
-}
-</script>
-@endpush

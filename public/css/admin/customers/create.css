@@ -1,0 +1,353 @@
+/* ===== ESTILOS PARA LA VISTA DE CREAR CLIENTES ===== */
+
+/* Input styles */
+input[type="text"], input[type="tel"], input[type="email"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    color: #111827;
+    transition: all 0.2s ease-in-out;
+}
+
+input[type="text"]::placeholder, 
+input[type="tel"]::placeholder, 
+input[type="email"]::placeholder {
+    color: #9ca3af;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Validation states */
+.input-valid {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.input-invalid {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .hero-section {
+        padding: 1rem;
+    }
+    
+    .hero-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* ===== ESTILOS ADICIONALES PARA MEJORAR LA UX ===== */
+
+/* Animaciones suaves para los inputs */
+input {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efecto hover en botones */
+button:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos para mensajes de validación */
+.validation-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.validation-message.error {
+    color: #dc2626;
+}
+
+.validation-message.success {
+    color: #059669;
+}
+
+/* Estilos para el formulario */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .form-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Estilos para los labels */
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.form-label i {
+    color: #3b82f6;
+}
+
+.required-field {
+    color: #ef4444;
+}
+
+/* Estilos para los botones de acción */
+.action-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Estilos para el hero section */
+.hero-section {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #4f46e5 100%);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilos para la tarjeta del formulario */
+.form-card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #eff6ff 0%, #faf5ff 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.form-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los campos de entrada */
+.input-container {
+    position: relative;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.input-container input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para los botones */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para iconos */
+.icon-container {
+    width: 3rem;
+    height: 3rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.icon-container.gradient {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+}
+
+/* Estilos para el título */
+.hero-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .hero-title {
+        font-size: 3rem;
+    }
+}
+
+.hero-subtitle {
+    color: #bfdbfe;
+    font-size: 1.125rem;
+}
+
+/* Estilos para el grid responsivo */
+@media (max-width: 640px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+/* Estilos para animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para estados de carga */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Estilos para tooltips */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 120px;
+    background-color: #1f2937;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
