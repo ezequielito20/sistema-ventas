@@ -4,856 +4,734 @@
  * Versión: 1.0.0
  */
 
-$(document).ready(function() {
+// ===== CONFIGURACIÓN INICIAL =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener el símbolo de moneda desde el atributo data
+    const currencySymbol = document.getElementById('salesRoot').dataset.currencySymbol;
     
-    // Variable global para la tabla
-    let table;
-    // Variable para controlar peticiones AJAX en progreso
-    let ajaxInProgress = false;
-
-    // ===== FUNCIONES DE PAGINACIÓN =====
+    // Variables globales
+    let currentView = 'table';
+    let filteredSales = [];
+    let allSales = [];
     
-    /**
-     * Función optimizada para crear paginación moderna
-     */
-    function createModernPagination() {
-        if (!table) return;
-
-        const info = table.page.info();
-        const totalPages = info.pages;
-        const currentPage = info.page + 1;
-        const totalRecords = info.recordsTotal;
-        const startRecord = info.start + 1;
-        const endRecord = info.end;
-
-        // Solo mostrar paginación si hay más de una página
-        if (totalPages <= 1) {
-            $('.modern-pagination-container').html(`
-                <div class="modern-pagination-wrapper">
-                    <div class="pagination-info">
-                        <div class="records-info">
-                            <span class="records-text">Mostrando</span>
-                            <span class="records-numbers">${startRecord} - ${endRecord}</span>
-                            <span class="records-text">de</span>
-                            <span class="records-total">${totalRecords}</span>
-                            <span class="records-text">registros</span>
-                        </div>
-                    </div>
-                </div>
-            `);
-            return;
-        }
-
-        // Usar template strings más eficientes
-        const paginationHTML = `
-            <div class="modern-pagination-wrapper">
-                <div class="pagination-info">
-                    <div class="records-info">
-                        <span class="records-text">Mostrando</span>
-                        <span class="records-numbers">${startRecord} - ${endRecord}</span>
-                        <span class="records-text">de</span>
-                        <span class="records-total">${totalRecords}</span>
-                        <span class="records-text">registros</span>
-                    </div>
-                </div>
-                <div class="pagination-controls">
-                    <button class="pagination-btn pagination-prev ${currentPage === 1 ? 'disabled' : ''}" 
-                            data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-left"></i>
-                        <span>Anterior</span>
-                    </button>
-                    
-                    <div class="pagination-numbers">
-                        ${generatePageNumbers(currentPage, totalPages)}
-                    </div>
-                    
-                    <button class="pagination-btn pagination-next ${currentPage === totalPages ? 'disabled' : ''}" 
-                            data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>
-                        <span>Siguiente</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                
-                <div class="pagination-options">
-                    <div class="page-size-selector">
-                        <label for="pageSize">Mostrar:</label>
-                        <select id="pageSize" class="page-size-select">
-                            <option value="5" ${info.length === 5 ? 'selected' : ''}>5</option>
-                            <option value="10" ${info.length === 10 ? 'selected' : ''}>10</option>
-                            <option value="25" ${info.length === 25 ? 'selected' : ''}>25</option>
-                            <option value="50" ${info.length === 50 ? 'selected' : ''}>50</option>
-                            <option value="100" ${info.length === 100 ? 'selected' : ''}>100</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        $('.modern-pagination-container').html(paginationHTML);
-    }
-
-    /**
-     * Función auxiliar optimizada para generar números de página
-     */
-    function generatePageNumbers(currentPage, totalPages) {
-        let html = '';
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
-
-        if (startPage > 1) {
-            html += `<button class="pagination-number" data-page="1">1</button>`;
-            if (startPage > 2) {
-                html += `<span class="pagination-ellipsis">...</span>`;
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                html += `<span class="pagination-ellipsis">...</span>`;
-            }
-            html += `<button class="pagination-number" data-page="${totalPages}">${totalPages}</button>`;
-        }
-
-        return html;
-    }
-
-    // ===== INICIALIZACIÓN DE DATATABLE =====
+    // ===== INICIALIZACIÓN =====
+    initializeSalesView();
     
-    /**
-     * Inicializar DataTable con configuración optimizada
-     */
-    // Cargar DataTables dinámicamente
-    loadDataTables(function() {
-        table = $('#salesTable').DataTable({
-        responsive: true,
-        language: {
-            "sProcessing": "Procesando...",
-            "sLengthMenu": "Mostrar _MENU_ registros",
-            "sZeroRecords": "No se encontraron resultados",
-            "sEmptyTable": "Ningún dato disponible en esta tabla",
-            "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-            "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-            "sInfoPostFix": "",
-            "sSearch": "Buscar:",
-            "sUrl": "",
-            "sInfoThousands": ",",
-            "sLoadingRecords": "Cargando...",
-            "oPaginate": {
-                "sFirst": "Primero",
-                "sLast": "Último",
-                "sNext": "Siguiente",
-                "sPrevious": "Anterior"
-            },
-            "oAria": {
-                "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-            },
-            "buttons": {
-                "copy": "Copiar",
-                "colvis": "Visibilidad"
-            }
-        },
-        pageLength: 10,
-        dom: 'rt',
-        deferRender: true,
-        processing: false,
-        serverSide: false,
-        drawCallback: function() {
-            createModernPagination();
-        }
-    });
-
-    // Forzar la creación de paginación después de la inicialización
-    setTimeout(createModernPagination, 500);
-    });
-
-    // ===== EVENTOS DE PAGINACIÓN =====
-    
-    // Manejar clicks en paginación
-    $(document).on('click', '.pagination-number, .pagination-prev, .pagination-next', function() {
-        if (!$(this).hasClass('disabled')) {
-            const page = parseInt($(this).data('page')) - 1;
-            table.page(page).draw('page');
-        }
-    });
-
-    // Manejar cambio de tamaño de página
-    $(document).on('change', '#pageSize', function() {
-        const pageSize = parseInt($(this).val());
-        table.page.len(pageSize).draw();
-    });
-
-    // ===== FUNCIONES DE VISTA =====
-    
-    /**
-     * Función para paginar tarjetas en vista de cards
-     */
-    function paginateCards() {
-        const currentView = $('.view-toggle.active').data('view');
-        if (currentView === 'cards') {
-            const info = table.page.info();
-            const startIndex = info.start;
-            const endIndex = info.end;
-
-            $('.modern-sale-card').each(function(index) {
-                if (index >= startIndex && index < endIndex) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        }
-    }
-
-    // Llamar paginateCards cuando se cambie de página
-    $(document).on('click', '.pagination-number, .pagination-prev, .pagination-next', function() {
-        setTimeout(paginateCards, 100);
-    });
-
-    // Alternar entre vistas
-    $('.view-toggle').click(function() {
-        const view = $(this).data('view');
-
-        $('.view-toggle').removeClass('active');
-        $(this).addClass('active');
-
-        if (view === 'table') {
-            $('#tableView').show();
-            $('#cardsView').hide();
-        } else {
-            $('#tableView').hide();
-            $('#cardsView').show();
-            setTimeout(paginateCards, 100);
-        }
-    });
-
-    // ===== BÚSQUEDA =====
-    
-    // Búsqueda avanzada
-    $('#salesSearch').on('keyup', function() {
-        const searchTerm = $(this).val().toLowerCase();
-
-        // Búsqueda en DataTable
-        table.search(this.value).draw();
-
-        // Búsqueda optimizada en tarjetas
-        if ($('.view-toggle.active').data('view') === 'cards') {
-            $('.modern-sale-card').each(function() {
-                const customerName = $(this).find('.customer-name').text().toLowerCase();
-                const customerEmail = $(this).find('.customer-email').text().toLowerCase();
-                const saleDate = $(this).find('.detail-value').first().text().toLowerCase();
-
-                if (customerName.includes(searchTerm) ||
-                    customerEmail.includes(searchTerm) ||
-                    saleDate.includes(searchTerm)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        }
-    });
-
-    // ===== TOOLTIPS =====
-    
-    // Inicializar tooltips con configuración moderna
-    $('[data-toggle="tooltip"]').tooltip({
-        trigger: 'hover',
-        placement: 'top',
-        html: true
-    });
-
-    // Inicializar tooltips para las tarjetas de estadísticas
-    $('.stats-card').tooltip({
-        placement: 'top',
-        trigger: 'hover',
-        html: true,
-        template: '<div class="tooltip modern-tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-    });
-
-    // ===== DETALLES DE VENTA =====
-
-    // Helpers simples para mostrar/ocultar modal sin depender de Bootstrap
-    function showSaleDetailsModal() {
-        const $modal = $('#saleDetailsModal');
-        if ($modal.hasClass('show')) return;
-        // Crear backdrop si no existe
-        if ($('.modal-backdrop-custom').length === 0) {
-            $('body').append('<div class="modal-backdrop-custom"></div>');
-        }
-        $modal.addClass('show');
-        $('body').css('overflow', 'hidden');
-    }
-
-    function hideSaleDetailsModal() {
-        const $modal = $('#saleDetailsModal');
-        $modal.removeClass('show');
-        $('.modal-backdrop-custom').remove();
-        $('body').css('overflow', '');
-        // Resetear tabla de detalles
-        $('#saleDetailsTableBody').empty();
-    }
-
-    // Cerrar modal en botones con data-dismiss="modal"
-    $(document).on('click', '[data-dismiss="modal"]', function () {
-        hideSaleDetailsModal();
-    });
-
-    // Ver detalles de la venta optimizado
-    $(document).on('click', '.view-details', function() {
-        // Verificar que DataTables esté cargado
-        if (typeof $.fn.DataTable === 'undefined') {
-            console.warn('DataTables no está cargado aún, esperando...');
-            Swal.fire({
-                title: 'Cargando...',
-                text: 'Espere un momento mientras se cargan los componentes',
-                icon: 'info',
-                showConfirmButton: false,
-                timer: 2000
-            });
-            return;
-        }
-
-        const saleId = $(this).data('id');
-        const button = $(this);
-
-        // Verificar que el modal esté disponible
-        const modal = $('#saleDetailsModal');
-        if (modal.length === 0) {
-            console.error('Modal no encontrado');
-            return;
-        }
-
-
-        // Verificar si ya hay una petición en progreso
-        if (ajaxInProgress) {
-            return;
-        }
-
-        // Marcar que hay una petición en progreso
-        ajaxInProgress = true;
-
-        // Indicador de carga simple
-        button.html('<i class="fas fa-spinner fa-spin"></i> <span>Cargando...</span>');
-        button.prop('disabled', true);
-
-        $('#saleDetailsTableBody').empty();
-        $('#noteCard').hide();
-
+    // ===== FUNCIONES PRINCIPALES =====
+    function initializeSalesView() {
+        // Cargar datos iniciales
+        loadSalesData();
         
-        $.ajax({
-            url: `/test-sales-details/${saleId}`,
-            method: 'GET',
-            xhrFields: {
-                withCredentials: true
-            },
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    let total = 0;
-
-                    // Actualizar información del cliente y fecha
-                    const customerPhone = response.sale.customer_phone || '-';
-                    $('#customerInfo').html(`
-                        <strong>Cliente:</strong> ${response.sale.customer_name}<br>
-                        <strong>Teléfono:</strong> ${customerPhone}
-                    `);
-                    $('#saleDate').text(response.sale.date);
-
-                    response.details.forEach(function(detail) {
-                        const quantity = parseFloat(detail.quantity);
-                        const price = parseFloat(detail.product_price);
-                        const subtotal = quantity * price;
-                        total += subtotal;
-                        $('#saleDetailsTableBody').append(`
-                            <tr>
-                                <td>${detail.product.code || ''}</td>
-                                <td>${detail.product.name || ''}</td>
-                                <td>${detail.product.category || 'Sin categoría'}</td>
-                                <td class="text-center">${quantity}</td>
-                                <td class="text-right">${window.currencySymbol} ${price.toFixed(2)}</td>
-                                <td class="text-right">${window.currencySymbol} ${subtotal.toFixed(2)}</td>
-                            </tr>
-                        `);
-                    });
-
-                                                const formattedTotal = total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            $('#modalTotal').text(formattedTotal);
-                            $('#currencySymbol').text(window.currencySymbol);
-
-                    // Manejar la nota
-                    const noteCard = $('#noteCard');
-                    const noteText = $('#noteText');
-                    
-                    if (response.sale.note && response.sale.note.trim() !== '') {
-                        noteText.text(response.sale.note);
-                        noteCard.show();
-                    } else {
-                        noteCard.hide();
-                    }
-                    // Mostrar modal cuando los datos estén listos
-                    showSaleDetailsModal();
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: response.message || 'Error al cargar los detalles',
-                        icon: 'error',
-                        confirmButtonColor: '#667eea'
-                    });
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error en la petición AJAX:', {xhr, status, error});
-                console.error('Status:', xhr.status);
-                console.error('Response Text:', xhr.responseText);
-                
-                // Resetear variable de petición en progreso
-                ajaxInProgress = false;
-                
-                if (xhr.status === 401) {
-                    console.error('Usuario no autenticado');
-                    Swal.fire({
-                        title: 'Error de Autenticación',
-                        text: 'Debe iniciar sesión para ver los detalles',
-                        icon: 'warning',
-                        confirmButtonColor: '#667eea'
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'No se pudieron cargar los detalles',
-                        icon: 'error',
-                        confirmButtonColor: '#667eea'
-                    });
-                }
-            },
-            complete: function() {
-                // Resetear variable de petición en progreso
-                ajaxInProgress = false;
-                // Restaurar botón
-                button.html('<i class="fas fa-list"></i> <span>Ver Detalle</span>');
-                button.prop('disabled', false);
-            }
-        });
-    });
-
-    // ===== ELIMINACIÓN DE VENTAS =====
-    
-    // Eliminar venta con confirmación moderna
-    $(document).on('click', '.delete-sale', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const id = $(this).data('id');
-
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción no se puede revertir",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#f56565',
-            cancelButtonColor: '#718096',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
-            reverseButtons: true,
-            customClass: {
-                popup: 'swal-modern',
-                confirmButton: 'btn-modern-danger',
-                cancelButton: 'btn-modern-secondary'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Mostrar loading
-                Swal.fire({
-                    title: 'Eliminando...',
-                    text: 'Por favor espere',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                $.ajax({
-                    url: `/sales/delete/${id}`,
-                    type: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                title: '¡Eliminado!',
-                                text: response.message,
-                                icon: 'success',
-                                confirmButtonColor: '#48bb78',
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error',
-                                text: response.message,
-                                icon: 'error',
-                                confirmButtonColor: '#667eea'
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        let errorMessage = 'No se pudo eliminar la venta';
-                        let iconType = 'error';
-                        
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                            if (xhr.responseJSON.icons === 'warning') {
-                                iconType = 'warning';
-                            }
-                        } else if (xhr.status === 422) {
-                            errorMessage = 'No se puede eliminar esta venta debido a restricciones del sistema';
-                        } else if (xhr.status === 404) {
-                            errorMessage = 'La venta no fue encontrada';
-                        } else if (xhr.status === 403) {
-                            errorMessage = 'No tienes permisos para eliminar esta venta';
-                        } else if (xhr.status === 500) {
-                            errorMessage = 'Error interno del servidor al eliminar la venta';
-                        }
-                        
-                        Swal.fire({
-                            title: iconType === 'warning' ? 'Advertencia' : 'Error',
-                            text: errorMessage,
-                            icon: iconType,
-                            confirmButtonColor: iconType === 'warning' ? '#ed8936' : '#667eea',
-                            confirmButtonText: 'Entendido'
-                        });
-                    }
-                });
-            }
-        });
-    });
-
-    // ===== ACCIONES ADICIONALES =====
-    
-    // Imprimir venta
-    $(document).on('click', '.print-sale, .print-details, .btn-print', function() {
-        window.print();
-    });
-
-    // Editar venta
-    $(document).on('click', '.btn-edit', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const saleId = $(this).data('id');
-
-        if (saleId) {
-            window.location.href = `/sales/edit/${saleId}`;
-        } else {
-            Swal.fire({
-                title: 'Error',
-                text: 'No se pudo identificar la venta a editar',
-                icon: 'error',
-                confirmButtonColor: '#667eea'
-            });
-        }
-    });
-
-    // ===== MODAL =====
-    // Asegurar estado inicial oculto
-    $('#saleDetailsModal').removeClass('show');
-
-    // ===== FILTROS AVANZADOS =====
-    
-    // Toggle de filtros
-    $('#filtersToggle').click(function() {
-        const content = $('#filtersContent');
-        const toggle = $(this);
+        // Configurar event listeners
+        setupEventListeners();
         
-        content.toggleClass('show');
-        toggle.toggleClass('rotated');
+        // Configurar filtros
+        setupFilters();
         
-        if (content.hasClass('show')) {
-            toggle.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-        } else {
-            toggle.find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        }
-    });
-
-    /**
-     * Función para aplicar filtros
-     */
-    function applyFilters() {
-        const dateFrom = $('#dateFrom').val();
-        const dateTo = $('#dateTo').val();
-        const amountMin = parseFloat($('#amountMin').val()) || 0;
-        const amountMax = parseFloat($('#amountMax').val()) || Infinity;
-
-        // Crear función de filtro personalizada para DataTable
-        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            const saleDate = new Date(data[2].split(' ')[0].split('/').reverse().join('-'));
-            const saleAmount = parseFloat(data[4].replace(/[^\d.,]/g, '').replace(',', ''));
+        // Configurar búsqueda
+        setupSearch();
+        
+        // Configurar toggles de vista
+        setupViewToggles();
+        
+        // Configurar modales
+        setupModals();
+        
+        // Configurar acciones
+        setupActions();
+    }
+    
+    function loadSalesData() {
+        // Obtener todas las filas de la tabla
+        const tableRows = document.querySelectorAll('#salesTable tbody tr');
+        const mobileCards = document.querySelectorAll('.mobile-sale-card');
+        const cardItems = document.querySelectorAll('.modern-sale-card');
+        
+        // Convertir a array de objetos
+        allSales = Array.from(tableRows).map((row, index) => {
+            const saleId = row.querySelector('.view-details').dataset.id;
+            const customerName = row.querySelector('.customer-name').textContent;
+            const customerEmail = row.querySelector('.customer-email').textContent;
+            const saleDate = row.querySelector('.date-main').textContent;
+            const saleTime = row.querySelector('.date-time').textContent;
+            const totalPrice = parseFloat(row.querySelector('.price-amount').textContent.replace(currencySymbol, '').replace(/,/g, ''));
+            const uniqueProducts = parseInt(row.querySelector('.product-badge.unique span').textContent);
+            const totalProducts = parseInt(row.querySelector('.product-badge.total span').textContent);
             
-            // Filtro de fecha
-            let dateFilter = true;
-            if (dateFrom) {
-                const fromDate = new Date(dateFrom);
-                dateFilter = dateFilter && saleDate >= fromDate;
+            return {
+                id: saleId,
+                customerName,
+                customerEmail,
+                saleDate,
+                saleTime,
+                totalPrice,
+                uniqueProducts,
+                totalProducts,
+                element: row,
+                mobileElement: mobileCards[index],
+                cardElement: cardItems[index]
+            };
+        });
+        
+        filteredSales = [...allSales];
+    }
+    
+    function setupEventListeners() {
+        // Event listeners para filtros
+        document.getElementById('filtersToggle').addEventListener('click', toggleFilters);
+        document.getElementById('applyFilters').addEventListener('click', applyFilters);
+        document.getElementById('clearFilters').addEventListener('click', clearFilters);
+        
+        // Event listeners para búsqueda
+        document.getElementById('salesSearch').addEventListener('input', handleSearch);
+        
+        // Event listeners para toggles de vista
+        document.querySelectorAll('.view-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const view = this.dataset.view;
+                switchView(view);
+            });
+        });
+        
+        // Event listeners para acciones
+        document.querySelectorAll('.view-details').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.dataset.id;
+                showSaleDetails(saleId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-sale').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.dataset.id;
+                deleteSale(saleId);
+            });
+        });
+        
+        document.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.dataset.id;
+                editSale(saleId);
+            });
+        });
+        
+        // Event listeners para modales
+        document.querySelectorAll('[data-dismiss="modal"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) {
+                    closeModal(modal);
+                }
+            });
+        });
+        
+        // Cerrar modales con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal.show');
+                openModals.forEach(modal => closeModal(modal));
             }
-            if (dateTo) {
-                const toDate = new Date(dateTo);
-                toDate.setHours(23, 59, 59);
-                dateFilter = dateFilter && saleDate <= toDate;
+        });
+        
+        // Cerrar modales al hacer clic en el backdrop
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal(this);
+                }
+            });
+        });
+    }
+    
+    // ===== FUNCIONES DE FILTROS =====
+    function setupFilters() {
+        // Configurar filtros de fecha
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+        
+        // Configurar filtros de monto
+        const amountMin = document.getElementById('amountMin');
+        const amountMax = document.getElementById('amountMax');
+        
+        // Event listeners para filtros en tiempo real
+        [dateFrom, dateTo, amountMin, amountMax].forEach(input => {
+            input.addEventListener('input', updateFiltersStatus);
+        });
+    }
+    
+    function toggleFilters() {
+        const filtersContent = document.getElementById('filtersContent');
+        const filtersToggle = document.getElementById('filtersToggle');
+        
+        filtersContent.classList.toggle('show');
+        
+        // Rotar el ícono
+        const icon = filtersToggle.querySelector('i');
+        if (filtersContent.classList.contains('show')) {
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+    
+    function applyFilters() {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const amountMin = parseFloat(document.getElementById('amountMin').value) || 0;
+        const amountMax = parseFloat(document.getElementById('amountMax').value) || Infinity;
+        
+        filteredSales = allSales.filter(sale => {
+            // Filtro de fecha
+            if (dateFrom || dateTo) {
+                const saleDate = new Date(sale.saleDate + ' ' + sale.saleTime);
+                const fromDate = dateFrom ? new Date(dateFrom) : new Date(0);
+                const toDate = dateTo ? new Date(dateTo + ' 23:59:59') : new Date(8640000000000000);
+                
+                if (saleDate < fromDate || saleDate > toDate) {
+                    return false;
+                }
             }
             
             // Filtro de monto
-            let amountFilter = true;
-            if (amountMin > 0) {
-                amountFilter = amountFilter && saleAmount >= amountMin;
-            }
-            if (amountMax < Infinity) {
-                amountFilter = amountFilter && saleAmount <= amountMax;
+            if (sale.totalPrice < amountMin || sale.totalPrice > amountMax) {
+                return false;
             }
             
-            return dateFilter && amountFilter;
+            return true;
         });
-
-        // Aplicar filtros a las tarjetas si están visibles
-        if ($('.view-toggle.active').data('view') === 'cards') {
-            $('.modern-sale-card').each(function() {
-                const card = $(this);
-                const saleDateText = card.find('.detail-value').first().text().trim();
-                const saleAmountText = card.find('.total-amount').text().trim();
-                
-                const saleDate = new Date(saleDateText.split(' ')[0].split('/').reverse().join('-'));
-                const saleAmount = parseFloat(saleAmountText.replace(/[^\d.,]/g, '').replace(',', ''));
-                
-                let dateFilter = true;
-                if (dateFrom) {
-                    const fromDate = new Date(dateFrom);
-                    dateFilter = dateFilter && saleDate >= fromDate;
-                }
-                if (dateTo) {
-                    const toDate = new Date(dateTo);
-                    toDate.setHours(23, 59, 59);
-                    dateFilter = dateFilter && saleDate <= toDate;
-                }
-                
-                let amountFilter = true;
-                if (amountMin > 0) {
-                    amountFilter = amountFilter && saleAmount >= amountMin;
-                }
-                if (amountMax < Infinity) {
-                    amountFilter = amountFilter && saleAmount <= amountMax;
-                }
-                
-                if (dateFilter && amountFilter) {
-                    card.show();
-                } else {
-                    card.hide();
-                }
-            });
-        }
-
-        // Aplicar filtros a las tarjetas móviles si están visibles
-        if ($(window).width() <= 768) {
-            $('.mobile-sale-card').each(function() {
-                const card = $(this);
-                const saleDateText = card.find('.mobile-detail-value').first().text().trim();
-                const saleAmountText = card.find('.total-amount-mobile').text().trim();
-                
-                const saleDate = new Date(saleDateText.split(' ')[0].split('/').reverse().join('-'));
-                const saleAmount = parseFloat(saleAmountText.replace(/[^\d.,]/g, '').replace(',', ''));
-                
-                let dateFilter = true;
-                if (dateFrom) {
-                    const fromDate = new Date(dateFrom);
-                    dateFilter = dateFilter && saleDate >= fromDate;
-                }
-                if (dateTo) {
-                    const toDate = new Date(dateTo);
-                    toDate.setHours(23, 59, 59);
-                    dateFilter = dateFilter && saleDate <= toDate;
-                }
-                
-                let amountFilter = true;
-                if (amountMin > 0) {
-                    amountFilter = amountFilter && saleAmount >= amountMin;
-                }
-                if (amountMax < Infinity) {
-                    amountFilter = amountFilter && saleAmount <= amountMax;
-                }
-                
-                if (dateFilter && amountFilter) {
-                    card.show();
-                } else {
-                    card.hide();
-                }
-            });
-        }
-
-        // Redibujar la tabla
-        table.draw();
         
-        // Mostrar indicador de filtros activos
-        const activeFilters = [];
-        if (dateFrom || dateTo) activeFilters.push('fecha');
-        if (amountMin > 0 || amountMax < Infinity) activeFilters.push('monto');
-        
-        if (activeFilters.length > 0) {
-            $('#filtersStatus').show();
-            $('#activeFiltersList').html(
-                activeFilters.map(filter => `<span class="filter-badge">${filter}</span>`).join('')
-            );
-            
-            Swal.fire({
-                icon: 'success',
-                title: 'Filtros aplicados',
-                text: `Filtros de ${activeFilters.join(' y ')} aplicados correctamente`,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true
-            });
-        } else {
-            $('#filtersStatus').hide();
-        }
+        updateSalesDisplay();
+        updateFiltersStatus();
+        showFiltersStatus();
     }
-
-    /**
-     * Función para limpiar filtros
-     */
+    
     function clearFilters() {
         // Limpiar inputs
-        $('#dateFrom').val('');
-        $('#dateTo').val('');
-        $('#amountMin').val('');
-        $('#amountMax').val('');
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.getElementById('amountMin').value = '';
+        document.getElementById('amountMax').value = '';
         
-        // Limpiar filtros de DataTable
-        $.fn.dataTable.ext.search.pop();
+        // Restaurar datos originales
+        filteredSales = [...allSales];
         
-        // Mostrar todas las tarjetas si están visibles
-        if ($('.view-toggle.active').data('view') === 'cards') {
-            $('.modern-sale-card').show();
+        // Actualizar display
+        updateSalesDisplay();
+        updateFiltersStatus();
+        hideFiltersStatus();
+    }
+    
+    function updateFiltersStatus() {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const amountMin = document.getElementById('amountMin').value;
+        const amountMax = document.getElementById('amountMax').value;
+        
+        const activeFilters = [];
+        
+        if (dateFrom || dateTo) {
+            activeFilters.push('Fecha');
         }
-
-        // Mostrar todas las tarjetas móviles si están visibles
-        if ($(window).width() <= 768) {
-            $('.mobile-sale-card').show();
+        
+        if (amountMin || amountMax) {
+            activeFilters.push('Monto');
         }
         
-        // Ocultar indicador de filtros activos
-        $('#filtersStatus').hide();
+        const activeFiltersList = document.getElementById('activeFiltersList');
+        activeFiltersList.textContent = activeFilters.join(', ');
         
-        // Redibujar tabla
-        table.draw();
+        return activeFilters.length > 0;
+    }
+    
+    function showFiltersStatus() {
+        const filtersStatus = document.getElementById('filtersStatus');
+        filtersStatus.style.display = 'flex';
+    }
+    
+    function hideFiltersStatus() {
+        const filtersStatus = document.getElementById('filtersStatus');
+        filtersStatus.style.display = 'none';
+    }
+    
+    // ===== FUNCIONES DE BÚSQUEDA =====
+    function setupSearch() {
+        const searchInput = document.getElementById('salesSearch');
+        const searchSuggestions = document.getElementById('searchSuggestions');
         
-        // Mostrar notificación
-        Swal.fire({
-            icon: 'info',
-            title: 'Filtros limpiados',
-            text: 'Todos los filtros han sido removidos',
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
+        // Event listener para búsqueda en tiempo real
+        searchInput.addEventListener('input', handleSearch);
+        
+        // Event listener para cerrar sugerencias al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.style.display = 'none';
+            }
         });
     }
-
-    // Event listeners para filtros
-    $('#applyFilters').click(applyFilters);
-    $('#clearFilters').click(clearFilters);
-
-    // Aplicar filtros al presionar Enter en los inputs
-    $('.filter-input').keypress(function(e) {
-        if (e.which === 13) {
+    
+    function handleSearch() {
+        const searchTerm = document.getElementById('salesSearch').value.toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            // Si no hay término de búsqueda, usar filtros aplicados
             applyFilters();
+            return;
         }
-    });
-
-    // ===== VALIDACIONES =====
-    
-    // Validación de fechas
-    $('#dateFrom, #dateTo').change(function() {
-        const dateFrom = $('#dateFrom').val();
-        const dateTo = $('#dateTo').val();
         
-        if (dateFrom && dateTo && dateFrom > dateTo) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Rango de fechas inválido',
-                text: 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"',
-                confirmButtonColor: '#667eea'
+        // Filtrar por término de búsqueda
+        filteredSales = allSales.filter(sale => {
+            return sale.customerName.toLowerCase().includes(searchTerm) ||
+                   sale.customerEmail.toLowerCase().includes(searchTerm) ||
+                   sale.saleDate.includes(searchTerm) ||
+                   sale.saleTime.includes(searchTerm);
+        });
+        
+        updateSalesDisplay();
+        showSearchSuggestions(searchTerm);
+    }
+    
+    function showSearchSuggestions(searchTerm) {
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        
+        if (searchTerm.length === 0) {
+            searchSuggestions.style.display = 'none';
+            return;
+        }
+        
+        // Generar sugerencias
+        const suggestions = generateSuggestions(searchTerm);
+        
+        if (suggestions.length === 0) {
+            searchSuggestions.style.display = 'none';
+            return;
+        }
+        
+        // Mostrar sugerencias
+        searchSuggestions.innerHTML = suggestions.map(suggestion => 
+            `<div class="suggestion-item">${suggestion}</div>`
+        ).join('');
+        
+        searchSuggestions.style.display = 'block';
+        
+        // Event listeners para sugerencias
+        searchSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.getElementById('salesSearch').value = this.textContent;
+                searchSuggestions.style.display = 'none';
+                handleSearch();
+            });
+        });
+    }
+    
+    function generateSuggestions(searchTerm) {
+        const suggestions = new Set();
+        
+        allSales.forEach(sale => {
+            if (sale.customerName.toLowerCase().includes(searchTerm)) {
+                suggestions.add(sale.customerName);
+            }
+            if (sale.customerEmail.toLowerCase().includes(searchTerm)) {
+                suggestions.add(sale.customerEmail);
+            }
+            if (sale.saleDate.includes(searchTerm)) {
+                suggestions.add(sale.saleDate);
+            }
+        });
+        
+        return Array.from(suggestions).slice(0, 5);
+    }
+    
+    // ===== FUNCIONES DE VISTA =====
+    function setupViewToggles() {
+        // La configuración ya se hizo en setupEventListeners
+    }
+    
+    function switchView(view) {
+        // Actualizar toggles
+        document.querySelectorAll('.view-toggle').forEach(toggle => {
+            toggle.classList.remove('active');
+        });
+        document.querySelector(`[data-view="${view}"]`).classList.add('active');
+        
+        // Ocultar todas las vistas
+        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('mobileView').style.display = 'none';
+        document.getElementById('cardsView').style.display = 'none';
+        
+        // Mostrar vista seleccionada
+        switch (view) {
+            case 'table':
+                document.getElementById('tableView').style.display = 'block';
+                break;
+            case 'cards':
+                document.getElementById('cardsView').style.display = 'block';
+                break;
+        }
+        
+        currentView = view;
+        updateSalesDisplay();
+    }
+    
+    function updateSalesDisplay() {
+        // Ocultar elementos que no están en filteredSales
+        allSales.forEach((sale, index) => {
+            const isVisible = filteredSales.includes(sale);
+            
+            // Actualizar tabla
+            if (sale.element) {
+                sale.element.style.display = isVisible ? 'table-row' : 'none';
+            }
+            
+            // Actualizar vista móvil
+            if (sale.mobileElement) {
+                sale.mobileElement.style.display = isVisible ? 'block' : 'none';
+            }
+            
+            // Actualizar vista de tarjetas
+            if (sale.cardElement) {
+                sale.cardElement.style.display = isVisible ? 'block' : 'none';
+            }
+        });
+        
+        // Actualizar números de fila
+        updateRowNumbers();
+    }
+    
+    function updateRowNumbers() {
+        let visibleIndex = 1;
+        
+        filteredSales.forEach(sale => {
+            // Actualizar número en tabla
+            const rowNumber = sale.element?.querySelector('.row-number');
+            if (rowNumber) {
+                rowNumber.textContent = visibleIndex;
+            }
+            
+            // Actualizar número en vista móvil
+            const mobileNumber = sale.mobileElement?.querySelector('.number-badge');
+            if (mobileNumber) {
+                mobileNumber.textContent = `#${visibleIndex}`;
+            }
+            
+            // Actualizar número en vista de tarjetas
+            const cardNumber = sale.cardElement?.querySelector('.sale-number');
+            if (cardNumber) {
+                cardNumber.textContent = `#${String(visibleIndex).padStart(3, '0')}`;
+            }
+            
+            visibleIndex++;
+        });
+    }
+    
+    // ===== FUNCIONES DE MODALES =====
+    function setupModals() {
+        // La configuración ya se hizo en setupEventListeners
+    }
+    
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Agregar backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = `${modalId}Backdrop`;
+            document.body.appendChild(backdrop);
+        }
+    }
+    
+    function closeModal(modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        
+        // Remover backdrop
+        const backdropId = modal.id + 'Backdrop';
+        const backdrop = document.getElementById(backdropId);
+        if (backdrop) {
+            backdrop.remove();
+        }
+    }
+    
+    // ===== FUNCIONES DE ACCIONES =====
+    function setupActions() {
+        // La configuración ya se hizo en setupEventListeners
+    }
+    
+    async function showSaleDetails(saleId) {
+        try {
+            // Mostrar loading
+            showLoadingAlert('Cargando detalles de la venta...');
+            
+            // Hacer petición al servidor
+            const response = await fetch(`/admin/sales/${saleId}/details`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
             });
             
-            $(this).val('');
-        }
-    });
-
-    // Validación de montos
-    $('#amountMin, #amountMax').change(function() {
-        const amountMin = parseFloat($('#amountMin').val()) || 0;
-        const amountMax = parseFloat($('#amountMax').val()) || 0;
-        
-        if (amountMin > 0 && amountMax > 0 && amountMin > amountMax) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Rango de montos inválido',
-                text: 'El monto mínimo no puede ser mayor que el monto máximo',
-                confirmButtonColor: '#667eea'
-            });
+            if (!response.ok) {
+                throw new Error('Error al cargar los detalles');
+            }
             
-            $(this).val('');
-        }
-    });
-
-    // Establecer fecha máxima como hoy para el campo "Hasta"
-    const today = new Date().toISOString().split('T')[0];
-    $('#dateTo').attr('max', today);
-
-    // ===== RESPONSIVE DESIGN =====
-    
-    /**
-     * Función para ajustar vista según el tamaño de pantalla
-     */
-    function adjustViewForScreenSize() {
-        const windowWidth = $(window).width();
-        
-        if (windowWidth <= 768) {
-            // En móvil, ocultar tabla y mostrar vista móvil
-            $('.table-view').hide();
-            $('.cards-view').hide();
-            $('.mobile-view').show();
-            $('.view-toggles').hide();
-        } else {
-            // En desktop, mostrar tabla y botones de vista
-            $('.table-view').show();
-            $('.mobile-view').hide();
-            $('.view-toggles').show();
+            const data = await response.json();
             
-            // Restaurar vista activa (tabla o cards)
-            const activeView = $('.view-toggle.active').data('view');
-            if (activeView === 'cards') {
-                $('#tableView').hide();
-                $('#cardsView').show();
+            if (data.status === 'success') {
+                // Llenar datos en el modal
+                fillSaleDetailsModal(data.sale);
+                
+                // Cerrar loading y mostrar modal
+                closeLoadingAlert();
+                showModal('saleDetailsModal');
             } else {
-                $('#tableView').show();
-                $('#cardsView').hide();
+                throw new Error(data.message || 'Error al cargar los detalles');
+            }
+        } catch (error) {
+            closeLoadingAlert();
+            showAlert({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+    
+    function fillSaleDetailsModal(sale) {
+        // Información del cliente
+        const customerInfo = document.getElementById('customerInfo');
+        customerInfo.innerHTML = `
+            <div class="customer-detail">
+                <strong>Nombre:</strong> ${sale.customer.name}
+            </div>
+            <div class="customer-detail">
+                <strong>Email:</strong> ${sale.customer.email}
+            </div>
+            <div class="customer-detail">
+                <strong>Teléfono:</strong> ${sale.customer.phone || 'No especificado'}
+            </div>
+        `;
+        
+        // Fecha de venta
+        const saleDate = document.getElementById('saleDate');
+        saleDate.innerHTML = `
+            <div class="date-detail">
+                <strong>Fecha:</strong> ${formatDate(sale.sale_date)}
+            </div>
+            <div class="date-detail">
+                <strong>Hora:</strong> ${formatTime(sale.sale_date)}
+            </div>
+        `;
+        
+        // Productos
+        const tableBody = document.getElementById('saleDetailsTableBody');
+        tableBody.innerHTML = sale.sale_details.map(detail => `
+            <tr>
+                <td>${detail.product.code}</td>
+                <td>${detail.product.name}</td>
+                <td>${detail.product.category?.name || 'Sin categoría'}</td>
+                <td class="text-center">${detail.quantity}</td>
+                <td class="text-right">${currencySymbol} ${formatNumber(detail.unit_price)}</td>
+                <td class="text-right">${currencySymbol} ${formatNumber(detail.subtotal)}</td>
+            </tr>
+        `).join('');
+        
+        // Total
+        document.getElementById('modalTotal').textContent = formatNumber(sale.total_price);
+        
+        // Nota (si existe)
+        const noteCard = document.getElementById('noteCard');
+        const noteText = document.getElementById('noteText');
+        
+        if (sale.note) {
+            noteText.textContent = sale.note;
+            noteCard.style.display = 'flex';
+        } else {
+            noteCard.style.display = 'none';
+        }
+    }
+    
+    async function deleteSale(saleId) {
+        const result = await showAlert({
+            title: '¿Estás seguro?',
+            text: 'Esta acción no se puede revertir',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                showLoadingAlert('Eliminando venta...');
+                
+                const response = await fetch(`/admin/sales/${saleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error al eliminar la venta');
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    closeLoadingAlert();
+                    showAlert({
+                        icon: 'success',
+                        title: '¡Eliminado!',
+                        text: data.message
+                    });
+                    
+                    // Recargar la página para actualizar los datos
+                    window.location.reload();
+                } else {
+                    throw new Error(data.message || 'Error al eliminar la venta');
+                }
+            } catch (error) {
+                closeLoadingAlert();
+                showAlert({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
         }
     }
-
-    // Ajustar vista al cargar la página
-    adjustViewForScreenSize();
-
-    // Ajustar vista cuando cambie el tamaño de la ventana
-    $(window).resize(adjustViewForScreenSize);
+    
+    function editSale(saleId) {
+        // Redirigir a la página de edición
+        window.location.href = `/admin/sales/${saleId}/edit`;
+    }
+    
+    // ===== FUNCIONES DE UTILIDAD =====
+    function formatNumber(number) {
+        return new Intl.NumberFormat('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(number);
+    }
+    
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES');
+    }
+    
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    function showAlert(options) {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire(options);
+        } else {
+            // Fallback a alert nativo
+            alert(options.text || options.title);
+            return Promise.resolve({ isConfirmed: true });
+        }
+    }
+    
+    function showLoadingAlert(message) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+    }
+    
+    function closeLoadingAlert() {
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
+    }
+    
+    // ===== EVENT LISTENERS ADICIONALES =====
+    
+    // Imprimir detalles
+    document.querySelectorAll('.print-details').forEach(button => {
+        button.addEventListener('click', function() {
+            window.print();
+        });
+    });
+    
+    // Event listeners para botones de acción en vista móvil
+    document.querySelectorAll('.mobile-btn-action').forEach(button => {
+        button.addEventListener('click', function() {
+            const saleId = this.dataset.id;
+            
+            if (this.classList.contains('delete-sale')) {
+                deleteSale(saleId);
+            } else if (this.classList.contains('btn-edit')) {
+                editSale(saleId);
+            }
+        });
+    });
+    
+    // Event listeners para botones de acción en vista de tarjetas
+    document.querySelectorAll('.btn-card-action').forEach(button => {
+        button.addEventListener('click', function() {
+            const saleId = this.dataset.id;
+            
+            if (this.classList.contains('delete')) {
+                deleteSale(saleId);
+            } else if (this.classList.contains('btn-edit')) {
+                editSale(saleId);
+            } else if (this.classList.contains('print')) {
+                window.print();
+            }
+        });
+    });
+    
+    // ===== INICIALIZACIÓN FINAL =====
+    
+    // Configurar vista inicial
+    switchView('table');
+    
+    // Configurar responsive
+    setupResponsive();
+    
+    function setupResponsive() {
+        function handleResize() {
+            const width = window.innerWidth;
+            
+            if (width <= 768) {
+                // En móvil, forzar vista móvil
+                if (currentView !== 'mobile') {
+                    switchView('mobile');
+                }
+            } else if (width <= 1024) {
+                // En tablet, mantener vista actual o cambiar a tabla
+                if (currentView === 'mobile') {
+                    switchView('table');
+                }
+            }
+        }
+        
+        // Ejecutar al cargar y al cambiar tamaño
+        handleResize();
+        window.addEventListener('resize', handleResize);
+    }
+    
+    console.log('✅ Vista de ventas inicializada correctamente');
 });
