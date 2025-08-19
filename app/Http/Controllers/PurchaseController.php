@@ -88,7 +88,9 @@ class PurchaseController extends Controller
          $companyId = $company->id;
          $currency = $this->currencies;
          $products = Product::with('category')->where('company_id', $companyId)
-            ->get();
+            ->get()->each(function($product) {
+               $product->append('image_url');
+            });
 
          $suppliers = Supplier::where('company_id', $companyId)
             ->get();
@@ -268,12 +270,17 @@ class PurchaseController extends Controller
                'price' => $detail->product->purchase_price,
                'purchase_price' => $detail->product->purchase_price,
                'supplier_id' => $detail->supplier_id,
-               'subtotal' => $detail->quantity * $detail->product->purchase_price
+               'subtotal' => $detail->quantity * $detail->product->purchase_price,
+               'image_url' => $detail->product->image_url,
+               'stock' => $detail->product->stock,
+               'category' => $detail->product->category
             ];
          });
 
          // Obtener productos y proveedores
-         $products = Product::where('company_id', $companyId)->get();
+         $products = Product::with('category')->where('company_id', $companyId)->get()->each(function($product) {
+            $product->append('image_url');
+         });
          $suppliers = Supplier::where('company_id', $companyId)->get();
 
          // Capturar la URL de referencia para redirección posterior
