@@ -311,7 +311,7 @@
         gap: 0.75rem;
     }
     
-    .stats-dashboard {
+.stats-dashboard {
         padding: 1rem;
     }
     
@@ -342,9 +342,9 @@
     }
     
     .stat-card {
-        display: flex;
+    display: flex;
         align-items: center;
-        gap: 1rem;
+    gap: 1rem;
     }
     
     .stat-icon {
@@ -1682,22 +1682,22 @@
     .stats-dashboard {
         padding: 1.5rem;
     }
-    
+
     .modern-cards-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
-}
+    }
 
 @media (max-width: 768px) {
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 0.75rem;
     }
-    
+
     .stats-dashboard {
         padding: 1rem;
     }
-    
+
     .stats-card {
         padding: 1rem;
         min-height: 100px;
@@ -1735,16 +1735,16 @@
     .filters-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .date-range, .amount-range {
         grid-template-columns: 1fr;
     }
-    
+
     .filters-actions {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .filters-buttons {
         justify-content: center;
     }
@@ -1788,7 +1788,7 @@
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .btn-modal-action {
         width: 100%;
         justify-content: center;
@@ -1873,8 +1873,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-}
+        padding: 1rem;
+    }
 
 .modal-container {
     position: relative;
@@ -1891,7 +1891,7 @@
     transform: scale(0.95) translateY(20px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
 }
 
 .modal-content {
@@ -1899,7 +1899,7 @@
     flex-direction: column;
     height: 100%;
     max-height: 95vh;
-    width: 100%;
+        width: 100%;
 }
 
 /* Header moderno con gradiente */
@@ -1990,7 +1990,7 @@
     border-radius: 14px;
     display: flex;
     align-items: center;
-    justify-content: center;
+        justify-content: center;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -2068,7 +2068,7 @@
     border-radius: 10px;
     display: flex;
     align-items: center;
-    justify-content: center;
+        justify-content: center;
     color: white;
     font-size: 1.125rem;
 }
@@ -2090,7 +2090,7 @@
 
 .info-card-content {
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     gap: 0.625rem;
 }
 
@@ -2138,7 +2138,7 @@
     border-radius: 10px;
     display: flex;
     align-items: center;
-    justify-content: center;
+        justify-content: center;
     color: white;
     font-size: 1.125rem;
 }
@@ -2159,7 +2159,7 @@
 }
 
 .modern-details-table {
-    width: 100%;
+        width: 100%;
     border-collapse: collapse;
     background: white;
 }
@@ -2204,7 +2204,7 @@
 /* Sección de total */
 .total-section {
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     gap: 0.875rem;
 }
 
@@ -2225,7 +2225,7 @@
     border-radius: 8px;
     display: flex;
     align-items: center;
-    justify-content: center;
+        justify-content: center;
     color: white;
     font-size: 0.9375rem;
 }
@@ -2258,8 +2258,8 @@
 }
 
 .total-icon {
-    width: 50px;
-    height: 50px;
+        width: 50px;
+        height: 50px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     display: flex;
@@ -2460,9 +2460,9 @@
     .th-content {
         flex-direction: column;
         gap: 0.25rem;
-        text-align: center;
-    }
-    
+    text-align: center;
+}
+
     .modern-details-table th,
     .modern-details-table td {
         padding: 0.5rem 0.375rem;

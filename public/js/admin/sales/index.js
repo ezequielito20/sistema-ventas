@@ -134,7 +134,7 @@ function populateModalData(data) {
                 <td class="text-center">${detail.quantity}</td>
                 <td class="text-right">${formatCurrency(detail.unit_price)}</td>
                 <td class="text-right">${formatCurrency(detail.subtotal)}</td>
-            </tr>
+                            </tr>
         `).join('');
     }
 
