@@ -725,7 +725,7 @@ class CustomerController extends Controller
                'first_sale_date' => $firstSaleDate,
                'last_sale_date' => $lastSaleDate,
                'customer_name' => $customer->name
-            ], 422);
+            ], 200);
          }
 
          // Verificar si el cliente tiene pagos de deuda asociados
@@ -755,7 +755,7 @@ class CustomerController extends Controller
                'first_payment_date' => $firstPaymentDate,
                'last_payment_date' => $lastPaymentDate,
                'customer_name' => $customer->name
-            ], 422);
+            ], 200);
          }
 
          // Guardar información para el log antes de eliminar
@@ -792,7 +792,7 @@ class CustomerController extends Controller
                            "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
                'icons' => 'warning',
                'customer_name' => $customer->name
-            ], 422);
+            ], 200);
          }
 
          return response()->json([

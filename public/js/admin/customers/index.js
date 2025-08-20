@@ -738,6 +738,11 @@ function formatDateTime(date) {
 document.addEventListener('DOMContentLoaded', function() {
     window.initializeExchangeRate();
     
+    // Verificar que las funciones estén disponibles
+    console.log('✅ customers/index.js cargado correctamente');
+    console.log('deleteCustomer disponible:', typeof window.deleteCustomer);
+    console.log('customersIndex disponible:', typeof window.customersIndex);
+    
     // Inicialización no crítica diferida
     setTimeout(() => {
         setupExchangeRateEvents();
@@ -812,3 +817,53 @@ window.modalExchangeRateSync = modalExchangeRateSync;
 window.dataTable = dataTable;
 window.initializeExchangeRate = initializeExchangeRate;
 window.showNotification = showNotification;
+
+// Hacer la función deleteCustomer disponible globalmente
+window.deleteCustomer = function(customerId) {
+    if (window.customersIndex && window.customersIndex.deleteCustomer) {
+        window.customersIndex.deleteCustomer(customerId);
+    } else {
+        console.error('deleteCustomer function not available');
+    }
+};
+
+// Función de inicialización inmediata
+(function() {
+    // Verificar que la función esté disponible globalmente
+    console.log('🔧 deleteCustomer inicializada:', typeof window.deleteCustomer);
+    
+    // Función para asegurar que deleteCustomer esté disponible
+    function ensureDeleteCustomerAvailable() {
+        if (typeof window.deleteCustomer === 'undefined') {
+            window.deleteCustomer = function(customerId) {
+                if (window.customersIndex && window.customersIndex.deleteCustomer) {
+                    window.customersIndex.deleteCustomer(customerId);
+                } else {
+                    console.error('deleteCustomer function not available');
+                }
+            };
+            console.log('✅ deleteCustomer asegurada globalmente');
+        }
+    }
+    
+    // Ejecutar inmediatamente
+    ensureDeleteCustomerAvailable();
+    
+    // Ejecutar cuando Alpine.js esté disponible
+    if (typeof Alpine !== 'undefined') {
+        Alpine.nextTick(() => {
+            ensureDeleteCustomerAvailable();
+            console.log('✅ Alpine.js listo, deleteCustomer disponible:', typeof window.deleteCustomer);
+        });
+    }
+    
+    // Ejecutar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', ensureDeleteCustomerAvailable);
+    } else {
+        ensureDeleteCustomerAvailable();
+    }
+    
+    // Ejecutar cuando la ventana esté completamente cargada
+    window.addEventListener('load', ensureDeleteCustomerAvailable);
+})();
