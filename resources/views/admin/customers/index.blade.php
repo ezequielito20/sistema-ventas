@@ -1041,25 +1041,18 @@
 
                     <!-- Barra de Búsqueda -->
                     <div class="flex-1 max-w-sm mx-auto lg:mx-0 lg:ml-8">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
-                            <input type="text" x-model="searchTerm" @input="performSearch()"
-                                class="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 text-sm"
-                                placeholder="Buscar por nombre, email o teléfono...">
-                            <button x-show="searchTerm.length > 0" @click="clearSearch()"
-                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                                <i class="fas fa-times"></i>
-                            </button>
+                                                    <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                </div>
+                                <input type="text" x-model="searchTerm" @keydown="handleKeydown($event)"
+                                    class="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 text-sm"
+                                    placeholder="Buscar por nombre, email o teléfono...">
+                                <button x-show="searchTerm.length > 0" @click="clearSearch()"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times"></i>
+                                </button>
                         </div>
-                        <!-- Search Results Counter -->
-                        <div x-show="searchTerm.length > 0" x-transition class="mt-1">
-                            <div class="flex items-center space-x-2 text-xs text-gray-600">
-                                <i class="fas fa-info-circle"></i>
-                                <span x-text="`${searchResultsCount} resultado(s) encontrado(s)`"></span>
-                            </div>
-                        </div>
+                        
                     </div>
 
                     <!-- Toggle Vista - Solo visible en desktop/tablet -->

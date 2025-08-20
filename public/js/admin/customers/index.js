@@ -303,6 +303,7 @@ function dataTable() {
         viewMode: window.innerWidth >= 768 ? 'table' : 'cards',
         searchTerm: '',
         searchResultsCount: 0,
+        isSearching: false,
         
         init() {
             // Detectar el modo de vista inicial basado en el tamaño de pantalla
@@ -311,6 +312,16 @@ function dataTable() {
             // Escuchar cambios de tamaño de ventana
             window.addEventListener('resize', () => {
                 this.updateViewMode();
+            });
+            
+            // Watcher para búsqueda en tiempo real
+            this.$watch('searchTerm', () => {
+                this.performSearch();
+            });
+            
+            // Watcher para cambio de modo de vista
+            this.$watch('viewMode', () => {
+                this.updateSearchResultsCount();
             });
             
             // Actualizar contador de resultados
@@ -326,27 +337,313 @@ function dataTable() {
         },
         
         performSearch() {
-            // Aplicar búsqueda usando la función global
-            if (typeof applyFiltersAndSearch === 'function') {
-                applyFiltersAndSearch();
-            }
+            // Búsqueda en tiempo real con debounce
+            this.isSearching = true;
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.executeSearch();
+                this.isSearching = false;
+            }, 300); // 300ms de debounce
+        },
+        
+        executeSearch() {
+            const searchTerm = this.searchTerm.toLowerCase().trim();
+            
+            // Buscar en modo tabla
+            this.searchInTable(searchTerm);
+            
+            // Buscar en modo tarjetas
+            this.searchInCards(searchTerm);
+            
+            // Actualizar contador de resultados
             this.updateSearchResultsCount();
+            
+            // Mostrar mensaje si no hay resultados
+            const totalVisible = this.getVisibleCount();
+            this.showNoResultsMessage(totalVisible === 0 && searchTerm !== '');
+        },
+        
+        // Buscar en modo tabla
+        searchInTable(searchTerm) {
+            const table = document.getElementById('customersTable');
+            if (!table) return;
+            
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matches = text.includes(searchTerm);
+                
+                if (searchTerm === '' || matches) {
+                    row.style.display = '';
+                    visibleCount++;
+                    
+                    if (searchTerm !== '') {
+                        this.highlightSearchTerms(row, searchTerm);
+                    } else {
+                        this.removeHighlights(row);
+                    }
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        },
+        
+        // Buscar en modo tarjetas
+        searchInCards(searchTerm) {
+            const cardsContainer = document.getElementById('mobileCustomersContainer');
+            if (!cardsContainer) return;
+            
+            const cards = cardsContainer.querySelectorAll('.bg-white.rounded-2xl');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const matches = text.includes(searchTerm);
+                
+                if (searchTerm === '' || matches) {
+                    card.style.display = '';
+                    
+                    if (searchTerm !== '') {
+                        this.highlightSearchTermsInCard(card, searchTerm);
+                    } else {
+                        this.removeHighlightsFromCard(card);
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        },
+        
+        // Resaltar términos de búsqueda
+        highlightSearchTerms(row, searchTerm) {
+            const cells = row.querySelectorAll('td');
+            cells.forEach(cell => {
+                // Solo resaltar en elementos de texto específicos, nunca en botones
+                this.highlightSafeElements(cell, searchTerm);
+            });
+        },
+        
+        // Resaltar elementos de forma segura sin tocar botones
+        highlightSafeElements(cell, searchTerm) {
+            // Lista de elementos seguros para resaltar
+            const safeSelectors = [
+                '.customer-name',
+                '.customer-email', 
+                '.id-badge',
+                '.sales-amount',
+                '.sales-count',
+                '.debt-amount-value',
+                '.status-badge',
+                '.no-sales',
+                '.no-debt-badge'
+            ];
+            
+            safeSelectors.forEach(selector => {
+                const elements = cell.querySelectorAll(selector);
+                elements.forEach(element => {
+                    if (element.children.length === 0) { // Solo elementos sin hijos
+                        this.highlightElement(element, searchTerm);
+                    }
+                });
+            });
+        },
+        
+        // Resaltar un elemento específico
+        highlightElement(element, searchTerm) {
+            const originalText = element.getAttribute('data-original-text') || element.textContent;
+            if (!element.hasAttribute('data-original-text')) {
+                element.setAttribute('data-original-text', originalText);
+            }
+            
+            // Escapar caracteres especiales en el término de búsqueda
+            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedSearchTerm})`, 'gi');
+            const highlightedText = originalText.replace(regex, '<mark class="bg-yellow-200 text-yellow-800 px-1 rounded">$1</mark>');
+            element.innerHTML = highlightedText;
+        },
+        
+        // Resaltar términos de búsqueda en tarjetas
+        highlightSearchTermsInCard(card, searchTerm) {
+            // Lista de elementos seguros para resaltar en tarjetas
+            const safeSelectors = [
+                'h3', // nombre del cliente
+                'span', // email, teléfono, etc.
+                'p' // otros textos
+            ];
+            
+            safeSelectors.forEach(selector => {
+                const elements = card.querySelectorAll(selector);
+                elements.forEach(element => {
+                    // Solo resaltar elementos que no contengan botones y no sean badges de estado
+                    const hasButtons = element.querySelector('button, a');
+                    const isStatusBadge = element.closest('.inline-flex');
+                    
+                    if (!hasButtons && !isStatusBadge && element.children.length === 0) {
+                        this.highlightElement(element, searchTerm);
+                    }
+                });
+            });
+        },
+        
+        // Remover resaltados de tarjetas
+        removeHighlightsFromCard(card) {
+            const highlightedElements = card.querySelectorAll('mark');
+            highlightedElements.forEach(mark => {
+                const parent = mark.parentElement;
+                const originalText = parent.getAttribute('data-original-text');
+                if (originalText) {
+                    parent.innerHTML = originalText;
+                }
+            });
+        },
+        
+
+        
+        // Remover resaltados
+        removeHighlights(row) {
+            const cells = row.querySelectorAll('td');
+            cells.forEach(cell => {
+                // Remover resaltados de elementos específicos
+                const highlightedElements = cell.querySelectorAll('mark');
+                highlightedElements.forEach(mark => {
+                    const parent = mark.parentElement;
+                    const originalText = parent.getAttribute('data-original-text');
+                    if (originalText) {
+                        parent.innerHTML = originalText;
+                    }
+                });
+            });
+        },
+        
+        // Manejar teclas especiales
+        handleKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.executeSearch();
+            } else if (event.key === 'Escape') {
+                this.clearSearch();
+            }
+        },
+        
+        // Mostrar mensaje de no resultados
+        showNoResultsMessage(show) {
+            // Mostrar mensaje en la tabla
+            this.showNoResultsInTable(show);
+            
+            // Mostrar mensaje en las tarjetas
+            this.showNoResultsInCards(show);
+        },
+        
+        // Mostrar mensaje de no resultados en tabla
+        showNoResultsInTable(show) {
+            const table = document.getElementById('customersTable');
+            if (!table) return;
+            
+            let noResultsRow = table.querySelector('.no-results-row');
+            
+            if (show) {
+                if (!noResultsRow) {
+                    const tbody = table.querySelector('tbody');
+                    noResultsRow = document.createElement('tr');
+                    noResultsRow.className = 'no-results-row';
+                    noResultsRow.innerHTML = `
+                        <td colspan="100%" class="px-6 py-12 text-center">
+                            <div class="text-gray-500">
+                                <i class="fas fa-search text-4xl mb-4"></i>
+                                <p class="text-lg font-medium">No se encontraron resultados</p>
+                                <p class="text-sm">Intenta con otros términos de búsqueda</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(noResultsRow);
+                }
+                noResultsRow.style.display = '';
+            } else if (noResultsRow) {
+                noResultsRow.style.display = 'none';
+            }
+        },
+        
+        // Mostrar mensaje de no resultados en tarjetas
+        showNoResultsInCards(show) {
+            const cardsContainer = document.getElementById('mobileCustomersContainer');
+            if (!cardsContainer) return;
+            
+            let noResultsCard = cardsContainer.querySelector('.no-results-card');
+            
+            if (show) {
+                if (!noResultsCard) {
+                    noResultsCard = document.createElement('div');
+                    noResultsCard.className = 'no-results-card col-span-full';
+                    noResultsCard.innerHTML = `
+                        <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
+                            <div class="text-gray-500">
+                                <i class="fas fa-search text-4xl mb-4"></i>
+                                <p class="text-lg font-medium">No se encontraron resultados</p>
+                                <p class="text-sm">Intenta con otros términos de búsqueda</p>
+                            </div>
+                        </div>
+                    `;
+                    cardsContainer.appendChild(noResultsCard);
+                }
+                noResultsCard.style.display = '';
+            } else if (noResultsCard) {
+                noResultsCard.style.display = 'none';
+            }
         },
         
         clearSearch() {
             this.searchTerm = '';
             this.searchResultsCount = 0;
             
-            // Limpiar búsqueda usando la función global
-            if (typeof clearSearch === 'function') {
-                clearSearch();
+            // Restaurar todas las filas de la tabla a su estado original
+            const table = document.getElementById('customersTable');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    row.style.display = '';
+                    this.removeHighlights(row);
+                });
             }
+            
+            // Restaurar todas las tarjetas a su estado original
+            const cardsContainer = document.getElementById('mobileCustomersContainer');
+            if (cardsContainer) {
+                const cards = cardsContainer.querySelectorAll('.bg-white.rounded-2xl');
+                cards.forEach(card => {
+                    card.style.display = '';
+                    this.removeHighlightsFromCard(card);
+                });
+            }
+            
+            this.updateSearchResultsCount();
+            this.showNoResultsMessage(false); // Ocultar mensaje de no resultados
         },
         
         updateSearchResultsCount() {
-            // Contar elementos visibles en la tabla
-            const visibleRows = document.querySelectorAll('#customersTable tbody tr:not([style*="display: none"])');
-            this.searchResultsCount = visibleRows.length;
+            this.searchResultsCount = this.getVisibleCount();
+        },
+        
+        // Obtener conteo total de elementos visibles
+        getVisibleCount() {
+            let totalVisible = 0;
+            
+            // Contar elementos visibles según el modo de vista activo
+            if (this.viewMode === 'table') {
+                const table = document.getElementById('customersTable');
+                if (table) {
+                    const visibleRows = table.querySelectorAll('tbody tr:not([style*="display: none"])');
+                    totalVisible = visibleRows.length;
+                }
+            } else if (this.viewMode === 'cards') {
+                const cardsContainer = document.getElementById('mobileCustomersContainer');
+                if (cardsContainer) {
+                    const visibleCards = cardsContainer.querySelectorAll('.bg-white.rounded-2xl:not([style*="display: none"])');
+                    totalVisible = visibleCards.length;
+                }
+            }
+            
+            return totalVisible;
         },
         
         applyFilters(currentFilter, searchTerm) {
