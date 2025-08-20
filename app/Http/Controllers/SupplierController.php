@@ -68,7 +68,7 @@ class SupplierController extends Controller
          Log::error('Error en SupplierController@index: ' . $e->getMessage());
 
          // Redireccionar con mensaje de error
-         return redirect()->route('admin.dashboard')
+         return redirect()->route('admin.index')
             ->with('message', 'Hubo un problema al cargar los proveedores: ' . $e->getMessage())
             ->with('icons', 'error');
       }

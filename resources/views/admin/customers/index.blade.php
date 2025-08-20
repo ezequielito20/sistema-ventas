@@ -67,7 +67,7 @@
                     <!-- Action Buttons -->
                     <div class="mt-6 lg:mt-0 lg:flex-shrink-0">
                         <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
-                        @can('customers.report')
+                        @if($permissions['can_report'])
                                 <button @click="openDebtReport()"
                                     class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte de Deudas">
@@ -79,9 +79,9 @@
                                         Reporte de Deudas
                                     </div>
                             </button>
-                        @endcan
+                        @endif
 
-                        @can('customers.report')
+                        @if($permissions['can_report'])
                                 <a href="{{ route('admin.customers.report') }}" target="_blank"
                                     class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte PDF">
@@ -93,9 +93,9 @@
                                         Reporte PDF
                                     </div>
                             </a>
-                        @endcan
+                        @endif
 
-                        @can('customers.report')
+                        @if($permissions['can_report'])
                                 <a href="{{ route('admin.customers.payment-history') }}"
                                     class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Historial de Pagos">
@@ -121,7 +121,7 @@
                                         Crear Nuevo Cliente
                                     </div>
                             </a>
-                        @endcan
+                        @endif
                     </div>
                 </div>
             </div>
@@ -1141,8 +1141,13 @@
                     </thead>
                         <tbody id="customersTableBody">
                         @foreach ($customers as $customer)
+                                @php
+                                    $customerSales = $customersData[$customer->id] ?? [];
+                                    $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
+                                @endphp
                                 <tr class="table-row" data-customer-id="{{ $customer->id }}"
-                                    data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}">
+                                    data-status="{{ $hasSales ? 'active' : 'inactive' }}"
+                                    data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
                                     <td>
                                         <div class="row-number">
                                             {{ $loop->iteration }}
@@ -1156,10 +1161,10 @@
                                             </div>
                                         </div>
                                         <div class="customer-details">
-                                                <span class="customer-name">{{ $customer->name }}</span>
+                                                <span class="customer-name">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}</span>
                                             <div class="customer-email">
                                                 <i class="fas fa-envelope"></i>
-                                                {{ $customer->email }}
+                                                {{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}
                                             </div>
                                         </div>
                                     </div>
@@ -1175,17 +1180,21 @@
                                     <span class="id-badge">{{ $customer->nit_number }}</span>
                                         </div>
                                 </td>
-                                    <td>
+                                                                        <td>
                                         <div class="sales-info">
-                                            @if ($customer->sales->count() > 0)
+                                            @php
+                                                $customerSales = $customersData[$customer->id] ?? [];
+                                                $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
+                                            @endphp
+                                            @if ($hasSales)
                                                 <div class="sales-amount">{{ $currency->symbol }}
-                                                    {{ number_format($customer->sales->sum('total_price'), 2) }}</div>
-                                            <div class="sales-count">{{ $customer->sales->count() }} venta(s)</div>
-                                    @else
-                                        <span class="no-sales">Sin ventas</span>
-                                    @endif
+                                                    {{ number_format(($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0), 2) }}</div>
+                                                <div class="sales-count">Con ventas</div>
+                                            @else
+                                                <span class="no-sales">Sin ventas</span>
+                                            @endif
                                         </div>
-                                </td>
+                                    </td>
                                     <td>
                                         <div class="debt-info">
                                             @if ($customer->total_debt > 0)
@@ -1231,9 +1240,9 @@
                                     @endif
                                         </div>
                                 </td>
-                                    <td>
+                                                                        <td>
                                         <div class="status-info">
-                                    @if ($customer->sales->count() > 0)
+                                    @if ($hasSales)
                                         <span class="status-badge status-active">
                                             <i class="fas fa-check-circle"></i>
                                             Activo
@@ -1245,7 +1254,7 @@
                                         </span>
                                     @endif
                                         </div>
-                                </td>
+                                    </td>
                                     <td>
                                     <div class="action-buttons">
                                         @can('customers.show')
@@ -1286,9 +1295,14 @@
             <div x-show="viewMode === 'cards'" class="md:block" :class="{ 'block': true, 'hidden': false }">
                 <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="mobileCustomersContainer">
                 @foreach ($customers as $customer)
-                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $customer->sales->count() > 0 ? 'border-green-500' : 'border-gray-400' }}"
-                        data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}" 
-                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}">
+                        @php
+                            $customerSales = $customersData[$customer->id] ?? [];
+                            $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
+                        @endphp
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $hasSales ? 'border-green-500' : 'border-gray-400' }}"
+                        data-status="{{ $hasSales ? 'active' : 'inactive' }}" 
+                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
+                            data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
 
                             <!-- Header de la Tarjeta -->
                             <div class="p-6 pb-4">
@@ -1299,18 +1313,18 @@
                                     {{ strtoupper(substr($customer->name, 0, 1)) }}
                                 </div>
                                         <div class="flex-1 min-w-0">
-                                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $customer->name }}
+                                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}
                                             </h3>
                                             <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
                                                 <i class="fas fa-envelope text-xs"></i>
-                                                <span class="truncate">{{ $customer->email }}</span>
+                                                <span class="truncate">{{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}</span>
                             </div>
                                 </div>
                             </div>
 
                                     <!-- Estado -->
                                     <div class="flex-shrink-0">
-                                @if ($customer->sales->count() > 0)
+                                @if ($hasSales)
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 <i class="fas fa-check-circle mr-1"></i>
@@ -1357,12 +1371,11 @@
                                         <i class="fas fa-shopping-cart"></i>
                                             <span>Total Compras</span>
                                     </div>
-                                        @if ($customer->sales->count() > 0)
+                                        @if ($hasSales)
                                             <div>
                                                 <p class="text-sm font-semibold text-gray-900">{{ $currency->symbol }}
-                                                    {{ number_format($customer->sales->sum('total_price'), 2) }}</p>
-                                                <p class="text-xs text-gray-500">({{ $customer->sales->count() }} ventas)
-                                                </p>
+                                                    {{ number_format(($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0), 2) }}</p>
+                                                <p class="text-xs text-gray-500">Con ventas</p>
                                             </div>
                                         @else
                                             <span
@@ -1461,9 +1474,14 @@
             <div class="block md:hidden">
                 <div class="p-4 space-y-4" id="mobileOnlyContainer">
                     @foreach ($customers as $customer)
-                        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border-l-4 {{ $customer->sales->count() > 0 ? 'border-green-500' : 'border-gray-400' }}"
-                            data-status="{{ $customer->sales->count() > 0 ? 'active' : 'inactive' }}"
-                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}">
+                        @php
+                            $customerSales = $customersData[$customer->id] ?? [];
+                            $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
+                        @endphp
+                        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border-l-4 {{ $hasSales ? 'border-green-500' : 'border-gray-400' }}"
+                            data-status="{{ $hasSales ? 'active' : 'inactive' }}"
+                            data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
+                            data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
 
                             <!-- Header Compacto -->
                             <div class="p-4">
@@ -1474,12 +1492,12 @@
                                             {{ strtoupper(substr($customer->name, 0, 1)) }}
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h3 class="text-sm font-semibold text-gray-900 truncate">{{ $customer->name }}
+                                            <h3 class="text-sm font-semibold text-gray-900 truncate">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}
                                             </h3>
-                                            <p class="text-xs text-gray-500 truncate">{{ $customer->email }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}</p>
                                         </div>
                                     </div>
-                                    @if ($customer->sales->count() > 0)
+                                    @if ($hasSales)
                                         <span
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <i class="fas fa-check-circle mr-1"></i>
@@ -2007,6 +2025,54 @@
             </div>
         </div>
     </div>
+
+    <!-- Paginación personalizada -->
+    @if($customers->hasPages())
+        <div class="mt-8 px-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="custom-pagination">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando {{ $customers->firstItem() ?? 0 }}-{{ $customers->lastItem() ?? 0 }} de {{ $customers->total() }} clientes</span>
+                    </div>
+                    <div class="pagination-controls">
+                        @if($customers->onFirstPage())
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </button>
+                        @else
+                            <a href="{{ $customers->previousPageUrl() }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </a>
+                        @endif
+                        
+                        <div class="page-numbers">
+                            @foreach($customers->getUrlRange(1, $customers->lastPage()) as $page => $url)
+                                @if($page == $customers->currentPage())
+                                    <span class="page-number active">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                @endif
+                            @endforeach
+                        </div>
+                        
+                        @if($customers->hasMorePages())
+                            <a href="{{ $customers->nextPageUrl() }}" class="pagination-btn">
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @stop
 
 @section('css')

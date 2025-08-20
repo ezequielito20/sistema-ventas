@@ -9,6 +9,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\StoreCustomerRequest;
@@ -41,116 +42,133 @@ class CustomerController extends Controller
             ->first();
          
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
-         
 
-
-         // Obtener todos los clientes con sus ventas (sin paginación)
-         $customers = Customer::with('sales')
-            ->where('company_id', $this->company->id)
+         // Consulta básica de clientes con paginación
+         $customers = Customer::where('company_id', $this->company->id)
             ->orderBy('name')
-            ->get();
+            ->paginate(20); // 20 clientes por página
+
          $currency = $this->currencies;
          $company = $this->company;
 
-         // Calcular estadísticas básicas (usando consultas separadas para totales)
-         $totalCustomers = Customer::where('company_id', $this->company->id)->count();
-         $activeCustomers = Customer::where('company_id', $this->company->id)
-            ->whereHas('sales')
-            ->count();
-         $newCustomers = Customer::where('company_id', $this->company->id)
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+         // Estadísticas básicas optimizadas - Compatible con PostgreSQL
+         $stats = DB::table('customers')
+            ->where('company_id', $this->company->id)
+            ->selectRaw('
+               COUNT(*) as total_customers,
+               SUM(total_debt) as total_debt,
+               COUNT(CASE WHEN EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ? THEN 1 END) as new_customers
+            ', [now()->month, now()->year])
+            ->first();
+
+         $totalCustomers = $stats->total_customers ?? 0;
+         $totalDebt = $stats->total_debt ?? 0;
+         $newCustomers = $stats->new_customers ?? 0;
          $customerGrowth = $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100) : 0;
 
-         // Calcular la deuda total de todos los clientes
-         $totalDebt = Customer::where('company_id', $this->company->id)->sum('total_debt');
+         // Calcular clientes activos con una sola consulta
+         $activeCustomers = DB::table('customers')
+            ->join('sales', 'customers.id', '=', 'sales.customer_id')
+            ->where('customers.company_id', $this->company->id)
+            ->distinct()
+            ->count('customers.id');
 
-         // Calcular ingresos totales
-         $totalRevenue = \App\Models\Sale::where('company_id', $this->company->id)->sum('total_price');
+         // Calcular ingresos totales con una sola consulta
+         $totalRevenue = DB::table('sales')
+            ->where('company_id', $this->company->id)
+            ->sum('total_price');
 
-         // Optimizar cálculo de estadísticas de deudas usando consultas consolidadas
+         // Calcular estadísticas de deudas con consultas SQL directas
          $customerIds = $customers->pluck('id')->toArray();
          
-         // Obtener información de ventas y pagos en consultas consolidadas
-         $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIds)
-            ->where('company_id', $this->company->id)
-            ->select('customer_id', 'sale_date', 'total_price')
-            ->get()
-            ->groupBy('customer_id');
-
-         $paymentsInfo = [];
-         if (Schema::hasTable('debt_payments')) {
-            $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIds)
+         if (empty($customerIds)) {
+            $customersData = [];
+            $defaultersCount = 0;
+            $currentDebtorsCount = 0;
+            $previousCashCountDebtTotal = 0;
+            $currentCashCountDebtTotal = 0;
+         } else {
+            // Consulta de ventas optimizada
+            $salesData = DB::table('sales')
+               ->whereIn('customer_id', $customerIds)
                ->where('company_id', $this->company->id)
-               ->select('customer_id', 'payment_amount', 'created_at')
+               ->selectRaw('
+                  customer_id,
+                  SUM(CASE WHEN sale_date < ? THEN total_price ELSE 0 END) as sales_before,
+                  SUM(CASE WHEN sale_date >= ? THEN total_price ELSE 0 END) as sales_after,
+                  COUNT(CASE WHEN sale_date < ? THEN 1 END) as sales_before_count
+               ', [$openingDate, $openingDate, $openingDate])
+               ->groupBy('customer_id')
                ->get()
-               ->groupBy('customer_id');
-         }
+               ->keyBy('customer_id');
 
-         // Calcular estadísticas optimizadas (solo para la página actual)
-         $defaultersCount = 0;
-         $currentDebtorsCount = 0;
-         $previousCashCountDebtTotal = 0;
-         $currentCashCountDebtTotal = 0;
+            // Consulta de pagos optimizada
+            $paymentsData = [];
+            if (Schema::hasTable('debt_payments')) {
+               $paymentsData = DB::table('debt_payments')
+                  ->whereIn('customer_id', $customerIds)
+                  ->where('company_id', $this->company->id)
+                  ->selectRaw('customer_id, SUM(payment_amount) as total_payments')
+                  ->groupBy('customer_id')
+                  ->get()
+                  ->keyBy('customer_id');
+            }
 
-         // Crear un array para almacenar los datos calculados de cada cliente
-         $customersData = [];
-         
-         foreach ($customers as $customer) {
-            $customerSales = $salesInfo->get($customer->id, collect());
-            $customerPayments = $paymentsInfo->get($customer->id, collect());
-            
-            // Calcular ventas antes y después del arqueo actual
-            $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-            $salesAfterCashCount = $customerSales->where('sale_date', '>=', $openingDate);
-            
-            $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
-            $totalSalesAfter = $salesAfterCashCount->sum('total_price');
-            
-            // Calcular pagos totales
-            $totalPayments = $customerPayments->sum('payment_amount');
-            
-            // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
-            // La deuda anterior = Ventas anteriores - Pagos totales (si hay ventas anteriores)
-            $previousDebt = 0;
-            if ($totalSalesBefore > 0) {
-               // Si tiene ventas anteriores, calcular cuánto debe de esas ventas
-               $previousDebt = max(0, $totalSalesBefore - $totalPayments);
-            }
-            
-            // Calcular deuda actual (solo ventas del arqueo actual)
-            $currentDebt = max(0, $totalSalesAfter);
-            
-            // Determinar si es moroso (SOLO si tiene deuda pendiente de arqueos anteriores)
-            $hasOldSales = $salesBeforeCashCount->count() > 0;
-            $isDefaulter = $previousDebt > 0;
-            
-            // Almacenar datos calculados
-            $customersData[$customer->id] = [
-               'isDefaulter' => $isDefaulter,
-               'previousDebt' => $previousDebt,
-               'currentDebt' => $currentDebt,
-               'hasOldSales' => $hasOldSales
-            ];
-            
-            if ($isDefaulter) {
-               $defaultersCount++;
-               $previousCashCountDebtTotal += $previousDebt;
-            }
-            
-            if ($customer->total_debt > 0 && !$isDefaulter) {
-               $currentDebtorsCount++;
-               $currentCashCountDebtTotal += $currentDebt;
+            // Calcular estadísticas optimizadas
+            $defaultersCount = 0;
+            $currentDebtorsCount = 0;
+            $previousCashCountDebtTotal = 0;
+            $currentCashCountDebtTotal = 0;
+            $customersData = [];
+
+            foreach ($customers as $customer) {
+               $sales = $salesData->get($customer->id);
+               $payments = $paymentsData->get($customer->id);
+               
+               $salesBefore = $sales ? $sales->sales_before : 0;
+               $salesAfter = $sales ? $sales->sales_after : 0;
+               $totalPayments = $payments ? $payments->total_payments : 0;
+               
+               $previousDebt = max(0, $salesBefore - $totalPayments);
+               $currentDebt = max(0, $salesAfter);
+               $isDefaulter = $previousDebt > 0;
+               
+               $customersData[$customer->id] = [
+                  'isDefaulter' => $isDefaulter,
+                  'previousDebt' => $previousDebt,
+                  'currentDebt' => $currentDebt,
+                  'hasOldSales' => $sales ? $sales->sales_before_count > 0 : false
+               ];
+               
+               if ($isDefaulter) {
+                  $defaultersCount++;
+                  $previousCashCountDebtTotal += $previousDebt;
+               }
+               
+               if ($customer->total_debt > 0 && !$isDefaulter) {
+                  $currentDebtorsCount++;
+                  $currentCashCountDebtTotal += $currentDebt;
+               }
             }
          }
 
-         // Calcular estadísticas totales de morosos (para toda la base de datos)
-         $totalDefaultersCount = Customer::where('company_id', $this->company->id)
-            ->whereHas('sales', function($query) use ($openingDate) {
-               $query->where('sale_date', '<', $openingDate);
-            })
-            ->count();
+         // Obtener el tipo de cambio desde localStorage o usar valor por defecto
+         $exchangeRate = 134.0; // Valor por defecto
+
+         // Optimizar: Pre-cargar relaciones para evitar N+1 queries
+         $customers->load(['sales' => function($query) {
+            $query->select('id', 'customer_id', 'sale_date', 'total_price');
+         }]);
+
+         // Optimizar: Verificar permisos una sola vez para evitar múltiples verificaciones
+         $permissions = [
+            'can_report' => Gate::allows('customers.report'),
+            'can_create' => Gate::allows('customers.create'),
+            'can_edit' => Gate::allows('customers.edit'),
+            'can_show' => Gate::allows('customers.show'),
+            'can_destroy' => Gate::allows('customers.destroy'),
+            'can_create_sales' => Gate::allows('sales.create'),
+         ];
 
          return view('admin.customers.index', compact(
             'customers',
@@ -166,12 +184,35 @@ class CustomerController extends Controller
             'previousCashCountDebtTotal',
             'currentCashCountDebtTotal',
             'currency',
-            'company'
+            'company',
+            'exchangeRate',
+            'permissions'
          ));
       } catch (\Exception $e) {
+         // Log del error para debugging
+         Log::error('Error en CustomerController@index: ' . $e->getMessage());
+         Log::error('Stack trace: ' . $e->getTraceAsString());
 
-         return redirect()->route('admin.dashboard')
-            ->with('message', 'Error al cargar la lista de clientes: ' . $e->getMessage())
+         // Determinar el tipo de error para mostrar un mensaje más específico
+         $errorMessage = 'Error al cargar la lista de clientes';
+         $errorDetails = '';
+         
+         if (str_contains($e->getMessage(), 'Undefined function')) {
+            $errorMessage = 'Error de compatibilidad con la base de datos';
+            $errorDetails = 'El sistema detectó un problema de compatibilidad con las funciones de la base de datos. Esto puede ocurrir cuando se usan funciones específicas de MySQL en PostgreSQL.';
+         } elseif (str_contains($e->getMessage(), 'SQLSTATE')) {
+            $errorMessage = 'Error de consulta en la base de datos';
+            $errorDetails = 'Ocurrió un error al ejecutar las consultas en la base de datos. Verifique que todas las tablas existan y tengan la estructura correcta.';
+         } elseif (str_contains($e->getMessage(), 'Connection')) {
+            $errorMessage = 'Error de conexión a la base de datos';
+            $errorDetails = 'No se pudo establecer conexión con la base de datos. Verifique la configuración de la base de datos.';
+         } else {
+            $errorDetails = $e->getMessage();
+         }
+
+         return redirect()->route('admin.index')
+            ->with('message', $errorMessage)
+            ->with('error_details', $errorDetails)
             ->with('icons', 'error');
       }
    }
@@ -1333,9 +1374,9 @@ class CustomerController extends Controller
          $weekdayDataArray[] = $weekdayData[$i] ?? 0;
       }
 
-      // Datos mensuales
+      // Datos mensuales - Compatible con PostgreSQL
       $monthlyData = DebtPayment::where('company_id', $this->company->id)
-         ->whereYear('created_at', date('Y'))
+         ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
          ->selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(payment_amount) as total')
          ->groupBy('month')
          ->orderBy('month')
