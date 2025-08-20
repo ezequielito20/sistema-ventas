@@ -134,7 +134,10 @@
     {{-- Custom Scripts --}}
     @yield('adminlte_js')
 
-    {{-- Vite Scripts for Alpine.js --}}
+    {{-- Alpine.js Local --}}
+    <script src="{{ asset('vendor/alpinejs/alpine.min.js') }}" defer></script>
+    
+    {{-- App.js con Vite --}}
     @vite(['resources/js/app.js'])
 
     {{-- Debugbar --}}

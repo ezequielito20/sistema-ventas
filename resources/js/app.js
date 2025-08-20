@@ -1,4 +1,3 @@
-import './bootstrap';
 import Alpine from 'alpinejs';
 
 // Inicializar Alpine.js solo si no está ya inicializado
@@ -6,6 +5,11 @@ if (!window.Alpine) {
     window.Alpine = Alpine;
     Alpine.start();
 }
+
+// Configurar axios para CSRF
+import axios from 'axios';
+window.axios = axios;
+window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // Funciones globales útiles
 window.appHelpers = {
