@@ -95,56 +95,58 @@
             </div>
         </div>
         <div class="modern-card-body">
-            <div class="table-responsive">
-                <table id="rolesTable" class="table table-striped table-hover table-sm">
-                <thead class="bg-primary text-white">
-                    <tr class="text-center">
-                        <th style="width: 5%">#</th>
-                        <th style="width: 20%">Nombre del Rol</th>
-                        <th style="width: 20%">Fecha de Creación</th>
-                        <th style="width: 20%">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($roles as $role)
-                        <tr class="text-center">
-                            <td>{{ $loop->iteration }}</td>
-                            <td>
-                                <span class="font-weight-bold">{{ $role->name }}</span>
-                            </td>
-                            <td>{{ $role->created_at->format('d/m/Y H:i') }}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    @can('roles.show')
-                                        <button type="button" class="btn btn-success btn-sm show-role"
-                                            data-id="{{ $role->id }}">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    @endcan
-                                    @can('roles.edit')
-                                        <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endcan
-                                    @can('roles.edit')
-                                        <a type="button" class="btn btn-warning btn-sm assign-permissions"
-                                            data-id="{{ $role->id }}" data-name="{{ $role->name }}">
-                                            <i class="fas fa-key"></i>
-                                        </a>
-                                    @endcan
-                                    @can('roles.destroy')
-                                        <button type="button" class="btn btn-danger btn-sm delete-role"
-                                            data-id="{{ $role->id }}">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    @endcan
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            </div>
+            @php
+                $rolesData = $roles->map(function($role) {
+                    return [
+                        'id' => $role->id,
+                        'name' => $role->name,
+                        'created_at' => $role->created_at->format('d/m/Y H:i'),
+                        'users_count' => $role->users->count(),
+                        'permissions_count' => $role->permissions->count(),
+                        'is_system' => $role->is_system_role ? 'Sí' : 'No'
+                    ];
+                })->toArray();
+            @endphp
+            
+            <x-simple-table 
+                id="roles-table"
+                :items="$rolesData"
+                :columns="[
+                    ['key' => 'name', 'label' => 'Nombre del Rol', 'sortable' => true],
+                    ['key' => 'users_count', 'label' => 'Usuarios', 'sortable' => true, 'format' => 'number'],
+                    ['key' => 'permissions_count', 'label' => 'Permisos', 'sortable' => true, 'format' => 'number'],
+                    ['key' => 'is_system', 'label' => 'Sistema', 'sortable' => true],
+                    ['key' => 'created_at', 'label' => 'Fecha de Creación', 'sortable' => true]
+                ]"
+                :actions="'
+                    <div class=\"flex items-center gap-2\">
+                        @can(\'roles.show\')
+                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors\" 
+                                    @click=\"showRole(item.id)\" title=\"Ver detalles\">
+                                <i class=\"fas fa-eye text-sm\"></i>
+                            </button>
+                        @endcan
+                        @can(\'roles.edit\')
+                            <a href=\"{{ route(\'admin.roles.edit\', \'\') }}\" + item.id class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-colors\" title=\"Editar\">
+                                <i class=\"fas fa-edit text-sm\"></i>
+                            </a>
+                        @endcan
+                        @can(\'roles.edit\')
+                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors\" 
+                                    @click=\"assignPermissions(item.id, item.name)\" title=\"Asignar permisos\">
+                                <i class=\"fas fa-key text-sm\"></i>
+                            </button>
+                        @endcan
+                        @can(\'roles.destroy\')
+                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors\" 
+                                    @click=\"deleteRole(item.id)\" title=\"Eliminar\">
+                                <i class=\"fas fa-trash text-sm\"></i>
+                            </button>
+                        @endcan
+                    </div>
+                '"
+            />
+        </div>
         </div>
     </div>
 

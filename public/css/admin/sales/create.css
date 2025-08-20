@@ -108,65 +108,7 @@
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
-/* Select2 con estilos de Tailwind */
-.select2-container--bootstrap4 .select2-selection--single {
-    height: 44px !important; /* h-11 = 44px */
-    border: 2px solid #e5e7eb !important;
-    border-radius: 1rem !important;
-    background: #f9fafb !important;
-    padding: 0.625rem 1rem !important; /* py-2.5 px-3 */
-    min-height: 44px !important;
-    line-height: 1.5 !important;
-}
-
-.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
-    line-height: 1.5 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    color: #374151 !important; /* text-gray-800 */
-}
-
-.select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
-    height: 44px !important;
-    line-height: 44px !important;
-    right: 8px !important;
-}
-
-.select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b {
-    border-color: #6b7280 transparent transparent transparent !important;
-}
-
-.select2-container--bootstrap4 .select2-selection--single:focus-within,
-.select2-container--bootstrap4.select2-container--open .select2-selection--single {
-    border-color: #6b7280 !important;
-    background: white !important;
-    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1) !important;
-}
-
-/* Dropdown styles con color gris */
-.select2-container--bootstrap4 .select2-dropdown {
-    border: 2px solid #6b7280 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-    z-index: 9999 !important;
-    background: white !important;
-}
-
-/* Estilos para las opciones del dropdown - color gris */
-.select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
-    background-color: #6b7280 !important;
-    color: white !important;
-}
-
-.select2-container--bootstrap4 .select2-results__option[aria-selected=true] {
-    background-color: #9ca3af !important;
-    color: white !important;
-}
-
-.select2-container--bootstrap4 .select2-results__option:hover {
-    background-color: #d1d5db !important;
-    color: #374151 !important;
-}
+/* Select2 eliminado - usando selects nativos con Tailwind */
 
 /* Glassmorphism effect para algunos elementos */
 .glass-effect {

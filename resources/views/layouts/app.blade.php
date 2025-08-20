@@ -523,6 +523,9 @@
     <!-- Utilidades compartidas -->
     <script src="{{ asset('js/shared/utils.js') }}"></script>
     
+    <!-- Utilidades para tablas simples -->
+    <script src="{{ asset('js/shared/table-utils.js') }}"></script>
+    
     <!-- Sistema de carga optimizada -->
     <script src="{{ asset('js/shared/loader.js') }}"></script>
     

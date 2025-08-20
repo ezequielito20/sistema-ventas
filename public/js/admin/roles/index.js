@@ -17,8 +17,7 @@ waitForAlpine(function() {
     // Inicializar Alpine.js cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', function() {
         
-        // Inicialización de DataTables - Comentado temporalmente hasta migrar a versión nativa
-        // TODO: Migrar DataTables a versión nativa o usar Alpine.js para funcionalidad de tabla
+        // Tabla simple con Alpine.js - DataTables migrado
         /*
         if (typeof $.fn.DataTable !== 'undefined') {
             $('#rolesTable').DataTable({
@@ -91,7 +90,62 @@ waitForAlpine(function() {
             }
         }
 
-        // Manejo de eliminación de roles
+        // Funciones para manejar acciones de la tabla simple
+        window.showRole = function(roleId) {
+            // Implementar lógica para mostrar detalles del rol
+            console.log('Mostrar rol:', roleId);
+        };
+
+        window.assignPermissions = function(roleId, roleName) {
+            // Implementar lógica para asignar permisos
+            console.log('Asignar permisos a:', roleName, roleId);
+        };
+
+        window.deleteRole = async function(roleId) {
+            const result = await showAlert({
+                title: '¿Estás seguro?',
+                text: 'Esta acción no se puede deshacer',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await makeRequest(`/admin/roles/${roleId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.success) {
+                        showAlert({
+                            title: '¡Eliminado!',
+                            text: 'El rol ha sido eliminado correctamente',
+                            icon: 'success'
+                        });
+                        
+                        // Recargar la página para actualizar la tabla
+                        window.location.reload();
+                    } else {
+                        showAlert({
+                            title: 'Error',
+                            text: response.message || 'Error al eliminar el rol',
+                            icon: 'error'
+                        });
+                    }
+                } catch (error) {
+                    showAlert({
+                        title: 'Error',
+                        text: 'Error de conexión',
+                        icon: 'error'
+                    });
+                }
+            }
+        };
+
+        // Manejo de eliminación de roles (legacy - mantener por compatibilidad)
         document.querySelectorAll('.delete-role').forEach(button => {
             button.addEventListener('click', async function() {
                 const roleId = this.dataset.id;
