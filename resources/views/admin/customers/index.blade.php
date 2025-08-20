@@ -4,11 +4,17 @@
 
 @push('css')
     <link rel="stylesheet" href="{{ asset('css/admin/customers/index.css') }}">
+    <!-- CSS no crítico cargado de forma lazy -->
+    <link rel="preload" href="{{ asset('css/admin/customers/debt-report-modal.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ asset('css/admin/customers/debt-report-modal.css') }}"></noscript>
+    
+    <link rel="preload" href="{{ asset('css/admin/customers/payment-history.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ asset('css/admin/customers/payment-history.css') }}"></noscript>
 @endpush
 
 @push('js')
     <script>
-        // Pasar datos de PHP a JavaScript
+        // Pasar datos críticos a JavaScript
         window.totalCustomers = {{ $totalCustomers ?? 0 }};
         window.exchangeRate = {{ $exchangeRate ?? 134 }};
     </script>

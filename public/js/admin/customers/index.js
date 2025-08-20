@@ -1,52 +1,28 @@
-// ===== CONFIGURACIÓN GLOBAL =====
-const CUSTOMERS_CONFIG = {
-    routes: {
-        delete: '/customers/delete',
-        debtReport: '/admin/customers/debt-report',
-        paymentHistory: '/admin/customers/payment-history',
-        export: '/customers/export'
-    },
-    exchangeRate: {
-        default: 134.0,
-        localStorageKey: 'exchangeRate'
-    }
+// ===== CONFIGURACIÓN OPTIMIZADA =====
+const CONFIG = {
+    routes: { delete: '/customers/delete' },
+    exchangeRate: { default: 134.0, key: 'exchangeRate' }
 };
 
 // ===== FUNCIONES GLOBALES =====
 window.customersIndex = {
-    // Función para actualizar valores en Bs
+    // Actualizar valores Bs - Optimizado
     updateBsValues: function(rate) {
-        // Actualizar elementos con clase bs-debt
-        const bsDebtElements = document.querySelectorAll('.bs-debt');
-        bsDebtElements.forEach(function(element) {
-            const debtUsd = parseFloat(element.dataset.debt);
-            if (!isNaN(debtUsd)) {
-                const debtBs = debtUsd * rate;
-                element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-        });
-        
-        // Actualizar elementos con clase debt-bs-info (para la tabla)
-        const debtBsInfoElements = document.querySelectorAll('.debt-bs-info .bs-debt');
-        debtBsInfoElements.forEach(function(element) {
-            const debtUsd = parseFloat(element.dataset.debt);
-            if (!isNaN(debtUsd)) {
-                const debtBs = debtUsd * rate;
-                element.innerHTML = 'Bs. ' + debtBs.toLocaleString('es-VE', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.bs-debt').forEach(el => {
+                const debt = parseFloat(el.dataset.debt);
+                if (!isNaN(debt)) {
+                    el.textContent = `Bs. ${(debt * rate).toLocaleString('es-VE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}`;
+                }
+            });
         });
     },
 
     // Función para eliminar cliente
     deleteCustomer: function(customerId) {
-        console.log('Función deleteCustomer llamada para ID:', customerId);
-        
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Esta acción no se puede revertir",
@@ -58,12 +34,10 @@ window.customersIndex = {
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                console.log('Confirmación aceptada, enviando petición fetch...');
-                
                 // Obtener el token CSRF
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                 
-                fetch(`${CUSTOMERS_CONFIG.routes.delete}/${customerId}`, {
+                fetch(`${CONFIG.routes.delete}/${customerId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': token,
@@ -73,8 +47,6 @@ window.customersIndex = {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Respuesta recibida:', data);
-                    
                     if (data.success) {
                         Swal.fire({
                             title: '¡Eliminado!',
@@ -128,14 +100,13 @@ window.customersIndex = {
 // Función para el hero section
 function heroSection() {
     return {
-        init() {
-            // Inicialización del hero section
-            console.log('Hero section inicializado');
-        }
+            init() {
+        // Inicialización del hero section
+    }
     }
 }
 
-// Función para el panel de filtros
+// Panel de filtros - Optimizado
 function filtersPanel() {
     return {
         filtersOpen: false,
@@ -145,19 +116,14 @@ function filtersPanel() {
         hasActiveFilters: false,
         
         init() {
-            // Cargar filtros guardados
-            const savedFilter = localStorage.getItem('customerFilter');
-            if (savedFilter) {
-                this.currentFilter = savedFilter;
-            }
-            
-            // Actualizar contador de resultados
-            this.updateSearchResultsCount();
+            setTimeout(() => {
+                const saved = localStorage.getItem('customerFilter');
+                if (saved) this.currentFilter = saved;
+                this.updateSearchResultsCount();
+            }, 0);
         },
         
-        toggleFilters() {
-            this.filtersOpen = !this.filtersOpen;
-        },
+        toggleFilters() { this.filtersOpen = !this.filtersOpen; },
         
         setFilter(filter) {
             this.currentFilter = filter;
@@ -166,7 +132,8 @@ function filtersPanel() {
         },
         
         performSearch() {
-            this.applyFilters();
+            clearTimeout(this._searchTimeout);
+            this._searchTimeout = setTimeout(() => this.applyFilters(), 300);
         },
         
         clearSearch() {
@@ -175,60 +142,41 @@ function filtersPanel() {
         },
         
         applyFilters() {
-            // Filtrar tarjetas móviles
-            const customerCards = document.querySelectorAll('.customer-card');
-            let visibleCount = 0;
-            
-            customerCards.forEach(function(card) {
-                const cardStatus = card.dataset.status;
-                const dataDefaulter = card.dataset.defaulter;
-                const isDefaulter = dataDefaulter === 'true';
-                let shouldShow = false;
+            requestAnimationFrame(() => {
+                const cards = document.querySelectorAll('[data-status]');
+                let visibleCount = 0;
                 
-                // Aplicar filtro de estado
-                if (this.currentFilter === 'all') {
-                    shouldShow = true;
-                } else if (this.currentFilter === 'active' && cardStatus === 'active') {
-                    shouldShow = true;
-                } else if (this.currentFilter === 'inactive' && cardStatus === 'inactive') {
-                    shouldShow = true;
-                } else if (this.currentFilter === 'defaulters' && isDefaulter) {
-                    shouldShow = true;
-                }
-                
-                // Aplicar búsqueda si hay término de búsqueda
-                if (shouldShow && this.searchTerm) {
-                    const customerName = card.querySelector('.customer-name')?.textContent?.toLowerCase() || '';
-                    const customerEmail = card.querySelector('.customer-email')?.textContent?.toLowerCase() || '';
-                    const customerPhone = card.querySelector('.info-value')?.textContent?.toLowerCase() || '';
+                cards.forEach(card => {
+                    const status = card.dataset.status;
+                    const isDefaulter = card.dataset.defaulter === 'true';
+                    let shouldShow = false;
                     
-                    shouldShow = customerName.includes(this.searchTerm.toLowerCase()) || 
-                               customerEmail.includes(this.searchTerm.toLowerCase()) || 
-                               customerPhone.includes(this.searchTerm.toLowerCase());
-                }
+                    switch (this.currentFilter) {
+                        case 'all': shouldShow = true; break;
+                        case 'active': shouldShow = status === 'active'; break;
+                        case 'inactive': shouldShow = status === 'inactive'; break;
+                        case 'defaulters': shouldShow = isDefaulter; break;
+                    }
+                    
+                    if (shouldShow && this.searchTerm) {
+                        const text = card.textContent.toLowerCase();
+                        shouldShow = text.includes(this.searchTerm.toLowerCase());
+                    }
+                    
+                    card.style.display = shouldShow ? '' : 'none';
+                    if (shouldShow) visibleCount++;
+                });
                 
-                // Mostrar/ocultar tarjeta
-                card.style.display = shouldShow ? '' : 'none';
-                if (shouldShow) visibleCount++;
-            }.bind(this));
-            
-            this.searchResultsCount = visibleCount;
-            this.hasActiveFilters = this.currentFilter !== 'all' || this.searchTerm.length > 0;
+                this.searchResultsCount = visibleCount;
+                this.hasActiveFilters = this.currentFilter !== 'all' || this.searchTerm.length > 0;
+            });
         },
         
         updateSearchResultsCount() {
-            const visibleCards = document.querySelectorAll('.customer-card[style*="display: none"]');
-            this.searchResultsCount = document.querySelectorAll('.customer-card').length - visibleCards.length;
-        },
-        
-        clearAllFilters() {
-            this.currentFilter = 'all';
-            this.searchTerm = '';
-            this.filtersOpen = false;
-            localStorage.removeItem('customerFilter');
-            this.applyFilters();
+            const visible = document.querySelectorAll('[data-status]:not([style*="display: none"])');
+            this.searchResultsCount = visible.length;
         }
-    }
+    };
 }
 
 // Función para el widget de tipo de cambio
@@ -330,7 +278,6 @@ function dataTable() {
         
         applyFilters(currentFilter, searchTerm) {
             // Esta función se puede usar para filtrar la tabla si es necesario
-            console.log('Aplicando filtros:', currentFilter, searchTerm);
             this.updateSearchResultsCount();
         }
     }
@@ -417,55 +364,38 @@ function formatDateTime(date) {
     return new Date(date).toLocaleString('es-ES');
 }
 
-// ===== INICIALIZACIÓN CUANDO EL DOM ESTÉ LISTO =====
+// ===== INICIALIZACIÓN OPTIMIZADA =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ customers/index.js cargado correctamente');
-    
-    // Inicializar el tipo de cambio
     initializeExchangeRate();
     
-    // Configurar eventos para el tipo de cambio
-    setupExchangeRateEvents();
-    
-    // Configurar eventos de búsqueda
-    setupSearchEvents();
-    
-    // Configurar eventos de filtros
-    setupFilterEvents();
-    
-    // Inicializar contadores animados
-    initializeCounters();
+    // Inicialización no crítica diferida
+    setTimeout(() => {
+        setupExchangeRateEvents();
+        setupOptimizedEvents();
+    }, 100);
 });
 
 // ===== FUNCIONES DE CONFIGURACIÓN DE EVENTOS =====
 
 function setupExchangeRateEvents() {
-    // Actualizar valores en Bs cuando se cambia el tipo de cambio
     document.addEventListener('click', function(e) {
         if (e.target.matches('.update-exchange-rate')) {
-            const exchangeRateInput = document.getElementById('exchangeRate');
-            if (exchangeRateInput) {
-                const rate = parseFloat(exchangeRateInput.value);
+            const input = document.getElementById('exchangeRate');
+            if (input) {
+                const rate = parseFloat(input.value);
                 if (rate > 0) {
-                    // Usar la función centralizada para guardar
-                    if (typeof saveExchangeRate === 'function') {
-                        saveExchangeRate(rate);
-                    } else {
-                        window.currentExchangeRate = rate;
-                        localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
-                    }
-                    
+                    window.currentExchangeRate = rate;
+                    localStorage.setItem(CONFIG.exchangeRate.key, rate);
                     window.customersIndex.updateBsValues(rate);
                     
-                    // Mostrar mensaje de éxito
-                    if (typeof Swal !== 'undefined') {
+                    if (window.Swal) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Tipo de cambio actualizado',
                             toast: true,
                             position: 'top-end',
                             showConfirmButton: false,
-                            timer: 3000
+                            timer: 2000
                         });
                     }
                 }
@@ -474,178 +404,40 @@ function setupExchangeRateEvents() {
     });
 }
 
-function setupSearchEvents() {
-    // Conectar el campo de búsqueda (vista desktop)
-    const mobileSearch = document.getElementById('mobileSearch');
-    if (mobileSearch) {
-        mobileSearch.addEventListener('keyup', function() {
-            applyFiltersAndSearch();
-        });
-
-        // Mostrar/ocultar botón de limpiar búsqueda
-        mobileSearch.addEventListener('input', function() {
-            const hasValue = this.value.length > 0;
-            const clearSearch = document.getElementById('clearSearch');
-            if (clearSearch) {
-                clearSearch.style.display = hasValue ? 'block' : 'none';
+function setupOptimizedEvents() {
+    // Event delegation optimizado
+    document.addEventListener('click', function(e) {
+        // Manejar botones de eliminación
+        if (e.target.closest('[onclick*="deleteCustomer"]')) {
+            e.preventDefault();
+            const customerId = e.target.closest('[onclick*="deleteCustomer"]')
+                .getAttribute('onclick')
+                .match(/\d+/)?.[0];
+            if (customerId) {
+                window.customersIndex.deleteCustomer(customerId);
             }
+        }
+    });
+}
+
+// Utilidades simplificadas
+function showNotification(message, type = 'success') {
+    if (window.Swal) {
+        Swal.fire({
+            icon: type,
+            title: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000
         });
     }
 }
 
-function setupFilterEvents() {
-    // Configurar eventos para filtros
-    const filterInputs = document.querySelectorAll('.filter-input');
-    filterInputs.forEach(input => {
-        input.addEventListener('change', applyFiltersAndSearch);
-    });
-    
-    // Configurar botón de limpiar filtros
-    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', clearAllFilters);
-    }
-}
-
-function initializeCounters() {
-    // Animar contadores cuando sean visibles
-    const counters = document.querySelectorAll('.counter-animation');
-    if (counters.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounter(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        });
-        
-        counters.forEach(counter => observer.observe(counter));
-    }
-}
-
-function animateCounter(element) {
-    const target = parseInt(element.dataset.target) || 0;
-    const duration = 2000;
-    const step = target / (duration / 16);
-    let current = 0;
-    
-    const timer = setInterval(() => {
-        current += step;
-        if (current >= target) {
-            current = target;
-            clearInterval(timer);
-        }
-        element.textContent = Math.floor(current).toLocaleString();
-    }, 16);
-}
-
-// Función para aplicar filtros y búsqueda
-function applyFiltersAndSearch() {
-    // Obtener el término de búsqueda
-    const mobileSearch = document.getElementById('mobileSearch');
-    const searchTerm = mobileSearch ? mobileSearch.value : '';
-    
-    // Obtener el filtro actual
-    let currentFilter = 'all';
-    
-    // Verificar si hay un botón activo
-    const activeButton = document.querySelector('.filter-btn.active');
-    if (activeButton) {
-        currentFilter = activeButton.dataset.filter || 'all';
-    }
-    
-    // Si Alpine.js está disponible, usar su estado
-    if (window.Alpine && window.Alpine.store && window.Alpine.store('filters')) {
-        currentFilter = window.Alpine.store('filters').currentFilter || currentFilter;
-    }
-    
-    // Filtrar tarjetas móviles
-    const customerCards = document.querySelectorAll('.customer-card');
-    customerCards.forEach(function(card) {
-        const cardStatus = card.dataset.status;
-        const dataDefaulter = card.dataset.defaulter;
-        const isDefaulter = dataDefaulter === 'true';
-        let shouldShow = false;
-        
-        // Aplicar filtro de estado
-        if (currentFilter === 'all') {
-            shouldShow = true;
-        } else if (currentFilter === 'active' && cardStatus === 'active') {
-            shouldShow = true;
-        } else if (currentFilter === 'inactive' && cardStatus === 'inactive') {
-            shouldShow = true;
-        } else if (currentFilter === 'defaulters' && isDefaulter) {
-            shouldShow = true;
-        }
-        
-        // Aplicar búsqueda si hay término de búsqueda
-        if (shouldShow && searchTerm) {
-            const customerName = card.querySelector('.customer-name')?.textContent?.toLowerCase() || '';
-            const customerEmail = card.querySelector('.customer-email')?.textContent?.toLowerCase() || '';
-            const customerPhone = card.querySelector('.info-value')?.textContent?.toLowerCase() || '';
-            
-            shouldShow = customerName.includes(searchTerm.toLowerCase()) || 
-                       customerEmail.includes(searchTerm.toLowerCase()) || 
-                       customerPhone.includes(searchTerm.toLowerCase());
-        }
-        
-        // Mostrar/ocultar tarjeta
-        card.style.display = shouldShow ? '' : 'none';
-    });
-    
-    // Filtrar tabla (vista desktop) - usar Alpine.js si está disponible
-    if (window.Alpine && window.Alpine.store && window.Alpine.store('dataTable')) {
-        const dataTableStore = window.Alpine.store('dataTable');
-        if (dataTableStore && typeof dataTableStore.applyFilters === 'function') {
-            dataTableStore.applyFilters(currentFilter, searchTerm);
-        }
-    }
-}
-
-// Limpiar búsqueda
-function clearSearch() {
-    const mobileSearch = document.getElementById('mobileSearch');
-    if (mobileSearch) {
-        mobileSearch.value = '';
-        applyFiltersAndSearch();
-    }
-}
-
-// Limpiar todos los filtros
-function clearAllFilters() {
-    // Limpiar búsqueda
-    const mobileSearch = document.getElementById('mobileSearch');
-    if (mobileSearch) {
-        mobileSearch.value = '';
-    }
-    
-    // Limpiar filtros de estado
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => btn.classList.remove('active'));
-    
-    // Activar filtro "todos"
-    const allFilterBtn = document.querySelector('.filter-btn[data-filter="all"]');
-    if (allFilterBtn) {
-        allFilterBtn.classList.add('active');
-    }
-    
-    // Aplicar filtros
-    applyFiltersAndSearch();
-}
-
-// ===== EXPONER FUNCIONES GLOBALMENTE =====
-window.initializeExchangeRate = initializeExchangeRate;
-window.saveExchangeRate = saveExchangeRate;
-window.syncAllExchangeRateElements = syncAllExchangeRateElements;
+// ===== FUNCIONES GLOBALES ESENCIALES =====
 window.heroSection = heroSection;
 window.filtersPanel = filtersPanel;
 window.exchangeRateWidget = exchangeRateWidget;
 window.dataTable = dataTable;
+window.initializeExchangeRate = initializeExchangeRate;
 window.showNotification = showNotification;
-window.formatCurrency = formatCurrency;
-window.formatDate = formatDate;
-window.formatDateTime = formatDateTime;
-window.clearSearch = clearSearch;
-window.clearAllFilters = clearAllFilters;
-window.applyFiltersAndSearch = applyFiltersAndSearch;

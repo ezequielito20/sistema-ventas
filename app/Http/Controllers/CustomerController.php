@@ -695,9 +695,6 @@ class CustomerController extends Controller
    public function destroy($id)
    {
       try {
-         // Log temporal para depuración
-         Log::info('Método destroy llamado para cliente ID: ' . $id);
-         
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
 

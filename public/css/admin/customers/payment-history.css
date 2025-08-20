@@ -1,120 +1,87 @@
-/* ===== ESTILOS PARA LA VISTA DE HISTORIAL DE PAGOS ===== */
+/* ===== PAYMENT HISTORY - OPTIMIZADO ===== */
 
-/* Estilos para la paginación de Laravel */
+/* Paginación */
 .pagination {
     display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
 }
 
 .page-item {
-    list-style: none;
-    margin: 0;
+    display: flex;
 }
 
 .page-link {
-    background: white;
-    border: 2px solid #e9ecef;
-    color: #374151;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    transition: all 0.2s;
-    font-weight: 500;
-    min-width: 44px;
-    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.125rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 2.5rem;
+    height: 2.5rem;
 }
 
 .page-link:hover {
-    background: #667eea;
-    border-color: #667eea;
-    color: white;
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    color: #374151;
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: transparent;
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .page-item.disabled .page-link {
-    background: #f8f9fa;
-    border-color: #e9ecef;
-    color: #6c757d;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.page-item.disabled .page-link:hover {
-    background: #f8f9fa;
-    border-color: #e9ecef;
-    color: #6c757d;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Responsive para paginación */
-@media (max-width: 640px) {
-    .pagination {
-        gap: 0.3rem;
-    }
-
-    .page-link {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.9rem;
-        min-width: 40px;
-    }
-}
-
-/* ===== ESTILOS ADICIONALES PARA MEJORAR LA UX ===== */
-
-/* Input styles */
-input[type="text"], input[type="date"] {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    color: #111827;
-    transition: all 0.2s ease-in-out;
-}
-
-input[type="text"]::placeholder, 
-input[type="date"]::placeholder {
     color: #9ca3af;
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+/* Inputs */
+input[type="text"], input[type="date"] {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background-color: white;
 }
 
 input:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    transform: translateY(-2px);
+    background-color: #fefefe;
 }
 
-/* Animaciones suaves para los inputs */
-input {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Efecto hover en botones */
+/* Botones */
 button:not(:disabled):hover {
     transform: translateY(-1px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos para el formulario */
+/* Grid responsive */
 .form-grid {
     display: grid;
+    gap: 1rem;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
 }
 
 @media (min-width: 640px) {
@@ -125,11 +92,11 @@ button:not(:disabled):hover {
 
 @media (min-width: 1024px) {
     .form-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
-/* Estilos para los labels */
+/* Labels */
 .form-label {
     display: flex;
     align-items: center;
@@ -140,167 +107,32 @@ button:not(:disabled):hover {
     margin-bottom: 0.5rem;
 }
 
-.form-label i {
-    color: #3b82f6;
-}
-
-/* Estilos para los botones de acción */
+/* Botones de acción */
 .action-buttons {
     display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    justify-content: flex-end;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-    .action-buttons {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-/* Estilos para el hero section */
+/* Hero section simplificado */
 .hero-section {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #4f46e5 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
 }
 
-.hero-section::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.hero-content {
-    position: relative;
-    z-index: 1;
-}
-
-/* Estilos para las tarjetas de estadísticas */
+/* Stats cards */
 .stats-card {
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
-
-.stats-header {
+    background: white;
+    border-radius: 0.75rem;
     padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.stats-body {
-    padding: 1.5rem;
-}
-
-/* Estilos para los campos de entrada */
-.input-container {
-    position: relative;
-}
-
-.input-container input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.input-container input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Estilos para los botones */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-    color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-secondary:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-}
-
-/* Estilos para iconos */
-.icon-container {
-    width: 3rem;
-    height: 3rem;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-}
-
-.icon-container.gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-}
-
-/* Estilos para el título */
-.hero-title {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.5rem;
-}
-
-@media (min-width: 640px) {
-    .hero-title {
-        font-size: 3rem;
-    }
-}
-
-.hero-subtitle {
-    color: #bfdbfe;
-    font-size: 1.125rem;
-}
-
-/* Estilos para la tabla */
+/* Tabla */
 .table-container {
     overflow-x: auto;
 }
@@ -311,56 +143,32 @@ button:not(:disabled):hover {
 }
 
 .table th {
-    background-color: #f9fafb;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem;
     text-align: left;
-    font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
+    background-color: #f9fafb;
     border-bottom: 1px solid #e5e7eb;
+    font-size: 0.875rem;
 }
 
 .table td {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    vertical-align: middle;
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .table tbody tr:hover {
     background-color: #f9fafb;
-    transition: background-color 0.2s ease-in-out;
 }
 
-/* Estilos para las tarjetas de pagos */
-.payment-card {
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.2s ease-in-out;
-}
-
-.payment-card:hover {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.payment-card-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.payment-card-body {
-    padding: 1.5rem;
-}
-
-/* Estilos para badges */
+/* Badges */
 .badge {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .badge-success {
@@ -370,20 +178,10 @@ button:not(:disabled):hover {
 
 .badge-danger {
     background-color: #fee2e2;
-    color: #991b1b;
+    color: #dc2626;
 }
 
-.badge-warning {
-    background-color: #fef3c7;
-    color: #92400e;
-}
-
-.badge-info {
-    background-color: #dbeafe;
-    color: #1e40af;
-}
-
-/* Estilos para el grid responsivo */
+/* Responsive */
 @media (max-width: 640px) {
     .form-grid {
         grid-template-columns: 1fr;
@@ -393,21 +191,14 @@ button:not(:disabled):hover {
         flex-direction: column;
     }
     
-    .btn {
-        width: 100%;
-    }
-    
-    .table-container {
-        font-size: 0.875rem;
-    }
-    
     .table th,
     .table td {
-        padding: 0.75rem;
+        padding: 0.5rem;
+        font-size: 0.75rem;
     }
 }
 
-/* Estilos para animaciones */
+/* Animaciones */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -423,314 +214,17 @@ button:not(:disabled):hover {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Estilos para estados de carga */
+/* Spinner */
 .loading-spinner {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid currentColor;
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
     border-radius: 50%;
-    border-top-color: transparent;
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Estilos para tooltips */
-.tooltip {
-    position: relative;
-    display: inline-block;
-}
-
-.tooltip .tooltip-text {
-    visibility: hidden;
-    width: 120px;
-    background-color: #1f2937;
-    color: white;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -60px;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.tooltip:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Estilos para los gráficos */
-.chart-container {
-    position: relative;
-    height: 250px;
-    width: 100%;
-}
-
-.chart-container canvas {
-    max-height: 250px;
-}
-
-/* Estilos para los filtros */
-.filters-section {
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
-
-.filters-header {
-    background: linear-gradient(135deg, #eff6ff 0%, #faf5ff 100%);
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.filters-body {
-    padding: 1.5rem;
-}
-
-/* Estilos para la vista de botones */
-.view-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.view-toggle button {
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-}
-
-.view-toggle button.active {
-    background-color: #3b82f6;
-    color: white;
-}
-
-.view-toggle button:not(.active) {
-    background-color: #e5e7eb;
-    color: #6b7280;
-}
-
-.view-toggle button:hover:not(.active) {
-    background-color: #d1d5db;
-}
-
-/* Estilos para la paginación personalizada */
-.custom-pagination {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    background-color: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-}
-
-@media (min-width: 640px) {
-    .custom-pagination {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-}
-
-.pagination-info {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.pagination-controls {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.pagination-button {
-    padding: 0.5rem 0.75rem;
-    background-color: white;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.pagination-button:hover:not(:disabled) {
-    background-color: #f9fafb;
-    border-color: #9ca3af;
-}
-
-.pagination-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.pagination-button.active {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    color: white;
-}
-
-/* Estilos para los campos de búsqueda */
-.search-container {
-    position: relative;
-}
-
-.search-container input {
-    padding-right: 2.5rem;
-}
-
-.search-icon {
-    position: absolute;
-    right: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-    pointer-events: none;
-}
-
-/* Estilos para las estadísticas */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
-
-@media (min-width: 640px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-.stat-card {
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
-
-.stat-header {
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.stat-icon {
-    width: 3rem;
-    height: 3rem;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.stat-content {
-    text-align: right;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-/* Estilos para los gráficos */
-.charts-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-    .charts-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.chart-card {
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
-
-.chart-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.chart-body {
-    padding: 1.5rem;
-}
-
-/* Estilos para el botón de reiniciar filtros */
-.reset-button {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    color: white;
-    font-weight: 600;
-    border-radius: 0.75rem;
-    transition: all 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.reset-button:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-    transform: translateY(-1px);
-}
-
-/* Estilos para el contenedor principal */
-.main-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-/* Estilos para el botón de volver */
-.back-button {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 0.75rem;
-    transition: all 0.2s ease-in-out;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

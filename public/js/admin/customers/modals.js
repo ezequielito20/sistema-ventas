@@ -22,6 +22,13 @@ window.modalManager = function() {
             document.body.style.overflow = 'auto';
         },
         
+        // Función para abrir el modal de reporte de deudas
+        openDebtReport() {
+            this.debtReportModal = true;
+            document.body.style.overflow = 'hidden';
+            this.loadDebtReport();
+        },
+        
         loadCustomerDetails(customerId) {
             // Cargar datos del cliente y su historial de ventas
             fetch(`/customers/${customerId}?customer_details=1`)
@@ -546,9 +553,7 @@ window.modalManager = function() {
         loadDebtReport() {
             // Cargar el reporte de deudas
             const modalBody = document.querySelector('#debtReportModal .modal-body');
-            if (!modalBody) {
-                return;
-            }
+            if (!modalBody) return;
             
             // Mostrar loading
             modalBody.innerHTML = `
