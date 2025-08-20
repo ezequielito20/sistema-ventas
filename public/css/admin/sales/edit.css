@@ -58,6 +58,10 @@
 }
 
 /* Estado vacío mejorado */
+.empty-state {
+    display: none;
+}
+
 .empty-state:not(.hidden) {
     display: block !important;
 }
@@ -66,7 +70,16 @@
     display: none !important;
 }
 
-/* Tabla moderna - ocultar cuando esté vacía */
+/* Tabla moderna - mostrar por defecto */
+.modern-table {
+    display: table;
+}
+
+.modern-table.hidden {
+    display: none !important;
+}
+
+/* Ocultar tabla cuando no hay productos */
 .modern-table:has(tbody:empty) {
     display: none;
 }

@@ -6,6 +6,8 @@ let saleId = null;
 let hasUnsavedChanges = false;
 
 // Función principal de Alpine.js
+console.log('🚀 edit.js cargado');
+
 window.saleForm = function() {
     return {
         loading: false,
@@ -14,11 +16,16 @@ window.saleForm = function() {
         searchModalOpen: false,
 
         init() {
+            console.log('🚀 Inicializando saleForm...');
+            
             this.initializeForm();
             this.setupEventListeners();
-            this.createCustomSelect();
+            
             this.updateCounters();
+            this.updateEmptyState();
             this.checkForUnsavedChanges();
+            
+            console.log('✅ saleForm inicializado');
         },
 
         initializeForm() {
@@ -83,10 +90,27 @@ window.saleForm = function() {
         },
 
         createCustomSelect() {
+            console.log('Iniciando creación del select personalizado...');
+            
             const select = document.getElementById('customer_id');
-            if (!select) return;
+            if (!select) {
+                console.error('❌ Select customer_id no encontrado');
+                return;
+            }
+            console.log('✅ Select customer_id encontrado');
 
             const container = select.parentElement;
+            if (!container) {
+                console.error('❌ Contenedor del select no encontrado');
+                return;
+            }
+            console.log('✅ Contenedor del select encontrado');
+            
+            // Verificar si ya existe un select personalizado
+            if (container.querySelector('.custom-select')) {
+                console.log('ℹ️ Select personalizado ya existe');
+                return;
+            }
             
             // Crear el botón visible
             const selectButton = document.createElement('div');
@@ -95,6 +119,7 @@ window.saleForm = function() {
                 <span class="selected-text text-gray-500">Seleccione un cliente</span>
                 <i class="fas fa-chevron-down custom-select-arrow"></i>
             `;
+            console.log('✅ Botón del select creado');
 
             // Crear el dropdown
             const dropdown = document.createElement('div');
@@ -103,15 +128,26 @@ window.saleForm = function() {
                 <input type="text" placeholder="Buscar cliente..." class="search-input">
                 <div class="options-container"></div>
             `;
+            console.log('✅ Dropdown creado');
 
-            // Agregar elementos al DOM
-            container.appendChild(selectButton);
-            container.appendChild(dropdown);
+                // Agregar elementos al DOM
+    container.appendChild(selectButton);
+    container.appendChild(dropdown);
+    console.log('✅ Elementos agregados al DOM');
+    
+    // Agregar event listener para abrir/cerrar el dropdown
+    selectButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleDropdownIndependent();
+    });
 
             // Ocultar el select original
             select.style.display = 'none';
+            console.log('✅ Select original oculto');
 
             // Llenar opciones
+            console.log('🔄 Llenando opciones del dropdown...');
             this.populateDropdownOptions(select, dropdown);
 
             // Event listeners
@@ -164,10 +200,36 @@ window.saleForm = function() {
         },
 
         populateDropdownOptions(select, dropdown) {
+            console.log('🔄 Iniciando populateDropdownOptions...');
+            
             const optionsContainer = dropdown.querySelector('.options-container');
             const searchInput = dropdown.querySelector('.search-input');
             const selectButton = dropdown.previousElementSibling;
+            
+            console.log('Elementos encontrados:', {
+                optionsContainer: !!optionsContainer,
+                searchInput: !!searchInput,
+                selectButton: !!selectButton
+            });
+            
+            // Verificar que todos los elementos existan
+            if (!optionsContainer || !searchInput || !selectButton) {
+                console.error('❌ Elementos del dropdown no encontrados:', {
+                    optionsContainer: !!optionsContainer,
+                    searchInput: !!searchInput,
+                    selectButton: !!selectButton
+                });
+                return;
+            }
+            
             const selectedText = selectButton.querySelector('.selected-text');
+            console.log('selectedText encontrado:', !!selectedText);
+            
+            if (!selectedText) {
+                console.error('❌ Elemento selected-text no encontrado');
+                console.log('Contenido del selectButton:', selectButton.innerHTML);
+                return;
+            }
 
             // Obtener opciones del select original
             const options = Array.from(select.options);
@@ -199,6 +261,12 @@ window.saleForm = function() {
                     `;
                     
                     optionDiv.addEventListener('click', () => {
+                        // Verificar que los elementos existan antes de usarlos
+                        if (!selectedText) {
+                            console.error('selectedText no encontrado en click');
+                            return;
+                        }
+                        
                         // Remover selección anterior
                         optionsContainer.querySelectorAll('.custom-dropdown-option').forEach(opt => {
                             opt.classList.remove('selected');
@@ -220,7 +288,7 @@ window.saleForm = function() {
                     });
                     
                     // Marcar como seleccionado si es la opción actual
-                    if (option.selected) {
+                    if (option.selected && selectedText) {
                         optionDiv.classList.add('selected');
                         selectedText.textContent = name;
                         selectedText.className = 'text-gray-900';
@@ -247,11 +315,19 @@ window.saleForm = function() {
 
             // Crear opciones iniciales
             createOptions();
+            console.log('✅ populateDropdownOptions completado exitosamente');
         },
 
         toggleDropdown(show = null) {
             const dropdown = document.querySelector('.custom-dropdown');
             const selectButton = document.querySelector('.custom-select');
+            
+            // Verificar que los elementos existan
+            if (!dropdown || !selectButton) {
+                console.log('Dropdown o selectButton no encontrados');
+                return;
+            }
+            
             const searchInput = dropdown.querySelector('.search-input');
             const addButton = document.querySelector('.add-customer-button');
 
@@ -336,11 +412,16 @@ window.saleForm = function() {
                     if (showAlert) {
                         this.showAlert('Stock insuficiente', `Solo hay ${maxStock} unidades disponibles`, 'warning');
                     }
-                    return;
+                    return false; // Indica que no se pudo agregar
                 }
                 
                 quantityInput.value = newQuantity;
                 quantityInput.dispatchEvent(new Event('input'));
+                
+                // Mostrar notificación de cantidad incrementada
+                if (showAlert) {
+                    this.showAlert('Cantidad actualizada', `Se incrementó la cantidad de ${product.name}`, 'info');
+                }
             } else {
                 // Agregar nueva fila
                 const row = document.createElement('tr');
@@ -366,11 +447,11 @@ window.saleForm = function() {
                                value="1" min="1" max="${stockValue}" step="1">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                        ${currencySymbol} ${priceValue.toFixed(2)}
+                        $ ${priceValue.toFixed(2)}
                         <input type="hidden" class="price-input" value="${priceValue}">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                        <span class="subtotal-display">${currencySymbol} ${priceValue.toFixed(2)}</span>
+                        <span class="subtotal-display">$ ${priceValue.toFixed(2)}</span>
                         <span class="subtotal-value hidden">${priceValue}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -381,12 +462,57 @@ window.saleForm = function() {
                 `;
                 
                 saleItems.appendChild(row);
+                
+                // Agregar event listener para cambios en cantidad
+                const quantityInput = row.querySelector('.quantity-input');
+                quantityInput.addEventListener('input', (e) => {
+                    this.updateQuantity(e.target);
+                });
+                
+                // Agregar event listener para eliminar producto
+                const removeButton = row.querySelector('.remove-item');
+                removeButton.addEventListener('click', () => {
+                    this.removeProduct(row);
+                });
+                
+                // Actualizar interfaz
                 this.updateTotal();
                 this.updateEmptyState();
+                this.updateCounters();
+                
+                // Mostrar notificación de producto agregado
+                if (showAlert) {
+                    this.showAlert('¡Producto agregado!', `${product.name} se agregó a la lista de venta`, 'success');
+                }
             }
             
-            if (showAlert) {
-                this.showAlert('¡Producto agregado!', `${product.name} se agregó a la lista de venta`, 'success');
+            return true; // Indica que se agregó correctamente
+        },
+
+        updateQuantity(input) {
+            const row = input.closest('tr');
+            const quantity = parseFloat(input.value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const stock = parseInt(input.getAttribute('max'));
+
+            if (quantity > stock) {
+                input.value = stock;
+                this.showAlert('Stock insuficiente', `Solo hay ${stock} unidades disponibles`, 'warning');
+                return;
+            }
+
+            const subtotal = quantity * price;
+            row.querySelector('.subtotal-value').textContent = subtotal.toFixed(2);
+            row.querySelector('.subtotal-display').textContent = `$ ${subtotal.toFixed(2)}`;
+            this.updateTotal();
+        },
+
+        removeProduct(row) {
+            if (confirm('¿Está seguro de eliminar este producto de la venta?')) {
+                row.remove();
+                this.updateTotal();
+                this.updateEmptyState();
+                this.updateCounters();
             }
         },
 
@@ -400,11 +526,27 @@ window.saleForm = function() {
             const totalAmountInput = document.getElementById('totalAmountInput');
             const totalAmountDisplay = document.querySelector('.total-amount-display');
             
-            if (totalAmount) totalAmount.textContent = `${currencySymbol} ${total.toFixed(2)}`;
+            if (totalAmount) totalAmount.textContent = `$ ${total.toFixed(2)}`;
             if (totalAmountInput) totalAmountInput.value = total.toFixed(2);
-            if (totalAmountDisplay) totalAmountDisplay.textContent = `${currencySymbol} ${total.toFixed(2)}`;
+            if (totalAmountDisplay) totalAmountDisplay.textContent = `$ ${total.toFixed(2)}`;
             
             this.updateCounters();
+        },
+
+        showAlert(title, message, type = 'info') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: type,
+                    title: title,
+                    text: message,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            } else {
+                alert(`${title}: ${message}`);
+            }
         },
 
         updateCounters() {
@@ -418,14 +560,43 @@ window.saleForm = function() {
         updateEmptyState() {
             const hasProducts = document.querySelectorAll('#saleItems tr').length > 0;
             const emptyState = document.getElementById('emptyState');
+            const table = document.querySelector('.modern-table');
+
+            if (hasProducts) {
+                if (emptyState) emptyState.classList.add('hidden');
+                if (table) table.classList.remove('hidden');
+            } else {
+                if (emptyState) emptyState.classList.remove('hidden');
+                if (table) table.classList.add('hidden');
+            }
+        },
+
+        updateEmptyState() {
+            const saleItems = document.querySelectorAll('#saleItems tr');
+            const hasProducts = saleItems.length > 0;
+            const emptyState = document.getElementById('emptyState');
             const modernTable = document.querySelector('.modern-table');
             
+            console.log('Productos encontrados:', saleItems.length); // Debug
+            
             if (hasProducts) {
-                if (emptyState) emptyState.style.display = 'none';
-                if (modernTable) modernTable.classList.remove('hidden');
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                    emptyState.classList.add('hidden');
+                }
+                if (modernTable) {
+                    modernTable.style.display = 'table';
+                    modernTable.classList.remove('hidden');
+                }
             } else {
-                if (emptyState) emptyState.style.display = 'block';
-                if (modernTable) modernTable.classList.add('hidden');
+                if (emptyState) {
+                    emptyState.style.display = 'block';
+                    emptyState.classList.remove('hidden');
+                }
+                if (modernTable) {
+                    modernTable.style.display = 'none';
+                    modernTable.classList.add('hidden');
+                }
             }
         },
 
@@ -551,7 +722,13 @@ window.saleForm = function() {
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,
-                    timerProgressBar: true
+                    timerProgressBar: true,
+                    background: icon === 'success' ? '#e8f5e8' : 
+                              icon === 'warning' ? '#fff3cd' : 
+                              icon === 'error' ? '#f8d7da' : '#d1ecf1',
+                    color: icon === 'success' ? '#155724' : 
+                          icon === 'warning' ? '#856404' : 
+                          icon === 'error' ? '#721c24' : '#0c5460'
                 });
             } else {
                 alert(`${title}: ${text}`);
@@ -594,8 +771,18 @@ window.saleForm = function() {
     };
 };
 
-// Event listeners globales
-document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners globales
+    console.log('🎯 Configurando event listeners globales');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+    // Verificar estado inicial de productos
+    setTimeout(() => {
+        const saleForm = document.querySelector('[x-data="saleForm()"]')._x_dataStack[0];
+        if (saleForm) {
+            saleForm.updateEmptyState();
+            saleForm.updateCounters();
+        }
+    }, 100);
     // Actualizar subtotal cuando cambie cantidad
     document.addEventListener('input', function(e) {
         if (e.target.classList.contains('quantity-input')) {
@@ -673,41 +860,469 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Seleccionar producto del modal
-    document.addEventListener('click', function(e) {
+    // Seleccionar producto del modal - Versión simplificada
+    console.log('🎯 Agregando event listener para select-product');
+    
+    // Event listener para botones de productos en el modal
+    document.addEventListener('click', (e) => {
+        console.log('🔍 Click detectado en:', e.target);
         if (e.target.closest('.select-product')) {
+            console.log('🎯 Botón select-product clickeado');
+            
             const button = e.target.closest('.select-product');
+            
+            // Verificar si el botón está deshabilitado
+            if (button.disabled || button.classList.contains('opacity-50')) {
+                console.log('⚠️ Botón deshabilitado');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Producto no disponible',
+                        text: 'Este producto no tiene stock disponible',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+                return;
+            }
+            
             const code = button.getAttribute('data-code');
             const productId = button.getAttribute('data-id');
             
-            fetch(`/sales/product-details/${code}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        data.product.id = productId;
-                        const saleForm = document.querySelector('[x-data="saleForm()"]')._x_dataStack[0];
-                        if (saleForm) {
-                            saleForm.addProductToTable(data.product);
-                            
-                            // Cerrar modal
-                            saleForm.searchModalOpen = false;
-                        }
-                    } else {
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire('Error', data.message, 'error');
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+            console.log('📦 Agregando producto:', { code, productId });
+            
+            // Mostrar indicador de carga en el botón
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+            button.disabled = true;
+            
+            // Obtener datos del producto directamente del DOM
+            const row = button.closest('tr');
+            const productName = row.querySelector('td:nth-child(4)').textContent.trim();
+            const productStock = parseInt(row.querySelector('td:nth-child(6) span').textContent.trim());
+            const productPrice = parseFloat(row.querySelector('td:nth-child(7)').textContent.replace(/[^\d.,]/g, '').replace(',', '.'));
+            const productImage = row.querySelector('td:nth-child(3) img').src;
+            const productCategory = row.querySelector('td:nth-child(5)').textContent.trim();
+            
+            // Crear objeto producto
+            const product = {
+                id: productId,
+                code: code,
+                name: productName,
+                stock: productStock,
+                sale_price: productPrice,
+                image_url: productImage,
+                category: { name: productCategory }
+            };
+            
+            console.log('📋 Producto creado:', product);
+            
+            // Obtener la instancia de Alpine.js
+            const alpineElement = document.querySelector('[x-data="saleForm()"]');
+            if (alpineElement && alpineElement._x_dataStack && alpineElement._x_dataStack[0]) {
+                const saleForm = alpineElement._x_dataStack[0];
+                
+                console.log('✅ Instancia de Alpine.js encontrada');
+                
+                // Agregar producto a la tabla
+                const success = saleForm.addProductToTable(product, true);
+                
+                if (success) {
+                    // Cerrar modal
+                    saleForm.searchModalOpen = false;
+                    
+                    // Mostrar notificación de éxito
                     if (typeof Swal !== 'undefined') {
-                        Swal.fire('Error', 'Error al obtener detalles del producto', 'error');
-                    } else {
-                        alert('Error al obtener detalles del producto');
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Producto agregado!',
+                            text: `${product.name} se agregó a la venta`,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
                     }
-                });
+                    
+                    console.log('✅ Producto agregado exitosamente');
+                } else {
+                    console.log('❌ No se pudo agregar el producto');
+                }
+            } else {
+                console.error('❌ No se pudo acceder al formulario de venta');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo acceder al formulario de venta',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            }
+            
+            // Restaurar el botón
+            button.innerHTML = originalContent;
+            button.disabled = false;
         }
     });
+});
+
+// Función para crear el select personalizado de forma independiente
+function createCustomSelectIndependent() {
+    console.log('🔄 Creando select personalizado de forma independiente...');
+    
+    const select = document.getElementById('customer_id');
+    if (!select) {
+        console.error('❌ Select customer_id no encontrado');
+        return;
+    }
+    console.log('✅ Select customer_id encontrado');
+
+    const container = select.parentElement;
+    if (!container) {
+        console.error('❌ Contenedor del select no encontrado');
+        return;
+    }
+    console.log('✅ Contenedor del select encontrado');
+    
+    // Verificar si ya existe un select personalizado
+    if (container.querySelector('.custom-select')) {
+        console.log('ℹ️ Select personalizado ya existe');
+        return;
+    }
+    
+    // Crear el botón visible
+    const selectButton = document.createElement('div');
+    selectButton.className = 'custom-select';
+    selectButton.innerHTML = `
+        <span class="selected-text text-gray-500">Seleccione un cliente</span>
+        <i class="fas fa-chevron-down custom-select-arrow"></i>
+    `;
+    console.log('✅ Botón del select creado');
+
+    // Crear el dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-dropdown';
+    dropdown.innerHTML = `
+        <input type="text" placeholder="Buscar cliente..." class="search-input">
+        <div class="options-container"></div>
+    `;
+    console.log('✅ Dropdown creado');
+
+    // Agregar elementos al DOM
+    container.appendChild(selectButton);
+    container.appendChild(dropdown);
+    console.log('✅ Elementos agregados al DOM');
+
+    // Ocultar el select original
+    select.style.display = 'none';
+    console.log('✅ Select original oculto');
+
+    // Llenar opciones
+    console.log('🔄 Llenando opciones del dropdown...');
+    populateDropdownOptionsIndependent(select, dropdown);
+}
+
+// Función para llenar las opciones del dropdown de forma independiente
+function populateDropdownOptionsIndependent(select, dropdown) {
+    console.log('🔄 Iniciando populateDropdownOptions independiente...');
+    
+    const optionsContainer = dropdown.querySelector('.options-container');
+    const searchInput = dropdown.querySelector('.search-input');
+    const selectButton = dropdown.previousElementSibling;
+    
+    console.log('Elementos encontrados:', {
+        optionsContainer: !!optionsContainer,
+        searchInput: !!searchInput,
+        selectButton: !!selectButton
+    });
+    
+    // Verificar que todos los elementos existan
+    if (!optionsContainer || !searchInput || !selectButton) {
+        console.error('❌ Elementos del dropdown no encontrados:', {
+            optionsContainer: !!optionsContainer,
+            searchInput: !!searchInput,
+            selectButton: !!selectButton
+        });
+        return;
+    }
+    
+    const selectedText = selectButton.querySelector('.selected-text');
+    console.log('selectedText encontrado:', !!selectedText);
+    
+    if (!selectedText) {
+        console.error('❌ Elemento selected-text no encontrado');
+        console.log('Contenido del selectButton:', selectButton.innerHTML);
+        return;
+    }
+
+    // Obtener opciones del select original
+    const options = Array.from(select.options);
+
+    // Función para crear opciones
+    const createOptions = (filteredOptions = options) => {
+        optionsContainer.innerHTML = '';
+        
+        filteredOptions.forEach(option => {
+            if (option.value === '') return; // Saltar placeholder
+            
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'custom-dropdown-option';
+            
+            const parts = option.text.split(' - ');
+            const name = parts[0]?.trim() || '';
+            const debt = parts[1]?.trim() || '';
+            const hasDebt = debt && !debt.includes('0.00');
+            
+            const badgeClass = hasDebt ? 'has-debt' : 'no-debt';
+            
+            optionDiv.innerHTML = `
+                <div>
+                    <strong>${name}</strong>
+                </div>
+                <div>
+                    <span class="debt-badge ${badgeClass}">${debt}</span>
+                </div>
+            `;
+            
+            optionDiv.addEventListener('click', () => {
+                // Verificar que los elementos existan antes de usarlos
+                if (!selectedText) {
+                    console.error('selectedText no encontrado en click');
+                    return;
+                }
+                
+                // Remover selección anterior
+                optionsContainer.querySelectorAll('.custom-dropdown-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Seleccionar esta opción
+                optionDiv.classList.add('selected');
+                
+                // Actualizar select original
+                select.value = option.value;
+                select.dispatchEvent(new Event('change'));
+                
+                // Actualizar texto del botón
+                selectedText.textContent = name;
+                selectedText.className = 'text-gray-900';
+                
+                // Cerrar dropdown
+                toggleDropdownIndependent(false);
+            });
+            
+            // Marcar como seleccionado si es la opción actual
+            if (option.selected && selectedText) {
+                optionDiv.classList.add('selected');
+                selectedText.textContent = name;
+                selectedText.className = 'text-gray-900';
+            }
+            
+            optionsContainer.appendChild(optionDiv);
+        });
+    };
+
+    // Búsqueda
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredOptions = options.filter(option => 
+            option.text.toLowerCase().includes(searchTerm)
+        );
+        
+        createOptions(filteredOptions);
+        
+        // Mostrar mensaje si no hay resultados
+        if (filteredOptions.length === 0) {
+            optionsContainer.innerHTML = '<div class="p-4 text-center text-gray-500">No se encontraron clientes</div>';
+        }
+    });
+
+    // Crear opciones iniciales
+    createOptions();
+    console.log('✅ populateDropdownOptions independiente completado exitosamente');
+}
+
+// Función para toggle del dropdown de forma independiente
+function toggleDropdownIndependent(show = null) {
+    const dropdown = document.querySelector('.custom-dropdown');
+    const selectButton = document.querySelector('.custom-select');
+    
+    // Verificar que los elementos existan
+    if (!dropdown || !selectButton) {
+        console.log('Dropdown o selectButton no encontrados');
+        return;
+    }
+    
+    const searchInput = dropdown.querySelector('.search-input');
+    const addButton = document.querySelector('.add-customer-button');
+
+    if (show === null) {
+        show = !dropdown.classList.contains('show');
+    }
+
+    if (show) {
+        dropdown.classList.add('show');
+        selectButton.classList.add('open');
+        
+        // Posicionar dropdown
+        const rect = selectButton.getBoundingClientRect();
+        const top = rect.bottom + window.scrollY + 4;
+        const left = rect.left + window.scrollX;
+        const width = rect.width;
+        
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = top + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.style.width = width + 'px';
+        dropdown.style.zIndex = '100';
+        
+        // Verificar si hay espacio suficiente abajo
+        const dropdownHeight = 350; // altura estimada del dropdown
+        const spaceBelow = window.innerHeight - rect.bottom;
+        
+        if (spaceBelow < dropdownHeight) {
+            // Posicionar arriba si no hay espacio abajo
+            dropdown.style.top = (rect.top + window.scrollY - dropdownHeight - 4) + 'px';
+        }
+        
+        // Enfocar el input de búsqueda
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+        
+        // Ajustar z-index del botón de agregar
+        if (addButton) {
+            addButton.style.zIndex = '101';
+        }
+        
+        // Event listeners para cerrar
+        document.addEventListener('click', closeDropdownOnClickOutside);
+        document.addEventListener('scroll', closeDropdownOnScroll);
+        window.addEventListener('resize', closeDropdownOnResize);
+        
+    } else {
+        dropdown.classList.remove('show');
+        selectButton.classList.remove('open');
+        
+        // Limpiar estilos
+        dropdown.style.position = '';
+        dropdown.style.top = '';
+        dropdown.style.left = '';
+        dropdown.style.width = '';
+        dropdown.style.zIndex = '';
+        
+        // Limpiar input de búsqueda
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        // Resetear z-index del botón de agregar
+        if (addButton) {
+            addButton.style.zIndex = '';
+        }
+        
+        // Remover event listeners
+        document.removeEventListener('click', closeDropdownOnClickOutside);
+        document.removeEventListener('scroll', closeDropdownOnScroll);
+        window.removeEventListener('resize', closeDropdownOnResize);
+    }
+}
+
+// Funciones auxiliares para cerrar el dropdown
+function closeDropdownOnClickOutside(e) {
+    const dropdown = document.querySelector('.custom-dropdown');
+    const selectButton = document.querySelector('.custom-select');
+    
+    if (dropdown && selectButton && !dropdown.contains(e.target) && !selectButton.contains(e.target)) {
+        toggleDropdownIndependent(false);
+    }
+}
+
+function closeDropdownOnScroll() {
+    toggleDropdownIndependent(false);
+}
+
+function closeDropdownOnResize() {
+    toggleDropdownIndependent(false);
+}
+
+// Función global para agregar producto desde el modal
+window.addProductFromModal = function(code, id, name, imageUrl, stock, price, categoryName) {
+    console.log('🎯 addProductFromModal llamado con:', { code, id, name, stock, price, categoryName });
+    
+    // Crear objeto producto
+    const product = {
+        id: id,
+        code: code,
+        name: name,
+        stock: parseInt(stock),
+        sale_price: parseFloat(price),
+        image_url: imageUrl,
+        category: { name: categoryName }
+    };
+    
+    console.log('📋 Producto creado:', product);
+    
+    // Obtener la instancia de Alpine.js
+    const alpineElement = document.querySelector('[x-data="saleForm()"]');
+    if (alpineElement && alpineElement._x_dataStack && alpineElement._x_dataStack[0]) {
+        const saleForm = alpineElement._x_dataStack[0];
+        
+        console.log('✅ Instancia de Alpine.js encontrada');
+        
+        // Agregar producto a la tabla
+        const success = saleForm.addProductToTable(product, true);
+        
+        if (success) {
+            // Cerrar modal
+            saleForm.searchModalOpen = false;
+            
+            // Mostrar notificación de éxito
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Producto agregado!',
+                    text: `${product.name} se agregó a la venta`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+            
+            console.log('✅ Producto agregado exitosamente');
+        } else {
+            console.log('❌ No se pudo agregar el producto');
+        }
+    } else {
+        console.error('❌ No se pudo acceder al formulario de venta');
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo acceder al formulario de venta',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    }
+};
+
+// Inicializar el select personalizado cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌐 DOM cargado, inicializando select personalizado...');
+    setTimeout(() => {
+        createCustomSelectIndependent();
+    }, 1000);
 });
