@@ -13,6 +13,11 @@ window.modalManager = function() {
         closeModal(modalName) {
             this[modalName] = false;
             document.body.style.overflow = 'auto';
+            
+            // Reiniciar filtros si se cierra el modal de reporte de deudas
+            if (modalName === 'debtReportModal') {
+                this.resetDebtReportFilters();
+            }
         },
         
         closeAllModals() {
@@ -20,6 +25,9 @@ window.modalManager = function() {
             this.debtReportModal = false;
             this.debtPaymentModal = false;
             document.body.style.overflow = 'auto';
+            
+            // Reiniciar filtros del reporte de deudas al cerrar
+            this.resetDebtReportFilters();
         },
         
         // Función para abrir el modal de reporte de deudas
@@ -27,6 +35,26 @@ window.modalManager = function() {
             this.debtReportModal = true;
             document.body.style.overflow = 'hidden';
             this.loadDebtReport();
+        },
+        
+        // Función para reiniciar filtros del reporte de deudas
+        resetDebtReportFilters() {
+            const searchFilter = document.getElementById('searchFilter');
+            const orderFilter = document.getElementById('orderFilter');
+            const debtTypeFilter = document.getElementById('debtTypeFilter');
+            
+            // Establecer valores por defecto
+            if (searchFilter) searchFilter.value = '';
+            if (orderFilter) orderFilter.value = 'debt_desc';
+            if (debtTypeFilter) debtTypeFilter.value = '';
+            
+            // Limpiar filtros guardados en localStorage
+            localStorage.removeItem('debtReportFilters');
+            
+            // Aplicar filtros (mostrar todos los resultados)
+            if (typeof applyFilters === 'function') {
+                applyFilters();
+            }
         },
         
         loadCustomerDetails(customerId) {
@@ -602,6 +630,9 @@ window.modalManager = function() {
                     
                     // Inicializar event listeners después de cargar el contenido
                     this.initializeDebtReportEvents();
+                    
+                    // Reiniciar filtros a valores por defecto
+                    this.resetDebtReportFilters();
                     
                     // Sincronizar con el valor guardado después de un breve delay
                     setTimeout(() => {

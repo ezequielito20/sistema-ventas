@@ -28,8 +28,13 @@ function initializeDebtReportModal() {
     // Inicializar eventos
     initializeEvents();
     
-    // Cargar filtros guardados
+    // Cargar filtros guardados (ahora reinicia a valores por defecto)
     loadSavedFilters();
+    
+    // Reiniciar filtros cuando se recarga la página
+    window.addEventListener('beforeunload', function() {
+        localStorage.removeItem('debtReportFilters');
+    });
 }
 
 // ===== FUNCIONES DE TIPO DE CAMBIO =====
@@ -264,19 +269,8 @@ function getCustomerName(row) {
 
 // Función para limpiar todos los filtros
 function clearAllFilters() {
-    const searchFilter = document.getElementById('searchFilter');
-    const orderFilter = document.getElementById('orderFilter');
-    const debtTypeFilter = document.getElementById('debtTypeFilter');
-    
-    if (searchFilter) searchFilter.value = '';
-    if (orderFilter) orderFilter.value = 'debt_desc';
-    if (debtTypeFilter) debtTypeFilter.value = '';
-    
-    // Limpiar filtros guardados
-    localStorage.removeItem('debtReportFilters');
-    
-    // Aplicar filtros (mostrar todos)
-    applyFilters();
+    // Usar la función de reinicio para limpiar filtros
+    resetFiltersToDefault();
     
     showNotification('Filtros limpiados', 'success');
 }
@@ -290,25 +284,26 @@ function saveFilters(filters) {
 
 // Función para cargar filtros guardados
 function loadSavedFilters() {
-    const savedFilters = localStorage.getItem('debtReportFilters');
-    if (!savedFilters) return;
+    // Reiniciar filtros a valores por defecto al cargar la página
+    resetFiltersToDefault();
+}
+
+// Función para reiniciar filtros a valores por defecto
+function resetFiltersToDefault() {
+    const searchFilter = document.getElementById('searchFilter');
+    const orderFilter = document.getElementById('orderFilter');
+    const debtTypeFilter = document.getElementById('debtTypeFilter');
     
-    try {
-        const filters = JSON.parse(savedFilters);
-        
-        const searchFilter = document.getElementById('searchFilter');
-        const orderFilter = document.getElementById('orderFilter');
-        const debtTypeFilter = document.getElementById('debtTypeFilter');
-        
-        if (searchFilter && filters.search) searchFilter.value = filters.search;
-        if (orderFilter && filters.order) orderFilter.value = filters.order;
-        if (debtTypeFilter && filters.debtType) debtTypeFilter.value = filters.debtType;
-        
-        // Aplicar filtros
-        applyFilters();
-    } catch (error) {
-        console.error('Error al cargar filtros guardados:', error);
-    }
+    // Establecer valores por defecto
+    if (searchFilter) searchFilter.value = '';
+    if (orderFilter) orderFilter.value = 'debt_desc';
+    if (debtTypeFilter) debtTypeFilter.value = '';
+    
+    // Limpiar filtros guardados en localStorage
+    localStorage.removeItem('debtReportFilters');
+    
+    // Aplicar filtros (mostrar todos los resultados)
+    applyFilters();
 }
 
 // ===== FUNCIONES DE EVENTOS =====
