@@ -333,29 +333,29 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn-modern btn-primary view-details" 
+                                        <button type="button" class="btn-modern btn-primary view-details bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2" 
                                                 data-id="{{ $sale->id }}" 
                                                 onclick="showSaleDetails({{ $sale->id }})">
-                                            <i class="fas fa-list"></i>
-                                            <span>Ver Detalle</span>
+                                            <i class="fas fa-list text-white"></i>
+                                            <span class="text-white hidden sm:inline">Ver Detalle</span>
                                         </button>
                                     </td>
                                     <td>
-                                        <div class="action-buttons">
+                                        <div class="action-buttons flex gap-2">
                                             @can('sales.edit')
-                                                <button type="button" class="btn-action btn-edit" 
+                                                <button type="button" class="btn-action btn-edit bg-yellow-500 hover:bg-yellow-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" 
                                                         data-id="{{ $sale->id }}" 
                                                         title="Editar venta"
                                                         onclick="editSale({{ $sale->id }})">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="fas fa-edit text-white"></i>
                                                 </button>
                                             @endcan
                                             @can('sales.destroy')
-                                                <button type="button" class="btn-action btn-delete delete-sale" 
+                                                <button type="button" class="btn-action btn-delete delete-sale bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" 
                                                         data-id="{{ $sale->id }}" 
                                                         title="Eliminar venta"
                                                         onclick="deleteSale({{ $sale->id }})">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-trash text-white"></i>
                                                 </button>
                                             @endcan
                                         </div>
@@ -369,82 +369,85 @@
 
             {{-- Vista móvil optimizada --}}
             <div class="mobile-view" id="mobileView">
-                <div class="mobile-sales-list">
+                <div class="mobile-sales-list space-y-3 p-3">
                     @foreach ($sales as $sale)
-                        <div class="mobile-sale-card" data-sale-id="{{ $sale->id }}">
-                            <div class="mobile-card-header">
-                                <div class="mobile-sale-number">
-                                    <span class="number-badge">#{{ $loop->iteration }}</span>
+                        <div class="mobile-sale-card bg-white border border-gray-200 rounded-lg shadow-sm" data-sale-id="{{ $sale->id }}">
+                            {{-- Header compacto --}}
+                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-lg">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-white text-blue-600 px-2 py-1 rounded text-sm font-bold">#{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                                        <span class="text-white text-sm">Completada</span>
+                                    </div>
                                 </div>
-                                <div class="mobile-sale-total">
-                                    <span class="total-amount-mobile">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                <div class="text-white font-bold text-lg">
+                                    {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
                                 </div>
                             </div>
-                            
-                            <div class="mobile-card-body">
-                                <div class="mobile-customer-section">
-                                    <div class="mobile-customer-avatar">
-                                        <i class="fas fa-user-circle"></i>
+
+                            {{-- Body compacto --}}
+                            <div class="p-3">
+                                {{-- Cliente --}}
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-blue-600"></i>
                                     </div>
-                                    <div class="mobile-customer-info">
-                                        <h4 class="mobile-customer-name">{{ $sale->customer->name }}</h4>
-                                        <p class="mobile-customer-email">{{ $sale->customer->email }}</p>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-gray-900 font-semibold text-sm truncate">{{ $sale->customer->name }}</h4>
+                                        <p class="text-gray-500 text-xs truncate">{{ $sale->customer->email }}</p>
                                     </div>
                                 </div>
-                                
-                                <div class="mobile-sale-details">
-                                    <div class="mobile-detail-row">
-                                        <div class="mobile-detail-label">
-                                            <i class="fas fa-calendar-alt"></i>
+
+                                {{-- Detalles compactos --}}
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-calendar text-blue-500 text-xs"></i>
                                             <span>Fecha</span>
                                         </div>
-                                        <div class="mobile-detail-value">
-                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}
-                                        </div>
+                                        <span class="text-gray-900 font-medium">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}</span>
                                     </div>
                                     
-                                    <div class="mobile-detail-row">
-                                        <div class="mobile-detail-label">
-                                            <i class="fas fa-boxes"></i>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-boxes text-green-500 text-xs"></i>
                                             <span>Productos</span>
                                         </div>
-                                        <div class="mobile-detail-value">
-                                            <div class="mobile-product-badges">
-                                                <span class="mobile-badge unique">{{ $sale->saleDetails->count() }} únicos</span>
-                                                <span class="mobile-badge total">{{ $sale->saleDetails->sum('quantity') }} totales</span>
-                                            </div>
+                                        <div class="flex gap-1">
+                                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">{{ $sale->saleDetails->count() }} únicos</span>
+                                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">{{ $sale->saleDetails->sum('quantity') }} totales</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="mobile-card-footer">
-                                <div class="mobile-actions">
-                                    <button type="button" class="mobile-btn mobile-btn-primary view-details"
+
+                            {{-- Footer compacto --}}
+                            <div class="p-3 bg-gray-50 rounded-b-lg border-t border-gray-200">
+                                <div class="flex gap-2">
+                                    <button type="button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                                             data-id="{{ $sale->id }}" 
                                             onclick="showSaleDetails({{ $sale->id }})">
-                                        <i class="fas fa-list"></i>
-                                        <span>Ver Detalle</span>
+                                        <i class="fas fa-list text-white text-xs"></i>
+                                        <span class="text-white hidden sm:inline">Ver Detalle</span>
                                     </button>
                                     
-                                    <div class="mobile-action-buttons">
-                                        @can('sales.edit')
-                                            <button type="button" class="mobile-btn-action btn-edit"
-                                                    data-id="{{ $sale->id }}" 
-                                                    title="Editar venta"
-                                                    onclick="editSale({{ $sale->id }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        @endcan
-                                        @can('sales.destroy')
-                                            <button type="button" class="mobile-btn-action delete-sale"
-                                                    data-id="{{ $sale->id }}" 
-                                                    title="Eliminar venta"
-                                                    onclick="deleteSale({{ $sale->id }})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endcan
-                                    </div>
+                                    @can('sales.edit')
+                                        <button type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white w-8 h-8 rounded flex items-center justify-center transition-colors duration-200"
+                                                data-id="{{ $sale->id }}" 
+                                                title="Editar venta"
+                                                onclick="editSale({{ $sale->id }})">
+                                            <i class="fas fa-edit text-white text-xs"></i>
+                                        </button>
+                                    @endcan
+                                    @can('sales.destroy')
+                                        <button type="button" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded flex items-center justify-center transition-colors duration-200"
+                                                data-id="{{ $sale->id }}" 
+                                                title="Eliminar venta"
+                                                onclick="deleteSale({{ $sale->id }})">
+                                            <i class="fas fa-trash text-white text-xs"></i>
+                                        </button>
+                                    @endcan
                                 </div>
                             </div>
                         </div>
@@ -457,96 +460,96 @@
 
             {{-- Vista de tarjetas moderna --}}
             <div class="cards-view" id="cardsView" style="display: none;">
-                <div class="modern-cards-grid">
+                <div class="modern-cards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
                     @foreach ($sales as $sale)
-                        <div class="modern-sale-card">
-                            <div class="sale-card-header">
-                                <div class="sale-number">
+                        <div class="modern-sale-card bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                            <div class="sale-card-header bg-gradient-to-r from-blue-600 to-indigo-600 text-black p-4 rounded-t-xl">
+                                <div class="sale-number text-black font-bold text-lg">
                                     #{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}
                                 </div>
-                                <div class="sale-status">
-                                    <span class="status-dot active"></span>
-                                    <span class="status-text">Completada</span>
+                                <div class="sale-status flex items-center gap-2">
+                                    <span class="status-dot active w-3 h-3 bg-green-400 rounded-full"></span>
+                                    <span class="status-text text-black font-medium">Completada</span>
                                 </div>
                             </div>
 
-                            <div class="sale-card-body">
-                                <div class="customer-section">
-                                    <div class="customer-avatar-large">
-                                        <i class="fas fa-user-circle"></i>
+                            <div class="sale-card-body p-6">
+                                <div class="customer-section flex items-center gap-4 mb-6">
+                                    <div class="customer-avatar-large w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user-circle text-white text-2xl"></i>
                                     </div>
-                                    <div class="customer-info-card">
-                                        <h4 class="customer-name">{{ $sale->customer->name }}</h4>
-                                        <p class="customer-email">{{ $sale->customer->email }}</p>
+                                    <div class="customer-info-card flex-1">
+                                        <h4 class="customer-name text-gray-900 font-bold text-lg mb-1">{{ $sale->customer->name }}</h4>
+                                        <p class="customer-email text-gray-600 text-sm">{{ $sale->customer->email }}</p>
                                     </div>
                                 </div>
 
-                                <div class="sale-details">
-                                    <div class="detail-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-calendar-alt"></i>
+                                <div class="sale-details space-y-4">
+                                    <div class="detail-row flex justify-between items-center">
+                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
+                                            <i class="fas fa-calendar-alt text-blue-500"></i>
                                             <span>Fecha</span>
                                         </div>
-                                        <div class="detail-value">
+                                        <div class="detail-value text-gray-900 font-semibold">
                                             {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}
                                         </div>
                                     </div>
 
-                                    <div class="detail-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-boxes"></i>
+                                    <div class="detail-row flex justify-between items-center">
+                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
+                                            <i class="fas fa-boxes text-green-500"></i>
                                             <span>Productos</span>
                                         </div>
                                         <div class="detail-value">
-                                            <div class="product-badges">
-                                                <span class="mini-badge unique">{{ $sale->saleDetails->count() }} únicos</span>
-                                                <span class="mini-badge total">{{ $sale->saleDetails->sum('quantity') }} totales</span>
+                                            <div class="product-badges flex gap-2">
+                                                <span class="mini-badge unique bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">{{ $sale->saleDetails->count() }} únicos</span>
+                                                <span class="mini-badge total bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">{{ $sale->saleDetails->sum('quantity') }} totales</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="detail-row total-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-dollar-sign"></i>
+                                    <div class="detail-row total-row flex justify-between items-center pt-4 border-t border-gray-200">
+                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
+                                            <i class="fas fa-dollar-sign text-green-500"></i>
                                             <span>Total</span>
                                         </div>
-                                        <div class="detail-value total-amount">
+                                        <div class="detail-value total-amount text-black font-bold text-xl">
                                             {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="sale-card-footer">
-                                <button type="button" class="btn-card-primary view-details"
+                            <div class="sale-card-footer p-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
+                                <button type="button" class="btn-card-primary view-details bg-blue-600 hover:bg-blue-700 text-black px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-full justify-center"
                                         data-id="{{ $sale->id }}" 
                                         onclick="showSaleDetails({{ $sale->id }})">
-                                    <i class="fas fa-list"></i>
-                                    <span>Ver Detalle</span>
+                                    <i class="fas fa-list text-black"></i>
+                                    <span class="text-black hidden sm:inline">Ver Detalle</span>
                                 </button>
 
-                                <div class="card-actions">
+                                <div class="card-actions flex justify-center gap-2 mt-3">
                                     @can('sales.edit')
-                                        <button type="button" class="btn-card-action btn-edit"
+                                        <button type="button" class="btn-card-action btn-edit bg-yellow-500 hover:bg-yellow-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
                                                 data-id="{{ $sale->id }}" 
                                                 title="Editar venta"
                                                 onclick="editSale({{ $sale->id }})">
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit text-white"></i>
                                         </button>
                                     @endcan
                                     @can('sales.destroy')
-                                        <button type="button" class="btn-card-action delete delete-sale"
+                                        <button type="button" class="btn-card-action delete delete-sale bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
                                                 data-id="{{ $sale->id }}" 
                                                 title="Eliminar venta"
                                                 onclick="deleteSale({{ $sale->id }})">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fas fa-trash text-white"></i>
                                         </button>
                                     @endcan
                                     @can('sales.print')
-                                        <button type="button" class="btn-card-action print" 
+                                        <button type="button" class="btn-card-action print bg-gray-500 hover:bg-gray-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200" 
                                                 title="Imprimir venta"
                                                 onclick="printSale({{ $sale->id }})">
-                                            <i class="fas fa-print"></i>
+                                            <i class="fas fa-print text-white"></i>
                                         </button>
                                     @endcan
                                 </div>

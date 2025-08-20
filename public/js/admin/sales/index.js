@@ -249,6 +249,66 @@ function showConfirmDialog(title, text) {
     });
 }
 
+// ===== FUNCIONES DE CAMBIO DE VISTA =====
+
+// Cambiar vista (tabla/tarjetas)
+function changeView(viewType) {
+    console.log('Cambiando vista a:', viewType);
+    
+    // Actualizar variable global
+    currentView = viewType;
+    
+    // Obtener elementos de vista
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+    const mobileView = document.getElementById('mobileView');
+    
+    // Obtener botones de toggle
+    const viewToggles = document.querySelectorAll('.view-toggle');
+    
+    // Remover clase active de todos los botones
+    viewToggles.forEach(toggle => {
+        toggle.classList.remove('active');
+    });
+    
+    // Ocultar todas las vistas
+    if (tableView) tableView.style.display = 'none';
+    if (cardsView) cardsView.style.display = 'none';
+    if (mobileView) mobileView.style.display = 'none';
+    
+    // Mostrar vista seleccionada y activar botón correspondiente
+    switch (viewType) {
+        case 'table':
+            if (tableView) tableView.style.display = 'block';
+            document.querySelector('.view-toggle[data-view="table"]')?.classList.add('active');
+            break;
+        case 'cards':
+            if (cardsView) cardsView.style.display = 'block';
+            document.querySelector('.view-toggle[data-view="cards"]')?.classList.add('active');
+            break;
+        case 'mobile':
+            if (mobileView) mobileView.style.display = 'block';
+            break;
+    }
+    
+    // Guardar preferencia en localStorage
+    localStorage.setItem('salesViewPreference', viewType);
+    
+    console.log('Vista cambiada exitosamente a:', viewType);
+}
+
+// Detectar vista móvil automáticamente
+function detectMobileView() {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && currentView !== 'mobile') {
+        changeView('mobile');
+    } else if (!isMobile && currentView === 'mobile') {
+        // Restaurar vista anterior en desktop
+        const savedView = localStorage.getItem('salesViewPreference') || 'table';
+        changeView(savedView);
+    }
+}
+
 // ===== INICIALIZACIÓN CUANDO EL DOM ESTÉ LISTO =====
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Aplicación de ventas inicializada');
@@ -276,4 +336,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Configurar event listeners para botones de cambio de vista
+    const viewToggles = document.querySelectorAll('.view-toggle');
+    viewToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const viewType = this.getAttribute('data-view');
+            console.log('Botón de vista clickeado:', viewType);
+            changeView(viewType);
+        });
+    });
+    
+    // Restaurar vista guardada o usar vista por defecto
+    const savedView = localStorage.getItem('salesViewPreference') || 'table';
+    
+    // En pantallas pequeñas, forzar vista de tarjetas
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        changeView('cards');
+    } else {
+        changeView(savedView);
+    }
+    
+    // Detectar cambios de tamaño de ventana para vista móvil
+    window.addEventListener('resize', detectMobileView);
+    
+    // Detectar vista móvil inicial
+    detectMobileView();
+    
+    console.log('Event listeners de cambio de vista configurados');
 });
