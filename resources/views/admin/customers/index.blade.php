@@ -1866,7 +1866,6 @@
                                     <label for="customer_name" class="text-sm font-semibold text-gray-700">Cliente</label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="fas fa-user text-gray-400"></i>
                                         </div>
                                         <input type="text" id="customer_name" readonly
                                             class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
@@ -1876,7 +1875,6 @@
                                         <label for="customer_phone" class="text-sm font-semibold text-gray-700">Teléfono</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-phone text-gray-400"></i>
                                             </div>
                                             <input type="text" id="customer_phone" readonly
                                                 class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
@@ -1901,24 +1899,34 @@
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-gray-700">Deuda Actual</label>
+                                        <label for="current_debt" class="text-sm font-semibold text-gray-700">Deuda Actual</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-20">
+                                                <i class="fas fa-dollar-sign text-gray-400 text-sm"></i>
                                             </div>
-                                            <input type="text" id="current_debt" readonly
-                                                class="w-full pl-8 pr-3 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 font-semibold text-sm">
+                                            <div id="current_debt" class="w-full pl-12 pr-12 py-2.5 bg-red-50 border border-red-200 rounded-lg text-red-700 font-semibold text-sm flex items-center">
+                                                <span class="text-red-700 font-semibold">$0.00</span>
+                                            </div>
+                                            <button type="button" id="current_debt_btn" class="absolute inset-y-0 right-0 px-3 bg-red-500 hover:bg-red-600 text-white rounded-r-lg transition-colors duration-200" title="Deuda actual">
+                                                <i class="fas fa-info text-sm"></i>
+                                            </button>
                                         </div>
+                                        <small class="text-xs text-gray-500">Deuda total del cliente</small>
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-sm font-semibold text-gray-700">Deuda Restante</label>
+                                        <label for="remaining_debt" class="text-sm font-semibold text-gray-700">Deuda Restante</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <span class="text-gray-500 font-medium">{{ $currency->symbol }}</span>
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-20">
+                                                <i class="fas fa-dollar-sign text-gray-400 text-sm"></i>
                                             </div>
-                                            <input type="text" id="remaining_debt" readonly
-                                                class="w-full pl-8 pr-3 py-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 font-semibold text-sm">
+                                            <div id="remaining_debt" class="w-full pl-12 pr-12 py-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 font-semibold text-sm flex items-center">
+                                                <span class="text-orange-700 font-semibold">$0.00</span>
+                                            </div>
+                                            <button type="button" id="remaining_debt_btn" class="absolute inset-y-0 right-0 px-3 bg-orange-500 hover:bg-orange-600 text-white rounded-r-lg transition-colors duration-200" title="Deuda restante">
+                                                <i class="fas fa-calculator text-sm"></i>
+                                            </button>
                                         </div>
+                                        <small class="text-xs text-gray-500">Deuda después del pago</small>
                                     </div>
                                 </div>
                             </div>
@@ -1935,11 +1943,11 @@
                                     <div class="space-y-2">
                                         <label for="payment_amount" class="text-sm font-semibold text-gray-700">Monto del Pago</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-dollar-sign text-gray-400"></i>
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-20">
+                                                <i class="fas fa-dollar-sign text-gray-400 text-sm"></i>
                                             </div>
                                             <input type="number" id="payment_amount" name="payment_amount" step="0.01" min="0.01" required
-                                                class="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                                class="w-full pl-12 pr-12 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                             <button type="button" id="max_payment_btn" class="absolute inset-y-0 right-0 px-3 bg-green-500 hover:bg-green-600 text-white rounded-r-lg transition-colors duration-200" title="Pagar deuda completa">
                                                 <i class="fas fa-plus text-sm"></i>
                                             </button>
@@ -1950,11 +1958,10 @@
                                     <div class="space-y-2">
                                         <label for="payment_date" class="text-sm font-semibold text-gray-700">Fecha del Pago</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-calendar text-gray-400"></i>
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-20">
                                             </div>
                                             <input type="date" id="payment_date" name="payment_date" required
-                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                                class="w-full pl-12 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                         </div>
                                         <small class="text-xs text-gray-500">La fecha no puede ser mayor a hoy</small>
                                     </div>
@@ -1962,11 +1969,10 @@
                                     <div class="space-y-2">
                                         <label for="payment_time" class="text-sm font-semibold text-gray-700">Hora del Pago</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-clock text-gray-400"></i>
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-20">
                                             </div>
                                             <input type="time" id="payment_time" name="payment_time" required
-                                                class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                                                class="w-full pl-12 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
                                         </div>
                                         <small class="text-xs text-gray-500">Hora en que se realizó el pago</small>
                                     </div>

@@ -138,10 +138,11 @@
                                id="phone"
                                name="phone"
                                x-model="form.phone"
-                               @input="validateField('phone'); formatPhone()"
-                               @blur="validateField('phone')"
+                               @input="validateField('phone')"
+                               @blur="validateField('phone'); formatPhone()"
                                :class="getFieldClasses('phone')"
                                placeholder="(123) 456-7890"
+                               maxlength="10"
                                autocomplete="off">
                         <div x-show="errors.phone" x-cloak class="mt-2 flex items-center space-x-2 text-sm text-red-600">
                             <i class="fas fa-exclamation-circle"></i>

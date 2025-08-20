@@ -1,8 +1,8 @@
 // ===== CONFIGURACIÓN GLOBAL =====
 const CUSTOMER_CREATE_CONFIG = {
     routes: {
-        store: '/admin/customers',
-        index: '/admin/customers'
+        store: '/customers/create',
+        index: '/customers'
     },
     validation: {
         name: {
@@ -14,7 +14,8 @@ const CUSTOMER_CREATE_CONFIG = {
             maxLength: 11
         },
         phone: {
-            minLength: 10
+            minLength: 10,
+            maxLength: 10
         },
         email: {
             pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -128,6 +129,8 @@ function customerForm() {
                 const cleanPhone = value.replace(/\D/g, '');
                 if (cleanPhone.length < CUSTOMER_CREATE_CONFIG.validation.phone.minLength) {
                     this.errors.phone = `El teléfono debe tener al menos ${CUSTOMER_CREATE_CONFIG.validation.phone.minLength} dígitos`;
+                } else if (cleanPhone.length > 10) {
+                    this.errors.phone = 'El teléfono no puede tener más de 10 dígitos';
                 } else {
                     delete this.errors.phone;
                 }
@@ -166,13 +169,26 @@ function customerForm() {
 
         formatPhone() {
             let value = this.form.phone.replace(/\D/g, '');
-            if (value.length >= 6) {
-                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-            } else if (value.length >= 3) {
-                value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            
+            // Limitar a máximo 10 dígitos
+            if (value.length > 10) {
+                value = value.substring(0, 10);
             }
-            this.form.phone = value;
+            
+            // Solo formatear si hay suficientes dígitos para un formato completo
+            if (value.length === 0) {
+                this.form.phone = '';
+            } else if (value.length >= 6) {
+                this.form.phone = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (value.length >= 3) {
+                this.form.phone = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            } else {
+                // Para 1-2 dígitos, mantener sin formato para permitir edición libre
+                this.form.phone = value;
+            }
         },
+
+
 
         get isFormValid() {
             return !this.errors.name && this.form.name;

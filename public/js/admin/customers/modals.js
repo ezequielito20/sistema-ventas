@@ -142,8 +142,14 @@ window.modalManager = function() {
                             const currentDebtField = document.getElementById('current_debt');
                             const remainingDebtField = document.getElementById('remaining_debt');
                             
-                            if (currentDebtField) currentDebtField.value = data.current_debt;
-                            if (remainingDebtField) remainingDebtField.value = data.current_debt;
+                            if (currentDebtField) {
+                                const currentDebtSpan = currentDebtField.querySelector('span');
+                                if (currentDebtSpan) currentDebtSpan.textContent = `$${data.current_debt}`;
+                            }
+                            if (remainingDebtField) {
+                                const remainingDebtSpan = remainingDebtField.querySelector('span');
+                                if (remainingDebtSpan) remainingDebtSpan.textContent = `$${data.current_debt}`;
+                            }
                             
                             // Establecer fecha y hora actual en zona horaria local (UTC-4)
                             const now = new Date();
@@ -417,7 +423,11 @@ window.modalManager = function() {
             }
             
             const remainingDebt = currentDebt - paymentAmount;
-            document.getElementById('remaining_debt').value = remainingDebt.toFixed(2);
+            const remainingDebtField = document.getElementById('remaining_debt');
+            if (remainingDebtField) {
+                const remainingDebtSpan = remainingDebtField.querySelector('span');
+                if (remainingDebtSpan) remainingDebtSpan.textContent = `$${remainingDebt.toFixed(2)}`;
+            }
         },
 
         validatePaymentDate() {
@@ -491,82 +501,58 @@ window.modalManager = function() {
                 allowOutsideClick: false
             });
 
-            $.ajax({
-                url: `/admin/customers/${customerId}/register-payment`,
-                type: 'POST',
-                data: {
-                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    payment_amount: paymentAmount,
-                    payment_date: paymentDate,
-                    payment_time: paymentTime,
-                    notes: notes
-                },
-                success: (response) => {
-                    if (response.success) {
-                        // Cerrar modal
-                        this.closeModal('debtPaymentModal');
-                        
-                        // Mostrar mensaje de éxito
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Pago registrado!',
-                            text: response.message,
-                            timer: 3000,
-                            showConfirmButton: false
-                        });
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            formData.append('payment_amount', paymentAmount);
+            formData.append('payment_date', paymentDate);
+            formData.append('payment_time', paymentTime);
+            formData.append('notes', notes);
 
-                        // Actualizar la deuda en todas las vistas
-                        this.updateDebtInViews(customerId, response.new_debt, response.formatted_new_debt);
-                        
-                        // Recargar la página para actualizar estadísticas
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message || 'Error al registrar el pago'
-                        });
-                    }
-                },
-                error: (xhr) => {
-                    let errorMessage = 'Error al registrar el pago';
-                    let errorTitle = 'Error';
+            fetch(`/admin/customers/${customerId}/register-payment`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modal
+                    this.closeModal('debtPaymentModal');
                     
-                    if (xhr.responseJSON) {
-                        if (xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        
-                        // Si hay errores de validación específicos, mostrarlos
-                        if (xhr.responseJSON.errors) {
-                            const errors = xhr.responseJSON.errors;
-                            const errorMessages = [];
-                            
-                            // Recopilar todos los mensajes de error
-                            Object.keys(errors).forEach(field => {
-                                if (Array.isArray(errors[field])) {
-                                    errorMessages.push(...errors[field]);
-                                } else {
-                                    errorMessages.push(errors[field]);
-                                }
-                            });
-                            
-                            if (errorMessages.length > 0) {
-                                errorMessage = errorMessages.join('<br>');
-                                errorTitle = 'Error de Validación';
-                            }
-                        }
-                    }
+                    // Mostrar mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Pago registrado!',
+                        text: data.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+
+                    // Actualizar la deuda en todas las vistas
+                    this.updateDebtInViews(customerId, data.new_debt, data.formatted_new_debt);
                     
+                    // Recargar la página para actualizar estadísticas
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
                     Swal.fire({
                         icon: 'error',
-                        title: errorTitle,
-                        html: errorMessage,
-                        confirmButtonText: 'Entendido'
+                        title: 'Error',
+                        text: data.message || 'Error al registrar el pago'
                     });
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al registrar el pago. Por favor, inténtelo de nuevo.',
+                    confirmButtonText: 'Entendido'
+                });
             });
         },
 

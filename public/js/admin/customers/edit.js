@@ -1,8 +1,8 @@
 // ===== CONFIGURACIÓN GLOBAL =====
 const CUSTOMER_EDIT_CONFIG = {
     routes: {
-        update: '/admin/customers',
-        index: '/admin/customers'
+        update: '/customers/edit',
+        index: '/customers'
     },
     validation: {
         name: {
@@ -14,7 +14,8 @@ const CUSTOMER_EDIT_CONFIG = {
             maxLength: 11
         },
         phone: {
-            minLength: 10
+            minLength: 10,
+            maxLength: 10
         },
         email: {
             pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -132,6 +133,8 @@ function customerEditForm() {
                 const cleanPhone = value.replace(/\D/g, '');
                 if (cleanPhone.length < CUSTOMER_EDIT_CONFIG.validation.phone.minLength) {
                     this.errors.phone = `El teléfono debe tener al menos ${CUSTOMER_EDIT_CONFIG.validation.phone.minLength} dígitos`;
+                } else if (cleanPhone.length > 10) {
+                    this.errors.phone = 'El teléfono no puede tener más de 10 dígitos';
                 } else {
                     delete this.errors.phone;
                 }
@@ -178,13 +181,26 @@ function customerEditForm() {
 
         formatPhone() {
             let value = this.form.phone.replace(/\D/g, '');
-            if (value.length >= 6) {
-                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-            } else if (value.length >= 3) {
-                value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            
+            // Limitar a máximo 10 dígitos
+            if (value.length > 10) {
+                value = value.substring(0, 10);
             }
-            this.form.phone = value;
+            
+            // Solo formatear si hay suficientes dígitos para un formato completo
+            if (value.length === 0) {
+                this.form.phone = '';
+            } else if (value.length >= 6) {
+                this.form.phone = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (value.length >= 3) {
+                this.form.phone = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            } else {
+                // Para 1-2 dígitos, mantener sin formato para permitir edición libre
+                this.form.phone = value;
+            }
         },
+
+
 
         // ===== MÉTODOS DE GESTIÓN DE DEUDA =====
 
@@ -293,7 +309,15 @@ function customerEditForm() {
 
         prepareFormData() {
             const formData = new FormData();
-            formData.append('_token', this.getCsrfToken());
+            const csrfToken = this.getCsrfToken();
+            
+            // Verificar que tenemos el token CSRF
+            if (!csrfToken) {
+                console.error('Token CSRF no encontrado');
+                throw new Error('Token CSRF no encontrado');
+            }
+            
+            formData.append('_token', csrfToken);
             formData.append('_method', 'PUT');
             formData.append('name', this.form.name);
             formData.append('nit_number', this.form.nit_number);
@@ -306,13 +330,15 @@ function customerEditForm() {
 
         async sendFormData(formData) {
             const customerId = window.customerData?.id;
-            const updateUrl = `${CUSTOMER_EDIT_CONFIG.routes.update}/${customerId}`;
+            const updateUrl = `/customers/edit/${customerId}`;
+            const csrfToken = this.getCsrfToken();
             
             const response = await fetch(updateUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
                 }
             });
 
@@ -325,7 +351,7 @@ function customerEditForm() {
                 
                 // Redirigir a la lista de clientes después de un breve delay
                 setTimeout(() => {
-                    window.location.href = CUSTOMER_EDIT_CONFIG.routes.index;
+                    window.location.href = '/customers';
                 }, 1500);
             } else {
                 // Manejar errores de validación del servidor
@@ -341,9 +367,26 @@ function customerEditForm() {
         // ===== MÉTODOS DE UTILIDAD =====
 
         getCsrfToken() {
-            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                   document.querySelector('input[name="_token"]')?.value || 
-                   '';
+            // Intentar obtener el token del meta tag primero
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (metaToken) {
+                return metaToken;
+            }
+            
+            // Fallback: obtener del input hidden del formulario
+            const inputToken = document.querySelector('input[name="_token"]')?.value;
+            if (inputToken) {
+                return inputToken;
+            }
+            
+            // Fallback: buscar en cualquier input hidden con _token
+            const anyToken = document.querySelector('input[name="_token"]')?.value;
+            if (anyToken) {
+                return anyToken;
+            }
+            
+            console.error('No se pudo encontrar el token CSRF');
+            return '';
         },
 
         showAlert(message, type = 'info') {
