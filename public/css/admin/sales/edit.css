@@ -1,0 +1,592 @@
+/* ===== ESTILOS PARA LA VISTA DE EDICIÓN DE VENTAS ===== */
+
+/* Variables globales */
+:root {
+    --primary-color: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary-color: #8b5cf6;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --currency-symbol: '$';
+}
+
+/* Animaciones personalizadas */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Aplicar animaciones a las secciones */
+.space-y-8 > div:nth-child(1) {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.space-y-8 > div:nth-child(2) {
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.space-y-8 > div:nth-child(3) {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* Estado vacío mejorado */
+.empty-state:not(.hidden) {
+    display: block !important;
+}
+
+.empty-state.hidden {
+    display: none !important;
+}
+
+/* Tabla moderna - ocultar cuando esté vacía */
+.modern-table:has(tbody:empty) {
+    display: none;
+}
+
+/* Scrollbar personalizado */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+}
+
+/* Input de cantidad personalizado */
+.quantity-input {
+    width: 80px !important;
+    text-align: center;
+    font-weight: 600;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Botones de acción en la tabla */
+.btn-action-remove {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-action-remove:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Estilos para iconos y botones */
+.fas, .far, .fab {
+    color: inherit;
+}
+
+/* Botones del header */
+.bg-white.bg-opacity-20.hover\:bg-opacity-30 .fas {
+    color: white;
+}
+
+/* Botones de búsqueda y agregar */
+.bg-blue-500 .fas,
+.bg-green-500 .fas {
+    color: white;
+}
+
+/* Botones principales */
+.bg-purple-600 .fas,
+.bg-red-500 .fas {
+    color: white;
+}
+
+/* Botones de acción en tabla */
+.select-product .fas {
+    color: white;
+}
+
+/* Iconos en secciones de información */
+.bg-gradient-to-r.from-blue-600.to-indigo-600 .fas,
+.bg-gradient-to-r.from-emerald-600.to-teal-600 .fas {
+    color: white !important;
+}
+
+/* Iconos en contenedores de colores específicos */
+.bg-blue-500.bg-opacity-30 .fas {
+    color: white !important;
+}
+
+.bg-emerald-500.bg-opacity-30 .fas {
+    color: white !important;
+}
+
+.bg-purple-500.bg-opacity-30 .fas {
+    color: white !important;
+}
+
+.bg-emerald-600.bg-opacity-30 .fas {
+    color: white !important;
+}
+
+.bg-blue-600 .fas {
+    color: white !important;
+}
+
+/* Iconos en inputs y labels */
+.text-indigo-500 {
+    color: #6366f1 !important;
+}
+
+/* Iconos en botones de acción */
+.btn-action-remove .fas {
+    color: white !important;
+}
+
+/* Iconos en el modal */
+.bg-gradient-to-r.from-purple-600.to-pink-600 .fas {
+    color: white !important;
+}
+
+/* Iconos en badges y estados */
+.bg-green-100.text-green-800 .fas,
+.bg-yellow-100.text-yellow-800 .fas,
+.bg-red-100.text-red-800 .fas {
+    color: inherit;
+}
+
+/* Iconos en el header principal */
+.bg-gradient-to-br.from-indigo-600.via-purple-600.to-blue-600 .fas {
+    color: white !important;
+}
+
+/* Icono específico del header de edición */
+.bg-gradient-to-br.from-indigo-600.via-purple-600.to-blue-600 .fas.fa-edit {
+    color: white !important;
+    font-size: 1.5rem !important;
+}
+
+/* Iconos en botones de navegación */
+#backButton .fas {
+    color: white !important;
+}
+
+/* Botón volver con efecto glassmorphism */
+#backButton {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+#backButton:hover {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Iconos en botones de acción principales */
+#cancelSale .fas,
+#submitSale .fas {
+    color: white !important;
+}
+
+/* Iconos en el select personalizado */
+.custom-select .fas {
+    color: #6b7280 !important;
+}
+
+.custom-select.open .fas {
+    color: #6b7280 !important;
+}
+
+/* Iconos en el dropdown */
+.custom-dropdown .fas {
+    color: inherit;
+}
+
+/* Iconos en botones de agregar cliente */
+.add-customer-button .fas {
+    color: white !important;
+}
+
+/* Iconos en la tabla de productos */
+#productsTable .fas {
+    color: inherit;
+}
+
+/* Iconos en botones de búsqueda */
+#searchProduct .fas {
+    color: white !important;
+}
+
+/* Iconos en botones de agregar producto */
+a[href="/products/create"] .fas {
+    color: white !important;
+}
+
+/* Iconos en el modal de búsqueda */
+.bg-gradient-to-r.from-purple-600.to-pink-600 button .fas {
+    color: white !important;
+}
+
+/* Iconos en el total de la venta */
+.bg-gradient-to-br.from-green-500.to-teal-600 .fas {
+    color: white !important;
+}
+
+/* Iconos en la nota */
+.bg-gradient-to-br.from-blue-50.to-indigo-50 .fas {
+    color: white !important;
+}
+
+/* Iconos en contadores */
+.bg-gray-800.bg-opacity-40 .fas {
+    color: white !important;
+}
+
+/* Contadores específicos */
+.bg-gray-800.bg-opacity-40 .products-count,
+.bg-gray-800.bg-opacity-40 .total-amount-display {
+    color: white !important;
+}
+
+/* Efecto glassmorphism para contadores */
+.bg-gray-800.bg-opacity-40.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Estilos para el select personalizado */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+}
+
+.custom-select:hover {
+    border-color: #d1d5db;
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #6b7280;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+.custom-select-arrow {
+    color: #6b7280;
+    transition: transform 0.3s ease;
+}
+
+.custom-select.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+/* Badges de deuda */
+.debt-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.debt-badge.no-debt {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.debt-badge.has-debt {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* Dropdown personalizado */
+.custom-dropdown {
+    position: fixed;
+    background-color: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    max-height: 350px;
+    overflow: hidden;
+    display: none;
+    width: 100%;
+}
+
+.custom-dropdown.show {
+    display: block;
+}
+
+/* Opciones del dropdown */
+.custom-dropdown-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 50px;
+    word-wrap: break-word;
+    white-space: normal;
+    gap: 0.75rem;
+    overflow: hidden;
+}
+
+.custom-dropdown-option:hover {
+    background-color: #f1f5f9;
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-dropdown-option.selected {
+    background-color: #f8fafc;
+    border-left: 4px solid #3b82f6;
+}
+
+.custom-dropdown-option.selected .debt-badge.no-debt {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.custom-dropdown-option.selected .debt-badge.has-debt {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Layout de opciones */
+.custom-dropdown-option > div:first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 0.5rem;
+}
+
+.custom-dropdown-option > div:last-child {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* Input de búsqueda en dropdown */
+.custom-dropdown input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+}
+
+.custom-dropdown input[type="text"]:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.custom-dropdown input[type="text"]::placeholder {
+    color: #9ca3af;
+}
+
+/* Contenedor de opciones */
+.options-container {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Botón de agregar cliente */
+.add-customer-button {
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+/* Glassmorphism effect */
+.glass-effect {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Indicador de carga para los botones */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mejora de accesibilidad */
+.focus\:outline-none:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.focus\:ring-2:focus {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 768px) {
+    .space-y-8 {
+        padding: 0 1rem;
+    }
+
+    .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+        gap: 1rem;
+    }
+
+    .text-3xl {
+        font-size: 1.875rem;
+    }
+
+    .text-2xl {
+        font-size: 1.5rem;
+    }
+
+    .custom-dropdown {
+        max-width: 100%;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 1rem;
+        width: calc(100% - 2rem) !important;
+    }
+}
+
+/* Estilos específicos para el modal */
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Estilos para la tabla de productos en el modal */
+#productsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#productsTable th {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    color: white;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#productsTable td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+#productsTable tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+/* Responsive para tablas */
+@media (max-width: 1024px) {
+    .overflow-x-auto {
+        overflow-x: auto;
+    }
+    
+    #productsTable {
+        min-width: 800px;
+    }
+}

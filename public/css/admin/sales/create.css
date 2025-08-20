@@ -1024,7 +1024,7 @@ select {
     border: 2px solid #e5e7eb;
     border-radius: 0.75rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    z-index: 9999;
+    z-index: 100;
     max-height: 350px;
     overflow: hidden;
     display: none;

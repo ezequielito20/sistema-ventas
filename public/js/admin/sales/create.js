@@ -489,6 +489,14 @@ function createCustomSelect() {
     selectButton.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Verificar si hay un modal de búsqueda de productos abierto
+        const searchModal = document.querySelector('[x-show="searchModalOpen"]');
+        if (searchModal && searchModal.style.display !== 'none' && !searchModal.classList.contains('hidden')) {
+            // Si hay un modal de búsqueda abierto, no abrir el dropdown
+            return;
+        }
+        
         toggleDropdown();
     });
     
@@ -498,6 +506,16 @@ function createCustomSelect() {
             toggleDropdown(false);
         }
     });
+    
+    // Cerrar dropdown cuando se abra el modal de búsqueda de productos
+    setInterval(() => {
+        if (dropdown.classList.contains('show')) {
+            const searchModal = document.querySelector('[x-show="searchModalOpen"]');
+            if (searchModal && searchModal.style.display !== 'none' && !searchModal.classList.contains('hidden')) {
+                toggleDropdown(false);
+            }
+        }
+    }, 100);
     
     // Cerrar dropdown al hacer scroll
     document.addEventListener('scroll', () => {
@@ -512,6 +530,8 @@ function createCustomSelect() {
             toggleDropdown(false);
         }
     });
+    
+
     
     function toggleDropdown(show = null) {
         const isOpen = dropdown.classList.contains('show');
@@ -562,12 +582,12 @@ function createCustomSelect() {
                 dropdown.style.top = `${top}px`;
                 dropdown.style.left = `${left}px`;
                 dropdown.style.width = `${width}px`;
-                dropdown.style.zIndex = '9999';
+                dropdown.style.zIndex = '100';
                 
                 // Asegurar que el botón de agregar cliente sea visible
                 const addButton = document.querySelector('.add-customer-button');
                 if (addButton) {
-                    addButton.style.zIndex = '10000';
+                    addButton.style.zIndex = '101';
                 }
             }, 10);
         } else {
