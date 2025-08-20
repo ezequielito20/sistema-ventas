@@ -733,6 +733,32 @@ window.modalManager = function() {
             // Actualizar valores iniciales
             this.updateModalBsValues(currentRate);
             
+            // Agregar event listener al input del modal para sincronización en tiempo real
+            const modalInput = document.getElementById('modalExchangeRate');
+            if (modalInput) {
+                modalInput.addEventListener('input', (e) => {
+                    const rate = parseFloat(e.target.value);
+                    if (!isNaN(rate) && rate > 0) {
+                        // Sincronizar con el widget principal
+                        const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+                        widgetElements.forEach(element => {
+                            if (element._x_dataStack && element._x_dataStack[0]) {
+                                const widget = element._x_dataStack[0];
+                                if (widget.syncFromModal) {
+                                    widget.syncFromModal(rate);
+                                }
+                            }
+                        });
+                        
+                        // Actualizar valores en Bs en tiempo real
+                        this.updateModalBsValues(rate);
+                        if (typeof window.customersIndex !== 'undefined' && window.customersIndex.updateBsValues) {
+                            window.customersIndex.updateBsValues(rate);
+                        }
+                    }
+                });
+            }
+            
             // Inicializar filtros del modal
             this.initializeModalFilters();
         },

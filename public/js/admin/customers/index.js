@@ -179,6 +179,49 @@ function filtersPanel() {
     };
 }
 
+// Función para sincronización de tipo de cambio en modal
+function modalExchangeRateSync() {
+    return {
+        init() {
+            // Sincronizar con el widget principal cuando se abre el modal
+            this.$watch('debtReportModal', (value) => {
+                if (value) {
+                    this.syncFromWidget();
+                }
+            });
+        },
+        
+        // Sincronizar desde el widget principal
+        syncFromWidget() {
+            const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+            widgetElements.forEach(element => {
+                if (element._x_dataStack && element._x_dataStack[0]) {
+                    const widget = element._x_dataStack[0];
+                    const modalInput = document.getElementById('modalExchangeRate');
+                    if (modalInput) {
+                        modalInput.value = widget.exchangeRate;
+                    }
+                }
+            });
+        },
+        
+        // Sincronizar hacia el widget principal
+        syncFromModal(value) {
+            const rate = parseFloat(value);
+            if (!isNaN(rate) && rate > 0) {
+                // Sincronizar con el widget principal
+                const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
+                widgetElements.forEach(element => {
+                    if (element._x_dataStack && element._x_dataStack[0]) {
+                        const widget = element._x_dataStack[0];
+                        widget.syncFromModal(rate);
+                    }
+                });
+            }
+        }
+    };
+}
+
 // Función para el widget de tipo de cambio
 function exchangeRateWidget() {
     return {
@@ -193,6 +236,13 @@ function exchangeRateWidget() {
             } else {
                 this.exchangeRate = window.exchangeRate || 134.0;
             }
+            
+            // Watcher para sincronizar automáticamente cuando cambie el valor
+            this.$watch('exchangeRate', (value) => {
+                if (value > 0) {
+                    this.syncToModal();
+                }
+            });
         },
         
         updateRate() {
@@ -205,6 +255,9 @@ function exchangeRateWidget() {
                 window.currentExchangeRate = this.exchangeRate;
                 localStorage.setItem('exchangeRate', this.exchangeRate);
                 window.customersIndex.updateBsValues(this.exchangeRate);
+                
+                // Sincronizar con el modal
+                this.syncToModal();
                 
                 this.updating = false;
                 
@@ -220,6 +273,26 @@ function exchangeRateWidget() {
                     });
                 }
             }, 500);
+        },
+        
+        // Sincronizar con el modal
+        syncToModal() {
+            const modalInput = document.getElementById('modalExchangeRate');
+            if (modalInput) {
+                modalInput.value = this.exchangeRate;
+            }
+            
+            // También actualizar valores en Bs en el modal si está abierto
+            if (typeof window.modalManager !== 'undefined' && window.modalManager().debtReportModal) {
+                if (typeof window.customersIndex !== 'undefined' && window.customersIndex.updateBsValues) {
+                    window.customersIndex.updateBsValues(this.exchangeRate);
+                }
+            }
+        },
+        
+        // Sincronizar desde el modal
+        syncFromModal(rate) {
+            this.exchangeRate = rate;
         }
     }
 }
@@ -286,9 +359,9 @@ function dataTable() {
 // ===== FUNCIONES DE INICIALIZACIÓN =====
 
 // Función para inicializar el tipo de cambio
-function initializeExchangeRate() {
+window.initializeExchangeRate = function() {
     const savedRate = localStorage.getItem('exchangeRate');
-    const rate = savedRate ? parseFloat(savedRate) : (window.exchangeRate || CUSTOMERS_CONFIG.exchangeRate.default);
+    const rate = savedRate ? parseFloat(savedRate) : (window.exchangeRate || CONFIG.exchangeRate.default);
     
     // Actualizar el input si existe
     const exchangeRateInput = document.getElementById('exchangeRate');
@@ -303,15 +376,15 @@ function initializeExchangeRate() {
 }
 
 // Función para guardar el tipo de cambio
-function saveExchangeRate(rate) {
+window.saveExchangeRate = function(rate) {
     window.currentExchangeRate = rate;
-    localStorage.setItem(CUSTOMERS_CONFIG.exchangeRate.localStorageKey, rate);
+    localStorage.setItem(CONFIG.exchangeRate.key, rate);
     window.customersIndex.updateBsValues(rate);
 }
 
 // Función para sincronizar todos los elementos de tipo de cambio
-function syncAllExchangeRateElements() {
-    const rate = window.currentExchangeRate || initializeExchangeRate();
+window.syncAllExchangeRateElements = function() {
+    const rate = window.currentExchangeRate || window.initializeExchangeRate();
     
     // Actualizar todos los inputs de tipo de cambio
     const exchangeRateInputs = document.querySelectorAll('input[name="exchange_rate"], #exchangeRate');
@@ -366,7 +439,7 @@ function formatDateTime(date) {
 
 // ===== INICIALIZACIÓN OPTIMIZADA =====
 document.addEventListener('DOMContentLoaded', function() {
-    initializeExchangeRate();
+    window.initializeExchangeRate();
     
     // Inicialización no crítica diferida
     setTimeout(() => {
@@ -438,6 +511,7 @@ function showNotification(message, type = 'success') {
 window.heroSection = heroSection;
 window.filtersPanel = filtersPanel;
 window.exchangeRateWidget = exchangeRateWidget;
+window.modalExchangeRateSync = modalExchangeRateSync;
 window.dataTable = dataTable;
 window.initializeExchangeRate = initializeExchangeRate;
 window.showNotification = showNotification;
