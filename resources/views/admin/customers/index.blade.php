@@ -1623,7 +1623,6 @@
                                 <label class="text-sm font-semibold text-gray-700">Cliente</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-user text-gray-400"></i>
                                     </div>
                                     <input type="text" id="customer_name_details" readonly
                                         class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
@@ -1633,7 +1632,6 @@
                                 <label class="text-sm font-semibold text-gray-700">Teléfono</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-phone text-gray-400"></i>
                                     </div>
                                     <input type="text" id="customer_phone_details" readonly
                                         class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
@@ -1669,7 +1667,6 @@
                                     <div class="flex items-center space-x-3">
                                         <div class="relative flex-1">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-calendar text-gray-400"></i>
                                             </div>
                                             <input type="date" id="dateFrom" placeholder="Desde" 
                                                 class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
@@ -1677,7 +1674,6 @@
                                         <span class="text-sm text-gray-500 font-medium">hasta</span>
                                         <div class="relative flex-1">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                <i class="fas fa-calendar text-gray-400"></i>
                                             </div>
                                             <input type="date" id="dateTo" placeholder="Hasta" 
                                                 class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
