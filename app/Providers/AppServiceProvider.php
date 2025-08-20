@@ -23,9 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Configurar paginación para usar Bootstrap 4
-        Paginator::defaultView('pagination::bootstrap-4');
-        Paginator::defaultSimpleView('pagination::simple-bootstrap-4');
+        // Usar vistas de paginación con Tailwind (por defecto en Laravel >= 8)
+        // Si existen vistas personalizadas en resources/views/vendor/pagination, se usarán automáticamente
+        // Paginator::useTailwind(); // Descomentarlo si deseas forzar Tailwind
         
         // Comentado temporalmente para evitar N+1 queries
         // La variable company se manejará directamente en los controladores

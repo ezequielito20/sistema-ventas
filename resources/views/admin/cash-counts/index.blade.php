@@ -523,7 +523,7 @@
                     Mostrando {{ $cashCounts->firstItem() ?? 0 }} a {{ $cashCounts->lastItem() ?? 0 }} de {{ $cashCounts->total() }} registros
                 </div>
                 <div class="flex justify-center">
-                    {{ $cashCounts->appends(request()->query())->links('pagination::bootstrap-4') }}
+                    {{ $cashCounts->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>
