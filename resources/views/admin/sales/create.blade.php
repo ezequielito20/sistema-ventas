@@ -105,6 +105,7 @@
                                          searchTerm: '', 
                                          filteredCustomers: @js($customers),
                                          selectedCustomerName: 'Seleccione un cliente',
+                                         selectedCustomerDebt: 0,
                                          filterCustomers() {
                                              if (!this.searchTerm) {
                                                  this.filteredCustomers = @js($customers);
@@ -118,6 +119,7 @@
                                          selectCustomer(customer) {
                                              selectedCustomerId = customer.id;
                                              this.selectedCustomerName = customer.name;
+                                             this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
                                              this.isOpen = false;
                                              this.searchTerm = '';
                                              onCustomerChange();
@@ -129,7 +131,21 @@
                                 <button type="button" 
                                         @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
                                         class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
-                                    <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
+                                    <div class="flex items-center justify-between min-w-0">
+                                        <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
+                                        <div class="ml-2 flex-shrink-0" x-show="selectedCustomerName !== 'Seleccione un cliente'">
+                                            <!-- Badge de deuda (rojo) -->
+                                            <span x-show="selectedCustomerDebt > 0" 
+                                                  x-text="'$' + selectedCustomerDebt.toFixed(2)" 
+                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                            </span>
+                                            <!-- Badge sin deuda (verde) -->
+                                            <span x-show="selectedCustomerDebt === 0" 
+                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                Sin deuda
+                                            </span>
+                                        </div>
+                                    </div>
                                     <span class="absolute inset-y-0 right-10 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
                                              :class="{ 'rotate-180': isOpen }" 
