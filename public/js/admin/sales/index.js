@@ -24,10 +24,10 @@ document.addEventListener('alpine:init', () => {
         
         // Filtros
         filters: {
-            dateFrom: '',
-            dateTo: '',
-            amountMin: '',
-            amountMax: ''
+    dateFrom: '',
+    dateTo: '',
+    amountMin: '',
+    amountMax: ''
         },
         
         // Paginación
@@ -308,36 +308,36 @@ document.addEventListener('alpine:init', () => {
         
         // ===== ACCIONES DE VENTA =====
         editSale(saleId) {
-            window.location.href = `/sales/edit/${saleId}`;
+    window.location.href = `/sales/edit/${saleId}`;
         },
-        
+
         async deleteSale(saleId) {
             const confirmed = await this.showConfirmDialog(
-                '¿Estás seguro de que quieres eliminar esta venta?',
-                'Esta acción no se puede deshacer.'
-            );
+        '¿Estás seguro de que quieres eliminar esta venta?',
+        'Esta acción no se puede deshacer.'
+    );
 
-            if (!confirmed) return;
+    if (!confirmed) return;
 
-            try {
-                const response = await fetch(`/sales/delete/${saleId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Content-Type': 'application/json'
-                    }
-                });
+    try {
+        const response = await fetch(`/sales/delete/${saleId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (!response.ok) {
+        if (!response.ok) {
                     this.showAlert(data.message || 'Error al eliminar la venta', data.icons || 'warning');
-                    return;
-                }
+            return;
+        }
 
-                if (data.error) {
+        if (data.error) {
                     this.showAlert(data.message, 'error');
-                } else {
+        } else {
                     this.showAlert(data.message || 'Venta eliminada correctamente', 'success');
                     
                     // Remover la venta de los datos locales
@@ -413,39 +413,39 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FUNCIONES DE UI =====
         showAlert(message, type = 'info') {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
-                    text: message,
-                    icon: type,
-                    confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#667eea'
-                });
-            } else {
-                alert(message);
-            }
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+            text: message,
+            icon: type,
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#667eea'
+        });
+    } else {
+        alert(message);
+    }
         },
-        
+
         showConfirmDialog(title, text) {
-            return new Promise((resolve) => {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        title: title,
-                        text: text,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#667eea',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        resolve(result.isConfirmed);
-                    });
-                } else {
-                    resolve(confirm(`${title}\n${text}`));
-                }
+    return new Promise((resolve) => {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                resolve(result.isConfirmed);
             });
+        } else {
+            resolve(confirm(`${title}\n${text}`));
         }
+    });
+}
     }));
 });
 

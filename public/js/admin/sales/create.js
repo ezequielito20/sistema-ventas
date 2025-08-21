@@ -27,6 +27,7 @@ document.addEventListener('alpine:init', () => {
         codeSuggestions: [],
         productSearchTerm: '',
         searchModalOpen: false,
+        stockFilter: 'all', // Filtro de stock: 'all', 'available', 'low'
         
         // Cache de productos
         productsCache: [],
@@ -143,7 +144,7 @@ document.addEventListener('alpine:init', () => {
         filterProducts() {
             let filtered = [...this.productsCache];
             
-            // Filtro por término de búsqueda
+            // Filtro por término de búsqueda en tiempo real
             if (this.productSearchTerm.trim()) {
                 const term = this.productSearchTerm.toLowerCase().trim();
                 filtered = filtered.filter(product => 
@@ -153,11 +154,13 @@ document.addEventListener('alpine:init', () => {
                 );
             }
             
-            // Ocultar productos ya agregados
+            // Ocultar productos ya agregados a la venta
             filtered = filtered.filter(product => !this.isProductInSale(product.id));
             
             this.filteredProducts = filtered;
         },
+        
+
         
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
@@ -175,7 +178,7 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Producto Duplicado', 'Este producto ya está en la venta', 'info', 2000);
                 return;
             }
-            
+
             // Agregar producto
             const saleItem = {
                 id: product.id,
@@ -259,17 +262,17 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Cliente Requerido', 'Debe seleccionar un cliente', 'warning', 2000);
                 return false;
             }
-            
+
             if (this.saleItems.length === 0) {
                 this.showToast('Productos Requeridos', 'Debe agregar al menos un producto', 'warning', 2000);
                 return false;
             }
-            
+
             if (!this.saleDate) {
                 this.showToast('Fecha Requerida', 'Debe seleccionar una fecha', 'warning', 2000);
                 return false;
             }
-            
+
             if (!this.saleTime) {
                 this.showToast('Hora Requerida', 'Debe seleccionar una hora', 'warning', 2000);
                 return false;
@@ -338,10 +341,10 @@ document.addEventListener('alpine:init', () => {
                     <div class="bg-green-50 rounded-lg p-3">
                         <h5 class="font-medium text-green-800 mb-1">✅ Confirmación</h5>
                         <p class="text-sm text-green-700">¿Está seguro de que desea procesar esta venta?</p>
-                    </div>
-                </div>
-            `;
-            
+            </div>
+            </div>
+        `;
+        
             const confirmed = await this.showConfirmDialog(
                 '¿Confirmar Venta?',
                 saleDetailsHTML,
@@ -400,7 +403,7 @@ document.addEventListener('alpine:init', () => {
                     } else {
                         window.location.href = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales';
                     }
-                } else {
+            } else {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
                 

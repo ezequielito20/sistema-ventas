@@ -429,33 +429,26 @@
                             </div>
                         </div>
 
-                        <!-- Filtros de búsqueda -->
+                        <!-- Barra de búsqueda en tiempo real -->
                         <div class="bg-gray-50 px-8 py-4 border-b border-gray-200">
-                            <div class="flex flex-wrap gap-4">
-                                <div class="flex-1 min-w-64">
-                                    <input type="text" 
-                                           x-model="productSearchTerm" 
-                                           @input.debounce.300ms="filterProducts()"
-                                           placeholder="Buscar por código, nombre o categoría..."
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <div class="relative">
+                                        <input type="text" 
+                                               x-model="productSearchTerm" 
+                                               @input.debounce.300ms="filterProducts()"
+                                               placeholder="Buscar productos por código, nombre o categoría..."
+                                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-gray-800 placeholder-gray-500">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="fas fa-search text-gray-400"></i>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button @click="filterByStock('all')" 
-                                            :class="stockFilter === 'all' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700'"
-                                            class="px-4 py-2 rounded-lg border border-gray-300 transition-colors">
-                                        Todos
-                                    </button>
-                                    <button @click="filterByStock('available')" 
-                                            :class="stockFilter === 'available' ? 'bg-green-600 text-white' : 'bg-white text-gray-700'"
-                                            class="px-4 py-2 rounded-lg border border-gray-300 transition-colors">
-                                        Con Stock
-                                    </button>
-                                    <button @click="filterByStock('low')" 
-                                            :class="stockFilter === 'low' ? 'bg-yellow-600 text-white' : 'bg-white text-gray-700'"
-                                            class="px-4 py-2 rounded-lg border border-gray-300 transition-colors">
-                                        Stock Bajo
-                                    </button>
-                                </div>
+                                <button @click="productSearchTerm = ''; filterProducts()"
+                                        x-show="productSearchTerm.length > 0"
+                                        class="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl transition-all duration-300 flex items-center space-x-2">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </div>
 
