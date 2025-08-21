@@ -187,11 +187,11 @@ class SaleController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'sale_date' => 'required|date',
             'sale_time' => 'required|date_format:H:i',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.price' => 'required|numeric|min:0',
-            'items.*.subtotal' => 'required|numeric|min:0',
+            'sale_details' => 'required|array|min:1',
+            'sale_details.*.product_id' => 'required|exists:products,id',
+            'sale_details.*.quantity' => 'required|numeric|min:1',
+            'sale_details.*.unit_price' => 'required|numeric|min:0',
+            'sale_details.*.subtotal' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
             'note' => 'nullable|string|max:1000',
             'already_paid' => 'required|boolean',
@@ -205,6 +205,13 @@ class SaleController extends Controller
             ->first();
 
          if (!$currentCashCount) {
+            if ($request->expectsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.'
+               ], 400);
+            }
+            
             return redirect()->back()
                ->with('message', 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.')
                ->with('icons', 'error');
@@ -250,20 +257,20 @@ class SaleController extends Controller
          }
 
          // Obtener todos los productos necesarios en una sola consulta
-         $productIds = collect($request->items)->pluck('product_id')->unique();
+         $productIds = collect($request->sale_details)->pluck('product_id')->unique();
          $products = Product::whereIn('id', $productIds)
             ->select('id', 'stock')
             ->get()
             ->keyBy('id');
 
          // Procesar cada producto en la venta
-         foreach ($request->items as $item) {
+         foreach ($request->sale_details as $item) {
             // Crear el detalle de venta
             SaleDetail::create([
                'sale_id' => $sale->id,
                'product_id' => $item['product_id'],
                'quantity' => $item['quantity'],
-               'unit_price' => $item['price'],
+               'unit_price' => $item['unit_price'],
                'subtotal' => $item['subtotal'],
             ]);
 
@@ -284,6 +291,16 @@ class SaleController extends Controller
          ]);
 
          DB::commit();
+
+         // Si es una petición AJAX, devolver JSON
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => true,
+               'message' => '¡Venta procesada exitosamente!',
+               'sale_id' => $sale->id,
+               'redirect_url' => route('admin.sales.index')
+            ]);
+         }
 
          // Determinar la redirección basada en el botón presionado
          if ($request->input('action') == 'save_and_new') {
@@ -309,6 +326,14 @@ class SaleController extends Controller
             ->with('icons', 'success');
 
       } catch (\Illuminate\Validation\ValidationException $e) {
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error de validación en los datos de la venta',
+               'errors' => $e->errors()
+            ], 422);
+         }
+         
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -316,6 +341,13 @@ class SaleController extends Controller
             ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
+
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Hubo un problema al registrar la venta: ' . $e->getMessage()
+            ], 500);
+         }
 
          return redirect()->back()
             ->withInput()

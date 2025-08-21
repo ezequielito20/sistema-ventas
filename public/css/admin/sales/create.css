@@ -1,5 +1,10 @@
 /* Estilos personalizados para complementar Tailwind CSS */
 
+/* Alpine.js x-cloak */
+[x-cloak] {
+    display: none !important;
+}
+
 /* Animaciones personalizadas */
 @keyframes fadeInUp {
     from {

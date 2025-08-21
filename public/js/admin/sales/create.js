@@ -6,6 +6,8 @@
 
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
+    console.log('🎯 Alpine.js inicializado - Registrando componente saleCreateSPA');
+    
     Alpine.data('saleCreateSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
         loading: false,
@@ -18,7 +20,7 @@ document.addEventListener('alpine:init', () => {
         alreadyPaid: '0',
         saleNote: '',
         
-        // Productos en la venta
+        // Productos en la venta - Usar reactive array
         saleItems: [],
         
         // Búsqueda y filtros
@@ -46,6 +48,20 @@ document.addEventListener('alpine:init', () => {
                    this.saleTime;
         },
         
+        // Función para verificar si hay productos
+        get hasProducts() {
+            const hasProducts = this.saleItems.length > 0;
+            console.log('🔍 Verificando productos:', hasProducts, 'Cantidad:', this.saleItems.length);
+            return hasProducts;
+        },
+        
+        // Watcher para saleItems
+        get saleItemsWatcher() {
+            // Esta función se ejecuta cada vez que saleItems cambia
+            console.log('👀 saleItems cambió - Nueva longitud:', this.saleItems.length);
+            return this.saleItems.length;
+        },
+        
         // ===== INICIALIZACIÓN =====
         async init() {
             try {
@@ -65,10 +81,14 @@ document.addEventListener('alpine:init', () => {
                 // Cargar datos guardados localmente
                 this.loadFromLocalStorage();
                 
+                // Auto-agregar producto si hay solo uno con stock > 0 y no hay productos en la venta
+                this.autoAddSingleProduct();
+                
                 // Configurar persistencia automática
                 this.setupAutoSave();
                 
                 console.log('✅ SPA inicializado correctamente');
+                console.log('📊 Estado final - saleItems:', this.saleItems.length, 'productos');
                 
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
@@ -160,6 +180,9 @@ document.addEventListener('alpine:init', () => {
         
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
+            console.log('➕ Agregando producto a la venta:', product.name);
+            console.log('➕ Estado actual de saleItems:', this.saleItems.length);
+            
             // Validar stock
             if (product.stock <= 0) {
                 this.showToast('Sin Stock', 'Este producto no tiene stock disponible', 'warning', 2000);
@@ -185,6 +208,11 @@ document.addEventListener('alpine:init', () => {
             };
             
             this.saleItems.push(saleItem);
+            console.log('➕ Producto agregado. Nuevo estado de saleItems:', this.saleItems.length);
+            
+            // Forzar actualización de la vista
+            this.forceViewUpdate();
+            
             this.updateTotal();
             this.saveToLocalStorage();
             
@@ -198,6 +226,11 @@ document.addEventListener('alpine:init', () => {
         
         removeItem(index) {
             this.saleItems.splice(index, 1);
+            console.log('🗑️ Producto removido. Nuevo estado de saleItems:', this.saleItems.length);
+            
+            // Forzar actualización de la vista
+            this.forceViewUpdate();
+            
             this.updateTotal();
             this.saveToLocalStorage();
         },
@@ -206,7 +239,9 @@ document.addEventListener('alpine:init', () => {
             const item = this.saleItems[index];
             if (item.quantity < item.stock) {
                 item.quantity++;
-                this.updateItemSubtotal(index);
+                item.subtotal = item.price * item.quantity;
+                this.updateTotal();
+                this.saveToLocalStorage();
             }
         },
         
@@ -214,12 +249,15 @@ document.addEventListener('alpine:init', () => {
             const item = this.saleItems[index];
             if (item.quantity > 1) {
                 item.quantity--;
-                this.updateItemSubtotal(index);
+                item.subtotal = item.price * item.quantity;
+                this.updateTotal();
+                this.saveToLocalStorage();
             }
         },
         
         updateItemSubtotal(index) {
             const item = this.saleItems[index];
+            // Solo actualizar subtotal sin validaciones
             item.subtotal = item.price * item.quantity;
             this.updateTotal();
             this.saveToLocalStorage();
@@ -237,35 +275,35 @@ document.addEventListener('alpine:init', () => {
         // ===== VALIDACIONES =====
         validateSale() {
             if (!this.selectedCustomerId) {
-                this.showAlert('Debe seleccionar un cliente', 'warning');
+                this.showToast('Cliente Requerido', 'Debe seleccionar un cliente', 'warning', 2000);
                 return false;
             }
             
             if (this.saleItems.length === 0) {
-                this.showAlert('Debe agregar al menos un producto', 'warning');
+                this.showToast('Productos Requeridos', 'Debe agregar al menos un producto', 'warning', 2000);
                 return false;
             }
             
             if (!this.saleDate) {
-                this.showAlert('Debe seleccionar una fecha', 'warning');
+                this.showToast('Fecha Requerida', 'Debe seleccionar una fecha', 'warning', 2000);
                 return false;
             }
             
             if (!this.saleTime) {
-                this.showAlert('Debe seleccionar una hora', 'warning');
+                this.showToast('Hora Requerida', 'Debe seleccionar una hora', 'warning', 2000);
                 return false;
             }
             
-            // Validar stock en tiempo real
+            // Validar stock solo al procesar la venta
             for (const item of this.saleItems) {
                 const product = this.productsCache.find(p => p.id === item.id);
                 if (!product) {
-                    this.showAlert(`Producto "${item.name}" no encontrado en el inventario`, 'error');
+                    this.showToast('Producto No Encontrado', `Producto "${item.name}" no encontrado en el inventario`, 'error', 2000);
                     return false;
                 }
                 
                 if (item.quantity > product.stock) {
-                    this.showToast(`Stock Insuficiente`, `Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error', 2000);
+                    this.showToast('Stock Insuficiente', `Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error', 2000);
                     return false;
                 }
             }
@@ -277,23 +315,72 @@ document.addEventListener('alpine:init', () => {
         async processSale(action = 'save') {
             if (!this.validateSale()) return;
             
+            // Crear HTML personalizado para la confirmación
+            const saleDetailsHTML = `
+                <div class="text-left">
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-gray-800 mb-2">📋 Resumen de la Venta</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Productos:</span>
+                                <span class="font-medium">${this.saleItems.length}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total:</span>
+                                <span class="font-bold text-lg text-green-600">${window.saleCreateData?.currency?.symbol || '$'} ${this.totalAmount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-3 mb-4">
+                        <h5 class="font-medium text-blue-800 mb-2">📦 Productos en la Venta:</h5>
+                        <div class="space-y-1 max-h-32 overflow-y-auto">
+                            ${this.saleItems.map(item => `
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-700">${item.name}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-gray-500">x${item.quantity}</span>
+                                        <span class="font-medium">${window.saleCreateData?.currency?.symbol || '$'} ${item.subtotal.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    ${this.saleNote ? `
+                        <div class="bg-yellow-50 rounded-lg p-3 mb-4">
+                            <h5 class="font-medium text-yellow-800 mb-1">📝 Nota:</h5>
+                            <p class="text-sm text-yellow-700">${this.saleNote}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="bg-green-50 rounded-lg p-3">
+                        <h5 class="font-medium text-green-800 mb-1">✅ Confirmación</h5>
+                        <p class="text-sm text-green-700">¿Está seguro de que desea procesar esta venta?</p>
+                    </div>
+                </div>
+            `;
+            
             const confirmed = await this.showConfirmDialog(
-                '¿Confirmar venta?',
-                `Total: {{ $currency->symbol }} ${this.totalAmount.toFixed(2)}\nProductos: ${this.saleItems.length}`
+                '¿Confirmar Venta?',
+                saleDetailsHTML,
+                'html'
             );
             
             if (!confirmed) return;
             
+            this.loading = true;
+            
             try {
-                this.loading = true;
-                
                 const formData = new FormData();
+                
+                // Datos básicos de la venta
                 formData.append('customer_id', this.selectedCustomerId);
                 formData.append('sale_date', this.saleDate);
                 formData.append('sale_time', this.saleTime);
                 formData.append('already_paid', this.alreadyPaid);
-                formData.append('note', this.saleNote);
                 formData.append('total_price', this.totalAmount);
+                formData.append('note', this.saleNote || '');
                 formData.append('action', action);
                 
                 // Agregar productos
@@ -304,10 +391,12 @@ document.addEventListener('alpine:init', () => {
                     formData.append(`sale_details[${index}][subtotal]`, item.subtotal);
                 });
                 
-                const response = await fetch(window.saleCreateRoutes?.store || '/sales', {
+                const response = await fetch(window.saleCreateRoutes?.store || '/sales/create', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: formData
                 });
@@ -318,16 +407,20 @@ document.addEventListener('alpine:init', () => {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
                 
-                this.showAlert('Venta procesada correctamente', 'success');
-                
-                // Limpiar datos locales
-                this.clearLocalStorage();
-                
-                // Redirigir según la acción
-                if (action === 'save_and_new') {
-                    window.location.reload();
+                if (data.success) {
+                    this.showAlert('Venta procesada correctamente', 'success');
+                    
+                    // Limpiar datos locales
+                    this.clearLocalStorage();
+                    
+                    // Redirigir según la acción
+                    if (action === 'save_and_new') {
+                        window.location.reload();
+                    } else {
+                        window.location.href = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales';
+                    }
                 } else {
-                    window.location.href = (window.saleCreateRoutes && window.saleCreateRoutes.index) ? window.saleCreateRoutes.index : '/sales';
+                    throw new Error(data.message || 'Error al procesar la venta');
                 }
                 
             } catch (error) {
@@ -383,7 +476,19 @@ document.addEventListener('alpine:init', () => {
                         this.saleTime = data.saleTime || this.saleTime;
                         this.alreadyPaid = data.alreadyPaid || '0';
                         this.saleNote = data.saleNote || '';
-                        this.saleItems = data.saleItems || [];
+                        
+                        // Actualizar saleItems de forma más directa
+                        this.saleItems.length = 0; // Limpiar array
+                        if (data.saleItems && data.saleItems.length > 0) {
+                            data.saleItems.forEach(item => {
+                                this.saleItems.push(item);
+                            });
+                        }
+                        
+                        console.log('📦 Datos cargados de localStorage - saleItems:', this.saleItems.length);
+                        
+                        // Forzar actualización de la vista
+                        this.forceViewUpdate();
                         
                         // Mostrar notificación si se cargaron productos automáticamente
                         if (this.saleItems.length > 0) {
@@ -395,17 +500,34 @@ document.addEventListener('alpine:init', () => {
                         console.log('📦 Datos recuperados de localStorage');
                     } else {
                         this.clearLocalStorage();
+                        // Si se limpió localStorage, verificar si hay un solo producto para auto-agregar
+                        setTimeout(() => {
+                            this.autoAddSingleProduct();
+                        }, 100);
                     }
+                } else {
+                    console.log('📦 No hay datos en localStorage');
+                    // Si no hay datos en localStorage, verificar si hay un solo producto para auto-agregar
+                    setTimeout(() => {
+                        this.autoAddSingleProduct();
+                    }, 100);
                 }
             } catch (error) {
                 console.warn('Error cargando datos de localStorage:', error);
                 this.clearLocalStorage();
+                // Si hay error, verificar si hay un solo producto para auto-agregar
+                setTimeout(() => {
+                    this.autoAddSingleProduct();
+                }, 100);
             }
         },
         
         clearLocalStorage() {
             try {
                 localStorage.removeItem('saleCreateData');
+                // Limpiar también saleItems
+                this.saleItems.length = 0;
+                this.forceViewUpdate();
             } catch (error) {
                 console.warn('Error limpiando localStorage:', error);
             }
@@ -419,12 +541,7 @@ document.addEventListener('alpine:init', () => {
                 }
             }, 30000);
         },
-        
-        // ===== EVENTOS =====
-        onCustomerChange() {
-            this.saveToLocalStorage();
-        },
-        
+
         // ===== FUNCIONES DE UI =====
         showToast(title, message, type = 'success', duration = 1500) {
             if (typeof Swal !== 'undefined') {
@@ -450,6 +567,16 @@ document.addEventListener('alpine:init', () => {
                 this.notifications.push({ title, message, type, visible: true });
                 setTimeout(() => { this.notifications.shift(); }, duration);
             }
+        },
+        
+        // Función para forzar actualización de la vista
+        forceViewUpdate() {
+            // Forzar re-evaluación de computed properties
+            this.$nextTick(() => {
+                console.log('🔄 Forzando actualización de vista - saleItems:', this.saleItems.length);
+                // Trigger un cambio mínimo para forzar la reactividad
+                this.saleItems = [...this.saleItems];
+            });
         },
         
         removeNotification(index) {
@@ -479,25 +606,64 @@ document.addEventListener('alpine:init', () => {
             }
         },
         
-        showConfirmDialog(title, text) {
+        showConfirmDialog(title, text, html = false) {
             return new Promise((resolve) => {
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         title: title,
-                        text: text,
+                        html: html ? text : null,
+                        text: html ? null : text,
                         icon: 'question',
                         showCancelButton: true,
-                        confirmButtonColor: '#667eea',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Sí, confirmar',
-                        cancelButtonText: 'Cancelar'
+                        confirmButtonColor: '#10b981', // Verde
+                        cancelButtonColor: '#6b7280', // Gris
+                        confirmButtonText: 'Sí, Procesar Venta',
+                        cancelButtonText: 'Cancelar',
+                        width: '32rem',
+                        customClass: {
+                            popup: 'rounded-xl shadow-2xl',
+                            title: 'text-xl font-bold text-gray-800',
+                            htmlContainer: 'text-left',
+                            confirmButton: 'rounded-lg px-6 py-3 font-medium',
+                            cancelButton: 'rounded-lg px-6 py-3 font-medium'
+                        },
+                        buttonsStyling: true,
+                        reverseButtons: true
                     }).then((result) => {
                         resolve(result.isConfirmed);
                     });
                 } else {
-                    resolve(confirm(`${title}\n${text}`));
+                    resolve(confirm(`${title}\n${html ? text.replace(/<[^>]*>/g, '') : text}`));
                 }
             });
+        },
+
+        // ===== EVENTOS =====
+        onCustomerChange() {
+            this.saveToLocalStorage();
+        },
+
+        autoAddSingleProduct() {
+            // Verificar que tenemos productos en cache
+            if (!this.productsCache || this.productsCache.length === 0) {
+                console.log('🔄 No hay productos en cache');
+                return;
+            }
+            
+            // Filtrar productos con stock > 0
+            const availableProducts = this.productsCache.filter(product => product.stock > 0);
+            console.log('🔄 Productos disponibles:', availableProducts.length, 'de', this.productsCache.length);
+            console.log('🔄 Productos en venta actual:', this.saleItems.length);
+            
+            // Si hay exactamente un producto disponible y no hay productos en la venta
+            if (availableProducts.length === 1 && this.saleItems.length === 0) {
+                const product = availableProducts[0];
+                console.log('🔄 Auto-agregando producto único:', product.name);
+                this.addProductToSale(product);
+                this.showToast('Producto Agregado', `"${product.name}" agregado automáticamente`, 'success', 1500);
+            } else {
+                console.log('🔄 No se auto-agrega producto - Condiciones no cumplidas');
+            }
         }
     }));
 });

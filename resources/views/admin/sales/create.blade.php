@@ -204,95 +204,102 @@
                     <div class="p-6">
                         <!-- Tabla de productos -->
                         <div class="relative">
-                            <div class="overflow-x-auto bg-gray-50 rounded-2xl border-2 border-gray-100">
-                                <table class="w-full modern-table">
-                                    <thead class="bg-gradient-to-r from-gray-700 to-gray-800">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-barcode mr-2"></i>Código
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-box mr-2"></i>Producto
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-warehouse mr-2"></i>Stock
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-sort-numeric-up mr-2"></i>Cantidad
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-dollar-sign mr-2"></i>Precio Unit.
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-calculator mr-2"></i>Subtotal
-                                            </th>
-                                            <th
-                                                class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
-                                                <i class="fas fa-cogs mr-2"></i>Acciones
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        <template x-for="(item, index) in saleItems" :key="item.id">
-                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="item.code"></td>
-                                                <td class="px-6 py-4 text-sm text-gray-900" x-text="item.name"></td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
-                                                          :class="item.stock > 10 ? 'bg-green-100 text-green-800' : (item.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800')"
-                                                          x-text="item.stock"></span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div class="flex items-center justify-center space-x-2">
-                                                        <button @click="decreaseQuantity(index)" 
-                                                                class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
-                                                                :disabled="item.quantity <= 1">
-                                                            <i class="fas fa-minus text-xs"></i>
-                                                        </button>
-                                                        <input type="number" 
-                                                               x-model.number="item.quantity" 
-                                                               @input="updateItemSubtotal(index)"
-                                                               min="1" 
-                                                               :max="item.stock"
-                                                               class="w-16 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
-                                                        <button @click="increaseQuantity(index)" 
-                                                                class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
-                                                                :disabled="item.quantity >= item.stock">
-                                                            <i class="fas fa-plus text-xs"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="`{{ $currency->symbol }} ${item.price.toFixed(2)}`"></td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="`{{ $currency->symbol }} ${item.subtotal.toFixed(2)}`"></td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button @click="removeItem(index)" 
-                                                            class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300">
-                                                        <i class="fas fa-trash text-xs"></i>
-                                                    </button>
-                                                </td>
+                            <!-- Tabla normal cuando hay productos -->
+                            <template x-if="saleItems.length > 0">
+                                <div class="overflow-x-auto bg-gray-50 rounded-2xl border-2 border-gray-100">
+                                    <table class="w-full modern-table">
+                                        <thead class="bg-gradient-to-r from-gray-700 to-gray-800">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-barcode mr-2"></i>Código
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-box mr-2"></i>Producto
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-warehouse mr-2"></i>Stock
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-sort-numeric-up mr-2"></i>Cantidad
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-dollar-sign mr-2"></i>Precio Unit.
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-calculator mr-2"></i>Subtotal
+                                                </th>
+                                                <th
+                                                    class="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-cogs mr-2"></i>Acciones
+                                                </th>
                                             </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Estado vacío -->
-                            <div x-show="saleItems.length === 0" class="empty-state">
-                                <div class="text-center py-16">
-                                    <div
-                                        class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-shopping-cart text-4xl text-gray-400"></i>
-                                    </div>
-                                    <h4 class="text-xl font-semibold text-gray-600 mb-2">No hay productos agregados</h4>
-                                    <p class="text-gray-500">Agregue productos escaneando códigos o usando el buscador</p>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200">
+                                            <template x-for="(item, index) in saleItems" :key="item.id">
+                                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="item.code"></td>
+                                                    <td class="px-6 py-4 text-sm text-gray-900" x-text="item.name"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                                                              :class="item.stock > 10 ? 'bg-green-100 text-green-800' : (item.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800')"
+                                                              x-text="item.stock"></span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div class="flex items-center justify-center space-x-2">
+                                                            <button type="button" @click="decreaseQuantity(index)" 
+                                                                    class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
+                                                                    :disabled="item.quantity <= 1">
+                                                                <i class="fas fa-minus text-xs"></i>
+                                                            </button>
+                                                            <input type="number" 
+                                                                   x-model.number="item.quantity" 
+                                                                   @input="updateItemSubtotal(index)"
+                                                                   min="1" 
+                                                                   :max="item.stock"
+                                                                   class="w-16 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm">
+                                                            <button type="button" @click="increaseQuantity(index)" 
+                                                                    class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
+                                                                    :disabled="item.quantity >= item.stock">
+                                                                <i class="fas fa-plus text-xs"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="`{{ $currency->symbol }} ${item.price.toFixed(2)}`"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="`{{ $currency->symbol }} ${item.subtotal.toFixed(2)}`"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                        <button type="button" @click="removeItem(index)" 
+                                                                class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300">
+                                                            <i class="fas fa-trash text-xs"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
+                            </template>
+
+                            <!-- Estado vacío cuando no hay productos -->
+                            <template x-if="saleItems.length === 0">
+                                <div class="empty-state bg-gray-50 rounded-2xl border-2 border-gray-100">
+                                    <div class="text-center py-16">
+                                        <div
+                                            class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-shopping-cart text-4xl text-gray-400"></i>
+                                        </div>
+                                        <h4 class="text-xl font-semibold text-gray-600 mb-2">No hay productos agregados</h4>
+                                        <p class="text-gray-500">Agregue productos escaneando códigos o usando el buscador</p>
+                                        <!-- Debug info -->
+                                        <p class="text-xs text-gray-400 mt-2" x-text="`Debug: ${saleItems.length} productos`"></p>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Total de la venta y Nota -->
