@@ -10,6 +10,43 @@
     
     <link rel="preload" href="{{ asset('css/admin/customers/payment-history.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{{ asset('css/admin/customers/payment-history.css') }}"></noscript>
+    
+    <style>
+        /* Estilos para el modal SPA */
+        #debtPaymentModal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        #debtPaymentModal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        #debtPaymentModal.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .modal-open {
+            overflow: hidden;
+        }
+        
+        /* Animación de entrada del modal */
+        #debtPaymentModal .relative {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
 @endpush
 
 @push('js')
@@ -17,7 +54,10 @@
         // Pasar datos críticos a JavaScript
         window.totalCustomers = {{ $totalCustomers ?? 0 }};
         window.exchangeRate = {{ $exchangeRate ?? 134 }};
+        window.csrfToken = '{{ csrf_token() }}';
     </script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('js/admin/customers/index.js') }}" defer></script>
     <script src="{{ asset('js/admin/customers/modals.js') }}" defer></script>
 @endpush
@@ -155,7 +195,7 @@
                 </div>
 
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">
+                        <div class="text-3xl font-bold text-gray-900" data-stat="total-customers">
                             {{ $totalCustomers }}
                         </div>
                         <div class="text-sm font-medium text-gray-600">Total de Clientes</div>
@@ -187,7 +227,7 @@
                 </div>
 
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">
+                        <div class="text-3xl font-bold text-gray-900" data-stat="active-customers">
                             <span>{{ $activeCustomers }}</span>
                             <span class="text-lg text-gray-500">/{{ $totalCustomers }}</span>
                         </div>
@@ -221,7 +261,7 @@
                 </div>
 
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">
+                        <div class="text-3xl font-bold text-gray-900" data-stat="new-customers">
                             {{ $newCustomers }}
                         </div>
                         <div class="text-sm font-medium text-gray-600">Nuevos este Mes</div>
@@ -254,7 +294,7 @@
                 </div>
 
                     <div class="space-y-2">
-                        <div class="text-2xl font-bold text-gray-900">
+                        <div class="text-2xl font-bold text-gray-900" data-stat="total-revenue">
                             {{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}
                         </div>
                         <div class="text-sm font-medium text-gray-600">Ingresos Totales</div>
@@ -293,7 +333,7 @@
             </div>
 
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">
+                        <div class="text-3xl font-bold text-gray-900" data-stat="defaulters-count">
                             {{ $defaultersCount }}
                         </div>
                         <div class="text-sm font-medium text-gray-600">Clientes Morosos</div>
@@ -1210,7 +1250,7 @@
                                                     </span>
                                                 @endif
                                             @if ($customer->total_debt > 0)
-                                                <button class="edit-debt-btn-small" @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})">
+                                                <button class="edit-debt-btn-small" onclick="spaPaymentHandler.openPaymentModal({{ $customer->id }})">
                                                     <i class="fas fa-dollar-sign"></i>
                                                 </button>
 
@@ -1441,14 +1481,14 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                 @endcan
-                                @if ($customer->total_debt > 0)
+                                                                    @if ($customer->total_debt > 0)
                                         <button
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                                            @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})" 
+                                            onclick="spaPaymentHandler.openPaymentModal({{ $customer->id }})" 
                                             title="Pagar deuda">
                                         <i class="fas fa-dollar-sign"></i>
                                     </button>
-                                @endif
+                                    @endif
                                 @can('sales.create')
                                     <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -1555,13 +1595,13 @@
                                             <i class="fas fa-edit text-xs"></i>
                                         </a>
                                     @endcan
-                                    @if ($customer->total_debt > 0)
+                                                                        @if ($customer->total_debt > 0)
                                         <button
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                                            @click="openModal('debtPaymentModal'); loadDebtPaymentData({{ $customer->id }})" 
+                                            onclick="spaPaymentHandler.openPaymentModal({{ $customer->id }})" 
                                             title="Pagar deuda">
-                                            <i class="fas fa-dollar-sign text-xs"></i>
-                                        </button>
+                                        <i class="fas fa-dollar-sign text-xs"></i>
+                                    </button>
                                     @endif
                                     @can('sales.create')
                                         <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
@@ -1827,28 +1867,17 @@
         </div>
     </div>
 
-    {{-- Modal para registrar pagos de deuda rediseñado con Alpine.js --}}
-    <div x-show="debtPaymentModal" x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0">
+    {{-- Modal para registrar pagos de deuda --}}
+    <div id="debtPaymentModal" 
+         class="fixed inset-0 z-50 overflow-y-auto hidden"
+         style="display: none;">
         
         <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal('debtPaymentModal')"></div>
+        <div class="fixed inset-0 bg-black bg-opacity-50" onclick="spaPaymentHandler.closePaymentModal()"></div>
         
         <!-- Modal Content -->
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform scale-95"
-                 x-transition:enter-end="opacity-100 transform scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform scale-100"
-                 x-transition:leave-end="opacity-0 transform scale-95">
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
                 
                 <!-- Header del Modal -->
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-2xl">
@@ -1861,13 +1890,14 @@
                             <p class="text-sm text-gray-600">Gestiona los pagos de tus clientes de forma eficiente</p>
                         </div>
                     </div>
-                    <button type="button" @click="closeModal('debtPaymentModal')" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <button type="button" onclick="spaPaymentHandler.closePaymentModal()" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
-                <form id="debtPaymentForm">
+                <form id="debtPaymentForm" method="POST">
                     <div class="p-6 max-h-[70vh] overflow-y-auto">
+                        @csrf
                         <input type="hidden" id="payment_customer_id" name="customer_id">
                         
                         <div class="space-y-6">

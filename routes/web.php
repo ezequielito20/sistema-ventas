@@ -129,7 +129,13 @@ Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerControl
 Route::get('/admin/customers/debt-report/download', [App\Http\Controllers\CustomerController::class, 'debtReport'])
     ->name('admin.customers.debt-report.download');
 Route::post('/admin/customers/{customer}/register-payment', [App\Http\Controllers\CustomerController::class, 'registerDebtPayment'])
-    ->name('admin.customers.register-payment');
+->name('admin.customers.register-payment');
+Route::post('/admin/customers/{customer}/register-payment-ajax', [App\Http\Controllers\CustomerController::class, 'registerDebtPaymentAjax'])
+->name('admin.customers.register-payment-ajax');
+Route::get('/admin/customers/{customer}/payment-data', [App\Http\Controllers\CustomerController::class, 'getCustomerPaymentData'])
+->name('admin.customers.payment-data');
+Route::get('/admin/customers/{customer}/sales-history', [App\Http\Controllers\CustomerController::class, 'getCustomerSalesHistory'])
+->name('admin.customers.sales-history');
 Route::get('/admin/customers/payment-history', [App\Http\Controllers\CustomerController::class, 'paymentHistory'])
     ->name('admin.customers.payment-history');
 Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\CustomerController::class, 'exportPaymentHistory'])

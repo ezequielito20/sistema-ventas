@@ -1329,6 +1329,291 @@ class CustomerController extends Controller
       ]);
    }
 
+   /**
+    * Registrar pago de deuda via AJAX para SPA
+    */
+   public function registerDebtPaymentAjax(Request $request, Customer $customer)
+   {
+      try {
+         $request->validate([
+            'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
+            'payment_date' => 'required|date',
+            'payment_time' => 'required|date_format:H:i',
+            'notes' => 'nullable|string|max:500',
+         ]);
+
+         // Validación manual de fecha usando la zona horaria de Venezuela
+         $paymentDate = $request->payment_date;
+         $today = now()->setTimezone('America/Caracas')->format('Y-m-d');
+         
+         if ($paymentDate > $today) {
+            return response()->json([
+               'success' => false,
+               'message' => 'La fecha del pago no puede ser mayor a hoy',
+               'errors' => [
+                  'payment_date' => ['La fecha del pago no puede ser mayor a hoy']
+               ]
+            ], 422);
+         }
+
+         $previousDebt = $customer->total_debt;
+         $paymentAmount = $request->payment_amount;
+         $paymentTime = $request->payment_time;
+         $remainingDebt = $previousDebt - $paymentAmount;
+
+         // Registrar el pago con la fecha especificada
+         $debtPayment = DebtPayment::create([
+            'company_id' => $this->company->id,
+            'customer_id' => $customer->id,
+            'previous_debt' => $previousDebt,
+            'payment_amount' => $paymentAmount,
+            'remaining_debt' => $remainingDebt,
+            'notes' => $request->notes,
+            'user_id' => Auth::id(),
+         ]);
+
+         // Actualizar las fechas created_at y updated_at con la fecha y hora proporcionadas
+         $paymentDateTime = Carbon::parse($paymentDate . ' ' . $paymentTime, 'America/Caracas');
+         $debtPayment->created_at = $paymentDateTime;
+         $debtPayment->updated_at = $paymentDateTime;
+         $debtPayment->save();
+
+         // Actualizar la deuda total del cliente
+         $customer->update([
+            'total_debt' => $remainingDebt
+         ]);
+
+         // Verificar que la actualización se haya realizado correctamente
+         $customer->refresh();
+
+         // Obtener estadísticas actualizadas para el dashboard
+         $stats = $this->getUpdatedStats();
+
+         return response()->json([
+            'success' => true,
+            'message' => 'Pago registrado correctamente',
+            'customer' => [
+               'id' => $customer->id,
+               'name' => $customer->name,
+               'total_debt' => $customer->total_debt,
+               'formatted_total_debt' => number_format($customer->total_debt, 2),
+               'has_debt' => $customer->total_debt > 0,
+               'is_defaulter' => $this->isCustomerDefaulter($customer->id)
+            ],
+            'stats' => $stats,
+            'payment' => [
+               'id' => $debtPayment->id,
+               'amount' => $paymentAmount,
+               'date' => $paymentDateTime->format('d/m/Y H:i'),
+               'remaining_debt' => $remainingDebt
+            ]
+         ]);
+
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Error de validación',
+            'errors' => $e->errors()
+         ], 422);
+      } catch (\Exception $e) {
+         Log::error('Error al registrar pago de deuda: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor'
+         ], 500);
+      }
+   }
+
+   /**
+    * Obtener estadísticas actualizadas para el dashboard
+    */
+   private function getUpdatedStats()
+   {
+      // Obtener el arqueo de caja actual
+      $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
+      
+      $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+      // Estadísticas básicas
+      $stats = DB::table('customers')
+         ->where('company_id', $this->company->id)
+         ->selectRaw('
+            COUNT(*) as total_customers,
+            SUM(total_debt) as total_debt,
+            COUNT(CASE WHEN EXTRACT(MONTH FROM created_at) = ? AND EXTRACT(YEAR FROM created_at) = ? THEN 1 END) as new_customers
+         ', [now()->month, now()->year])
+         ->first();
+
+      $totalCustomers = $stats->total_customers ?? 0;
+      $totalDebt = $stats->total_debt ?? 0;
+      $newCustomers = $stats->new_customers ?? 0;
+      $customerGrowth = $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100) : 0;
+
+      // Calcular clientes activos
+      $activeCustomers = DB::table('customers')
+         ->join('sales', 'customers.id', '=', 'sales.customer_id')
+         ->where('customers.company_id', $this->company->id)
+         ->distinct()
+         ->count('customers.id');
+
+      // Calcular ingresos totales
+      $totalRevenue = DB::table('sales')
+         ->where('company_id', $this->company->id)
+         ->sum('total_price');
+
+      // Calcular clientes morosos
+      $defaultersCount = $this->getDefaultersCount();
+
+      return [
+         'total_customers' => $totalCustomers,
+         'active_customers' => $activeCustomers,
+         'new_customers' => $newCustomers,
+         'customer_growth' => $customerGrowth,
+         'total_revenue' => $totalRevenue,
+         'defaulters_count' => $defaultersCount,
+         'total_debt' => $totalDebt
+      ];
+   }
+
+   /**
+    * Verificar si un cliente es moroso
+    */
+   private function isCustomerDefaulter($customerId)
+   {
+      $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
+      
+      $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+      // Verificar si tiene ventas antes del arqueo actual
+      $hasOldSales = DB::table('sales')
+         ->where('customer_id', $customerId)
+         ->where('company_id', $this->company->id)
+         ->where('sale_date', '<', $openingDate)
+         ->exists();
+
+      return $hasOldSales;
+   }
+
+   /**
+    * Obtener el conteo de clientes morosos
+    */
+   private function getDefaultersCount()
+   {
+      $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
+      
+      $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
+
+      return DB::table('customers')
+         ->where('customers.company_id', $this->company->id)
+         ->where('customers.total_debt', '>', 0)
+         ->whereExists(function ($query) use ($openingDate) {
+            $query->select(DB::raw(1))
+               ->from('sales')
+               ->whereColumn('sales.customer_id', 'customers.id')
+               ->where('sales.company_id', $this->company->id)
+               ->where('sales.sale_date', '<', $openingDate);
+         })
+         ->count();
+   }
+
+   /**
+    * Obtener datos del cliente para el modal de pago
+    */
+   public function getCustomerPaymentData(Customer $customer)
+   {
+      try {
+         // Verificar que el cliente pertenezca a la empresa
+         if ($customer->company_id !== $this->company->id) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Cliente no encontrado'
+            ], 404);
+         }
+
+         // Verificar si el cliente tiene ventas
+         $hasSales = DB::table('sales')
+            ->where('customer_id', $customer->id)
+            ->where('company_id', $this->company->id)
+            ->exists();
+
+         // Verificar si es moroso
+         $isDefaulter = $this->isCustomerDefaulter($customer->id);
+
+         return response()->json([
+            'success' => true,
+            'customer' => [
+               'id' => $customer->id,
+               'name' => $customer->name,
+               'phone' => $customer->phone,
+               'email' => $customer->email,
+               'total_debt' => $customer->total_debt,
+               'formatted_total_debt' => number_format($customer->total_debt, 2),
+               'has_sales' => $hasSales,
+               'is_defaulter' => $isDefaulter,
+               'has_debt' => $customer->total_debt > 0
+            ]
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al obtener datos del cliente: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor'
+         ], 500);
+      }
+   }
+
+   /**
+    * Obtener historial de ventas del cliente
+    */
+   public function getCustomerSalesHistory(Customer $customer)
+   {
+      try {
+         // Verificar que el cliente pertenezca a la empresa
+         if ($customer->company_id !== $this->company->id) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Cliente no encontrado'
+            ], 404);
+         }
+
+         // Obtener ventas del cliente
+         $sales = DB::table('sales')
+            ->where('customer_id', $customer->id)
+            ->where('company_id', $this->company->id)
+            ->select('sale_date', 'total_price', 'id')
+            ->orderBy('sale_date', 'desc')
+            ->get();
+
+         // Formatear datos para la tabla
+         $formattedSales = $sales->map(function ($sale) {
+            return [
+               'date' => Carbon::parse($sale->sale_date)->format('d/m/Y'),
+               'products' => 'Venta #' . $sale->id,
+               'total' => $sale->total_price
+            ];
+         });
+
+         return response()->json([
+            'success' => true,
+            'sales' => $formattedSales
+         ]);
+
+      } catch (\Exception $e) {
+         Log::error('Error al obtener historial de ventas: ' . $e->getMessage());
+         return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor'
+         ], 500);
+      }
+   }
+
    public function paymentHistory(Request $request)
    {
       $query = DebtPayment::where('company_id', $this->company->id)
