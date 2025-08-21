@@ -26,7 +26,6 @@ document.addEventListener('alpine:init', () => {
         // Búsqueda y filtros
         codeSuggestions: [],
         productSearchTerm: '',
-        stockFilter: 'all',
         searchModalOpen: false,
         
         // Cache de productos
@@ -154,28 +153,10 @@ document.addEventListener('alpine:init', () => {
                 );
             }
             
-            // Filtro por stock
-            switch (this.stockFilter) {
-                case 'available':
-                    filtered = filtered.filter(product => product.stock > 0);
-                    break;
-                case 'low':
-                    filtered = filtered.filter(product => product.stock > 0 && product.stock <= 10);
-                    break;
-                case 'all':
-                default:
-                    break;
-            }
-            
             // Ocultar productos ya agregados
             filtered = filtered.filter(product => !this.isProductInSale(product.id));
             
             this.filteredProducts = filtered;
-        },
-        
-        filterByStock(filter) {
-            this.stockFilter = filter;
-            this.filterProducts();
         },
         
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
@@ -567,6 +548,33 @@ document.addEventListener('alpine:init', () => {
                 this.notifications.push({ title, message, type, visible: true });
                 setTimeout(() => { this.notifications.shift(); }, duration);
             }
+        },
+        
+        // Función para obtener la URL de la imagen del producto
+        getProductImageUrl(product) {
+            if (!product) {
+                console.log('🖼️ Producto no definido, usando imagen por defecto');
+                return '/img/no-image.svg';
+            }
+            
+            console.log('🖼️ Procesando imagen para producto:', product.name, 'image_url:', product.image_url, 'image:', product.image);
+            
+            // Si ya tiene image_url, usarla
+            if (product.image_url && product.image_url !== 'null' && product.image_url !== '') {
+                console.log('🖼️ Usando image_url:', product.image_url);
+                return product.image_url;
+            }
+            
+            // Si tiene image, construir la URL
+            if (product.image && product.image !== 'null' && product.image !== '') {
+                const imageUrl = `/storage/products/${product.image}`;
+                console.log('🖼️ Construyendo URL desde image:', imageUrl);
+                return imageUrl;
+            }
+            
+            // Fallback a imagen por defecto
+            console.log('🖼️ Usando imagen por defecto para:', product.name);
+            return '/img/no-image.svg';
         },
         
         // Función para forzar actualización de la vista
