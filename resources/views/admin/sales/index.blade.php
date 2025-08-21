@@ -164,6 +164,13 @@
                                @input.debounce.300ms="filterSales()"
                                placeholder="Buscar por cliente, fecha o ID..."
                                class="search-input">
+                        <button type="button" 
+                                class="search-clear-btn"
+                                x-show="searchTerm.length > 0"
+                                @click="clearSearch()"
+                                title="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <div class="search-suggestions" 
                              x-show="searchSuggestions.length > 0" 
                              x-transition>

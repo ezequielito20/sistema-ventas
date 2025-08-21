@@ -214,6 +214,12 @@ document.addEventListener('alpine:init', () => {
             this.searchSuggestions = [];
             this.filterSales();
         },
+
+        clearSearch() {
+            this.searchTerm = '';
+            this.searchSuggestions = [];
+            this.filterSales();
+        },
         
         clearFilters() {
             this.searchTerm = '';
