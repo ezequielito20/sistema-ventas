@@ -99,6 +99,355 @@
     display: none !important;
 }
 
+/* ===== ESTILOS PARA SELECTS ===== */
+/* Asegurar que las opciones aparezcan debajo del select */
+select {
+    position: relative;
+    z-index: 10;
+}
+
+/* Contenedor del select para controlar el z-index */
+.select-container {
+    position: relative;
+    z-index: 20;
+}
+
+/* Asegurar que las opciones del select aparezcan debajo */
+select option {
+    position: relative;
+    z-index: 30;
+}
+
+/* Estilos específicos para selects en el formulario de ventas */
+.sales-form-select {
+    position: relative;
+    z-index: 15;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #374151;
+    transition: all 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.sales-form-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.sales-form-select:hover {
+    border-color: #d1d5db;
+    background-color: white;
+}
+
+/* Asegurar que el dropdown aparezca debajo del select */
+.sales-form-select:focus-within {
+    z-index: 50;
+}
+
+/* Estilos para el contenedor del select con botón de agregar cliente */
+.customer-select-container {
+    position: relative;
+    z-index: 25;
+}
+
+.customer-select-container select {
+    z-index: 15;
+}
+
+.customer-select-container .add-customer-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 35;
+}
+
+/* Responsive para selects */
+@media (max-width: 768px) {
+    .sales-form-select {
+        font-size: 16px; /* Evitar zoom en iOS */
+        padding: 12px 16px;
+        padding-right: 44px;
+    }
+    
+    .customer-select-container .add-customer-button {
+        right: 12px;
+    }
+}
+
+/* Asegurar que las opciones no se superpongan */
+select:focus {
+    z-index: 100;
+}
+
+/* Estilos para el dropdown nativo del navegador */
+select:focus option {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+select:focus option:checked {
+    background-color: #6366f1;
+    color: white;
+}
+
+select:focus option:hover {
+    background-color: #e5e7eb;
+}
+
+/* Asegurar que el dropdown aparezca debajo en todos los navegadores */
+select {
+    transform: translateZ(0); /* Forzar capa de composición */
+}
+
+/* Estilos específicos para Firefox */
+@-moz-document url-prefix() {
+    select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+}
+
+/* Estilos específicos para Safari */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Asegurar que las opciones no se superpongan con otros elementos */
+.sales-form-select:focus {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Contenedor para evitar superposiciones */
+.select-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.select-wrapper:focus-within {
+    z-index: 1000;
+}
+
+/* ===== SELECTS PERSONALIZADOS ===== */
+.custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 44px;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 40px 10px 12px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.custom-select-trigger:hover {
+    border-color: #d1d5db;
+    background-color: white;
+}
+
+.custom-select-trigger.active {
+    border-color: #6366f1;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.custom-select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.custom-select-trigger.active .custom-select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.custom-select-dropdown {
+    position: fixed;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* Usar position fixed para evitar cualquier corte */
+    min-width: 200px;
+}
+
+/* Contenedor del select para permitir overflow */
+.custom-select-trigger {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Asegurar que el contenedor padre permita overflow */
+.relative {
+    overflow: visible !important;
+}
+
+/* Contenedor del formulario para permitir overflow */
+.p-6 {
+    overflow: visible !important;
+}
+
+/* Asegurar que el dropdown no se corte por contenedores padres */
+.custom-select-dropdown {
+    position: absolute;
+    z-index: 9999;
+    /* Forzar que aparezca sobre otros elementos */
+    transform: translateZ(0);
+}
+
+/* Contenedor del select con overflow visible */
+.custom-select-trigger {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Asegurar que contenedores específicos permitan overflow */
+.relative {
+    overflow: visible !important;
+}
+
+/* Contenedor del formulario */
+.p-6 {
+    overflow: visible !important;
+}
+
+/* Estilos para dropdown posicionado arriba */
+.custom-select-dropdown.dropdown-above {
+    border-top: 2px solid #e5e7eb !important;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Estilos para dropdown posicionado abajo */
+.custom-select-dropdown.dropdown-below {
+    border-top: none !important;
+    border-bottom: 2px solid #e5e7eb !important;
+    border-radius: 0 0 12px 12px !important;
+}
+
+/* Asegurar que el dropdown siempre sea visible */
+.custom-select-dropdown {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    background: white !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.custom-select-search {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.custom-select-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.custom-select-search input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.custom-select-option {
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #374151;
+}
+
+.custom-select-option:hover {
+    background-color: #f3f4f6;
+}
+
+.custom-select-option.selected {
+    background-color: #6366f1;
+    color: white;
+}
+
+.custom-select-option:last-child {
+    border-bottom: none;
+}
+
+/* Responsive para selects personalizados */
+@media (max-width: 768px) {
+    .custom-select-trigger {
+        font-size: 16px; /* Evitar zoom en iOS */
+        padding: 12px 44px 12px 16px;
+    }
+    
+    .custom-select-dropdown {
+        max-height: 150px;
+    }
+    
+    .custom-select-option {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+}
+
+/* Animaciones para el dropdown */
+.custom-select-dropdown {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Tabla moderna - ocultar cuando esté vacía */
 .modern-table:has(tbody:empty) {
     display: none;

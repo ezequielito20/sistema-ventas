@@ -35,6 +35,10 @@ document.addEventListener('alpine:init', () => {
         // Sistema de notificaciones
         notifications: [],
         
+        // Selects personalizados
+        customerOptions: [],
+        paymentOptions: [],
+        
         // ===== COMPUTED PROPERTIES =====
         get totalAmount() {
             return this.saleItems.reduce((total, item) => total + item.subtotal, 0);
@@ -77,6 +81,9 @@ document.addEventListener('alpine:init', () => {
                     console.log('📦 Datos cargados:', this.productsCache.length, 'productos');
                 }
                 
+                // Configurar selects personalizados
+                this.setupCustomSelects();
+                
                 // Cargar datos guardados localmente
                 this.loadFromLocalStorage();
                 
@@ -93,6 +100,23 @@ document.addEventListener('alpine:init', () => {
                 console.error('❌ Error inicializando SPA:', error);
                 this.showAlert('Error al inicializar el sistema', 'error');
             }
+        },
+
+        setupCustomSelects() {
+            // Configurar select de clientes
+            this.customerOptions = window.saleCreateData.customers.map(customer => ({
+                value: customer.id,
+                text: customer.name,
+                debt: customer.total_debt || 0
+            }));
+
+            // Configurar select de "Ya pagó"
+            this.paymentOptions = [
+                { value: '0', text: 'No' },
+                { value: '1', text: 'Sí' }
+            ];
+
+            console.log('🎛️ Selects personalizados configurados');
         },
         
         // ===== BÚSQUEDA Y AUTocompletado =====
@@ -180,6 +204,140 @@ document.addEventListener('alpine:init', () => {
         
 
         
+        // ===== COMPONENTE SELECT PERSONALIZADO =====
+        initCustomSelect(selectId, options, selectedValue = '', placeholder = 'Seleccionar...') {
+            return {
+                isOpen: false,
+                selectedValue: selectedValue,
+                selectedText: placeholder,
+                options: options,
+                searchTerm: '',
+                filteredOptions: options,
+                
+                        init() {
+            this.updateSelectedText();
+            this.filteredOptions = this.options;
+            
+            // Agregar listeners para reposicionar el dropdown
+            this.setupScrollListeners();
+        },
+
+        setupScrollListeners() {
+            // Reposicionar dropdown en scroll y resize
+            const repositionHandler = () => {
+                if (this.isOpen) {
+                    this.positionDropdown();
+                }
+            };
+            
+            window.addEventListener('scroll', repositionHandler, true);
+            window.addEventListener('resize', repositionHandler);
+            
+            // Cleanup listeners cuando el componente se destruye
+            this.$el.addEventListener('alpine:destroyed', () => {
+                window.removeEventListener('scroll', repositionHandler, true);
+                window.removeEventListener('resize', repositionHandler);
+            });
+        },
+                
+                        toggle() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.searchTerm = '';
+                this.filteredOptions = this.options;
+                this.$nextTick(() => {
+                    const input = this.$refs.searchInput;
+                    if (input) input.focus();
+                    
+                    // Posicionar el dropdown correctamente
+                    this.positionDropdown();
+                });
+            }
+        },
+
+        positionDropdown() {
+            const trigger = this.$el;
+            const dropdown = trigger.querySelector('.custom-select-dropdown');
+            
+            if (!dropdown) return;
+            
+            // Obtener la posición exacta del trigger en la ventana
+            const triggerRect = trigger.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+            
+            // Calcular espacio disponible debajo del trigger
+            const spaceBelow = viewportHeight - triggerRect.bottom;
+            const dropdownHeight = Math.min(200, this.filteredOptions.length * 48); // 48px por opción
+            
+            // Remover clases anteriores
+            dropdown.classList.remove('dropdown-above', 'dropdown-below');
+            
+            // Configurar ancho del dropdown
+            dropdown.style.width = `${triggerRect.width}px`;
+            dropdown.style.left = `${triggerRect.left}px`;
+            
+            // Si no hay suficiente espacio debajo, mostrar arriba
+            if (spaceBelow < dropdownHeight && triggerRect.top > dropdownHeight) {
+                dropdown.classList.add('dropdown-above');
+                dropdown.style.top = `${triggerRect.top - dropdownHeight}px`;
+            } else {
+                dropdown.classList.add('dropdown-below');
+                dropdown.style.top = `${triggerRect.bottom}px`;
+            }
+            
+            // Asegurar que no se salga del viewport horizontalmente
+            const dropdownRight = triggerRect.left + triggerRect.width;
+            if (dropdownRight > viewportWidth) {
+                dropdown.style.left = `${viewportWidth - triggerRect.width - 10}px`;
+            }
+            if (triggerRect.left < 0) {
+                dropdown.style.left = '10px';
+            }
+        },
+                
+                select(value, text) {
+                    this.selectedValue = value;
+                    this.selectedText = text;
+                    this.isOpen = false;
+                    this.searchTerm = '';
+                    
+                    // Trigger change event
+                    this.$dispatch('select-changed', { value, text, selectId });
+                },
+                
+                filterOptions() {
+                    if (!this.searchTerm.trim()) {
+                        this.filteredOptions = this.options;
+                        return;
+                    }
+                    
+                    const term = this.searchTerm.toLowerCase();
+                    this.filteredOptions = this.options.filter(option => 
+                        option.text.toLowerCase().includes(term) ||
+                        (option.value && option.value.toString().toLowerCase().includes(term))
+                    );
+                },
+                
+                updateSelectedText() {
+                    if (!this.selectedValue) {
+                        this.selectedText = placeholder;
+                        return;
+                    }
+                    
+                    const option = this.options.find(opt => opt.value == this.selectedValue);
+                    this.selectedText = option ? option.text : placeholder;
+                },
+                
+                closeOnClickOutside(event) {
+                    if (!this.$el.contains(event.target)) {
+                        this.isOpen = false;
+                        this.searchTerm = '';
+                    }
+                }
+            };
+        },
+
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
             console.log('➕ Agregando producto a la venta:', product.name);
