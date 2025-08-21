@@ -555,7 +555,7 @@
     </div>
 
     {{-- Modal moderno para mostrar detalles --}}
-    <div class="modal-overlay" 
+    <div class="modal-overlay modal-compact" 
          x-show="modalOpen" 
          x-cloak
          style="display: none;"
