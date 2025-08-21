@@ -418,6 +418,7 @@ document.addEventListener('alpine:init', () => {
                 
                 // Agregar productos
                 this.saleItems.forEach((item, index) => {
+                    formData.append(`items[${item.id}][product_id]`, item.id);
                     formData.append(`items[${item.id}][quantity]`, item.quantity);
                 });
                 

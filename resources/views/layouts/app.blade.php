@@ -597,152 +597,77 @@
                     }
                 }
 
-                // Verificar parámetros de URL para notificaciones
-                const urlParams = new URLSearchParams(window.location.search);
-                
-                // Notificación de venta creada
-                if (urlParams.get('sale_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Venta registrada correctamente!', 'success');
-                    }, 500);
+                // Configuración de notificaciones - Mapeo de parámetros a mensajes
+                const notificationConfig = {
+                    // Ventas
+                    'sale_created': '¡Venta registrada correctamente!',
+                    'sale_created_form': '¡Venta registrada correctamente! Puedes crear otra venta.',
+                    'sale_updated': '¡Venta actualizada correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('sale_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de venta creada y redirigida al formulario
-                if (urlParams.get('sale_created_form') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Venta registrada correctamente! Puedes crear otra venta.', 'success');
-                    }, 500);
+                    // Clientes
+                    'customer_created': '¡Cliente registrado correctamente!',
+                    'customer_updated': '¡Cliente actualizado correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('sale_created_form');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de cliente creado
-                if (urlParams.get('customer_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Cliente registrado correctamente!', 'success');
-                    }, 500);
+                    // Productos
+                    'product_created': '¡Producto registrado correctamente!',
+                    'product_updated': '¡Producto actualizado correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('customer_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de producto creado
-                if (urlParams.get('product_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Producto registrado correctamente!', 'success');
-                    }, 500);
+                    // Proveedores
+                    'supplier_created': '¡Proveedor registrado correctamente!',
+                    'supplier_updated': '¡Proveedor actualizado correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('product_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de proveedor creado
-                if (urlParams.get('supplier_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Proveedor registrado correctamente!', 'success');
-                    }, 500);
+                    // Categorías
+                    'category_created': '¡Categoría registrada correctamente!',
+                    'category_updated': '¡Categoría actualizada correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('supplier_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de categoría creada
-                if (urlParams.get('category_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Categoría registrada correctamente!', 'success');
-                    }, 500);
+                    // Compras
+                    'purchase_created': '¡Compra registrada correctamente!',
+                    'purchase_updated': '¡Compra actualizada correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('category_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de compra creada
-                if (urlParams.get('purchase_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Compra registrada correctamente!', 'success');
-                    }, 500);
+                    // Usuarios
+                    'user_created': '¡Usuario registrado correctamente!',
+                    'user_updated': '¡Usuario actualizado correctamente!',
                     
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('purchase_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de usuario creado
-                if (urlParams.get('user_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Usuario registrado correctamente!', 'success');
-                    }, 500);
+                    // Roles y Permisos
+                    'role_created': '¡Rol registrado correctamente!',
+                    'role_updated': '¡Rol actualizado correctamente!',
+                    'permission_created': '¡Permiso registrado correctamente!',
+                    'permission_updated': '¡Permiso actualizado correctamente!',
                     
-                    // Limpiar el parámetro de la URL
+                    // Caja
+                    'cash_count_created': '¡Caja abierta correctamente!',
+                    'cash_count_updated': '¡Arqueo de caja actualizado correctamente!',
+                    'cash_movement_created': '¡Movimiento de caja registrado correctamente!',
+                    'cash_movement_updated': '¡Movimiento de caja actualizado correctamente!'
+                };
+
+                // Función general para manejar notificaciones
+                function handleNotifications() {
+                    const urlParams = new URLSearchParams(window.location.search);
                     const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('user_created');
-                    window.history.replaceState({}, '', newUrl);
+                    let hasNotification = false;
+
+                    // Iterar sobre todos los parámetros configurados
+                    Object.keys(notificationConfig).forEach(param => {
+                        if (urlParams.get(param) === 'true') {
+                            setTimeout(() => {
+                                showNotification(notificationConfig[param], 'success');
+                            }, 500);
+                            
+                            // Limpiar el parámetro de la URL
+                            newUrl.searchParams.delete(param);
+                            hasNotification = true;
+                        }
+                    });
+
+                    // Actualizar la URL solo si se encontró alguna notificación
+                    if (hasNotification) {
+                        window.history.replaceState({}, '', newUrl);
+                    }
                 }
-                
-                // Notificación de rol creado
-                if (urlParams.get('role_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Rol registrado correctamente!', 'success');
-                    }, 500);
-                    
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('role_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de permiso creado
-                if (urlParams.get('permission_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Permiso registrado correctamente!', 'success');
-                    }, 500);
-                    
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('permission_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de caja abierta
-                if (urlParams.get('cash_count_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Caja abierta correctamente!', 'success');
-                    }, 500);
-                    
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('cash_count_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
-                
-                // Notificación de movimiento de caja creado
-                if (urlParams.get('cash_movement_created') === 'true') {
-                    setTimeout(() => {
-                        showNotification('¡Movimiento de caja registrado correctamente!', 'success');
-                    }, 500);
-                    
-                    // Limpiar el parámetro de la URL
-                    const newUrl = new URL(window.location);
-                    newUrl.searchParams.delete('cash_movement_created');
-                    window.history.replaceState({}, '', newUrl);
-                }
+
+                // Ejecutar el manejo de notificaciones
+                handleNotifications();
             });
         </script>
 

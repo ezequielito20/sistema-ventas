@@ -597,8 +597,31 @@ class SaleController extends Controller
             ->with('message', '¡Venta actualizada exitosamente!')
             ->with('icons', 'success')
             ->with('update_success', true);
+      } catch (\Illuminate\Validation\ValidationException $e) {
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error de validación en los datos de la venta',
+               'errors' => $e->errors()
+            ], 422);
+         }
+         
+         return redirect()->back()
+            ->withErrors($e->validator)
+            ->withInput()
+            ->with('message', 'Error de validación en los datos de la venta')
+            ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
+         
+         // Si es una petición AJAX, devolver JSON
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => false,
+               'message' => 'Error al actualizar la venta: ' . $e->getMessage()
+            ], 500);
+         }
+         
          return redirect()->back()
             ->withInput()
             ->with('message', 'Hubo un problema al actualizar la venta: ' . $e->getMessage())
