@@ -143,7 +143,6 @@ document.addEventListener('alpine:init', () => {
                     customerData.selectedCustomerDebt = parseFloat(selectedCustomer.total_debt || 0);
                 });
 
-                console.log('✅ Cliente inicializado:', selectedCustomer.name);
             };
 
             // Iniciar el proceso de inicialización

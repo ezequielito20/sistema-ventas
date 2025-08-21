@@ -7,7 +7,6 @@
     <script>
         window.salesData = @json($sales->items());
         window.currencySymbol = '{{ $currency->symbol }}';
-        console.log('📦 Datos iniciales cargados:', window.salesData?.length || 0, 'ventas');
     </script>
 
 <div class="space-y-6" 
