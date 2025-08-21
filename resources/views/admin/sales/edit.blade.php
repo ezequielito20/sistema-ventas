@@ -22,7 +22,7 @@
                         </div>
                     </div>
                     <div>
-                        <button id="backButton"
+                        <button id="backButton" onclick="window.location.href='/sales'"
                             class="bg-gray-800 bg-opacity-40 hover:bg-opacity-60 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 backdrop-blur-sm border border-white border-opacity-30 hover:scale-105 transform">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Volver
@@ -106,8 +106,8 @@
                                          isOpen: false, 
                                          searchTerm: '', 
                                          filteredCustomers: @js($customers),
-                                         selectedCustomerName: 'Seleccione un cliente',
-                                         selectedCustomerDebt: 0,
+                                         selectedCustomerName: '{{ $sale->customer->name ?? 'Seleccione un cliente' }}',
+                                         selectedCustomerDebt: {{ $sale->customer->total_debt ?? 0 }},
                                          filterCustomers() {
                                              if (!this.searchTerm) {
                                                  this.filteredCustomers = @js($customers);

@@ -82,8 +82,10 @@ document.addEventListener('alpine:init', () => {
                 // Configurar selects personalizados
                 this.setupCustomSelects();
                 
-                // Inicializar el cliente seleccionado
-                this.initializeSelectedCustomer();
+                // Inicializar el cliente seleccionado con un pequeño delay
+                setTimeout(() => {
+                    this.initializeSelectedCustomer();
+                }, 100);
                 
                 // Configurar persistencia automática
                 this.setupAutoSave();
@@ -104,20 +106,48 @@ document.addEventListener('alpine:init', () => {
         },
 
         initializeSelectedCustomer() {
-            if (this.selectedCustomerId && window.saleEditData.customers) {
-                const selectedCustomer = window.saleEditData.customers.find(c => c.id == this.selectedCustomerId);
-                if (selectedCustomer) {
-                    // Actualizar el estado del select personalizado
-                    const customerSelect = this.$el.querySelector('[x-data*="selectedCustomerName"]');
-                    if (customerSelect) {
-                        const customerData = Alpine.$data(customerSelect);
-                        if (customerData) {
-                            customerData.selectedCustomerName = selectedCustomer.name;
-                            customerData.selectedCustomerDebt = parseFloat(selectedCustomer.total_debt || 0);
-                        }
-                    }
-                }
+            if (!this.selectedCustomerId || !window.saleEditData.customers) {
+                return;
             }
+
+            const selectedCustomer = window.saleEditData.customers.find(c => c.id == this.selectedCustomerId);
+            if (!selectedCustomer) {
+                return;
+            }
+
+            // Función para intentar inicializar el cliente
+            const tryInitialize = () => {
+                // Buscar el contenedor del select de cliente
+                const customerContainer = this.$el.querySelector('[x-data*="selectedCustomerName"]');
+                if (!customerContainer) {
+                    // Si no se encuentra, intentar de nuevo en 50ms
+                    setTimeout(tryInitialize, 50);
+                    return;
+                }
+
+                // Obtener los datos de Alpine.js del contenedor
+                const customerData = Alpine.$data(customerContainer);
+                if (!customerData) {
+                    // Si no hay datos de Alpine, intentar de nuevo en 50ms
+                    setTimeout(tryInitialize, 50);
+                    return;
+                }
+
+                // Actualizar los valores del select
+                customerData.selectedCustomerName = selectedCustomer.name;
+                customerData.selectedCustomerDebt = parseFloat(selectedCustomer.total_debt || 0);
+
+                // Forzar la actualización de la vista
+                this.$nextTick(() => {
+                    customerData.selectedCustomerName = selectedCustomer.name;
+                    customerData.selectedCustomerDebt = parseFloat(selectedCustomer.total_debt || 0);
+                });
+
+                console.log('✅ Cliente inicializado:', selectedCustomer.name);
+            };
+
+            // Iniciar el proceso de inicialización
+            tryInitialize();
         },
         
         // ===== BÚSQUEDA Y AUTocompletado =====
@@ -437,6 +467,54 @@ document.addEventListener('alpine:init', () => {
                     window.location.href = '/sales';
                 }
             });
+        },
+
+        hasUnsavedChanges() {
+            // Comparar el estado actual con los datos originales
+            const originalData = window.saleEditData;
+            
+            // Verificar cambios en datos básicos
+            if (this.selectedCustomerId != originalData.selectedCustomerId) return true;
+            if (this.saleDate != originalData.saleDate) return true;
+            if (this.saleTime != originalData.saleTime) return true;
+            if (this.saleNote != originalData.saleNote) return true;
+            
+            // Verificar cambios en items
+            const originalItems = originalData.saleItems || [];
+            if (this.saleItems.length !== originalItems.length) return true;
+            
+            // Verificar cada item
+            for (let i = 0; i < this.saleItems.length; i++) {
+                const currentItem = this.saleItems[i];
+                const originalItem = originalItems[i];
+                
+                if (!originalItem) return true;
+                if (currentItem.product_id != originalItem.product_id) return true;
+                if (currentItem.quantity != originalItem.quantity) return true;
+                if (parseFloat(currentItem.price) != parseFloat(originalItem.sale_price || 0)) return true;
+            }
+            
+            return false;
+        },
+
+        goBack() {
+            // Verificar si hay cambios sin guardar
+            const hasChanges = this.hasUnsavedChanges();
+            
+            if (hasChanges) {
+                this.showConfirmDialog(
+                    '¿Salir sin guardar?',
+                    'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?'
+                ).then(confirmed => {
+                    if (confirmed) {
+                        this.clearLocalStorage();
+                        window.location.href = '/sales';
+                    }
+                });
+            } else {
+                // No hay cambios, redirigir directamente
+                window.location.href = '/sales';
+            }
         },
         
         // ===== PERSISTENCIA LOCAL =====
