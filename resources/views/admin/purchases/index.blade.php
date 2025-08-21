@@ -25,7 +25,8 @@
                 </div>
                 <div class="header-actions">
                     @can('purchases.report')
-                        <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
+                        <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank"
+                            title="Generar reporte PDF">
                             <i class="fas fa-file-pdf"></i>
                             <span>Reporte</span>
                             <div class="btn-ripple"></div>
@@ -33,7 +34,8 @@
                     @endcan
                     @if ($cashCount)
                         @can('purchases.create')
-                            <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass">
+                            <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass"
+                                title="Crear nueva compra">
                                 <i class="fas fa-plus-circle"></i>
                                 <span>Nueva Compra</span>
                                 <div class="btn-ripple"></div>
@@ -41,7 +43,8 @@
                         @endcan
                     @else
                         @can('cash-counts.create')
-                            <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass">
+                            <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
+                                title="Abrir caja para realizar compras">
                                 <i class="fas fa-cash-register"></i>
                                 <span>Abrir Caja</span>
                                 <div class="btn-ripple"></div>
@@ -51,77 +54,80 @@
                 </div>
             </div>
         </div>
-    <!-- Stats Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-boxes"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $totalPurchases }}</div>
-                    <div class="stat-label">Productos Únicos</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>Comprados en total</span>
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard" role="region" aria-label="Estadísticas de compras">
+            <div class="stats-grid">
+                <div class="stat-card stat-primary" role="article" aria-label="Productos únicos comprados">
+                    <div class="stat-icon" aria-hidden="true">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-glow" aria-hidden="true"></div>
+                    <div class="stat-content">
+                        <div class="stat-value" aria-label="Total de productos únicos">{{ $totalPurchases }}</div>
+                        <div class="stat-label">Productos Únicos</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                            <span>Comprados en total</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="stat-card stat-success">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalAmount, 2) }}</div>
-                    <div class="stat-label">Total Invertido</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-dollar-sign"></i>
-                        <span>Capital comprometido</span>
+                <div class="stat-card stat-success" role="article" aria-label="Total invertido en compras">
+                    <div class="stat-icon" aria-hidden="true">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-glow" aria-hidden="true"></div>
+                    <div class="stat-content">
+                        <div class="stat-value" aria-label="Total invertido">{{ $currency->symbol }}
+                            {{ number_format($totalAmount, 2) }}</div>
+                        <div class="stat-label">Total Invertido</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                            <span>Capital comprometido</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="stat-card stat-warning">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $monthlyPurchases }}</div>
-                    <div class="stat-label">Compras del Mes</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>Actividad reciente</span>
+                <div class="stat-card stat-warning" role="article" aria-label="Compras del mes actual">
+                    <div class="stat-icon" aria-hidden="true">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-glow" aria-hidden="true"></div>
+                    <div class="stat-content">
+                        <div class="stat-value" aria-label="Compras del mes">{{ $monthlyPurchases }}</div>
+                        <div class="stat-label">Compras del Mes</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                            <span>Actividad reciente</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="stat-card stat-info">
-                <div class="stat-icon">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $pendingDeliveries }}</div>
-                    <div class="stat-label">Pendientes</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-clock"></i>
-                        <span>Por entregar</span>
+                <div class="stat-card stat-info" role="article" aria-label="Entregas pendientes">
+                    <div class="stat-icon" aria-hidden="true">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-glow" aria-hidden="true"></div>
+                    <div class="stat-content">
+                        <div class="stat-value" aria-label="Entregas pendientes">{{ $pendingDeliveries }}</div>
+                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <span>Por entregar</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Data Container -->
         <div class="data-container">
             <div class="data-header">
                 <div class="header-left">
-                    <div class="header-icon">
-                        <i class="fas fa-list-alt"></i>
+                    <div class="header-icon-wrapper">
+                        <div class="header-icon">
+                            <i class="fas fa-list-alt"></i>
+                        </div>
                     </div>
                     <div class="header-text">
                         <h3>Lista de Compras</h3>
@@ -130,18 +136,19 @@
                 </div>
                 <div class="header-controls">
                     <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="purchasesSearch" placeholder="Buscar compra por recibo o fecha...">
-                        <button type="button" id="clearSearch" class="clear-btn">
-                            <i class="fas fa-times"></i>
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                        <input type="text" id="purchasesSearch" placeholder="Buscar compra por recibo o fecha..."
+                            aria-label="Buscar compras" autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-btn" aria-label="Limpiar búsqueda">
+                            <i class="fas fa-times" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="view-toggle">
-                        <button type="button" class="view-btn active" data-view="table">
-                            <i class="fas fa-table"></i>
+                    <div class="view-toggle" role="group" aria-label="Cambiar vista">
+                        <button type="button" class="view-btn active" data-view="table" aria-label="Vista de tabla">
+                            <i class="fas fa-table" aria-hidden="true"></i>
                         </button>
-                        <button type="button" class="view-btn" data-view="cards">
-                            <i class="fas fa-th-large"></i>
+                        <button type="button" class="view-btn" data-view="cards" aria-label="Vista de tarjetas">
+                            <i class="fas fa-th-large" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -150,16 +157,16 @@
                 <!-- Table View -->
                 <div class="table-view" id="tableView">
                     <div class="table-wrapper">
-                        <table id="purchasesTable" class="modern-table">
+                        <table id="purchasesTable" class="modern-table" role="table" aria-label="Lista de compras">
                             <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Recibo de Pago</th>
-                                    <th>Fecha</th>
-                                    <th>Productos</th>
-                                    <th>Monto Total</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                                    <th scope="col" role="columnheader">#</th>
+                                    <th scope="col" role="columnheader">Recibo de Pago</th>
+                                    <th scope="col" role="columnheader">Fecha</th>
+                                    <th scope="col" role="columnheader">Productos</th>
+                                    <th scope="col" role="columnheader">Monto Total</th>
+                                    <th scope="col" role="columnheader">Estado</th>
+                                    <th scope="col" role="columnheader">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -229,31 +236,32 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div class="actions-group">
+                                            <div class="actions-group" role="group"
+                                                aria-label="Acciones para compra {{ $loop->iteration }}">
                                                 @can('purchases.show')
-                                                <button type="button" class="action-btn details-btn view-details"
-                                                    data-id="{{ $purchase->id }}"
-                                                    title="Ver Detalles">
-                                                    <i class="fas fa-list"></i>
-                                                </button>
-                                                <button type="button" class="action-btn supplier-btn" 
-                                                    onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})" 
-                                                    title="Ver Proveedor">
-                                                    <i class="fas fa-truck"></i>
-                                                </button>
+                                                    <button type="button" class="action-btn details-btn view-details"
+                                                        data-id="{{ $purchase->id }}" title="Ver Detalles"
+                                                        aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                                        <i class="fas fa-list" aria-hidden="true"></i>
+                                                    </button>
+                                                    <button type="button" class="action-btn supplier-btn"
+                                                        onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
+                                                        title="Ver Proveedor" aria-label="Ver información del proveedor">
+                                                        <i class="fas fa-truck" aria-hidden="true"></i>
+                                                    </button>
                                                 @endcan
                                                 @can('purchases.edit')
                                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
-                                                        class="action-btn edit-btn"
-                                                        title="Editar Compra">
-                                                        <i class="fas fa-edit"></i>
+                                                        class="action-btn edit-btn" title="Editar Compra"
+                                                        aria-label="Editar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                                        <i class="fas fa-edit" aria-hidden="true"></i>
                                                     </a>
                                                 @endcan
                                                 @can('purchases.destroy')
                                                     <button type="button" class="action-btn delete-btn delete-purchase"
-                                                        data-id="{{ $purchase->id }}"
-                                                        title="Eliminar Compra">
-                                                        <i class="fas fa-trash"></i>
+                                                        data-id="{{ $purchase->id }}" title="Eliminar Compra"
+                                                        aria-label="Eliminar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                                        <i class="fas fa-trash" aria-hidden="true"></i>
                                                     </button>
                                                 @endcan
                                             </div>
@@ -301,7 +309,8 @@
                                                 <i class="fas fa-receipt"></i>
                                             </div>
                                             <div class="receipt-details">
-                                                <h3 class="receipt-number">{{ $purchase->payment_receipt ?: 'Sin recibo' }}</h3>
+                                                <h3 class="receipt-number">
+                                                    {{ $purchase->payment_receipt ?: 'Sin recibo' }}</h3>
                                                 <div class="purchase-date">
                                                     <i class="fas fa-calendar-alt"></i>
                                                     <span>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d/m/Y H:i') }}</span>
@@ -337,7 +346,9 @@
                                                 <i class="fas fa-dollar-sign"></i>
                                             </div>
                                             <div class="stat-info">
-                                                <div class="stat-number">{{ $currency->symbol }}<br>{{ number_format($purchase->total_price, 2) }}</div>
+                                                <div class="stat-number">
+                                                    {{ $currency->symbol }}<br>{{ number_format($purchase->total_price, 2) }}
+                                                </div>
                                                 <div class="stat-text">Monto<br>Total</div>
                                             </div>
                                         </div>
@@ -345,37 +356,38 @@
                                 </div>
 
                                 <!-- Action buttons -->
-                                <div class="card-actions-modern">
+                                <div class="card-actions-modern" role="group"
+                                    aria-label="Acciones para compra {{ $loop->iteration }}">
                                     @can('purchases.show')
-                                    <button type="button" class="modern-action-btn primary view-details" 
-                                            data-id="{{ $purchase->id }}"
-                                            title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                        <button type="button" class="modern-action-btn primary view-details"
+                                            data-id="{{ $purchase->id }}" title="Ver Detalles"
+                                            aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </button>
                                     @endcan
-                                    
+
                                     @can('purchases.show')
-                                    <button type="button" class="modern-action-btn info" 
+                                        <button type="button" class="modern-action-btn info"
                                             onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
-                                            title="Ver Proveedor">
-                                        <i class="fas fa-truck"></i>
-                                    </button>
+                                            title="Ver Proveedor" aria-label="Ver información del proveedor">
+                                            <i class="fas fa-truck" aria-hidden="true"></i>
+                                        </button>
                                     @endcan
-                                    
+
                                     @can('purchases.edit')
-                                    <a href="{{ route('admin.purchases.edit', $purchase->id) }}" 
-                                       class="modern-action-btn secondary"
-                                       title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
+                                        <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
+                                            class="modern-action-btn secondary" title="Editar"
+                                            aria-label="Editar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                            <i class="fas fa-edit" aria-hidden="true"></i>
+                                        </a>
                                     @endcan
-                                    
+
                                     @can('purchases.destroy')
-                                    <button type="button" class="modern-action-btn danger delete-purchase" 
-                                            data-id="{{ $purchase->id }}"
-                                            title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                        <button type="button" class="modern-action-btn danger delete-purchase"
+                                            data-id="{{ $purchase->id }}" title="Eliminar"
+                                            aria-label="Eliminar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
+                                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                        </button>
                                     @endcan
                                 </div>
                             </div>
@@ -386,15 +398,16 @@
         </div>
 
         <!-- Modal para Detalles -->
-        <div class="modal-overlay" id="purchaseDetailsModal" style="display: none;">
+        <div class="modal-overlay" id="purchaseDetailsModal" style="display: none;" role="dialog"
+            aria-labelledby="purchaseDetailsTitle" aria-modal="true">
             <div class="modal-container">
                 <div class="modal-header">
-                    <h3 class="modal-title">
-                        <i class="fas fa-list-alt mr-2"></i>
+                    <h3 class="modal-title" id="purchaseDetailsTitle">
+                        <i class="fas fa-list-alt mr-2" aria-hidden="true"></i>
                         Detalle de la Compra
                     </h3>
-                    <button type="button" class="modal-close" onclick="closePurchaseModal()">
-                        <i class="fas fa-times"></i>
+                    <button type="button" class="modal-close" onclick="closePurchaseModal()" aria-label="Cerrar modal">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -433,9 +446,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-modern btn-secondary" onclick="closePurchaseModal()">
+                    <button type="button" class="btn-modern btn-secondary" onclick="closePurchaseModal()"
+                        aria-label="Cerrar modal de detalles">
                         <div class="btn-content">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-times" aria-hidden="true"></i>
                             <span>Cerrar</span>
                         </div>
                         <div class="btn-bg"></div>
@@ -446,20 +460,21 @@
     </div>
 
     <!-- Modal para mostrar información de proveedor -->
-    <div class="modal-overlay" id="supplierInfoModal" style="display: none;">
+    <div class="modal-overlay" id="supplierInfoModal" style="display: none;" role="dialog"
+        aria-labelledby="supplierInfoTitle" aria-modal="true">
         <div class="modal-container">
             <div class="modal-header">
                 <div class="modal-title">
                     <div class="title-icon">
-                        <i class="fas fa-truck"></i>
+                        <i class="fas fa-truck" aria-hidden="true"></i>
                     </div>
                     <div class="title-text">
-                        <h3>Detalles del Proveedor</h3>
+                        <h3 id="supplierInfoTitle">Detalles del Proveedor</h3>
                         <p>Información completa del proveedor seleccionado</p>
                     </div>
                 </div>
-                <button type="button" class="modal-close" onclick="closeSupplierModal()">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="modal-close" onclick="closeSupplierModal()" aria-label="Cerrar modal">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="modal-body">
@@ -548,10 +563,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="modal-footer">
-                <button type="button" class="btn-modern btn-secondary" onclick="closeSupplierModal()">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="btn-modern btn-secondary" onclick="closeSupplierModal()"
+                    aria-label="Cerrar modal de proveedor">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                     <span>Cerrar</span>
                 </button>
             </div>
