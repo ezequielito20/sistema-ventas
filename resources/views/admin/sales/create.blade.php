@@ -239,9 +239,36 @@
                                          isOpen: false, 
                                          selectedPaymentText: 'No',
                                          selectPayment(value, text) {
-                                             alreadyPaid = value;
-                                             this.selectedPaymentText = text;
-                                             this.isOpen = false;
+                                             if (value === '1') {
+                                                 Swal.fire({
+                                                     title: '¿Confirmar pago automático?',
+                                                     text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
+                                                     icon: 'question',
+                                                     showCancelButton: true,
+                                                     confirmButtonColor: '#10b981',
+                                                     cancelButtonColor: '#6b7280',
+                                                     confirmButtonText: 'Sí, confirmar',
+                                                     cancelButtonText: 'Cancelar'
+                                                 }).then((result) => {
+                                                     if (result.isConfirmed) {
+                                                         alreadyPaid = value;
+                                                         this.selectedPaymentText = text;
+                                                         this.isOpen = false;
+                                                         
+                                                         Swal.fire({
+                                                             title: '¡Pago automático activado!',
+                                                             text: 'El pago se registrará automáticamente al crear la venta.',
+                                                             icon: 'success',
+                                                             timer: 2000,
+                                                             showConfirmButton: false
+                                                         });
+                                                     }
+                                                 });
+                                             } else {
+                                                 alreadyPaid = value;
+                                                 this.selectedPaymentText = text;
+                                                 this.isOpen = false;
+                                             }
                                          }
                                      }" 
                                      @click.away="isOpen = false">

@@ -568,16 +568,15 @@ document.addEventListener('alpine:init', () => {
                 }
                 
                 if (data.success) {
-                    this.showAlert('Venta procesada correctamente', 'success');
-                    
                     // Limpiar datos locales
                     this.clearLocalStorage();
                     
-                    // Redirigir según la acción
+                    // Redirigir inmediatamente con parámetro de éxito
                     if (action === 'save_and_new') {
                         window.location.reload();
                     } else {
-                        window.location.href = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales';
+                        const redirectUrl = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales';
+                        window.location.href = redirectUrl + '?sale_created=true';
                     }
             } else {
                     throw new Error(data.message || 'Error al procesar la venta');
@@ -779,17 +778,24 @@ document.addEventListener('alpine:init', () => {
         
         showAlert(message, type = 'info') {
             if (typeof Swal !== 'undefined') {
-                Swal.fire({
+                return Swal.fire({
                     title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
                     text: message,
                     icon: type,
                     confirmButtonText: 'Aceptar',
-                    confirmButtonColor: '#667eea',
-                    timer: type === 'success' ? 2000 : undefined,
-                    timerProgressBar: type === 'success'
+                    confirmButtonColor: type === 'success' ? '#10b981' : '#667eea',
+                    timer: type === 'success' ? 5000 : undefined,
+                    timerProgressBar: type === 'success',
+                    showConfirmButton: type !== 'success',
+                    customClass: {
+                        popup: 'rounded-xl shadow-2xl',
+                        title: 'text-xl font-bold text-gray-800',
+                        confirmButton: 'rounded-lg px-6 py-3 font-medium'
+                    }
                 });
             } else {
                 alert(message);
+                return Promise.resolve();
             }
         },
         

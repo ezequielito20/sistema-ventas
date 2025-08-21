@@ -571,6 +571,169 @@
             </script>
         @endif
 
+        <!-- Sistema de notificaciones por parámetros de URL -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Función para mostrar notificaciones
+                function showNotification(message, type = 'success') {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+                            text: message,
+                            icon: type,
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: type === 'success' ? '#10b981' : '#667eea',
+                            timer: type === 'success' ? 2000 : undefined,
+                            timerProgressBar: type === 'success',
+                            showConfirmButton: type !== 'success',
+                            customClass: {
+                                popup: 'rounded-xl shadow-2xl',
+                                title: 'text-xl font-bold text-gray-800',
+                                confirmButton: 'rounded-lg px-6 py-3 font-medium'
+                            }
+                        });
+                    } else {
+                        alert(message);
+                    }
+                }
+
+                // Verificar parámetros de URL para notificaciones
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Notificación de venta creada
+                if (urlParams.get('sale_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Venta registrada correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('sale_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de cliente creado
+                if (urlParams.get('customer_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Cliente registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('customer_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de producto creado
+                if (urlParams.get('product_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Producto registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('product_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de proveedor creado
+                if (urlParams.get('supplier_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Proveedor registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('supplier_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de categoría creada
+                if (urlParams.get('category_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Categoría registrada correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('category_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de compra creada
+                if (urlParams.get('purchase_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Compra registrada correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('purchase_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de usuario creado
+                if (urlParams.get('user_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Usuario registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('user_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de rol creado
+                if (urlParams.get('role_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Rol registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('role_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de permiso creado
+                if (urlParams.get('permission_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Permiso registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('permission_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de caja abierta
+                if (urlParams.get('cash_count_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Caja abierta correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('cash_count_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
+                // Notificación de movimiento de caja creado
+                if (urlParams.get('cash_movement_created') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Movimiento de caja registrado correctamente!', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('cash_movement_created');
+                    window.history.replaceState({}, '', newUrl);
+                }
+            });
+        </script>
+
         <script>
             function appLayout() {
                 return {

@@ -108,6 +108,8 @@ document.addEventListener('alpine:init', () => {
                 // Configurar responsive
                 this.setupResponsive();
                 
+
+                
                 this.loading = false;
             } catch (error) {
                 this.showAlert('Error al cargar los datos', 'error');
@@ -445,7 +447,9 @@ document.addEventListener('alpine:init', () => {
             resolve(confirm(`${title}\n${text}`));
         }
     });
-}
+},
+
+
     }));
 });
 
