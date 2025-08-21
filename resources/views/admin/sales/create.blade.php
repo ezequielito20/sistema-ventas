@@ -125,19 +125,19 @@
                                      }" 
                                      @click.away="isOpen = false">
                                      
-                                    <!-- Select Button -->
-                                    <button type="button" 
-                                            @click="isOpen = !isOpen"
-                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
-                                        <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
-                                        <span class="absolute inset-y-0 right-10 flex items-center pointer-events-none">
-                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
-                                                 :class="{ 'rotate-180': isOpen }" 
-                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </span>
-                                    </button>
+                                                                    <!-- Select Button -->
+                                <button type="button" 
+                                        @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
+                                        class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                    <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
+                                    <span class="absolute inset-y-0 right-10 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                             :class="{ 'rotate-180': isOpen }" 
+                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </span>
+                                </button>
 
                                     <!-- Dropdown -->
                                     <div x-show="isOpen" 
@@ -152,6 +152,7 @@
                                         <!-- Search Input -->
                                         <div class="px-3 py-2 border-b border-gray-100">
                                             <input type="text"
+                                                   x-ref="customerSearch"
                                                    x-model="searchTerm"
                                                    @input="filterCustomers()"
                                                    @keydown.escape="isOpen = false"
@@ -163,12 +164,21 @@
                                         <div class="max-h-48 overflow-y-auto">
                                             <template x-for="customer in filteredCustomers" :key="customer.id">
                                                 <div @click="selectCustomer(customer)"
-                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-9 hover:bg-gray-50 transition-colors duration-150">
+                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
                                                     <div class="flex items-center justify-between">
-                                                        <span class="block text-sm text-gray-900 truncate" x-text="customer.name"></span>
-                                                        <span x-show="parseFloat(customer.total_debt || 0) > 0" 
-                                                              x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
-                                                              class="text-xs text-red-500 font-medium bg-red-50 px-2 py-1 rounded-full"></span>
+                                                        <span class="block text-sm text-gray-900 truncate font-medium" x-text="customer.name"></span>
+                                                        <div class="ml-2 flex-shrink-0">
+                                                            <!-- Badge de deuda (rojo) -->
+                                                            <span x-show="parseFloat(customer.total_debt || 0) > 0" 
+                                                                  x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                                            </span>
+                                                            <!-- Badge sin deuda (verde) -->
+                                                            <span x-show="parseFloat(customer.total_debt || 0) === 0" 
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                                                Sin deuda
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </template>
