@@ -3,10 +3,17 @@
 @section('title', 'Gestión de Ventas')
 
 @section('content')
+    {{-- Script con datos iniciales --}}
+    <script>
+        window.salesData = @json($sales->items());
+        window.currencySymbol = '{{ $currency->symbol }}';
+        console.log('📦 Datos iniciales cargados:', window.salesData?.length || 0, 'ventas');
+    </script>
+
 <div class="space-y-6" 
      id="salesRoot" 
      data-currency-symbol="{{ $currency->symbol }}"
-     x-data="salesSPA"
+     x-data="salesSPA()"
      x-init="init()">
     
     <!-- Header -->
@@ -550,21 +557,11 @@
     {{-- Modal moderno para mostrar detalles --}}
     <div class="modal-overlay" 
          x-show="modalOpen" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
+         x-cloak
+         style="display: none;"
+         :style="modalOpen ? 'display: flex !important;' : ''"
          @click="closeModal()">
         <div class="modal-container" 
-             x-show="modalOpen"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
              @click.stop>
             <div class="modal-content modern-modal">
                 {{-- Header moderno con gradiente --}}
@@ -758,12 +755,6 @@
             </div>
         </div>
     </div>
-
-    {{-- Script con datos iniciales --}}
-    <script>
-        window.salesData = @json($sales->items());
-        window.currencySymbol = '{{ $currency->symbol }}';
-    </script>
 </div>
 @endsection
 

@@ -4,8 +4,12 @@
  * Versión: 2.0.0 - SPA Edition
  */
 
+console.log('🔧 Cargando SPA de Ventas...');
+
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
+    console.log('🚀 Alpine.js inicializado, registrando salesSPA...');
+    
     Alpine.data('salesSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
         loading: true,
@@ -86,29 +90,35 @@ document.addEventListener('alpine:init', () => {
         // ===== INICIALIZACIÓN =====
         async init() {
             try {
+                console.log('🚀 Inicializando SPA de Ventas...');
                 this.loading = true;
                 
                 // Cargar datos iniciales desde la ventana global
                 if (window.salesData) {
+                    console.log('📦 Cargando datos desde window.salesData:', window.salesData.length, 'ventas');
                     this.allSales = window.salesData;
                 } else {
+                    console.log('⚠️ No hay datos en window.salesData, cargando desde API...');
                     // Fallback: cargar desde API
                     await this.loadSales();
                 }
                 
                 this.filteredSales = [...this.allSales];
+                console.log('✅ Datos cargados:', this.allSales.length, 'ventas');
                 
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
                 // En pantallas muy pequeñas, forzar vista de tarjetas
                 this.currentView = this.isMobileView() ? 'cards' : (this.isMobile() ? 'cards' : savedView);
+                console.log('👁️ Vista inicial:', this.currentView);
                 
                 // Configurar responsive
                 this.setupResponsive();
                 
                 this.loading = false;
+                console.log('✅ SPA inicializado correctamente');
             } catch (error) {
-                console.error('Error inicializando SPA:', error);
+                console.error('❌ Error inicializando SPA:', error);
                 this.showAlert('Error al cargar los datos', 'error');
                 this.loading = false;
             }
@@ -245,27 +255,44 @@ document.addEventListener('alpine:init', () => {
         // ===== FUNCIONES DE MODAL =====
         async showSaleDetails(saleId) {
             try {
+                console.log('🔍 Mostrando detalles de la venta con ID:', saleId);
+                console.log('📊 Datos disponibles:', this.allSales.length, 'ventas');
+                
                 this.loading = true;
                 
-                const response = await fetch(`/sales/${saleId}/details`);
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${await response.text()}`);
+                // Buscar la venta en los datos locales
+                const sale = this.allSales.find(s => s.id == saleId);
+                console.log('🔎 Venta encontrada:', sale);
+                
+                if (!sale) {
+                    throw new Error('Venta no encontrada');
                 }
                 
-                const data = await response.json();
-                // Ajustar la estructura para compatibilidad
+                // Usar los datos locales en lugar de hacer llamada a API
                 this.selectedSale = {
-                    ...data,
-                    sale_details: data.details || [],
-                    sale_date: data.sale_date + ' ' + data.sale_time
+                    ...sale,
+                    sale_details: sale.sale_details || [],
+                    sale_date: sale.sale_date,
+                    sale_time: this.formatTime(sale.sale_date)
                 };
+                
+                console.log('✅ Datos preparados:', this.selectedSale);
                 this.modalOpen = true;
+                console.log('🎯 Modal abierto:', this.modalOpen);
+                
+                // Verificar que el modal esté en el DOM después de un pequeño delay
+                setTimeout(() => {
+                    const modal = document.querySelector('.modal-overlay');
+                    console.log('🔍 Modal en DOM:', modal);
+                    console.log('👁️ Modal visible:', modal?.style.display !== 'none');
+                    console.log('🎨 Modal opacity:', modal?.style.opacity);
+                }, 100);
                 
                 // Bloquear scroll del body
                 document.body.style.overflow = 'hidden';
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('❌ Error:', error);
                 this.showAlert('Error al cargar los detalles de la venta: ' + error.message, 'error');
             } finally {
                 this.loading = false;
