@@ -612,6 +612,18 @@
                     window.history.replaceState({}, '', newUrl);
                 }
                 
+                // Notificación de venta creada y redirigida al formulario
+                if (urlParams.get('sale_created_form') === 'true') {
+                    setTimeout(() => {
+                        showNotification('¡Venta registrada correctamente! Puedes crear otra venta.', 'success');
+                    }, 500);
+                    
+                    // Limpiar el parámetro de la URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.delete('sale_created_form');
+                    window.history.replaceState({}, '', newUrl);
+                }
+                
                 // Notificación de cliente creado
                 if (urlParams.get('customer_created') === 'true') {
                     setTimeout(() => {

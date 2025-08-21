@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class SaleController extends Controller
@@ -299,12 +300,30 @@ class SaleController extends Controller
 
          // Si es una petición AJAX, devolver JSON
          if ($request->expectsJson()) {
-            return response()->json([
+            $action = $request->input('action') ?? $request->query('action');
+            Log::info('Venta creada - Acción recibida: ' . $action);
+            Log::info('Todos los datos recibidos: ' . json_encode($request->all()));
+            
+            $response = [
                'success' => true,
                'message' => '¡Venta procesada exitosamente!',
                'sale_id' => $sale->id,
-               'redirect_url' => route('admin.sales.index')
-            ]);
+               'received_action' => $action,
+               'all_data' => $request->all()
+            ];
+            
+            // Determinar la URL de redirección basada en la acción
+            if ($action == 'save_and_new') {
+               $response['redirect_url'] = route('admin.sales.create');
+               $response['action'] = 'save_and_new';
+               Log::info('Redirigiendo a formulario de creación');
+            } else {
+               $response['redirect_url'] = route('admin.sales.index');
+               $response['action'] = 'save';
+               Log::info('Redirigiendo a index de ventas');
+            }
+            
+            return response()->json($response);
          }
 
          // Determinar la redirección basada en el botón presionado

@@ -542,6 +542,11 @@ document.addEventListener('alpine:init', () => {
                 formData.append('total_price', this.totalAmount);
                 formData.append('note', this.saleNote || '');
                 formData.append('action', action);
+                console.log('📤 Enviando acción:', action);
+                console.log('📤 FormData completo:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
                 
                 // Agregar productos
                 this.saleItems.forEach((item, index) => {
@@ -551,7 +556,8 @@ document.addEventListener('alpine:init', () => {
                     formData.append(`sale_details[${index}][subtotal]`, item.subtotal);
                 });
                 
-                const response = await fetch(window.saleCreateRoutes?.store || '/sales/create', {
+                const url = (window.saleCreateRoutes?.store || '/sales/create') + '?action=' + action;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -562,20 +568,32 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 const data = await response.json();
+                console.log('📥 Respuesta del servidor:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
                 
                 if (data.success) {
-                    // Limpiar datos locales
-                    this.clearLocalStorage();
+                    console.log('✅ Venta procesada exitosamente');
+                    console.log('📋 Acción:', action);
+                    console.log('🔗 URL de redirección del servidor:', data.redirect_url);
                     
                     // Redirigir inmediatamente con parámetro de éxito
                     if (action === 'save_and_new') {
-                        window.location.reload();
+                        console.log('🔄 Procesando: Guardar y Nueva');
+                        // Para "guardar y nueva", limpiar solo los productos pero mantener datos del cliente
+                        this.saleItems = [];
+                        this.saveToLocalStorage(); // Guardar el estado actualizado
+                        // Redirigir al formulario de creación con parámetro de éxito
+                        console.log('🎯 Redirigiendo a formulario de creación');
+                        window.location.href = '/sales/create?sale_created_form=true';
                     } else {
-                        const redirectUrl = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales';
+                        console.log('🔄 Procesando: Guardar y Salir');
+                        // Para "guardar y salir", limpiar todo y redirigir al index
+                        this.clearLocalStorage();
+                        const redirectUrl = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales/create';
+                        console.log('🎯 Redirigiendo a:', redirectUrl + '?sale_created=true');
                         window.location.href = redirectUrl + '?sale_created=true';
                     }
             } else {
