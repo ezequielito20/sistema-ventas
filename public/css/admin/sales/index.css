@@ -1909,22 +1909,12 @@
 /* ===== MODAL MODERNO Y RESPONSIVO ===== */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    pointer-events: none;
+    inset: 0; /* equivale a top:0; right:0; bottom:0; left:0 */
 }
+
+/* Evitar que elementos con z-index altos queden por encima */
+.modal-overlay { z-index: 2147483000; }
+.modal-container { z-index: 2147483001; }
 
 /* Cuando el modal está abierto */
 .modal-overlay[x-cloak] {

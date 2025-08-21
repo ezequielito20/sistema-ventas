@@ -280,6 +280,14 @@ document.addEventListener('alpine:init', () => {
                 this.modalOpen = true;
                 console.log('🎯 Modal abierto:', this.modalOpen);
                 
+                // Mover modal al body para asegurar cobertura completa
+                this.$nextTick(() => {
+                    const overlay = this.$refs?.salesModal;
+                    if (overlay && overlay.parentElement !== document.body) {
+                        document.body.appendChild(overlay);
+                    }
+                });
+                
                 // Verificar que el modal esté en el DOM después de un pequeño delay
                 setTimeout(() => {
                     const modal = document.querySelector('.modal-overlay');
@@ -290,6 +298,7 @@ document.addEventListener('alpine:init', () => {
                 
                 // Bloquear scroll del body
                 document.body.style.overflow = 'hidden';
+                document.body.style.paddingRight = '0px';
                 
             } catch (error) {
                 console.error('❌ Error:', error);
@@ -305,6 +314,14 @@ document.addEventListener('alpine:init', () => {
             
             // Restaurar scroll del body
             document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            
+            // Devolver modal a su contenedor original si es necesario
+            const overlay = this.$refs?.salesModal;
+            const root = document.getElementById('salesRoot');
+            if (overlay && root && overlay.parentElement === document.body) {
+                root.appendChild(overlay);
+            }
         },
         
         // ===== ACCIONES DE VENTA =====

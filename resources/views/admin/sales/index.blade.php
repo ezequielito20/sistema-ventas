@@ -388,12 +388,13 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <button type="button" 
-                                                class="btn-modern btn-primary view-details"
-                                                @click="showSaleDetails(sale.id)">
-                                            <i class="fas fa-list"></i>
-                                            <span class="hidden sm:inline">Ver Detalle</span>
-                                        </button>
+                                        <div style="display: flex; justify-content: center; align-items: center;">
+                                            <button type="button" 
+                                                    class="btn-modern btn-primary view-details"
+                                                    @click="showSaleDetails(sale.id)">
+                                                <i class="fas fa-list"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
@@ -483,7 +484,6 @@
                                         class="btn-card-primary"
                                         @click="showSaleDetails(sale.id)">
                                     <i class="fas fa-list"></i>
-                                    <span>Ver Detalle</span>
                                 </button>
 
                                 <div class="card-actions">
@@ -558,6 +558,7 @@
     <div class="modal-overlay modal-compact" 
          x-show="modalOpen" 
          x-cloak
+         x-ref="salesModal"
          style="display: none;"
          :style="modalOpen ? 'display: flex !important;' : ''"
          @click="closeModal()">
