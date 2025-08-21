@@ -175,14 +175,16 @@
                             class="view-toggle" 
                             :class="{ 'active': currentView === 'table' }"
                             @click="changeView('table')"
-                            title="Vista de tabla">
+                            title="Vista de tabla"
+                            x-show="!isMobileView()">
                         <i class="fas fa-table"></i>
                     </button>
                     <button type="button" 
                             class="view-toggle" 
                             :class="{ 'active': currentView === 'cards' }"
                             @click="changeView('cards')"
-                            title="Vista de tarjetas">
+                            title="Vista de tarjetas"
+                            x-show="!isMobileView()">
                         <i class="fas fa-th-large"></i>
                     </button>
                 </div>

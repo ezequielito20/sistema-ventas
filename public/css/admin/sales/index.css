@@ -1045,7 +1045,7 @@
 
 /* ===== VISTA DE TARJETAS ===== */
 .cards-view {
-    display: none;
+    /* Alpine.js controlará la visibilidad con x-show */
 }
 
 .modern-cards-grid {
@@ -1754,7 +1754,7 @@
     }
     
     .table-view {
-        display: none;
+        /* Alpine.js controlará la visibilidad con x-show */
     }
     
     .mobile-view {
@@ -1856,6 +1856,55 @@
         justify-content: center;
     }
 } 
+
+/* ===== PANTALLAS MUY PEQUEÑAS (≤ 450px) ===== */
+@media (max-width: 450px) {
+    /* Ocultar completamente los botones de cambio de vista */
+    .view-toggles {
+        display: none !important;
+    }
+    
+    /* Asegurar que solo se muestre la vista de tarjetas */
+    .table-view {
+        display: none !important;
+    }
+    
+    .cards-view {
+        display: block !important;
+    }
+    
+    /* Optimizar grid de tarjetas para pantallas muy pequeñas */
+    .modern-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    /* Ajustar padding de las tarjetas */
+    .modern-sale-card {
+        margin: 0 0.5rem;
+    }
+    
+    .sale-card-body {
+        padding: 1rem;
+    }
+    
+    .sale-card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Optimizar información del cliente */
+    .customer-section {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .customer-avatar-large {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}
 
 /* ===== MODAL MODERNO Y RESPONSIVO ===== */
 .modal-overlay {

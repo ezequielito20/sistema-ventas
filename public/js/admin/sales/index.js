@@ -100,7 +100,8 @@ document.addEventListener('alpine:init', () => {
                 
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
-                this.currentView = this.isMobile() ? 'cards' : savedView;
+                // En pantallas muy pequeñas, forzar vista de tarjetas
+                this.currentView = this.isMobileView() ? 'cards' : (this.isMobile() ? 'cards' : savedView);
                 
                 // Configurar responsive
                 this.setupResponsive();
@@ -363,10 +364,19 @@ document.addEventListener('alpine:init', () => {
             return window.innerWidth <= 768;
         },
         
+        isMobileView() {
+            return window.innerWidth <= 450;
+        },
+        
         setupResponsive() {
             const handleResize = () => {
                 const isMobile = this.isMobile();
-                if (isMobile && this.currentView === 'table') {
+                const isMobileView = this.isMobileView();
+                
+                // Forzar vista de tarjetas en pantallas muy pequeñas
+                if (isMobileView && this.currentView === 'table') {
+                    this.changeView('cards');
+                } else if (isMobile && this.currentView === 'table') {
                     this.changeView('cards');
                 }
             };
