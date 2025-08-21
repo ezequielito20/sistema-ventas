@@ -490,10 +490,10 @@
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <button type="button"
-                                                            class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 select-product {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                                            class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105 select-product {{ $product->stock <= 0 || in_array($product->id, collect($saleDetails)->pluck('product_id')->toArray()) ? 'opacity-50 cursor-not-allowed' : '' }}"
                                                             data-code="{{ $product->code }}" data-id="{{ $product->id }}"
                                                             onclick="addProductFromModal('{{ addslashes($product->code) }}', '{{ $product->id }}', '{{ addslashes($product->name) }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->sale_price }}, '{{ addslashes($product->category->name) }}')"
-                                                            {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                                            {{ $product->stock <= 0 || in_array($product->id, collect($saleDetails)->pluck('product_id')->toArray()) ? 'disabled' : '' }}>
                                                             <i class="fas fa-plus text-sm"></i>
                                                         </button>
                                                     </td>
