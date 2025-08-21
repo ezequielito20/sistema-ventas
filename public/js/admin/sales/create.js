@@ -27,7 +27,6 @@ document.addEventListener('alpine:init', () => {
         codeSuggestions: [],
         productSearchTerm: '',
         searchModalOpen: false,
-        stockFilter: 'all', // Filtro de stock: 'all', 'available', 'low'
         
         // Cache de productos
         productsCache: [],

@@ -448,6 +448,7 @@
                                         x-show="productSearchTerm.length > 0"
                                         class="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl transition-all duration-300 flex items-center space-x-2">
                                     <i class="fas fa-times"></i>
+                                    <span>Limpiar</span>
                                 </button>
                             </div>
                         </div>
@@ -499,8 +500,9 @@
                                                         </button>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                        <img :src="product.image_url" alt="N/I"
-                                                            class="w-12 h-12 rounded-xl object-cover mx-auto border-2 border-gray-200">
+                                                        <img :src="getProductImageUrl(product)" alt="N/I"
+                                                            class="w-12 h-12 rounded-xl object-cover mx-auto border-2 border-gray-200"
+                                                            >
                                                     </td>
                                                     <td class="px-6 py-4 text-sm font-medium text-gray-900" x-text="product.name"></td>
                                                     <td class="px-6 py-4 text-sm text-gray-600" x-text="product.category?.name || 'Sin categoría'"></td>

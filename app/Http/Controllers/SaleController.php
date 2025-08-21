@@ -151,7 +151,12 @@ class SaleController extends Controller
             ->where('stock', '>', 0)
             ->select('id', 'code', 'name', 'image', 'stock', 'sale_price', 'category_id')
             ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
-            ->get();
+            ->get()
+            ->map(function ($product) {
+                // Agregar el image_url al producto
+                $product->image_url = $product->image_url;
+                return $product;
+            });
 
          // Obtener clientes con solo los campos necesarios para el select
          $customers = Customer::where('company_id', $companyId)
