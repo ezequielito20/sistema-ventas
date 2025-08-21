@@ -6,7 +6,7 @@
 
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
-    console.log('🎯 Alpine.js inicializado - Registrando componente saleCreateSPA');
+
     
     Alpine.data('saleCreateSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
@@ -53,23 +53,18 @@ document.addEventListener('alpine:init', () => {
         
         // Función para verificar si hay productos
         get hasProducts() {
-            const hasProducts = this.saleItems.length > 0;
-            console.log('🔍 Verificando productos:', hasProducts, 'Cantidad:', this.saleItems.length);
-            return hasProducts;
+            return this.saleItems.length > 0;
         },
         
         // Watcher para saleItems
         get saleItemsWatcher() {
             // Esta función se ejecuta cada vez que saleItems cambia
-            console.log('👀 saleItems cambió - Nueva longitud:', this.saleItems.length);
             return this.saleItems.length;
         },
         
         // ===== INICIALIZACIÓN =====
         async init() {
             try {
-                console.log('🚀 Inicializando SPA de Creación de Ventas...');
-                
                 // Cargar datos iniciales
                 if (window.saleCreateData) {
                     this.productsCache = window.saleCreateData.products || [];
@@ -77,8 +72,6 @@ document.addEventListener('alpine:init', () => {
                     this.selectedCustomerId = window.saleCreateData.selectedCustomerId || '';
                     this.saleDate = new Date().toISOString().split('T')[0];
                     this.saleTime = new Date().toTimeString().slice(0, 5);
-                    
-                    console.log('📦 Datos cargados:', this.productsCache.length, 'productos');
                 }
                 
                 // Configurar selects personalizados
@@ -92,9 +85,6 @@ document.addEventListener('alpine:init', () => {
                 
                 // Configurar persistencia automática
                 this.setupAutoSave();
-                
-                console.log('✅ SPA inicializado correctamente');
-                console.log('📊 Estado final - saleItems:', this.saleItems.length, 'productos');
                 
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
@@ -116,7 +106,7 @@ document.addEventListener('alpine:init', () => {
                 { value: '1', text: 'Sí' }
             ];
 
-            console.log('🎛️ Selects personalizados configurados');
+
         },
         
         // ===== BÚSQUEDA Y AUTocompletado =====
@@ -165,39 +155,26 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FILTRADO DE PRODUCTOS =====
         filterProducts() {
-            console.log('🔍 Filtrando productos...');
-            console.log('🔍 Término de búsqueda:', this.productSearchTerm);
-            console.log('🔍 Productos en caché:', this.productsCache.length);
-            console.log('🔍 Productos en venta actual:', this.saleItems.length);
-            
             let filtered = [...this.productsCache];
             
             // Filtro por término de búsqueda en tiempo real
             if (this.productSearchTerm && this.productSearchTerm.trim()) {
                 const term = this.productSearchTerm.toLowerCase().trim();
-                console.log('🔍 Aplicando filtro de búsqueda con término:', term);
                 
                 filtered = filtered.filter(product => 
                     product.code.toLowerCase().includes(term) ||
                     product.name.toLowerCase().includes(term) ||
                     (product.category?.name || '').toLowerCase().includes(term)
                 );
-                
-                console.log('🔍 Productos después del filtro de búsqueda:', filtered.length);
-            } else {
-                console.log('🔍 No hay término de búsqueda, mostrando todos los productos');
             }
             
             // Mostrar todos los productos, pero marcar los que ya están en la venta
             // Los productos ya agregados aparecerán pero estarán deshabilitados
             this.filteredProducts = filtered;
-            console.log('🔍 Productos filtrados finales:', this.filteredProducts.length);
-            console.log('🔍 Productos disponibles para agregar:', this.filteredProducts.filter(p => !this.isProductInSale(p.id)).length);
         },
         
         // Función para limpiar la búsqueda
         clearSearch() {
-            console.log('🧹 Limpiando búsqueda...');
             this.productSearchTerm = '';
             this.filterProducts();
         },
@@ -340,9 +317,6 @@ document.addEventListener('alpine:init', () => {
 
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
-            console.log('➕ Agregando producto a la venta:', product.name);
-            console.log('➕ Estado actual de saleItems:', this.saleItems.length);
-            
             // Validar stock
             if (product.stock <= 0) {
                 this.showToast('Sin Stock', 'Este producto no tiene stock disponible', 'warning', 2000);
@@ -368,7 +342,6 @@ document.addEventListener('alpine:init', () => {
             };
             
             this.saleItems.push(saleItem);
-            console.log('➕ Producto agregado. Nuevo estado de saleItems:', this.saleItems.length);
             
             // Forzar actualización de la vista
             this.forceViewUpdate();
@@ -386,7 +359,6 @@ document.addEventListener('alpine:init', () => {
         
         removeItem(index) {
             this.saleItems.splice(index, 1);
-            console.log('🗑️ Producto removido. Nuevo estado de saleItems:', this.saleItems.length);
             
             // Forzar actualización de la vista
             this.forceViewUpdate();
@@ -542,11 +514,6 @@ document.addEventListener('alpine:init', () => {
                 formData.append('total_price', this.totalAmount);
                 formData.append('note', this.saleNote || '');
                 formData.append('action', action);
-                console.log('📤 Enviando acción:', action);
-                console.log('📤 FormData completo:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`  ${key}: ${value}`);
-                }
                 
                 // Agregar productos
                 this.saleItems.forEach((item, index) => {
@@ -568,32 +535,23 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 const data = await response.json();
-                console.log('📥 Respuesta del servidor:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
                 
                 if (data.success) {
-                    console.log('✅ Venta procesada exitosamente');
-                    console.log('📋 Acción:', action);
-                    console.log('🔗 URL de redirección del servidor:', data.redirect_url);
-                    
                     // Redirigir inmediatamente con parámetro de éxito
                     if (action === 'save_and_new') {
-                        console.log('🔄 Procesando: Guardar y Nueva');
                         // Para "guardar y nueva", limpiar solo los productos pero mantener datos del cliente
                         this.saleItems = [];
                         this.saveToLocalStorage(); // Guardar el estado actualizado
                         // Redirigir al formulario de creación con parámetro de éxito
-                        console.log('🎯 Redirigiendo a formulario de creación');
                         window.location.href = '/sales/create?sale_created_form=true';
                     } else {
-                        console.log('🔄 Procesando: Guardar y Salir');
                         // Para "guardar y salir", limpiar todo y redirigir al index
                         this.clearLocalStorage();
                         const redirectUrl = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales/create';
-                        console.log('🎯 Redirigiendo a:', redirectUrl + '?sale_created=true');
                         window.location.href = redirectUrl + '?sale_created=true';
                     }
             } else {
@@ -662,8 +620,6 @@ document.addEventListener('alpine:init', () => {
                             });
                         }
                         
-                        console.log('📦 Datos cargados de localStorage - saleItems:', this.saleItems.length);
-                        
                         // Forzar actualización de la vista
                         this.forceViewUpdate();
                         
@@ -673,8 +629,6 @@ document.addEventListener('alpine:init', () => {
                                 this.showToast('Venta Recuperada', `${this.saleItems.length} producto(s) cargado(s) automáticamente`, 'info', 2000);
                             }, 500); // Pequeño delay para que se vea después de la inicialización
                         }
-                        
-                        console.log('📦 Datos recuperados de localStorage');
                     } else {
                         this.clearLocalStorage();
                         // Si se limpió localStorage, verificar si hay un solo producto para auto-agregar
@@ -683,7 +637,6 @@ document.addEventListener('alpine:init', () => {
                         }, 100);
                     }
                 } else {
-                    console.log('📦 No hay datos en localStorage');
                     // Si no hay datos en localStorage, verificar si hay un solo producto para auto-agregar
                     setTimeout(() => {
                         this.autoAddSingleProduct();
@@ -749,27 +702,21 @@ document.addEventListener('alpine:init', () => {
         // Función para obtener la URL de la imagen del producto
         getProductImageUrl(product) {
             if (!product) {
-                console.log('🖼️ Producto no definido, usando imagen por defecto');
                 return '/img/no-image.svg';
             }
             
-            console.log('🖼️ Procesando imagen para producto:', product.name, 'image_url:', product.image_url, 'image:', product.image);
-            
             // Si ya tiene image_url, usarla
             if (product.image_url && product.image_url !== 'null' && product.image_url !== '') {
-                console.log('🖼️ Usando image_url:', product.image_url);
                 return product.image_url;
             }
             
             // Si tiene image, construir la URL
             if (product.image && product.image !== 'null' && product.image !== '') {
                 const imageUrl = `/storage/products/${product.image}`;
-                console.log('🖼️ Construyendo URL desde image:', imageUrl);
                 return imageUrl;
             }
             
             // Fallback a imagen por defecto
-            console.log('🖼️ Usando imagen por defecto para:', product.name);
             return '/img/no-image.svg';
         },
         
@@ -777,7 +724,6 @@ document.addEventListener('alpine:init', () => {
         forceViewUpdate() {
             // Forzar re-evaluación de computed properties
             this.$nextTick(() => {
-                console.log('🔄 Forzando actualización de vista - saleItems:', this.saleItems.length);
                 // Trigger un cambio mínimo para forzar la reactividad
                 this.saleItems = [...this.saleItems];
             });
@@ -857,23 +803,17 @@ document.addEventListener('alpine:init', () => {
         autoAddSingleProduct() {
             // Verificar que tenemos productos en cache
             if (!this.productsCache || this.productsCache.length === 0) {
-                console.log('🔄 No hay productos en cache');
                 return;
             }
             
             // Filtrar productos con stock > 0
             const availableProducts = this.productsCache.filter(product => product.stock > 0);
-            console.log('🔄 Productos disponibles:', availableProducts.length, 'de', this.productsCache.length);
-            console.log('🔄 Productos en venta actual:', this.saleItems.length);
             
             // Si hay exactamente un producto disponible y no hay productos en la venta
             if (availableProducts.length === 1 && this.saleItems.length === 0) {
                 const product = availableProducts[0];
-                console.log('🔄 Auto-agregando producto único:', product.name);
                 this.addProductToSale(product);
                 this.showToast('Producto Agregado', `"${product.name}" agregado automáticamente`, 'success', 1500);
-            } else {
-                console.log('🔄 No se auto-agrega producto - Condiciones no cumplidas');
             }
         }
     }));
