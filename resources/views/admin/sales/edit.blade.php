@@ -414,24 +414,18 @@
 
 
             <!-- Modal de Búsqueda de Productos -->
-            <div x-show="searchModalOpen" 
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 z-50 overflow-y-auto" 
-                 style="display: none;">
-                
-                <!-- Overlay de fondo -->
-                <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
-                     @click="searchModalOpen = false"></div>
-                
+            <div x-show="searchModalOpen" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+
+                <!-- Overlay de fondo con desenfoque completo -->
+                <div class="fixed inset-0 bg-black/50 modal-overlay-blur transition-opacity" @click="searchModalOpen = false"></div>
+
                 <!-- Contenido del modal -->
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="relative bg-cyan-500 rounded-3xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden"
-                         @click.stop>
+                    <div class="relative bg-white rounded-3xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden"
+                        @click.stop>
                         
                         <!-- Header del Modal -->
                         <div class="bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-6 relative overflow-hidden">
@@ -448,7 +442,7 @@
                                     </div>
                                 </div>
                                 <button type="button"
-                                    class="w-10 h-10 bg-cyan-500 bg-opacity-20 hover:bg-opacity-30 text-white rounded-xl flex items-center justify-center transition-all duration-300 backdrop-blur-sm"
+                                    class="w-10 h-10 modal-close-btn text-white rounded-xl flex items-center justify-center"
                                     @click="searchModalOpen = false">
                                     <i class="fas fa-times"></i>
                                 </button>

@@ -311,18 +311,18 @@ select {
 }
 
 /* Contenedor del select para permitir overflow */
-.custom-select-trigger {
+.custom-select-trigger:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     position: relative;
     overflow: visible !important;
 }
 
-/* Asegurar que el contenedor padre permita overflow */
-.relative {
+/* Asegurar que el contenedor padre permita overflow - Excluir elementos multimedia */
+.relative:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Contenedor del formulario para permitir overflow */
-.p-6 {
+/* Contenedor del formulario para permitir overflow - Excluir elementos multimedia */
+.p-6:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
@@ -334,20 +334,46 @@ select {
     transform: translateZ(0);
 }
 
-/* Contenedor del select con overflow visible */
-.custom-select-trigger {
+/* Contenedor del select con overflow visible - Excluir elementos multimedia */
+.custom-select-trigger:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     position: relative;
     overflow: visible !important;
 }
 
-/* Asegurar que contenedores específicos permitan overflow */
-.relative {
+/* Asegurar que contenedores específicos permitan overflow - Excluir elementos multimedia */
+.relative:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Contenedor del formulario */
-.p-6 {
+/* Contenedor del formulario - Excluir elementos multimedia */
+.p-6:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
+}
+
+/* Proteger elementos multimedia del overflow visible */
+.product-avatar,
+.product-avatar *,
+img,
+video,
+canvas {
+    overflow: hidden !important;
+}
+
+/* Estilos específicos para el overlay del modal */
+.modal-overlay-blur {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Estilos para el botón de cerrar del modal */
+.modal-close-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: #374151 !important;
 }
 
 /* Estilos para dropdown posicionado arriba */

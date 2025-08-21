@@ -1538,45 +1538,45 @@ a[href="/products/create"] .fas {
 
 /* ===== ESTILOS ESPECÍFICOS PARA EVITAR CORTE DE DROPDOWNS ===== */
 
-/* Contenedores principales sin overflow hidden */
-.space-y-8 {
+/* Contenedores principales sin overflow hidden - Solo para contenedores de formularios */
+.space-y-8:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-.w-full.space-y-8 {
+.w-full.space-y-8:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Secciones principales */
-.mb-6.bg-white.rounded-3xl.shadow-xl.border.border-gray-100 {
+/* Secciones principales - Excluir elementos multimedia */
+.mb-6.bg-white.rounded-3xl.shadow-xl.border.border-gray-100:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-.bg-white.rounded-3xl.shadow-xl.border.border-gray-100 {
+.bg-white.rounded-3xl.shadow-xl.border.border-gray-100:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Contenedores de padding */
-.p-6 {
+/* Contenedores de padding - Excluir elementos multimedia */
+.p-6:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Grid containers */
-.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4.mb-6 {
+/* Grid containers - Excluir elementos multimedia */
+.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4.mb-6:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4 {
+.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Elementos relativos */
-.relative {
+/* Elementos relativos - Excluir elementos multimedia */
+.relative:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
 /* Contenedores específicos de cliente */
-div[x-data*="selectedCustomerName"] {
+div[x-data*="selectedCustomerName"]:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
     z-index: 100 !important;
 }
@@ -1587,25 +1587,25 @@ div[x-data*="selectedCustomerName"] {
 }
 
 /* Contenedor raíz del SPA */
-#saleEditRoot {
+#saleEditRoot:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
 /* Contenedor principal de la página */
-.space-y-6 {
+.space-y-6:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Asegurar que todos los contenedores padre permitan overflow */
+/* Asegurar que todos los contenedores padre permitan overflow - Excluir elementos multimedia */
 body {
     overflow-x: visible !important;
 }
 
-.container {
+.container:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-.mx-auto {
+.mx-auto:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
@@ -1627,25 +1627,51 @@ div[x-show="isOpen"] {
     z-index: 9999 !important;
 }
 
-/* Contenedores que pueden tener overflow hidden por defecto */
-.rounded-3xl {
+/* Contenedores que pueden tener overflow hidden por defecto - Excluir elementos multimedia */
+.rounded-3xl:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-.shadow-xl {
+.shadow-xl:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-/* Forzar overflow visible en elementos comunes */
-div[class*="bg-white"] {
+/* Forzar overflow visible en elementos comunes - Excluir elementos multimedia */
+div[class*="bg-white"]:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
-div[class*="rounded"] {
+div[class*="rounded"]:not(.product-avatar):not(.product-avatar *):not(img):not(video):not(canvas) {
     overflow: visible !important;
 }
 
 /* Estilos para el modal de búsqueda */
 .fixed.inset-0.z-50.overflow-y-auto {
     z-index: 10000 !important;
+}
+
+/* Estilos específicos para el overlay del modal */
+.modal-overlay-blur {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Estilos para el botón de cerrar del modal */
+.modal-close-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: #374151 !important;
+}
+
+/* Proteger elementos multimedia del overflow visible */
+.product-avatar,
+.product-avatar *,
+img,
+video,
+canvas {
+    overflow: hidden !important;
 }
