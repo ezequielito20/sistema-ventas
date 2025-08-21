@@ -40,7 +40,7 @@
                 @csrf
 
                 <!-- Sección de Información Básica -->
-                <div class="mb-6 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="mb-6 bg-white rounded-3xl shadow-xl border border-gray-100">
                     <!-- Header de la sección -->
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
                         <div class="flex items-center space-x-4">
@@ -165,17 +165,17 @@
                                             <template x-for="customer in filteredCustomers" :key="customer.id">
                                                 <div @click="selectCustomer(customer)"
                                                      class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
-                                                    <div class="flex items-center justify-between">
-                                                        <span class="block text-sm text-gray-900 truncate font-medium" x-text="customer.name"></span>
+                                                    <div class="flex items-center justify-between min-w-0">
+                                                        <span class="block text-sm text-gray-900 font-medium flex-1 min-w-0" x-text="customer.name"></span>
                                                         <div class="ml-2 flex-shrink-0">
                                                             <!-- Badge de deuda (rojo) -->
                                                             <span x-show="parseFloat(customer.total_debt || 0) > 0" 
                                                                   x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
-                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
                                                             </span>
                                                             <!-- Badge sin deuda (verde) -->
                                                             <span x-show="parseFloat(customer.total_debt || 0) === 0" 
-                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
                                                                 Sin deuda
                                                             </span>
                                                         </div>
@@ -299,7 +299,7 @@
                 </div>
 
                 <!-- Sección de Productos -->
-                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100">
                     <!-- Header de la sección -->
                     <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
                         <div class="flex items-center justify-between">
