@@ -32,13 +32,10 @@
             </div>
         </div>
 
-        <div x-data="saleForm()" class="w-full space-y-8">
-            <form action="{{ route('admin.sales.update', $sale->id) }}" method="POST" enctype="multipart/form-data" id="saleForm">
-                @csrf
-                @method('PUT')
+        <div x-data="saleEditSPA" id="saleEditRoot" class="w-full space-y-8">
 
                 <!-- Sección de Información Básica -->
-                <div class="mb-6 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="mb-6 bg-white rounded-3xl shadow-xl border border-gray-100">
                     <!-- Header de la sección -->
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
                         <div class="flex items-center space-x-4">
@@ -59,13 +56,35 @@
                                     Código <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="text" name="product_code" id="product_code"
-                                        class="w-full pl-3 pr-20 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-sm @error('product_code') border-red-300 @enderror"
+                                    <input type="text" x-model="productCode"
+                                        @input.debounce.300ms="searchProductByCode()"
+                                        @keydown.enter="addProductByCode()"
+                                        class="w-full pl-3 pr-20 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-sm"
                                         placeholder="Código del producto">
+                                    
+                                    <!-- Sugerencias de código -->
+                                    <div x-show="codeSuggestions.length > 0" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 transform scale-95"
+                                         x-transition:enter-end="opacity-100 transform scale-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100 transform scale-100"
+                                         x-transition:leave-end="opacity-0 transform scale-95"
+                                         class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                        <template x-for="suggestion in codeSuggestions" :key="suggestion.code">
+                                            <button type="button"
+                                                @click="selectCodeSuggestion(suggestion)"
+                                                class="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0">
+                                                <div class="font-medium text-gray-900" x-text="suggestion.code"></div>
+                                                <div class="text-sm text-gray-600" x-text="suggestion.name"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                    
                                     <div class="absolute right-1 top-1 flex space-x-1">
                                         <button type="button"
                                             class="w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
-                                            id="searchProduct" @click="searchModalOpen = true">
+                                            @click="searchModalOpen = true">
                                             <i class="fas fa-search text-xs"></i>
                                         </button>
                                         <a href="/products/create"
@@ -82,30 +101,122 @@
                                     <i class="fas fa-user text-indigo-500 mr-1"></i>
                                     Cliente <span class="text-red-500">*</span>
                                 </label>
-                                <div class="relative">
-                                    <select name="customer_id" id="customer_id"
-                                        class="w-full pl-3 pr-10 py-2.5 bg-gray-50 border-2 rounded-xl focus:border-gray-500 focus:bg-white transition-all duration-300 text-gray-800 text-sm h-11 @error('customer_id') border-gray-300 @enderror"
-                                        required>
-                                        <option value="">Seleccione un cliente</option>
-                                        @foreach ($customers as $customer)
-                                            <option value="{{ $customer->id }}" {{ $sale->customer_id == $customer->id ? 'selected' : '' }} data-debt="{{ $customer->total_debt }}">
-                                                {{ $customer->name }} - {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute right-1 top-1 z-10">
+                                <div class="relative" 
+                                     x-data="{ 
+                                         isOpen: false, 
+                                         searchTerm: '', 
+                                         filteredCustomers: @js($customers),
+                                         selectedCustomerName: 'Seleccione un cliente',
+                                         selectedCustomerDebt: 0,
+                                         filterCustomers() {
+                                             if (!this.searchTerm) {
+                                                 this.filteredCustomers = @js($customers);
+                                                 return;
+                                             }
+                                             const term = this.searchTerm.toLowerCase();
+                                             this.filteredCustomers = @js($customers).filter(customer => 
+                                                 customer.name.toLowerCase().includes(term)
+                                             );
+                                         },
+                                         selectCustomer(customer) {
+                                             selectedCustomerId = customer.id;
+                                             this.selectedCustomerName = customer.name;
+                                             this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                                             this.isOpen = false;
+                                             this.searchTerm = '';
+                                             onCustomerChange();
+                                         }
+                                     }" 
+                                     @click.away="isOpen = false">
+                                     
+                                    <!-- Select Button -->
+                                    <button type="button" 
+                                            @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
+                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                        <div class="flex items-center justify-between min-w-0">
+                                            <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
+                                            <div class="ml-2 flex-shrink-0" x-show="selectedCustomerName !== 'Seleccione un cliente'">
+                                                <!-- Badge de deuda (rojo) -->
+                                                <span x-show="selectedCustomerDebt > 0" 
+                                                      x-text="'$' + selectedCustomerDebt.toFixed(2)" 
+                                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                </span>
+                                                <!-- Badge sin deuda (verde) -->
+                                                <span x-show="selectedCustomerDebt === 0" 
+                                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                    Sin deuda
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span class="absolute inset-y-0 right-10 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                 :class="{ 'rotate-180': isOpen }" 
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div x-show="isOpen" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-1 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-1 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                        
+                                        <!-- Search Input -->
+                                        <div class="px-3 py-2 border-b border-gray-100">
+                                            <input type="text"
+                                                   x-ref="customerSearch"
+                                                   x-model="searchTerm"
+                                                   @input="filterCustomers()"
+                                                   @keydown.escape="isOpen = false"
+                                                   placeholder="Buscar cliente..."
+                                                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                        </div>
+
+                                        <!-- Options List -->
+                                        <div class="max-h-48 overflow-y-auto">
+                                            <template x-for="customer in filteredCustomers" :key="customer.id">
+                                                <div @click="selectCustomer(customer)"
+                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
+                                                    <div class="flex items-center justify-between min-w-0">
+                                                        <span class="block text-sm text-gray-900 font-medium flex-1 min-w-0" x-text="customer.name"></span>
+                                                        <div class="ml-2 flex-shrink-0">
+                                                            <!-- Badge de deuda (rojo) -->
+                                                            <span x-show="parseFloat(customer.total_debt || 0) > 0" 
+                                                                  x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                            </span>
+                                                            <!-- Badge sin deuda (verde) -->
+                                                            <span x-show="parseFloat(customer.total_debt || 0) === 0" 
+                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                                Sin deuda
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- No results -->
+                                            <div x-show="filteredCustomers.length === 0" 
+                                                 class="px-3 py-4 text-sm text-gray-500 text-center">
+                                                No se encontraron clientes
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Add Customer Button -->
+                                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
                                         <a href="{{ route('admin.customers.create') }}?return_to=sales.edit"
-                                            class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300 add-customer-button">
+                                           class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md">
                                             <i class="fas fa-plus text-xs"></i>
                                         </a>
                                     </div>
                                 </div>
-                                @error('customer_id')
-                                    <div class="flex items-center mt-2 text-red-600 text-sm">
-                                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
                             </div>
 
                             <!-- Fecha de Venta -->
@@ -114,12 +225,9 @@
                                     <i class="fas fa-calendar text-indigo-500 mr-1"></i>
                                     Fecha <span class="text-red-500">*</span>
                                 </label>
-                                <input type="date" name="sale_date" id="sale_date"
-                                    class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 text-sm @error('sale_date') border-red-300 @enderror"
+                                <input type="date" x-model="saleDate"
+                                    class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 text-sm"
                                     value="{{ old('sale_date', $sale->sale_date->format('Y-m-d')) }}" required>
-                                @error('sale_date')
-                                    <span class="text-red-600 text-xs mt-1">{{ $message }}</span>
-                                @enderror
                             </div>
 
                             <!-- Hora de Venta -->
@@ -128,19 +236,16 @@
                                     <i class="fas fa-clock text-indigo-500 mr-1"></i>
                                     Hora <span class="text-red-500">*</span>
                                 </label>
-                                <input type="time" name="sale_time" id="sale_time"
-                                    class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 text-sm @error('sale_time') border-red-300 @enderror"
+                                <input type="time" x-model="saleTime"
+                                    class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:bg-white transition-all duration-300 text-gray-800 text-sm"
                                     value="{{ old('sale_time', $sale->sale_date->format('H:i')) }}" required>
-                                @error('sale_time')
-                                    <span class="text-red-600 text-xs mt-1">{{ $message }}</span>
-                                @enderror
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sección de Productos -->
-                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100">
                     <!-- Header de la sección -->
                     <div class="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5">
                         <div class="flex items-center justify-between">
@@ -155,11 +260,11 @@
                             <div class="flex items-center space-x-4">
                                 <div class="bg-gray-800 bg-opacity-40 px-4 py-2 rounded-xl flex items-center space-x-2 backdrop-blur-sm border border-white border-opacity-20">
                                     <i class="fas fa-boxes text-white"></i>
-                                    <span class="products-count text-white font-semibold">{{ count($saleDetails) }} productos</span>
+                                    <span class="text-white font-semibold" x-text="saleItems.length + ' productos'"></span>
                                 </div>
                                 <div class="bg-gray-800 bg-opacity-40 px-4 py-2 rounded-xl flex items-center space-x-2 backdrop-blur-sm border border-white border-opacity-20">
                                     <i class="fas fa-calculator text-white"></i>
-                                    <span class="total-amount-display text-white font-bold">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                    <span class="text-white font-bold" x-text="'{{ $currency->symbol }} ' + (totalAmount || 0).toFixed(2)"></span>
                                 </div>
                             </div>
                         </div>
@@ -168,7 +273,8 @@
                     <div class="p-6">
                         <!-- Tabla de productos -->
                         <div class="relative">
-                            <div class="overflow-x-auto bg-gray-50 rounded-2xl border-2 border-gray-100">
+                            <!-- Estado con productos -->
+                            <div x-show="hasProducts" class="overflow-x-auto bg-gray-50 rounded-2xl border-2 border-gray-100">
                                 <table class="w-full modern-table">
                                     <thead class="bg-gradient-to-r from-gray-700 to-gray-800">
                                         <tr>
@@ -195,49 +301,55 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody id="saleItems" class="divide-y divide-gray-200">
-                                        @foreach ($saleDetails as $detail)
-                                            <tr data-product-id="{{ $detail['product_id'] }}" data-product-code="{{ $detail['code'] }}" class="hover:bg-gray-50 transition-colors duration-200">
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $detail['code'] }}</td>
-                                                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $detail['name'] }}</td>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <template x-for="(item, index) in saleItems" :key="item.id">
+                                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="item.code"></td>
+                                                <td class="px-6 py-4 text-sm font-medium text-gray-900" x-text="item.name"></td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $detail['stock'] > 10 ? 'bg-green-100 text-green-800' : ($detail['stock'] > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                                        {{ $detail['stock'] }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <input type="number" class="quantity-input" 
-                                                           name="items[{{ $detail['product_id'] }}][quantity]"
-                                                           value="{{ $detail['quantity'] }}" min="1" max="{{ $detail['stock'] }}" step="1">
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                                                    {{ $currency->symbol }} {{ number_format($detail['sale_price'], 2) }}
-                                                    <input type="hidden" class="price-input" value="{{ $detail['sale_price'] }}">
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                                                    <span class="subtotal-display">{{ $currency->symbol }} {{ number_format($detail['quantity'] * $detail['sale_price'], 2) }}</span>
-                                                    <span class="subtotal-value hidden">{{ $detail['quantity'] * $detail['sale_price'] }}</span>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                                                          :class="(item.stock || 0) > 10 ? 'bg-green-100 text-green-800' : ((item.stock || 0) > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800')"
+                                                          x-text="item.stock || 0"></span>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <button type="button" class="btn-action-remove remove-item">
-                                                        <i class="fas fa-trash text-sm"></i>
+                                                    <div class="flex items-center justify-center space-x-2">
+                                                        <button type="button" @click="decreaseQuantity(index)"
+                                                                class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
+                                                                :disabled="item.quantity <= 1">
+                                                            <i class="fas fa-minus text-xs"></i>
+                                                        </button>
+                                                        <input type="number" x-model.number="item.quantity"
+                                                               @input="updateItemSubtotal(index)"
+                                                               class="w-16 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                                                               min="1" :max="item.stock" step="1">
+                                                        <button type="button" @click="increaseQuantity(index)"
+                                                                class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
+                                                                :disabled="item.quantity >= item.stock">
+                                                            <i class="fas fa-plus text-xs"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="'{{ $currency->symbol }} ' + (item.price || 0).toFixed(2)"></td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900" x-text="'{{ $currency->symbol }} ' + (item.subtotal || 0).toFixed(2)"></td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                    <button type="button" @click="removeItem(index)"
+                                                            class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-105">
+                                                        <i class="fas fa-trash text-xs"></i>
                                                     </button>
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        </template>
                                     </tbody>
                                 </table>
                             </div>
 
                             <!-- Estado vacío -->
-                            <div class="empty-state" id="emptyState" style="display: none;">
-                                <div class="text-center py-16">
-                                    <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-shopping-cart text-4xl text-gray-400"></i>
-                                    </div>
-                                    <h4 class="text-xl font-semibold text-gray-600 mb-2">No hay productos agregados</h4>
-                                    <p class="text-gray-500">Agregue productos escaneando códigos o usando el buscador</p>
+                            <div x-show="!hasProducts" class="text-center py-16">
+                                <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-shopping-cart text-4xl text-gray-400"></i>
                                 </div>
+                                <h4 class="text-xl font-semibold text-gray-600 mb-2">No hay productos agregados</h4>
+                                <p class="text-gray-500">Agregue productos escaneando códigos o usando el buscador</p>
                             </div>
                         </div>
 
@@ -253,7 +365,7 @@
                                         <label for="note" class="block text-sm font-semibold text-gray-700 mb-1">
                                             Nota de la Venta
                                         </label>
-                                        <textarea name="note" id="note" rows="2"
+                                        <textarea x-model="saleNote" rows="2"
                                             class="w-full px-2 py-1 bg-white border-2 border-blue-200 rounded-xl focus:border-blue-500 transition-all duration-300 text-gray-800 placeholder-gray-400 resize-none text-sm"
                                             placeholder="Agregue una nota adicional para esta venta (opcional)">{{ old('note', $sale->note) }}</textarea>
                                     </div>
@@ -269,15 +381,14 @@
                                         </div>
                                         <div>
                                             <p class="text-emerald-100 text-sm mb-0.5">Total de la Venta</p>
-                                            <p class="text-xl font-bold" id="totalAmount">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</p>
-                                            <input type="hidden" name="total_price" id="totalAmountInput" value="{{ $sale->total_price }}">
+                                            <p class="text-xl font-bold" x-text="'{{ $currency->symbol }} ' + (totalAmount || 0).toFixed(2)"></p>
                                         </div>
                                     </div>
 
                                     <!-- Botones de acción -->
                                     <div class="flex items-center space-x-2">
                                         <!-- Botón Cancelar -->
-                                        <button type="button" id="cancelSale"
+                                        <button type="button" @click="cancelSale()"
                                             class="group relative w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
                                             <i class="fas fa-times text-sm group-hover:scale-110 transition-transform duration-300"></i>
                                             <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
@@ -286,8 +397,8 @@
                                         </button>
 
                                         <!-- Botón Actualizar Venta -->
-                                        <button type="submit" id="submitSale"
-                                            class="group relative w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
+                                        <button type="button" @click="processSale()" :disabled="!canProcessSale"
+                                            class="group relative w-12 h-12 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
                                             <i class="fas fa-save text-sm group-hover:scale-110 transition-transform duration-300"></i>
                                             <div class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                                 Actualizar
@@ -300,7 +411,7 @@
                     </div>
                 </div>
 
-            </form>
+
 
             <!-- Modal de Búsqueda de Productos -->
             <div x-show="searchModalOpen" 
@@ -438,6 +549,26 @@
 
 @push('js')
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+    
+    <!-- Datos para el SPA -->
+    <script>
+        window.saleEditData = {
+            saleId: {{ $sale->id }},
+            selectedCustomerId: '{{ $sale->customer_id }}',
+            saleDate: '{{ $sale->sale_date->format('Y-m-d') }}',
+            saleTime: '{{ $sale->sale_date->format('H:i') }}',
+            saleNote: '{{ $sale->note ?? '' }}',
+            saleItems: @json($saleDetails),
+            products: @json($products),
+            customers: @json($customers),
+            currency: @json($currency)
+        };
+        
+        window.saleEditRoutes = {
+            update: '{{ route('admin.sales.update', $sale->id) }}'
+        };
+    </script>
+    
     <script src="{{ asset('js/admin/sales/edit.js') }}"></script>
 @endpush
 

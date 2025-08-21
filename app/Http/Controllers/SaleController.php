@@ -395,7 +395,7 @@ class SaleController extends Controller
          $currency = $this->currencies;
 
          // Obtener la venta con sus detalles y productos
-         $sale = Sale::with(['saleDetails.product'])
+         $sale = Sale::with(['saleDetails.product.category'])
             ->where('company_id', $companyId)
             ->findOrFail($id);
 
@@ -411,6 +411,7 @@ class SaleController extends Controller
                'sale_price' => $detail->product->sale_price,
                'subtotal' => $detail->quantity * $detail->product->sale_price,
                'stock' => $detail->product->stock + $detail->quantity,
+               'category' => $detail->product->category->name ?? 'Sin categoría',
                'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
             ];
          });
@@ -421,6 +422,7 @@ class SaleController extends Controller
          // Obtener productos y clientes para los selectores
          $products = Product::where('company_id', $companyId)
             ->where('stock', '>', 0)
+            ->with(['category'])
             ->get();
          $customers = Customer::where('company_id', $companyId)->get();
 
@@ -581,6 +583,15 @@ class SaleController extends Controller
          }
 
          DB::commit();
+
+         // Si es una petición AJAX, devolver JSON
+         if ($request->expectsJson()) {
+            return response()->json([
+               'success' => true,
+               'message' => '¡Venta actualizada exitosamente!',
+               'sale_id' => $sale->id
+            ]);
+         }
 
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta actualizada exitosamente!')

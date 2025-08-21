@@ -1,24 +1,55 @@
-/* ===== ESTILOS PARA LA VISTA DE EDICIÓN DE VENTAS ===== */
+/* Estilos personalizados para complementar Tailwind CSS */
 
-/* Variables globales */
-:root {
-    --primary-color: #6366f1;
-    --primary-dark: #4f46e5;
-    --secondary-color: #8b5cf6;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
-    --currency-symbol: '$';
+/* Alpine.js x-cloak */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Estilos para el filtro de búsqueda del modal */
+.modal-search-input {
+    transition: all 0.3s ease;
+}
+
+.modal-search-input:focus {
+    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
+.modal-search-clear-btn {
+    transition: all 0.2s ease;
+}
+
+.modal-search-clear-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Estilos para las imágenes de productos en el modal */
+.product-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f3f4f6;
+    border: 2px solid #e5e7eb;
+}
+
+.product-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.product-avatar img:hover {
+    transform: scale(1.05);
+}
+
+/* Fallback para imágenes que no cargan */
+.product-avatar img[src*="no-image.svg"] {
+    padding: 8px;
+    background-color: #f9fafb;
 }
 
 /* Animaciones personalizadas */
@@ -55,6 +86,279 @@
 
 .space-y-8 > div:nth-child(3) {
     animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* ===== ESTILOS PARA SELECTS ===== */
+/* Asegurar que las opciones aparezcan debajo del select */
+select {
+    position: relative;
+    z-index: 10;
+}
+
+/* Contenedor del select para controlar el z-index */
+.select-container {
+    position: relative;
+    z-index: 20;
+}
+
+/* Asegurar que las opciones del select aparezcan debajo */
+select option {
+    position: relative;
+    z-index: 30;
+}
+
+/* Estilos específicos para selects en el formulario de ventas */
+.sales-form-select {
+    position: relative;
+    z-index: 15;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #374151;
+    transition: all 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 12px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.sales-form-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.sales-form-select:hover {
+    border-color: #d1d5db;
+    background-color: white;
+}
+
+/* Asegurar que el dropdown aparezca debajo del select */
+.sales-form-select:focus-within {
+    z-index: 50;
+}
+
+/* Estilos para el contenedor del select con botón de agregar cliente */
+.customer-select-container {
+    position: relative;
+    z-index: 25;
+}
+
+.customer-select-container select {
+    z-index: 15;
+}
+
+.customer-select-container .add-customer-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 35;
+}
+
+/* Responsive para selects */
+@media (max-width: 768px) {
+    .sales-form-select {
+        font-size: 16px; /* Evitar zoom en iOS */
+        padding: 12px 16px;
+        padding-right: 44px;
+    }
+    
+    .customer-select-container .add-customer-button {
+        right: 12px;
+    }
+}
+
+/* Asegurar que las opciones no se superpongan */
+select:focus {
+    z-index: 100;
+}
+
+/* Estilos para el dropdown nativo del navegador */
+select:focus option {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+select:focus option:checked {
+    background-color: #6366f1;
+    color: white;
+}
+
+select:focus option:hover {
+    background-color: #e5e7eb;
+}
+
+/* Asegurar que el dropdown aparezca debajo en todos los navegadores */
+select {
+    transform: translateZ(0); /* Forzar capa de composición */
+}
+
+/* Estilos específicos para Firefox */
+@-moz-document url-prefix() {
+    select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+}
+
+/* Estilos específicos para Safari */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Asegurar que las opciones no se superpongan con otros elementos */
+.sales-form-select:focus {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Contenedor para evitar superposiciones */
+.select-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.select-wrapper:focus-within {
+    z-index: 1000;
+}
+
+/* ===== SELECTS PERSONALIZADOS ===== */
+.custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 44px;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 10px 40px 10px 12px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.custom-select-trigger:hover {
+    border-color: #d1d5db;
+    background-color: white;
+}
+
+.custom-select-trigger.active {
+    border-color: #6366f1;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.custom-select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+}
+
+.custom-select-trigger.active .custom-select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.custom-select-dropdown {
+    position: fixed;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* Usar position fixed para evitar cualquier corte */
+    min-width: 200px;
+}
+
+/* Contenedor del select para permitir overflow */
+.custom-select-trigger {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Asegurar que el contenedor padre permita overflow */
+.relative {
+    overflow: visible !important;
+}
+
+/* Contenedor del formulario para permitir overflow */
+.p-6 {
+    overflow: visible !important;
+}
+
+/* Asegurar que el dropdown no se corte por contenedores padres */
+.custom-select-dropdown {
+    position: absolute;
+    z-index: 9999;
+    /* Forzar que aparezca sobre otros elementos */
+    transform: translateZ(0);
+}
+
+/* Contenedor del select con overflow visible */
+.custom-select-trigger {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Asegurar que contenedores específicos permitan overflow */
+.relative {
+    overflow: visible !important;
+}
+
+/* Contenedor del formulario */
+.p-6 {
+    overflow: visible !important;
+}
+
+/* Estilos para dropdown posicionado arriba */
+.custom-select-dropdown.dropdown-above {
+    border-top: 2px solid #e5e7eb !important;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+/* Estilos para dropdown posicionado abajo */
+.custom-select-dropdown.dropdown-below {
+    border-top: none !important;
+    border-bottom: 2px solid #e5e7eb !important;
+    border-radius: 0 0 12px 12px !important;
+}
+
+/* Asegurar que el dropdown siempre sea visible */
+.custom-select-dropdown {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    background: white !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Estado vacío mejorado */
@@ -142,7 +446,322 @@
 
 /* Estilos para iconos y botones */
 .fas, .far, .fab {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+}
+
+/* Botones de acción en el header */
+.bg-white.bg-opacity-20 {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Botones de búsqueda y agregar */
+#searchProduct, 
+a[href="/products/create"],
+a[href*="customers/create"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+#searchProduct:hover, 
+a[href="/products/create"]:hover,
+a[href*="customers/create"]:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Botones de acción principales */
+#cancelSale,
+#submitSale,
+#submitSaleAndNew {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+#cancelSale:hover,
+#submitSale:hover,
+#submitSaleAndNew:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Tooltips de botones */
+.group:hover .absolute {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Estilos específicos para iconos en botones */
+button i,
+a i {
+    font-size: 0.875rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Mejoras para botones con gradientes */
+.bg-gradient-to-r {
+    background-size: 200% 200% !important;
+    animation: gradientShift 3s ease infinite !important;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Estilos para botones deshabilitados */
+button:disabled,
+button[disabled] {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Mejoras para botones en el modal */
+.select-product {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+.select-product:hover:not(:disabled) {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+.select-product:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Estilos para iconos y botones */
+.fas, .far, .fab {
     color: inherit;
+}
+
+/* Estilos para elementos decorativos y contadores */
+.bg-white.bg-opacity-10,
+.bg-white.bg-opacity-5,
+.bg-white.bg-opacity-20 {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Estilos para iconos en headers de secciones */
+.w-16.h-16 .fas,
+.w-12.h-12 .fas,
+.w-14.h-14 .fas {
+    color: white !important;
+    font-size: 1.5rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos específicos para iconos con text-2xl */
+.text-2xl.fas {
+    color: white !important;
+    font-size: 1.5rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos específicos para iconos con text-xl */
+.text-xl.fas {
+    color: white !important;
+    font-size: 1.25rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos en elementos con backdrop-blur */
+.backdrop-blur-sm .fas {
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos en elementos con bg-opacity */
+.bg-opacity-20 .fas,
+.bg-opacity-10 .fas,
+.bg-opacity-5 .fas {
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Estilos para botón volver en el header principal */
+button[onclick="window.history.back()"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+button[onclick="window.history.back()"]:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Estilos para contadores en el header de productos */
+.bg-white.bg-opacity-20 .fas {
+    color: white !important;
+    font-size: 1rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos para botón cerrar modal */
+button[onclick*="searchModalOpen = false"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+button[onclick*="searchModalOpen = false"]:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Estilos para iconos en labels */
+label .fas {
+    color: #6366f1 !important;
+    font-size: 0.875rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos en mensajes de error */
+.text-red-600 .fas {
+    color: #dc2626 !important;
+    font-size: 0.875rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos en mensajes informativos */
+.text-gray-500 .fas {
+    color: #6b7280 !important;
+    font-size: 0.75rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos en headers de tabla */
+thead .fas {
+    color: white !important;
+    font-size: 0.875rem !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+}
+
+/* Estilos específicos para iconos en diferentes contextos */
+/* Iconos en elementos con gradientes */
+.bg-gradient-to-br .fas,
+.bg-gradient-to-r .fas {
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Iconos en elementos con bordes blancos */
+.border-white .fas {
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Iconos en elementos con texto blanco */
+.text-white .fas {
+    color: white !important;
+    display: inline-block !important;
+}
+
+/* Iconos en elementos con opacidad de texto */
+.text-opacity-90 .fas {
+    color: rgba(255, 255, 255, 0.9) !important;
+    display: inline-block !important;
+}
+
+/* Estilos para iconos específicos del sistema */
+.fa-shopping-cart,
+.fa-info-circle,
+.fa-shopping-bag,
+.fa-search,
+.fa-times,
+.fa-arrow-left,
+.fa-barcode,
+.fa-user,
+.fa-calendar,
+.fa-clock,
+.fa-credit-card,
+.fa-boxes,
+.fa-calculator,
+.fa-plus,
+.fa-trash,
+.fa-save,
+.fa-exclamation-triangle {
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* Colores específicos para iconos según su contexto */
+.text-white .fa-shopping-cart,
+.text-white .fa-info-circle,
+.text-white .fa-shopping-bag,
+.text-white .fa-search,
+.text-white .fa-times,
+.text-white .fa-arrow-left,
+.text-white .fa-boxes,
+.text-white .fa-calculator {
+    color: white !important;
+}
+
+.text-indigo-500 .fa-barcode,
+.text-indigo-500 .fa-user,
+.text-indigo-500 .fa-calendar,
+.text-indigo-500 .fa-clock,
+.text-indigo-500 .fa-credit-card {
+    color: #6366f1 !important;
+}
+
+.text-red-600 .fa-exclamation-triangle {
+    color: #dc2626 !important;
+}
+
+.text-gray-500 .fa-info-circle {
+    color: #6b7280 !important;
 }
 
 /* Botones del header */
@@ -355,6 +974,148 @@ a[href="/products/create"] .fas {
 
 .custom-select.open .custom-select-arrow {
     transform: rotate(180deg);
+}
+
+/* Estilos para el select de clientes */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: #1f2937;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.custom-select:focus {
+    outline: none;
+    border-color: #6b7280;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+.custom-select:hover {
+    border-color: #d1d5db;
+    background-color: #f3f4f6;
+}
+
+.custom-select-arrow {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    transition: transform 0.3s ease;
+}
+
+.custom-select:focus + .custom-select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Estilos para las opciones del select */
+.custom-select option {
+    padding: 0.75rem 1rem;
+    background-color: white;
+    color: #1f2937;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.custom-select option:hover {
+    background-color: #f3f4f6;
+}
+
+.custom-select option:checked {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Badge de deuda */
+.debt-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    min-width: fit-content;
+}
+
+.debt-badge.no-debt {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.debt-badge.has-debt {
+    background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+
+.debt-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Select personalizado con badges */
+.custom-select-with-badges {
+    position: relative;
+    width: 100%;
+    z-index: 100;
+    max-width: 100%;
+}
+
+/* Botón de agregar cliente */
+.add-customer-button {
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.custom-select-with-badges select {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    color: #1f2937;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.custom-select-with-badges select:focus {
+    outline: none;
+    border-color: #6b7280;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+.custom-select-with-badges select:hover {
+    border-color: #d1d5db;
+    background-color: #f3f4f6;
 }
 
 /* Badges de deuda */
@@ -602,4 +1363,289 @@ a[href="/products/create"] .fas {
     #productsTable {
         min-width: 800px;
     }
+}
+
+/* Estilos para el dropdown personalizado */
+.custom-dropdown {
+    position: fixed;
+    background-color: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    max-height: 350px;
+    overflow: hidden;
+    display: none;
+    width: 100%;
+}
+
+/* Input de búsqueda en dropdown */
+.custom-dropdown input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+}
+
+.custom-dropdown input[type="text"]:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.custom-dropdown input[type="text"]::placeholder {
+    color: #9ca3af;
+}
+
+/* Contenedor de opciones */
+.options-container {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.custom-dropdown.show {
+    display: block;
+}
+
+.custom-dropdown-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 50px;
+    word-wrap: break-word;
+    white-space: normal;
+    gap: 0.75rem;
+    overflow: hidden;
+}
+
+.custom-dropdown-option > div:first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding-right: 0.5rem;
+}
+
+.custom-dropdown-option > div:last-child {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.custom-dropdown-option:hover {
+    background-color: #f1f5f9;
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.custom-dropdown-option.selected {
+    background-color: #f8fafc;
+    border-left: 4px solid #3b82f6;
+}
+
+.custom-dropdown-option.selected .debt-badge.no-debt {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.custom-dropdown-option.selected .debt-badge.has-debt {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Scrollbar personalizado para el dropdown */
+.custom-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Estilos para elementos con text-opacity */
+.text-white.text-opacity-90 {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Asegurar que los iconos en elementos con texto blanco sean visibles */
+.text-white .fas {
+    color: white !important;
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* Estilos para elementos con texto indigo */
+.text-indigo-500 {
+    color: #6366f1 !important;
+}
+
+/* Asegurar que los iconos en elementos con texto indigo sean visibles */
+.text-indigo-500 .fas {
+    color: #6366f1 !important;
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* Estilos para elementos con texto rojo */
+.text-red-600 {
+    color: #dc2626 !important;
+}
+
+/* Asegurar que los iconos en elementos con texto rojo sean visibles */
+.text-red-600 .fas {
+    color: #dc2626 !important;
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* Estilos para elementos con texto gris */
+.text-gray-500 {
+    color: #6b7280 !important;
+}
+
+/* Asegurar que los iconos en elementos con texto gris sean visibles */
+.text-gray-500 .fas {
+    color: #6b7280 !important;
+    display: inline-block !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA EVITAR CORTE DE DROPDOWNS ===== */
+
+/* Contenedores principales sin overflow hidden */
+.space-y-8 {
+    overflow: visible !important;
+}
+
+.w-full.space-y-8 {
+    overflow: visible !important;
+}
+
+/* Secciones principales */
+.mb-6.bg-white.rounded-3xl.shadow-xl.border.border-gray-100 {
+    overflow: visible !important;
+}
+
+.bg-white.rounded-3xl.shadow-xl.border.border-gray-100 {
+    overflow: visible !important;
+}
+
+/* Contenedores de padding */
+.p-6 {
+    overflow: visible !important;
+}
+
+/* Grid containers */
+.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4.mb-6 {
+    overflow: visible !important;
+}
+
+.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4.gap-4 {
+    overflow: visible !important;
+}
+
+/* Elementos relativos */
+.relative {
+    overflow: visible !important;
+}
+
+/* Contenedores específicos de cliente */
+div[x-data*="selectedCustomerName"] {
+    overflow: visible !important;
+    z-index: 100 !important;
+}
+
+/* Asegurar z-index correcto para dropdowns */
+.absolute.z-50 {
+    z-index: 9999 !important;
+}
+
+/* Contenedor raíz del SPA */
+#saleEditRoot {
+    overflow: visible !important;
+}
+
+/* Contenedor principal de la página */
+.space-y-6 {
+    overflow: visible !important;
+}
+
+/* Asegurar que todos los contenedores padre permitan overflow */
+body {
+    overflow-x: visible !important;
+}
+
+.container {
+    overflow: visible !important;
+}
+
+.mx-auto {
+    overflow: visible !important;
+}
+
+/* Estilos específicos para el dropdown de clientes */
+div[x-show="isOpen"] {
+    position: absolute !important;
+    z-index: 9999 !important;
+    width: 100% !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    max-height: 15rem !important;
+    overflow-y: auto !important;
+}
+
+/* Asegurar que las transiciones no interfieran */
+[x-transition] {
+    z-index: 9999 !important;
+}
+
+/* Contenedores que pueden tener overflow hidden por defecto */
+.rounded-3xl {
+    overflow: visible !important;
+}
+
+.shadow-xl {
+    overflow: visible !important;
+}
+
+/* Forzar overflow visible en elementos comunes */
+div[class*="bg-white"] {
+    overflow: visible !important;
+}
+
+div[class*="rounded"] {
+    overflow: visible !important;
+}
+
+/* Estilos para el modal de búsqueda */
+.fixed.inset-0.z-50.overflow-y-auto {
+    z-index: 10000 !important;
 }
