@@ -141,22 +141,41 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FILTRADO DE PRODUCTOS =====
         filterProducts() {
+            console.log('🔍 Filtrando productos...');
+            console.log('🔍 Término de búsqueda:', this.productSearchTerm);
+            console.log('🔍 Productos en caché:', this.productsCache.length);
+            console.log('🔍 Productos en venta actual:', this.saleItems.length);
+            
             let filtered = [...this.productsCache];
             
             // Filtro por término de búsqueda en tiempo real
-            if (this.productSearchTerm.trim()) {
+            if (this.productSearchTerm && this.productSearchTerm.trim()) {
                 const term = this.productSearchTerm.toLowerCase().trim();
+                console.log('🔍 Aplicando filtro de búsqueda con término:', term);
+                
                 filtered = filtered.filter(product => 
                     product.code.toLowerCase().includes(term) ||
                     product.name.toLowerCase().includes(term) ||
                     (product.category?.name || '').toLowerCase().includes(term)
                 );
+                
+                console.log('🔍 Productos después del filtro de búsqueda:', filtered.length);
+            } else {
+                console.log('🔍 No hay término de búsqueda, mostrando todos los productos');
             }
             
-            // Ocultar productos ya agregados a la venta
-            filtered = filtered.filter(product => !this.isProductInSale(product.id));
-            
+            // Mostrar todos los productos, pero marcar los que ya están en la venta
+            // Los productos ya agregados aparecerán pero estarán deshabilitados
             this.filteredProducts = filtered;
+            console.log('🔍 Productos filtrados finales:', this.filteredProducts.length);
+            console.log('🔍 Productos disponibles para agregar:', this.filteredProducts.filter(p => !this.isProductInSale(p.id)).length);
+        },
+        
+        // Función para limpiar la búsqueda
+        clearSearch() {
+            console.log('🧹 Limpiando búsqueda...');
+            this.productSearchTerm = '';
+            this.filterProducts();
         },
         
 
@@ -171,7 +190,7 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Sin Stock', 'Este producto no tiene stock disponible', 'warning', 2000);
                 return;
             }
-            
+
             // Verificar si ya está en la venta
             if (this.isProductInSale(product.id)) {
                 this.showToast('Producto Duplicado', 'Este producto ya está en la venta', 'info', 2000);

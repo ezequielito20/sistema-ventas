@@ -437,6 +437,7 @@
                                         <input type="text" 
                                                x-model="productSearchTerm" 
                                                @input.debounce.300ms="filterProducts()"
+                                               @keyup="filterProducts()"
                                                placeholder="Buscar productos por código, nombre o categoría..."
                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 text-gray-800 placeholder-gray-500">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -444,7 +445,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button @click="productSearchTerm = ''; filterProducts()"
+                                <button @click="clearSearch()"
                                         x-show="productSearchTerm.length > 0"
                                         class="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-xl transition-all duration-300 flex items-center space-x-2">
                                     <i class="fas fa-times"></i>
@@ -488,14 +489,16 @@
                                         </thead>
                                         <tbody class="divide-y divide-gray-200">
                                             <template x-for="product in filteredProducts" :key="product.id">
-                                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                                <tr class="transition-colors duration-200"
+                                                    :class="isProductInSale(product.id) ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-gray-50'">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" x-text="product.code"></td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                                         <button type="button"
                                                             @click="addProductToSale(product)"
-                                                            class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
-                                                            :class="product.stock <= 0 || isProductInSale(product.id) ? 'opacity-50 cursor-not-allowed' : ''"
-                                                            :disabled="product.stock <= 0 || isProductInSale(product.id)">
+                                                            class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105"
+                                                            :class="product.stock <= 0 || isProductInSale(product.id) ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'"
+                                                            :disabled="product.stock <= 0 || isProductInSale(product.id)"
+                                                            :title="product.stock <= 0 ? 'Sin stock' : (isProductInSale(product.id) ? 'Ya agregado a la venta' : 'Agregar a la venta')">
                                                             <i class="fas fa-plus text-sm"></i>
                                                         </button>
                                                     </td>
@@ -521,6 +524,24 @@
                                             </template>
                                         </tbody>
                                     </table>
+                                    
+                                    <!-- Mensaje cuando no hay productos disponibles -->
+                                    <div x-show="filteredProducts.length === 0" class="text-center py-8">
+                                        <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-search text-2xl text-gray-400"></i>
+                                        </div>
+                                        <h4 class="text-lg font-semibold text-gray-600 mb-2">No se encontraron productos</h4>
+                                        <p class="text-gray-500">Intenta con otros términos de búsqueda o verifica que haya productos disponibles</p>
+                                    </div>
+                                    
+                                    <!-- Mensaje cuando todos los productos están ya agregados -->
+                                    <div x-show="filteredProducts.length > 0 && filteredProducts.every(p => isProductInSale(p.id))" class="text-center py-8">
+                                        <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-check text-2xl text-green-500"></i>
+                                        </div>
+                                        <h4 class="text-lg font-semibold text-green-600 mb-2">Todos los productos agregados</h4>
+                                        <p class="text-green-500">Ya tienes todos los productos disponibles en tu venta</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
