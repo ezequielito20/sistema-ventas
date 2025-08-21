@@ -3,7 +3,12 @@
 @section('title', 'Gestión de Ventas')
 
 @section('content')
-<div class="space-y-6" id="salesRoot" data-currency-symbol="{{ $currency->symbol }}">
+<div class="space-y-6" 
+     id="salesRoot" 
+     data-currency-symbol="{{ $currency->symbol }}"
+     x-data="salesSPA"
+     x-init="init()">
+    
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -148,16 +153,36 @@
                 <div class="search-container">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="salesSearch" placeholder="Buscar por cliente o fecha...">
-                        <div class="search-suggestions" id="searchSuggestions"></div>
+                        <input type="text" 
+                               x-model="searchTerm" 
+                               @input.debounce.300ms="filterSales()"
+                               placeholder="Buscar por cliente, fecha o ID..."
+                               class="search-input">
+                        <div class="search-suggestions" 
+                             x-show="searchSuggestions.length > 0" 
+                             x-transition>
+                            <template x-for="suggestion in searchSuggestions" :key="suggestion.id">
+                                <div class="suggestion-item" 
+                                     @click="selectSuggestion(suggestion)"
+                                     x-text="suggestion.text"></div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
                 <div class="view-toggles">
-                    <button type="button" class="view-toggle active" data-view="table">
+                    <button type="button" 
+                            class="view-toggle" 
+                            :class="{ 'active': currentView === 'table' }"
+                            @click="changeView('table')"
+                            title="Vista de tabla">
                         <i class="fas fa-table"></i>
                     </button>
-                    <button type="button" class="view-toggle" data-view="cards">
+                    <button type="button" 
+                            class="view-toggle" 
+                            :class="{ 'active': currentView === 'cards' }"
+                            @click="changeView('cards')"
+                            title="Vista de tarjetas">
                         <i class="fas fa-th-large"></i>
                     </button>
                 </div>
@@ -166,17 +191,17 @@
         
         {{-- Filtros Avanzados --}}
         <div class="filters-section">
-            <div class="filters-header">
+            <div class="filters-header" @click="toggleFilters()">
                 <div class="filters-title">
                     <i class="fas fa-filter"></i>
                     <span>Filtros Avanzados</span>
                 </div>
-                <button type="button" class="filters-toggle" id="filtersToggle">
-                    <i class="fas fa-chevron-down"></i>
+                <button type="button" class="filters-toggle">
+                    <i class="fas fa-chevron-down" :class="{ 'rotate-180': filtersOpen }"></i>
                 </button>
             </div>
             
-            <div class="filters-content" id="filtersContent">
+            <div class="filters-content" :class="{ 'show': filtersOpen }">
                 <div class="filters-grid">
                     <!-- Filtro de Fecha -->
                     <div class="filter-group">
@@ -187,11 +212,11 @@
                         <div class="date-range">
                             <div class="date-input">
                                 <label>Desde:</label>
-                                <input type="date" id="dateFrom" class="filter-input">
+                                <input type="date" x-model="filters.dateFrom" @change="filterSales()" class="filter-input">
                             </div>
                             <div class="date-input">
                                 <label>Hasta:</label>
-                                <input type="date" id="dateTo" class="filter-input">
+                                <input type="date" x-model="filters.dateTo" @change="filterSales()" class="filter-input">
                             </div>
                         </div>
                     </div>
@@ -207,14 +232,26 @@
                                 <label>Mínimo:</label>
                                 <div class="input-with-symbol">
                                     <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                    <input type="number" id="amountMin" class="filter-input" placeholder="0.00" step="0.01" min="0">
+                                    <input type="number" 
+                                           x-model="filters.amountMin" 
+                                           @input.debounce.500ms="filterSales()"
+                                           class="filter-input" 
+                                           placeholder="0.00" 
+                                           step="0.01" 
+                                           min="0">
                                 </div>
                             </div>
                             <div class="amount-input">
                                 <label>Máximo:</label>
                                 <div class="input-with-symbol">
                                     <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                    <input type="number" id="amountMax" class="filter-input" placeholder="999999.99" step="0.01" min="0">
+                                    <input type="number" 
+                                           x-model="filters.amountMax" 
+                                           @input.debounce.500ms="filterSales()"
+                                           class="filter-input" 
+                                           placeholder="999999.99" 
+                                           step="0.01" 
+                                           min="0">
                                 </div>
                             </div>
                         </div>
@@ -222,16 +259,12 @@
                 </div>
                 
                 <div class="filters-actions">
-                    <div class="filters-status" id="filtersStatus" style="display: none;">
+                    <div class="filters-status" x-show="activeFiltersCount > 0">
                         <span class="status-text">Filtros activos:</span>
-                        <span class="active-filters" id="activeFiltersList"></span>
+                        <span class="active-filters" x-text="activeFiltersCount"></span>
                     </div>
                     <div class="filters-buttons">
-                        <button type="button" class="btn-filter btn-apply" id="applyFilters">
-                            <i class="fas fa-search"></i>
-                            <span>Aplicar Filtros</span>
-                        </button>
-                        <button type="button" class="btn-filter btn-clear" id="clearFilters">
+                        <button type="button" class="btn-filter btn-clear" @click="clearFilters()">
                             <i class="fas fa-times"></i>
                             <span>Limpiar Filtros</span>
                         </button>
@@ -241,10 +274,25 @@
         </div>
         
         <div class="modern-card-body">
+            {{-- Loading State --}}
+            <div x-show="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Cargando ventas...</p>
+            </div>
+
+            {{-- No Results State --}}
+            <div x-show="!loading && filteredSales.length === 0" class="no-results">
+                <div class="no-results-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="no-results-title">No se encontraron ventas</h3>
+                <p class="no-results-text">Intenta ajustar los filtros o términos de búsqueda</p>
+            </div>
+
             {{-- Vista de tabla moderna --}}
-            <div class="table-view" id="tableView">
+            <div class="table-view" x-show="!loading && currentView === 'table' && filteredSales.length > 0">
                 <div class="modern-table-container">
-                    <table id="salesTable" class="modern-table">
+                    <table class="modern-table">
                         <thead>
                             <tr>
                                 <th>
@@ -291,12 +339,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($sales as $sale)
+                            <template x-for="(sale, index) in paginatedSales" :key="sale.id">
                                 <tr class="table-row">
                                     <td>
-                                        <div class="row-number">
-                                            {{ $loop->iteration }}
-                                        </div>
+                                        <div class="row-number" x-text="(currentPage - 1) * itemsPerPage + index + 1"></div>
                                     </td>
                                     <td>
                                         <div class="customer-info">
@@ -304,428 +350,418 @@
                                                 <i class="fas fa-user-circle"></i>
                                             </div>
                                             <div class="customer-details">
-                                                <span class="customer-name">{{ $sale->customer->name }}</span>
-                                                <span class="customer-email">{{ $sale->customer->email }}</span>
+                                                <span class="customer-name" x-text="sale.customer.name"></span>
+                                                <span class="customer-email" x-text="sale.customer.email || 'Sin email'"></span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="date-info">
-                                            <span class="date-main">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</span>
-                                            <span class="date-time">{{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}</span>
+                                            <span class="date-main" x-text="formatDate(sale.sale_date)"></span>
+                                            <span class="date-time" x-text="formatTime(sale.sale_date)"></span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="products-info">
                                             <div class="product-badge unique">
                                                 <i class="fas fa-boxes"></i>
-                                                <span>{{ $sale->saleDetails->count() }} únicos</span>
+                                                <span x-text="sale.sale_details.length + ' únicos'"></span>
                                             </div>
                                             <div class="product-badge total">
                                                 <i class="fas fa-cubes"></i>
-                                                <span>{{ $sale->saleDetails->sum('quantity') }} totales</span>
+                                                <span x-text="getTotalQuantity(sale.sale_details) + ' totales'"></span>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="price-info">
-                                            <span class="price-amount">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</span>
+                                            <span class="price-amount" x-text="formatCurrency(sale.total_price)"></span>
                                         </div>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn-modern btn-primary view-details bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2" 
-                                                data-id="{{ $sale->id }}" 
-                                                onclick="showSaleDetails({{ $sale->id }})">
-                                            <i class="fas fa-list text-white"></i>
-                                            <span class="text-white hidden sm:inline">Ver Detalle</span>
+                                        <button type="button" 
+                                                class="btn-modern btn-primary view-details"
+                                                @click="showSaleDetails(sale.id)">
+                                            <i class="fas fa-list"></i>
+                                            <span class="hidden sm:inline">Ver Detalle</span>
                                         </button>
                                     </td>
                                     <td>
-                                        <div class="action-buttons flex gap-2">
+                                        <div class="action-buttons">
                                             @can('sales.edit')
-                                                <button type="button" class="btn-action btn-edit bg-yellow-500 hover:bg-yellow-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" 
-                                                        data-id="{{ $sale->id }}" 
-                                                        title="Editar venta"
-                                                        onclick="editSale({{ $sale->id }})">
-                                                    <i class="fas fa-edit text-white"></i>
+                                                <button type="button" 
+                                                        class="btn-action btn-edit"
+                                                        @click="editSale(sale.id)"
+                                                        title="Editar venta">
+                                                    <i class="fas fa-edit"></i>
                                                 </button>
                                             @endcan
                                             @can('sales.destroy')
-                                                <button type="button" class="btn-action btn-delete delete-sale bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200" 
-                                                        data-id="{{ $sale->id }}" 
-                                                        title="Eliminar venta"
-                                                        onclick="deleteSale({{ $sale->id }})">
-                                                    <i class="fas fa-trash text-white"></i>
+                                                <button type="button" 
+                                                        class="btn-action btn-delete"
+                                                        @click="deleteSale(sale.id)"
+                                                        title="Eliminar venta">
+                                                    <i class="fas fa-trash"></i>
                                                 </button>
                                             @endcan
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            </template>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {{-- Vista móvil optimizada --}}
-            <div class="mobile-view" id="mobileView">
-                <div class="mobile-sales-list space-y-3 p-3">
-                    @foreach ($sales as $sale)
-                        <div class="mobile-sale-card bg-white border border-gray-200 rounded-lg shadow-sm" data-sale-id="{{ $sale->id }}">
-                            {{-- Header compacto --}}
-                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-lg">
-                                <div class="flex items-center gap-3">
-                                    <span class="bg-white text-blue-600 px-2 py-1 rounded text-sm font-bold">#{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</span>
-                                    <div class="flex items-center gap-1">
-                                        <span class="w-2 h-2 bg-green-400 rounded-full"></span>
-                                        <span class="text-white text-sm">Completada</span>
-                                    </div>
-                                </div>
-                                <div class="text-white font-bold text-lg">
-                                    {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
-                                </div>
-                            </div>
-
-                            {{-- Body compacto --}}
-                            <div class="p-3">
-                                {{-- Cliente --}}
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-user text-blue-600"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-gray-900 font-semibold text-sm truncate">{{ $sale->customer->name }}</h4>
-                                        <p class="text-gray-500 text-xs truncate">{{ $sale->customer->email }}</p>
-                                    </div>
-                                </div>
-
-                                {{-- Detalles compactos --}}
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between text-sm">
-                                        <div class="flex items-center gap-2 text-gray-600">
-                                            <i class="fas fa-calendar text-blue-500 text-xs"></i>
-                                            <span>Fecha</span>
-                                        </div>
-                                        <span class="text-gray-900 font-medium">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}</span>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-between text-sm">
-                                        <div class="flex items-center gap-2 text-gray-600">
-                                            <i class="fas fa-boxes text-green-500 text-xs"></i>
-                                            <span>Productos</span>
-                                        </div>
-                                        <div class="flex gap-1">
-                                            <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">{{ $sale->saleDetails->count() }} únicos</span>
-                                            <span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">{{ $sale->saleDetails->sum('quantity') }} totales</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Footer compacto --}}
-                            <div class="p-3 bg-gray-50 rounded-b-lg border-t border-gray-200">
-                                <div class="flex gap-2">
-                                    <button type="button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                                            data-id="{{ $sale->id }}" 
-                                            onclick="showSaleDetails({{ $sale->id }})">
-                                        <i class="fas fa-list text-white text-xs"></i>
-                                        <span class="text-white hidden sm:inline">Ver Detalle</span>
-                                    </button>
-                                    
-                                    @can('sales.edit')
-                                        <button type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white w-8 h-8 rounded flex items-center justify-center transition-colors duration-200"
-                                                data-id="{{ $sale->id }}" 
-                                                title="Editar venta"
-                                                onclick="editSale({{ $sale->id }})">
-                                            <i class="fas fa-edit text-white text-xs"></i>
-                                        </button>
-                                    @endcan
-                                    @can('sales.destroy')
-                                        <button type="button" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded flex items-center justify-center transition-colors duration-200"
-                                                data-id="{{ $sale->id }}" 
-                                                title="Eliminar venta"
-                                                onclick="deleteSale({{ $sale->id }})">
-                                            <i class="fas fa-trash text-white text-xs"></i>
-                                        </button>
-                                    @endcan
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Contenedor de paginación personalizada --}}
-            <div class="modern-pagination-container"></div>
-
             {{-- Vista de tarjetas moderna --}}
-            <div class="cards-view" id="cardsView" style="display: none;">
-                <div class="modern-cards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-                    @foreach ($sales as $sale)
-                        <div class="modern-sale-card bg-white border border-gray-200 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                            <div class="sale-card-header bg-gradient-to-r from-blue-600 to-indigo-600 text-black p-4 rounded-t-xl">
-                                <div class="sale-number text-black font-bold text-lg">
-                                    #{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}
-                                </div>
-                                <div class="sale-status flex items-center gap-2">
-                                    <span class="status-dot active w-3 h-3 bg-green-400 rounded-full"></span>
-                                    <span class="status-text text-black font-medium">Completada</span>
+            <div class="cards-view" x-show="!loading && currentView === 'cards' && filteredSales.length > 0">
+                <div class="modern-cards-grid">
+                    <template x-for="(sale, index) in paginatedSales" :key="sale.id">
+                        <div class="modern-sale-card">
+                            <div class="sale-card-header">
+                                <div class="sale-number" x-text="'#' + String((currentPage - 1) * itemsPerPage + index + 1).padStart(3, '0')"></div>
+                                <div class="sale-status">
+                                    <span class="status-dot active"></span>
+                                    <span class="status-text">Completada</span>
                                 </div>
                             </div>
 
-                            <div class="sale-card-body p-6">
-                                <div class="customer-section flex items-center gap-4 mb-6">
-                                    <div class="customer-avatar-large w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-user-circle text-white text-2xl"></i>
+                            <div class="sale-card-body">
+                                <div class="customer-section">
+                                    <div class="customer-avatar-large">
+                                        <i class="fas fa-user-circle"></i>
                                     </div>
-                                    <div class="customer-info-card flex-1">
-                                        <h4 class="customer-name text-gray-900 font-bold text-lg mb-1">{{ $sale->customer->name }}</h4>
-                                        <p class="customer-email text-gray-600 text-sm">{{ $sale->customer->email }}</p>
+                                    <div class="customer-info-card">
+                                        <h4 class="customer-name" x-text="sale.customer.name"></h4>
+                                        <p class="customer-email" x-text="sale.customer.email || 'Sin email'"></p>
                                     </div>
                                 </div>
 
-                                <div class="sale-details space-y-4">
-                                    <div class="detail-row flex justify-between items-center">
-                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
-                                            <i class="fas fa-calendar-alt text-blue-500"></i>
+                                <div class="sale-details">
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="fas fa-calendar-alt"></i>
                                             <span>Fecha</span>
                                         </div>
-                                        <div class="detail-value text-gray-900 font-semibold">
-                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}
-                                        </div>
+                                        <div class="detail-value" x-text="formatDate(sale.sale_date) + ' ' + formatTime(sale.sale_date)"></div>
                                     </div>
 
-                                    <div class="detail-row flex justify-between items-center">
-                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
-                                            <i class="fas fa-boxes text-green-500"></i>
+                                    <div class="detail-row">
+                                        <div class="detail-label">
+                                            <i class="fas fa-boxes"></i>
                                             <span>Productos</span>
                                         </div>
                                         <div class="detail-value">
-                                            <div class="product-badges flex gap-2">
-                                                <span class="mini-badge unique bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">{{ $sale->saleDetails->count() }} únicos</span>
-                                                <span class="mini-badge total bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">{{ $sale->saleDetails->sum('quantity') }} totales</span>
+                                            <div class="product-badges">
+                                                <span class="mini-badge unique" x-text="sale.sale_details.length + ' únicos'"></span>
+                                                <span class="mini-badge total" x-text="getTotalQuantity(sale.sale_details) + ' totales'"></span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="detail-row total-row flex justify-between items-center pt-4 border-t border-gray-200">
-                                        <div class="detail-label flex items-center gap-2 text-gray-700 font-medium">
-                                            <i class="fas fa-dollar-sign text-green-500"></i>
+                                    <div class="detail-row total-row">
+                                        <div class="detail-label">
+                                            <i class="fas fa-dollar-sign"></i>
                                             <span>Total</span>
                                         </div>
-                                        <div class="detail-value total-amount text-black font-bold text-xl">
-                                            {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
-                                        </div>
+                                        <div class="detail-value total-amount" x-text="formatCurrency(sale.total_price)"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="sale-card-footer p-4 bg-gray-50 rounded-b-xl border-t border-gray-200">
-                                <button type="button" class="btn-card-primary view-details bg-blue-600 hover:bg-blue-700 text-black px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-full justify-center"
-                                        data-id="{{ $sale->id }}" 
-                                        onclick="showSaleDetails({{ $sale->id }})">
-                                    <i class="fas fa-list text-black"></i>
-                                    <span class="text-black hidden sm:inline">Ver Detalle</span>
+                            <div class="sale-card-footer">
+                                <button type="button" 
+                                        class="btn-card-primary"
+                                        @click="showSaleDetails(sale.id)">
+                                    <i class="fas fa-list"></i>
+                                    <span>Ver Detalle</span>
                                 </button>
 
-                                <div class="card-actions flex justify-center gap-2 mt-3">
+                                <div class="card-actions">
                                     @can('sales.edit')
-                                        <button type="button" class="btn-card-action btn-edit bg-yellow-500 hover:bg-yellow-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
-                                                data-id="{{ $sale->id }}" 
-                                                title="Editar venta"
-                                                onclick="editSale({{ $sale->id }})">
-                                            <i class="fas fa-edit text-white"></i>
+                                        <button type="button" 
+                                                class="btn-card-action btn-edit"
+                                                @click="editSale(sale.id)"
+                                                title="Editar venta">
+                                            <i class="fas fa-edit"></i>
                                         </button>
                                     @endcan
                                     @can('sales.destroy')
-                                        <button type="button" class="btn-card-action delete delete-sale bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200"
-                                                data-id="{{ $sale->id }}" 
-                                                title="Eliminar venta"
-                                                onclick="deleteSale({{ $sale->id }})">
-                                            <i class="fas fa-trash text-white"></i>
+                                        <button type="button" 
+                                                class="btn-card-action btn-delete"
+                                                @click="deleteSale(sale.id)"
+                                                title="Eliminar venta">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     @endcan
                                     @can('sales.print')
-                                        <button type="button" class="btn-card-action print bg-gray-500 hover:bg-gray-600 text-white w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200" 
-                                                title="Imprimir venta"
-                                                onclick="printSale({{ $sale->id }})">
-                                            <i class="fas fa-print text-white"></i>
+                                        <button type="button" 
+                                                class="btn-card-action print"
+                                                @click="printSale(sale.id)"
+                                                title="Imprimir venta">
+                                            <i class="fas fa-print"></i>
                                         </button>
                                     @endcan
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    </template>
+                </div>
+            </div>
+
+            {{-- Paginación --}}
+            <div x-show="!loading && filteredSales.length > 0" class="pagination-container">
+                <div class="pagination-info">
+                    <span x-text="`Mostrando ${(currentPage - 1) * itemsPerPage + 1} a ${Math.min(currentPage * itemsPerPage, filteredSales.length)} de ${filteredSales.length} ventas`"></span>
+                </div>
+                <div class="pagination-controls">
+                    <button type="button" 
+                            class="pagination-btn"
+                            :disabled="currentPage === 1"
+                            @click="changePage(currentPage - 1)">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>Anterior</span>
+                    </button>
+                    
+                    <div class="page-numbers">
+                        <template x-for="page in visiblePages" :key="page">
+                            <button type="button" 
+                                    class="page-number"
+                                    :class="{ 'active': page === currentPage }"
+                                    @click="changePage(page)"
+                                    x-text="page"></button>
+                        </template>
+                    </div>
+                    
+                    <button type="button" 
+                            class="pagination-btn"
+                            :disabled="currentPage === totalPages"
+                            @click="changePage(currentPage + 1)">
+                        <span>Siguiente</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Modal moderno para mostrar detalles --}}
-    <div class="modal-overlay" id="modalOverlay" style="display: none;">
-        <div class="modal-container" id="modalContainer" style="display: none;">
-        <div class="modal-content modern-modal">
-            {{-- Header moderno con gradiente --}}
-            <div class="modal-header-modern">
-                <div class="modal-header-background">
-                    <div class="modal-header-gradient"></div>
-                    <div class="modal-header-pattern">
-                        <div class="pattern-circle"></div>
-                        <div class="pattern-circle"></div>
-                        <div class="pattern-circle"></div>
-                    </div>
-                </div>
-                <div class="modal-header-content">
-                    <div class="modal-title-section">
-                        <div class="modal-icon">
-                            <i class="fas fa-receipt"></i>
-                        </div>
-                        <div class="modal-title-text">
-                            <h4 class="modal-title-main">Detalle de la Venta</h4>
-                            <p class="modal-subtitle">Información completa de la transacción</p>
-                        </div>
-                    </div>
-                    <button type="button" class="modal-close-btn" onclick="closeModal()" aria-label="Close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Cuerpo del modal --}}
-            <div class="modal-body-modern">
-                {{-- Información del cliente y venta --}}
-                <div class="sale-info-section">
-                    <div class="flex flex-wrap -mx-4">
-                        <div class="w-full md:w-1/2 px-4">
-                            <div class="info-card customer-info-card">
-                                <div class="info-card-header">
-                                    <div class="info-icon customer-icon">
-                                        <i class="fas fa-user-circle"></i>
-                                    </div>
-                                    <h6 class="info-title">Información del Cliente</h6>
-                                </div>
-                                <div class="info-card-content" id="customerInfo">
-                                    <!-- Se llena dinámicamente -->
-                                </div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-1/2 px-4">
-                            <div class="info-card date-info-card">
-                                <div class="info-card-header">
-                                    <div class="info-icon date-icon">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </div>
-                                    <h6 class="info-title">Fecha de Venta</h6>
-                                </div>
-                                <div class="info-card-content" id="saleDate">
-                                    <!-- Se llena dinámicamente -->
-                                </div>
-                            </div>
+    <div class="modal-overlay" 
+         x-show="modalOpen" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="closeModal()">
+        <div class="modal-container" 
+             x-show="modalOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             @click.stop>
+            <div class="modal-content modern-modal">
+                {{-- Header moderno con gradiente --}}
+                <div class="modal-header-modern">
+                    <div class="modal-header-background">
+                        <div class="modal-header-gradient"></div>
+                        <div class="modal-header-pattern">
+                            <div class="pattern-circle"></div>
+                            <div class="pattern-circle"></div>
+                            <div class="pattern-circle"></div>
                         </div>
                     </div>
-                </div>
-
-                {{-- Tabla de productos moderna --}}
-                <div class="products-section">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <h5 class="section-title">Productos Vendidos</h5>
-                    </div>
-
-                    <div class="modern-table-wrapper">
-                        <table class="modern-details-table">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-barcode"></i>
-                                            <span>Código</span>
-                                        </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-box"></i>
-                                            <span>Producto</span>
-                                        </div>
-                                    </th>
-                                    <th>
-                                        <div class="th-content">
-                                            <i class="fas fa-tags"></i>
-                                            <span>Categoría</span>
-                                        </div>
-                                    </th>
-                                    <th class="text-center">
-                                        <div class="th-content">
-                                            <i class="fas fa-sort-numeric-up"></i>
-                                            <span>Cantidad</span>
-                                        </div>
-                                    </th>
-                                    <th class="text-right">
-                                        <div class="th-content">
-                                            <i class="fas fa-dollar-sign"></i>
-                                            <span>Precio Unit.</span>
-                                        </div>
-                                    </th>
-                                    <th class="text-right">
-                                        <div class="th-content">
-                                            <i class="fas fa-calculator"></i>
-                                            <span>Subtotal</span>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="saleDetailsTableBody">
-                                <!-- Los detalles se cargarán aquí dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Total destacado y Nota --}}
-                    <div class="total-section">
-                        <!-- Campo de Nota -->
-                        <div class="note-card" id="noteCard" style="display: none;">
-                            <div class="note-icon">
-                                <i class="fas fa-sticky-note"></i>
-                            </div>
-                            <div class="note-content">
-                                <span class="note-label">Nota de la Venta</span>
-                                <div class="note-text" id="noteText"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Total de la venta -->
-                        <div class="total-card">
-                            <div class="total-icon">
+                    <div class="modal-header-content">
+                        <div class="modal-title-section">
+                            <div class="modal-icon">
                                 <i class="fas fa-receipt"></i>
                             </div>
-                            <div class="total-content">
-                                <span class="total-label">Total de la Venta</span>
-                                <span class="total-amount"><span id="modalTotal">0.00</span></span>
+                            <div class="modal-title-text">
+                                <h4 class="modal-title-main">Detalle de la Venta</h4>
+                                <p class="modal-subtitle">Información completa de la transacción</p>
+                            </div>
+                        </div>
+                        <button type="button" class="modal-close-btn" @click="closeModal()" aria-label="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Cuerpo del modal --}}
+                <div class="modal-body-modern">
+                    {{-- Información del cliente y venta --}}
+                    <div class="sale-info-section">
+                        <div class="flex flex-wrap -mx-4">
+                            <div class="w-full md:w-1/2 px-4">
+                                <div class="info-card customer-info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-icon customer-icon">
+                                            <i class="fas fa-user-circle"></i>
+                                        </div>
+                                        <h6 class="info-title">Información del Cliente</h6>
+                                    </div>
+                                    <div class="info-card-content">
+                                        <div class="info-item">
+                                            <span class="info-label">Nombre:</span>
+                                            <span class="info-value" x-text="selectedSale?.customer?.name || 'N/A'"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Email:</span>
+                                            <span class="info-value" x-text="selectedSale?.customer?.email || 'No especificado'"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Teléfono:</span>
+                                            <span class="info-value" x-text="selectedSale?.customer?.phone || 'No especificado'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-1/2 px-4">
+                                <div class="info-card date-info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-icon date-icon">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </div>
+                                        <h6 class="info-title">Fecha de Venta</h6>
+                                    </div>
+                                    <div class="info-card-content">
+                                        <div class="info-item">
+                                            <span class="info-label">Fecha:</span>
+                                            <span class="info-value" x-text="selectedSale ? formatDate(selectedSale.sale_date) : 'N/A'"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Hora:</span>
+                                            <span class="info-value" x-text="selectedSale ? formatTime(selectedSale.sale_date) : 'N/A'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tabla de productos moderna --}}
+                    <div class="products-section">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5 class="section-title">Productos Vendidos</h5>
+                        </div>
+
+                        <div class="modern-table-wrapper">
+                            <table class="modern-details-table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-barcode"></i>
+                                                <span>Código</span>
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-box"></i>
+                                                <span>Producto</span>
+                                            </div>
+                                        </th>
+                                        <th>
+                                            <div class="th-content">
+                                                <i class="fas fa-tags"></i>
+                                                <span>Categoría</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-center">
+                                            <div class="th-content">
+                                                <i class="fas fa-sort-numeric-up"></i>
+                                                <span>Cantidad</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-right">
+                                            <div class="th-content">
+                                                <i class="fas fa-dollar-sign"></i>
+                                                <span>Precio Unit.</span>
+                                            </div>
+                                        </th>
+                                        <th class="text-right">
+                                            <div class="th-content">
+                                                <i class="fas fa-calculator"></i>
+                                                <span>Subtotal</span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="detail in selectedSale?.sale_details || []" :key="detail.id">
+                                        <tr>
+                                            <td x-text="detail.product?.code || 'N/A'"></td>
+                                            <td x-text="detail.product?.name || 'N/A'"></td>
+                                            <td x-text="detail.product?.category?.name || 'Sin categoría'"></td>
+                                            <td class="text-center" x-text="detail.quantity"></td>
+                                            <td class="text-right" x-text="formatCurrency(detail.unit_price)"></td>
+                                            <td class="text-right" x-text="formatCurrency(detail.subtotal)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Total destacado y Nota --}}
+                        <div class="total-section">
+                            <!-- Campo de Nota -->
+                            <div class="note-card" x-show="selectedSale?.note">
+                                <div class="note-icon">
+                                    <i class="fas fa-sticky-note"></i>
+                                </div>
+                                <div class="note-content">
+                                    <span class="note-label">Nota de la Venta</span>
+                                    <div class="note-text" x-text="selectedSale?.note || ''"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Total de la venta -->
+                            <div class="total-card">
+                                <div class="total-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="total-content">
+                                    <span class="total-label">Total de la Venta</span>
+                                    <span class="total-amount" x-text="selectedSale ? formatCurrency(selectedSale.total_price) : '$0.00'"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- Footer moderno --}}
-            <div class="modal-footer-modern">
-                <div class="footer-actions">
-                    @can('sales.print')
-                        <button type="button" class="btn-modal-action btn-print print-details">
-                            <i class="fas fa-print"></i>
-                            <span>Imprimir</span>
+                {{-- Footer moderno --}}
+                <div class="modal-footer-modern">
+                    <div class="footer-actions">
+                        @can('sales.print')
+                            <button type="button" 
+                                    class="btn-modal-action btn-print"
+                                    @click="printSale(selectedSale?.id)">
+                                <i class="fas fa-print"></i>
+                                <span>Imprimir</span>
+                            </button>
+                        @endcan
+                        <button type="button" class="btn-modal-action btn-secondary" @click="closeModal()">
+                            <i class="fas fa-times"></i>
+                            <span>Cerrar</span>
                         </button>
-                    @endcan
-                    <button type="button" class="btn-modal-action btn-secondary" onclick="closeModal()">
-                        <i class="fas fa-times"></i>
-                        <span>Cerrar</span>
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Script con datos iniciales --}}
+    <script>
+        window.salesData = @json($sales->items());
+        window.currencySymbol = '{{ $currency->symbol }}';
+    </script>
 </div>
 @endsection
 
@@ -734,6 +770,5 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script src="{{ asset('js/admin/sales/index.js') }}" defer></script>
+    <script src="{{ asset('js/admin/sales/index.js') }}"></script>
 @endpush 

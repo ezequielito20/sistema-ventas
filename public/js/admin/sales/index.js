@@ -1,377 +1,438 @@
 /**
- * JavaScript optimizado para la vista de ventas
+ * SPA de Gestión de Ventas con Alpine.js
  * Archivo: public/js/admin/sales/index.js
- * Versión: 1.0.0
+ * Versión: 2.0.0 - SPA Edition
  */
 
-// ===== VARIABLES GLOBALES =====
-let currentView = 'table';
-let searchTerm = '';
-let filters = {
-    dateFrom: '',
-    dateTo: '',
-    amountMin: '',
-    amountMax: ''
-};
-let sales = [];
-let filteredSales = [];
-
-// ===== FUNCIONES GLOBALES =====
-
-// Mostrar detalles de venta
-async function showSaleDetails(saleId) {
-    
-    try {
-        const response = await fetch(`/sales/${saleId}/details`);
+// Esperar a que Alpine.js esté disponible
+document.addEventListener('alpine:init', () => {
+    Alpine.data('salesSPA', () => ({
+        // ===== ESTADO DEL COMPONENTE =====
+        loading: true,
+        currentView: 'table',
+        searchTerm: '',
+        searchSuggestions: [],
+        filtersOpen: false,
+        modalOpen: false,
         
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error(`Error ${response.status}: ${errorText}`);
-        }
+        // Datos
+        allSales: [],
+        filteredSales: [],
+        selectedSale: null,
         
-        const data = await response.json();
-        populateModalData(data);
-        openModal();
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al cargar los detalles de la venta: ' + error.message, 'error');
-    }
-}
-
-// Abrir modal
-function openModal() {
-    const overlay = document.getElementById('modalOverlay');
-    const container = document.getElementById('modalContainer');
-    
-    if (overlay && container) {
-        // Mostrar overlay
-        overlay.style.display = 'flex';
-        container.style.display = 'flex';
+        // Filtros
+        filters: {
+            dateFrom: '',
+            dateTo: '',
+            amountMin: '',
+            amountMax: ''
+        },
         
-        // Forzar reflow
-        overlay.offsetHeight;
+        // Paginación
+        currentPage: 1,
+        itemsPerPage: 15,
         
-        // Animar entrada
-        overlay.style.opacity = '1';
-        container.style.opacity = '1';
-        container.style.transform = 'scale(1) translateY(0)';
+        // ===== COMPUTED PROPERTIES =====
+        get paginatedSales() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.filteredSales.slice(start, end);
+        },
         
-        // Bloquear scroll del body
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Cerrar modal
-function closeModal() {
-    const overlay = document.getElementById('modalOverlay');
-    const container = document.getElementById('modalContainer');
-    
-    if (overlay && container) {
-        // Animar salida
-        overlay.style.opacity = '0';
-        container.style.opacity = '0';
-        container.style.transform = 'scale(0.95) translateY(20px)';
+        get totalPages() {
+            return Math.ceil(this.filteredSales.length / this.itemsPerPage);
+        },
         
-        // Ocultar después de la animación
-        setTimeout(() => {
-            overlay.style.display = 'none';
-            container.style.display = 'none';
+        get visiblePages() {
+            const pages = [];
+            const total = this.totalPages;
+            const current = this.currentPage;
+            
+            if (total <= 7) {
+                for (let i = 1; i <= total; i++) {
+                    pages.push(i);
+                }
+            } else {
+                if (current <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(total);
+                } else if (current >= total - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = total - 4; i <= total; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(total);
+                }
+            }
+            
+            return pages;
+        },
+        
+        get activeFiltersCount() {
+            let count = 0;
+            if (this.filters.dateFrom) count++;
+            if (this.filters.dateTo) count++;
+            if (this.filters.amountMin) count++;
+            if (this.filters.amountMax) count++;
+            if (this.searchTerm.trim()) count++;
+            return count;
+        },
+        
+        // ===== INICIALIZACIÓN =====
+        async init() {
+            try {
+                this.loading = true;
+                
+                // Cargar datos iniciales desde la ventana global
+                if (window.salesData) {
+                    this.allSales = window.salesData;
+                } else {
+                    // Fallback: cargar desde API
+                    await this.loadSales();
+                }
+                
+                this.filteredSales = [...this.allSales];
+                
+                // Restaurar vista guardada
+                const savedView = localStorage.getItem('salesViewPreference') || 'table';
+                this.currentView = this.isMobile() ? 'cards' : savedView;
+                
+                // Configurar responsive
+                this.setupResponsive();
+                
+                this.loading = false;
+            } catch (error) {
+                console.error('Error inicializando SPA:', error);
+                this.showAlert('Error al cargar los datos', 'error');
+                this.loading = false;
+            }
+        },
+        
+        async loadSales() {
+            try {
+                const response = await fetch('/api/sales');
+                if (!response.ok) throw new Error('Error al cargar ventas');
+                
+                const data = await response.json();
+                this.allSales = data.sales || [];
+            } catch (error) {
+                console.error('Error cargando ventas:', error);
+                throw error;
+            }
+        },
+        
+        // ===== FUNCIONES DE FILTRADO Y BÚSQUEDA =====
+        filterSales() {
+            let filtered = [...this.allSales];
+            
+            // Filtro por término de búsqueda
+            if (this.searchTerm.trim()) {
+                const term = this.searchTerm.toLowerCase().trim();
+                filtered = filtered.filter(sale => {
+                    return (
+                        sale.customer?.name?.toLowerCase().includes(term) ||
+                        sale.customer?.email?.toLowerCase().includes(term) ||
+                        sale.id.toString().includes(term) ||
+                        this.formatDate(sale.sale_date).includes(term)
+                    );
+                });
+            }
+            
+            // Filtro por fecha desde
+            if (this.filters.dateFrom) {
+                filtered = filtered.filter(sale => {
+                    const saleDate = new Date(sale.sale_date);
+                    const fromDate = new Date(this.filters.dateFrom);
+                    return saleDate >= fromDate;
+                });
+            }
+            
+            // Filtro por fecha hasta
+            if (this.filters.dateTo) {
+                filtered = filtered.filter(sale => {
+                    const saleDate = new Date(sale.sale_date);
+                    const toDate = new Date(this.filters.dateTo);
+                    return saleDate <= toDate;
+                });
+            }
+            
+            // Filtro por monto mínimo
+            if (this.filters.amountMin) {
+                filtered = filtered.filter(sale => {
+                    return parseFloat(sale.total_price) >= parseFloat(this.filters.amountMin);
+                });
+            }
+            
+            // Filtro por monto máximo
+            if (this.filters.amountMax) {
+                filtered = filtered.filter(sale => {
+                    return parseFloat(sale.total_price) <= parseFloat(this.filters.amountMax);
+                });
+            }
+            
+            this.filteredSales = filtered;
+            this.currentPage = 1; // Resetear paginación
+            this.updateSearchSuggestions();
+        },
+        
+        updateSearchSuggestions() {
+            if (!this.searchTerm.trim() || this.searchTerm.length < 2) {
+                this.searchSuggestions = [];
+                return;
+            }
+            
+            const term = this.searchTerm.toLowerCase();
+            const suggestions = [];
+            
+            // Sugerencias de clientes
+            const customers = [...new Set(this.allSales.map(sale => sale.customer?.name).filter(Boolean))];
+            customers.forEach(customer => {
+                if (customer.toLowerCase().includes(term) && suggestions.length < 5) {
+                    suggestions.push({
+                        id: `customer-${customer}`,
+                        text: `Cliente: ${customer}`,
+                        type: 'customer',
+                        value: customer
+                    });
+                }
+            });
+            
+            this.searchSuggestions = suggestions;
+        },
+        
+        selectSuggestion(suggestion) {
+            this.searchTerm = suggestion.value;
+            this.searchSuggestions = [];
+            this.filterSales();
+        },
+        
+        clearFilters() {
+            this.searchTerm = '';
+            this.filters = {
+                dateFrom: '',
+                dateTo: '',
+                amountMin: '',
+                amountMax: ''
+            };
+            this.searchSuggestions = [];
+            this.filteredSales = [...this.allSales];
+            this.currentPage = 1;
+        },
+        
+        // ===== FUNCIONES DE VISTA =====
+        changeView(viewType) {
+            this.currentView = viewType;
+            localStorage.setItem('salesViewPreference', viewType);
+        },
+        
+        toggleFilters() {
+            this.filtersOpen = !this.filtersOpen;
+        },
+        
+        // ===== FUNCIONES DE PAGINACIÓN =====
+        changePage(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+            }
+        },
+        
+        // ===== FUNCIONES DE MODAL =====
+        async showSaleDetails(saleId) {
+            try {
+                this.loading = true;
+                
+                const response = await fetch(`/sales/${saleId}/details`);
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${await response.text()}`);
+                }
+                
+                const data = await response.json();
+                // Ajustar la estructura para compatibilidad
+                this.selectedSale = {
+                    ...data,
+                    sale_details: data.details || [],
+                    sale_date: data.sale_date + ' ' + data.sale_time
+                };
+                this.modalOpen = true;
+                
+                // Bloquear scroll del body
+                document.body.style.overflow = 'hidden';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert('Error al cargar los detalles de la venta: ' + error.message, 'error');
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        closeModal() {
+            this.modalOpen = false;
+            this.selectedSale = null;
             
             // Restaurar scroll del body
             document.body.style.overflow = '';
-        }, 300);
-    }
-}
-
-// Poblar datos del modal
-function populateModalData(data) {
-    // Información del cliente
-    const customerInfo = document.getElementById('customerInfo');
-    if (customerInfo) {
-        customerInfo.innerHTML = `
-            <div class="info-item">
-                <span class="info-label">Nombre:</span>
-                <span class="info-value">${data.customer.name}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Email:</span>
-                <span class="info-value">${data.customer.email || 'No especificado'}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Teléfono:</span>
-                <span class="info-value">${data.customer.phone || 'No especificado'}</span>
-            </div>
-        `;
-    }
-
-    // Fecha de venta
-    const saleDate = document.getElementById('saleDate');
-    if (saleDate) {
-        saleDate.innerHTML = `
-            <div class="info-item">
-                <span class="info-label">Fecha:</span>
-                <span class="info-value">${data.sale_date}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Hora:</span>
-                <span class="info-value">${data.sale_time}</span>
-            </div>
-        `;
-    }
-
-    // Productos
-    const tableBody = document.getElementById('saleDetailsTableBody');
-    if (tableBody) {
-        tableBody.innerHTML = data.details.map(detail => `
-            <tr>
-                <td>${detail.product.code}</td>
-                <td>${detail.product.name}</td>
-                <td>${detail.product.category?.name || 'Sin categoría'}</td>
-                <td class="text-center">${detail.quantity}</td>
-                <td class="text-right">${formatCurrency(detail.unit_price)}</td>
-                <td class="text-right">${formatCurrency(detail.subtotal)}</td>
-                            </tr>
-        `).join('');
-    }
-
-    // Total
-    const modalTotal = document.getElementById('modalTotal');
-    if (modalTotal) {
-        modalTotal.textContent = formatCurrency(data.total_price);
-    }
-
-    // Nota (si existe)
-    const noteCard = document.getElementById('noteCard');
-    const noteText = document.getElementById('noteText');
-    if (noteCard && noteText) {
-        if (data.note) {
-            noteText.textContent = data.note;
-            noteCard.style.display = 'flex';
-        } else {
-            noteCard.style.display = 'none';
-        }
-    }
-    
-    // Actualizar el botón de imprimir con el ID de la venta
-    const printButton = document.querySelector('.print-details');
-    if (printButton) {
-        printButton.setAttribute('data-sale-id', data.id || '');
-    }
-}
-
-// Editar venta
-function editSale(saleId) {
-    window.location.href = `/sales/edit/${saleId}`;
-}
-
-// Eliminar venta
-async function deleteSale(saleId) {
-    const confirmed = await showConfirmDialog(
-        '¿Estás seguro de que quieres eliminar esta venta?',
-        'Esta acción no se puede deshacer.'
-    );
-
-    if (!confirmed) return;
-
-    try {
-        const response = await fetch(`/sales/delete/${saleId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            // Si hay un mensaje específico del servidor, usarlo
-            if (data.message) {
-                showAlert(data.message, data.icons || 'warning');
-            } else {
-                showAlert('Error al eliminar la venta', 'error');
-            }
-            return;
-        }
-
-        if (data.error) {
-            showAlert(data.message, 'error');
-        } else {
-            showAlert(data.message || 'Venta eliminada correctamente', 'success');
+        },
         
-        // Recargar la página solo si la eliminación fue exitosa
-        setTimeout(() => {
-            window.location.reload();
-        }, 1500);
-        }
-
+        // ===== ACCIONES DE VENTA =====
+        editSale(saleId) {
+            window.location.href = `/sales/edit/${saleId}`;
+        },
         
+        async deleteSale(saleId) {
+            const confirmed = await this.showConfirmDialog(
+                '¿Estás seguro de que quieres eliminar esta venta?',
+                'Esta acción no se puede deshacer.'
+            );
 
-    } catch (error) {
-        console.error('Error:', error);
-        showAlert('Error al eliminar la venta', 'error');
-    }
-}
+            if (!confirmed) return;
 
-// Imprimir venta
-function printSale(saleId) {
-    window.open(`/sales/print/${saleId}`, '_blank');
-}
+            try {
+                const response = await fetch(`/sales/delete/${saleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-// Utilidades
-function formatCurrency(amount) {
-    const currencySymbol = document.getElementById('salesRoot').getAttribute('data-currency-symbol');
-    return `${currencySymbol} ${parseFloat(amount).toFixed(2)}`;
-}
+                const data = await response.json();
 
-// Mostrar alerta
-function showAlert(message, type = 'info') {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
-            text: message,
-            icon: type,
-            confirmButtonText: 'Aceptar',
-            confirmButtonColor: '#667eea'
-        });
-    } else {
-        alert(message);
-    }
-}
+                if (!response.ok) {
+                    this.showAlert(data.message || 'Error al eliminar la venta', data.icons || 'warning');
+                    return;
+                }
 
-// Mostrar diálogo de confirmación
-function showConfirmDialog(title, text) {
-    return new Promise((resolve) => {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: title,
-                text: text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#667eea',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                resolve(result.isConfirmed);
-            });
-        } else {
-            resolve(confirm(`${title}\n${text}`));
-        }
-    });
-}
-
-// ===== FUNCIONES DE CAMBIO DE VISTA =====
-
-// Cambiar vista (tabla/tarjetas)
-function changeView(viewType) {
-    
-    // Actualizar variable global
-    currentView = viewType;
-    
-    // Obtener elementos de vista
-    const tableView = document.getElementById('tableView');
-    const cardsView = document.getElementById('cardsView');
-    const mobileView = document.getElementById('mobileView');
-    
-    // Obtener botones de toggle
-    const viewToggles = document.querySelectorAll('.view-toggle');
-    
-    // Remover clase active de todos los botones
-    viewToggles.forEach(toggle => {
-        toggle.classList.remove('active');
-    });
-    
-    // Ocultar todas las vistas
-    if (tableView) tableView.style.display = 'none';
-    if (cardsView) cardsView.style.display = 'none';
-    if (mobileView) mobileView.style.display = 'none';
-    
-    // Mostrar vista seleccionada y activar botón correspondiente
-    switch (viewType) {
-        case 'table':
-            if (tableView) tableView.style.display = 'block';
-            document.querySelector('.view-toggle[data-view="table"]')?.classList.add('active');
-            break;
-        case 'cards':
-            if (cardsView) cardsView.style.display = 'block';
-            document.querySelector('.view-toggle[data-view="cards"]')?.classList.add('active');
-            break;
-        case 'mobile':
-            if (mobileView) mobileView.style.display = 'block';
-            break;
-    }
-    
-    // Guardar preferencia en localStorage
-    localStorage.setItem('salesViewPreference', viewType);
-    
-}
-
-// Detectar vista móvil automáticamente
-function detectMobileView() {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile && currentView !== 'mobile') {
-        changeView('mobile');
-    } else if (!isMobile && currentView === 'mobile') {
-        // Restaurar vista anterior en desktop
-        const savedView = localStorage.getItem('salesViewPreference') || 'table';
-        changeView(savedView);
-    }
-}
-
-// ===== INICIALIZACIÓN CUANDO EL DOM ESTÉ LISTO =====
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Configurar event listeners para cerrar modal
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) {
-        overlay.addEventListener('click', closeModal);
-    }
-    
-    // Cerrar modal con ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
-    });
-    
-    // Event listener para el botón de imprimir
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.print-details')) {
-            e.preventDefault();
-            const saleId = e.target.closest('.print-details').getAttribute('data-sale-id');
+                if (data.error) {
+                    this.showAlert(data.message, 'error');
+                } else {
+                    this.showAlert(data.message || 'Venta eliminada correctamente', 'success');
+                    
+                    // Remover la venta de los datos locales
+                    this.allSales = this.allSales.filter(sale => sale.id !== saleId);
+                    this.filterSales();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert('Error al eliminar la venta', 'error');
+            }
+        },
+        
+        printSale(saleId) {
             if (saleId) {
-                printSale(saleId);
+                window.open(`/sales/print/${saleId}`, '_blank');
             }
+        },
+        
+        // ===== FUNCIONES AUXILIARES =====
+        formatCurrency(amount) {
+            const symbol = window.currencySymbol || '$';
+            return `${symbol} ${parseFloat(amount || 0).toFixed(2)}`;
+        },
+        
+        formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        },
+        
+        formatTime(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        },
+        
+        getTotalQuantity(saleDetails) {
+            if (!saleDetails || !Array.isArray(saleDetails)) return 0;
+            return saleDetails.reduce((total, detail) => total + (detail.quantity || 0), 0);
+        },
+        
+        isMobile() {
+            return window.innerWidth <= 768;
+        },
+        
+        setupResponsive() {
+            const handleResize = () => {
+                const isMobile = this.isMobile();
+                if (isMobile && this.currentView === 'table') {
+                    this.changeView('cards');
+                }
+            };
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // Ejecutar inmediatamente
+        },
+        
+        // ===== FUNCIONES DE UI =====
+        showAlert(message, type = 'info') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+                    text: message,
+                    icon: type,
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#667eea'
+                });
+            } else {
+                alert(message);
+            }
+        },
+        
+        showConfirmDialog(title, text) {
+            return new Promise((resolve) => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#667eea',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        resolve(result.isConfirmed);
+                    });
+                } else {
+                    resolve(confirm(`${title}\n${text}`));
+                }
+            });
         }
-    });
-    
-    // Configurar event listeners para botones de cambio de vista
-    const viewToggles = document.querySelectorAll('.view-toggle');
-    viewToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            const viewType = this.getAttribute('data-view');
-            changeView(viewType);
-        });
-    });
-    
-    // Restaurar vista guardada o usar vista por defecto
-    const savedView = localStorage.getItem('salesViewPreference') || 'table';
-    
-    // En pantallas pequeñas, forzar vista de tarjetas
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        changeView('cards');
-    } else {
-        changeView(savedView);
-    }
-    
-    // Detectar cambios de tamaño de ventana para vista móvil
-    window.addEventListener('resize', detectMobileView);
-    
-    // Detectar vista móvil inicial
-    detectMobileView();
-    
+    }));
 });
+
+// Funciones globales para compatibilidad (mantener las existentes si es necesario)
+window.showSaleDetails = function(saleId) {
+    // Buscar la instancia de Alpine.js y ejecutar la función
+    const salesComponent = Alpine.$data(document.getElementById('salesRoot'));
+    if (salesComponent && salesComponent.showSaleDetails) {
+        salesComponent.showSaleDetails(saleId);
+    }
+};
+
+window.editSale = function(saleId) {
+    window.location.href = `/sales/edit/${saleId}`;
+};
+
+window.deleteSale = function(saleId) {
+    const salesComponent = Alpine.$data(document.getElementById('salesRoot'));
+    if (salesComponent && salesComponent.deleteSale) {
+        salesComponent.deleteSale(saleId);
+    }
+};
+
+window.printSale = function(saleId) {
+    window.open(`/sales/print/${saleId}`, '_blank');
+};
