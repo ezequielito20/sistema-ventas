@@ -93,12 +93,10 @@ waitForAlpine(function() {
         // Funciones para manejar acciones de la tabla simple
         window.showRole = function(roleId) {
             // Implementar lógica para mostrar detalles del rol
-            console.log('Mostrar rol:', roleId);
         };
 
         window.assignPermissions = function(roleId, roleName) {
             // Implementar lógica para asignar permisos
-            console.log('Asignar permisos a:', roleName, roleId);
         };
 
         window.deleteRole = async function(roleId) {

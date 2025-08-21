@@ -5,9 +5,7 @@
  * Descripción: Funciones específicas para la gestión de categorías
  */
 
-// Script de prueba para verificar carga
-console.log('✅ categories/index.js cargado correctamente');
-console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+
 
 // ===== CONFIGURACIÓN GLOBAL =====
 const CATEGORIES_CONFIG = {
@@ -31,8 +29,6 @@ let searchTimeout = null;
  * Inicializar la página de categorías
  */
 function initializeCategoriesPage() {
-    console.log('🚀 Inicializando página de categorías...');
-    
     // Cargar modo de vista guardado
     const savedViewMode = localStorage.getItem('categoriesViewMode');
     if (savedViewMode && (savedViewMode === 'table' || savedViewMode === 'cards')) {
@@ -48,8 +44,6 @@ function initializeCategoriesPage() {
     
     // Mostrar primera página
     showPage(1);
-    
-    console.log('✅ Página de categorías inicializada correctamente');
 }
 
 /**
@@ -80,14 +74,12 @@ function getAllCategories() {
     });
     
     filteredCategories = [...allCategories];
-    console.log(`📊 Categorías cargadas: ${allCategories.length}`);
 }
 
 /**
  * Cambiar modo de vista
  */
 function changeViewMode(mode) {
-    console.log(`🔄 Cambiando modo de vista a: ${mode}`);
     currentViewMode = mode;
     localStorage.setItem('categoriesViewMode', mode);
     
@@ -263,8 +255,6 @@ function updateActiveFilters(searchTerm) {
  * Mostrar detalles de categoría
  */
 async function showCategoryDetails(categoryId) {
-    console.log('👁️ Mostrando detalles de categoría ID:', categoryId);
-    
     try {
         const response = await fetch(`/categories/${categoryId}`);
         
@@ -298,7 +288,6 @@ async function showCategoryDetails(categoryId) {
             showAlert('Error', 'No se pudieron obtener los datos de la categoría', 'error');
         }
     } catch (error) {
-        console.error('❌ Error obteniendo detalles de categoría:', error);
         showAlert('Error', 'No se pudieron obtener los datos de la categoría', 'error');
     }
 }
@@ -321,8 +310,6 @@ function closeCategoryModal() {
  * Eliminar categoría
  */
 function deleteCategory(categoryId, categoryName) {
-    console.log('🗑️ Eliminando categoría:', categoryId, categoryName);
-    
     showConfirmDialog(
         '¿Estás seguro?',
         `¿Deseas eliminar la categoría <strong>${categoryName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
@@ -362,7 +349,6 @@ async function performDeleteCategory(categoryId) {
             showAlert('Error', data.message, 'error');
         }
     } catch (error) {
-        console.error('❌ Error eliminando categoría:', error);
         showAlert('Error', 'No se pudo eliminar la categoría', 'error');
     }
 }
@@ -467,8 +453,6 @@ function toggleFilters() {
  * Inicializar event listeners
  */
 function initializeEventListeners() {
-    console.log('🔧 Inicializando event listeners...');
-    
     // Toggle de filtros
     const filtersToggle = document.getElementById('filtersToggle');
     if (filtersToggle) {
@@ -577,8 +561,6 @@ function initializeEventListeners() {
             closeCategoryModal();
         }
     });
-    
-    console.log('✅ Event listeners inicializados correctamente');
 }
 
 // ===== INICIALIZACIÓN =====
@@ -587,20 +569,9 @@ function initializeEventListeners() {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
-    console.log('🚀 Inicializando aplicación categories/index...');
-
-    // Verificar que SweetAlert2 esté disponible
-    if (typeof Swal === 'undefined') {
-        console.warn('⚠️ SweetAlert2 no está cargado');
-    } else {
-        console.log('✅ SweetAlert2 cargado correctamente');
-    }
-
     // Inicializar componentes
     initializeCategoriesPage();
     initializeEventListeners();
-
-    console.log('🎉 Aplicación categories/index inicializada correctamente');
 }
 
 // Hacer funciones disponibles globalmente

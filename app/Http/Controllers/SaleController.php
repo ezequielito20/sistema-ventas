@@ -12,7 +12,6 @@ use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -119,11 +118,6 @@ class SaleController extends Controller
                           ->whereNull('closing_date')
                           ->exists();
       
-      // Debug: Log información para verificar
-      \Log::info('Sales count: ' . $sales->count());
-      \Log::info('Currency: ' . ($currency->symbol ?? 'null'));
-      \Log::info('Cash count exists: ' . ($cashCount ? 'true' : 'false'));
-      
       return view('admin.sales.index', compact(
           'sales', 
           'totalSales', 
@@ -176,7 +170,6 @@ class SaleController extends Controller
 
          return view('admin.sales.create', compact('products', 'customers', 'currency', 'selectedCustomerId'));
       } catch (\Exception $e) {
-         Log::error('Error en SaleController@create: ' . $e->getMessage());
          return redirect()->back()
             ->with('message', 'Error al cargar el formulario de venta')
             ->with('icons', 'error');
@@ -292,14 +285,6 @@ class SaleController extends Controller
 
          DB::commit();
 
-         // Log de la creación
-         Log::info('Venta creada exitosamente', [
-            'user_id' => Auth::id(),
-            'sale_id' => $sale->id,
-            'customer_id' => $sale->customer_id,
-            'total_price' => $sale->total_price
-         ]);
-
          // Determinar la redirección basada en el botón presionado
          if ($request->input('action') == 'save_and_new') {
             return redirect()->route('admin.sales.create')
@@ -324,12 +309,6 @@ class SaleController extends Controller
             ->with('icons', 'success');
 
       } catch (\Illuminate\Validation\ValidationException $e) {
-         Log::error('Error de validación en venta: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'request_data' => $request->all(),
-            'validation_errors' => $e->errors()
-         ]);
-
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -337,10 +316,6 @@ class SaleController extends Controller
             ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al crear venta: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'request_data' => $request->all()
-         ]);
 
          return redirect()->back()
             ->withInput()
@@ -399,7 +374,6 @@ class SaleController extends Controller
 
          return view('admin.sales.edit', compact('sale', 'products', 'customers', 'saleDetails', 'currency', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en SaleController@edit: ' . $e->getMessage());
          return redirect()->route('admin.sales.index')
             ->with('message', 'Error al cargar el formulario de edición')
             ->with('icons', 'error');
@@ -554,19 +528,6 @@ class SaleController extends Controller
             }
          }
 
-         // Log de la actualización
-         Log::info('Venta actualizada exitosamente', [
-            'user_id' => Auth::user()->id,
-            'sale_id' => $sale->id,
-            'previous_state' => $previousState,
-            'new_state' => [
-               'sale_date' => $sale->sale_date,
-               'customer_id' => $sale->customer_id,
-               'total_price' => $sale->total_price,
-               'items' => $request->items
-            ]
-         ]);
-
          DB::commit();
 
          return redirect()->route('admin.sales.index')
@@ -575,7 +536,6 @@ class SaleController extends Controller
             ->with('update_success', true);
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al actualizar venta: ' . $e->getMessage());
          return redirect()->back()
             ->withInput()
             ->with('message', 'Hubo un problema al actualizar la venta: ' . $e->getMessage())
@@ -645,10 +605,6 @@ class SaleController extends Controller
 
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al eliminar venta: ' . $e->getMessage(), [
-            'user_id' => Auth::id(),
-            'sale_id' => $id
-         ]);
 
          return response()->json([
             'success' => false,
@@ -694,7 +650,6 @@ class SaleController extends Controller
             'product' => $productData
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al obtener detalles del producto: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los datos del producto'
@@ -744,7 +699,6 @@ class SaleController extends Controller
             'product' => $productData
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al buscar producto por código: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al buscar el producto'
@@ -758,28 +712,19 @@ class SaleController extends Controller
    public function getDetails($id)
    {
       try {
-         Log::info('getDetails llamado con ID: ' . $id);
-         Log::info('Usuario autenticado: ' . Auth::user()->name);
-         Log::info('Compañía del usuario: ' . Auth::user()->company_id);
-         
          // Verificar que la venta existe primero
          $sale = Sale::with('customer')->find($id);
          
          if (!$sale) {
-            Log::warning('Venta no encontrada con ID: ' . $id);
             return response()->json([
                'success' => false,
                'message' => 'Venta no encontrada'
             ], 404);
          }
          
-         Log::info('Venta encontrada: ' . $sale->id . ' - Cliente: ' . $sale->customer->name);
-         
          $saleDetails = SaleDetail::with(['product.category', 'sale.customer'])
             ->where('sale_id', $id)
             ->get();
-
-         Log::info('Detalles encontrados: ' . $saleDetails->count());
 
          $details = $saleDetails->map(function ($detail) {
             return [
@@ -809,11 +754,8 @@ class SaleController extends Controller
             'details' => $details
          ];
 
-         Log::info('Respuesta preparada correctamente');
          return response()->json($response);
       } catch (\Exception $e) {
-         Log::error('Error en getDetails de ventas: ' . $e->getMessage());
-         Log::error('Stack trace: ' . $e->getTraceAsString());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los detalles de la venta'
@@ -868,11 +810,6 @@ class SaleController extends Controller
          // Retornar el PDF para descarga o visualización
          return $pdf->stream($fileName);
       } catch (\Exception $e) {
-         Log::error('Error al generar PDF de venta: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'sale_id' => $id
-         ]);
-
          return redirect()->back()
             ->with('message', 'Error al generar el PDF de la venta. Por favor, inténtelo de nuevo.')
             ->with('icons', 'error');

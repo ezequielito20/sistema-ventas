@@ -264,7 +264,6 @@ function supplierForm() {
 
         // ===== INICIALIZACIÓN =====
         init() {
-            console.log('🚀 Inicializando formulario de proveedores...');
             
             // Agregar estilos CSS para la notificación fallback
             this.addFallbackStyles();
@@ -272,7 +271,6 @@ function supplierForm() {
             // Configurar listeners para validación en tiempo real
             this.setupRealTimeValidation();
             
-            console.log('✅ Formulario de proveedores inicializado correctamente');
         },
 
         addFallbackStyles() {
@@ -322,13 +320,9 @@ function supplierForm() {
 
 // ===== INICIALIZACIÓN GLOBAL =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌐 DOM cargado, inicializando formulario de proveedores...');
     
     // Verificar que Alpine.js esté disponible
     if (typeof Alpine !== 'undefined') {
-        console.log('✅ Alpine.js detectado');
-    } else {
-        console.warn('⚠️ Alpine.js no está disponible');
     }
 });
 

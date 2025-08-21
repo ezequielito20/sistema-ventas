@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
@@ -40,7 +39,6 @@ class CategoryController extends Controller
             'company'
          ));
       } catch (\Exception $e) {
-         Log::error('Error loading categories: ' . $e->getMessage());
          return redirect()->back()
             ->with('message', 'Error al cargar las categorías')
             ->with('icons', 'error');
@@ -63,7 +61,6 @@ class CategoryController extends Controller
          
          return view('admin.categories.create', compact('company'));
       } catch (\Exception $e) {
-         Log::error('Error loading create category form: ' . $e->getMessage());
          return redirect()->route('admin.categories.index')
             ->with('message', 'Error al cargar el formulario de creación')
             ->with('icons', 'error');
@@ -132,7 +129,7 @@ class CategoryController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error creating category: ' . $e->getMessage());
+
 
          return redirect()->back()
             ->with('message', 'Error al crear la categoría: ' . $e->getMessage())
@@ -222,7 +219,7 @@ class CategoryController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error updating category: ' . $e->getMessage());
+
 
          return redirect()->back()
             ->with('message', 'Error al actualizar la categoría')
@@ -248,7 +245,6 @@ class CategoryController extends Controller
             'message' => 'Categoría eliminada exitosamente'
          ]);
       } catch (\Exception $e) {
-         Log::error('Error deleting category: ' . $e->getMessage());
          return response()->json([
             'status' => 'error',
             'message' => 'Error al eliminar la categoría'
@@ -274,7 +270,6 @@ class CategoryController extends Controller
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error showing category: ' . $e->getMessage());
          return response()->json([
             'status' => 'error',
             'message' => 'Error al obtener los datos de la categoría'

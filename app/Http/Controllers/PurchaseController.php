@@ -10,9 +10,7 @@ use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseController extends Controller
@@ -70,7 +68,7 @@ class PurchaseController extends Controller
             'cashCount'
          ));
       } catch (\Exception $e) {
-         Log::error('Error en index de compras: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al cargar las compras')
             ->with('icon', 'error');
@@ -108,7 +106,7 @@ class PurchaseController extends Controller
 
          return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en PurchaseController@create: ' . $e->getMessage());
+
          return redirect()->route('admin.purchases.index')
             ->with('message', 'Hubo un problema al cargar el formulario: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -182,14 +180,7 @@ class PurchaseController extends Controller
             'cash_count_id' => $purchase->id,
          ]);
 
-         // Log de la acción
-         Log::info('Compra creada exitosamente', [
-            'user_id' => Auth::user()->id,
-            'purchase_id' => $purchase->id,
-            'company_id' => Auth::user()->company_id,
-            'total' => $request->total,
-            'items_count' => count($request->items)
-         ]);
+
 
          DB::commit();
 
@@ -217,12 +208,7 @@ class PurchaseController extends Controller
             ->with('message', '¡Compra registrada exitosamente!')
             ->with('icons', 'success');
       } catch (\Illuminate\Validation\ValidationException $e) {
-         Log::error('Error de validación en compra: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'company_id' => Auth::user()->company_id,
-            'data' => $request->all(),
-            'errors' => $e->errors()
-         ]);
+
 
          return redirect()->back()
             ->withInput()
@@ -231,12 +217,7 @@ class PurchaseController extends Controller
             ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al crear compra: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'company_id' => Auth::user()->company_id,
-            'data' => $request->all(),
-            'trace' => $e->getTraceAsString()
-         ]);
+
 
          return redirect()->back()
             ->withInput()
@@ -291,7 +272,7 @@ class PurchaseController extends Controller
 
          return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en PurchaseController@edit: ' . $e->getMessage());
+
          return redirect()->route('admin.purchases.index')
             ->with('message', 'Error al cargar el formulario de edición')
             ->with('icons', 'error');
@@ -401,17 +382,7 @@ class PurchaseController extends Controller
             }
          }
 
-         // Log de la actualización
-         Log::info('Compra actualizada exitosamente', [
-            'user_id' => Auth::user()->id,
-            'purchase_id' => $purchase->id,
-            'previous_state' => $previousState,
-            'new_state' => [
-               'purchase_date' => $purchase->purchase_date,
-               'total_price' => $purchase->total_price,
-               'items' => $request->items
-            ]
-         ]);
+
 
          DB::commit();
 
@@ -432,11 +403,7 @@ class PurchaseController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error al actualizar compra: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'purchase_id' => $id,
-            'request_data' => $request->all()
-         ]);
+
 
          return redirect()->back()
             ->withInput()
@@ -456,10 +423,7 @@ class PurchaseController extends Controller
 
          // Verificar que la compra pertenece a la compañía del usuario
          if ($purchase->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de eliminación no autorizada de compra', [
-               'user_id' => Auth::user()->id,
-               'purchase_id' => $id
-            ]);
+
 
             return response()->json([
                'success' => false,
@@ -528,13 +492,7 @@ class PurchaseController extends Controller
             })
             ->delete();
             
-         // Log de movimientos eliminados
-         if ($deletedMovements > 0) {
-            Log::info('Movimientos de caja eliminados al eliminar compra', [
-               'purchase_id' => $purchase->id,
-               'movements_deleted' => $deletedMovements
-            ]);
-         }
+
 
          // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
          $purchase->delete();
@@ -542,11 +500,7 @@ class PurchaseController extends Controller
          // Confirmar transacción
          DB::commit();
 
-         // Log de la eliminación
-         Log::info('Compra eliminada exitosamente', [
-            'user_id' => Auth::user()->id,
-            'purchase_info' => $purchaseInfo
-         ]);
+
 
          // Retornar respuesta exitosa
          return response()->json([
@@ -558,10 +512,7 @@ class PurchaseController extends Controller
          // Revertir transacción en caso de error
          DB::rollBack();
 
-         Log::error('Error al eliminar compra: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'purchase_id' => $id
-         ]);
+
 
          return response()->json([
             'success' => false,
@@ -598,7 +549,7 @@ class PurchaseController extends Controller
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al obtener detalles del producto: ' . $e->getMessage());
+
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los datos del producto'
@@ -636,7 +587,7 @@ class PurchaseController extends Controller
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al obtener producto por código: ' . $e->getMessage());
+
          return response()->json([
             'success' => false,
             'message' => 'Error al buscar el producto'
@@ -679,7 +630,7 @@ class PurchaseController extends Controller
             'details' => $details
          ]);
       } catch (\Exception $e) {
-         Log::error('Error en getDetails: ' . $e->getMessage());
+
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los detalles de la compra'

@@ -5,9 +5,7 @@
  * Descripción: Funciones específicas para el formulario de apertura de caja
  */
 
-// Script de prueba para verificar carga
-console.log('✅ cash-counts/create.js cargado correctamente');
-console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+
 
 // ===== CONFIGURACIÓN GLOBAL =====
 const CASH_COUNT_CREATE_CONFIG = {
@@ -95,7 +93,6 @@ window.cashCountForm = function() {
                 this.$refs.form.submit();
                 
             } catch (error) {
-                console.error('Error enviando formulario:', error);
                 this.showError('Error al enviar el formulario. Inténtalo de nuevo.');
                 this.isSubmitting = false;
             }
@@ -232,23 +229,7 @@ function isValidTime(timeString) {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
-    console.log('🚀 Inicializando aplicación cash-counts/create...');
-    
-    // Verificar que Alpine.js esté disponible
-    if (typeof Alpine === 'undefined') {
-        console.warn('⚠️ Alpine.js no está cargado');
-    } else {
-        console.log('✅ Alpine.js cargado correctamente');
-    }
-    
-    // Verificar que SweetAlert2 esté disponible
-    if (typeof Swal === 'undefined') {
-        console.warn('⚠️ SweetAlert2 no está cargado');
-    } else {
-        console.log('✅ SweetAlert2 cargado correctamente');
-    }
-    
-    console.log('🎉 Aplicación cash-counts/create inicializada correctamente');
+    // Aplicación inicializada
 }
 
 // Hacer funciones disponibles globalmente

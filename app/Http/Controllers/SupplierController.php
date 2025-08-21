@@ -8,7 +8,6 @@ use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
@@ -64,9 +63,6 @@ class SupplierController extends Controller
             ->with('message', 'Proveedores cargados correctamente')
             ->with('icons', 'success');
       } catch (\Exception $e) {
-         // Log del error
-         Log::error('Error en SupplierController@index: ' . $e->getMessage());
-
          // Redireccionar con mensaje de error
          return redirect()->route('admin.index')
             ->with('message', 'Hubo un problema al cargar los proveedores: ' . $e->getMessage())
@@ -90,7 +86,6 @@ class SupplierController extends Controller
          
          return view('admin.suppliers.create', compact('company'));
       } catch (\Exception $e) {
-         Log::error('Error en SupplierController@create: ' . $e->getMessage());
          return redirect()->route('admin.suppliers.index')
             ->with('message', 'Hubo un problema al cargar el formulario: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -153,13 +148,6 @@ class SupplierController extends Controller
          // Crear el proveedor
          $supplier = Supplier::create($supplierData);
 
-         // Log de la acción
-         Log::info('Proveedor creado exitosamente', [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $supplier->id,
-            'company_id' => Auth::user()->company_id
-         ]);
-
          // Si es una petición AJAX, devolver JSON
          if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -200,12 +188,6 @@ class SupplierController extends Controller
             ->with('message', 'Por favor, corrija los errores en el formulario.')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-         Log::error('Error al crear proveedor: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'company_id' => Auth::user()->company_id,
-            'data' => $request->all()
-         ]);
-
          // Si es una petición AJAX, devolver error en JSON
          if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -231,11 +213,6 @@ class SupplierController extends Controller
 
          // Verificar que el proveedor pertenece a la compañía del usuario
          if ($supplier->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de acceso no autorizado a proveedor', [
-               'user_id' => Auth::user()->id,
-               'supplier_id' => $id
-            ]);
-
             return response()->json([
                'icons' => 'error',
                'message' => 'No tiene permiso para ver este proveedor'
@@ -262,11 +239,6 @@ class SupplierController extends Controller
             'stats' => $productDetails
          ]);
       } catch (\Exception $e) {
-         Log::error('Error en SupplierController@show: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $id
-         ]);
-
          return response()->json([
             'icons' => 'error',
             'message' => 'Error al cargar los datos del proveedor'
@@ -286,11 +258,6 @@ class SupplierController extends Controller
 
          // Verificar que el proveedor pertenece a la compañía del usuario
          if ($supplier->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de acceso no autorizado a proveedor', [
-               'user_id' => Auth::user()->id,
-               'supplier_id' => $id
-            ]);
-
             return redirect()->route('admin.suppliers.index')
                ->with('message', 'No tiene permiso para editar este proveedor')
                ->with('icons', 'error');
@@ -305,11 +272,6 @@ class SupplierController extends Controller
          // Retornar vista con datos del proveedor
          return view('admin.suppliers.edit', compact('supplier', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en SupplierController@edit: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $id
-         ]);
-
          return redirect()->route('admin.suppliers.index')
             ->with('message', 'No se pudo cargar el formulario de edición')
             ->with('icons', 'error');
@@ -327,11 +289,6 @@ class SupplierController extends Controller
 
          // Verificar que el proveedor pertenece a la compañía del usuario
          if ($supplier->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de actualización no autorizada de proveedor', [
-               'user_id' => Auth::user()->id,
-               'supplier_id' => $id
-            ]);
-
             // Si es una petición AJAX, devolver error en JSON
             if ($request->ajax() || $request->wantsJson()) {
                return response()->json([
@@ -390,13 +347,6 @@ class SupplierController extends Controller
          // Actualizar el proveedor
          $supplier->update($validated);
 
-         // Log de la actualización
-         Log::info('Proveedor actualizado exitosamente', [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $supplier->id,
-            'company_id' => Auth::user()->company_id
-         ]);
-
          // Si es una petición AJAX, devolver JSON
          if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -437,13 +387,6 @@ class SupplierController extends Controller
             ->with('message', 'Por favor, corrija los errores en el formulario.')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-         Log::error('Error al actualizar proveedor: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $id,
-            'company_id' => Auth::user()->company_id,
-            'data' => $request->all()
-         ]);
-
          // Si es una petición AJAX, devolver error en JSON
          if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -470,11 +413,6 @@ class SupplierController extends Controller
 
          // Verificar que el proveedor pertenece a la compañía del usuario
          if ($supplier->company_id !== Auth::user()->company_id) {
-            Log::warning('Intento de eliminación no autorizada de proveedor', [
-               'user_id' => Auth::user()->id,
-               'supplier_id' => $id
-            ]);
-
             return response()->json([
                'success' => false,
                'message' => 'No tiene permiso para eliminar este proveedor',
@@ -492,12 +430,6 @@ class SupplierController extends Controller
          // Eliminar el proveedor
          $supplier->delete();
 
-         // Log de la eliminación
-         Log::info('Proveedor eliminado exitosamente', [
-            'user_id' => Auth::user()->id,
-            'supplier_info' => $supplierInfo
-         ]);
-
          // Retornar respuesta exitosa
          return response()->json([
             'success' => true,
@@ -505,11 +437,6 @@ class SupplierController extends Controller
             'icons' => 'success'
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al eliminar proveedor: ' . $e->getMessage(), [
-            'user_id' => Auth::user()->id,
-            'supplier_id' => $id
-         ]);
-
          return response()->json([
             'success' => false,
             'message' => 'Hubo un problema al eliminar el proveedor. Por favor, inténtelo de nuevo.',

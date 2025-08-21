@@ -7,7 +7,6 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Role;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -119,12 +118,6 @@ class UserController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-
-         // Log del error
-         Log::error('Error creating user: ' . $e->getMessage(), [
-            'user' => Auth::id(),
-            'request' => $request->except('password', 'password_confirmation')
-         ]);
 
          return redirect()->back()
             ->with('message', 'Error al crear el usuario: ' . $e->getMessage())
@@ -285,12 +278,6 @@ class UserController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-
-         Log::error('Error updating user: ' . $e->getMessage(), [
-            'user' => Auth::id(),
-            'target_user' => $id,
-            'request' => $request->except(['password', 'password_confirmation'])
-         ]);
 
          return redirect()->back()
             ->with('message', 'Error al actualizar el usuario: ' . $e->getMessage())

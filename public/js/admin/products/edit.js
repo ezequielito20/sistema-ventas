@@ -4,7 +4,6 @@ let formData = {};
 
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Product edit page loaded');
     initializeForm();
     initializeEventListeners();
     saveOriginalFormData();
@@ -24,7 +23,6 @@ function saveOriginalFormData() {
 
 // Inicializar el formulario
 function initializeForm() {
-    console.log('Initializing form...');
     initializeImagePreview();
     initializeProfitCalculator();
     restoreFormData();
@@ -184,7 +182,7 @@ function restoreFormData() {
                 }
             }
         } catch (e) {
-            console.log('Error restoring form data:', e);
+            // Error restoring form data
         }
     }
 }
@@ -250,7 +248,6 @@ function initializeImagePreview() {
     const imagePreview = document.getElementById('imagePreview');
     
     if (!imageInput || !imagePreview) {
-        console.log('Image elements not found, skipping image preview initialization');
         return;
     }
 
@@ -334,7 +331,6 @@ function initializeProfitCalculator() {
     const profitValue = document.getElementById('profitValue');
 
     if (!purchasePriceInput || !salePriceInput || !profitIndicator || !profitValue) {
-        console.log('Profit calculator elements not found, skipping initialization');
         return;
     }
 
@@ -374,8 +370,6 @@ function initializeProfitCalculator() {
 
 // Inicializar event listeners
 function initializeEventListeners() {
-    console.log('Initializing event listeners...');
-
     // Botón restaurar formulario
     const restoreBtn = document.getElementById('restoreForm');
     if (restoreBtn) {
@@ -424,8 +418,6 @@ function initializeEventListeners() {
     if (imageInput) {
         imageInput.addEventListener('change', saveFormData);
     }
-
-    console.log('Event listeners initialized');
 }
 
 // Mostrar alerta

@@ -128,5 +128,4 @@ function supplierEditForm() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('✏️ suppliers/edit.js cargado');
 });

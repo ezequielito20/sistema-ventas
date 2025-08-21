@@ -5,7 +5,6 @@
  */
 
 // Script de prueba para verificar carga
-console.log('✅ utils.js cargado correctamente');
 
 // ===== UTILIDADES DE FORMATO =====
 

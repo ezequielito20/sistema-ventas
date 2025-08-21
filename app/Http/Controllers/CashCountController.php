@@ -10,10 +10,7 @@ use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreCashCountRequest;
-use App\Http\Requests\UpdateCashCountRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Log;
 
 class CashCountController extends Controller
 {
@@ -197,7 +194,6 @@ class CashCountController extends Controller
             
          return view('admin.cash-counts.create', compact('company', 'currency'));
       } catch (\Exception $e) {
-         Log::error('Error en CashCountController@create: ' . $e->getMessage());
          return redirect()->route('admin.cash-counts.index')
             ->with('message', 'Error al cargar el formulario de creación')
             ->with('icons', 'error');
@@ -624,25 +620,17 @@ class CashCountController extends Controller
    public function history($id)
    {
       try {
-         Log::info('=== INICIO MÉTODO HISTORY ===');
-         Log::info('Iniciando método history para cash count ID: ' . $id);
-         
          $currency = $this->currencies;
          
          // Obtener el arqueo específico
          $cashCount = CashCount::where('company_id', $this->company->id)
             ->with(['movements'])
             ->findOrFail($id);
-
-         Log::info('Cash count encontrado: ' . $cashCount->id);
          
          // Calcular estadísticas del arqueo
-         Log::info('Calculando estadísticas...');
          try {
             $stats = $this->calculateCashCountStats($cashCount);
-            Log::info('Estadísticas calculadas correctamente');
          } catch (\Exception $e) {
-            Log::error('Error calculando estadísticas: ' . $e->getMessage());
             $stats = [
                'opening_date' => $cashCount->opening_date,
                'closing_date' => $cashCount->closing_date ?? now(),
@@ -664,36 +652,25 @@ class CashCountController extends Controller
          }
          
          // Obtener deudas pendientes del arqueo
-         Log::info('Obteniendo deudas pendientes...');
          try {
             $pendingDebts = $this->getPendingDebts($cashCount);
-            Log::info('Deudas pendientes obtenidas: ' . $pendingDebts->count());
          } catch (\Exception $e) {
-            Log::error('Error obteniendo deudas pendientes: ' . $e->getMessage());
             $pendingDebts = collect([]);
          }
          
          // Obtener deudas de arqueos anteriores
-         Log::info('Obteniendo deudas anteriores...');
          try {
             $previousDebts = $this->getPreviousDebts($cashCount);
-            Log::info('Deudas anteriores obtenidas: ' . $previousDebts->count());
          } catch (\Exception $e) {
-            Log::error('Error obteniendo deudas anteriores: ' . $e->getMessage());
             $previousDebts = collect([]);
          }
          
          // Obtener pagos de deudas anteriores en este arqueo
-         Log::info('Obteniendo pagos de deudas anteriores...');
          try {
             $previousDebtPayments = $this->getPreviousDebtPayments($cashCount);
-            Log::info('Pagos de deudas anteriores obtenidos: ' . $previousDebtPayments->count());
          } catch (\Exception $e) {
-            Log::error('Error obteniendo pagos de deudas anteriores: ' . $e->getMessage());
             $previousDebtPayments = collect([]);
          }
-
-         Log::info('Retornando JSON con todos los datos');
          return response()->json([
             'success' => true,
             'data' => [
@@ -707,8 +684,6 @@ class CashCountController extends Controller
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error en CashCountController@history: ' . $e->getMessage());
-         Log::error('Stack trace: ' . $e->getTraceAsString());
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar el historial de caja: ' . $e->getMessage()
@@ -722,17 +697,10 @@ class CashCountController extends Controller
    private function calculateCashCountStats($cashCount)
    {
       try {
-         Log::info('Iniciando calculateCashCountStats');
-         
          $openingDate = $cashCount->opening_date;
          $closingDate = $cashCount->closing_date ?? now();
-         
-         Log::info('Fechas: ' . $openingDate . ' - ' . $closingDate);
-         Log::info('Tipo de opening_date: ' . gettype($openingDate));
-         Log::info('Tipo de closing_date: ' . gettype($closingDate));
 
          // Ventas del arqueo
-         Log::info('Consultando ventas...');
          $sales = Sale::where('company_id', $this->company->id)
             ->whereBetween('created_at', [$openingDate, $closingDate])
             ->with(['saleDetails', 'customer']);
@@ -742,11 +710,8 @@ class CashCountController extends Controller
          $productsSold = $sales->get()->sum(function($sale) {
             return $sale->saleDetails->sum('quantity');
          });
-         
-         Log::info('Ventas calculadas: ' . $totalSales . ' ventas, $' . $totalSalesAmount . ', ' . $productsSold . ' productos');
 
       // Compras del arqueo
-      Log::info('Consultando compras...');
       $purchases = Purchase::where('company_id', $this->company->id)
          ->whereBetween('created_at', [$openingDate, $closingDate])
          ->with(['details']);
@@ -756,8 +721,6 @@ class CashCountController extends Controller
       $productsPurchased = $purchases->get()->sum(function($purchase) {
          return $purchase->details->sum('quantity');
       });
-      
-      Log::info('Compras calculadas: ' . $totalPurchases . ' compras, $' . $totalPurchasesAmount . ', ' . $productsPurchased . ' productos');
 
       // Movimientos de caja
       $totalIncome = $cashCount->movements()->where('type', 'income')->sum('amount');
@@ -793,7 +756,6 @@ class CashCountController extends Controller
          'net_difference' => $cashCount->final_amount - $cashCount->initial_amount
       ];
       } catch (\Exception $e) {
-         Log::error('Error en calculateCashCountStats: ' . $e->getMessage());
          throw $e;
       }
    }
@@ -923,7 +885,6 @@ class CashCountController extends Controller
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error getting customers data: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al obtener datos de clientes: ' . $e->getMessage()
@@ -990,7 +951,6 @@ class CashCountController extends Controller
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error getting cash count details: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error al obtener detalles del arqueo: ' . $e->getMessage()

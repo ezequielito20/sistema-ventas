@@ -128,6 +128,8 @@ Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerControl
     ->name('admin.customers.debt-report');
 Route::get('/admin/customers/debt-report/download', [App\Http\Controllers\CustomerController::class, 'debtReport'])
     ->name('admin.customers.debt-report.download');
+Route::get('/admin/customers/test-pdf', [App\Http\Controllers\CustomerController::class, 'testPdf'])
+    ->name('admin.customers.test-pdf');
 Route::post('/admin/customers/{customer}/register-payment', [App\Http\Controllers\CustomerController::class, 'registerDebtPayment'])
 ->name('admin.customers.register-payment');
 Route::post('/admin/customers/{customer}/register-payment-ajax', [App\Http\Controllers\CustomerController::class, 'registerDebtPaymentAjax'])

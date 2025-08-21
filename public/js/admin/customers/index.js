@@ -738,10 +738,7 @@ function formatDateTime(date) {
 document.addEventListener('DOMContentLoaded', function() {
     window.initializeExchangeRate();
     
-    // Verificar que las funciones estén disponibles
-    console.log('✅ customers/index.js cargado correctamente');
-    console.log('deleteCustomer disponible:', typeof window.deleteCustomer);
-    console.log('customersIndex disponible:', typeof window.customersIndex);
+
     
     // Inicialización no crítica diferida
     setTimeout(() => {
@@ -829,9 +826,6 @@ window.deleteCustomer = function(customerId) {
 
 // Función de inicialización inmediata
 (function() {
-    // Verificar que la función esté disponible globalmente
-    console.log('🔧 deleteCustomer inicializada:', typeof window.deleteCustomer);
-    
     // Función para asegurar que deleteCustomer esté disponible
     function ensureDeleteCustomerAvailable() {
         if (typeof window.deleteCustomer === 'undefined') {
@@ -842,7 +836,6 @@ window.deleteCustomer = function(customerId) {
                     console.error('deleteCustomer function not available');
                 }
             };
-            console.log('✅ deleteCustomer asegurada globalmente');
         }
     }
     
@@ -853,7 +846,6 @@ window.deleteCustomer = function(customerId) {
     if (typeof Alpine !== 'undefined') {
         Alpine.nextTick(() => {
             ensureDeleteCustomerAvailable();
-            console.log('✅ Alpine.js listo, deleteCustomer disponible:', typeof window.deleteCustomer);
         });
     }
     
@@ -891,12 +883,9 @@ class SPAPaymentHandler {
 
     bindEvents() {
         // Los eventos se vincularán cuando se abra el modal
-        console.log('SPAPaymentHandler: Eventos configurados');
     }
 
     bindModalEvents() {
-        console.log('SPAPaymentHandler: Vinculando eventos del modal');
-        
         // Interceptar envío del formulario
         const form = document.getElementById('debtPaymentForm');
         if (form) {
@@ -907,7 +896,6 @@ class SPAPaymentHandler {
             // Remover eventos anteriores para evitar duplicados
             form.removeEventListener('submit', this.boundHandleFormSubmit);
             form.addEventListener('submit', this.boundHandleFormSubmit);
-            console.log('SPAPaymentHandler: Evento submit vinculado');
         }
 
         // Botón de pago máximo
@@ -920,7 +908,6 @@ class SPAPaymentHandler {
             // Remover eventos anteriores para evitar duplicados
             maxPaymentBtn.removeEventListener('click', this.boundSetMaxPayment);
             maxPaymentBtn.addEventListener('click', this.boundSetMaxPayment);
-            console.log('SPAPaymentHandler: Botón máximo vinculado');
         }
 
         // Validación en tiempo real del monto y actualización de deuda restante
@@ -942,7 +929,6 @@ class SPAPaymentHandler {
             paymentAmountInput.addEventListener('input', this.boundHandlePaymentAmountInput);
             paymentAmountInput.removeEventListener('blur', this.boundFormatPaymentAmount);
             paymentAmountInput.addEventListener('blur', this.boundFormatPaymentAmount);
-            console.log('SPAPaymentHandler: Input monto vinculado');
         }
 
         // Validación de fecha
@@ -995,17 +981,14 @@ class SPAPaymentHandler {
     }
 
     async handleFormSubmit(e) {
-        console.log('SPAPaymentHandler: Formulario enviado');
         e.preventDefault();
 
         if (this.isProcessing) {
-            console.log('SPAPaymentHandler: Ya se está procesando un pago');
             return;
         }
 
         // Validar formulario
         if (!this.validateForm()) {
-            console.log('SPAPaymentHandler: Validación del formulario falló');
             return;
         }
 
@@ -1013,8 +996,6 @@ class SPAPaymentHandler {
         const formData = this.getFormData();
         const customerName = document.getElementById('customer_name').value;
         const paymentAmount = formData.payment_amount;
-        
-        console.log('SPAPaymentHandler: Mostrando confirmación para:', customerName, paymentAmount);
         
         const result = await Swal.fire({
             title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
@@ -1096,11 +1077,8 @@ class SPAPaymentHandler {
         });
 
         if (!result.isConfirmed) {
-            console.log('SPAPaymentHandler: Usuario canceló el pago');
             return;
         }
-
-        console.log('SPAPaymentHandler: Usuario confirmó el pago, enviando...');
 
         // Mostrar loading
         this.showLoadingState();
@@ -1215,34 +1193,27 @@ class SPAPaymentHandler {
     }
 
     setMaxPayment() {
-        console.log('SPAPaymentHandler: Estableciendo pago máximo');
         const input = document.getElementById('payment_amount');
         if (!input) {
-            console.error('SPAPaymentHandler: No se encontró el input payment_amount');
             return;
         }
         
         const maxDebt = parseFloat(input.getAttribute('data-max-debt') || 0);
-        console.log('SPAPaymentHandler: Deuda máxima:', maxDebt);
         
         input.value = maxDebt.toFixed(2);
         this.validatePaymentAmount();
         this.updateRemainingDebt();
-        console.log('SPAPaymentHandler: Pago máximo establecido');
     }
 
     updateRemainingDebt() {
-        console.log('SPAPaymentHandler: Actualizando deuda restante');
         const paymentAmountInput = document.getElementById('payment_amount');
         const remainingDebtElement = document.getElementById('remaining_debt');
         
         if (!paymentAmountInput) {
-            console.error('SPAPaymentHandler: No se encontró payment_amount input');
             return;
         }
         
         if (!remainingDebtElement) {
-            console.error('SPAPaymentHandler: No se encontró remaining_debt element');
             return;
         }
         
@@ -1250,13 +1221,10 @@ class SPAPaymentHandler {
         const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
         const remainingDebt = Math.max(0, currentDebt - paymentAmount);
         
-        console.log('SPAPaymentHandler: Deuda actual:', currentDebt, 'Pago:', paymentAmount, 'Restante:', remainingDebt);
-        
         // Actualizar el elemento de deuda restante
         const remainingDebtSpan = remainingDebtElement.querySelector('span');
         if (remainingDebtSpan) {
             remainingDebtSpan.textContent = `${this.currencySymbol}${remainingDebt.toFixed(2)}`;
-            console.log('SPAPaymentHandler: Deuda restante actualizada en el DOM');
         }
         
         // Cambiar color según si hay deuda restante
@@ -1278,15 +1246,11 @@ class SPAPaymentHandler {
             notes: formData.get('notes') || ''
         };
         
-        console.log('SPAPaymentHandler: Datos del formulario:', data);
         return data;
     }
 
     async sendPaymentRequest(data) {
         const url = `/admin/customers/${this.currentCustomerId}/register-payment-ajax`;
-        
-        console.log('Enviando pago:', data);
-        console.log('URL:', url);
         
         const response = await fetch(url, {
             method: 'POST',
@@ -1296,11 +1260,8 @@ class SPAPaymentHandler {
             },
             body: JSON.stringify(data)
         });
-
-        console.log('Respuesta del servidor:', response);
         
         const responseData = await response.json();
-        console.log('Datos de respuesta:', responseData);
         
         return responseData;
     }
@@ -1403,7 +1364,6 @@ class SPAPaymentHandler {
     }
 
     handleNetworkError(error) {
-        console.error('Network error:', error);
         Swal.fire({
             title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
                    '<div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-full flex items-center justify-center">' +
@@ -1659,7 +1619,7 @@ class SPAPaymentHandler {
                 this.updateSalesHistoryTable(data.sales);
             }
         } catch (error) {
-            console.error('Error loading customer history:', error);
+            // Error loading customer history
         }
     }
 
@@ -1815,7 +1775,6 @@ class SPAPaymentHandler {
     }
 
     openPaymentModal(customerId) {
-        console.log('SPAPaymentHandler: Abriendo modal para cliente:', customerId);
         this.currentCustomerId = customerId;
         
         // Cargar datos del cliente
@@ -1878,7 +1837,6 @@ class SPAPaymentHandler {
                 this.populateForm(data.customer);
             }
         } catch (error) {
-            console.error('Error loading customer data:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -1958,9 +1916,7 @@ class SPAPaymentHandler {
 
 // Inicializar el handler cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('SPAPaymentHandler: DOM cargado, inicializando...');
     window.spaPaymentHandler = new SPAPaymentHandler();
-    console.log('SPAPaymentHandler: Inicializado correctamente');
 });
 
 // Exportar para uso global

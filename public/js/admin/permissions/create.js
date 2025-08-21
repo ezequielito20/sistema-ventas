@@ -214,7 +214,6 @@ function initializeHeaderEffects() {
 
 // Función principal de inicialización
 function initializePermissionsCreate() {
-    console.log('✅ permissions/create.js cargado correctamente');
     
     // Inicializar efectos visuales
     initializeInputEffects();

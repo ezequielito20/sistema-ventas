@@ -17,8 +17,6 @@ if (typeof window.ordersIndex === 'undefined') {
     window.ordersIndex = {
         // Función para eliminar orden
         deleteOrder: function(orderId) {
-            console.log('Función deleteOrder llamada para ID:', orderId);
-            
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: "Esta acción no se puede revertir",
@@ -30,8 +28,6 @@ if (typeof window.ordersIndex === 'undefined') {
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    console.log('Confirmación aceptada, enviando petición fetch...');
-                    
                     // Obtener el token CSRF
                     const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                     
@@ -45,8 +41,6 @@ if (typeof window.ordersIndex === 'undefined') {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Respuesta recibida:', data);
-                        
                         if (data.success) {
                             Swal.fire({
                                 title: '¡Eliminado!',
@@ -64,7 +58,6 @@ if (typeof window.ordersIndex === 'undefined') {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
                         Swal.fire({
                             title: 'Error',
                             text: 'Ocurrió un error al eliminar la orden',
@@ -176,13 +169,6 @@ function applyFilters() {
     updateActiveFiltersBadges(activeFilter, dateFrom, dateTo, amountMin, amountMax);
     
     // Aquí se aplicaría la lógica de filtrado real
-    console.log('Aplicando filtros:', {
-        filter: activeFilter?.dataset.filter,
-        dateFrom,
-        dateTo,
-        amountMin,
-        amountMax
-    });
     
     // Guardar filtros en localStorage
     saveFilters({
@@ -337,7 +323,6 @@ function initializeViewToggles() {
 
 // Función para cambiar modo de vista
 function changeViewMode(viewMode) {
-    console.log('Cambiando a vista:', viewMode);
     // Aquí se implementaría la lógica para cambiar entre tabla y tarjetas
 }
 
@@ -410,7 +395,6 @@ function initializeSearch() {
 
 // Función para realizar búsqueda
 function performSearch(searchTerm) {
-    console.log('Realizando búsqueda:', searchTerm);
     // Aquí se implementaría la lógica de búsqueda real
 }
 
@@ -431,8 +415,6 @@ function showNotification(message, type = 'success') {
 
 // Función principal de inicialización
 function initializeOrdersIndex() {
-    console.log('✅ orders/index.js cargado correctamente');
-    
     // Inicializar filtros
     initializeFilters();
     initializeFilterButtons();

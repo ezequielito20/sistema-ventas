@@ -7,13 +7,10 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use App\Http\Requests\StoreCustomerRequest;
-use App\Http\Requests\UpdateCustomerRequest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DebtPayment;
 
@@ -189,9 +186,7 @@ class CustomerController extends Controller
             'permissions'
          ));
       } catch (\Exception $e) {
-         // Log del error para debugging
-         Log::error('Error en CustomerController@index: ' . $e->getMessage());
-         Log::error('Stack trace: ' . $e->getTraceAsString());
+
 
          // Determinar el tipo de error para mostrar un mensaje más específico
          $errorMessage = 'Error al cargar la lista de clientes';
@@ -420,8 +415,6 @@ class CustomerController extends Controller
                   'customer_status' => $isDefaulter ? 'Moroso' : 'Actual'
                ]);
             } catch (\Exception $e) {
-
-
                return response()->json([
                   'success' => false,
                   'message' => 'Error al cargar los datos del cliente'
@@ -496,8 +489,6 @@ class CustomerController extends Controller
                   'sales' => $sales
                ]);
             } catch (\Exception $e) {
-
-               
                return response()->json([
                   'success' => false,
                   'message' => 'Error al obtener detalles del cliente'
@@ -536,9 +527,7 @@ class CustomerController extends Controller
                'sales' => $salesData
             ]
          ]);
-      } catch (\Exception $e) {
-
-
+               } catch (\Exception $e) {
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los datos del cliente'
@@ -799,17 +788,8 @@ class CustomerController extends Controller
             ], 200);
          }
 
-         // Guardar información para el log antes de eliminar
-         $customerInfo = [
-            'id' => $customer->id,
-            'name' => $customer->name,
-            'email' => $customer->email
-         ];
-
          // Eliminar el cliente
          $customer->delete();
-
-         // Log de la eliminación
 
 
          // Retornar respuesta exitosa
@@ -819,9 +799,6 @@ class CustomerController extends Controller
             'icons' => 'success'
          ]);
       } catch (\Illuminate\Database\QueryException $e) {
-         // Capturar errores específicos de base de datos
-
-
          // Verificar si es un error de restricción de clave foránea
          if ($e->getCode() == 23000) { // Código de error de MySQL para restricción de clave foránea
             return response()->json([
@@ -842,8 +819,6 @@ class CustomerController extends Controller
             'icons' => 'error'
          ], 500);
       } catch (\Exception $e) {
-
-
          return response()->json([
             'success' => false,
             'message' => 'Hubo un problema al eliminar el cliente. Por favor, inténtelo de nuevo.',
@@ -881,7 +856,7 @@ class CustomerController extends Controller
 
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
-
+;
          // Guardar el valor anterior para el log
          $previousDebt = $customer->total_debt;
 
@@ -1075,7 +1050,6 @@ class CustomerController extends Controller
          // Mostrar PDF en el navegador
          return $pdf->stream($fileName);
       } catch (\Exception $e) {
-
          return redirect()->route('admin.customers.index')
             ->with('message', 'Error al generar el reporte de deudas: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -1256,7 +1230,6 @@ class CustomerController extends Controller
             ));
          }
       } catch (\Exception $e) {
-
          return response()->json([
             'success' => false,
             'message' => 'Error al generar el reporte de deudas: ' . $e->getMessage()
@@ -1416,7 +1389,7 @@ class CustomerController extends Controller
             'errors' => $e->errors()
          ], 422);
       } catch (\Exception $e) {
-         Log::error('Error al registrar pago de deuda: ' . $e->getMessage());
+
          return response()->json([
             'success' => false,
             'message' => 'Error interno del servidor'
@@ -1561,7 +1534,6 @@ class CustomerController extends Controller
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error al obtener datos del cliente: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error interno del servidor'
@@ -1606,7 +1578,6 @@ class CustomerController extends Controller
          ]);
 
       } catch (\Exception $e) {
-         Log::error('Error al obtener historial de ventas: ' . $e->getMessage());
          return response()->json([
             'success' => false,
             'message' => 'Error interno del servidor'
@@ -1766,7 +1737,6 @@ class CustomerController extends Controller
          
          return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
       } catch (\Exception $e) {
-
          return redirect()->route('admin.customers.payment-history')
             ->with('message', 'Error al exportar el historial de pagos: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -1806,14 +1776,13 @@ class CustomerController extends Controller
             ]
          ]);
 
-      } catch (\Exception $e) {
-         DB::rollBack();
-
-         
-         return response()->json([
-            'success' => false,
-            'message' => 'Error al eliminar el pago: ' . $e->getMessage()
-         ], 500);
-      }
+               } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+               'success' => false,
+               'message' => 'Error al eliminar el pago: ' . $e->getMessage()
+            ], 500);
+         }
    }
 }

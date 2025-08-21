@@ -6,8 +6,6 @@ let saleId = null;
 let hasUnsavedChanges = false;
 
 // Función principal de Alpine.js
-console.log('🚀 edit.js cargado');
-
 window.saleForm = function() {
     return {
         loading: false,
@@ -16,16 +14,12 @@ window.saleForm = function() {
         searchModalOpen: false,
 
         init() {
-            console.log('🚀 Inicializando saleForm...');
-            
             this.initializeForm();
             this.setupEventListeners();
             
             this.updateCounters();
             this.updateEmptyState();
             this.checkForUnsavedChanges();
-            
-            console.log('✅ saleForm inicializado');
         },
 
         initializeForm() {
@@ -90,25 +84,18 @@ window.saleForm = function() {
         },
 
         createCustomSelect() {
-            console.log('Iniciando creación del select personalizado...');
-            
             const select = document.getElementById('customer_id');
             if (!select) {
-                console.error('❌ Select customer_id no encontrado');
                 return;
             }
-            console.log('✅ Select customer_id encontrado');
 
             const container = select.parentElement;
             if (!container) {
-                console.error('❌ Contenedor del select no encontrado');
                 return;
             }
-            console.log('✅ Contenedor del select encontrado');
             
             // Verificar si ya existe un select personalizado
             if (container.querySelector('.custom-select')) {
-                console.log('ℹ️ Select personalizado ya existe');
                 return;
             }
             
@@ -119,7 +106,6 @@ window.saleForm = function() {
                 <span class="selected-text text-gray-500">Seleccione un cliente</span>
                 <i class="fas fa-chevron-down custom-select-arrow"></i>
             `;
-            console.log('✅ Botón del select creado');
 
             // Crear el dropdown
             const dropdown = document.createElement('div');
@@ -128,12 +114,10 @@ window.saleForm = function() {
                 <input type="text" placeholder="Buscar cliente..." class="search-input">
                 <div class="options-container"></div>
             `;
-            console.log('✅ Dropdown creado');
 
                 // Agregar elementos al DOM
     container.appendChild(selectButton);
     container.appendChild(dropdown);
-    console.log('✅ Elementos agregados al DOM');
     
     // Agregar event listener para abrir/cerrar el dropdown
     selectButton.addEventListener('click', (e) => {
@@ -144,10 +128,8 @@ window.saleForm = function() {
 
             // Ocultar el select original
             select.style.display = 'none';
-            console.log('✅ Select original oculto');
 
             // Llenar opciones
-            console.log('🔄 Llenando opciones del dropdown...');
             this.populateDropdownOptions(select, dropdown);
 
             // Event listeners
@@ -200,34 +182,18 @@ window.saleForm = function() {
         },
 
         populateDropdownOptions(select, dropdown) {
-            console.log('🔄 Iniciando populateDropdownOptions...');
-            
             const optionsContainer = dropdown.querySelector('.options-container');
             const searchInput = dropdown.querySelector('.search-input');
             const selectButton = dropdown.previousElementSibling;
             
-            console.log('Elementos encontrados:', {
-                optionsContainer: !!optionsContainer,
-                searchInput: !!searchInput,
-                selectButton: !!selectButton
-            });
-            
             // Verificar que todos los elementos existan
             if (!optionsContainer || !searchInput || !selectButton) {
-                console.error('❌ Elementos del dropdown no encontrados:', {
-                    optionsContainer: !!optionsContainer,
-                    searchInput: !!searchInput,
-                    selectButton: !!selectButton
-                });
                 return;
             }
             
             const selectedText = selectButton.querySelector('.selected-text');
-            console.log('selectedText encontrado:', !!selectedText);
             
             if (!selectedText) {
-                console.error('❌ Elemento selected-text no encontrado');
-                console.log('Contenido del selectButton:', selectButton.innerHTML);
                 return;
             }
 
@@ -263,7 +229,6 @@ window.saleForm = function() {
                     optionDiv.addEventListener('click', () => {
                         // Verificar que los elementos existan antes de usarlos
                         if (!selectedText) {
-                            console.error('selectedText no encontrado en click');
                             return;
                         }
                         
@@ -315,7 +280,6 @@ window.saleForm = function() {
 
             // Crear opciones iniciales
             createOptions();
-            console.log('✅ populateDropdownOptions completado exitosamente');
         },
 
         toggleDropdown(show = null) {
@@ -324,7 +288,6 @@ window.saleForm = function() {
             
             // Verificar que los elementos existan
             if (!dropdown || !selectButton) {
-                console.log('Dropdown o selectButton no encontrados');
                 return;
             }
             
@@ -392,7 +355,6 @@ window.saleForm = function() {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     this.showAlert('Error', 'Error al buscar el producto', 'error');
                 });
         },
@@ -576,8 +538,6 @@ window.saleForm = function() {
             const hasProducts = saleItems.length > 0;
             const emptyState = document.getElementById('emptyState');
             const modernTable = document.querySelector('.modern-table');
-            
-            console.log('Productos encontrados:', saleItems.length); // Debug
             
             if (hasProducts) {
                 if (emptyState) {
@@ -772,8 +732,6 @@ window.saleForm = function() {
 };
 
     // Event listeners globales
-    console.log('🎯 Configurando event listeners globales');
-    
     document.addEventListener('DOMContentLoaded', function() {
     // Verificar estado inicial de productos
     setTimeout(() => {
@@ -861,19 +819,15 @@ window.saleForm = function() {
     });
 
     // Seleccionar producto del modal - Versión simplificada
-    console.log('🎯 Agregando event listener para select-product');
     
     // Event listener para botones de productos en el modal
     document.addEventListener('click', (e) => {
-        console.log('🔍 Click detectado en:', e.target);
         if (e.target.closest('.select-product')) {
-            console.log('🎯 Botón select-product clickeado');
             
             const button = e.target.closest('.select-product');
             
             // Verificar si el botón está deshabilitado
             if (button.disabled || button.classList.contains('opacity-50')) {
-                console.log('⚠️ Botón deshabilitado');
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
                         icon: 'warning',
@@ -891,7 +845,6 @@ window.saleForm = function() {
             const code = button.getAttribute('data-code');
             const productId = button.getAttribute('data-id');
             
-            console.log('📦 Agregando producto:', { code, productId });
             
             // Mostrar indicador de carga en el botón
             const originalContent = button.innerHTML;
@@ -917,14 +870,12 @@ window.saleForm = function() {
                 category: { name: productCategory }
             };
             
-            console.log('📋 Producto creado:', product);
             
             // Obtener la instancia de Alpine.js
             const alpineElement = document.querySelector('[x-data="saleForm()"]');
             if (alpineElement && alpineElement._x_dataStack && alpineElement._x_dataStack[0]) {
                 const saleForm = alpineElement._x_dataStack[0];
                 
-                console.log('✅ Instancia de Alpine.js encontrada');
                 
                 // Agregar producto a la tabla
                 const success = saleForm.addProductToTable(product, true);
@@ -947,9 +898,7 @@ window.saleForm = function() {
                         });
                     }
                     
-                    console.log('✅ Producto agregado exitosamente');
                 } else {
-                    console.log('❌ No se pudo agregar el producto');
                 }
             } else {
                 console.error('❌ No se pudo acceder al formulario de venta');
@@ -975,25 +924,20 @@ window.saleForm = function() {
 
 // Función para crear el select personalizado de forma independiente
 function createCustomSelectIndependent() {
-    console.log('🔄 Creando select personalizado de forma independiente...');
     
     const select = document.getElementById('customer_id');
     if (!select) {
-        console.error('❌ Select customer_id no encontrado');
         return;
     }
-    console.log('✅ Select customer_id encontrado');
 
     const container = select.parentElement;
     if (!container) {
         console.error('❌ Contenedor del select no encontrado');
         return;
     }
-    console.log('✅ Contenedor del select encontrado');
     
     // Verificar si ya existe un select personalizado
     if (container.querySelector('.custom-select')) {
-        console.log('ℹ️ Select personalizado ya existe');
         return;
     }
     
@@ -1004,7 +948,6 @@ function createCustomSelectIndependent() {
         <span class="selected-text text-gray-500">Seleccione un cliente</span>
         <i class="fas fa-chevron-down custom-select-arrow"></i>
     `;
-    console.log('✅ Botón del select creado');
 
     // Crear el dropdown
     const dropdown = document.createElement('div');
@@ -1013,35 +956,26 @@ function createCustomSelectIndependent() {
         <input type="text" placeholder="Buscar cliente..." class="search-input">
         <div class="options-container"></div>
     `;
-    console.log('✅ Dropdown creado');
 
     // Agregar elementos al DOM
     container.appendChild(selectButton);
     container.appendChild(dropdown);
-    console.log('✅ Elementos agregados al DOM');
 
     // Ocultar el select original
     select.style.display = 'none';
-    console.log('✅ Select original oculto');
 
     // Llenar opciones
-    console.log('🔄 Llenando opciones del dropdown...');
     populateDropdownOptionsIndependent(select, dropdown);
 }
 
 // Función para llenar las opciones del dropdown de forma independiente
 function populateDropdownOptionsIndependent(select, dropdown) {
-    console.log('🔄 Iniciando populateDropdownOptions independiente...');
     
     const optionsContainer = dropdown.querySelector('.options-container');
     const searchInput = dropdown.querySelector('.search-input');
     const selectButton = dropdown.previousElementSibling;
     
-    console.log('Elementos encontrados:', {
-        optionsContainer: !!optionsContainer,
-        searchInput: !!searchInput,
-        selectButton: !!selectButton
-    });
+    
     
     // Verificar que todos los elementos existan
     if (!optionsContainer || !searchInput || !selectButton) {
@@ -1054,11 +988,9 @@ function populateDropdownOptionsIndependent(select, dropdown) {
     }
     
     const selectedText = selectButton.querySelector('.selected-text');
-    console.log('selectedText encontrado:', !!selectedText);
     
     if (!selectedText) {
         console.error('❌ Elemento selected-text no encontrado');
-        console.log('Contenido del selectButton:', selectButton.innerHTML);
         return;
     }
 
@@ -1146,7 +1078,6 @@ function populateDropdownOptionsIndependent(select, dropdown) {
 
     // Crear opciones iniciales
     createOptions();
-    console.log('✅ populateDropdownOptions independiente completado exitosamente');
 }
 
 // Función para toggle del dropdown de forma independiente
@@ -1156,7 +1087,6 @@ function toggleDropdownIndependent(show = null) {
     
     // Verificar que los elementos existan
     if (!dropdown || !selectButton) {
-        console.log('Dropdown o selectButton no encontrados');
         return;
     }
     
@@ -1256,7 +1186,6 @@ function closeDropdownOnResize() {
 
 // Función global para agregar producto desde el modal
 window.addProductFromModal = function(code, id, name, imageUrl, stock, price, categoryName) {
-    console.log('🎯 addProductFromModal llamado con:', { code, id, name, stock, price, categoryName });
     
     // Crear objeto producto
     const product = {
@@ -1269,14 +1198,12 @@ window.addProductFromModal = function(code, id, name, imageUrl, stock, price, ca
         category: { name: categoryName }
     };
     
-    console.log('📋 Producto creado:', product);
     
     // Obtener la instancia de Alpine.js
     const alpineElement = document.querySelector('[x-data="saleForm()"]');
     if (alpineElement && alpineElement._x_dataStack && alpineElement._x_dataStack[0]) {
         const saleForm = alpineElement._x_dataStack[0];
         
-        console.log('✅ Instancia de Alpine.js encontrada');
         
         // Agregar producto a la tabla
         const success = saleForm.addProductToTable(product, true);
@@ -1299,9 +1226,7 @@ window.addProductFromModal = function(code, id, name, imageUrl, stock, price, ca
                 });
             }
             
-            console.log('✅ Producto agregado exitosamente');
         } else {
-            console.log('❌ No se pudo agregar el producto');
         }
     } else {
         console.error('❌ No se pudo acceder al formulario de venta');
@@ -1321,7 +1246,6 @@ window.addProductFromModal = function(code, id, name, imageUrl, stock, price, ca
 
 // Inicializar el select personalizado cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌐 DOM cargado, inicializando select personalizado...');
     setTimeout(() => {
         createCustomSelectIndependent();
     }, 1000);

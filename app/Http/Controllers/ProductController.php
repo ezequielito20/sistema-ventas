@@ -78,7 +78,7 @@ class ProductController extends Controller
             'company'
          ));
       } catch (\Exception $e) {
-         Log::error('Error loading products: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al cargar los productos: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -103,7 +103,7 @@ class ProductController extends Controller
          
          return view('admin.products.create', compact('categories', 'currency', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error loading create product form: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al cargar el formulario')
             ->with('icons', 'error');
@@ -183,7 +183,7 @@ class ProductController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error creating product: ' . $e->getMessage());
+
 
          // Eliminar imagen si se subió
          if (isset($path)) {
@@ -226,7 +226,7 @@ class ProductController extends Controller
             ]
          ]);
       } catch (\Exception $e) {
-         Log::error('Error showing product: ' . $e->getMessage());
+
          return response()->json([
             'icons' => 'error',
             'message' => 'Error al obtener los datos del producto'
@@ -253,7 +253,7 @@ class ProductController extends Controller
          
          return view('admin.products.edit', compact('product', 'categories', 'currency', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error loading edit product form: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al cargar el formulario de edición')
             ->with('icons', 'error');
@@ -338,7 +338,7 @@ class ProductController extends Controller
             ->with('icons', 'success');
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error updating product: ' . $e->getMessage());
+
 
          // Eliminar nueva imagen si se subió
          if (isset($path)) {
@@ -376,7 +376,7 @@ class ProductController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-         Log::error('Error deleting product: ' . $e->getMessage());
+
 
          return response()->json([
             'status' => 'error',

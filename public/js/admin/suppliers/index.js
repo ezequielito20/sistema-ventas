@@ -14,7 +14,6 @@ let filteredSuppliers = [];
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Proveedores page loaded');
     initializeSuppliersPage();
     initializeEventListeners();
 });
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Inicializar la página de proveedores
 function initializeSuppliersPage() {
-    console.log('Initializing suppliers page...');
     
     // Cargar modo de vista guardado
     const savedViewMode = localStorage.getItem('suppliersViewMode');
@@ -68,12 +66,10 @@ function getAllSuppliers() {
     });
     
     filteredSuppliers = [...allSuppliers];
-    console.log('Suppliers loaded:', allSuppliers.length);
 }
 
 // Cambiar modo de vista
 function changeViewMode(mode) {
-    console.log('Changing view mode to:', mode);
     currentViewMode = mode;
     localStorage.setItem('suppliersViewMode', mode);
     
@@ -200,16 +196,13 @@ function filterSuppliers(searchTerm) {
 
 // Mostrar detalles de proveedor
 async function showSupplierDetails(supplierId) {
-    console.log('🎯 showSupplierDetails called with ID:', supplierId);
     
     try {
         // Mostrar loading en el modal
         const modal = document.getElementById('showSupplierModal');
-        console.log('🔍 Modal element found:', !!modal);
         
         if (modal) {
             modal.classList.add('show');
-            console.log('✅ Modal shown');
         } else {
             console.error('❌ Modal not found!');
             showAlert('Error', 'Modal no encontrado', 'error');
@@ -223,11 +216,9 @@ async function showSupplierDetails(supplierId) {
             if (element) element.textContent = 'Cargando...';
         });
         
-        console.log('🌐 Making fetch request to:', `/suppliers/${supplierId}`);
         
         // Obtener el token CSRF
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        console.log('🔐 CSRF Token found:', !!csrfToken);
         
         const response = await fetch(`/suppliers/${supplierId}`, {
             method: 'GET',
@@ -238,19 +229,15 @@ async function showSupplierDetails(supplierId) {
             }
         });
         
-        console.log('📡 Response status:', response.status);
-        console.log('📡 Response ok:', response.ok);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('📦 Supplier data received:', data);
         
         if (data.icons === 'success' && data.supplier) {
-            console.log('✅ Success response, filling modal data');
-            
+
             // Llenar datos en el modal
             const supplier = data.supplier;
             const fieldMappings = {
@@ -266,9 +253,7 @@ async function showSupplierDetails(supplierId) {
                 const element = document.getElementById(fieldId);
                 if (element) {
                     element.textContent = value;
-                    console.log(`✅ Filled ${fieldId}:`, value);
                 } else {
-                    console.warn(`⚠️ Element ${fieldId} not found`);
                 }
             });
             
@@ -278,14 +263,11 @@ async function showSupplierDetails(supplierId) {
                 if (data.stats && data.stats.length > 0) {
                     productsSection.style.display = 'block';
                     updateProductStats(data.stats);
-                    console.log('✅ Products section shown');
                 } else {
                     productsSection.style.display = 'none';
-                    console.log('ℹ️ No products to show');
                 }
             }
             
-            console.log('✅ Modal data filled successfully');
         } else {
             console.error('❌ Error response:', data);
             const errorMessage = data.message || 'No se pudieron obtener los datos del proveedor';
@@ -322,7 +304,6 @@ function closeSupplierModal() {
 
 // Eliminar proveedor
 function deleteSupplier(supplierId, supplierName) {
-    console.log('Deleting supplier:', supplierId, supplierName);
     
     showConfirmDialog(
         '¿Estás seguro?',
@@ -455,7 +436,6 @@ function showAlert(title, text, icon) {
 
 // Inicializar event listeners
 function initializeEventListeners() {
-    console.log('Initializing event listeners...');
     
     // Toggle de filtros
     const filtersToggle = document.getElementById('filtersToggle');
@@ -565,5 +545,4 @@ function initializeEventListeners() {
         }
     });
     
-    console.log('Event listeners initialized');
 }

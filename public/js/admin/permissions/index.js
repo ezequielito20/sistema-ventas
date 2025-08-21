@@ -20,7 +20,6 @@ if (typeof window.permissionsIndex === 'undefined') {
     window.permissionsIndex = {
         // Función para eliminar permiso
         deletePermission: function(permissionId) {
-            console.log('Eliminando permiso:', permissionId);
             
             Swal.fire({
                 title: '¿Estás seguro?',
@@ -87,7 +86,6 @@ if (typeof window.permissionsIndex === 'undefined') {
 
         // Función para mostrar detalles del permiso
         showPermissionDetails: function(permissionId) {
-            console.log('Mostrando detalles del permiso:', permissionId);
             
             const button = document.querySelector(`[data-id="${permissionId}"]`);
             if (button) {
@@ -114,7 +112,6 @@ if (typeof window.permissionsIndex === 'undefined') {
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Respuesta del servidor:', data);
                 
                 if (data.status === 'success' && data.permission) {
                     // Cerrar loading
@@ -667,7 +664,6 @@ function formatDate(dateString) {
 
 // Función principal de inicialización
 function initializePermissionsIndex() {
-    console.log('✅ permissions/index.js cargado correctamente');
     
     // Marcar tiempo de inicio para debugbar
     window.performanceStart = performance.now();

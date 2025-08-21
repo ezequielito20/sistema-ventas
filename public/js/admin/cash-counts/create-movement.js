@@ -5,9 +5,7 @@
  * Descripción: Funciones específicas para el formulario de creación de movimientos de caja
  */
 
-// Script de prueba para verificar carga
-console.log('✅ cash-counts/create-movement.js cargado correctamente');
-console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+
 
 // ===== CONFIGURACIÓN GLOBAL =====
 const MOVEMENT_CREATE_CONFIG = {
@@ -138,7 +136,6 @@ window.movementForm = function() {
                 this.$refs.form.submit();
 
             } catch (error) {
-                console.error('Error enviando formulario:', error);
                 this.showError('Error al enviar el formulario. Inténtalo de nuevo.');
                 this.isSubmitting = false;
             }
@@ -401,27 +398,9 @@ function initializeAmountField() {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
-    console.log('🚀 Inicializando aplicación cash-counts/create-movement...');
-
-    // Verificar que Alpine.js esté disponible
-    if (typeof Alpine === 'undefined') {
-        console.warn('⚠️ Alpine.js no está cargado');
-    } else {
-        console.log('✅ Alpine.js cargado correctamente');
-    }
-
-    // Verificar que SweetAlert2 esté disponible
-    if (typeof Swal === 'undefined') {
-        console.warn('⚠️ SweetAlert2 no está cargado');
-    } else {
-        console.log('✅ SweetAlert2 cargado correctamente');
-    }
-
     // Inicializar componentes
     initializeRadioButtons();
     initializeAmountField();
-
-    console.log('🎉 Aplicación cash-counts/create-movement inicializada correctamente');
 }
 
 // Hacer funciones disponibles globalmente

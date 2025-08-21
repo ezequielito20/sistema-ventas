@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -90,7 +89,6 @@ class PermissionController extends Controller
             'company',
          ));
       } catch (\Exception $e) {
-         Log::error('Error en index de permisos: ' . $e->getMessage());
          return redirect()->back()
             ->with('message', 'Error al cargar los permisos: ' . $e->getMessage())
             ->with('icons', 'error');
@@ -140,7 +138,6 @@ class PermissionController extends Controller
          $company = $this->company;
          return view('admin.permissions.create', compact('company'));
       } catch (\Exception $e) {
-         Log::error('Error en create de permisos: ' . $e->getMessage());
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Error al cargar el formulario de creación')
             ->with('icons', 'error');
@@ -162,8 +159,7 @@ class PermissionController extends Controller
             'guard_name' => 'web'
          ]);
 
-         // Registrar la acción en el log
-         Log::info('Permiso creado: ' . $permission->name . ' por el usuario: ' . Auth::user()->name);
+
 
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Permiso creado correctamente')
@@ -175,7 +171,7 @@ class PermissionController extends Controller
             ->with('message', 'Error de validación')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-         Log::error('Error al crear permiso: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al crear el permiso')
             ->with('icons', 'error')
@@ -216,7 +212,6 @@ class PermissionController extends Controller
             'permission' => $permissionData
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al obtener detalles del permiso: ' . $e->getMessage());
          return response()->json([
             'status' => 'error',
             'message' => 'No se pudieron obtener los datos del permiso'
@@ -234,7 +229,6 @@ class PermissionController extends Controller
          $permission = Permission::findOrFail($id);
          return view('admin.permissions.edit', compact('permission', 'company'));
       } catch (\Exception $e) {
-         Log::error('Error en edit de permisos: ' . $e->getMessage());
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Error al cargar el formulario de edición')
             ->with('icon', 'error');
@@ -285,8 +279,7 @@ class PermissionController extends Controller
             'name' => strtolower($validated['name'])
          ]);
 
-         // Registrar la acción en el log
-         Log::info('Permiso actualizado: ' . $permission->name . ' por el usuario: ' . Auth::user()->name);
+
 
          return redirect()->route('admin.permissions.index')
             ->with('message', 'Permiso actualizado correctamente')
@@ -298,7 +291,7 @@ class PermissionController extends Controller
             ->with('message', 'Error de validación')
             ->with('icons', 'error');
       } catch (\Exception $e) {
-         Log::error('Error al actualizar permiso: ' . $e->getMessage());
+
          return redirect()->back()
             ->with('message', 'Error al actualizar el permiso')
             ->with('icons', 'error')
@@ -325,15 +318,13 @@ class PermissionController extends Controller
          // Eliminar el permiso
          $permission->delete();
 
-         // Registrar la acción en el log
-         Log::info('Permiso eliminado: ' . $permission->name . ' por el usuario: ' . Auth::user()->name);
+
 
          return response()->json([
             'message' => 'Permiso eliminado correctamente',
             'icons' => 'success'
          ]);
       } catch (\Exception $e) {
-         Log::error('Error al eliminar permiso: ' . $e->getMessage());
          return response()->json([
             'message' => 'Error al eliminar el permiso',
             'icons' => 'error'

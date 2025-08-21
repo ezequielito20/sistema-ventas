@@ -261,7 +261,6 @@ function initializeHeaderEffects() {
 
 // Función principal de inicialización
 function initializePermissionsEdit() {
-    console.log('✅ permissions/edit.js cargado correctamente');
     
     // Inicializar efectos visuales
     initializeInputEffects();

@@ -7,7 +7,6 @@ use App\Models\Sale;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class DebtPaymentController extends Controller
@@ -42,10 +41,7 @@ class DebtPaymentController extends Controller
 
             DB::commit();
 
-            Log::info('Pago de deuda eliminado exitosamente', [
-                'user_id' => Auth::id(),
-                'payment_info' => $paymentInfo
-            ]);
+
 
             return response()->json([
                 'success' => true,
@@ -56,10 +52,7 @@ class DebtPaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             
-            Log::error('Error al eliminar pago de deuda: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'payment_id' => $id
-            ]);
+
 
             return response()->json([
                 'success' => false,
@@ -86,8 +79,6 @@ class DebtPaymentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error al obtener pagos de deuda: ' . $e->getMessage());
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cargar los pagos de deuda'
@@ -135,12 +126,7 @@ class DebtPaymentController extends Controller
 
             DB::commit();
 
-            Log::info('Pagos de deuda eliminados exitosamente', [
-                'user_id' => Auth::id(),
-                'sale_id' => $saleId,
-                'payments_count' => $paymentsCount,
-                'total_amount' => $totalAmount
-            ]);
+
 
             return response()->json([
                 'success' => true,
@@ -153,10 +139,7 @@ class DebtPaymentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             
-            Log::error('Error al eliminar pagos de deuda: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'sale_id' => $saleId
-            ]);
+
 
             return response()->json([
                 'success' => false,

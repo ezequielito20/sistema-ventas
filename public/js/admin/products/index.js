@@ -23,8 +23,6 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Inicializar la página
         init: function() {
-            console.log('✅ products/index.js cargado correctamente');
-            
             // Cargar modo de vista guardado
             const savedViewMode = localStorage.getItem('productsViewMode');
             if (savedViewMode && (savedViewMode === 'table' || savedViewMode === 'cards')) {
@@ -73,12 +71,10 @@ if (typeof window.productsIndex === 'undefined') {
             });
             
             this.filteredProducts = [...this.allProducts];
-            console.log('Products loaded:', this.allProducts.length);
         },
 
         // Cambiar modo de vista
         changeViewMode: function(mode) {
-            console.log('Changing view mode to:', mode);
             this.currentViewMode = mode;
             localStorage.setItem('productsViewMode', mode);
             
@@ -200,8 +196,6 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Mostrar detalles de producto
         showProductDetails: async function(productId) {
-            console.log('Showing product details for ID:', productId);
-            
             try {
                 const response = await fetch(`${PRODUCTS_CONFIG.routes.show}/${productId}`);
                 const data = await response.json();
@@ -223,7 +217,6 @@ if (typeof window.productsIndex === 'undefined') {
                     this.showAlert('Error', 'No se pudieron obtener los datos del producto', 'error');
                 }
             } catch (error) {
-                console.error('Error fetching product details:', error);
                 this.showAlert('Error', 'No se pudieron obtener los datos del producto', 'error');
             }
         },
@@ -235,8 +228,6 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Eliminar producto
         deleteProduct: function(productId, productName) {
-            console.log('Deleting product:', productId, productName);
-            
             this.showConfirmDialog(
                 '¿Estás seguro?',
                 `¿Deseas eliminar el producto <strong>${productName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
@@ -266,7 +257,6 @@ if (typeof window.productsIndex === 'undefined') {
                     this.showAlert('Error', data.message, 'error');
                 }
             } catch (error) {
-                console.error('Error deleting product:', error);
                 this.showAlert('Error', 'No se pudo eliminar el producto', 'error');
             }
         },
@@ -312,8 +302,6 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Inicializar event listeners
         initializeEventListeners: function() {
-            console.log('Initializing event listeners...');
-            
             // Toggle de filtros
             const filtersToggle = document.getElementById('filtersToggle');
             const filtersContent = document.getElementById('filtersContent');
@@ -392,8 +380,6 @@ if (typeof window.productsIndex === 'undefined') {
                     productsIndex.closeProductModal();
                 }
             });
-            
-            console.log('Event listeners initialized');
         }
     };
 }

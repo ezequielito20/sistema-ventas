@@ -184,7 +184,6 @@ window.categoryCreate = {
             });
         } else {
             // Fallback si SweetAlert2 no está disponible
-            console.log(type.toUpperCase() + ': ' + message);
         }
     },
 

@@ -5,9 +5,7 @@
  * Descripción: Funciones específicas para la gestión de arqueos de caja
  */
 
-// Script de prueba para verificar carga
-console.log('✅ cash-counts/index.js cargado correctamente');
-console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+
 
 // ===== VARIABLES GLOBALES =====
 let cashCountModalInstance = null;
@@ -108,8 +106,6 @@ function deleteCashCount(cashCountId) {
  */
 async function submitDeleteCashCount(cashCountId) {
     try {
-        console.log('Eliminando arqueo:', cashCountId);
-        
         const response = await fetch(`/cash-counts/delete/${cashCountId}`, {
             method: 'DELETE',
             headers: {
@@ -118,15 +114,12 @@ async function submitDeleteCashCount(cashCountId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         });
-
-        console.log('Respuesta del servidor:', response);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Datos de respuesta:', data);
 
         if (data.success) {
             // Mostrar notificación de éxito
@@ -160,8 +153,6 @@ async function submitDeleteCashCount(cashCountId) {
             }
         }
     } catch (error) {
-        console.error('Error eliminando arqueo:', error);
-        
         // Mostrar notificación de error
         if (typeof Swal !== 'undefined') {
             Swal.fire({
@@ -200,7 +191,6 @@ window.openCashCountModal = function(cashCountId) {
  */
 window.testModal = function() {
     if (cashCountModalInstance) {
-        console.log('Probando modal...');
         cashCountModalInstance.isOpen = true;
 
         cashCountModalInstance.cashCountData = {
@@ -244,7 +234,6 @@ window.testModal = function() {
         
         showNotification('Modal de prueba cargado exitosamente', 'success');
     } else {
-        console.error('Modal instance not found');
         showNotification('Error: Modal no disponible', 'error');
     }
 };
@@ -282,10 +271,9 @@ function formatDate(dateString) {
             month: '2-digit',
             year: 'numeric'
         });
-    } catch (error) {
-        console.error('Error formateando fecha:', error);
-        return 'N/A';
-    }
+            } catch (error) {
+            return 'N/A';
+        }
 }
 
 /**
@@ -307,18 +295,15 @@ function formatDateTime(dateString) {
             hour: '2-digit',
             minute: '2-digit'
         });
-    } catch (error) {
-        console.error('Error formateando fecha/hora:', error);
-        return 'N/A';
-    }
+            } catch (error) {
+            return 'N/A';
+        }
 }
 
 /**
  * Mostrar notificación
  */
 function showNotification(message, type = 'info') {
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: type === 'error' ? 'Error' : 'Información',
@@ -341,11 +326,8 @@ function showNotification(message, type = 'info') {
  */
 function initializeCharts() {
     if (typeof Chart === 'undefined') {
-        console.warn('Chart.js no está disponible');
         return;
     }
-
-    console.log('Inicializando gráficos...');
 
     // Gráfico de Movimientos
     const movementsCtx = document.getElementById('cashMovementsChart');
@@ -449,8 +431,6 @@ function initializeCharts() {
             }
         });
     }
-    
-    console.log('Gráficos inicializados correctamente');
 }
 
 // ===== FUNCIONES ALPINE.JS =====
@@ -530,7 +510,6 @@ window.cashCountModal = function() {
                     throw new Error(data.message || 'Error al cargar los datos');
                 }
             } catch (error) {
-                console.error('Error cargando datos:', error);
                 this.cashCountData = null;
                 this.showNotification(`Error al cargar los datos del arqueo: ${error.message}`, 'error');
             }
@@ -560,12 +539,8 @@ window.cashCountModal = function() {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
-    console.log('🚀 Inicializando aplicación cash-counts/index...');
-    
     // Inicializar gráficos
     initializeCharts();
-    
-    console.log('🎉 Aplicación cash-counts/index inicializada correctamente');
 }
 
 // Hacer funciones disponibles globalmente

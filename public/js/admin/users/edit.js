@@ -129,7 +129,6 @@ window.userEditForm = function() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ users/edit.js cargado');
   
   // Asegurar que Alpine.js esté listo antes de mostrar el contenido
   if (typeof Alpine !== 'undefined') {

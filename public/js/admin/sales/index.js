@@ -20,11 +20,9 @@ let filteredSales = [];
 
 // Mostrar detalles de venta
 async function showSaleDetails(saleId) {
-    console.log('showSaleDetails llamado con ID:', saleId);
     
     try {
         const response = await fetch(`/sales/${saleId}/details`);
-        console.log('Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
@@ -33,7 +31,6 @@ async function showSaleDetails(saleId) {
         }
         
         const data = await response.json();
-        console.log('Data received:', data);
         populateModalData(data);
         openModal();
     } catch (error) {
@@ -253,7 +250,6 @@ function showConfirmDialog(title, text) {
 
 // Cambiar vista (tabla/tarjetas)
 function changeView(viewType) {
-    console.log('Cambiando vista a:', viewType);
     
     // Actualizar variable global
     currentView = viewType;
@@ -294,7 +290,6 @@ function changeView(viewType) {
     // Guardar preferencia en localStorage
     localStorage.setItem('salesViewPreference', viewType);
     
-    console.log('Vista cambiada exitosamente a:', viewType);
 }
 
 // Detectar vista móvil automáticamente
@@ -311,7 +306,6 @@ function detectMobileView() {
 
 // ===== INICIALIZACIÓN CUANDO EL DOM ESTÉ LISTO =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Aplicación de ventas inicializada');
     
     // Configurar event listeners para cerrar modal
     const overlay = document.getElementById('modalOverlay');
@@ -343,7 +337,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toggle.addEventListener('click', function(e) {
             e.preventDefault();
             const viewType = this.getAttribute('data-view');
-            console.log('Botón de vista clickeado:', viewType);
             changeView(viewType);
         });
     });
@@ -365,5 +358,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Detectar vista móvil inicial
     detectMobileView();
     
-    console.log('Event listeners de cambio de vista configurados');
 });

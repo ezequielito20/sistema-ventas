@@ -5,9 +5,7 @@
  * Descripción: Funciones específicas para el formulario de edición de caja
  */
 
-// Script de prueba para verificar carga
-console.log('✅ cash-counts/edit.js cargado correctamente');
-console.log('SweetAlert2 disponible:', typeof Swal !== 'undefined');
+
 
 // ===== CONFIGURACIÓN GLOBAL =====
 const CASH_COUNT_EDIT_CONFIG = {
@@ -125,7 +123,6 @@ window.editCashCountForm = function() {
                 this.$refs.form.submit();
                 
             } catch (error) {
-                console.error('Error enviando formulario:', error);
                 this.showError('Error al enviar el formulario. Inténtalo de nuevo.');
                 this.isSubmitting = false;
             }
@@ -316,7 +313,6 @@ function formatNumber(number) {
 function updateMovementsSummary() {
     // Esta función podría ser usada para actualizar dinámicamente
     // el resumen de movimientos si fuera necesario
-    console.log('Actualizando resumen de movimientos...');
 }
 
 /**
@@ -339,28 +335,10 @@ function animateSummaryCards() {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
-    console.log('🚀 Inicializando aplicación cash-counts/edit...');
-    
-    // Verificar que Alpine.js esté disponible
-    if (typeof Alpine === 'undefined') {
-        console.warn('⚠️ Alpine.js no está cargado');
-    } else {
-        console.log('✅ Alpine.js cargado correctamente');
-    }
-    
-    // Verificar que SweetAlert2 esté disponible
-    if (typeof Swal === 'undefined') {
-        console.warn('⚠️ SweetAlert2 no está cargado');
-    } else {
-        console.log('✅ SweetAlert2 cargado correctamente');
-    }
-    
     // Animar tarjetas de resumen
     setTimeout(() => {
         animateSummaryCards();
     }, 500);
-    
-    console.log('🎉 Aplicación cash-counts/edit inicializada correctamente');
 }
 
 // Hacer funciones disponibles globalmente

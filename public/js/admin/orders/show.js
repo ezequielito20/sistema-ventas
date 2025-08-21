@@ -15,8 +15,6 @@ if (typeof window.ordersShow === 'undefined') {
     window.ordersShow = {
         // Función para procesar orden
         processOrder: function(orderId) {
-            console.log('Procesando orden:', orderId);
-            
             // Mostrar modal de confirmación
             const processModal = document.getElementById('processModal');
             if (processModal) {
@@ -26,8 +24,6 @@ if (typeof window.ordersShow === 'undefined') {
 
         // Función para cancelar orden
         cancelOrder: function(orderId) {
-            console.log('Cancelando orden:', orderId);
-            
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: "Esta acción cancelará el pedido y no se puede revertir",
@@ -117,11 +113,11 @@ function initializeProcessModal() {
 
         // Eventos del modal
         $(processModal).on('show.bs.modal', function() {
-            console.log('Modal de procesamiento abierto');
+            // Modal de procesamiento abierto
         });
 
         $(processModal).on('hidden.bs.modal', function() {
-            console.log('Modal de procesamiento cerrado');
+            // Modal de procesamiento cerrado
         });
     }
 }
@@ -314,8 +310,6 @@ function getOrderStatus() {
 
 // Función principal de inicialización
 function initializeOrdersShow() {
-    console.log('✅ orders/show.js cargado correctamente');
-    
     // Obtener ID de la orden de la URL
     const pathParts = window.location.pathname.split('/');
     const orderId = pathParts[pathParts.length - 1];
@@ -357,7 +351,6 @@ function setupAdditionalEvents() {
     if (backButton) {
         backButton.addEventListener('click', function(e) {
             // Agregar efecto de transición si es necesario
-            console.log('Volviendo a la lista de órdenes');
         });
     }
 }

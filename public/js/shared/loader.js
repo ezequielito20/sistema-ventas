@@ -133,9 +133,7 @@ class ResourceLoader {
                 this.loadJS(jsPath, { async: true })
             ]);
 
-            console.log(`Recursos cargados para vista: ${view}`);
         } catch (error) {
-            console.error(`Error cargando recursos para vista ${view}:`, error);
         }
     }
 
@@ -154,7 +152,6 @@ class ResourceLoader {
                 this.loadJS('/js/shared/utils.js')
             ]);
 
-            console.log('Recursos compartidos cargados');
         } catch (error) {
             console.error('Error cargando recursos compartidos:', error);
         }
@@ -214,7 +211,6 @@ class RouteManager {
                 options.onLoad();
             }
 
-            console.log(`Navegación completada a: ${view}`);
         } catch (error) {
             console.error(`Error navegando a vista ${view}:`, error);
         }
@@ -324,9 +320,7 @@ window.cacheManager = new CacheManager();
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await window.resourceLoader.loadSharedResources();
-        console.log('Sistema de carga optimizada inicializado');
     } catch (error) {
-        console.error('Error inicializando sistema de carga:', error);
     }
 });
 

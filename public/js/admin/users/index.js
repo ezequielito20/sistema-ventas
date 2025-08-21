@@ -13,13 +13,11 @@ function usersApp() {
                 this.viewMode = savedViewMode;
             }
             
-            console.log('👥 users/index.js cargado');
         },
 
         changeViewMode(mode) {
             this.viewMode = mode;
             localStorage.setItem('usersViewMode', mode);
-            console.log('Cambiando modo de vista a:', mode);
         },
 
         isUserVisible(userData) {
@@ -139,5 +137,4 @@ function usersApp() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ users/index.js inicializado');
 });

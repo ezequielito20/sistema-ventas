@@ -20,14 +20,12 @@ if (typeof window.productsCreate === 'undefined') {
 
         // Inicializar la página
         init: function() {
-            console.log('Product create page loaded');
             this.initializeForm();
             this.initializeEventListeners();
         },
 
         // Inicializar el formulario
         initializeForm: function() {
-            console.log('Initializing form...');
             this.initializeImagePreview();
             this.initializeProfitCalculator();
             this.initializeCodeGenerator();
@@ -186,7 +184,7 @@ if (typeof window.productsCreate === 'undefined') {
                         }
                     }
                 } catch (e) {
-                    console.log('Error restoring form data:', e);
+                    // Error restoring form data
                 }
             }
         },
@@ -231,7 +229,6 @@ if (typeof window.productsCreate === 'undefined') {
             const imagePreview = document.getElementById('imagePreview');
             
             if (!imageInput || !imagePreview) {
-                console.log('Image elements not found, skipping image preview initialization');
                 return;
             }
 
@@ -300,7 +297,6 @@ if (typeof window.productsCreate === 'undefined') {
             const profitValue = document.getElementById('profitValue');
 
             if (!purchasePriceInput || !salePriceInput || !profitIndicator || !profitValue) {
-                console.log('Profit calculator elements not found, skipping initialization');
                 return;
             }
 
@@ -341,7 +337,6 @@ if (typeof window.productsCreate === 'undefined') {
             const codeInput = document.getElementById('code');
 
             if (!nameInput || !codeInput) {
-                console.log('Code generator elements not found, skipping initialization');
                 return;
             }
 
@@ -358,8 +353,6 @@ if (typeof window.productsCreate === 'undefined') {
 
         // Inicializar event listeners
         initializeEventListeners: function() {
-            console.log('Initializing event listeners...');
-
             // Botón limpiar formulario
             const clearBtn = document.getElementById('clearForm');
             if (clearBtn) {
@@ -408,8 +401,6 @@ if (typeof window.productsCreate === 'undefined') {
             if (imageInput) {
                 imageInput.addEventListener('change', () => this.saveFormData());
             }
-
-            console.log('Event listeners initialized');
         },
 
         // Mostrar alerta
