@@ -183,14 +183,30 @@ async function deleteSale(saleId) {
             }
         });
 
-        if (!response.ok) throw new Error('Error al eliminar la venta');
+        const data = await response.json();
 
-        showAlert('Venta eliminada correctamente', 'success');
+        if (!response.ok) {
+            // Si hay un mensaje específico del servidor, usarlo
+            if (data.message) {
+                showAlert(data.message, data.icons || 'warning');
+            } else {
+                showAlert('Error al eliminar la venta', 'error');
+            }
+            return;
+        }
+
+        if (data.error) {
+            showAlert(data.message, 'error');
+        } else {
+            showAlert(data.message || 'Venta eliminada correctamente', 'success');
         
-        // Recargar la página o actualizar la lista
+        // Recargar la página solo si la eliminación fue exitosa
         setTimeout(() => {
             window.location.reload();
         }, 1500);
+        }
+
+        
 
     } catch (error) {
         console.error('Error:', error);

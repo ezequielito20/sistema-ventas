@@ -567,7 +567,7 @@ class SaleController extends Controller
             $customerName = $sale->customer->name ?? 'Cliente';
             
             return response()->json([
-               'success' => false,
+               'error' => true,
                'message' => "⚠️ No se puede eliminar esta venta porque el cliente tiene pagos de deuda posteriores.\n\n" .
                            "📊 Detalles:\n" .
                            "• Cliente: {$customerName}\n" .
@@ -581,7 +581,7 @@ class SaleController extends Controller
                'has_payments' => true,
                'payments_count' => $debtPayments->count(),
                'total_paid' => $totalPaid
-            ], 422);
+            ], 200);
          }
 
          // Restar la deuda del cliente
