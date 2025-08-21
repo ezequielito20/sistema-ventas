@@ -5,11 +5,26 @@
  * Descripción: Funciones específicas para la gestión de arqueos de caja
  */
 
+// Verificar si ya se ha cargado para evitar redeclaraciones
+if (typeof window.cashCountsIndexLoaded !== 'undefined') {
+    console.warn('cash-counts/index.js ya ha sido cargado anteriormente');
+} else {
+    window.cashCountsIndexLoaded = true;
+}
+
 
 
 // ===== VARIABLES GLOBALES =====
 let cashCountModalInstance = null;
 let charts = {};
+
+// Verificar si ya existe para evitar redeclaración
+if (typeof window.cashCountModalInstance === 'undefined') {
+    window.cashCountModalInstance = null;
+}
+if (typeof window.cashCountsCharts === 'undefined') {
+    window.cashCountsCharts = {};
+}
 
 // ===== CONFIGURACIÓN GLOBAL =====
 const CASH_COUNTS_CONFIG = {
@@ -171,15 +186,16 @@ async function submitDeleteCashCount(cashCountId) {
  * Abrir modal de detalles del arqueo de caja
  */
 window.openCashCountModal = function(cashCountId) {
-    if (cashCountModalInstance) {
-        cashCountModalInstance.isOpen = true;
-        cashCountModalInstance.cashCountData = null;
+    const modalInstance = window.cashCountModalInstance || cashCountModalInstance;
+    if (modalInstance) {
+        modalInstance.isOpen = true;
+        modalInstance.cashCountData = null;
         
         // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
         
         // Cargar datos del arqueo de forma asíncrona
-        cashCountModalInstance.loadCashCountData(cashCountId);
+        modalInstance.loadCashCountData(cashCountId);
     } else {
         console.error('Modal instance not found');
         showNotification('Error: Modal no disponible', 'error');
@@ -190,10 +206,11 @@ window.openCashCountModal = function(cashCountId) {
  * Función de prueba para el modal
  */
 window.testModal = function() {
-    if (cashCountModalInstance) {
-        cashCountModalInstance.isOpen = true;
+    const modalInstance = window.cashCountModalInstance || cashCountModalInstance;
+    if (modalInstance) {
+        modalInstance.isOpen = true;
 
-        cashCountModalInstance.cashCountData = {
+        modalInstance.cashCountData = {
             id: 999,
             initial_amount: 1000.00,
             final_amount: null,
@@ -473,6 +490,9 @@ window.cashCountModal = function() {
 
         init() {
             // Guardar referencia global
+            if (typeof window.cashCountModalInstance === 'undefined') {
+                window.cashCountModalInstance = this;
+            }
             cashCountModalInstance = this;
         },
 

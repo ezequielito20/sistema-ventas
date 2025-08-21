@@ -1628,22 +1628,3 @@
     </div>
 </div>
 @endsection
-
-
-
-@push('js')
-    <script>
-        // Datos globales para JavaScript
-        window.cashCountsData = {
-            currencySymbol: '{{ $currency->symbol }}',
-            todayIncome: {{ $todayIncome }},
-            todayExpenses: {{ $todayExpenses }},
-            chartData: {
-                labels: {!! json_encode($chartData['labels']) !!},
-                income: {!! json_encode($chartData['income']) !!},
-                expenses: {!! json_encode($chartData['expenses']) !!}
-            }
-        };
-    </script>
-    <script src="{{ asset('js/admin/cash-counts/index.js') }}" defer></script>
-@endpush
