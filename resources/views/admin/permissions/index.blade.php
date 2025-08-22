@@ -21,13 +21,13 @@
                 @if($permissions['can_report'])
                     <a href="{{ route('admin.permissions.report') }}" class="btn-outline" target="_blank">
                         <i class="fas fa-file-pdf mr-2"></i>
-                        Reporte
+                        <span>Reporte</span>
                     </a>
                 @endif
                 @if($permissions['can_create'])
                     <a href="{{ route('admin.permissions.create') }}" class="btn-primary">
                         <i class="fas fa-plus-circle mr-2"></i>
-                        Nuevo Permiso
+                        <span>Nuevo Permiso</span>
                     </a>
                 @endif
             </div>
@@ -129,7 +129,7 @@
                             <input type="text" placeholder="Buscar permisos..." id="searchInput" class="search-input">
                         </div>
                     </div>
-                    <div class="view-toggles">
+                    <div class="view-toggles view-toggle-buttons">
                         <button class="view-toggle active" data-view="table">
                             <i class="fas fa-table"></i>
                             <span>Tabla</span>
