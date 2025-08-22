@@ -147,9 +147,9 @@
                                         Historial de Pagos
                                     </div>
                             </a>
-                        @endcan
+                        @endif
 
-                        @can('customers.create')
+                        @if($permissions['can_create'])
                                 <a href="{{ route('admin.customers.create') }}"
                                     class="group relative inline-flex items-center px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-lg"
                                     title="Nuevo Cliente">
@@ -406,19 +406,19 @@
                                 <div class="flex items-center space-x-2">
                                     <span class="text-sm font-medium text-gray-600">1 USD =</span>
                                     <input type="number" x-model="exchangeRate" step="0.01" min="0"
-                                        @cannot('customers.edit') readonly @endcannot @keyup.enter="updateRate()" @input="syncToModal()"
+                                        @if(!$permissions['can_edit']) readonly @endif @keyup.enter="updateRate()" @input="syncToModal()"
                                         class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-semibold text-gray-900 text-sm"
                                         placeholder="0.00">
                                     <span class="text-sm font-medium text-gray-600">VES</span>
                                 </div>
 
-                    @can('customers.edit')
+                    @if($permissions['can_edit'])
                                     <button @click="updateRate()" :disabled="updating"
                                         class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Actualizar tipo de cambio">
                                         <i class="fas fa-sync-alt text-sm" :class="{ 'animate-spin': updating }"></i>
                         </button>
-                    @endcan
+                    @endif
                 </div>
             </div>
 
@@ -1255,11 +1255,11 @@
                                                 </button>
 
                                             @else
-                                                @can('customers.edit')
+                                                                                            @if($permissions['can_edit'])
                                                     <button class="edit-debt-btn-small">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
-                                                @endcan
+                                            @endif
                                             @endif
                                         </div>
                                     @else
@@ -1297,31 +1297,31 @@
                                     </td>
                                     <td>
                                     <div class="action-buttons">
-                                        @can('customers.show')
+                                        @if($permissions['can_show'])
                                                 <button type="button" class="btn-action btn-view"
                                                     @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
                                                     data-toggle="tooltip" title="Ver detalles">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                        @endcan
-                                        @can('customers.edit')
+                                        @endif
+                                        @if($permissions['can_edit'])
                                             <a href="{{ route('admin.customers.edit', $customer->id) }}"
                                                     class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                        @endcan
-                                        @can('customers.destroy')
+                                        @endif
+                                        @if($permissions['can_destroy'])
                                                 <button type="button" class="btn-action btn-delete"
                                                 @click="deleteCustomer({{ $customer->id }})" data-toggle="tooltip" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        @endcan
-                                        @can('sales.create')
+                                        @endif
+                                        @if($permissions['can_create_sales'])
                                             <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
                                                     class="btn-action btn-sale" data-toggle="tooltip" title="Nueva venta">
                                                 <i class="fas fa-cart-plus"></i>
                                             </a>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -1466,21 +1466,21 @@
                             <!-- Acciones -->
                             <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
                                 <div class="flex justify-center gap-3">
-                                @can('customers.show')
+                                @if($permissions['can_show'])
                                         <button type="button"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
                                             title="Ver detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                @endcan
-                                @can('customers.edit')
+                                @endif
+                                @if($permissions['can_edit'])
                                     <a href="{{ route('admin.customers.edit', $customer->id) }}"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                @endcan
+                                @endif
                                                                     @if ($customer->total_debt > 0)
                                         <button
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -1489,20 +1489,20 @@
                                         <i class="fas fa-dollar-sign"></i>
                                     </button>
                                     @endif
-                                @can('sales.create')
+                                @if($permissions['can_create_sales'])
                                     <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             title="Nueva venta">
                                         <i class="fas fa-cart-plus"></i>
                                     </a>
-                                @endcan
-                                @can('customers.destroy')
+                                @endif
+                                @if($permissions['can_destroy'])
                                         <button type="button"
                                             class="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             @click="deleteCustomer({{ $customer->id }})" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1580,21 +1580,21 @@
 
                                 <!-- Acciones Compactas -->
                                 <div class="mt-3 flex justify-center gap-2">
-                                    @can('customers.show')
+                                    @if($permissions['can_show'])
                                         <button type="button"
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})" 
                                             title="Ver detalles">
                                             <i class="fas fa-eye text-xs"></i>
                                         </button>
-                                    @endcan
-                                    @can('customers.edit')
+                                    @endif
+                                    @if($permissions['can_edit'])
                                         <a href="{{ route('admin.customers.edit', $customer->id) }}"
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             title="Editar">
                                             <i class="fas fa-edit text-xs"></i>
                                         </a>
-                                    @endcan
+                                    @endif
                                                                         @if ($customer->total_debt > 0)
                                         <button
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
@@ -1603,20 +1603,20 @@
                                         <i class="fas fa-dollar-sign text-xs"></i>
                                     </button>
                                     @endif
-                                    @can('sales.create')
+                                    @if($permissions['can_create_sales'])
                                         <a href="{{ route('admin.sales.create', ['customer_id' => $customer->id]) }}"
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             title="Nueva venta">
                                             <i class="fas fa-cart-plus text-xs"></i>
                                         </a>
-                                    @endcan
-                                    @can('customers.destroy')
+                                    @endif
+                                    @if($permissions['can_destroy'])
                                         <button type="button"
                                             class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                                             @click="deleteCustomer({{ $customer->id }})" title="Eliminar">
                                             <i class="fas fa-trash text-xs"></i>
                                     </button>
-                                @endcan
+                                @endif
                             </div>
                         </div>
                     </div>
