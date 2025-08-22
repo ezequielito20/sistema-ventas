@@ -39,6 +39,16 @@ if (typeof window.permissionsIndex === 'undefined') {
 
         // Función para enviar eliminación
         submitDeletePermission: function(permissionId) {
+            // Mostrar modal de carga
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espera',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
             fetch(`${PERMISSIONS_CONFIG.routes.delete}/${permissionId}`, {
@@ -51,7 +61,10 @@ if (typeof window.permissionsIndex === 'undefined') {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
+                // Cerrar modal de carga
+                Swal.close();
+                
+                if (data.icons === 'success') {
                     Swal.fire({
                         title: '¡Eliminado!',
                         text: data.message,
@@ -60,15 +73,19 @@ if (typeof window.permissionsIndex === 'undefined') {
                         window.location.reload();
                     });
                 } else {
-                    Swal.fire(
-                        'Error',
-                        data.message,
-                        'error'
-                    );
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error'
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                
+                // Cerrar modal de carga
+                Swal.close();
+                
                 let errorMessage = 'No se pudo eliminar el permiso';
                 
                 if (error.status) {

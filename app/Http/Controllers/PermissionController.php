@@ -106,7 +106,7 @@ class PermissionController extends Controller
       'name.max' => 'El nombre del permiso no puede tener más de :max caracteres.',
       'name.unique' => 'Ya existe un permiso con este nombre.',
       'name.regex' => 'El nombre del permiso debe seguir el formato: modulo.accion',
-      'name.table_exists' => 'El módulo ":module" no es válido porque no existe una tabla correspondiente en la base de datos.',
+      'name.table_exists' => 'El módulo ":module" no es válido. Módulos válidos: users, categories, suppliers, products, customers, purchases, sales, cash_counts, cash_movements, debt_payments, companies, roles, permissions, orders, notifications.',
    ];
 
    /**
@@ -123,7 +123,17 @@ class PermissionController extends Controller
             'regex:/^[a-z]+\.[a-z]+$/',
             function ($attribute, $value, $fail) {
                $module = explode('.', $value)[0];
-               if (!Schema::hasTable($module)) {
+               
+               // Lista de módulos válidos (tablas existentes en el sistema)
+               $validModules = [
+                  'users', 'categories', 'suppliers', 'products', 'customers', 
+                  'purchases', 'sales', 'cash_counts', 'cash_movements', 
+                  'debt_payments', 'companies', 'roles', 'permissions',
+                  'orders', 'notifications', 'countries', 'states', 'cities', 
+                  'municipalities', 'parishes', 'currencies'
+               ];
+               
+               if (!in_array($module, $validModules)) {
                   $fail(__($this->messages['name.table_exists'], ['module' => $module]));
                }
             },
@@ -258,8 +268,18 @@ class PermissionController extends Controller
                'regex:/^[a-z]+\.[a-z]+$/',
                function ($attribute, $value, $fail) {
                   $module = explode('.', $value)[0];
-                  if (!Schema::hasTable($module)) {
-                     $fail('El módulo "' . $module . '" no es válido porque no existe una tabla correspondiente en la base de datos.');
+                  
+                  // Lista de módulos válidos (tablas existentes en el sistema)
+                  $validModules = [
+                     'users', 'categories', 'suppliers', 'products', 'customers', 
+                     'purchases', 'sales', 'cash_counts', 'cash_movements', 
+                     'debt_payments', 'companies', 'roles', 'permissions',
+                     'orders', 'notifications', 'countries', 'states', 'cities', 
+                     'municipalities', 'parishes', 'currencies'
+                  ];
+                  
+                  if (!in_array($module, $validModules)) {
+                     $fail('El módulo "' . $module . '" no es válido. Módulos válidos: users, categories, suppliers, products, customers, purchases, sales, cash_counts, cash_movements, debt_payments, companies, roles, permissions, orders, notifications.');
                   }
                },
                function ($attribute, $value, $fail) use ($permission) {
