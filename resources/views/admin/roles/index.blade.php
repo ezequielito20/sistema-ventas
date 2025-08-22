@@ -2,200 +2,425 @@
 
 @section('title', 'Gestión de Roles')
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/admin/roles/index.css') }}">
+@endpush
+
+@push('js')
+    <script src="{{ asset('vendor/config.js') }}"></script>
+    <script src="{{ asset('js/shared/table-utils.js') }}"></script>
+    <script src="{{ asset('js/admin/roles/index.js') }}" defer></script>
+@endpush
+
 @section('content')
-<div class="space-y-6">
-    {{-- Dashboard de Estadísticas Moderno --}}
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-                <div class="stats-card stats-card-primary">
-                    <div class="stats-card-body">
-                        <div class="stats-icon">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                        <div class="stats-content">
-                            <h3 class="stats-value">{{ $roles->count() }}</h3>
-                            <p class="stats-label">Total de Roles</p>
-                            <div class="stats-trend">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Sistema Seguro</span>
+    <!-- Contenedor Principal con Gradiente de Fondo -->
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100" x-data="rolesManager()">
+
+        <!-- Hero Section con Tailwind y Alpine.js -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl mb-8"
+            x-data="heroSection()">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 bg-black bg-opacity-10">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
+                <!-- Decorative circles -->
+                <div class="absolute top-0 left-0 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+                <div class="absolute top-0 right-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
+                <div class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000"></div>
+            </div>
+
+            <div class="relative px-6 py-8 sm:px-8 lg:px-12">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <!-- Hero Content -->
+                    <div class="flex-1 lg:pr-8">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                    <i class="fas fa-user-shield text-3xl text-white"></i>
+                                </div>
                             </div>
+                            <div class="ml-4">
+                                <h1 class="text-3xl sm:text-4xl font-bold text-white">
+                                    Gestión de Roles
+                                </h1>
+                                <p class="mt-2 text-lg text-blue-100">
+                                    Administra y gestiona los roles y permisos del sistema
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hero Actions -->
+                    <div class="mt-6 lg:mt-0 lg:ml-8">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            @can('roles.create')
+                                <a href="{{ route('admin.roles.create') }}" 
+                                   class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-plus-circle mr-2"></i>
+                                    Crear Nuevo Rol
+                                </a>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard de Estadísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total de Roles -->
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-user-shield text-white text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">{{ $roles->count() }}</div>
+                        <div class="text-sm font-medium text-gray-600">Total de Roles</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-                <div class="stats-card stats-card-success">
-                    <div class="stats-card-body">
-                        <div class="stats-icon">
-                            <i class="fas fa-users"></i>
+            <!-- Usuarios Asignados -->
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-users text-white text-xl"></i>
                         </div>
-                        <div class="stats-content">
-                            <h3 class="stats-value">{{ $roles->sum(function($role) { return $role->users->count(); }) }}</h3>
-                            <p class="stats-label">Usuarios Asignados</p>
-                            <div class="stats-trend">
-                                <i class="fas fa-user-check"></i>
-                                <span>Activos</span>
-                            </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">{{ $roles->sum(function($role) { return $role->users->count(); }) }}</div>
+                        <div class="text-sm font-medium text-gray-600">Usuarios Asignados</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-                <div class="stats-card stats-card-warning">
-                    <div class="stats-card-body">
-                        <div class="stats-icon">
-                            <i class="fas fa-key"></i>
+            <!-- Permisos Disponibles -->
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-key text-white text-xl"></i>
                         </div>
-                        <div class="stats-content">
-                            <h3 class="stats-value">{{ $permissions->count() }}</h3>
-                            <p class="stats-label">Permisos Disponibles</p>
-                            <div class="stats-trend">
-                                <i class="fas fa-lock"></i>
-                                <span>Seguridad</span>
-                            </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">{{ $permissions->count() }}</div>
+                        <div class="text-sm font-medium text-gray-600">Permisos Disponibles</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-                <div class="stats-card stats-card-info">
-                    <div class="stats-card-body">
-                        <div class="stats-icon">
-                            <i class="fas fa-shield-alt"></i>
+            <!-- Roles del Sistema -->
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+                <div class="relative p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-shield-alt text-white text-xl"></i>
                         </div>
-                        <div class="stats-content">
-                            <h3 class="stats-value">{{ $roles->where('is_system_role', true)->count() }}</h3>
-                            <p class="stats-label">Roles del Sistema</p>
-                            <div class="stats-trend">
-                                <i class="fas fa-cog"></i>
-                                <span>Protegidos</span>
-                            </div>
                     </div>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold text-gray-900">{{ $roles->where('is_system_role', true)->count() }}</div>
+                        <div class="text-sm font-medium text-gray-600">Roles del Sistema</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Controles -->
+        <div class="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-list text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Lista de Roles</h3>
+                            <p class="text-sm text-gray-500">Gestiona los roles del sistema</p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle de Vista -->
+                    <div class="flex items-center space-x-2">
+                        <button @click="viewMode = 'table'" 
+                                :class="viewMode === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-table mr-2"></i>
+                            Tabla
+                        </button>
+                        <button @click="viewMode = 'cards'" 
+                                :class="viewMode === 'cards' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-th-large mr-2"></i>
+                            Tarjetas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de Tabla -->
+            <div x-show="viewMode === 'table'" class="block">
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-hashtag"></i>
+                                        <span>#</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-user-shield"></i>
+                                        <span>Nombre del Rol</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-users"></i>
+                                        <span>Usuarios</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-key"></i>
+                                        <span>Permisos</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>Sistema</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Fecha de Creación</span>
+                                    </div>
+                                </th>
+                                <th>
+                                    <div class="th-content">
+                                        <i class="fas fa-cogs"></i>
+                                        <span>Acciones</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($roles as $role)
+                                <tr class="table-row">
+                                    <td>
+                                        <div class="row-number">{{ $loop->iteration }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="role-info">
+                                            <div class="role-name">{{ $role->name }}</div>
+                                            <div class="role-description text-sm text-gray-500">
+                                                @if($role->is_system_role)
+                                                    <span class="system-badge">Rol del Sistema</span>
+                                                @else
+                                                    <span class="custom-badge">Rol Personalizado</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="users-count">
+                                            <span class="count-badge">{{ $role->users->count() }}</span>
+                                            <span class="count-label">usuarios</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="permissions-count">
+                                            <span class="count-badge">{{ $role->permissions->count() }}</span>
+                                            <span class="count-label">permisos</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="system-status">
+                                            @if($role->is_system_role)
+                                                <span class="status-badge status-system">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                    Sistema
+                                                </span>
+                                            @else
+                                                <span class="status-badge status-custom">
+                                                    <i class="fas fa-user-edit"></i>
+                                                    Personalizado
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="date-info">
+                                            <div class="date-value">{{ $role->created_at->format('d/m/Y') }}</div>
+                                            <div class="date-time text-sm text-gray-500">{{ $role->created_at->format('H:i') }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            @can('roles.show')
+                                                <button type="button" class="btn-action btn-view" 
+                                                        @click="showRole({{ $role->id }})" title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            @endcan
+                                            @can('roles.edit')
+                                                <a href="{{ route('admin.roles.edit', $role->id) }}" 
+                                                   class="btn-action btn-edit" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endcan
+                                            @can('roles.edit')
+                                                <button type="button" class="btn-action btn-permissions" 
+                                                        @click="assignPermissions({{ $role->id }}, '{{ $role->name }}')" title="Asignar permisos">
+                                                    <i class="fas fa-key"></i>
+                                                </button>
+                                            @endcan
+                                            @can('roles.destroy')
+                                                <button type="button" class="btn-action btn-delete" 
+                                                        @click="deleteRole({{ $role->id }})" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vista de Tarjetas -->
+            <div x-show="viewMode === 'cards'" class="block">
+                <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach ($roles as $role)
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $role->is_system_role ? 'border-purple-500' : 'border-blue-500' }}">
+                            <!-- Header de la Tarjeta -->
+                            <div class="p-6 pb-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                            {{ strtoupper(substr($role->name, 0, 1)) }}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $role->name }}</h3>
+                                            <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
+                                                @if($role->is_system_role)
+                                                    <i class="fas fa-shield-alt text-xs"></i>
+                                                    <span class="truncate">Rol del Sistema</span>
+                                                @else
+                                                    <i class="fas fa-user-edit text-xs"></i>
+                                                    <span class="truncate">Rol Personalizado</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Estado -->
+                                    <div class="flex-shrink-0">
+                                        @if($role->is_system_role)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                <i class="fas fa-shield-alt mr-1"></i>
+                                                Sistema
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-user-edit mr-1"></i>
+                                                Personalizado
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Información Principal -->
+                            <div class="px-6 pb-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- Usuarios -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                            <i class="fas fa-users"></i>
+                                            <span>Usuarios</span>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-900">{{ $role->users->count() }}</p>
+                                    </div>
+
+                                    <!-- Permisos -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                            <i class="fas fa-key"></i>
+                                            <span>Permisos</span>
+                                        </div>
+                                        <p class="text-sm font-medium text-gray-900">{{ $role->permissions->count() }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Fecha de Creación -->
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>Creado: {{ $role->created_at->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acciones -->
+                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <div class="flex items-center justify-center space-x-2">
+                                    @can('roles.show')
+                                        <button type="button" class="btn-action btn-view" 
+                                                @click="showRole({{ $role->id }})" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endcan
+                                    @can('roles.edit')
+                                        <a href="{{ route('admin.roles.edit', $role->id) }}" 
+                                           class="btn-action btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endcan
+                                    @can('roles.edit')
+                                        <button type="button" class="btn-action btn-permissions" 
+                                                @click="assignPermissions({{ $role->id }}, '{{ $role->name }}')" title="Asignar permisos">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                    @endcan
+                                    @can('roles.destroy')
+                                        <button type="button" class="btn-action btn-delete" 
+                                                @click="deleteRole({{ $role->id }})" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endcan
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- Contenido Principal --}}
-    <div class="modern-card">
-        <div class="modern-card-header">
-            <div class="title-content">
-                <div class="title-icon">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <div>
-                    <h3>Gestión de Roles</h3>
-                    <p>Administra y gestiona los roles y permisos del sistema</p>
-                </div>
-            </div>
-            <div class="modern-card-actions">
-                @can('roles.create')
-                    <a href="{{ route('admin.roles.create') }}" class="btn-primary">
-                        <i class="fas fa-plus-circle"></i>
-                        Crear Nuevo Rol
-                    </a>
-                @endcan
-            </div>
-        </div>
-        <div class="modern-card-body">
-            @php
-                $rolesData = $roles->map(function($role) {
-                    return [
-                        'id' => $role->id,
-                        'name' => $role->name,
-                        'created_at' => $role->created_at->format('d/m/Y H:i'),
-                        'users_count' => $role->users->count(),
-                        'permissions_count' => $role->permissions->count(),
-                        'is_system' => $role->is_system_role ? 'Sí' : 'No'
-                    ];
-                })->toArray();
-            @endphp
-            
-            <x-simple-table 
-                id="roles-table"
-                :items="$rolesData"
-                :columns="[
-                    ['key' => 'name', 'label' => 'Nombre del Rol', 'sortable' => true],
-                    ['key' => 'users_count', 'label' => 'Usuarios', 'sortable' => true, 'format' => 'number'],
-                    ['key' => 'permissions_count', 'label' => 'Permisos', 'sortable' => true, 'format' => 'number'],
-                    ['key' => 'is_system', 'label' => 'Sistema', 'sortable' => true],
-                    ['key' => 'created_at', 'label' => 'Fecha de Creación', 'sortable' => true]
-                ]"
-                :actions="'
-                    <div class=\"flex items-center gap-2\">
-                        @can(\'roles.show\')
-                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors\" 
-                                    @click=\"showRole(item.id)\" title=\"Ver detalles\">
-                                <i class=\"fas fa-eye text-sm\"></i>
-                            </button>
-                        @endcan
-                        @can(\'roles.edit\')
-                            <a href=\"{{ route(\'admin.roles.edit\', \'\') }}\" + item.id class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-colors\" title=\"Editar\">
-                                <i class=\"fas fa-edit text-sm\"></i>
-                            </a>
-                        @endcan
-                        @can(\'roles.edit\')
-                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors\" 
-                                    @click=\"assignPermissions(item.id, item.name)\" title=\"Asignar permisos\">
-                                <i class=\"fas fa-key text-sm\"></i>
-                            </button>
-                        @endcan
-                        @can(\'roles.destroy\')
-                            <button type=\"button\" class=\"w-8 h-8 flex items-center justify-center rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors\" 
-                                    @click=\"deleteRole(item.id)\" title=\"Eliminar\">
-                                <i class=\"fas fa-trash text-sm\"></i>
-                            </button>
-                        @endcan
-                    </div>
-                '"
-            />
-        </div>
-        </div>
-    </div>
-
-    {{-- Modo Tarjetas para Móviles --}}
-    <div class="mobile-cards">
-        @foreach ($roles as $role)
-            <div class="mobile-card">
-                <div class="mobile-card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 font-weight-bold text-primary">{{ $role->name }}</h6>
-                        <span class="badge badge-secondary">#{{ $loop->iteration }}</span>
-                    </div>
-                </div>
-                <div class="mobile-card-body">
-                    <div class="mobile-info">
-                        <span class="mobile-info-label">Fecha de Creación:</span>
-                        <span class="mobile-info-value">{{ $role->created_at->format('d/m/Y H:i') }}</span>
-                    </div>
-                    
-                    <div class="mobile-card-actions">
-                        @can('roles.show')
-                            <button type="button" class="btn btn-success btn-sm show-role"
-                                data-id="{{ $role->id }}" title="Ver detalles">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        @endcan
-                        @can('roles.edit')
-                            <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-info btn-sm" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        @endcan
-                        @can('roles.edit')
-                            <a type="button" class="btn btn-warning btn-sm assign-permissions"
-                                data-id="{{ $role->id }}" data-name="{{ $role->name }}" title="Asignar permisos">
-                                <i class="fas fa-key"></i>
-                            </a>
-                        @endcan
-                        @can('roles.destroy')
-                            <button type="button" class="btn btn-danger btn-sm delete-role"
-                                data-id="{{ $role->id }}" title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        @endcan
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-</div>
 
     {{-- Modal para mostrar rol --}}
     <div class="modal fade" id="showRoleModal" tabindex="-1" role="dialog" aria-labelledby="showRoleModalLabel"
@@ -249,12 +474,11 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-        {{-- Modal de Asignación de Permisos --}}
+    {{-- Modal de Asignación de Permisos --}}
     <div class="modal fade" id="permissionsModal" tabindex="-1" role="dialog" aria-labelledby="permissionsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -346,12 +570,3 @@
         </div>
     </div>
 @endsection
-
-@push('css')
-    <link rel="stylesheet" href="{{ asset('css/admin/roles/index.css') }}">
-@endpush
-
-@push('js')
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script src="{{ asset('js/admin/roles/index.js') }}" defer></script>
-@endpush
