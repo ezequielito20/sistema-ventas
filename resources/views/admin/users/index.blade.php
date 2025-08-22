@@ -167,10 +167,17 @@
     <div class="desktop-view" x-show="viewMode === 'table'">
         <div class="table-container">
             <div class="table-header">
-                <h3 class="table-title">
-                    <i class="fas fa-table mr-2"></i>
-                    Lista de Usuarios
-                </h3>
+                <div class="table-header-content">
+                    <h3 class="table-title">
+                        <i class="fas fa-table mr-2"></i>
+                        Lista de Usuarios
+                    </h3>
+                    <div class="table-search-container">
+                        <div class="search-input-group">
+                            <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="table-content">
                 <table id="usersTable" class="users-table">
@@ -188,7 +195,8 @@
                     </thead>
                     <tbody>
                         @foreach ($users as $user)
-                            <tr>
+                            <tr x-show="isUserVisible('{{ strtolower($user->name . ' ' . $user->email . ' ' . ($user->company->name ?? '') . ' ' . $user->roles->pluck('name')->implode(' ')) }}')"
+                                data-search="{{ strtolower($user->name . ' ' . $user->email . ' ' . ($user->company->name ?? '') . ' ' . $user->roles->pluck('name')->implode(' ')) }}">
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <div class="user-info">
@@ -257,12 +265,9 @@
 
     <!-- Vista de Tarjetas para Escritorio -->
     <div class="desktop-view" x-show="viewMode === 'cards'">
-        <div class="search-container">
+        <div class="search-container search-container-right">
             <div class="search-input-group">
                 <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
-                <button class="search-btn" type="button">
-                    <i class="fas fa-search"></i>
-                </button>
             </div>
         </div>
 
@@ -340,12 +345,9 @@
 
     <!-- Vista Móvil -->
     <div class="mobile-view">
-        <div class="search-container">
+        <div class="search-container search-container-right">
             <div class="search-input-group">
                 <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
-                <button class="search-btn" type="button">
-                    <i class="fas fa-search"></i>
-                </button>
             </div>
         </div>
 

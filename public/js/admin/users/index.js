@@ -25,6 +25,8 @@ function usersApp() {
             return userData.toLowerCase().includes(this.searchTerm.toLowerCase());
         },
 
+
+
         async showUserDetails(userId) {
             this.isLoading = true;
             this.showModal = true;
