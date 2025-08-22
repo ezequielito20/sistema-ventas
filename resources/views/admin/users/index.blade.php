@@ -17,18 +17,18 @@
                 </div>
             </div>
             <div class="header-actions">
-                @can('users.report')
+                @if($permissions['users.report'])
                     <a href="{{ route('admin.users.report') }}" class="btn-action btn-report" target="_blank">
                         <i class="fas fa-file-pdf mr-2"></i>
                         Reporte
                     </a>
-                @endcan
-                @can('users.create')
+                @endif
+                @if($permissions['users.create'])
                     <a href="{{ route('admin.users.create') }}" class="btn-action btn-create">
                         <i class="fas fa-user-plus mr-2"></i>
                         Nuevo Usuario
                     </a>
-                @endcan
+                @endif
             </div>
         </div>
     </div>
@@ -233,25 +233,25 @@
                                 </td>
                                 <td>
                                     <div class="action-buttons">
-                                        @can('users.show')
+                                        @if($permissions['users.show'])
                                             <button type="button" class="action-btn action-view"
                                                 @click="showUserDetails({{ $user->id }})" title="Ver Detalles">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                        @endcan
-                                        @can('users.edit')
+                                        @endif
+                                        @if($permissions['users.edit'])
                                             <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn action-edit"
                                                 title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                        @endcan
+                                        @endif
                                         @if ($user->id !== auth()->id())
-                                            @can('users.destroy')
+                                            @if($permissions['users.destroy'])
                                                 <button type="button" class="action-btn action-delete"
                                                     @click="deleteUser({{ $user->id }}, '{{ $user->name }}')" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            @endcan
+                                            @endif
                                         @endif
                                     </div>
                                 </td>
@@ -316,25 +316,25 @@
                             </span>
                         </div>
                         <div class="user-card-actions">
-                            @can('users.show')
+                            @if($permissions['users.show'])
                                 <button type="button" class="action-btn action-view"
                                     @click="showUserDetails({{ $user->id }})" title="Ver Detalles">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                            @endcan
-                            @can('users.edit')
+                            @endif
+                            @if($permissions['users.edit'])
                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn action-edit"
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                            @endcan
+                            @endif
                             @if ($user->id !== auth()->id())
-                                @can('users.destroy')
+                                @if($permissions['users.destroy'])
                                     <button type="button" class="action-btn action-delete"
                                         @click="deleteUser({{ $user->id }}, '{{ $user->name }}')" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                @endcan
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -396,25 +396,25 @@
                             </span>
                         </div>
                         <div class="user-card-actions">
-                            @can('users.show')
+                            @if($permissions['users.show'])
                                 <button type="button" class="action-btn action-view"
                                     @click="showUserDetails({{ $user->id }})" title="Ver Detalles">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                            @endcan
-                            @can('users.edit')
+                            @endif
+                            @if($permissions['users.edit'])
                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="action-btn action-edit"
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                            @endcan
+                            @endif
                             @if ($user->id !== auth()->id())
-                                @can('users.destroy')
+                                @if($permissions['users.destroy'])
                                     <button type="button" class="action-btn action-delete"
                                         @click="deleteUser({{ $user->id }}, '{{ $user->name }}')" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                @endcan
+                                @endif
                             @endif
                         </div>
                     </div>
