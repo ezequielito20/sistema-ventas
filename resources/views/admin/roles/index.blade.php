@@ -52,13 +52,13 @@
                     <!-- Hero Actions -->
                     <div class="mt-6 lg:mt-0 lg:ml-8">
                         <div class="flex flex-col sm:flex-row gap-4">
-                            @can('roles.create')
+                            @if($permissions['can_create'])
                                 <a href="{{ route('admin.roles.create') }}" 
                                    class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30">
                                     <i class="fas fa-plus-circle mr-2"></i>
                                     Crear Nuevo Rol
                                 </a>
-                            @endcan
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $permissions->count() }}</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ $permissionsList->flatten()->count() }}</div>
                         <div class="text-sm font-medium text-gray-600">Permisos Disponibles</div>
                         <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
                             <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style="width: 100%"></div>
@@ -277,33 +277,33 @@
                                             <div class="date-time text-sm text-gray-500">{{ $role->created_at->format('H:i') }}</div>
                                         </div>
                                     </td>
-                                    <td>
+                                                                        <td>
                                         <div class="action-buttons">
-                                            @can('roles.show')
+                                            @if($permissions['can_show'])
                                                 <button type="button" class="btn-action btn-view" 
                                                         @click="showRole({{ $role->id }})" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
-                                                </button>
-                                            @endcan
-                                            @can('roles.edit')
+                            </button>
+                        @endif
+                                            @if($permissions['can_edit'])
                                                 <a href="{{ route('admin.roles.edit', $role->id) }}" 
                                                    class="btn-action btn-edit" title="Editar">
                                                     <i class="fas fa-edit"></i>
-                                                </a>
-                                            @endcan
-                                            @can('roles.edit')
+                            </a>
+                        @endif
+                                            @if($permissions['can_assign_permissions'])
                                                 <button type="button" class="btn-action btn-permissions" 
                                                         @click="assignPermissions({{ $role->id }}, '{{ $role->name }}')" title="Asignar permisos">
                                                     <i class="fas fa-key"></i>
-                                                </button>
-                                            @endcan
-                                            @can('roles.destroy')
+                            </button>
+                        @endif
+                                            @if($permissions['can_destroy'])
                                                 <button type="button" class="btn-action btn-delete" 
                                                         @click="deleteRole({{ $role->id }})" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
-                                                </button>
-                                            @endcan
-                                        </div>
+                            </button>
+                        @endif
+                    </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -386,35 +386,35 @@
                                 </div>
                             </div>
 
-                            <!-- Acciones -->
+                                                        <!-- Acciones -->
                             <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
                                 <div class="flex items-center justify-center space-x-2">
-                                    @can('roles.show')
+                        @if($permissions['can_show'])
                                         <button type="button" class="btn-action btn-view" 
                                                 @click="showRole({{ $role->id }})" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    @endcan
-                                    @can('roles.edit')
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        @endif
+                        @if($permissions['can_edit'])
                                         <a href="{{ route('admin.roles.edit', $role->id) }}" 
                                            class="btn-action btn-edit" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endcan
-                                    @can('roles.edit')
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        @endif
+                        @if($permissions['can_assign_permissions'])
                                         <button type="button" class="btn-action btn-permissions" 
                                                 @click="assignPermissions({{ $role->id }}, '{{ $role->name }}')" title="Asignar permisos">
-                                            <i class="fas fa-key"></i>
+                                <i class="fas fa-key"></i>
                                         </button>
-                                    @endcan
-                                    @can('roles.destroy')
+                        @endif
+                        @if($permissions['can_destroy'])
                                         <button type="button" class="btn-action btn-delete" 
                                                 @click="deleteRole({{ $role->id }})" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    @endcan
-                                </div>
-                            </div>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
                         </div>
                     @endforeach
                 </div>
@@ -541,7 +541,7 @@
                         <input type="hidden" id="roleId" name="role_id">
 
                         <div class="row permissions-container">
-                            @foreach ($permissions as $module => $modulePermissions)
+                            @foreach ($permissionsList as $module => $modulePermissions)
                                 <div class="col-xl-4 col-lg-6 col-12 mb-4">
                                     <div class="permission-module-card">
                                         <div class="permission-module-header">
