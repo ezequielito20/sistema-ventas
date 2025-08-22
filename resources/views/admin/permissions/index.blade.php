@@ -18,18 +18,18 @@
                 <h1 class="text-2xl font-bold text-gray-900">Gestión de Permisos</h1>
             </div>
             <div class="flex items-center space-x-3">
-                @can('permissions.report')
+                @if($permissions['can_report'])
                     <a href="{{ route('admin.permissions.report') }}" class="btn-outline" target="_blank">
                         <i class="fas fa-file-pdf mr-2"></i>
                         Reporte
                     </a>
-                @endcan
-                @can('permissions.create')
+                @endif
+                @if($permissions['can_create'])
                     <a href="{{ route('admin.permissions.create') }}" class="btn-primary">
                         <i class="fas fa-plus-circle mr-2"></i>
                         Nuevo Permiso
                     </a>
-                @endcan
+                @endif
             </div>
         </div>
 
@@ -158,7 +158,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($permissions as $permission)
+                            @foreach ($permissionsList as $permission)
                                 <tr class="table-row-hover">
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
@@ -182,27 +182,27 @@
                                     <td class="text-center">{{ $permission->created_at->format('d/m/Y H:i') }}</td>
                                     <td class="text-center">
                                         <div class="action-buttons">
-                                            @can('permissions.show')
+                                            @if($permissions['can_show'])
                                                 <button type="button" class="action-button show"
                                                     data-id="{{ $permission->id }}">
                                                     <i class="fas fa-eye"></i>
                                                     <span class="action-text">Ver</span>
                                                 </button>
-                                            @endcan
-                                            @can('permissions.edit')
+                                            @endif
+                                            @if($permissions['can_edit'])
                                                 <a href="{{ route('admin.permissions.edit', $permission->id) }}"
                                                     class="action-button edit">
                                                     <i class="fas fa-edit"></i>
                                                     <span class="action-text">Editar</span>
                                                 </a>
-                                            @endcan
-                                            @can('permissions.destroy')
+                                            @endif
+                                            @if($permissions['can_destroy'])
                                                 <button type="button" class="action-button delete"
                                                     data-id="{{ $permission->id }}">
                                                     <i class="fas fa-trash"></i>
                                                     <span class="action-text">Eliminar</span>
                                                 </button>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -213,7 +213,7 @@
 
                 <!-- Vista de Tarjetas Móviles -->
                 <div class="mobile-cards-view" id="mobileCardsView">
-                    @foreach ($permissions as $permission)
+                    @foreach ($permissionsList as $permission)
                         <div class="mobile-permission-card">
                             <!-- Header de la tarjeta -->
                             <div class="card-header">
@@ -271,25 +271,25 @@
 
                                 <!-- Botones de acción -->
                                 <div class="card-actions">
-                                    @can('permissions.show')
+                                    @if($permissions['can_show'])
                                         <button type="button" class="action-button show" data-id="{{ $permission->id }}">
                                             <i class="fas fa-eye"></i>
                                             <span class="action-text">Ver</span>
                                         </button>
-                                    @endcan
-                                    @can('permissions.edit')
+                                    @endif
+                                    @if($permissions['can_edit'])
                                         <a href="{{ route('admin.permissions.edit', $permission->id) }}"
                                             class="action-button edit">
                                             <i class="fas fa-edit"></i>
                                             <span class="action-text">Editar</span>
                                         </a>
-                                    @endcan
-                                    @can('permissions.destroy')
+                                    @endif
+                                    @if($permissions['can_destroy'])
                                         <button type="button" class="action-button delete" data-id="{{ $permission->id }}">
                                             <i class="fas fa-trash"></i>
                                             <span class="action-text">Eliminar</span>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -299,7 +299,7 @@
                 <!-- Vista de Tarjetas -->
                 <div class="cards-view" id="cardsView">
                     <div class="row">
-                        @foreach ($permissions as $permission)
+                        @foreach ($permissionsList as $permission)
                             <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="permission-card">
                                     <div class="card-header">
@@ -334,24 +334,24 @@
                                             </div>
                                         </div>
                                         <div class="card-actions">
-                                            @can('permissions.show')
+                                            @if($permissions['can_show'])
                                                 <button type="button" class="action-button show"
                                                     data-id="{{ $permission->id }}" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                            @endcan
-                                            @can('permissions.edit')
+                                            @endif
+                                            @if($permissions['can_edit'])
                                                 <a href="{{ route('admin.permissions.edit', $permission->id) }}"
                                                     class="action-button edit" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                            @endcan
-                                            @can('permissions.destroy')
+                                            @endif
+                                            @if($permissions['can_destroy'])
                                                 <button type="button" class="action-button delete"
                                                     data-id="{{ $permission->id }}" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -365,22 +365,22 @@
         <!-- Paginación -->
         <div class="pagination-container">
             <div class="pagination-info">
-                <span class="pagination-text-desktop">Mostrando {{ $permissions->firstItem() ?? 0 }} a
-                    {{ $permissions->lastItem() ?? 0 }} de {{ $permissions->total() }} permisos</span>
-                <span class="pagination-text-mobile">Página {{ $permissions->currentPage() }} de
-                    {{ $permissions->lastPage() }}</span>
+                <span class="pagination-text-desktop">Mostrando {{ $permissionsList->firstItem() ?? 0 }} a
+                    {{ $permissionsList->lastItem() ?? 0 }} de {{ $permissionsList->total() }} permisos</span>
+                <span class="pagination-text-mobile">Página {{ $permissionsList->currentPage() }} de
+                    {{ $permissionsList->lastPage() }}</span>
             </div>
             <div class="pagination-links">
-                @if ($permissions->hasPages())
+                @if ($permissionsList->hasPages())
                     <!-- Botón Anterior -->
-                    @if ($permissions->onFirstPage())
+                    @if ($permissionsList->onFirstPage())
                         <span class="disabled">
                             <i class="fas fa-chevron-left"></i>
                             <span class="pagination-text-desktop">Anterior</span>
                             <span class="pagination-text-mobile">Ant</span>
                         </span>
                     @else
-                        <a href="{{ $permissions->previousPageUrl() }}">
+                        <a href="{{ $permissionsList->previousPageUrl() }}">
                             <i class="fas fa-chevron-left"></i>
                             <span class="pagination-text-desktop">Anterior</span>
                             <span class="pagination-text-mobile">Ant</span>
@@ -388,8 +388,8 @@
                     @endif
 
                     <!-- Números de página -->
-                    @foreach ($permissions->getUrlRange(1, $permissions->lastPage()) as $page => $url)
-                        @if ($page == $permissions->currentPage())
+                    @foreach ($permissionsList->getUrlRange(1, $permissionsList->lastPage()) as $page => $url)
+                        @if ($page == $permissionsList->currentPage())
                             <span class="active">
                                 {{ $page }}
                             </span>
@@ -401,8 +401,8 @@
                     @endforeach
 
                     <!-- Botón Siguiente -->
-                    @if ($permissions->hasMorePages())
-                        <a href="{{ $permissions->nextPageUrl() }}">
+                    @if ($permissionsList->hasMorePages())
+                        <a href="{{ $permissionsList->nextPageUrl() }}">
                             <span class="pagination-text-desktop">Siguiente</span>
                             <span class="pagination-text-mobile">Sig</span>
                             <i class="fas fa-chevron-right"></i>

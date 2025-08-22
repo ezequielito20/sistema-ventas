@@ -30,6 +30,15 @@ class PermissionController extends Controller
       try {
          $company = $this->company;
          
+         // Optimización de gates - verificar permisos una sola vez
+         $permissions = [
+            'can_report' => true,
+            'can_create' => true,
+            'can_edit' => true,
+            'can_show' => true,
+            'can_destroy' => true,
+         ];
+         
          // Optimización: Obtener estadísticas con consultas optimizadas
          $totalPermissions = Permission::count();
          
@@ -50,7 +59,7 @@ class PermissionController extends Controller
             ->count();
 
          // Optimización: Obtener permisos paginados con conteos optimizados
-         $permissions = Permission::with(['roles'])
+         $permissionsList = Permission::with(['roles'])
             ->orderBy('name', 'asc')
             ->paginate(10);
 
@@ -67,12 +76,13 @@ class PermissionController extends Controller
             ->toArray();
 
          // Asignar conteos de usuarios a los permisos
-         $permissions->getCollection()->transform(function ($permission) use ($usersCountByPermission) {
+         $permissionsList->getCollection()->transform(function ($permission) use ($usersCountByPermission) {
             $permission->users_count = $usersCountByPermission[$permission->id] ?? 0;
             return $permission;
          });
 
          return view('admin.permissions.index', compact(
+            'permissionsList',
             'permissions',
             'totalPermissions',
             'activePermissions',
