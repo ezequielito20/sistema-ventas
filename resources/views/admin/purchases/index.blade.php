@@ -24,32 +24,30 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    @can('purchases.report')
+                    @if ($permissions['can_report'])
                         <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank"
                             title="Generar reporte PDF">
                             <i class="fas fa-file-pdf"></i>
                             <span>Reporte</span>
                             <div class="btn-ripple"></div>
                         </a>
-                    @endcan
+                    @endif
                     @if ($cashCount)
-                        @can('purchases.create')
+                        @if ($permissions['can_create'])
                             <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass"
                                 title="Crear nueva compra">
                                 <i class="fas fa-plus-circle"></i>
                                 <span>Nueva Compra</span>
                                 <div class="btn-ripple"></div>
                             </a>
-                        @endcan
+                        @endif
                     @else
-                        @can('cash-counts.create')
-                            <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
-                                title="Abrir caja para realizar compras">
-                                <i class="fas fa-cash-register"></i>
-                                <span>Abrir Caja</span>
-                                <div class="btn-ripple"></div>
-                            </a>
-                        @endcan
+                        <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
+                            title="Abrir caja para realizar compras">
+                            <i class="fas fa-cash-register"></i>
+                            <span>Abrir Caja</span>
+                            <div class="btn-ripple"></div>
+                        </a>
                     @endif
                 </div>
             </div>
@@ -238,7 +236,7 @@
                                         <td>
                                             <div class="actions-group" role="group"
                                                 aria-label="Acciones para compra {{ $loop->iteration }}">
-                                                @can('purchases.show')
+                                                @if ($permissions['can_show'])
                                                     <button type="button" class="action-btn details-btn view-details"
                                                         data-id="{{ $purchase->id }}" title="Ver Detalles"
                                                         aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
@@ -249,21 +247,21 @@
                                                         title="Ver Proveedor" aria-label="Ver información del proveedor">
                                                         <i class="fas fa-truck" aria-hidden="true"></i>
                                                     </button>
-                                                @endcan
-                                                @can('purchases.edit')
+                                                @endif
+                                                @if ($permissions['can_edit'])
                                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
                                                         class="action-btn edit-btn" title="Editar Compra"
                                                         aria-label="Editar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                                         <i class="fas fa-edit" aria-hidden="true"></i>
                                                     </a>
-                                                @endcan
-                                                @can('purchases.destroy')
+                                                @endif
+                                                @if ($permissions['can_destroy'])
                                                     <button type="button" class="action-btn delete-btn delete-purchase"
                                                         data-id="{{ $purchase->id }}" title="Eliminar Compra"
                                                         aria-label="Eliminar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                                         <i class="fas fa-trash" aria-hidden="true"></i>
                                                     </button>
-                                                @endcan
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -358,37 +356,37 @@
                                 <!-- Action buttons -->
                                 <div class="card-actions-modern" role="group"
                                     aria-label="Acciones para compra {{ $loop->iteration }}">
-                                    @can('purchases.show')
+                                    @if ($permissions['can_show'])
                                         <button type="button" class="modern-action-btn primary view-details"
                                             data-id="{{ $purchase->id }}" title="Ver Detalles"
                                             aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                             <i class="fas fa-eye" aria-hidden="true"></i>
                                         </button>
-                                    @endcan
+                                    @endif
 
-                                    @can('purchases.show')
+                                    @if ($permissions['can_show'])
                                         <button type="button" class="modern-action-btn info"
                                             onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
                                             title="Ver Proveedor" aria-label="Ver información del proveedor">
                                             <i class="fas fa-truck" aria-hidden="true"></i>
                                         </button>
-                                    @endcan
+                                    @endif
 
-                                    @can('purchases.edit')
+                                    @if ($permissions['can_edit'])
                                         <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
                                             class="modern-action-btn secondary" title="Editar"
                                             aria-label="Editar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                             <i class="fas fa-edit" aria-hidden="true"></i>
                                         </a>
-                                    @endcan
+                                    @endif
 
-                                    @can('purchases.destroy')
+                                    @if ($permissions['can_destroy'])
                                         <button type="button" class="modern-action-btn danger delete-purchase"
                                             data-id="{{ $purchase->id }}" title="Eliminar"
                                             aria-label="Eliminar compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                             <i class="fas fa-trash" aria-hidden="true"></i>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

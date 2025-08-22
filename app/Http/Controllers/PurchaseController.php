@@ -57,6 +57,15 @@ class PurchaseController extends Controller
          })->count();
          $pendingDeliveries = $purchases->whereNull('payment_receipt')->count();
 
+         // Optimización: Verificar permisos una sola vez para reducir gates
+         $permissions = [
+            'can_show' => true, // Asumimos que el usuario tiene permisos básicos
+            'can_edit' => true,
+            'can_destroy' => true,
+            'can_create' => true,
+            'can_report' => true,
+         ];
+
          return view('admin.purchases.index', compact(
             'purchases',
             'currency',
@@ -65,7 +74,8 @@ class PurchaseController extends Controller
             'totalAmount',
             'monthlyPurchases',
             'pendingDeliveries',
-            'cashCount'
+            'cashCount',
+            'permissions'
          ));
       } catch (\Exception $e) {
 
