@@ -11,7 +11,7 @@
     <div class="page-background"></div>
 
     <!-- Main Container -->
-    <div class="main-container" id="purchasesEditRoot" x-data="purchaseForm()"
+    <div class="main-container" x-data="purchaseForm()"
         data-currency-symbol="{{ $currency->symbol }}"
         data-initial-products='@json($purchaseDetails)'
         data-total-products="{{ $purchaseDetails->count() }}"
@@ -19,6 +19,7 @@
         data-total-amount="{{ $purchaseDetails->sum('subtotal') }}"
         data-referrer-url="{{ session('purchases_referrer') }}"
         data-index-url="{{ route('admin.purchases.index') }}">
+        
         <!-- Floating Header -->
         <div class="floating-header">
             <div class="header-content">
@@ -51,30 +52,37 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Main Content -->
-                <div class="content-grid">
-                    <!-- Left Panel - Main Form -->
-                    <div class="main-panel">
-                        <!-- Information Panel -->
-                        <div class="form-card">
+                <!-- Compact Layout -->
+                <div class="compact-layout">
+                    <!-- Main Content Panel -->
+                    <div class="main-content-panel">
+                        <!-- Combined Information & Products Panel -->
+                        <div class="form-card combined-panel">
                             <div class="card-header">
                                 <div class="header-content">
                                     <div class="title-section">
                                         <div class="title-icon">
-                                            <i class="fas fa-info-circle"></i>
+                                            <i class="fas fa-shopping-basket"></i>
                                         </div>
                                         <div class="title-text">
-                                            <h3 class="panel-title">Información de la Compra</h3>
-                                            <p class="panel-subtitle">Complete los datos básicos de la compra</p>
+                                            <h3 class="panel-title">Editar Compra de Productos</h3>
+                                            <p class="panel-subtitle">Modifica productos y configura la compra</p>
+                                        </div>
+                                    </div>
+                                    <div class="header-controls">
+                                        <div class="product-counter">
+                                            <span class="counter-badge" id="productCount">{{ $purchase->details->count() }} productos</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
                             <div class="card-body">
-                                <div class="form-grid">
-                                    <!-- Código de Producto -->
-                                    <div class="field-group full-width">
-                                        <div class="field-wrapper">
+                                <!-- Compact Form Section -->
+                                <div class="compact-form-section">
+                                    <div class="form-row">
+                                        <!-- Código de Producto -->
+                                        <div class="form-field product-code-field">
                                             <label for="product_code" class="field-label">
                                                 <div class="label-content">
                                                     <div class="label-icon">
@@ -105,14 +113,12 @@
                                                         @click="openSearchModal()">
                                                         <div class="btn-content">
                                                             <i class="fas fa-search"></i>
-                                                            <span class="hidden sm:inline">Buscar</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </button>
                                                     <a href="/products/create" class="btn-modern btn-success">
                                                         <div class="btn-content">
                                                             <i class="fas fa-plus"></i>
-                                                            <span class="hidden sm:inline">Nuevo</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </a>
@@ -124,296 +130,236 @@
                                                         <span>{{ $message }}</span>
                                                     </div>
                                                 @enderror
-
-                                                <div class="field-help">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    <span>Presione Enter después de escanear o escribir el código</span>
-                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Fecha y Hora de Compra -->
-                                    <div class="field-group">
-                                        <div class="field-wrapper">
-                                            <label for="purchase_date" class="field-label">
-                                                <div class="label-content">
-                                                    <div class="label-icon">
-                                                        <i class="fas fa-calendar"></i>
-                                                    </div>
-                                                    <span>Fecha de Compra</span>
-                                                    <span class="required-indicator">*</span>
-                                                </div>
-                                            </label>
-
-                                            <div class="input-container">
-                                                <div class="input-wrapper">
-                                                    <div class="input-icon">
-                                                        <i class="fas fa-calendar"></i>
-                                                    </div>
-                                                    <input type="date" name="purchase_date" id="purchase_date"
-                                                        class="modern-input @error('purchase_date') error @enderror"
-                                                        value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}" required>
-                                                    <div class="input-border"></div>
-                                                    <div class="input-focus-effect"></div>
-                                                </div>
-
-                                                @error('purchase_date')
-                                                    <div class="error-message">
-                                                        <i class="fas fa-exclamation-triangle"></i>
-                                                        <span>{{ $message }}</span>
-                                                    </div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="field-group">
-                                        <div class="field-wrapper">
-                                            <label for="purchase_time" class="field-label">
-                                                <div class="label-content">
-                                                    <div class="label-icon">
-                                                        <i class="fas fa-clock"></i>
-                                                    </div>
-                                                    <span>Hora de Compra</span>
-                                                    <span class="required-indicator">*</span>
-                                                </div>
-                                            </label>
-
-                                            <div class="input-container">
-                                                <div class="input-wrapper">
-                                                    <div class="input-icon">
-                                                        <i class="fas fa-clock"></i>
-                                                    </div>
-                                                    <input type="time" name="purchase_time" id="purchase_time"
-                                                        class="modern-input @error('purchase_time') error @enderror"
-                                                        value="{{ old('purchase_time', $purchase->purchase_date->format('H:i')) }}" required>
-                                                    <div class="input-border"></div>
-                                                    <div class="input-focus-effect"></div>
-                                                </div>
-
-                                                @error('purchase_time')
-                                                    <div class="error-message">
-                                                        <i class="fas fa-exclamation-triangle"></i>
-                                                        <span>{{ $message }}</span>
-                                                    </div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Products Panel -->
-                        <div class="form-card">
-                            <div class="card-header">
-                                <div class="header-content">
-                                    <div class="title-section">
-                                        <div class="title-icon">
-                                            <i class="fas fa-shopping-basket"></i>
-                                        </div>
-                                        <div class="title-text">
-                                            <h3 class="panel-title">Productos en la Compra</h3>
-                                            <p class="panel-subtitle">Gestiona los productos de esta compra</p>
-                                        </div>
-                                    </div>
-                                    <div class="header-controls">
-                                        <div class="product-counter">
-                                            <span class="counter-badge" id="productCount">{{ $purchase->details->count() }} productos</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-container">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Producto</th>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
-                                                    Stock</th>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Cantidad</th>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                                                    Precio Unit.</th>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                                                    Subtotal</th>
-                                                <th
-                                                    class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                    Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            <template x-for="(product, index) in products" :key="product.id">
-                                                <tr class="hover:bg-gray-50 transition-colors">
-                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                                        <div class="flex items-center">
-                                                            <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                                                                <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
-                                                                    :src="product.image_url"
-                                                                    :alt="product.name">
+                                        <!-- Fecha y Hora de Compra -->
+                                        <div class="form-field date-time-fields">
+                                            <div class="date-time-row">
+                                                <div class="date-field">
+                                                    <label for="purchase_date" class="field-label">
+                                                        <div class="label-content">
+                                                            <div class="label-icon">
+                                                                <i class="fas fa-calendar"></i>
                                                             </div>
-                                                            <div class="ml-2 sm:ml-4">
-                                                                <div class="text-xs sm:text-sm font-medium text-gray-900"
-                                                                    x-text="product.name"></div>
-                                                                <div class="text-xs sm:text-sm text-gray-500 hidden sm:block" x-text="product.code">
+                                                            <span>Fecha</span>
+                                                            <span class="required-indicator">*</span>
+                                                        </div>
+                                                    </label>
+
+                                                    <div class="input-container">
+                                                        <div class="input-wrapper">
+                                                            <div class="input-icon">
+                                                                <i class="fas fa-calendar"></i>
+                                                            </div>
+                                                            <input type="date" name="purchase_date" id="purchase_date"
+                                                                class="modern-input @error('purchase_date') error @enderror"
+                                                                value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}" required>
+                                                            <div class="input-border"></div>
+                                                            <div class="input-focus-effect"></div>
+                                                        </div>
+
+                                                        @error('purchase_date')
+                                                            <div class="error-message">
+                                                                <i class="fas fa-exclamation-triangle"></i>
+                                                                <span>{{ $message }}</span>
+                                                            </div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+
+                                                <div class="time-field">
+                                                    <label for="purchase_time" class="field-label">
+                                                        <div class="label-content">
+                                                            <div class="label-icon">
+                                                                <i class="fas fa-clock"></i>
+                                                            </div>
+                                                            <span>Hora</span>
+                                                            <span class="required-indicator">*</span>
+                                                        </div>
+                                                    </label>
+
+                                                    <div class="input-container">
+                                                        <div class="input-wrapper">
+                                                            <div class="input-icon">
+                                                                <i class="fas fa-clock"></i>
+                                                            </div>
+                                                            <input type="time" name="purchase_time" id="purchase_time"
+                                                                class="modern-input @error('purchase_time') error @enderror"
+                                                                value="{{ old('purchase_time', $purchase->purchase_date->format('H:i')) }}" required>
+                                                            <div class="input-border"></div>
+                                                            <div class="input-focus-effect"></div>
+                                                        </div>
+
+                                                        @error('purchase_time')
+                                                            <div class="error-message">
+                                                                <i class="fas fa-exclamation-triangle"></i>
+                                                                <span>{{ $message }}</span>
+                                                            </div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Products Table Section -->
+                                <div class="products-table-section">
+                                    <div class="table-container">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        Producto</th>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                                        Stock</th>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        Cantidad</th>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                                                        Precio Unit.</th>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                                                        Subtotal</th>
+                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                        Acción</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200">
+                                                <template x-for="(product, index) in products" :key="product.id">
+                                                    <tr class="hover:bg-gray-50 transition-colors">
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <div class="flex items-center">
+                                                                <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                                                                    <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
+                                                                        :src="product.image_url"
+                                                                        :alt="product.name">
+                                                                </div>
+                                                                <div class="ml-2 sm:ml-4">
+                                                                    <div class="text-xs sm:text-sm font-medium text-gray-900"
+                                                                        x-text="product.name"></div>
+                                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block" x-text="product.code">
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
-                                                        <span
-                                                            class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full"
-                                                            :class="{
-                                                                'bg-red-100 text-red-800': product.stock < 10,
-                                                                'bg-yellow-100 text-yellow-800': product.stock >= 10 &&
-                                                                    product.stock < 50,
-                                                                'bg-green-100 text-green-800': product.stock >= 50
-                                                            }"
-                                                            x-text="product.stock"></span>
-                                                    </td>
-                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                                        <input type="number" :name="`items[${product.id}][quantity]`" :value="product.quantity"
-                                                            @input="updateProduct(index, 'quantity', $event.target.value)"
-                                                            class="w-16 sm:w-20 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-xs sm:text-sm"
-                                                            min="1" step="1">
-                                                    </td>
-                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden md:table-cell">
-                                                        <div class="flex items-center">
-                                                            <span
-                                                                class="text-gray-500 mr-1 sm:mr-2 text-xs sm:text-sm">{{ $currency->symbol }}</span>
-                                                            <input type="number" :value="product.price"
-                                                                @input="updateProduct(index, 'price', $event.target.value)"
-                                                                class="w-20 sm:w-24 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
-                                                                step="0.01">
-                                                        </div>
-                                                    </td>
-                                                                                        <td
-                                        class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
-                                        <span
-                                            x-text="'{{ $currency->symbol }} ' + (parseFloat(product.subtotal) || 0).toFixed(2)"></span>
-                                    </td>
-                                                    <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                                                        <button @click="removeProduct(index)"
-                                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                                                            <i class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                                            <span class="hidden sm:inline">Eliminar</span>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Estado vacío -->
-                                <div x-show="products.length === 0" class="text-center py-12" style="display: none;">
-                                    <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
-                                    <h5 class="text-lg font-medium text-gray-900 mb-2">No hay productos agregados</h5>
-                                    <p class="text-gray-500 mb-3">Escanee un producto o use el botón "Buscar" para agregar
-                                        productos a la compra</p>
-                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Panel - Summary and Actions -->
-                    <div class="sidebar-panel">
-                        <div class="form-card">
-                            <div class="card-header">
-                                <div class="title-section">
-                                    <div class="title-icon">
-                                        <i class="fas fa-shopping-cart"></i>
-                                    </div>
-                                    <div class="title-text">
-                                        <h3 class="panel-title">Resumen y Acciones</h3>
-                                        <p class="panel-subtitle">Información y opciones de la edición</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Summary Section -->
-                            <div class="card-section">
-                                <div class="section-header">
-                                    <h4 class="section-title">
-                                        <i class="fas fa-calculator"></i>
-                                        Resumen de Compra
-                                    </h4>
-                                </div>
-                                <div class="summary-stats">
-                                    <div class="summary-item">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-boxes"></i>
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value" x-text="totalProducts">0</div>
-                                            <div class="summary-label">Productos Únicos</div>
-                                        </div>
+                                                        </td>
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
+                                                            <span class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full"
+                                                                :class="{
+                                                                    'bg-red-100 text-red-800': product.stock < 10,
+                                                                    'bg-yellow-100 text-yellow-800': product.stock >= 10 &&
+                                                                        product.stock < 50,
+                                                                    'bg-green-100 text-green-800': product.stock >= 50
+                                                                }"
+                                                                x-text="product.stock"></span>
+                                                        </td>
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                                            <input type="number" :name="`items[${product.id}][quantity]`" :value="product.quantity"
+                                                                @input="updateProduct(index, 'quantity', $event.target.value)"
+                                                                class="w-16 sm:w-20 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-xs sm:text-sm"
+                                                                min="1" step="1">
+                                                        </td>
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                                                            <div class="flex items-center">
+                                                                <span class="text-gray-500 mr-1 sm:mr-2 text-xs sm:text-sm">{{ $currency->symbol }}</span>
+                                                                <input type="number" :value="product.price"
+                                                                    @input="updateProduct(index, 'price', $event.target.value)"
+                                                                    class="w-20 sm:w-24 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                                                                    step="0.01">
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
+                                                            <span x-text="'{{ $currency->symbol }} ' + (parseFloat(product.subtotal) || 0).toFixed(2)"></span>
+                                                        </td>
+                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                                                            <button @click="removeProduct(index)"
+                                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                                                                <i class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
                                     </div>
 
-                                    <div class="summary-item">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-cubes"></i>
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value" x-text="totalQuantity">0</div>
-                                            <div class="summary-label">Cantidad Total</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="summary-divider"></div>
-
-                                    <div class="summary-item total">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-dollar-sign"></i>
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value total-amount"
-                                                x-text="'{{ $currency->symbol }} ' + (parseFloat(totalAmount) || 0).toFixed(2)">
-                                                {{ $currency->symbol }} 0.00</div>
-                                            <div class="summary-label">Total a Pagar</div>
+                                    <!-- Estado vacío -->
+                                    <div x-show="products.length === 0" class="text-center py-12">
+                                        <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
+                                        <h5 class="text-lg font-medium text-gray-900 mb-2">No hay productos agregados</h5>
+                                        <p class="text-gray-500 mb-3">Escanee un producto o use el botón "Buscar" para agregar
+                                            productos a la compra</p>
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
+                                            
                                         </div>
                                     </div>
                                 </div>
-                                <input type="hidden" name="total_price" x-model="totalAmount">
-                            </div>
 
-                            <!-- Actions Section -->
-                            <div class="card-section">
-                                <div class="section-header">
-                                    <h4 class="section-title">
-                                        <i class="fas fa-tasks"></i>
-                                        Acciones Disponibles
-                                    </h4>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="submit" class="btn-modern btn-primary" @click="submitForm()"
-                                        title="Actualizar esta compra y volver al listado">
-                                        <div class="btn-content">
-                                            <i class="fas fa-save"></i>
-                                            <span class="hidden sm:inline">Actualizar</span>
+                                <!-- Summary and Actions Section -->
+                                <div class="summary-actions-section">
+                                    <div class="summary-stats">
+                                        <div class="summary-item">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-boxes"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value" x-text="totalProducts">0</div>
+                                                <div class="summary-label">Productos Únicos</div>
+                                            </div>
                                         </div>
-                                        <div class="btn-bg"></div>
-                                        <div class="btn-shine"></div>
-                                    </button>
 
-                                    <button type="button" class="btn-modern btn-danger" @click="cancelEdit()">
-                                        <div class="btn-content">
-                                            <i class="fas fa-times-circle"></i>
-                                            <span class="hidden sm:inline">Cancelar</span>
+                                        <div class="summary-item">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-cubes"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value" x-text="totalQuantity">0</div>
+                                                <div class="summary-label">Cantidad Total</div>
+                                            </div>
                                         </div>
-                                        <div class="btn-bg"></div>
-                                    </button>
+
+                                        <div class="summary-divider"></div>
+
+                                        <div class="summary-item total">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value total-amount"
+                                                    x-text="'{{ $currency->symbol }} ' + (parseFloat(totalAmount) || 0).toFixed(2)">
+                                                    {{ $currency->symbol }} 0.00</div>
+                                                <div class="summary-label">Total a Pagar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="total_price" x-model="totalAmount">
+
+                                    <!-- Actions Section -->
+                                    <div class="action-buttons">
+                                        <button type="submit" class="btn-modern btn-primary" @click="submitForm()"
+                                            title="Actualizar esta compra y volver al listado">
+                                            <div class="btn-content">
+                                                <i class="fas fa-save"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                            <div class="btn-shine"></div>
+                                        </button>
+
+                                        <button type="submit" class="btn-modern btn-success" name="action"
+                                            value="save_and_new" @click="submitForm()"
+                                            title="Actualizar esta compra y crear una nueva">
+                                            <div class="btn-content">
+                                                <i class="fas fa-plus-circle"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                        </button>
+
+                                        <button type="button" class="btn-modern btn-danger" @click="cancelEdit()">
+                                            <div class="btn-content">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -490,6 +436,9 @@
                                         Código</th>
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Acción</th>
+                                    <th
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Producto</th>
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
@@ -503,9 +452,6 @@
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                         Estado</th>
-                                    <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -513,6 +459,14 @@
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <span class="text-xs sm:text-sm font-mono text-gray-900">{{ $product->code }}</span>
+                                        </td>
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                                            <button
+                                                @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
+                                                data-product-id="{{ $product->id }}"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                            </button>
                                         </td>
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <div class="flex items-center">
@@ -549,20 +503,15 @@
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden lg:table-cell">
                                             <span
                                                 class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full
-                                            @if ($product->stock_status_label === 'Bajo') bg-red-100 text-red-800
-                                            @elseif($product->stock_status_label === 'Normal') bg-yellow-100 text-yellow-800
-                                            @else bg-green-100 text-green-800 @endif">
+                                            @if ($product->stock_status_label === 'Bajo')
+                                                bg-red-100 text-red-800
+                                            @elseif($product->stock_status_label === 'Normal')
+                                                bg-yellow-100 text-yellow-800
+                                            @else
+                                                bg-green-100 text-green-800
+                                            @endif">
                                                 {{ $product->stock_status_label }}
                                             </span>
-                                        </td>
-                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                                            <button
-                                                @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
-                                                data-product-id="{{ $product->id }}"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                                <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                                <span class="hidden sm:inline">Agregar</span>
-                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -596,8 +545,6 @@
 @push('css')
     <link rel="stylesheet" href="{{ asset('css/admin/purchases/edit.css') }}">
 @endpush
-
-
 
 @push('js')
     <script src="{{ asset('js/admin/purchases/edit.js') }}" defer></script>
