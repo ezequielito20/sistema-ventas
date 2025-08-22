@@ -30,55 +30,47 @@ class PermissionController extends Controller
       try {
          $company = $this->company;
          
-         // Obtener todos los permisos para estadísticas
-         $allPermissions = Permission::with(['roles', 'users'])
+         // Optimización: Obtener estadísticas con consultas optimizadas
+         $totalPermissions = Permission::count();
+         
+         // Obtener conteo de permisos activos (con roles o usuarios)
+         $activePermissions = Permission::whereHas('roles')
+            ->orWhereHas('users')
+            ->count();
+         
+         // Obtener conteo de roles únicos que tienen permisos
+         $rolesCount = DB::table('roles')
+            ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+            ->distinct('roles.id')
+            ->count('roles.id');
+         
+         // Permisos sin usar
+         $unusedPermissions = Permission::whereDoesntHave('roles')
+            ->whereDoesntHave('users')
+            ->count();
+
+         // Optimización: Obtener permisos paginados con conteos optimizados
+         $permissions = Permission::with(['roles'])
             ->orderBy('name', 'asc')
-            ->get()
-            ->map(function ($permission) {
-               // Obtener usuarios que tienen el permiso a través de roles
-               $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
-                  $query->whereHas('permissions', function ($q) use ($permission) {
-                     $q->where('permissions.id', $permission->id);
-                  });
-               })->count();
+            ->paginate(10);
 
-               // Añadir el conteo de usuarios al objeto de permiso
-               $permission->users_count = $usersViaRoles;
-               return $permission;
-            });
+         // Optimización: Obtener conteo de usuarios por permiso en una sola consulta
+         $usersCountByPermission = DB::table('permissions')
+            ->leftJoin('role_has_permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+            ->leftJoin('roles', 'role_has_permissions.role_id', '=', 'roles.id')
+            ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->leftJoin('users', 'model_has_roles.model_id', '=', 'users.id')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->select('permissions.id', DB::raw('COUNT(DISTINCT users.id) as users_count'))
+            ->groupBy('permissions.id')
+            ->pluck('users_count', 'permissions.id')
+            ->toArray();
 
-         // Calcular estadísticas para los widgets
-         $totalPermissions = $allPermissions->count();
-
-         // Permisos activos (los que están en uso por roles o usuarios)
-         $activePermissions = $allPermissions->filter(function ($permission) {
-            return $permission->roles->count() > 0 || $permission->users->count() > 0;
-         })->count();
-
-         // Contar roles únicos que tienen permisos asignados
-         $rolesCount = $allPermissions->pluck('roles')->flatten()->unique('id')->count();
-
-         // Permisos sin usar (los que no están asignados a ningún rol ni usuario)
-         $unusedPermissions = $allPermissions->filter(function ($permission) {
-            return $permission->roles->count() === 0 && $permission->users->count() === 0;
-         })->count();
-
-         // Obtener permisos paginados para la tabla
-         $permissions = Permission::with(['roles', 'users'])
-            ->orderBy('name', 'asc')
-            ->paginate(10)
-            ->through(function ($permission) {
-               // Obtener usuarios que tienen el permiso a través de roles
-               $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
-                  $query->whereHas('permissions', function ($q) use ($permission) {
-                     $q->where('permissions.id', $permission->id);
-                  });
-               })->count();
-
-               // Añadir el conteo de usuarios al objeto de permiso
-               $permission->users_count = $usersViaRoles;
-               return $permission;
-            });
+         // Asignar conteos de usuarios a los permisos
+         $permissions->getCollection()->transform(function ($permission) use ($usersCountByPermission) {
+            $permission->users_count = $usersCountByPermission[$permission->id] ?? 0;
+            return $permission;
+         });
 
          return view('admin.permissions.index', compact(
             'permissions',
@@ -185,14 +177,17 @@ class PermissionController extends Controller
    public function show(string $id)
    {
       try {
-         $permission = Permission::with(['roles', 'users'])->findOrFail($id);
+         $permission = Permission::with(['roles'])->findOrFail($id);
          
-         // Obtener usuarios que tienen el permiso a través de roles
-         $usersViaRoles = User::whereHas('roles', function ($query) use ($permission) {
-            $query->whereHas('permissions', function ($q) use ($permission) {
-               $q->where('permissions.id', $permission->id);
-            });
-         })->count();
+         // Optimización: Obtener conteo de usuarios en una sola consulta
+         $usersCount = DB::table('users')
+            ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->where('role_has_permissions.permission_id', $id)
+            ->distinct('users.id')
+            ->count('users.id');
 
          // Preparar datos para la respuesta
          $permissionData = [
@@ -200,7 +195,7 @@ class PermissionController extends Controller
             'name' => $permission->name,
             'guard_name' => $permission->guard_name,
             'roles_count' => $permission->roles->count(),
-            'users_count' => $usersViaRoles,
+            'users_count' => $usersCount,
             'created_at' => $permission->created_at->format('d/m/Y H:i'),
             'updated_at' => $permission->updated_at->format('d/m/Y H:i'),
             'roles' => $permission->roles->pluck('name')->toArray(),
