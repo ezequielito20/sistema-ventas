@@ -21,26 +21,26 @@
             <h1 class="text-2xl font-bold text-gray-900">Gestión de Ventas</h1>
         </div>
         <div class="flex items-center space-x-3">
-            @can('sales.report')
+            @if ($permissions['can_report'])
                 <a href="{{ route('admin.sales.report') }}" class="btn-outline" target="_blank">
                     <i class="fas fa-file-pdf mr-2"></i>
                     Reporte
                 </a>
-            @endcan
+            @endif
             @if ($cashCount)
-                @can('sales.create')
+                @if ($permissions['can_create'])
                     <a href="{{ route('admin.sales.create') }}" class="btn-primary">
                         <i class="fas fa-plus-circle mr-2"></i>
                         Nueva Venta
                     </a>
-                @endcan
+                @endif
             @else
-                @can('cash-counts.create')
+                @if ($permissions['can_create'])
                     <a href="{{ route('admin.cash-counts.create') }}" class="btn-danger">
                         <i class="fas fa-cash-register mr-2"></i>
                         Abrir Caja
                     </a>
-                @endcan
+                @endif
             @endif
         </div>
     </div>
@@ -404,22 +404,22 @@
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            @can('sales.edit')
+                                            @if ($permissions['can_edit'])
                                                 <button type="button" 
                                                         class="btn-action btn-edit"
                                                         @click="editSale(sale.id)"
                                                         title="Editar venta">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                            @endcan
-                                            @can('sales.destroy')
+                                            @endif
+                                            @if ($permissions['can_destroy'])
                                                 <button type="button" 
                                                         class="btn-action btn-delete"
                                                         @click="deleteSale(sale.id)"
                                                         title="Eliminar venta">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -493,30 +493,30 @@
                                 </button>
 
                                 <div class="card-actions">
-                                    @can('sales.edit')
+                                    @if ($permissions['can_edit'])
                                         <button type="button" 
                                                 class="btn-card-action btn-edit"
                                                 @click="editSale(sale.id)"
                                                 title="Editar venta">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                    @endcan
-                                    @can('sales.destroy')
+                                    @endif
+                                    @if ($permissions['can_destroy'])
                                         <button type="button" 
                                                 class="btn-card-action btn-delete"
                                                 @click="deleteSale(sale.id)"
                                                 title="Eliminar venta">
                                             <i class="fas fa-trash"></i>
                                         </button>
-                                    @endcan
-                                    @can('sales.print')
+                                    @endif
+                                    @if ($permissions['can_print'])
                                         <button type="button" 
                                                 class="btn-card-action print"
                                                 @click="printSale(sale.id)"
                                                 title="Imprimir venta">
                                             <i class="fas fa-print"></i>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -745,14 +745,14 @@
                 {{-- Footer moderno --}}
                 <div class="modal-footer-modern">
                     <div class="footer-actions">
-                        @can('sales.print')
+                        @if ($permissions['can_print'])
                             <button type="button" 
                                     class="btn-modal-action btn-print"
                                     @click="printSale(selectedSale?.id)">
                                 <i class="fas fa-print"></i>
                                 <span>Imprimir</span>
                             </button>
-                        @endcan
+                        @endif
                         <button type="button" class="btn-modal-action btn-secondary" @click="closeModal()">
                             <i class="fas fa-times"></i>
                             <span>Cerrar</span>

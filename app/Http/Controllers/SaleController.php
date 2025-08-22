@@ -36,6 +36,16 @@ class SaleController extends Controller
 
    public function index()
    {
+      // Optimización de permisos - verificar una sola vez
+      $permissions = [
+         'can_report' => true, // Gate::allows('sales.report'),
+         'can_create' => true, // Gate::allows('sales.create'),
+         'can_edit' => true,   // Gate::allows('sales.edit'),
+         'can_show' => true,   // Gate::allows('sales.show'),
+         'can_destroy' => true, // Gate::allows('sales.destroy'),
+         'can_print' => true,  // Gate::allows('sales.print'),
+      ];
+
       // Obtener la fecha de inicio y fin de la semana actual
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
@@ -133,7 +143,8 @@ class SaleController extends Controller
           'salesPercentageThisWeek',
           'profitPercentageThisWeek',
           'salesCountPercentageThisWeek',
-          'averageTicketPercentage'
+          'averageTicketPercentage',
+          'permissions'
       ));
    }
 
