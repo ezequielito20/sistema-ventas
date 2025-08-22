@@ -54,7 +54,7 @@
                         <div class="flex flex-col sm:flex-row gap-4">
                             @can('roles.create')
                                 <a href="{{ route('admin.roles.create') }}" 
-                                   class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30 transition-all duration-300 transform hover:scale-105">
+                                   class="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white font-semibold hover:bg-white/30">
                                     <i class="fas fa-plus-circle mr-2"></i>
                                     Crear Nuevo Rol
                                 </a>
@@ -68,8 +68,8 @@
         <!-- Dashboard de Estadísticas -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total de Roles -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-5 group-hover:opacity-10"></div>
                 <div class="relative p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -87,8 +87,8 @@
             </div>
 
             <!-- Usuarios Asignados -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10"></div>
                 <div class="relative p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -106,8 +106,8 @@
             </div>
 
             <!-- Permisos Disponibles -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10"></div>
                 <div class="relative p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -125,8 +125,8 @@
             </div>
 
             <!-- Roles del Sistema -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10"></div>
                 <div class="relative p-6">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -162,13 +162,13 @@
                     <div class="flex items-center space-x-2">
                         <button @click="viewMode = 'table'" 
                                 :class="viewMode === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <i class="fas fa-table mr-2"></i>
                             Tabla
                         </button>
                         <button @click="viewMode = 'cards'" 
                                 :class="viewMode === 'cards' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <i class="fas fa-th-large mr-2"></i>
                             Tarjetas
                         </button>
@@ -316,7 +316,7 @@
             <div x-show="viewMode === 'cards'" class="block">
                 <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($roles as $role)
-                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $role->is_system_role ? 'border-purple-500' : 'border-blue-500' }}">
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border-l-4 {{ $role->is_system_role ? 'border-purple-500' : 'border-blue-500' }}">
                             <!-- Header de la Tarjeta -->
                             <div class="p-6 pb-4">
                                 <div class="flex items-start justify-between">
@@ -422,57 +422,82 @@
         </div>
     </div>
 
-    {{-- Modal para mostrar rol --}}
+    {{-- Modal Moderno para mostrar rol --}}
     <div class="modal fade" id="showRoleModal" tabindex="-1" role="dialog" aria-labelledby="showRoleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary">
-                    <h5 class="modal-title text-white" id="showRoleModalLabel">
-                        <i class="fas fa-user-shield mr-2"></i>
-                        Detalles del Rol
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content modern-role-modal">
+                <!-- Header con gradiente -->
+                <div class="modal-header-gradient">
+                    <div class="header-content">
+                        <div class="role-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="role-title">
+                            <h3 id="modalRoleName">Nombre del Rol</h3>
+                            <span class="role-subtitle">Detalles del Rol</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Nombre del Rol:</label>
-                                <p id="roleName" class="form-control-static"></p>
+                
+                <!-- Contenido del modal -->
+                <div class="modal-content-body">
+                    <div class="details-grid">
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Fecha de Creación</span>
+                                <span class="detail-value" id="modalRoleCreated">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Última Actualización</span>
+                                <span class="detail-value" id="modalRoleUpdated">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Usuarios Asignados</span>
+                                <span class="detail-value" id="modalRoleUsers">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <div class="detail-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="detail-content">
+                                <span class="detail-label">Permisos Asignados</span>
+                                <span class="detail-value" id="modalRolePermissions">-</span>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Fecha de Creación:</label>
-                                <p id="roleCreated" class="form-control-static"></p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Última Actualización:</label>
-                                <p id="roleUpdated" class="form-control-static"></p>
-                            </div>
+                    
+                    <!-- Tipo de rol -->
+                    <div class="role-type-section">
+                        <div class="role-type-badge" id="modalRoleType">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Tipo de Rol</span>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Usuarios Asignados:</label>
-                                <p id="roleUsers" class="form-control-static"></p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold">Permisos Asignados:</label>
-                                <p id="rolePermissions" class="form-control-static"></p>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+                
+                <!-- Footer del modal -->
+                <div class="modal-footer border-0 bg-transparent">
+                    <button type="button" class="btn modern-confirm-btn" data-bs-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Cerrar
+                    </button>
                 </div>
             </div>
         </div>
@@ -488,7 +513,7 @@
                         <i class="fas fa-key mr-2"></i>
                         Asignar Permisos al Rol: <span id="roleName" class="font-weight-bold"></span>
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -559,7 +584,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times mr-2"></i>Cancelar
                     </button>
                     <button type="button" class="btn btn-warning" id="savePermissions">
@@ -570,3 +595,5 @@
         </div>
     </div>
 @endsection
+
+

@@ -87,40 +87,28 @@ window.showRole = function(roleId) {
             if (data.status === 'success') {
                 const role = data.role;
                 
-                // Mostrar modal con detalles
-                Swal.fire({
-                    title: `<i class="fas fa-user-shield text-primary"></i> ${role.name}`,
-                            html: `
-                        <div class="role-details text-left">
-                                    <div class="detail-item">
-                                        <strong><i class="fas fa-calendar"></i> Fecha de Creación:</strong>
-                                <span>${role.created_at}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <strong><i class="fas fa-clock"></i> Última Actualización:</strong>
-                                <span>${role.updated_at}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <strong><i class="fas fa-users"></i> Usuarios Asignados:</strong>
-                                <span>${role.users_count} usuarios</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <strong><i class="fas fa-key"></i> Permisos Asignados:</strong>
-                                <span>${role.permissions_count} permisos</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong><i class="fas fa-shield-alt"></i> Tipo de Rol:</strong>
-                                <span>${role.is_system_role ? 'Rol del Sistema' : 'Rol Personalizado'}</span>
-                                    </div>
-                                </div>
-                            `,
-                            icon: 'info',
-                            confirmButtonText: 'Cerrar',
-                            confirmButtonColor: '#667eea',
-                            customClass: {
-                                popup: 'role-details-modal'
-                            }
-                        });
+                                // Cerrar el modal de carga
+                Swal.close();
+                
+                // Actualizar contenido del modal
+                document.getElementById('modalRoleName').textContent = role.name;
+                document.getElementById('modalRoleCreated').textContent = role.created_at;
+                document.getElementById('modalRoleUpdated').textContent = role.updated_at;
+                document.getElementById('modalRoleUsers').textContent = `${role.users_count} usuarios`;
+                document.getElementById('modalRolePermissions').textContent = `${role.permissions_count} permisos`;
+                
+                // Actualizar tipo de rol
+                const roleTypeElement = document.getElementById('modalRoleType');
+                roleTypeElement.className = `role-type-badge ${role.is_system_role ? 'system-role' : 'custom-role'}`;
+                roleTypeElement.innerHTML = `
+                    <i class="fas fa-shield-alt"></i>
+                    <span>${role.is_system_role ? 'Rol del Sistema' : 'Rol Personalizado'}</span>
+                `;
+                
+                // Mostrar modal usando JavaScript nativo
+                const modal = document.getElementById('showRoleModal');
+                const bootstrapModal = new bootstrap.Modal(modal);
+                bootstrapModal.show();
                     } else {
                 Swal.fire({
                     title: 'Error',
@@ -132,6 +120,10 @@ window.showRole = function(roleId) {
                 })
         .catch(error => {
             console.error('Error:', error);
+            
+            // Cerrar el modal de carga
+            Swal.close();
+            
             let errorMessage = 'Ocurrió un error al obtener la información del rol';
             
             if (error.message.includes('401')) {

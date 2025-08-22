@@ -14,24 +14,8 @@
 
 [x-cloak] { display: none !important; }
 
-/* ===== ANIMACIONES CRÍTICAS ===== */
-@keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-}
-
-.animate-blob { animation: blob 7s infinite; }
-.animation-delay-2000 { animation-delay: 2s; }
-.animation-delay-4000 { animation-delay: 4s; }
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.role-card { animation: fadeInUp 0.6s ease-out; }
+/* ===== ANIMACIONES REMOVIDAS PARA MEJOR RENDIMIENTO ===== */
+/* Animaciones blob, fadeInUp y role-card removidas */
 
 /* ===== TABLA MODERNA ===== */
 .table-container {
@@ -79,8 +63,6 @@
 
 .table-row:hover {
     background: #f8fafc;
-    transform: scale(1.01);
-    box-shadow: var(--shadow);
 }
 
 /* ===== COMPONENTES PRINCIPALES ===== */
@@ -245,8 +227,7 @@
 }
 
 .btn-action:hover {
-    transform: scale(1.15);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    opacity: 0.9;
 }
 
 .btn-view:hover {
@@ -318,6 +299,256 @@
     box-shadow: var(--shadow-hover);
 }
 
+/* ===== MODAL MODERNO DE ROLES ===== */
+.modern-role-modal {
+    border-radius: 20px !important;
+    border: none !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    overflow: hidden !important;
+    max-width: 700px !important;
+    width: 90% !important;
+}
+
+.modern-role-modal .modal-header,
+.modern-role-modal .modal-footer {
+    border: none !important;
+    padding: 0 !important;
+}
+
+.modern-role-modal .modal-body {
+    padding: 0 !important;
+}
+
+.modern-confirm-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 12px 32px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    color: white !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+}
+
+.modern-confirm-btn:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+    color: white !important;
+    text-decoration: none !important;
+}
+
+/* Header del modal */
+.modal-header-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.role-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.role-icon i {
+    font-size: 28px;
+    color: white;
+}
+
+.role-title h3 {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: capitalize;
+}
+
+.role-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Contenido del modal */
+.modal-content-body {
+    padding: 32px 24px;
+    background: white;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.detail-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+    border-color: #cbd5e1;
+}
+
+.detail-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.detail-icon i {
+    font-size: 20px;
+    color: white;
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Sección de tipo de rol */
+.role-type-section {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.role-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    border: 2px solid;
+    transition: all 0.3s ease;
+}
+
+.role-type-badge.system-role {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+    color: white;
+    border-color: #805ad5;
+    box-shadow: 0 4px 15px rgba(159, 122, 234, 0.3);
+}
+
+.role-type-badge.custom-role {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+    border-color: #3182ce;
+    box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+}
+
+/* role-type-badge hover removido para mejor rendimiento */
+
+.role-type-badge i {
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .modern-role-modal {
+        width: 95% !important;
+        margin: 10px !important;
+    }
+    
+    .modal-header-gradient {
+        padding: 24px 20px;
+    }
+    
+    .role-icon {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .role-icon i {
+        font-size: 24px;
+    }
+    
+    .role-title h3 {
+        font-size: 20px;
+    }
+    
+    .modal-content-body {
+        padding: 24px 20px;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .detail-card {
+        padding: 16px;
+    }
+    
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .detail-icon i {
+        font-size: 18px;
+    }
+}
+
 .modal-header {
     border-radius: 16px 16px 0 0;
     border-bottom: 1px solid #e2e8f0;
@@ -337,10 +568,7 @@
     transition: var(--transition);
 }
 
-.permission-module-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
+/* permission-module-card hover removido para mejor rendimiento */
 
 .permission-module-header {
     background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
@@ -397,21 +625,8 @@
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-/* ===== ANIMACIONES ADICIONALES ===== */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.table-row {
-    animation: slideIn 0.3s ease-out;
-}
+/* ===== ANIMACIONES ADICIONALES REMOVIDAS ===== */
+/* slideIn animation removida para mejor rendimiento */
 
 /* ===== ESTADOS DE CARGA ===== */
 .loading {
@@ -419,24 +634,8 @@
     pointer-events: none;
 }
 
-.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid #e2e8f0;
-    border-top: 2px solid var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* ===== LOADING SPINNER REMOVIDO ===== */
+/* Spinner animation removida para mejor rendimiento */
 
 /* ===== MEJORAS DE ACCESIBILIDAD ===== */
 .btn-action:focus {
