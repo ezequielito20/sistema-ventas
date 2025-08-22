@@ -526,8 +526,8 @@
                                             <div class="permission-module-selector">
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" class="custom-control-input group-selector"
-                                                        id="group_{{ $module }}" data-group="{{ $module }}">
-                                                    <label class="custom-control-label" for="group_{{ $module }}">
+                                                        id="modal_group_{{ $module }}" data-group="{{ $module }}">
+                                                    <label class="custom-control-label" for="modal_group_{{ $module }}">
                                                         Seleccionar todo
                                                     </label>
                                                 </div>
@@ -539,12 +539,12 @@
                                                     <div class="custom-control custom-checkbox">
                                                         <input type="checkbox"
                                                             class="custom-control-input permission-checkbox"
-                                                            id="permission_{{ $permission->id }}"
+                                                            id="modal_permission_{{ $permission->id }}"
                                                             value="{{ $permission->id }}"
                                                             data-group="{{ $module }}"
                                                             data-name="{{ $permission->name }}">
                                                         <label class="custom-control-label"
-                                                            for="permission_{{ $permission->id }}"
+                                                            for="modal_permission_{{ $permission->id }}"
                                                             title="{{ $permission->name }}">
                                                             {{ $permission->friendly_name }}
                                                         </label>

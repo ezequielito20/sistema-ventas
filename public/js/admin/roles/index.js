@@ -158,14 +158,14 @@ window.assignPermissions = function(roleId, roleName) {
                 document.getElementById('roleId').value = roleId;
                 document.getElementById('roleName').textContent = roleName;
                 
-                // Marcar permisos existentes
-                const rolePermissions = data.permissions || [];
-                rolePermissions.forEach(permissionId => {
-                    const checkbox = document.getElementById(`permission_${permissionId}`);
-                    if (checkbox) {
-                        checkbox.checked = true;
-                    }
-                });
+                                 // Marcar permisos existentes
+                 const rolePermissions = data.permissions || [];
+                 rolePermissions.forEach(permissionId => {
+                     const checkbox = document.getElementById(`modal_permission_${permissionId}`);
+                     if (checkbox) {
+                         checkbox.checked = true;
+                     }
+                 });
                 
                 // Mostrar modal
                 $('#permissionsModal').modal('show');

@@ -304,6 +304,14 @@
 }
 
 /* ===== MODALES ===== */
+.modal {
+    display: none !important;
+}
+
+.modal.show {
+    display: block !important;
+}
+
 .modal-content {
     border-radius: 16px;
     border: none;
