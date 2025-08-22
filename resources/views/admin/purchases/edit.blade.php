@@ -344,15 +344,6 @@
                                             <div class="btn-shine"></div>
                                         </button>
 
-                                        <button type="submit" class="btn-modern btn-success" name="action"
-                                            value="save_and_new" @click="submitForm()"
-                                            title="Actualizar esta compra y crear una nueva">
-                                            <div class="btn-content">
-                                                <i class="fas fa-plus-circle"></i>
-                                            </div>
-                                            <div class="btn-bg"></div>
-                                        </button>
-
                                         <button type="button" class="btn-modern btn-danger" @click="cancelEdit()">
                                             <div class="btn-content">
                                                 <i class="fas fa-times-circle"></i>

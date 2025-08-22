@@ -125,16 +125,22 @@
           }
         },
         submitForm(){ 
+          // Validaciones silenciosas - no mostrar alertas
           if(this.products.length===0){ 
-            this.showToast('Debe agregar al menos un producto','warning'); 
             return false;
           } 
           if(!document.getElementById('purchase_date')?.value){ 
-            this.showToast('Debe seleccionar una fecha de compra','warning'); 
             return false;
           } 
+          
+          // Resetear formChanged para evitar la alerta de beforeunload
+          this.formChanged = false;
+          
           this.prepareFormData(); 
-          return true; 
+          
+          // Enviar el formulario
+          document.getElementById('purchaseForm').submit();
+          return false; // Prevenir el comportamiento por defecto
         },
         prepareFormData(){ 
           this.products.forEach(p=>{ 
@@ -250,6 +256,20 @@
       e.returnValue=''; 
     }
   });
+  
+  // Función global para el botón "Volver"
+  window.goBack = function() {
+    if(window.purchaseFormInstance?.goBack) {
+      window.purchaseFormInstance.goBack();
+    } else {
+      // Fallback si no hay instancia disponible
+      if(document.referrer && !/purchases\/(create|edit)/.test(document.referrer)){
+        history.back();
+      } else {
+        window.location.href='/purchases';
+      }
+    }
+  };
 })();
 
 
