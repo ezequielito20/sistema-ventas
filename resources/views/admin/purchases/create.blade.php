@@ -48,7 +48,7 @@
 
                 <!-- Compact Layout -->
                 <div class="compact-layout">
-                    <!-- Left Panel - Main Content -->
+                    <!-- Main Content Panel -->
                     <div class="main-content-panel">
                         <!-- Combined Information & Products Panel -->
                         <div class="form-card combined-panel">
@@ -107,14 +107,12 @@
                                                         @click="openSearchModal()">
                                                         <div class="btn-content">
                                                             <i class="fas fa-search"></i>
-                                                            <span class="hidden sm:inline">Buscar</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </button>
                                                     <a href="/products/create" class="btn-modern btn-success">
                                                         <div class="btn-content">
                                                             <i class="fas fa-plus"></i>
-                                                            <span class="hidden sm:inline">Nuevo</span>
                                                         </div>
                                                         <div class="btn-bg"></div>
                                                     </a>
@@ -127,10 +125,7 @@
                                                     </div>
                                                 @enderror
 
-                                                <div class="field-help">
-                                                    <i class="fas fa-lightbulb"></i>
-                                                    <span>Presione Enter después de escanear o escribir el código</span>
-                                                </div>
+                                                
                                             </div>
                                         </div>
 
@@ -275,7 +270,6 @@
                                                             <button @click="removeProduct(index)"
                                                                 class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
                                                                 <i class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                                                <span class="hidden sm:inline">Eliminar</span>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -295,104 +289,73 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Right Panel - Summary and Actions -->
-                    <div class="sidebar-panel">
-                        <div class="form-card">
-                            <div class="card-header">
-                                <div class="title-section">
-                                    <div class="title-icon">
-                                        <i class="fas fa-calculator"></i>
-                                    </div>
-                                    <div class="title-text">
-                                        <h3 class="panel-title">Resumen y Acciones</h3>
-                                        <p class="panel-subtitle">Información y opciones de la compra</p>
-                                    </div>
-                                </div>
-                            </div>
+                                <!-- Summary and Actions Section -->
+                                <div class="summary-actions-section">
+                                    <div class="summary-stats">
+                                        <div class="summary-item">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-boxes"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value" x-text="totalProducts">0</div>
+                                                <div class="summary-label">Productos Únicos</div>
+                                            </div>
+                                        </div>
 
-                            <!-- Summary Section -->
-                            <div class="card-section">
-                                <div class="section-header">
-                                    <h4 class="section-title">
-                                        <i class="fas fa-calculator"></i>
-                                        Resumen de Compra
-                                    </h4>
-                                </div>
-                                <div class="summary-stats">
-                                    <div class="summary-item">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-boxes"></i>
+                                        <div class="summary-item">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-cubes"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value" x-text="totalQuantity">0</div>
+                                                <div class="summary-label">Cantidad Total</div>
+                                            </div>
                                         </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value" x-text="totalProducts">0</div>
-                                            <div class="summary-label">Productos Únicos</div>
-                                        </div>
-                                    </div>
 
-                                    <div class="summary-item">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-cubes"></i>
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value" x-text="totalQuantity">0</div>
-                                            <div class="summary-label">Cantidad Total</div>
+                                        <div class="summary-divider"></div>
+
+                                        <div class="summary-item total">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="summary-value total-amount"
+                                                    x-text="'{{ $currency->symbol }} ' + (parseFloat(totalAmount) || 0).toFixed(2)">
+                                                    {{ $currency->symbol }} 0.00</div>
+                                                <div class="summary-label">Total a Pagar</div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <input type="hidden" name="total_price" x-model="totalAmount">
 
-                                    <div class="summary-divider"></div>
+                                    <!-- Actions Section -->
+                                    <div class="action-buttons">
+                                        <button type="submit" class="btn-modern btn-primary" @click="submitForm()"
+                                            title="Guardar esta compra y volver al listado">
+                                            <div class="btn-content">
+                                                <i class="fas fa-save"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                            <div class="btn-shine"></div>
+                                        </button>
 
-                                    <div class="summary-item total">
-                                        <div class="summary-icon">
-                                            <i class="fas fa-dollar-sign"></i>
-                                        </div>
-                                        <div class="summary-content">
-                                            <div class="summary-value total-amount"
-                                                x-text="'{{ $currency->symbol }} ' + (parseFloat(totalAmount) || 0).toFixed(2)">
-                                                {{ $currency->symbol }} 0.00</div>
-                                            <div class="summary-label">Total a Pagar</div>
-                                        </div>
+                                        <button type="submit" class="btn-modern btn-success" name="action"
+                                            value="save_and_new" @click="submitForm()"
+                                            title="Guardar esta compra y crear una nueva">
+                                            <div class="btn-content">
+                                                <i class="fas fa-plus-circle"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                        </button>
+
+                                        <button type="button" class="btn-modern btn-danger" @click="cancelPurchase()">
+                                            <div class="btn-content">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                            <div class="btn-bg"></div>
+                                        </button>
                                     </div>
-                                </div>
-                                <input type="hidden" name="total_price" x-model="totalAmount">
-                            </div>
-
-                            <!-- Actions Section -->
-                            <div class="card-section">
-                                <div class="section-header">
-                                    <h4 class="section-title">
-                                        <i class="fas fa-tasks"></i>
-                                        Acciones Disponibles
-                                    </h4>
-                                </div>
-                                <div class="action-buttons">
-                                    <button type="submit" class="btn-modern btn-primary" @click="submitForm()"
-                                        title="Guardar esta compra y volver al listado">
-                                        <div class="btn-content">
-                                            <i class="fas fa-save"></i>
-                                        </div>
-                                        <div class="btn-bg"></div>
-                                        <div class="btn-shine"></div>
-                                    </button>
-
-                                    <button type="submit" class="btn-modern btn-success" name="action"
-                                        value="save_and_new" @click="submitForm()"
-                                        title="Guardar esta compra y crear una nueva">
-                                        <div class="btn-content">
-                                            <i class="fas fa-plus-circle"></i>
-                                        </div>
-                                        <div class="btn-bg"></div>
-                                    </button>
-
-                                    <button type="button" class="btn-modern btn-danger" @click="cancelPurchase()">
-                                        <div class="btn-content">
-                                            <i class="fas fa-times-circle"></i>
-                                        </div>
-                                        <div class="btn-bg"></div>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -544,7 +507,6 @@
                                                 data-product-id="{{ $product->id }}"
                                                 class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                                 <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                                <span class="hidden sm:inline">Agregar</span>
                                             </button>
                                         </td>
                                     </tr>
