@@ -432,6 +432,9 @@
                                         Código</th>
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Acción</th>
+                                    <th
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Producto</th>
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
@@ -445,9 +448,6 @@
                                     <th
                                         class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                         Estado</th>
-                                    <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Acción</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -455,6 +455,14 @@
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <span class="text-xs sm:text-sm font-mono text-gray-900">{{ $product->code }}</span>
+                                        </td>
+                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                                            <button
+                                                @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
+                                                data-product-id="{{ $product->id }}"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                                <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                            </button>
                                         </td>
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                                             <div class="flex items-center">
@@ -500,14 +508,6 @@
                                             @endif">
                                                 {{ $product->stock_status_label }}
                                             </span>
-                                        </td>
-                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                                            <button
-                                                @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
-                                                data-product-id="{{ $product->id }}"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                                <i class="fas fa-plus-circle mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                            </button>
                                         </td>
                                     </tr>
                                 @endforeach
