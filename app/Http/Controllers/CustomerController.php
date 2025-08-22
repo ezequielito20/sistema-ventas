@@ -152,10 +152,10 @@ class CustomerController extends Controller
          // Obtener el tipo de cambio desde localStorage o usar valor por defecto
          $exchangeRate = 134.0; // Valor por defecto
 
-         // Optimizar: Pre-cargar relaciones para evitar N+1 queries
-         $customers->load(['sales' => function($query) {
-            $query->select('id', 'customer_id', 'sale_date', 'total_price');
-         }]);
+         // Optimizar: NO cargar relaciones innecesarias - ya tenemos los datos calculados
+         // $customers->load(['sales' => function($query) {
+         //    $query->select('id', 'customer_id', 'sale_date', 'total_price');
+         // }]);
 
          // Optimizar: Verificar permisos una sola vez para evitar múltiples verificaciones
          $permissions = [
@@ -362,9 +362,7 @@ class CustomerController extends Controller
    public function show($id)
    {
       try {
-         $customer = Customer::with(['sales' => function ($query) {
-            $query->orderBy('sale_date', 'desc');
-         }, 'sales.saleDetails'])->findOrFail($id);
+         $customer = Customer::findOrFail($id);
 
          // Verificar si es una petición para datos de pago de deuda
          if (request()->has('debt_payment_data')) {
@@ -496,23 +494,41 @@ class CustomerController extends Controller
             }
          }
 
-         // Obtener estadísticas del cliente
+         // Obtener estadísticas del cliente usando consultas optimizadas
+         $customerSales = DB::table('sales')
+            ->where('customer_id', $customer->id)
+            ->where('company_id', $this->company->id)
+            ->select('sale_date', 'total_price')
+            ->get();
+
          $stats = [
-            'total_purchases' => $customer->sales->count(),
-            'total_spent' => $customer->sales->sum('total_price'),
-            'purchase_history' => $this->getPurchaseHistory($customer->sales)
+            'total_purchases' => $customerSales->count(),
+            'total_spent' => $customerSales->sum('total_price'),
+            'purchase_history' => $this->getPurchaseHistory($customerSales)
          ];
 
-         // Obtener las ventas individuales con detalles
-         $salesData = $customer->sales->map(function ($sale) {
-            return [
-               'id' => $sale->id,
-               'date' => $sale->sale_date->format('d/m/Y'),
-               'total_products' => $sale->saleDetails->sum('quantity'),
-               'total_amount' => $sale->total_price,
-               'invoice_number' => $sale->getFormattedInvoiceNumber()
-            ];
-         });
+         // Obtener las ventas individuales con detalles usando consultas optimizadas
+         $salesData = DB::table('sales')
+            ->leftJoin('sale_details', 'sales.id', '=', 'sale_details.sale_id')
+            ->where('sales.customer_id', $customer->id)
+            ->where('sales.company_id', $this->company->id)
+            ->select(
+               'sales.id',
+               'sales.sale_date',
+               'sales.total_price',
+               DB::raw('SUM(sale_details.quantity) as total_products')
+            )
+            ->groupBy('sales.id', 'sales.sale_date', 'sales.total_price')
+            ->get()
+            ->map(function ($sale) {
+               return [
+                  'id' => $sale->id,
+                  'date' => \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y'),
+                  'total_products' => $sale->total_products ?? 0,
+                  'total_amount' => $sale->total_price,
+                  'invoice_number' => 'V-' . str_pad($sale->id, 6, '0', STR_PAD_LEFT)
+               ];
+            });
 
          return response()->json([
             'success' => true,
@@ -545,7 +561,7 @@ class CustomerController extends Controller
 
       // Agrupar ventas por mes
       $salesByMonth = $sales->groupBy(function ($sale) {
-         return $sale->sale_date->format('Y-m');
+         return \Carbon\Carbon::parse($sale->sale_date)->format('Y-m');
       })->map(function ($monthSales) {
          return $monthSales->sum('total_price');
       });
