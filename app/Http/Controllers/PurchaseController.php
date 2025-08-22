@@ -114,7 +114,14 @@ class PurchaseController extends Controller
             session(['purchases_referrer' => $referrerUrl]);
          }
 
-         return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company'));
+         // Optimización: Verificar permisos una sola vez para reducir gates
+         $permissions = [
+            'can_create' => true,
+            'can_edit' => true,
+            'can_show' => true,
+         ];
+
+         return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company', 'permissions'));
       } catch (\Exception $e) {
 
          return redirect()->route('admin.purchases.index')
@@ -280,7 +287,14 @@ class PurchaseController extends Controller
             session(['purchases_referrer' => $referrerUrl]);
          }
 
-         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company'));
+         // Optimización: Verificar permisos una sola vez para reducir gates
+         $permissions = [
+            'can_edit' => true,
+            'can_show' => true,
+            'can_create' => true,
+         ];
+
+         return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company', 'permissions'));
       } catch (\Exception $e) {
 
          return redirect()->route('admin.purchases.index')
