@@ -64,4 +64,18 @@
   });
 
   window.addEventListener('beforeunload',(e)=>{ if(window.purchaseFormInstance?.formChanged){ e.preventDefault(); e.returnValue=''; }});
+  
+  // Función global para el botón "Volver"
+  window.goBack = function() {
+    if(window.purchaseFormInstance?.goBack) {
+      window.purchaseFormInstance.goBack();
+    } else {
+      // Fallback si no hay instancia disponible
+      if(document.referrer && !/purchases\/(create|edit)/.test(document.referrer)){
+        history.back();
+      } else {
+        window.location.href='/purchases';
+      }
+    }
+  };
 })();
