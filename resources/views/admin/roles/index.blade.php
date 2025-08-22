@@ -9,7 +9,7 @@
 @push('js')
     <script src="{{ asset('vendor/config.js') }}"></script>
     <script src="{{ asset('js/shared/table-utils.js') }}"></script>
-    <script src="{{ asset('js/admin/roles/index.js') }}" defer></script>
+    <script src="{{ asset('js/admin/roles/index.js') }}?v={{ time() }}" defer></script>
 @endpush
 
 @section('content')

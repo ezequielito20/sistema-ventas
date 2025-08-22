@@ -162,7 +162,7 @@ window.assignPermissions = function(roleId, roleName) {
     fetch(`/roles/${roleId}/permissions`)
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data.status === 'success') {
                 // Cerrar loading
                 Swal.close();
                 
@@ -170,35 +170,42 @@ window.assignPermissions = function(roleId, roleName) {
                 document.getElementById('roleId').value = roleId;
                 document.getElementById('roleName').textContent = roleName;
 
-                                 // Marcar permisos existentes
-                 const rolePermissions = data.permissions || [];
-                 rolePermissions.forEach(permissionId => {
-                     const checkbox = document.getElementById(`modal_permission_${permissionId}`);
-                            if (checkbox) {
-                                checkbox.checked = true;
-                            }
-                        });
+                // Marcar permisos existentes
+                const rolePermissions = data.permissions || [];
+                rolePermissions.forEach(permission => {
+                    const permissionId = permission.id || permission;
+                    const checkbox = document.getElementById(`modal_permission_${permissionId}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
 
-                // Mostrar modal
-                $('#permissionsModal').modal('show');
+                // Mostrar modal usando JavaScript nativo
+                const modal = document.getElementById('permissionsModal');
+                const bootstrapModal = new bootstrap.Modal(modal);
+                bootstrapModal.show();
                 
                 // Inicializar funcionalidad del modal
                 initializePermissionsModal();
-                    } else {
+            } else {
                 Swal.fire({
                     title: 'Error',
                     text: data.message || 'No se pudieron cargar los permisos',
-                            icon: 'error',
+                    icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
             }
         })
         .catch(error => {
             console.error('Error:', error);
+            
+            // Cerrar el modal de carga
+            Swal.close();
+            
             Swal.fire({
                 title: 'Error',
                 text: 'Ocurrió un error al cargar los permisos',
-                        icon: 'error',
+                icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
         });
@@ -228,7 +235,8 @@ window.deleteRole = function(roleId) {
             });
 
             // Realizar petición de eliminación
-            fetch(`/roles/${roleId}`, {
+            console.log('Enviando DELETE a:', `/roles/delete/${roleId}`);
+            fetch(`/roles/delete/${roleId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -237,7 +245,10 @@ window.deleteRole = function(roleId) {
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                // Cerrar modal de carga
+                Swal.close();
+                
+                if (data.status === 'success') {
                     Swal.fire({
                         title: '¡Eliminado!',
                         text: 'El rol ha sido eliminado exitosamente',
@@ -258,6 +269,10 @@ window.deleteRole = function(roleId) {
             })
             .catch(error => {
                 console.error('Error:', error);
+                
+                // Cerrar modal de carga
+                Swal.close();
+                
                 Swal.fire({
                     title: 'Error',
                     text: 'Ocurrió un error al eliminar el rol',
@@ -338,7 +353,8 @@ function savePermissions() {
     });
 
     // Realizar petición AJAX
-    fetch(`/admin/roles/${roleId}/permissions`, {
+    console.log('Enviando POST a:', `/roles/${roleId}/permissions`);
+    fetch(`/roles/${roleId}/permissions`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -350,27 +366,38 @@ function savePermissions() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
+        // Cerrar modal de carga
+        Swal.close();
+        
+        if (data.status === 'success') {
             Swal.fire({
                 title: '¡Guardado!',
                 text: 'Los permisos han sido actualizados exitosamente',
                 icon: 'success',
                 confirmButtonText: 'Aceptar'
             }).then(() => {
-                // Cerrar modal
-                $('#permissionsModal').modal('hide');
+                // Cerrar modal usando JavaScript nativo
+                const modal = document.getElementById('permissionsModal');
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
             });
         } else {
             Swal.fire({
                 title: 'Error',
                 text: data.message || 'No se pudieron guardar los permisos',
-                        icon: 'error',
+                icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
         }
     })
     .catch(error => {
         console.error('Error:', error);
+        
+        // Cerrar modal de carga
+        Swal.close();
+        
         Swal.fire({
             title: 'Error',
             text: 'Ocurrió un error al guardar los permisos',
