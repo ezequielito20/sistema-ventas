@@ -58,71 +58,91 @@ window.modalManager = function() {
 
 // Mostrar detalles del rol
 window.showRole = function(roleId) {
-    // Mostrar loading
+                // Mostrar loading
     Swal.fire({
-        title: 'Cargando...',
+                    title: 'Cargando...',
         text: 'Obteniendo información del rol',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                            Swal.showLoading();
         }
     });
 
     // Realizar petición AJAX
-    fetch(`/admin/roles/${roleId}`)
-        .then(response => response.json())
+    fetch(`/roles/${roleId}`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+        .then(response => {
+            console.log('Response status:', response.status); // Debug
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.success) {
+            console.log('Respuesta del servidor:', data); // Debug
+            if (data.status === 'success') {
                 const role = data.role;
                 
                 // Mostrar modal con detalles
                 Swal.fire({
                     title: `<i class="fas fa-user-shield text-primary"></i> ${role.name}`,
-                    html: `
+                            html: `
                         <div class="role-details text-left">
-                            <div class="detail-item">
-                                <strong><i class="fas fa-calendar"></i> Fecha de Creación:</strong>
+                                    <div class="detail-item">
+                                        <strong><i class="fas fa-calendar"></i> Fecha de Creación:</strong>
                                 <span>${role.created_at}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong><i class="fas fa-clock"></i> Última Actualización:</strong>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong><i class="fas fa-clock"></i> Última Actualización:</strong>
                                 <span>${role.updated_at}</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong><i class="fas fa-users"></i> Usuarios Asignados:</strong>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong><i class="fas fa-users"></i> Usuarios Asignados:</strong>
                                 <span>${role.users_count} usuarios</span>
-                            </div>
-                            <div class="detail-item">
-                                <strong><i class="fas fa-key"></i> Permisos Asignados:</strong>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong><i class="fas fa-key"></i> Permisos Asignados:</strong>
                                 <span>${role.permissions_count} permisos</span>
                             </div>
                             <div class="detail-item">
                                 <strong><i class="fas fa-shield-alt"></i> Tipo de Rol:</strong>
                                 <span>${role.is_system_role ? 'Rol del Sistema' : 'Rol Personalizado'}</span>
-                            </div>
-                        </div>
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'Cerrar',
-                    confirmButtonColor: '#667eea',
-                    customClass: {
-                        popup: 'role-details-modal'
-                    }
-                });
-            } else {
+                                    </div>
+                                </div>
+                            `,
+                            icon: 'info',
+                            confirmButtonText: 'Cerrar',
+                            confirmButtonColor: '#667eea',
+                            customClass: {
+                                popup: 'role-details-modal'
+                            }
+                        });
+                    } else {
                 Swal.fire({
                     title: 'Error',
                     text: data.message || 'No se pudo obtener la información del rol',
-                    icon: 'error',
+                            icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
             }
-        })
+                })
         .catch(error => {
             console.error('Error:', error);
+            let errorMessage = 'Ocurrió un error al obtener la información del rol';
+            
+            if (error.message.includes('401')) {
+                errorMessage = 'No tienes permisos para ver esta información';
+            } else if (error.message.includes('404')) {
+                errorMessage = 'El rol no fue encontrado';
+            }
+            
             Swal.fire({
                 title: 'Error',
-                text: 'Ocurrió un error al obtener la información del rol',
+                text: errorMessage,
                 icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
@@ -131,7 +151,7 @@ window.showRole = function(roleId) {
 
 // Editar rol
 window.editRole = function(roleId) {
-    window.location.href = `/admin/roles/edit/${roleId}`;
+    window.location.href = `/roles/edit/${roleId}`;
 };
 
 // Asignar permisos
@@ -147,7 +167,7 @@ window.assignPermissions = function(roleId, roleName) {
     });
 
     // Realizar petición AJAX para obtener permisos del rol
-    fetch(`/admin/roles/${roleId}/permissions`)
+    fetch(`/roles/${roleId}/permissions`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -157,26 +177,26 @@ window.assignPermissions = function(roleId, roleName) {
                 // Configurar el modal de permisos
                 document.getElementById('roleId').value = roleId;
                 document.getElementById('roleName').textContent = roleName;
-                
+
                                  // Marcar permisos existentes
                  const rolePermissions = data.permissions || [];
                  rolePermissions.forEach(permissionId => {
                      const checkbox = document.getElementById(`modal_permission_${permissionId}`);
-                     if (checkbox) {
-                         checkbox.checked = true;
-                     }
-                 });
-                
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                        });
+
                 // Mostrar modal
                 $('#permissionsModal').modal('show');
                 
                 // Inicializar funcionalidad del modal
                 initializePermissionsModal();
-            } else {
+                    } else {
                 Swal.fire({
                     title: 'Error',
                     text: data.message || 'No se pudieron cargar los permisos',
-                    icon: 'error',
+                            icon: 'error',
                     confirmButtonText: 'Aceptar'
                 });
             }
@@ -186,7 +206,7 @@ window.assignPermissions = function(roleId, roleName) {
             Swal.fire({
                 title: 'Error',
                 text: 'Ocurrió un error al cargar los permisos',
-                icon: 'error',
+                        icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
         });
@@ -216,7 +236,7 @@ window.deleteRole = function(roleId) {
             });
 
             // Realizar petición de eliminación
-            fetch(`/admin/roles/${roleId}`, {
+            fetch(`/roles/${roleId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -260,14 +280,14 @@ window.deleteRole = function(roleId) {
 // ===== FUNCIONES PARA EL MODAL DE PERMISOS =====
 
 function initializePermissionsModal() {
-    // Búsqueda de permisos
+        // Búsqueda de permisos
     const searchInput = document.getElementById('searchPermission');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
+                const searchTerm = this.value.toLowerCase();
             const permissionItems = document.querySelectorAll('.permission-item');
-            
-            permissionItems.forEach(item => {
+
+                    permissionItems.forEach(item => {
                 const label = item.querySelector('.custom-control-label');
                 const text = label.textContent.toLowerCase();
                 
@@ -352,7 +372,7 @@ function savePermissions() {
             Swal.fire({
                 title: 'Error',
                 text: data.message || 'No se pudieron guardar los permisos',
-                icon: 'error',
+                        icon: 'error',
                 confirmButtonText: 'Aceptar'
             });
         }
@@ -385,11 +405,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Configurar eventos de teclado
-    document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function(e) {
         // ESC para cerrar modales
-        if (e.key === 'Escape') {
-            const openModals = document.querySelectorAll('.modal.show');
-            openModals.forEach(modal => {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal.show');
+                openModals.forEach(modal => {
                 if (typeof $ !== 'undefined' && $.fn.modal) {
                     $(modal).modal('hide');
                 }
