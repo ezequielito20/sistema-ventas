@@ -19,7 +19,7 @@ class UserController extends Controller
    {
       $company = Auth::user()->company;
       $users = User::where('company_id', $company->id)
-         ->with('company') // Eager loading para evitar N+1 queries
+         ->with(['company', 'roles']) // Eager loading para evitar N+1 queries
          ->orderBy('name', 'asc')
          ->get();
       
@@ -49,8 +49,10 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-         // Obtener los roles disponibles de la empresa
-         $roles = Role::byCompany(Auth::user()->company_id)->get();
+         // Obtener los roles disponibles de la empresa usando select específico
+         $roles = Role::select('id', 'name', 'display_name')
+            ->byCompany(Auth::user()->company_id)
+            ->get();
 
          return view('admin.users.create', compact('companies', 'roles', 'company'));
       } catch (\Exception $e) {
@@ -142,13 +144,11 @@ class UserController extends Controller
    public function show($id)
    {
       try {
-         // Obtener usuario con sus relaciones
-         $user = User::with(['roles', 'company'])->findOrFail($id);
-
-         // Verificar que el usuario pertenezca a la misma empresa
-         if ($user->company_id !== Auth::user()->company_id) {
-            throw new \Exception('No tiene permisos para ver este usuario');
-         }
+         // Obtener usuario con sus relaciones usando select específico
+         $user = User::select('id', 'name', 'email', 'company_id', 'email_verified_at')
+            ->with(['company:id,name', 'roles:id,name'])
+            ->where('company_id', Auth::user()->company_id)
+            ->findOrFail($id);
 
          // Preparar la respuesta con solo los campos necesarios
          return response()->json([
@@ -160,14 +160,10 @@ class UserController extends Controller
                'roles' => $user->roles->map(function ($role) {
                   return [
                      'name' => $role->name,
-                     'display_name' => ucfirst($role->name) // Capitaliza el nombre del rol
+                     'display_name' => ucfirst($role->name)
                   ];
                }),
-               'verified' => [
-                  'status' => $user->email_verified_at ? true : false,
-                  'text' => $user->email_verified_at ? 'Verificado' : 'Pendiente de verificación',
-                  'class' => $user->email_verified_at ? 'success' : 'warning'
-               ]
+               'verified' => $user->email_verified_at ? true : false
             ]
          ]);
       } catch (\Exception $e) {
@@ -184,14 +180,13 @@ class UserController extends Controller
    public function edit(string $id)
    {
       try {
-         // Obtener usuario con sus roles
-         $user = User::with('roles')->findOrFail($id);
+         // Obtener usuario con sus roles usando select específico
+         $user = User::select('id', 'name', 'email', 'company_id')
+            ->with(['roles:id,name'])
+            ->where('company_id', Auth::user()->company_id)
+            ->findOrFail($id);
+         
          $company = Auth::user()->company;
-
-         // Verificar que el usuario pertenezca a la misma empresa
-         if ($user->company_id !== Auth::user()->company_id) {
-            throw new \Exception('No tiene permisos para editar este usuario');
-         }
 
          // Obtener empresas disponibles
          $companies = Company::select('id', 'name')
@@ -199,8 +194,10 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
 
-         // Obtener roles disponibles de la empresa
-         $roles = Role::byCompany(Auth::user()->company_id)->get();
+         // Obtener roles disponibles de la empresa usando select específico
+         $roles = Role::select('id', 'name', 'display_name')
+            ->byCompany(Auth::user()->company_id)
+            ->get();
 
          return view('admin.users.edit', compact('user', 'companies', 'roles', 'company'));
       } catch (\Exception $e) {
@@ -344,10 +341,12 @@ class UserController extends Controller
 
    public function report()
    {
-      $company = Company::find(Auth::user()->company_id);
-      $users = User::with('roles')->where('company_id', $company->id)
-      ->orderBy('name', 'asc')
-      ->get();
+      $company = Company::select('id', 'name')->find(Auth::user()->company_id);
+      $users = User::select('id', 'name', 'email', 'company_id', 'email_verified_at', 'last_login')
+         ->with(['roles:id,name'])
+         ->where('company_id', $company->id)
+         ->orderBy('name', 'asc')
+         ->get();
       $pdf = PDF::loadView('admin.users.report', compact('users', 'company'));
       return $pdf->stream('reporte-usuarios.pdf');
    }
