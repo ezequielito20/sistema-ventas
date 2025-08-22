@@ -34,46 +34,116 @@
     </div>
 
     <!-- Estadísticas -->
-    <div class="stats-container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total de Usuarios -->
+        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <!-- Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+            <!-- Content -->
+            <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3 class="stat-number">{{ $users->count() }}</h3>
-                    <p class="stat-label">Total Usuarios</p>
+
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-gray-900" data-stat="total-users">
+                        {{ $users->count() }}
+                    </div>
+                    <div class="text-sm font-medium text-gray-600">Total de Usuarios</div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: 100%"></div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="stat-card">
-                <div class="stat-icon stat-success">
-                    <i class="fas fa-user-check"></i>
+        <!-- Usuarios Verificados -->
+        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <!-- Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+            <!-- Content -->
+            <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-check text-white text-xl"></i>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3 class="stat-number">{{ $users->where('email_verified_at', '!=', null)->count() }}</h3>
-                    <p class="stat-label">Verificados</p>
+
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-gray-900" data-stat="verified-users">
+                        <span>{{ $users->where('email_verified_at', '!=', null)->count() }}</span>
+                        <span class="text-lg text-gray-500">/{{ $users->count() }}</span>
+                    </div>
+                    <div class="text-sm font-medium text-gray-600">Usuarios Verificados</div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                            style="width: {{ $users->count() > 0 ? ($users->where('email_verified_at', '!=', null)->count() / $users->count()) * 100 : 0 }}%"></div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="stat-card">
-                <div class="stat-icon stat-warning">
-                    <i class="fas fa-user-clock"></i>
+        <!-- Usuarios Pendientes -->
+        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <!-- Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+            <!-- Content -->
+            <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-clock text-white text-xl"></i>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3 class="stat-number">{{ $users->where('email_verified_at', null)->count() }}</h3>
-                    <p class="stat-label">Pendientes</p>
+
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-gray-900" data-stat="pending-users">
+                        {{ $users->where('email_verified_at', null)->count() }}
+                    </div>
+                    <div class="text-sm font-medium text-gray-600">Pendientes de Verificación</div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full"
+                            style="width: {{ $users->count() > 0 ? ($users->where('email_verified_at', null)->count() / $users->count()) * 100 : 0 }}%"></div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="stat-card">
-                <div class="stat-icon stat-info">
-                    <i class="fas fa-user-tie"></i>
+        <!-- Usuarios con Roles -->
+        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <!-- Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+            <!-- Content -->
+            <div class="relative p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-tie text-white text-xl"></i>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3 class="stat-number">
-                        {{ $users->filter(function ($user) {return $user->roles->count() > 0;})->count() }}</h3>
-                    <p class="stat-label">Con Roles</p>
+
+                <div class="space-y-2">
+                    <div class="text-3xl font-bold text-gray-900" data-stat="users-with-roles">
+                        <span>{{ $users->filter(function ($user) {return $user->roles->count() > 0;})->count() }}</span>
+                        <span class="text-lg text-gray-500">/{{ $users->count() }}</span>
+                    </div>
+                    <div class="text-sm font-medium text-gray-600">Con Roles Asignados</div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full"
+                            style="width: {{ $users->count() > 0 ? ($users->filter(function ($user) {return $user->roles->count() > 0;})->count() / $users->count()) * 100 : 0 }}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
