@@ -39,15 +39,17 @@ class RoleController extends Controller
          'can_assign_permissions' => true,
       ];
 
-      $roles = Role::with('permissions')
+      // Optimización: Seleccionar solo campos necesarios y contar relaciones
+      $roles = Role::select('id', 'name', 'created_at', 'updated_at', 'company_id')
+         ->withCount(['users', 'permissions'])
          ->byCompany($this->company->id)
          ->orderBy('name', 'asc')
          ->get();
 
       $company = $this->company;
 
-      // Agrupar permisos por módulo con nombres amigables
-      $permissionsList = Permission::all()->map(function($permission) {
+      // Optimización: Solo cargar permisos necesarios para el modal (sin eager loading de roles)
+      $permissionsList = Permission::select('id', 'name')->get()->map(function($permission) {
          // Agregar descripción amigable basada en el nombre técnico
          $friendlyNames = [
             // Usuarios

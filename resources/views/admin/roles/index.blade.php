@@ -96,7 +96,7 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $roles->sum(function($role) { return $role->users->count(); }) }}</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ $roles->sum('users_count') }}</div>
                         <div class="text-sm font-medium text-gray-600">Usuarios Asignados</div>
                         <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
                             <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style="width: 100%"></div>
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $roles->where('is_system_role', true)->count() }}</div>
+                        <div class="text-3xl font-bold text-gray-900">{{ $roles->filter(function($role) { return $role->isSystemRole(); })->count() }}</div>
                         <div class="text-sm font-medium text-gray-600">Roles del Sistema</div>
                         <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
                             <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full" style="width: 100%"></div>
@@ -236,7 +236,7 @@
                                         <div class="role-info">
                                             <div class="role-name">{{ $role->name }}</div>
                                             <div class="role-description text-sm text-gray-500">
-                                                @if($role->is_system_role)
+                                                @if($role->isSystemRole())
                                                     <span class="system-badge">Rol del Sistema</span>
                                                 @else
                                                     <span class="custom-badge">Rol Personalizado</span>
@@ -246,19 +246,19 @@
                                     </td>
                                     <td>
                                         <div class="users-count">
-                                            <span class="count-badge">{{ $role->users->count() }}</span>
+                                            <span class="count-badge">{{ $role->users_count }}</span>
                                             <span class="count-label">usuarios</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="permissions-count">
-                                            <span class="count-badge">{{ $role->permissions->count() }}</span>
+                                            <span class="count-badge">{{ $role->permissions_count }}</span>
                                             <span class="count-label">permisos</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="system-status">
-                                            @if($role->is_system_role)
+                                            @if($role->isSystemRole())
                                                 <span class="status-badge status-system">
                                                     <i class="fas fa-shield-alt"></i>
                                                     Sistema
@@ -316,7 +316,7 @@
             <div x-show="viewMode === 'cards'" class="block">
                 <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($roles as $role)
-                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border-l-4 {{ $role->is_system_role ? 'border-purple-500' : 'border-blue-500' }}">
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border-l-4 {{ $role->isSystemRole() ? 'border-purple-500' : 'border-blue-500' }}">
                             <!-- Header de la Tarjeta -->
                             <div class="p-6 pb-4">
                                 <div class="flex items-start justify-between">
@@ -327,7 +327,7 @@
                                         <div class="flex-1 min-w-0">
                                             <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $role->name }}</h3>
                                             <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
-                                                @if($role->is_system_role)
+                                                @if($role->isSystemRole())
                                                     <i class="fas fa-shield-alt text-xs"></i>
                                                     <span class="truncate">Rol del Sistema</span>
                                                 @else
@@ -340,7 +340,7 @@
 
                                     <!-- Estado -->
                                     <div class="flex-shrink-0">
-                                        @if($role->is_system_role)
+                                        @if($role->isSystemRole())
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                                 <i class="fas fa-shield-alt mr-1"></i>
                                                 Sistema
@@ -364,7 +364,7 @@
                                             <i class="fas fa-users"></i>
                                             <span>Usuarios</span>
                                         </div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $role->users->count() }}</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $role->users_count }}</p>
                                     </div>
 
                                     <!-- Permisos -->
@@ -373,7 +373,7 @@
                                             <i class="fas fa-key"></i>
                                             <span>Permisos</span>
                                         </div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $role->permissions->count() }}</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ $role->permissions_count }}</p>
                                     </div>
                                 </div>
 
