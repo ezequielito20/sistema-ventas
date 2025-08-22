@@ -493,6 +493,9 @@ function updateViewsWithSearchResults(data, searchTerm) {
     // Actualizar contador de resultados
     updateResultsCounter(total, searchTerm);
     
+    // Actualizar paginación para resultados de búsqueda
+    updatePaginationForSearch(total, searchTerm);
+    
     // Reinicializar efectos y eventos
     reinitializeEffects();
     setupButtonEvents();
@@ -766,6 +769,33 @@ function updateResultsCounter(total, searchTerm) {
     const counterElement = document.getElementById('resultsCounter');
     if (counterElement) {
         counterElement.remove();
+    }
+}
+
+// Función para actualizar paginación para resultados de búsqueda
+function updatePaginationForSearch(total, searchTerm) {
+    const paginationContainer = document.querySelector('.custom-pagination');
+    if (!paginationContainer) return;
+    
+    // Si hay búsqueda, mostrar paginación simplificada
+    if (searchTerm && searchTerm.trim() !== '') {
+        const paginationInfo = paginationContainer.querySelector('.pagination-info');
+        const paginationControls = paginationContainer.querySelector('.pagination-controls');
+        
+        if (paginationInfo) {
+            paginationInfo.innerHTML = `<span id="paginationInfo">Búsqueda: "${searchTerm}" - ${total} permisos encontrados</span>`;
+        }
+        
+        if (paginationControls) {
+            // Ocultar controles de paginación en búsqueda
+            paginationControls.style.display = 'none';
+        }
+    } else {
+        // Restaurar paginación normal
+        const paginationControls = paginationContainer.querySelector('.pagination-controls');
+        if (paginationControls) {
+            paginationControls.style.display = 'flex';
+        }
     }
 }
 

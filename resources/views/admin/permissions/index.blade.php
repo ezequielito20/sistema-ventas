@@ -126,7 +126,14 @@
                     <div class="search-container">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Buscar permisos..." id="searchInput" class="search-input">
+                            <input type="text" 
+                                   placeholder="Buscar permisos..." 
+                                   id="searchInput" 
+                                   class="search-input"
+                                   autocomplete="off"
+                                   spellcheck="false"
+                                   autocorrect="off"
+                                   autocapitalize="off">
                         </div>
                     </div>
                     <div class="view-toggles view-toggle-buttons">
@@ -363,60 +370,52 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container">
-            <div class="pagination-info">
-                <span class="pagination-text-desktop">Mostrando {{ $permissionsList->firstItem() ?? 0 }} a
-                    {{ $permissionsList->lastItem() ?? 0 }} de {{ $permissionsList->total() }} permisos</span>
-                <span class="pagination-text-mobile">Página {{ $permissionsList->currentPage() }} de
-                    {{ $permissionsList->lastPage() }}</span>
+        @if($permissionsList->hasPages())
+            <div class="mt-8 px-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="custom-pagination">
+                        <div class="pagination-info">
+                            <span id="paginationInfo">Mostrando {{ $permissionsList->firstItem() ?? 0 }}-{{ $permissionsList->lastItem() ?? 0 }} de {{ $permissionsList->total() }} permisos</span>
+                        </div>
+                        <div class="pagination-controls">
+                            @if($permissionsList->onFirstPage())
+                                <button class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    Anterior
+                                </button>
+                            @else
+                                <a href="{{ $permissionsList->previousPageUrl() }}" class="pagination-btn">
+                                    <i class="fas fa-chevron-left"></i>
+                                    Anterior
+                                </a>
+                            @endif
+                            
+                            <div class="page-numbers">
+                                @foreach($permissionsList->getUrlRange(1, $permissionsList->lastPage()) as $page => $url)
+                                    @if($page == $permissionsList->currentPage())
+                                        <span class="page-number active">{{ $page }}</span>
+                                    @else
+                                        <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                    @endif
+                                @endforeach
+                            </div>
+                            
+                            @if($permissionsList->hasMorePages())
+                                <a href="{{ $permissionsList->nextPageUrl() }}" class="pagination-btn">
+                                    Siguiente
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <button class="pagination-btn" disabled>
+                                    Siguiente
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="pagination-links">
-                @if ($permissionsList->hasPages())
-                    <!-- Botón Anterior -->
-                    @if ($permissionsList->onFirstPage())
-                        <span class="disabled">
-                            <i class="fas fa-chevron-left"></i>
-                            <span class="pagination-text-desktop">Anterior</span>
-                            <span class="pagination-text-mobile">Ant</span>
-                        </span>
-                    @else
-                        <a href="{{ $permissionsList->previousPageUrl() }}">
-                            <i class="fas fa-chevron-left"></i>
-                            <span class="pagination-text-desktop">Anterior</span>
-                            <span class="pagination-text-mobile">Ant</span>
-                        </a>
-                    @endif
-
-                    <!-- Números de página -->
-                    @foreach ($permissionsList->getUrlRange(1, $permissionsList->lastPage()) as $page => $url)
-                        @if ($page == $permissionsList->currentPage())
-                            <span class="active">
-                                {{ $page }}
-                            </span>
-                        @else
-                            <a href="{{ $url }}">
-                                {{ $page }}
-                            </a>
-                        @endif
-                    @endforeach
-
-                    <!-- Botón Siguiente -->
-                    @if ($permissionsList->hasMorePages())
-                        <a href="{{ $permissionsList->nextPageUrl() }}">
-                            <span class="pagination-text-desktop">Siguiente</span>
-                            <span class="pagination-text-mobile">Sig</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    @else
-                        <span class="disabled">
-                            <span class="pagination-text-desktop">Siguiente</span>
-                            <span class="pagination-text-mobile">Sig</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </span>
-                    @endif
-                @endif
-            </div>
-        </div>
+        @endif
     </div>
     </div>
 
