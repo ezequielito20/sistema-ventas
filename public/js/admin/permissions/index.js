@@ -425,7 +425,7 @@ function initializeViewToggles() {
     });
 }
 
-// ===== FUNCIONES DE BÚSQUEDA =====
+// ===== FUNCIONES DE BÚSQUEDA SPA =====
 
 // Función para inicializar búsqueda
 function initializeSearch() {
@@ -438,85 +438,344 @@ function initializeSearch() {
         clearTimeout(searchTimeout);
         
         searchTimeout = setTimeout(() => {
-            const searchTerm = this.value.toLowerCase();
-            performSearch(searchTerm);
+            const searchTerm = this.value.trim();
+            performSPASearch(searchTerm);
         }, PERMISSIONS_CONFIG.search.debounceTime);
     });
 }
 
-// Función para realizar búsqueda
-function performSearch(searchTerm) {
-    const tableRows = document.querySelectorAll('#permissionsTable tbody tr');
-    const mobileCards = document.querySelectorAll('.mobile-permission-card');
-    const desktopCards = document.querySelectorAll('.permission-card');
+// Función para realizar búsqueda SPA
+function performSPASearch(searchTerm) {
+    // Mostrar loading
+    showSearchLoading();
     
-    let visibleCount = 0;
+    // Construir URL con parámetros de búsqueda
+    const url = new URL(window.location.href);
+    url.searchParams.set('search', searchTerm);
     
-    // Buscar en tabla
-    tableRows.forEach(row => {
-        const permissionName = row.querySelector('.permission-name')?.textContent.toLowerCase() || '';
-        const guardName = row.querySelector('.guard-badge')?.textContent.toLowerCase() || '';
-        
-        if (permissionName.includes(searchTerm) || guardName.includes(searchTerm)) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
+    // Realizar petición AJAX
+    fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         }
-    });
-    
-    // Buscar en tarjetas móviles
-    mobileCards.forEach(card => {
-        const permissionName = card.querySelector('h6')?.textContent.toLowerCase() || '';
-        const guardName = card.querySelector('.info-row .info-value')?.textContent.toLowerCase() || '';
-        
-        if (permissionName.includes(searchTerm) || guardName.includes(searchTerm)) {
-            card.style.display = '';
-            visibleCount++;
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            updateViewsWithSearchResults(data.data, searchTerm);
+            hideSearchLoading();
         } else {
-            card.style.display = 'none';
+            throw new Error(data.message || 'Error en la búsqueda');
         }
+    })
+    .catch(error => {
+        console.error('Error en búsqueda:', error);
+        hideSearchLoading();
+        showSearchError(error.message);
     });
-    
-    // Buscar en tarjetas desktop
-    desktopCards.forEach(card => {
-        const permissionName = card.querySelector('h6')?.textContent.toLowerCase() || '';
-        const guardName = card.querySelector('.badge-info')?.textContent.toLowerCase() || '';
-        
-        if (permissionName.includes(searchTerm) || guardName.includes(searchTerm)) {
-            card.style.display = '';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-    
-    // Mostrar mensaje si no hay resultados
-    showSearchResults(visibleCount);
 }
 
-// Función para mostrar resultados de búsqueda
-function showSearchResults(count) {
-    let messageContainer = document.getElementById('searchResultsMessage');
+// Función para actualizar vistas con resultados de búsqueda
+function updateViewsWithSearchResults(data, searchTerm) {
+    const { permissions, permissions_config, total } = data;
     
-    if (count === 0) {
-        if (!messageContainer) {
-            messageContainer = document.createElement('div');
-            messageContainer.id = 'searchResultsMessage';
-            messageContainer.className = 'alert alert-info text-center mt-3';
-            messageContainer.innerHTML = '<i class="fas fa-search"></i> No se encontraron permisos que coincidan con la búsqueda';
-            
-            const tableContainer = document.querySelector('.table-responsive');
-            if (tableContainer) {
-                tableContainer.parentNode.insertBefore(messageContainer, tableContainer.nextSibling);
-            }
-        }
-        messageContainer.style.display = 'block';
-    } else {
-        if (messageContainer) {
-            messageContainer.style.display = 'none';
+    // Actualizar tabla
+    updateTableView(permissions, permissions_config);
+    
+    // Actualizar tarjetas desktop
+    updateCardsView(permissions, permissions_config);
+    
+    // Actualizar tarjetas móviles
+    updateMobileCardsView(permissions, permissions_config);
+    
+    // Actualizar contador de resultados
+    updateResultsCounter(total, searchTerm);
+    
+    // Reinicializar efectos y eventos
+    reinitializeEffects();
+    setupButtonEvents();
+}
+
+// Función para actualizar vista de tabla
+function updateTableView(permissions, permissions_config) {
+    const tbody = document.querySelector('#permissionsTable tbody');
+    if (!tbody) return;
+    
+    let html = '';
+    permissions.forEach((permission, index) => {
+        html += `
+            <tr class="table-row-hover">
+                <td>${index + 1}</td>
+                <td>
+                    <span class="permission-name">${permission.name}</span>
+                </td>
+                <td class="text-center">
+                    <span class="guard-badge">${permission.guard_name}</span>
+                </td>
+                <td class="text-center">
+                    <span class="roles-badge">
+                        ${permission.roles.length}
+                        <i class="fas fa-user-shield"></i>
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="users-badge">
+                        ${permission.users_count || 0}
+                        <i class="fas fa-users"></i>
+                    </span>
+                </td>
+                <td class="text-center">${formatDate(permission.created_at)}</td>
+                <td class="text-center">
+                    <div class="action-buttons">
+                        ${permissions_config.can_show ? `
+                            <button type="button" class="action-button show" data-id="${permission.id}">
+                                <i class="fas fa-eye"></i>
+                                <span class="action-text">Ver</span>
+                            </button>
+                        ` : ''}
+                        ${permissions_config.can_edit ? `
+                            <a href="/permissions/${permission.id}/edit" class="action-button edit">
+                                <i class="fas fa-edit"></i>
+                                <span class="action-text">Editar</span>
+                            </a>
+                        ` : ''}
+                        ${permissions_config.can_destroy ? `
+                            <button type="button" class="action-button delete" data-id="${permission.id}">
+                                <i class="fas fa-trash"></i>
+                                <span class="action-text">Eliminar</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+// Función para actualizar vista de tarjetas
+function updateCardsView(permissions, permissions_config) {
+    const cardsView = document.getElementById('cardsView');
+    if (!cardsView) return;
+    
+    let html = '<div class="row">';
+    permissions.forEach((permission, index) => {
+        html += `
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="permission-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 font-weight-bold">${permission.name}</h6>
+                            <span class="badge badge-light">#${index + 1}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="permission-info">
+                            <div class="info-row">
+                                <span>Guard:</span>
+                                <span class="guard-badge">${permission.guard_name}</span>
+                            </div>
+                            <div class="info-row">
+                                <span>Roles:</span>
+                                <span class="roles-badge">
+                                    ${permission.roles.length}
+                                    <i class="fas fa-user-shield"></i>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span>Usuarios:</span>
+                                <span class="users-badge">
+                                    ${permission.users_count || 0}
+                                    <i class="fas fa-users"></i>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span>Creado:</span>
+                                <span>${formatDate(permission.created_at).split(' ')[0]}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            ${permissions_config.can_show ? `
+                                <button type="button" class="action-button show" data-id="${permission.id}" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            ` : ''}
+                            ${permissions_config.can_edit ? `
+                                <a href="/permissions/${permission.id}/edit" class="action-button edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            ` : ''}
+                            ${permissions_config.can_destroy ? `
+                                <button type="button" class="action-button delete" data-id="${permission.id}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    cardsView.innerHTML = html;
+}
+
+// Función para actualizar vista de tarjetas móviles
+function updateMobileCardsView(permissions, permissions_config) {
+    const mobileCardsView = document.getElementById('mobileCardsView');
+    if (!mobileCardsView) return;
+    
+    let html = '';
+    permissions.forEach((permission, index) => {
+        html += `
+            <div class="mobile-permission-card">
+                <div class="card-header">
+                    <div>
+                        <h6>${permission.name}</h6>
+                        <small>ID: ${permission.id}</small>
+                    </div>
+                    <span>#${index + 1}</span>
+                </div>
+                <div class="card-body">
+                    <div class="permission-info">
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="fas fa-shield-alt"></i>
+                                Guard:
+                            </span>
+                            <span class="guard-badge">${permission.guard_name}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="fas fa-user-shield"></i>
+                                Roles Asignados:
+                            </span>
+                            <span class="roles-badge">
+                                ${permission.roles.length}
+                                <i class="fas fa-user-shield"></i>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="fas fa-users"></i>
+                                Usuarios:
+                            </span>
+                            <span class="users-badge">
+                                ${permission.users_count || 0}
+                                <i class="fas fa-users"></i>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">
+                                <i class="fas fa-calendar"></i>
+                                Creado:
+                            </span>
+                            <span class="info-value">${formatDate(permission.created_at)}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        ${permissions_config.can_show ? `
+                            <button type="button" class="action-button show" data-id="${permission.id}">
+                                <i class="fas fa-eye"></i>
+                                <span class="action-text">Ver</span>
+                            </button>
+                        ` : ''}
+                        ${permissions_config.can_edit ? `
+                            <a href="/permissions/${permission.id}/edit" class="action-button edit">
+                                <i class="fas fa-edit"></i>
+                                <span class="action-text">Editar</span>
+                            </a>
+                        ` : ''}
+                        ${permissions_config.can_destroy ? `
+                            <button type="button" class="action-button delete" data-id="${permission.id}">
+                                <i class="fas fa-trash"></i>
+                                <span class="action-text">Eliminar</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    mobileCardsView.innerHTML = html;
+}
+
+// Función para mostrar loading de búsqueda
+function showSearchLoading() {
+    let loadingContainer = document.getElementById('searchLoading');
+    if (!loadingContainer) {
+        loadingContainer = document.createElement('div');
+        loadingContainer.id = 'searchLoading';
+        loadingContainer.className = 'search-loading';
+        loadingContainer.innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Buscando permisos...</span>
+            </div>
+        `;
+        
+        const tableContainer = document.querySelector('.table-responsive');
+        if (tableContainer) {
+            tableContainer.parentNode.insertBefore(loadingContainer, tableContainer);
         }
     }
+    loadingContainer.style.display = 'flex';
+}
+
+// Función para ocultar loading de búsqueda
+function hideSearchLoading() {
+    const loadingContainer = document.getElementById('searchLoading');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+    }
+}
+
+// Función para mostrar error de búsqueda
+function showSearchError(message) {
+    let errorContainer = document.getElementById('searchError');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'searchError';
+        errorContainer.className = 'search-error alert alert-danger';
+        errorContainer.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>${message}</span>
+        `;
+        
+        const tableContainer = document.querySelector('.table-responsive');
+        if (tableContainer) {
+            tableContainer.parentNode.insertBefore(errorContainer, tableContainer);
+        }
+    }
+    errorContainer.style.display = 'block';
+    
+    // Ocultar error después de 5 segundos
+    setTimeout(() => {
+        errorContainer.style.display = 'none';
+    }, 5000);
+}
+
+// Función para actualizar contador de resultados (deshabilitada)
+function updateResultsCounter(total, searchTerm) {
+    // Remover contador si existe
+    const counterElement = document.getElementById('resultsCounter');
+    if (counterElement) {
+        counterElement.remove();
+    }
+}
+
+// Función para reinicializar efectos después de actualización AJAX
+function reinitializeEffects() {
+    initializeTableRowEffects();
+    initializeActionButtonEffects();
+    initializePermissionCardEffects();
+    initializeMobileCardEffects();
+    initializeMobileCardButtonEffects();
 }
 
 // ===== FUNCIONES DE PAGINACIÓN =====

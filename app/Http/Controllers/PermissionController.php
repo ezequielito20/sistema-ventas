@@ -25,7 +25,7 @@ class PermissionController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
          $company = $this->company;
@@ -38,6 +38,11 @@ class PermissionController extends Controller
             'can_show' => true,
             'can_destroy' => true,
          ];
+         
+         // Si es una petición AJAX para búsqueda, devolver JSON
+         if ($request->ajax() && $request->has('search')) {
+            return $this->searchPermissions($request);
+         }
          
          // Optimización: Obtener estadísticas con consultas optimizadas
          $totalPermissions = Permission::count();
@@ -353,6 +358,73 @@ class PermissionController extends Controller
          return response()->json([
             'message' => 'Error al eliminar el permiso',
             'icons' => 'error'
+         ], 500);
+      }
+   }
+
+   /**
+    * Buscar permisos via AJAX
+    */
+   private function searchPermissions(Request $request)
+   {
+      try {
+         $searchTerm = $request->get('search', '');
+         
+         // Construir query base
+         $query = Permission::with(['roles']);
+         
+         // Aplicar filtros de búsqueda
+         if (!empty($searchTerm)) {
+            $query->where(function($q) use ($searchTerm) {
+               $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('guard_name', 'ILIKE', "%{$searchTerm}%");
+            });
+         }
+         
+         // Obtener todos los resultados (sin paginación para búsqueda completa)
+         $permissionsList = $query->orderBy('name', 'asc')->get();
+
+         // Optimización: Obtener conteo de usuarios por permiso en una sola consulta
+         $usersCountByPermission = DB::table('permissions')
+            ->leftJoin('role_has_permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+            ->leftJoin('roles', 'role_has_permissions.role_id', '=', 'roles.id')
+            ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->leftJoin('users', 'model_has_roles.model_id', '=', 'users.id')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->select('permissions.id', DB::raw('COUNT(DISTINCT users.id) as users_count'))
+            ->groupBy('permissions.id')
+            ->pluck('users_count', 'permissions.id')
+            ->toArray();
+
+         // Asignar conteos de usuarios a los permisos
+         $permissionsList->transform(function ($permission) use ($usersCountByPermission) {
+            $permission->users_count = $usersCountByPermission[$permission->id] ?? 0;
+            return $permission;
+         });
+
+         // Preparar datos para la vista
+         $permissions = [
+            'can_report' => true,
+            'can_create' => true,
+            'can_edit' => true,
+            'can_show' => true,
+            'can_destroy' => true,
+         ];
+
+         return response()->json([
+            'status' => 'success',
+            'data' => [
+               'permissions' => $permissionsList,
+               'permissions_config' => $permissions,
+               'total' => $permissionsList->count(),
+               'search_term' => $searchTerm
+            ]
+         ]);
+
+      } catch (\Exception $e) {
+         return response()->json([
+            'status' => 'error',
+            'message' => 'Error al buscar permisos: ' . $e->getMessage()
          ], 500);
       }
    }

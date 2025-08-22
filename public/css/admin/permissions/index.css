@@ -41,6 +41,67 @@
     }
 }
 
+/* ===== ESTILOS PARA BÚSQUEDA SPA ===== */
+.search-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: var(--radius);
+    margin: 1rem 0;
+    box-shadow: var(--shadow);
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--primary);
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+.loading-spinner span {
+    font-weight: 500;
+    color: #64748b;
+}
+
+.search-error {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #f87171;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.results-counter {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    margin-top: 0.5rem;
+    border: 1px solid #3b82f6;
+}
+
+.counter-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1e40af;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* ===== DASHBOARD DE ESTADÍSTICAS MODERNO ===== */
 .stats-dashboard {
     margin-bottom: 2rem;
