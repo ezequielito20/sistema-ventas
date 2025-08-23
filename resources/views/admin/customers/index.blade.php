@@ -1402,19 +1402,19 @@
                                     </div>
                                         @if ($customer->total_debt > 0)
                                             <div class="space-y-1">
-                                                <div class="debt-value" data-customer-id="{{ $customer->id }}"
+                                                <div class="debt-value flex items-center gap-2" data-customer-id="{{ $customer->id }}"
                                                      data-original-value="{{ $customer->total_debt }}">
                                                     <p class="text-sm font-semibold text-red-600">
                                                         {{ $currency->symbol }} <span
                                                             class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
                                                     </p>
-                                                </div>
                                                     @if ($customersData[$customer->id]['isDefaulter'])
                                                     <span class="debt-warning-badge"
                                                         title="Cliente con deudas de arqueos anteriores">
                                                         <i class="fas fa-exclamation-triangle"></i>
                                                     </span>
                                                     @endif
+                                                </div>
                                             </div>
                                         @else
                                             <span class="no-debt-badge">

@@ -1521,12 +1521,14 @@ class SPAPaymentHandler {
             if (debtInfo) {
                 if (customer.has_debt) {
                     debtInfo.innerHTML = `
-                        <div class="debt-value" data-customer-id="${customer.id}" data-original-value="${customer.total_debt}">
-                            <p class="text-sm font-semibold text-red-600">
-                                ${this.currencySymbol} <span class="debt-amount-value">${customer.formatted_total_debt}</span>
-                            </p>
+                        <div class="space-y-1">
+                            <div class="debt-value flex items-center gap-2" data-customer-id="${customer.id}" data-original-value="${customer.total_debt}">
+                                <p class="text-sm font-semibold text-red-600">
+                                    ${this.currencySymbol} <span class="debt-amount-value">${customer.formatted_total_debt}</span>
+                                </p>
+                                ${customer.is_defaulter ? '<span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores"><i class="fas fa-exclamation-triangle"></i></span>' : ''}
+                            </div>
                         </div>
-                        ${customer.is_defaulter ? '<span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores"><i class="fas fa-exclamation-triangle"></i></span>' : ''}
                     `;
                 } else {
                     debtInfo.innerHTML = `
