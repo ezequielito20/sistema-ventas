@@ -170,21 +170,88 @@
                                     <i class="fas fa-building label-icon"></i>
                                     Empresa <span class="required">*</span>
                                 </label>
-                                <div class="input-group">
-                                    <span class="input-group-icon">
-                                        <i class="fas fa-building"></i>
-                                    </span>
-                                    <select name="company_id" id="company_id"
-                                        class="form-input {{ $errors->has('company_id') ? 'is-invalid' : '' }}"
-                                        required>
-                                        <option value="">Seleccione una empresa</option>
-                                        @foreach($companies as $company)
-                                            <option value="{{ $company->id }}" 
-                                                {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                                                {{ $company->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="relative" 
+                                     x-data="{ 
+                                         isOpen: false, 
+                                         searchTerm: '', 
+                                         filteredCompanies: @js($companies),
+                                         selectedCompanyName: 'Seleccione una empresa',
+                                         filterCompanies() {
+                                             if (!this.searchTerm) {
+                                                 this.filteredCompanies = @js($companies);
+                                                 return;
+                                             }
+                                             const term = this.searchTerm.toLowerCase();
+                                             this.filteredCompanies = @js($companies).filter(company => 
+                                                 company.name.toLowerCase().includes(term)
+                                             );
+                                         },
+                                         selectCompany(company) {
+                                             $refs.companyInput.value = company.id;
+                                             this.selectedCompanyName = company.name;
+                                             this.isOpen = false;
+                                             this.searchTerm = '';
+                                         }
+                                     }" 
+                                     @click.away="isOpen = false">
+                                    
+                                    <!-- Hidden input for form submission -->
+                                    <input type="hidden" name="company_id" x-ref="companyInput" required>
+                                    
+                                    <!-- Select Button -->
+                                    <button type="button" 
+                                            @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.companySearch.focus()) }"
+                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                        <span class="block truncate text-gray-700 text-sm" x-text="selectedCompanyName"></span>
+                                        <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                 :class="{ 'rotate-180': isOpen }" 
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div x-show="isOpen" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-1 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-1 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                        
+                                        <!-- Search Input -->
+                                        <div class="px-3 py-2 border-b border-gray-100">
+                                            <input type="text"
+                                                   x-ref="companySearch"
+                                                   x-model="searchTerm"
+                                                   @input="filterCompanies()"
+                                                   @keydown.escape="isOpen = false"
+                                                   placeholder="Buscar empresa..."
+                                                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                        </div>
+
+                                        <!-- Options List -->
+                                        <div class="max-h-48 overflow-y-auto">
+                                            <template x-for="company in filteredCompanies" :key="company.id">
+                                                <div @click="selectCompany(company)"
+                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
+                                                    <div class="flex items-center">
+                                                        <i class="fas fa-building text-blue-500 mr-2"></i>
+                                                        <span class="block text-sm text-gray-900 font-medium" x-text="company.name"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- No results -->
+                                            <div x-show="filteredCompanies.length === 0" 
+                                                 class="px-3 py-4 text-sm text-gray-500 text-center">
+                                                No se encontraron empresas
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @if ($errors->has('company_id'))
                                     <div class="error-message">
@@ -199,21 +266,92 @@
                                     <i class="fas fa-user-tag label-icon"></i>
                                     Rol del Usuario <span class="required">*</span>
                                 </label>
-                                <div class="input-group">
-                                    <span class="input-group-icon">
-                                        <i class="fas fa-user-tag"></i>
-                                    </span>
-                                    <select name="role" id="role"
-                                        class="form-input {{ $errors->has('role') ? 'is-invalid' : '' }}"
-                                        required>
-                                        <option value="">Seleccione un rol</option>
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role->id }}" 
-                                                {{ old('role') == $role->id ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="relative" 
+                                     x-data="{ 
+                                         isOpen: false, 
+                                         searchTerm: '', 
+                                         filteredRoles: @js($roles),
+                                         selectedRoleName: 'Seleccione un rol',
+                                         filterRoles() {
+                                             if (!this.searchTerm) {
+                                                 this.filteredRoles = @js($roles);
+                                                 return;
+                                             }
+                                             const term = this.searchTerm.toLowerCase();
+                                             this.filteredRoles = @js($roles).filter(role => 
+                                                 role.name.toLowerCase().includes(term) || 
+                                                 (role.display_name && role.display_name.toLowerCase().includes(term))
+                                             );
+                                         },
+                                         selectRole(role) {
+                                             $refs.roleInput.value = role.id;
+                                             this.selectedRoleName = role.display_name || role.name;
+                                             this.isOpen = false;
+                                             this.searchTerm = '';
+                                         }
+                                     }" 
+                                     @click.away="isOpen = false">
+                                    
+                                    <!-- Hidden input for form submission -->
+                                    <input type="hidden" name="role" x-ref="roleInput" required>
+                                    
+                                    <!-- Select Button -->
+                                    <button type="button" 
+                                            @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.roleSearch.focus()) }"
+                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                        <span class="block truncate text-gray-700 text-sm" x-text="selectedRoleName"></span>
+                                        <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                 :class="{ 'rotate-180': isOpen }" 
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div x-show="isOpen" 
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-1 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-1 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                        
+                                        <!-- Search Input -->
+                                        <div class="px-3 py-2 border-b border-gray-100">
+                                            <input type="text"
+                                                   x-ref="roleSearch"
+                                                   x-model="searchTerm"
+                                                   @input="filterRoles()"
+                                                   @keydown.escape="isOpen = false"
+                                                   placeholder="Buscar rol..."
+                                                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                        </div>
+
+                                        <!-- Options List -->
+                                        <div class="max-h-48 overflow-y-auto">
+                                            <template x-for="role in filteredRoles" :key="role.id">
+                                                <div @click="selectRole(role)"
+                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
+                                                    <div class="flex items-center">
+                                                        <i class="fas fa-user-shield text-purple-500 mr-2"></i>
+                                                        <div>
+                                                            <span class="block text-sm text-gray-900 font-medium" x-text="role.display_name || role.name"></span>
+                                                            <span class="block text-xs text-gray-500" x-text="role.name"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- No results -->
+                                            <div x-show="filteredRoles.length === 0" 
+                                                 class="px-3 py-4 text-sm text-gray-500 text-center">
+                                                No se encontraron roles
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @if ($errors->has('role'))
                                     <div class="error-message">
