@@ -367,7 +367,7 @@ if (typeof window.productsIndex === 'undefined') {
                     window.currentProductId = productId;
                     
                     // Mostrar modal
-                    document.getElementById('showProductModal').style.display = 'block';
+                    document.getElementById('showProductModal').style.display = 'flex';
                     document.body.style.overflow = 'hidden'; // Prevenir scroll del body
                 } else {
                     Swal.close();
