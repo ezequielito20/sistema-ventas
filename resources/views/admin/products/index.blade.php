@@ -182,12 +182,12 @@
                     </div>
                 </div>
                 <div class="filters-buttons">
-                    <button class="btn-modern btn-clear" id="clearFilters">
+                    <button class="btn-modern btn-clear" id="clearFilters" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #9333ea 100%) !important;">
                         <div class="btn-content">
                             <i class="fas fa-times"></i>
                             <span>Limpiar</span>
                         </div>
-                        <div class="btn-bg"></div>
+                        <div class="btn-bg" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #9333ea 100%) !important;"></div>
                     </button>
                 </div>
             </div>
