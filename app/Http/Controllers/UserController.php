@@ -160,7 +160,6 @@ class UserController extends Controller
                'roles' => $user->roles->map(function ($role) {
                   return [
                      'name' => $role->name,
-                     'display_name' => ucfirst($role->name)
                   ];
                }),
                'verified' => $user->email_verified_at ? true : false
@@ -195,7 +194,7 @@ class UserController extends Controller
             ->get();
 
          // Obtener roles disponibles de la empresa usando select específico
-         $roles = Role::select('id', 'name', 'display_name')
+         $roles = Role::select('id', 'name')
             ->byCompany(Auth::user()->company_id)
             ->get();
 
