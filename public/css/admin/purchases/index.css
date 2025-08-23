@@ -122,6 +122,32 @@
 }
 
 /* ===== HEADER COMPONENTS ===== */
+.system-gradient-header {
+    background: var(--gradient-primary);
+    border-radius: var(--border-radius-xl);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.system-gradient-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+}
+
+.page-header {
+    position: relative;
+    z-index: 1;
+}
+
 .floating-header { 
     position: sticky;
     top: 1rem;
@@ -231,6 +257,32 @@
     color: var(--secondary-600);
     margin-top: var(--spacing-xs);
     font-weight: 500;
+}
+
+/* Estilos específicos para el header con gradiente del sistema */
+.system-gradient-header .header-title {
+    color: #ffffff;
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.system-gradient-header .header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.system-gradient-header .header-icon {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.system-gradient-header .icon-glow {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
 }
 
 /* ===== BOTONES GLASS ===== */

@@ -8,47 +8,49 @@
 
     <!-- Main Container -->
     <div class="main-container" id="purchasesRoot" data-currency-symbol="{{ $currency->symbol }}">
-        <!-- Floating Header -->
-        <div class="floating-header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="header-icon-wrapper">
-                        <div class="header-icon">
-                            <i class="fas fa-shopping-cart"></i>
+        <!-- Page Header with System Gradient -->
+        <div class="system-gradient-header">
+            <div class="page-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="header-icon-wrapper">
+                            <div class="header-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="icon-glow"></div>
                         </div>
-                        <div class="icon-glow"></div>
+                        <div class="header-text">
+                            <h1 class="header-title">Gestión de Compras</h1>
+                            <p class="header-subtitle">Administra y controla todas las compras del sistema</p>
+                        </div>
                     </div>
-                    <div class="header-text">
-                        <h1 class="header-title">Gestión de Compras</h1>
-                        <p class="header-subtitle">Administra y controla todas las compras del sistema</p>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    @if ($permissions['can_report'])
-                        <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank"
-                            title="Generar reporte PDF">
-                            <i class="fas fa-file-pdf"></i>
-                            <span>Reporte</span>
-                            <div class="btn-ripple"></div>
-                        </a>
-                    @endif
-                    @if ($cashCount)
-                        @if ($permissions['can_create'])
-                            <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass"
-                                title="Crear nueva compra">
-                                <i class="fas fa-plus-circle"></i>
-                                <span>Nueva Compra</span>
+                    <div class="header-actions">
+                        @if ($permissions['can_report'])
+                            <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank"
+                                title="Generar reporte PDF">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Reporte</span>
                                 <div class="btn-ripple"></div>
                             </a>
                         @endif
-                    @else
-                        <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
-                            title="Abrir caja para realizar compras">
-                            <i class="fas fa-cash-register"></i>
-                            <span>Abrir Caja</span>
-                            <div class="btn-ripple"></div>
-                        </a>
-                    @endif
+                        @if ($cashCount)
+                            @if ($permissions['can_create'])
+                                <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass"
+                                    title="Crear nueva compra">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Nueva Compra</span>
+                                    <div class="btn-ripple"></div>
+                                </a>
+                            @endif
+                        @else
+                            <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
+                                title="Abrir caja para realizar compras">
+                                <i class="fas fa-cash-register"></i>
+                                <span>Abrir Caja</span>
+                                <div class="btn-ripple"></div>
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
