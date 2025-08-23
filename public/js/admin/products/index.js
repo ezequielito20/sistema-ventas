@@ -275,27 +275,107 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Mostrar detalles de producto
         showProductDetails: async function(productId) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Obteniendo detalles del producto',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             try {
+
                 const response = await fetch(`${PRODUCTS_CONFIG.routes.show}/${productId}`);
+
                 const data = await response.json();
+
                 
-                if (data.status === 'success') {
-                    // Llenar datos en el modal
-                    document.getElementById('modalProductName').textContent = data.product.name;
-                    document.getElementById('modalProductCode').textContent = data.product.code;
-                    document.getElementById('modalProductCategory').textContent = data.product.category;
-                    document.getElementById('modalProductDescription').textContent = data.product.description || 'Sin descripción';
-                    document.getElementById('modalProductStock').textContent = data.product.stock;
-                    document.getElementById('modalProductPurchasePrice').textContent = data.product.purchase_price;
-                    document.getElementById('modalProductSalePrice').textContent = data.product.sale_price;
-                    document.getElementById('modalProductCreated').textContent = data.product.created_at;
+                if (data.status === 'success' || data.success) {
+                    // Cerrar loading
+                    Swal.close();
+                    
+                    const product = data.product;
+                    
+                    // Llenar datos básicos del modal
+                    document.getElementById('modalProductName').textContent = product.name || '-';
+                    document.getElementById('modalProductCode').textContent = product.code || '-';
+                    document.getElementById('modalProductCategory').textContent = product.category || 'Sin categoría';
+                    document.getElementById('modalProductDescription').textContent = product.description || 'Sin descripción';
+                    document.getElementById('modalProductFullDescription').textContent = product.description || 'Sin descripción disponible';
+                    
+                    // Imagen del producto
+                    const modalImage = document.getElementById('modalProductImage');
+                    modalImage.src = product.image_url || '/img/no-image.svg';
+                    modalImage.alt = product.name || 'Producto';
+                    
+                    // Stock y estado
+                    const stock = parseInt(product.stock) || 0;
+                    document.getElementById('modalProductStock').textContent = stock;
+                    document.getElementById('modalStockCurrent').textContent = stock;
+                    
+                    // Estado del stock con colores
+                    const stockBadge = document.getElementById('modalStockBadge');
+                    const stockStatus = document.getElementById('modalStockStatus');
+                    let stockStatusText = 'Normal';
+                    let stockStatusColor = 'bg-yellow-100 text-yellow-800';
+                    
+                    if (stock <= 10) {
+                        stockStatusText = 'Stock Bajo';
+                        stockStatusColor = 'bg-red-100 text-red-800';
+                    } else if (stock > 50) {
+                        stockStatusText = 'Stock Alto';
+                        stockStatusColor = 'bg-green-100 text-green-800';
+                    }
+                    
+                    stockBadge.className = `inline-flex items-center px-4 py-2 rounded-xl font-semibold text-sm ${stockStatusColor}`;
+                    stockStatus.textContent = stockStatusText;
+                    stockStatus.className = `font-semibold ${stockStatusColor.split(' ')[1]}`;
+                    
+                    // Precios
+                    document.getElementById('modalProductPurchasePrice').textContent = product.purchase_price_formatted || product.purchase_price || '-';
+                    document.getElementById('modalProductSalePrice').textContent = product.sale_price_formatted || product.sale_price || '-';
+                    
+                    // Calcular ganancia potencial
+                    const purchasePrice = parseFloat(product.purchase_price) || 0;
+                    const salePrice = parseFloat(product.sale_price) || 0;
+                    const profit = salePrice - purchasePrice;
+                    const profitFormatted = new Intl.NumberFormat('es-ES', {
+                        style: 'currency',
+                        currency: 'COP',
+                        minimumFractionDigits: 0
+                    }).format(profit);
+                    document.getElementById('modalProductProfit').textContent = profitFormatted;
+                    
+                    // Valor total en stock
+                    const stockValue = stock * salePrice;
+                    const stockValueFormatted = new Intl.NumberFormat('es-ES', {
+                        style: 'currency',
+                        currency: 'COP',
+                        minimumFractionDigits: 0
+                    }).format(stockValue);
+                    document.getElementById('modalStockValue').textContent = stockValueFormatted;
+                    
+                    // Fechas
+                    document.getElementById('modalProductCreated').textContent = product.created_at_formatted || product.created_at || '-';
+                    document.getElementById('modalProductUpdated').textContent = product.updated_at_formatted || product.updated_at || '-';
+                    document.getElementById('modalProductId').textContent = product.id || '-';
+                    
+                    // Guardar ID para edición
+                    window.currentProductId = productId;
                     
                     // Mostrar modal
-                    document.getElementById('showProductModal').style.display = 'flex';
+                    document.getElementById('showProductModal').style.display = 'block';
+                    document.body.style.overflow = 'hidden'; // Prevenir scroll del body
                 } else {
+                    Swal.close();
                     this.showAlert('Error', 'No se pudieron obtener los datos del producto', 'error');
                 }
             } catch (error) {
+                Swal.close();
+                console.error('Error:', error);
                 this.showAlert('Error', 'No se pudieron obtener los datos del producto', 'error');
             }
         },
@@ -303,6 +383,7 @@ if (typeof window.productsIndex === 'undefined') {
         // Cerrar modal de producto
         closeProductModal: function() {
             document.getElementById('showProductModal').style.display = 'none';
+            document.body.style.overflow = ''; // Restaurar scroll del body
         },
 
         // Eliminar producto
@@ -329,7 +410,7 @@ if (typeof window.productsIndex === 'undefined') {
                 
                 const data = await response.json();
                 
-                if (data.status === 'success') {
+                if (data.status === 'success' || data.success) {
                     this.showAlert('¡Eliminado!', data.message, 'success');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
@@ -485,7 +566,12 @@ if (typeof window.productsIndex === 'undefined') {
 // Función para mostrar detalles de producto (compatibilidad con onclick)
 if (typeof window.showProductDetails === 'undefined') {
     window.showProductDetails = function(productId) {
-        window.productsIndex.showProductDetails(productId);
+
+        if (window.productsIndex && window.productsIndex.showProductDetails) {
+            window.productsIndex.showProductDetails(productId);
+        } else {
+            console.error('productsIndex not available');
+        }
     };
 }
 
@@ -502,6 +588,17 @@ if (typeof window.deleteProduct === 'undefined') {
         window.productsIndex.deleteProduct(productId, productName);
     };
 }
+
+// Función para editar producto desde modal (compatibilidad con onclick)
+if (typeof window.editProductFromModal === 'undefined') {
+    window.editProductFromModal = function() {
+        if (window.currentProductId) {
+            window.location.href = `/admin/products/${window.currentProductId}/edit`;
+        }
+    };
+}
+
+
 
 // ===== INICIALIZACIÓN =====
 if (!window.productsIndexInitialized) {

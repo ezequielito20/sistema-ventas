@@ -271,12 +271,13 @@
                                     </div>
                                 </div>
                                 <div class="card-actions">
-                                    @if($permissions['products.show'])
-                                        <button type="button" class="card-btn card-btn-view" onclick="showProductDetails({{ $product->id }})" title="Ver Detalles">
-                                            <i class="fas fa-eye"></i>
-                                            <span>Ver</span>
-                                        </button>
-                                    @endif
+                                                        @if($permissions['products.show'])
+                        <button type="button" class="card-btn card-btn-view" onclick="showProductDetails({{ $product->id }})" title="Ver Detalles">
+                            <i class="fas fa-eye"></i>
+                            <span>Ver</span>
+                        </button>
+                    @endif
+
                                     @if($permissions['products.edit'])
                                         <a href="{{ route('admin.products.edit', $product->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
@@ -514,87 +515,177 @@
 {{-- Modal para mostrar detalles de producto --}}
 <div class="modal-overlay" id="showProductModal" style="display: none;">
     <div class="modal-container">
-        <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="fas fa-box mr-2"></i>
-                Detalles del Producto
-            </h3>
-            <button type="button" class="modal-close" onclick="closeProductModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-content-grid">
-                <div class="modal-content-column">
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
+            <!-- Header with gradient -->
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <div class="modal-header-left">
+                        <div class="modal-header-icon">
                             <i class="fas fa-box"></i>
-                            Nombre del Producto
                         </div>
-                        <div class="detail-value" id="modalProductName">-</div>
-                    </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-barcode"></i>
-                            Código
+                        <div class="modal-header-text">
+                            <h3 class="modal-title">Detalles del Producto</h3>
+                            <p class="modal-subtitle">Información completa del producto</p>
                         </div>
-                        <div class="detail-value" id="modalProductCode">-</div>
                     </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-tag"></i>
-                            Categoría
-                        </div>
-                        <div class="detail-value" id="modalProductCategory">-</div>
-                    </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-align-left"></i>
-                            Descripción
-                        </div>
-                        <div class="detail-value" id="modalProductDescription">-</div>
-                    </div>
+                    <button type="button" 
+                            onclick="closeProductModal()" 
+                            class="modal-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-content-column">
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-boxes"></i>
-                            Stock Actual
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="modal-content">
+                    <!-- Product Image and Basic Info -->
+                    <div class="modal-product-info">
+                        <div class="modal-product-image">
+                            <img id="modalProductImage" src="" alt="Producto">
                         </div>
-                        <div class="detail-value" id="modalProductStock">-</div>
+                        <div class="modal-product-details">
+                            <h4 class="modal-product-name" id="modalProductName">-</h4>
+                            <div class="modal-product-badges">
+                                <span class="modal-badge modal-badge-code">
+                                    <i class="fas fa-barcode"></i>
+                                    <span id="modalProductCode">-</span>
+                                </span>
+                                <span class="modal-badge modal-badge-category">
+                                    <i class="fas fa-tag"></i>
+                                    <span id="modalProductCategory">-</span>
+                                </span>
+                            </div>
+                            <p class="modal-product-description" id="modalProductDescription">-</p>
+                            <div class="modal-stock-badge" id="modalStockBadge">
+                                <i class="fas fa-boxes"></i>
+                                <span>Stock: </span>
+                                <span id="modalProductStock">-</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-shopping-cart"></i>
-                            Precio de Compra
+
+                    <!-- Detailed Information -->
+                    <div class="modal-info-section">
+                        <h5 class="modal-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            Información Detallada
+                        </h5>
+                        
+                        <div class="modal-info-grid">
+                            <!-- Precio de Compra -->
+                            <div class="modal-info-card modal-info-card-green">
+                                <div class="modal-info-card-header">
+                                    <div class="modal-info-card-icon">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                    <span class="modal-info-card-title">Precio de Compra</span>
+                                </div>
+                                <div class="modal-info-card-value" id="modalProductPurchasePrice">-</div>
+                            </div>
+
+                            <!-- Precio de Venta -->
+                            <div class="modal-info-card modal-info-card-blue">
+                                <div class="modal-info-card-header">
+                                    <div class="modal-info-card-icon">
+                                        <i class="fas fa-cash-register"></i>
+                                    </div>
+                                    <span class="modal-info-card-title">Precio de Venta</span>
+                                </div>
+                                <div class="modal-info-card-value" id="modalProductSalePrice">-</div>
+                            </div>
+
+                            <!-- Ganancia Potencial -->
+                            <div class="modal-info-card modal-info-card-purple">
+                                <div class="modal-info-card-header">
+                                    <div class="modal-info-card-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <span class="modal-info-card-title">Ganancia Potencial</span>
+                                </div>
+                                <div class="modal-info-card-value" id="modalProductProfit">-</div>
+                            </div>
                         </div>
-                        <div class="detail-value" id="modalProductPurchasePrice">-</div>
-                    </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-cash-register"></i>
-                            Precio de Venta
+
+                        <!-- Additional Information -->
+                        <div class="modal-additional-info">
+                            <!-- Stock Information -->
+                            <div class="modal-info-panel">
+                                <h6 class="modal-panel-title">
+                                    <i class="fas fa-warehouse"></i>
+                                    Información de Inventario
+                                </h6>
+                                <div class="modal-panel-content">
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">Stock Actual:</span>
+                                        <span class="modal-info-value" id="modalStockCurrent">-</span>
+                                    </div>
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">Estado del Stock:</span>
+                                        <span class="modal-info-value" id="modalStockStatus">-</span>
+                                    </div>
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">Valor Total en Stock:</span>
+                                        <span class="modal-info-value modal-info-value-green" id="modalStockValue">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dates and Metadata -->
+                            <div class="modal-info-panel">
+                                <h6 class="modal-panel-title">
+                                    <i class="fas fa-clock"></i>
+                                    Información Temporal
+                                </h6>
+                                <div class="modal-panel-content">
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">Fecha de Creación:</span>
+                                        <span class="modal-info-value" id="modalProductCreated">-</span>
+                                    </div>
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">Última Actualización:</span>
+                                        <span class="modal-info-value" id="modalProductUpdated">-</span>
+                                    </div>
+                                    <div class="modal-info-row">
+                                        <span class="modal-info-label">ID del Producto:</span>
+                                        <span class="modal-info-value modal-info-value-id" id="modalProductId">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="detail-value" id="modalProductSalePrice">-</div>
-                    </div>
-                    <div class="modal-detail-item">
-                        <div class="detail-label">
-                            <i class="fas fa-calendar"></i>
-                            Fecha de Creación
+
+                        <!-- Full Description Section -->
+                        <div class="modal-description-section">
+                            <h6 class="modal-panel-title">
+                                <i class="fas fa-align-left"></i>
+                                Descripción Completa
+                            </h6>
+                            <div class="modal-description-content">
+                                <p id="modalProductFullDescription">Sin descripción disponible</p>
+                            </div>
                         </div>
-                        <div class="detail-value" id="modalProductCreated">-</div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-modern btn-secondary" onclick="closeProductModal()">
-                <div class="btn-content">
-                    <i class="fas fa-times"></i>
-                    <span>Cerrar</span>
+
+            <!-- Footer Actions -->
+            <div class="modal-footer">
+                <div class="modal-footer-actions">
+                    @if($permissions['products.edit'])
+                        <button type="button" 
+                                onclick="editProductFromModal()" 
+                                class="modal-btn modal-btn-primary">
+                            <i class="fas fa-edit"></i>
+                            Editar Producto
+                        </button>
+                    @endif
+                    <button type="button" 
+                            onclick="closeProductModal()" 
+                            class="modal-btn modal-btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cerrar
+                    </button>
                 </div>
-                <div class="btn-bg"></div>
-            </button>
+            </div>
         </div>
     </div>
 </div>
