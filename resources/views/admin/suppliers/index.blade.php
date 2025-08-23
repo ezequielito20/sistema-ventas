@@ -182,19 +182,16 @@
                                     @can('suppliers.show')
                                         <button type="button" class="card-btn card-btn-view" onclick="showSupplierDetails({{ $supplier->id }})" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
-                                            <span>Ver</span>
                                         </button>
                                     @endcan
                                     @can('suppliers.edit')
                                         <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
-                                            <span>Editar</span>
                                         </a>
                                     @endcan
                                     @can('suppliers.destroy')
                                         <button type="button" class="card-btn card-btn-delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->company_name }}')" title="Eliminar">
                                             <i class="fas fa-trash"></i>
-                                            <span>Eliminar</span>
                                         </button>
                                     @endcan
                                 </div>
@@ -344,51 +341,7 @@
                     </div>
                 </div>
 
-                {{-- Vista móvil (siempre tarjetas) --}}
-                <div class="mobile-view">
-                    <div class="mobile-cards" id="mobileCards">
-                        @foreach ($suppliers as $supplier)
-                            <div class="mobile-card" data-supplier-id="{{ $supplier->id }}" data-search="{{ strtolower($supplier->company_name . ' ' . $supplier->supplier_name . ' ' . $supplier->company_address) }}">
-                                <div class="mobile-card-header">
-                                    <div class="mobile-avatar">
-                                        <i class="fas fa-truck"></i>
-                                    </div>
-                                    <div class="mobile-info">
-                                        <h4 class="mobile-title">{{ $supplier->company_name }}</h4>
-                                        <span class="mobile-id">ID: {{ $supplier->id }}</span>
-                                    </div>
-                                    <div class="mobile-actions">
-                                        @can('suppliers.show')
-                                            <button type="button" class="mobile-btn mobile-btn-view" onclick="showSupplierDetails({{ $supplier->id }})" title="Ver">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        @endcan
-                                        @can('suppliers.edit')
-                                            <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endcan
-                                        @can('suppliers.destroy')
-                                            <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->company_name }}')" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endcan
-                                    </div>
-                                </div>
-                                <div class="mobile-card-body">
-                                    <p class="mobile-description">
-                                        <strong>Contacto:</strong> {{ $supplier->supplier_name }}<br>
-                                        <strong>Teléfono:</strong> {{ $supplier->supplier_phone }}
-                                    </p>
-                                    <div class="mobile-meta">
-                                        <span class="mobile-email">{{ $supplier->company_email }}</span>
-                                        <span class="mobile-location">{{ Str::limit($supplier->company_address, 40) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>

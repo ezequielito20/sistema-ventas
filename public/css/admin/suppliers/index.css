@@ -520,6 +520,13 @@ body {
     display: flex;
 }
 
+/* Asegurar que los toggles estén visibles en pantallas grandes */
+@media (min-width: 769px) {
+    .view-toggles {
+        display: flex !important;
+    }
+}
+
 .view-toggle {
     background: white;
     color: #64748b;
@@ -558,7 +565,7 @@ body {
 /* ===== VISTA DE TARJETAS ===== */
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -573,6 +580,51 @@ body {
     overflow: hidden;
 }
 
+@media (max-width: 768px) {
+    .supplier-card {
+        padding: var(--spacing-md);
+    }
+    
+    .card-header {
+        margin-bottom: var(--spacing-sm);
+        padding: var(--spacing-sm);
+    }
+    
+    .card-body {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .card-title {
+        font-size: 1rem;
+    }
+    
+    .card-description {
+        font-size: 0.8rem;
+    }
+    
+    .meta-item {
+        font-size: 0.8rem;
+    }
+    
+    .card-btn {
+        padding: var(--spacing-xs);
+        font-size: 0.9rem;
+        min-width: 40px;
+        min-height: 40px;
+    }
+    
+    .card-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .card-badge {
+        font-size: 0.7rem;
+        padding: var(--spacing-xs);
+    }
+}
+
 .supplier-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-xl);
@@ -584,6 +636,10 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-md);
+    background: var(--secondary-50);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--secondary-200);
 }
 
 .card-avatar {
@@ -596,15 +652,18 @@ body {
     justify-content: center;
     color: white;
     font-size: 1.25rem;
+    border: 2px solid var(--secondary-200);
+    box-shadow: var(--shadow-sm);
 }
 
 .card-badge {
     background: var(--secondary-100);
-    color: var(--secondary-600);
+    color: var(--secondary-700);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-md);
     font-size: 0.75rem;
     font-weight: 600;
+    border: 1px solid var(--secondary-200);
 }
 
 .card-body {
@@ -654,15 +713,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-sm);
     border: none;
     border-radius: var(--border-radius-md);
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
     text-decoration: none;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .card-btn-view {
@@ -950,119 +1010,7 @@ body {
     color: white;
 }
 
-/* ===== VISTA MÓVIL ===== */
-.mobile-view {
-    display: none;
-}
 
-.mobile-cards {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.mobile-card {
-    background: white;
-    border: 1px solid var(--secondary-200);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-md);
-    transition: all var(--transition-normal);
-}
-
-.mobile-card:hover {
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary-200);
-}
-
-.mobile-card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-}
-
-.mobile-avatar {
-    width: 40px;
-    height: 40px;
-    background: var(--gradient-primary);
-    border-radius: var(--border-radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-}
-
-.mobile-info {
-    flex: 1;
-}
-
-.mobile-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--secondary-900);
-    margin: 0;
-}
-
-.mobile-id {
-    color: var(--secondary-500);
-    font-size: 0.75rem;
-}
-
-.mobile-actions {
-    display: flex;
-    gap: var(--spacing-xs);
-}
-
-.mobile-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    text-decoration: none;
-}
-
-.mobile-btn-view {
-    background: var(--gradient-info);
-}
-
-.mobile-btn-edit {
-    background: var(--gradient-warning);
-}
-
-.mobile-btn-delete {
-    background: var(--gradient-danger);
-}
-
-.mobile-card-body {
-    border-top: 1px solid var(--secondary-100);
-    padding-top: var(--spacing-md);
-}
-
-.mobile-description {
-    color: var(--secondary-600);
-    font-size: 0.875rem;
-    margin: 0 0 var(--spacing-sm) 0;
-}
-
-.mobile-meta {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.mobile-email,
-.mobile-location {
-    color: var(--secondary-500);
-    font-size: 0.75rem;
-}
 
 /* ===== MODAL MODERNO ===== */
 .modal-overlay {
@@ -1642,14 +1590,75 @@ body {
 
     .cards-grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-md);
     }
-
-    .desktop-view {
+    
+    /* ===== LÓGICA DE VISTAS PARA PANTALLAS PEQUEÑAS ===== */
+    /* En pantallas pequeñas, forzar solo vista de tarjetas */
+    #desktopCardsView {
+        display: block !important;
+    }
+    
+    #desktopTableView {
         display: none !important;
     }
+    
+    /* Ocultar toggles de vista en pantallas pequeñas */
+    .view-toggles {
+        display: none !important;
+    }
+    
+    @media (max-width: 480px) {
+        .cards-grid {
+            gap: var(--spacing-sm);
+        }
+        
+        .supplier-card {
+            padding: var(--spacing-sm);
+        }
+        
+        .card-header {
+            padding: var(--spacing-xs);
+        }
+        
+        .card-title {
+            font-size: 0.9rem;
+        }
+        
+        .card-description {
+            font-size: 0.75rem;
+        }
+        
+        .meta-item {
+            font-size: 0.75rem;
+        }
+        
+        .card-btn {
+            padding: var(--spacing-xs);
+            font-size: 0.8rem;
+            min-width: 36px;
+            min-height: 36px;
+        }
+        
+        .card-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 0.875rem;
+        }
+    }
 
-    .mobile-view {
-        display: block;
+    /* En pantallas pequeñas, forzar solo vista de tarjetas */
+    #desktopCardsView {
+        display: block !important;
+    }
+    
+    #desktopTableView {
+        display: none !important;
+    }
+    
+    /* Ocultar toggles de vista en pantallas pequeñas */
+    .view-toggles {
+        display: none !important;
     }
 
     .custom-pagination {
