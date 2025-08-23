@@ -294,14 +294,16 @@
 .no-debt-badge {
     background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
     color: #22543d;
-    padding: 0.4rem 0.6rem;
-    border-radius: 16px;
-    font-size: 0.7rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.6rem;
     font-weight: 600;
     border: 1px solid #9ae6b4;
     white-space: nowrap;
     display: inline-block;
-    min-width: fit-content;
+    width: fit-content;
+    text-align: center;
+    line-height: 1;
 }
 
 .debt-warning-badge {

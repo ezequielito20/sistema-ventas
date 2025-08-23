@@ -1417,9 +1417,7 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <span class="no-debt-badge">
-                                                Sin deuda
-                                            </span>
+                                            <span class="no-debt-badge">Sin deuda</span>
                                         @endif
                                 </div>
                             </div>
