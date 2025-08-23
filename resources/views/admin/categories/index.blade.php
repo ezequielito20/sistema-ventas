@@ -445,12 +445,9 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn-modern btn-secondary" onclick="closeCategoryModal()">
-                <div class="btn-content">
-                    <i class="fas fa-times"></i>
-                    <span>Cerrar</span>
-                </div>
-                <div class="btn-bg"></div>
+            <button type="button" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-gray-500/30 backdrop-blur-sm" onclick="closeCategoryModal()">
+                <i class="fas fa-times mr-2 text-lg"></i>
+                <span>Cerrar</span>
             </button>
         </div>
     </div>
