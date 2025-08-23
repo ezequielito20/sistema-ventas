@@ -161,22 +161,16 @@
                     <!-- Action Buttons -->
                     <div class="form-actions">
                         <div class="actions-left">
-                            <button type="button" onclick="window.categoryCreate.resetForm()" class="btn-modern btn-reset">
-                                <div class="btn-content">
-                                    <i class="fas fa-undo"></i>
-                                    <span>Limpiar</span>
-                                </div>
-                                <div class="btn-bg"></div>
+                            <button type="button" onclick="window.categoryCreate.resetForm()" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                                <i class="fas fa-undo mr-2"></i>
+                                <span>Limpiar</span>
                             </button>
                         </div>
                         
                         <div class="actions-right">
-                            <button type="button" onclick="window.categoryCreate.goBack()" class="btn-modern btn-cancel">
-                                <div class="btn-content">
-                                    <i class="fas fa-times"></i>
-                                    <span>Cancelar</span>
-                                </div>
-                                <div class="btn-bg"></div>
+                            <button type="button" onclick="window.categoryCreate.goBack()" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                                <i class="fas fa-times mr-2"></i>
+                                <span>Cancelar</span>
                             </button>
                             
                             <button type="submit" id="submitCategory" class="btn-modern btn-submit">
