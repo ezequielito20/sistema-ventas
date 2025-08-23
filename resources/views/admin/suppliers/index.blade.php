@@ -27,14 +27,14 @@
                 @can('suppliers.report')
                     <a href="{{ route('admin.suppliers.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i>
-                        <span>Reporte</span>
+                        <span class="btn-text">Reporte</span>
                         <div class="btn-ripple"></div>
                     </a>
                 @endcan
                 @can('suppliers.create')
                     <a href="{{ route('admin.suppliers.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
-                        <span>Nuevo Proveedor</span>
+                        <span class="btn-text">Nuevo Proveedor</span>
                         <div class="btn-ripple"></div>
                     </a>
                 @endcan
