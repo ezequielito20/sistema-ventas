@@ -94,6 +94,7 @@ Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('adm
 Route::put('/products/edit/{id}', [ProductController::class, 'update'])->name('admin.products.update')->middleware(['auth', 'can:products.edit']);
 Route::delete('/products/delete/{id}', [ProductController::class, 'destroy'])->name('admin.products.destroy')->middleware(['auth', 'can:products.destroy']);
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('admin.products.show')->middleware(['auth', 'can:products.show']);
+Route::get('/api/products', [ProductController::class, 'getProductsApi'])->name('api.products')->middleware(['auth']);
 
 // Suppliers
 Route::get('/suppliers', [SupplierController::class, 'index'])->name('admin.suppliers.index')->middleware(['auth', 'can:suppliers.index']);

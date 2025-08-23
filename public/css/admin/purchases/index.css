@@ -371,6 +371,207 @@
     justify-content: flex-end;
 }
 
+/* ===== PRODUCT FILTER SELECT ===== */
+.product-filter-container {
+    position: relative;
+    min-width: 280px;
+}
+
+.modern-select {
+    position: relative;
+    width: 100%;
+}
+
+.select-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.select-header:hover {
+    border-color: var(--primary-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.select-header.active {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-600);
+    font-size: 0.9rem;
+}
+
+.select-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.select-placeholder {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.select-value {
+    color: var(--secondary-800);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.select-arrow {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+}
+
+.select-header.active .select-arrow {
+    transform: rotate(180deg);
+}
+
+.select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 300px;
+    overflow: hidden;
+    margin-top: -2px;
+}
+
+.select-search {
+    position: relative;
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.select-search i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+.select-search input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #f8fafc;
+    transition: all 0.3s ease;
+}
+
+.select-search input:focus {
+    outline: none;
+    border-color: var(--primary-300);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select-options {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.select-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.select-option:hover {
+    background: #f8fafc;
+}
+
+.select-option.selected {
+    background: var(--primary-50);
+    border-left: 3px solid var(--primary-500);
+}
+
+.option-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-600);
+    font-size: 0.875rem;
+    background: var(--primary-50);
+    border-radius: 6px;
+}
+
+.option-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.option-label {
+    color: var(--secondary-800);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.option-description {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Scrollbar para las opciones */
+.select-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.select-options::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.select-options::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.select-options::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
 .search-box { 
     position: relative; 
     display: flex; 
@@ -1390,6 +1591,19 @@
         padding: 0.5rem 1rem; 
         padding-left: 2.5rem; 
         padding-right: 2.5rem;
+    }
+    .product-filter-container { 
+        min-width: auto; 
+        width: 100%; 
+    }
+    .select-header { 
+        padding: 0.625rem 0.875rem; 
+    }
+    .select-search { 
+        padding: 0.625rem; 
+    }
+    .select-option { 
+        padding: 0.625rem 0.875rem; 
     }
     .view-toggle { justify-content: center; }
     .view-btn { padding: 0.5rem 1rem; font-size: 0.9rem; }

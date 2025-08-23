@@ -143,6 +143,43 @@
                             <i class="fas fa-times" aria-hidden="true"></i>
                         </button>
                     </div>
+                    
+                    <!-- Product Filter Select -->
+                    <div class="product-filter-container">
+                        <div class="modern-select" id="productFilterSelect">
+                            <div class="select-header" onclick="toggleProductSelect()">
+                                <div class="select-icon">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="select-text">
+                                    <span class="select-placeholder">Filtrar por producto</span>
+                                    <span class="select-value" id="selectedProductText" style="display: none;"></span>
+                                </div>
+                                <div class="select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                            <div class="select-dropdown" id="productDropdown" style="display: none;">
+                                <div class="select-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="productSearchInput" placeholder="Buscar producto..." autocomplete="off">
+                                </div>
+                                <div class="select-options" id="productOptions">
+                                    <div class="select-option" data-value="" onclick="selectProduct('', 'Todos los productos')">
+                                        <div class="option-icon">
+                                            <i class="fas fa-list"></i>
+                                        </div>
+                                        <div class="option-text">
+                                            <span class="option-label">Todos los productos</span>
+                                            <span class="option-description">Mostrar todas las compras</span>
+                                        </div>
+                                    </div>
+                                    <!-- Los productos se cargarán dinámicamente aquí -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="view-toggle" role="group" aria-label="Cambiar vista">
                         <button type="button" class="view-btn active" data-view="table" aria-label="Vista de tabla">
                             <i class="fas fa-table" aria-hidden="true"></i>
