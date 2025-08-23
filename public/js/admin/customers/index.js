@@ -144,19 +144,16 @@ function filtersPanel() {
         
         applyFilters() {
             requestAnimationFrame(() => {
-                const cards = document.querySelectorAll('[data-status]');
+                const cards = document.querySelectorAll('[data-defaulter]');
                 console.log('Applying filters:', this.currentFilter, 'to', cards.length, 'elements');
                 let visibleCount = 0;
                 
                 cards.forEach(card => {
-                    const status = card.dataset.status;
                     const isDefaulter = card.dataset.defaulter === 'true';
                     let shouldShow = false;
                     
                     switch (this.currentFilter) {
                         case 'all': shouldShow = true; break;
-                        case 'active': shouldShow = status === 'active'; break;
-                        case 'inactive': shouldShow = status === 'inactive'; break;
                         case 'defaulters': shouldShow = isDefaulter; break;
                     }
                     
@@ -176,7 +173,7 @@ function filtersPanel() {
         },
         
         updateSearchResultsCount() {
-            const visible = document.querySelectorAll('[data-status]:not([style*="display: none"])');
+            const visible = document.querySelectorAll('[data-defaulter]:not([style*="display: none"])');
             this.searchResultsCount = visible.length;
         }
     };

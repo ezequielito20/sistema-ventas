@@ -436,23 +436,7 @@
                                     <i class="fas fa-list text-lg"></i>
                         </button>
 
-                                <!-- Botón Activos - Verde -->
-                                <button type="button" @click="setFilter('active')" title="Clientes activos"
-                                    :class="currentFilter === 'active' ?
-                                        'bg-green-500 border-green-600 text-white shadow-lg transform scale-105' :
-                                        'bg-green-100 border-green-300 text-green-600 hover:bg-green-200 hover:border-green-400'"
-                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-                                    <i class="fas fa-check-circle text-lg"></i>
-                        </button>
 
-                                <!-- Botón Inactivos - Gris -->
-                                <button type="button" @click="setFilter('inactive')" title="Clientes inactivos"
-                                    :class="currentFilter === 'inactive' ?
-                                        'bg-gray-500 border-gray-600 text-white shadow-lg transform scale-105' :
-                                        'bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200 hover:border-gray-400'"
-                                    class="flex items-center justify-center w-12 h-12 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                                    <i class="fas fa-times-circle text-lg"></i>
-                        </button>
 
                                 <!-- Botón Morosos - Rojo -->
                                 <button type="button" @click="setFilter('defaulters')" title="Clientes morosos"
@@ -1168,12 +1152,7 @@
                                         <span>Deuda Bs</span>
                                     </div>
                                 </th>
-                                <th>
-                                    <div class="th-content">
-                                        <i class="fas fa-toggle-on"></i>
-                                        <span>Estado</span>
-                                    </div>
-                                </th>
+
                                 <th>
                                     <div class="th-content">
                                         <i class="fas fa-cogs"></i>
@@ -1189,7 +1168,6 @@
                                     $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
                                 @endphp
                                 <tr class="table-row" data-customer-id="{{ $customer->id }}"
-                                    data-status="{{ $hasSales ? 'active' : 'inactive' }}"
                                     data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
                                     data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
                                     <td>
@@ -1284,21 +1262,7 @@
                                     @endif
                                         </div>
                                 </td>
-                                                                        <td>
-                                        <div class="status-info">
-                                    @if ($hasSales)
-                                        <span class="status-badge status-active">
-                                            <i class="fas fa-check-circle"></i>
-                                            Activo
-                                        </span>
-                                    @else
-                                        <span class="status-badge status-inactive">
-                                            <i class="fas fa-times-circle"></i>
-                                            Inactivo
-                                        </span>
-                                    @endif
-                                        </div>
-                                    </td>
+                                    
                                     <td>
                                     <div class="action-buttons">
                                         @if($permissions['can_show'])
@@ -1343,8 +1307,7 @@
                             $customerSales = $customersData[$customer->id] ?? [];
                             $hasSales = isset($customerSales['hasOldSales']) || $customerSales['currentDebt'] > 0;
                         @endphp
-                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 {{ $hasSales ? 'border-green-500' : 'border-gray-400' }}"
-                        data-status="{{ $hasSales ? 'active' : 'inactive' }}" 
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-blue-500"
                             data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
                             data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
 

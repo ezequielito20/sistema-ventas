@@ -324,28 +324,7 @@
     transform: scale(1.1);
 }
 
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid;
-}
 
-.status-active {
-    background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
-    color: #22543d;
-    border-color: #9ae6b4;
-}
-
-.status-inactive {
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    color: #718096;
-    border-color: #e2e8f0;
-}
 
 /* ===== BOTONES DE ACCIÓN ===== */
 .action-buttons {
@@ -430,7 +409,7 @@
 .customer-name, .sales-amount, .debt-amount { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
 
 /* Transiciones suaves solo para elementos críticos */
-.table-row, .customer-card, .btn-action, .status-badge { transition: var(--transition); }
+.table-row, .customer-card, .btn-action { transition: var(--transition); }
 
 /* ===== PAGINACIÓN PERSONALIZADA ===== */
 .custom-pagination {
