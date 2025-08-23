@@ -24,20 +24,20 @@
                 </div>
             </div>
             <div class="header-actions">
-                @can('suppliers.report')
+                @if($permissions['suppliers.report'])
                     <a href="{{ route('admin.suppliers.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i>
                         <span class="btn-text">Reporte</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
-                @can('suppliers.create')
+                @endif
+                @if($permissions['suppliers.create'])
                     <a href="{{ route('admin.suppliers.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
                         <span class="btn-text">Nuevo Proveedor</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
+                @endif
             </div>
         </div>
     </div>
@@ -179,21 +179,21 @@
                                     </div>
                                 </div>
                                 <div class="card-actions">
-                                    @can('suppliers.show')
+                                    @if($permissions['suppliers.show'])
                                         <button type="button" class="card-btn card-btn-view" onclick="showSupplierDetails({{ $supplier->id }})" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                    @endcan
-                                    @can('suppliers.edit')
+                                    @endif
+                                    @if($permissions['suppliers.edit'])
                                         <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                    @endcan
-                                    @can('suppliers.destroy')
+                                    @endif
+                                    @if($permissions['suppliers.destroy'])
                                         <button type="button" class="card-btn card-btn-delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->company_name }}')" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -207,11 +207,11 @@
                         <div class="pagination-controls">
                             <button id="cardsPrevPage" class="pagination-btn" disabled>
                                 <i class="fas fa-chevron-left"></i>
-                                Anterior
+                                <span>Anterior</span>
                             </button>
                             <div id="cardsPageNumbers" class="page-numbers"></div>
                             <button id="cardsNextPage" class="pagination-btn">
-                                Siguiente
+                                <span>Siguiente</span>
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>
@@ -299,21 +299,21 @@
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                @can('suppliers.show')
+                                                @if($permissions['suppliers.show'])
                                                     <button type="button" class="btn-action btn-view" onclick="showSupplierDetails({{ $supplier->id }})" data-toggle="tooltip" title="Ver Detalles">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                @endcan
-                                                @can('suppliers.edit')
+                                                @endif
+                                                @if($permissions['suppliers.edit'])
                                                     <a href="{{ route('admin.suppliers.edit', $supplier->id) }}" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                @endcan
-                                                @can('suppliers.destroy')
+                                                @endif
+                                                @if($permissions['suppliers.destroy'])
                                                     <button type="button" class="btn-action btn-delete" onclick="deleteSupplier({{ $supplier->id }}, '{{ $supplier->company_name }}')" data-toggle="tooltip" title="Eliminar">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
-                                                @endcan
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -330,11 +330,11 @@
                         <div class="pagination-controls">
                             <button id="prevPage" class="pagination-btn" disabled>
                                 <i class="fas fa-chevron-left"></i>
-                                Anterior
+                                <span>Anterior</span>
                             </button>
                             <div id="pageNumbers" class="page-numbers"></div>
                             <button id="nextPage" class="pagination-btn">
-                                Siguiente
+                                <span>Siguiente</span>
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         </div>

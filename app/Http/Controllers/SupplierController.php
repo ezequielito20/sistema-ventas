@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreSupplierRequest;
 use App\Http\Requests\UpdateSupplierRequest;
 
@@ -50,6 +51,15 @@ class SupplierController extends Controller
          // Proveedores inactivos (para futura implementación con campo 'status')
          $inactiveSuppliers = 0;
 
+         // Optimización de gates
+         $permissions = [
+            'suppliers.report' => Gate::allows('suppliers.report'),
+            'suppliers.create' => Gate::allows('suppliers.create'),
+            'suppliers.show' => Gate::allows('suppliers.show'),
+            'suppliers.edit' => Gate::allows('suppliers.edit'),
+            'suppliers.destroy' => Gate::allows('suppliers.destroy'),
+         ];
+
          // Retornar vista con datos
          return view('admin.suppliers.index', compact(
             'suppliers',
@@ -58,7 +68,8 @@ class SupplierController extends Controller
             'recentSuppliers',
             'inactiveSuppliers',
             'currency',
-            'company'
+            'company',
+            'permissions'
          ))
             ->with('message', 'Proveedores cargados correctamente')
             ->with('icons', 'success');
