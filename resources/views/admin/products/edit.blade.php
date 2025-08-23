@@ -59,91 +59,165 @@
                             Información Básica
                         </h4>
                         
-                        <div class="form-grid">
-                            <div class="field-group">
-                                <label for="code" class="field-label">
-                                    <i class="fas fa-barcode"></i>
-                                    <span>Código del Producto</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Código del Producto -->
+                            <div class="space-y-1.5">
+                                <label for="code" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-barcode text-blue-500"></i>
+                                    <span>Código</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="text" class="form-input @error('code') is-invalid @enderror"
-                                        id="code" name="code" value="{{ old('code', $product->code) }}" placeholder="Ej: PROD001" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="text" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('code') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="code" name="code" 
+                                       value="{{ old('code', $product->code) }}" 
+                                       placeholder="PROD001" required>
                                 @error('code')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="name" class="field-label">
-                                    <i class="fas fa-box"></i>
+                            <!-- Nombre del Producto -->
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label for="name" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-box text-blue-500"></i>
                                     <span>Nombre del Producto</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="text" class="form-input @error('name') is-invalid @enderror" 
-                                        id="name" name="name" value="{{ old('name', $product->name) }}" placeholder="Nombre del producto" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="text" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('name') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="name" name="name" 
+                                       value="{{ old('name', $product->name) }}" 
+                                       placeholder="Nombre del producto" required>
                                 @error('name')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="category_id" class="field-label">
-                                    <i class="fas fa-tag"></i>
+                            <!-- Categoría -->
+                            <div class="space-y-1.5" 
+                                 x-data="{ 
+                                     isOpen: false, 
+                                     searchTerm: '', 
+                                     categories: @js($categories),
+                                     filteredCategories: @js($categories),
+                                     selectedCategoryName: '{{ old('category_id', $product->category_id) ? ($product->category ? $product->category->name : 'Seleccionar') : 'Seleccionar' }}',
+                                     selectedCategoryId: '{{ old('category_id', $product->category_id) }}',
+                                     filterCategories() {
+                                         if (!this.searchTerm) {
+                                             this.filteredCategories = this.categories;
+                                             return;
+                                         }
+                                         const term = this.searchTerm.toLowerCase();
+                                         this.filteredCategories = this.categories.filter(category => 
+                                             category.name.toLowerCase().includes(term)
+                                         );
+                                     },
+                                     selectCategory(category) {
+                                         if (category) {
+                                             this.selectedCategoryName = category.name;
+                                             this.selectedCategoryId = category.id;
+                                             document.getElementById('category_id').value = category.id;
+                                         } else {
+                                             this.selectedCategoryName = 'Seleccionar';
+                                             this.selectedCategoryId = '';
+                                             document.getElementById('category_id').value = '';
+                                         }
+                                         this.isOpen = false;
+                                         this.searchTerm = '';
+                                         this.filteredCategories = this.categories;
+                                     }
+                                 }" 
+                                 @click.away="isOpen = false">
+                                
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-tag text-blue-500"></i>
                                     <span>Categoría</span>
                                 </label>
-                                <div class="input-container">
-                                    <select class="form-input @error('category_id') is-invalid @enderror"
-                                        id="category_id" name="category_id" required>
-                                        <option value="">Seleccionar categoría</option>
-                                        @foreach($categories as $category)
-                                            <option value="{{ $category->id }}"
-                                                {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
-                                                {{ $category->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="input-border"></div>
+                                
+                                <div class="relative">
+                                    <input type="hidden" id="category_id" name="category_id" value="{{ old('category_id', $product->category_id) }}" required>
+                                    
+                                    <button type="button" 
+                                            @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.categorySearch.focus()) }"
+                                            class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 flex items-center justify-between text-left @error('category_id') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror">
+                                        <span class="block truncate" x-text="selectedCategoryName"></span>
+                                        <svg class="h-4 w-4 text-gray-400 transition-transform duration-200" 
+                                             :class="{ 'rotate-180': isOpen }" 
+                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div x-show="isOpen" 
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="transform opacity-0 scale-95"
+                                         x-transition:enter-end="transform opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="transform opacity-100 scale-100"
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                        
+                                        <!-- Search Input -->
+                                        <div class="p-2 border-b border-gray-100">
+                                            <input type="text" 
+                                                   x-ref="categorySearch"
+                                                   x-model="searchTerm" 
+                                                   @input="filterCategories()"
+                                                   class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                   placeholder="Buscar...">
+                                        </div>
+                                        
+                                        <!-- Options -->
+                                        <div class="py-1">
+                                            <template x-for="category in filteredCategories" :key="category.id">
+                                                <button type="button" 
+                                                        @click="selectCategory(category)"
+                                                        class="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 transition-colors duration-150"
+                                                        :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedCategoryId == category.id }">
+                                                    <i class="fas fa-tag text-gray-400 text-xs"></i>
+                                                    <span x-text="category.name"></span>
+                                                </button>
+                                            </template>
+                                            
+                                            <div x-show="filteredCategories.length === 0" 
+                                                 class="px-3 py-2 text-sm text-gray-500 text-center">
+                                                No se encontraron categorías
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @error('category_id')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="entry_date" class="field-label">
-                                    <i class="fas fa-calendar"></i>
-                                    <span>Fecha de Ingreso</span>
+                            <!-- Fecha de Ingreso -->
+                            <div class="space-y-1.5">
+                                <label for="entry_date" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-calendar text-blue-500"></i>
+                                    <span>Fecha Ingreso</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="date" class="form-input @error('entry_date') is-invalid @enderror"
-                                        id="entry_date" name="entry_date" 
-                                        value="{{ old('entry_date', $product->entry_date->format('Y-m-d')) }}"
-                                        max="{{ date('Y-m-d') }}" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="date" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('entry_date') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="entry_date" name="entry_date" 
+                                       value="{{ old('entry_date', $product->entry_date->format('Y-m-d')) }}"
+                                       max="{{ date('Y-m-d') }}" required>
                                 @error('entry_date')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="field-group full-width">
-                            <label for="description" class="field-label">
-                                <i class="fas fa-align-left"></i>
+                        <div class="space-y-1.5">
+                            <label for="description" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <i class="fas fa-align-left text-blue-500"></i>
                                 <span>Descripción</span>
                             </label>
-                            <div class="input-container">
-                                <textarea class="form-input @error('description') is-invalid @enderror" 
-                                    id="description" name="description" rows="4" 
-                                    placeholder="Describe las características del producto...">{{ old('description', $product->description) }}</textarea>
-                                <div class="input-border"></div>
-                            </div>
+                            <textarea class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 min-h-[100px] resize-y leading-relaxed @error('description') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror" 
+                                      id="description" name="description" rows="3" 
+                                      placeholder="Describe las características del producto...">{{ old('description', $product->description) }}</textarea>
                             @error('description')
-                                <span class="error-message">{{ $message }}</span>
+                                <span class="text-xs text-red-500">{{ $message }}</span>
                             @enderror
                         </div>
                     </div>
@@ -211,49 +285,49 @@
                             Gestión de Stock
                         </h4>
                         
-                        <div class="form-grid">
-                            <div class="field-group">
-                                <label for="stock" class="field-label">
-                                    <i class="fas fa-cubes"></i>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label for="stock" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-cubes text-blue-500"></i>
                                     <span>Stock Actual</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="number" class="form-input @error('stock') is-invalid @enderror"
-                                        id="stock" name="stock" value="{{ old('stock', $product->stock) }}" min="0" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="number" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('stock') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="stock" name="stock" 
+                                       value="{{ old('stock', $product->stock) }}" 
+                                       min="0" required>
                                 @error('stock')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="min_stock" class="field-label">
-                                    <i class="fas fa-exclamation-triangle"></i>
+                            <div class="space-y-1.5">
+                                <label for="min_stock" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-exclamation-triangle text-orange-500"></i>
                                     <span>Stock Mínimo</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="number" class="form-input @error('min_stock') is-invalid @enderror"
-                                        id="min_stock" name="min_stock" value="{{ old('min_stock', $product->min_stock) }}" min="0" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="number" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('min_stock') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="min_stock" name="min_stock" 
+                                       value="{{ old('min_stock', $product->min_stock) }}" 
+                                       min="0" required>
                                 @error('min_stock')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="max_stock" class="field-label">
-                                    <i class="fas fa-warehouse"></i>
+                            <div class="space-y-1.5">
+                                <label for="max_stock" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-warehouse text-green-500"></i>
                                     <span>Stock Máximo</span>
                                 </label>
-                                <div class="input-container">
-                                    <input type="number" class="form-input @error('max_stock') is-invalid @enderror"
-                                        id="max_stock" name="max_stock" value="{{ old('max_stock', $product->max_stock) }}" min="0" required>
-                                    <div class="input-border"></div>
-                                </div>
+                                <input type="number" 
+                                       class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('max_stock') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                       id="max_stock" name="max_stock" 
+                                       value="{{ old('max_stock', $product->max_stock) }}" 
+                                       min="0" required>
                                 @error('max_stock')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>
@@ -266,40 +340,40 @@
                             Información de Precios
                         </h4>
                         
-                        <div class="form-grid">
-                            <div class="field-group">
-                                <label for="purchase_price" class="field-label">
-                                    <i class="fas fa-shopping-cart"></i>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label for="purchase_price" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-shopping-cart text-red-500"></i>
                                     <span>Precio de Compra</span>
                                 </label>
-                                <div class="input-container">
-                                    <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                    <input type="number" class="form-input @error('purchase_price') is-invalid @enderror"
-                                        id="purchase_price" name="purchase_price" 
-                                        value="{{ old('purchase_price', $product->purchase_price) }}" 
-                                        step="0.01" min="0" required>
-                                    <div class="input-border"></div>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">{{ $currency->symbol }}</span>
+                                    <input type="number" 
+                                           class="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('purchase_price') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                           id="purchase_price" name="purchase_price" 
+                                           value="{{ old('purchase_price', $product->purchase_price) }}" 
+                                           step="0.01" min="0" required>
                                 </div>
                                 @error('purchase_price')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="field-group">
-                                <label for="sale_price" class="field-label">
-                                    <i class="fas fa-cash-register"></i>
+                            <div class="space-y-1.5">
+                                <label for="sale_price" class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fas fa-cash-register text-green-500"></i>
                                     <span>Precio de Venta</span>
                                 </label>
-                                <div class="input-container">
-                                    <span class="currency-symbol">{{ $currency->symbol }}</span>
-                                    <input type="number" class="form-input @error('sale_price') is-invalid @enderror"
-                                        id="sale_price" name="sale_price" 
-                                        value="{{ old('sale_price', $product->sale_price) }}" 
-                                        step="0.01" min="0" required>
-                                    <div class="input-border"></div>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">{{ $currency->symbol }}</span>
+                                    <input type="number" 
+                                           class="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 @error('sale_price') border-red-400 focus:border-red-500 focus:ring-red-100 @enderror"
+                                           id="sale_price" name="sale_price" 
+                                           value="{{ old('sale_price', $product->sale_price) }}" 
+                                           step="0.01" min="0" required>
                                 </div>
                                 @error('sale_price')
-                                    <span class="error-message">{{ $message }}</span>
+                                    <span class="text-xs text-red-500">{{ $message }}</span>
                                 @enderror
                             </div>
                         </div>

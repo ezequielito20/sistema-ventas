@@ -303,9 +303,31 @@
 /* Grid del formulario */
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 1rem;
+}
+
+/* Responsividad mejorada para el grid */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
 }
 
 /* Grupos de campos */
@@ -345,14 +367,17 @@
 
 .form-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
     border: 2px solid rgba(102, 126, 234, 0.15);
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 0.9rem;
     transition: all 0.3s ease;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
     color: var(--dark-color);
     backdrop-filter: blur(5px);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
 }
 
 .form-input:focus {
@@ -395,6 +420,45 @@
 
 .form-input[type="number"] {
     padding-left: 2.5rem;
+}
+
+/* Ajustes para inputs que no necesitan flexbox */
+.form-input[type="text"], 
+.form-input[type="number"], 
+.form-input[type="date"], 
+.form-input[type="email"],
+textarea.form-input {
+    display: block;
+    min-height: 48px;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
+    backdrop-filter: blur(5px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Textarea específico */
+textarea.form-input {
+    min-height: 120px;
+    resize: vertical;
+    padding: 0.875rem 1rem;
+    line-height: 1.5;
+}
+
+/* Solo el select necesita flexbox para la flecha */
+button.filter-input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Asegurar que el input-container no interfiera */
+.input-container .form-input {
+    margin: 0;
+    width: 100%;
 }
 
 /* Sección de upload de imagen */
@@ -811,6 +875,72 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-color: #a0aec0;
+}
+
+/* Estilos para select personalizado de categoría */
+.filter-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 1rem;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid rgba(102, 126, 234, 0.15);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%);
+    color: var(--dark-color);
+    backdrop-filter: blur(5px);
+    cursor: pointer;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%);
+}
+
+.filter-input.is-invalid {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.filter-input-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-color);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.filter-input:focus + .filter-input-border {
+    transform: scaleX(1);
 }
 
 /* Responsive */
