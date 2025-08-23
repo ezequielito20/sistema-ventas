@@ -437,39 +437,10 @@ function showAlert(title, text, icon) {
 // Inicializar event listeners
 function initializeEventListeners() {
     
-    // Toggle de filtros
-    const filtersToggle = document.getElementById('filtersToggle');
-    const filtersContent = document.getElementById('filtersContent');
-    
-    if (filtersToggle && filtersContent) {
-        filtersToggle.addEventListener('click', function() {
-            filtersContent.classList.toggle('show');
-            const icon = this.querySelector('i');
-            if (icon) {
-                if (filtersContent.classList.contains('show')) {
-                    icon.classList.remove('fa-chevron-down');
-                    icon.classList.add('fa-chevron-up');
-                } else {
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
-                }
-            }
-        });
-    }
-    
     // Búsqueda en tiempo real
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value;
-            filterSuppliers(searchTerm);
-        });
-    }
-    
-    // Búsqueda en filtros
-    const supplierSearch = document.getElementById('supplierSearch');
-    if (supplierSearch) {
-        supplierSearch.addEventListener('keyup', function() {
             const searchTerm = this.value;
             filterSuppliers(searchTerm);
         });
@@ -503,25 +474,6 @@ function initializeEventListeners() {
                 currentPage++;
                 showPage(currentPage);
             }
-        });
-    }
-    
-    // Aplicar filtros
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', function() {
-            const searchTerm = document.getElementById('supplierSearch')?.value || '';
-            filterSuppliers(searchTerm);
-        });
-    }
-    
-    // Limpiar filtros
-    const clearFiltersBtn = document.getElementById('clearFilters');
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', function() {
-            const supplierSearchInput = document.getElementById('supplierSearch');
-            if (supplierSearchInput) supplierSearchInput.value = '';
-            filterSuppliers('');
         });
     }
     
