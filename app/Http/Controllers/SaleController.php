@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 use Carbon\Carbon;
 
@@ -38,12 +39,12 @@ class SaleController extends Controller
    {
       // Optimización de permisos - verificar una sola vez
       $permissions = [
-         'can_report' => true, // Gate::allows('sales.report'),
-         'can_create' => true, // Gate::allows('sales.create'),
-         'can_edit' => true,   // Gate::allows('sales.edit'),
-         'can_show' => true,   // Gate::allows('sales.show'),
-         'can_destroy' => true, // Gate::allows('sales.destroy'),
-         'can_print' => true,  // Gate::allows('sales.print'),
+         'can_report' => Gate::allows('sales.report'),
+         'can_create' => Gate::allows('sales.create'),
+         'can_edit' => Gate::allows('sales.edit'),
+         'can_show' => Gate::allows('sales.show'),
+         'can_destroy' => Gate::allows('sales.destroy'),
+         'can_print' => Gate::allows('sales.print'),
       ];
 
       // Obtener la fecha de inicio y fin de la semana actual
