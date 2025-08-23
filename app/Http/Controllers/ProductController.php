@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -65,6 +66,15 @@ class ProductController extends Controller
             ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100 
             : 0;
 
+         // Optimización de gates - verificar permisos una sola vez
+         $permissions = [
+            'products.report' => Gate::allows('products.report'),
+            'products.create' => Gate::allows('products.create'),
+            'products.show' => Gate::allows('products.show'),
+            'products.edit' => Gate::allows('products.edit'),
+            'products.destroy' => Gate::allows('products.destroy')
+         ];
+
          return view('admin.products.index', compact(
             'products',
             'categories',
@@ -75,7 +85,8 @@ class ProductController extends Controller
             'potentialProfit',
             'profitPercentage',
             'currency',
-            'company'
+            'company',
+            'permissions'
          ));
       } catch (\Exception $e) {
 

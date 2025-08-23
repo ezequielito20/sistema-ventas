@@ -33,20 +33,20 @@
                 </div>
             </div>
             <div class="header-actions">
-                @can('products.report')
+                @if($permissions['products.report'])
                     <a href="{{ route('admin.products.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i>
                         <span>Reporte</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
-                @can('products.create')
+                @endif
+                @if($permissions['products.create'])
                     <a href="{{ route('admin.products.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
                         <span>Nuevo Producto</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
+                @endif
             </div>
         </div>
     </div>
@@ -292,24 +292,24 @@
                                     </div>
                                 </div>
                                 <div class="card-actions">
-                                    @can('products.show')
+                                    @if($permissions['products.show'])
                                         <button type="button" class="card-btn card-btn-view" onclick="showProductDetails({{ $product->id }})" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                             <span>Ver</span>
                                         </button>
-                                    @endcan
-                                    @can('products.edit')
+                                    @endif
+                                    @if($permissions['products.edit'])
                                         <a href="{{ route('admin.products.edit', $product->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
                                             <span>Editar</span>
                                         </a>
-                                    @endcan
-                                    @can('products.destroy')
+                                    @endif
+                                    @if($permissions['products.destroy'])
                                         <button type="button" class="card-btn card-btn-delete" onclick="deleteProduct({{ $product->id }}, '{{ $product->name }}')" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                             <span>Eliminar</span>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -427,21 +427,21 @@
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                @can('products.show')
+                                                @if($permissions['products.show'])
                                                     <button type="button" class="btn-action btn-view" onclick="showProductDetails({{ $product->id }})" data-toggle="tooltip" title="Ver Detalles">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                @endcan
-                                                @can('products.edit')
+                                                @endif
+                                                @if($permissions['products.edit'])
                                                     <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                @endcan
-                                                @can('products.destroy')
+                                                @endif
+                                                @if($permissions['products.destroy'])
                                                     <button type="button" class="btn-action btn-delete" onclick="deleteProduct({{ $product->id }}, '{{ $product->name }}')" data-toggle="tooltip" title="Eliminar">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
-                                                @endcan
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -483,21 +483,21 @@
                                         <span class="mobile-code">{{ $product->code }}</span>
                                     </div>
                                     <div class="mobile-actions">
-                                        @can('products.show')
+                                        @if($permissions['products.show'])
                                             <button type="button" class="mobile-btn mobile-btn-view" onclick="showProductDetails({{ $product->id }})" title="Ver">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                        @endcan
-                                        @can('products.edit')
+                                        @endif
+                                        @if($permissions['products.edit'])
                                             <a href="{{ route('admin.products.edit', $product->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                        @endcan
-                                        @can('products.destroy')
+                                        @endif
+                                        @if($permissions['products.destroy'])
                                             <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteProduct({{ $product->id }}, '{{ $product->name }}')" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="mobile-card-body">
