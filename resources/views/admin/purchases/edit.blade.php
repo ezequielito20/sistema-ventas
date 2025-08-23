@@ -382,8 +382,8 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 sm:space-x-4">
                             <div
-                                class="flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
-                                <i class="fas fa-search text-sm sm:text-xl"></i>
+                                class="flex h-8 w-8 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white bg-opacity-25 backdrop-blur-sm shadow-lg border border-white border-opacity-30">
+                                <i class="fas fa-boxes text-sm sm:text-xl text-blue-600"></i>
                             </div>
                             <div>
                                 <h3 class="text-lg sm:text-xl font-bold">Búsqueda de Productos</h3>
@@ -414,28 +414,28 @@
                     <!-- Products Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-gradient-to-r from-blue-600 to-purple-600">
                                 <tr>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Código</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Acción</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Producto</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden sm:table-cell">
                                         Categoría</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                                         Stock</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden md:table-cell">
                                         Precio Compra</th>
                                     <th
-                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-white uppercase tracking-wider hidden lg:table-cell">
                                         Estado</th>
                                 </tr>
                             </thead>
