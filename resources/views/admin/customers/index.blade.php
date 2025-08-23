@@ -1190,6 +1190,7 @@
                                 @endphp
                                 <tr class="table-row" data-customer-id="{{ $customer->id }}"
                                     data-status="{{ $hasSales ? 'active' : 'inactive' }}"
+                                    data-defaulter="{{ $customersData[$customer->id]['isDefaulter'] ? 'true' : 'false' }}"
                                     data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}">
                                     <td>
                                         <div class="row-number">
