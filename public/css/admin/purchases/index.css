@@ -1400,7 +1400,7 @@
     
     /* Stats dashboard */
     .stats-dashboard { padding: 1rem; margin-bottom: 1rem; }
-    .stats-grid { grid-template-columns: repeat(2,1fr); gap: 0.75rem; }
+    .stats-grid { grid-template-columns: 1fr; gap: 0.75rem; }
     .stat-card { padding: 0.875rem; flex-direction: column; text-align: center; gap: 0.5rem; }
     .stat-icon { width: 40px; height: 40px; font-size: 1.2rem; }
     .stat-value { font-size: 1.5rem; }
@@ -1420,6 +1420,23 @@
     .main-container { padding: 0.5rem; }
     .floating-header { padding: 1rem; }
     .btn-glass { width: 100%; justify-content: center; }
+    
+    /* Stats dashboard para pantallas muy pequeñas */
+    .stats-dashboard { padding: 0.75rem; }
+    .stats-grid { gap: 0.5rem; }
+    .stat-card { padding: 0.75rem; }
+    .stat-value { font-size: 1.25rem; }
+    .stat-label { font-size: 0.7rem; }
+    .stat-trend { font-size: 0.65rem; padding: 0.15rem 0.3rem; }
+}
+
+@media (max-width: 480px) {
+    .stats-dashboard { padding: 0.5rem; }
+    .stat-card { padding: 0.625rem; }
+    .stat-icon { width: 35px; height: 35px; font-size: 1rem; }
+    .stat-value { font-size: 1.1rem; }
+    .stat-label { font-size: 0.65rem; }
+    .stat-trend { font-size: 0.6rem; padding: 0.1rem 0.25rem; }
 }
 
 
