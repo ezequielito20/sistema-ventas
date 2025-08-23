@@ -670,14 +670,6 @@
             <!-- Footer Actions -->
             <div class="modal-footer">
                 <div class="modal-footer-actions">
-                    @if($permissions['products.edit'])
-                        <button type="button" 
-                                onclick="editProductFromModal()" 
-                                class="modal-btn modal-btn-primary">
-                            <i class="fas fa-edit"></i>
-                            Editar Producto
-                        </button>
-                    @endif
                     <button type="button" 
                             onclick="closeProductModal()" 
                             class="modal-btn modal-btn-secondary">

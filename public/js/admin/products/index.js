@@ -308,7 +308,7 @@ if (typeof window.productsIndex === 'undefined') {
                     
                     // Imagen del producto
                     const modalImage = document.getElementById('modalProductImage');
-                    modalImage.src = product.image_url || '/img/no-image.svg';
+                    modalImage.src = product.image || '/img/no-image.svg';
                     modalImage.alt = product.name || 'Producto';
                     
                     // Stock y estado
@@ -589,14 +589,7 @@ if (typeof window.deleteProduct === 'undefined') {
     };
 }
 
-// Función para editar producto desde modal (compatibilidad con onclick)
-if (typeof window.editProductFromModal === 'undefined') {
-    window.editProductFromModal = function() {
-        if (window.currentProductId) {
-            window.location.href = `/admin/products/${window.currentProductId}/edit`;
-        }
-    };
-}
+
 
 
 
