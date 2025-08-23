@@ -204,6 +204,7 @@
 
                             <!-- Dropdown -->
                             <div x-show="isOpen" 
+                                 x-cloak
                                  x-transition:enter="transition ease-out duration-100"
                                  x-transition:enter-start="transform opacity-0 scale-95"
                                  x-transition:enter-end="transform opacity-100 scale-100"
