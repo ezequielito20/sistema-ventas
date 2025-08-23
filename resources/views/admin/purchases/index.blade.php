@@ -146,35 +146,112 @@
                     
                     <!-- Product Filter Select -->
                     <div class="product-filter-container">
-                        <div class="modern-select" id="productFilterSelect">
-                            <div class="select-header" onclick="toggleProductSelect()">
-                                <div class="select-icon">
+                       
+                        <div class="relative" 
+                             x-data="{ 
+                                 isOpen: false, 
+                                 searchTerm: '', 
+                                 filteredProducts: @js($products),
+                                 selectedProductName: 'Todos los productos',
+                                 selectedProductId: '',
+                                 filterProducts() {
+                                     if (!this.searchTerm) {
+                                         this.filteredProducts = @js($products);
+                                         return;
+                                     }
+                                     const term = this.searchTerm.toLowerCase();
+                                     this.filteredProducts = @js($products).filter(product => 
+                                         product.name.toLowerCase().includes(term) || 
+                                         product.code.toLowerCase().includes(term) ||
+                                         (product.category && product.category.name.toLowerCase().includes(term))
+                                     );
+                                 },
+                                 selectProduct(product) {
+                                     if (product) {
+                                         this.selectedProductName = product.name;
+                                         this.selectedProductId = product.id;
+                                     } else {
+                                         this.selectedProductName = 'Todos los productos';
+                                         this.selectedProductId = '';
+                                     }
+                                     this.isOpen = false;
+                                     this.searchTerm = '';
+                                     this.filteredProducts = @js($products);
+                                     // Trigger filter event
+                                     window.purchasesIndex.filterByProduct(this.selectedProductId);
+                                 }
+                             }" 
+                             @click.away="isOpen = false">
+                            
+                            <div class="filter-input-wrapper">
+                                <div class="filter-input-icon">
                                     <i class="fas fa-box"></i>
                                 </div>
-                                <div class="select-text">
-                                    <span class="select-placeholder">Filtrar por producto</span>
-                                    <span class="select-value" id="selectedProductText" style="display: none;"></span>
-                                </div>
-                                <div class="select-arrow">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
+                                
+                                <!-- Select Button -->
+                                <button type="button" 
+                                        @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.productSearch.focus()) }"
+                                        class="filter-input w-full text-left flex items-center justify-between">
+                                    <span class="block truncate" x-text="selectedProductName"></span>
+                                    <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2" 
+                                         :class="{ 'rotate-180': isOpen }" 
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="filter-input-border"></div>
                             </div>
-                            <div class="select-dropdown" id="productDropdown" style="display: none;">
-                                <div class="select-search">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" id="productSearchInput" placeholder="Buscar producto..." autocomplete="off">
+
+                            <!-- Dropdown -->
+                            <div x-show="isOpen" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+                                 style="z-index: 9999 !important;">
+                                
+                                <!-- Search Input -->
+                                <div class="p-2 border-b border-gray-100">
+                                    <input type="text" 
+                                           x-ref="productSearch"
+                                           x-model="searchTerm" 
+                                           @input="filterProducts()"
+                                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           placeholder="Buscar producto...">
                                 </div>
-                                <div class="select-options" id="productOptions">
-                                    <div class="select-option" data-value="" onclick="selectProduct('', 'Todos los productos')">
-                                        <div class="option-icon">
-                                            <i class="fas fa-list"></i>
-                                        </div>
-                                        <div class="option-text">
-                                            <span class="option-label">Todos los productos</span>
-                                            <span class="option-description">Mostrar todas las compras</span>
-                                        </div>
+                                
+                                <!-- Options -->
+                                <div class="py-1">
+                                    <!-- All products option -->
+                                    <button type="button" 
+                                            @click="selectProduct(null)"
+                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId === '' }">
+                                        <i class="fas fa-list text-gray-400"></i>
+                                        <span>Todos los productos</span>
+                                    </button>
+                                    
+                                    <!-- Product options -->
+                                    <template x-for="product in filteredProducts" :key="product.id">
+                                        <button type="button" 
+                                                @click="selectProduct(product)"
+                                                class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                                :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId == product.id }">
+                                            <i class="fas fa-box text-gray-400"></i>
+                                            <div class="flex flex-col">
+                                                <span x-text="product.name" class="font-medium"></span>
+                                                <span x-text="product.code + ' • ' + (product.category ? product.category.name : 'Sin categoría')" class="text-xs text-gray-500"></span>
+                                            </div>
+                                        </button>
+                                    </template>
+                                    
+                                    <!-- No results -->
+                                    <div x-show="filteredProducts.length === 0" class="px-4 py-2 text-sm text-gray-500 text-center">
+                                        No se encontraron productos
                                     </div>
-                                    <!-- Los productos se cargarán dinámicamente aquí -->
                                 </div>
                             </div>
                         </div>
@@ -208,7 +285,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($purchases as $purchase)
-                                    <tr>
+                                    <tr data-purchase-id="{{ $purchase->id }}">
                                         <td>
                                             <div class="number-badge">{{ $loop->iteration }}</div>
                                         </td>
@@ -239,10 +316,12 @@
                                         </td>
                                         <td>
                                             <div class="products-info">
-                                                <div class="product-badge">
-                                                    <i class="fas fa-boxes"></i>
-                                                    <span>{{ $purchase->details->count() }} únicos</span>
-                                                </div>
+                                                @foreach($purchase->details as $detail)
+                                                    <div class="product-badge" data-product-id="{{ $detail->product_id }}">
+                                                        <i class="fas fa-boxes"></i>
+                                                        <span>{{ $detail->product->name ?? 'Producto' }}</span>
+                                                    </div>
+                                                @endforeach
                                                 <div class="product-badge">
                                                     <i class="fas fa-cubes"></i>
                                                     <span>{{ $purchase->details->sum('quantity') }} totales</span>
@@ -314,7 +393,7 @@
                 <div class="cards-view" id="cardsView" style="display: none;">
                     <div class="cards-grid">
                         @foreach ($purchases as $purchase)
-                            <div class="purchase-card-modern">
+                            <div class="purchase-card-modern" data-purchase-id="{{ $purchase->id }}">
                                 <!-- Header with status and number -->
                                 <div class="card-header-modern">
                                     <div class="purchase-number">
@@ -366,6 +445,9 @@
                                                 <div class="stat-number">{{ $purchase->details->count() }}</div>
                                                 <div class="stat-text">Productos<br>Únicos</div>
                                             </div>
+                                            @foreach($purchase->details as $detail)
+                                                <div class="product-data" data-product-id="{{ $detail->product_id }}" style="display: none;"></div>
+                                            @endforeach
                                         </div>
 
                                         <div class="stat-box units">

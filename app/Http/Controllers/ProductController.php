@@ -461,32 +461,5 @@ class ProductController extends Controller
       return $pdf->stream('reporte-productos.pdf');
    }
 
-   /**
-    * API endpoint para obtener productos en formato JSON
-    */
-   public function getProductsApi()
-   {
-      try {
-         $products = Product::select('id', 'name', 'code', 'category_id')
-            ->with(['category:id,name'])
-            ->where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->get()
-            ->map(function ($product) {
-               return [
-                  'id' => $product->id,
-                  'name' => $product->name,
-                  'code' => $product->code,
-                  'category' => $product->category ? $product->category->name : 'Sin categoría'
-               ];
-            });
 
-         return response()->json($products);
-      } catch (\Exception $e) {
-         return response()->json([
-            'error' => 'Error al cargar los productos',
-            'message' => $e->getMessage()
-         ], 500);
-      }
-   }
 }

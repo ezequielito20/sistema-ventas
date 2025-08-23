@@ -482,198 +482,42 @@
   // Product filter manager
   const productFilterManager = {
     selectedProductId: '',
-    products: [],
     
     init() {
-      this.loadProducts();
-      this.setupEventListeners();
+      // No necesitamos setup de event listeners ya que Alpine.js maneja todo
     },
 
-    async loadProducts() {
-      try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          this.products = await response.json();
-          this.renderProducts();
-        }
-      } catch (error) {
-        console.error('Error loading products:', error);
-        // Fallback: usar productos de ejemplo si la API falla
-        this.products = this.getSampleProducts();
-        this.renderProducts();
-      }
-    },
-
-    getSampleProducts() {
-      // Productos de ejemplo para desarrollo
-      return [
-        { id: 1, name: 'Laptop HP Pavilion', code: 'LAP001', category: 'Electrónicos' },
-        { id: 2, name: 'Mouse Inalámbrico', code: 'MOU002', category: 'Accesorios' },
-        { id: 3, name: 'Teclado Mecánico', code: 'TEC003', category: 'Accesorios' },
-        { id: 4, name: 'Monitor 24"', code: 'MON004', category: 'Electrónicos' },
-        { id: 5, name: 'Auriculares Bluetooth', code: 'AUR005', category: 'Audio' }
-      ];
-    },
-
-    renderProducts() {
-      const container = document.getElementById('productOptions');
-      if (!container) return;
-
-      // Mantener la opción "Todos los productos"
-      const allProductsOption = container.querySelector('.select-option[data-value=""]');
-      container.innerHTML = '';
-      if (allProductsOption) {
-        container.appendChild(allProductsOption);
-      }
-
-      // Agregar productos
-      this.products.forEach(product => {
-        const option = document.createElement('div');
-        option.className = 'select-option';
-        option.setAttribute('data-value', product.id);
-        option.onclick = () => this.selectProduct(product.id, product.name);
-        
-        option.innerHTML = `
-          <div class="option-icon">
-            <i class="fas fa-box"></i>
-          </div>
-          <div class="option-text">
-            <span class="option-label">${product.name}</span>
-            <span class="option-description">${product.code} • ${product.category}</span>
-          </div>
-        `;
-        
-        container.appendChild(option);
-      });
-    },
-
-    setupEventListeners() {
-      // Toggle del select
-      const selectHeader = document.querySelector('.select-header');
-      if (selectHeader) {
-        selectHeader.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.toggleSelect();
-        });
-      }
-
-      // Búsqueda en el select
-      const searchInput = document.getElementById('productSearchInput');
-      if (searchInput) {
-        searchInput.addEventListener('input', utils.debounce((e) => {
-          this.filterProducts(e.target.value);
-        }, 300));
-      }
-
-      // Cerrar select al hacer clic fuera
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.modern-select')) {
-          this.closeSelect();
-        }
-      });
-
-      // Prevenir cierre al hacer clic dentro del dropdown
-      const dropdown = document.getElementById('productDropdown');
-      if (dropdown) {
-        dropdown.addEventListener('click', (e) => {
-          e.stopPropagation();
-        });
-      }
-    },
-
-    toggleSelect() {
-      const dropdown = document.getElementById('productDropdown');
-      const header = document.querySelector('.select-header');
-      
-      if (dropdown.style.display === 'none') {
-        this.openSelect();
-      } else {
-        this.closeSelect();
-      }
-    },
-
-    openSelect() {
-      const dropdown = document.getElementById('productDropdown');
-      const header = document.querySelector('.select-header');
-      const searchInput = document.getElementById('productSearchInput');
-      
-      if (dropdown && header) {
-        dropdown.style.display = 'block';
-        header.classList.add('active');
-        
-        // Enfocar el input de búsqueda
-        if (searchInput) {
-          setTimeout(() => searchInput.focus(), 100);
-        }
-      }
-    },
-
-    closeSelect() {
-      const dropdown = document.getElementById('productDropdown');
-      const header = document.querySelector('.select-header');
-      
-      if (dropdown && header) {
-        dropdown.style.display = 'none';
-        header.classList.remove('active');
-      }
-    },
-
-    filterProducts(searchTerm) {
-      const options = document.querySelectorAll('.select-option');
-      const term = searchTerm.toLowerCase();
-      
-      options.forEach(option => {
-        const label = option.querySelector('.option-label').textContent.toLowerCase();
-        const description = option.querySelector('.option-description').textContent.toLowerCase();
-        
-        if (label.includes(term) || description.includes(term) || option.getAttribute('data-value') === '') {
-          option.style.display = 'flex';
-        } else {
-          option.style.display = 'none';
-        }
-      });
-    },
-
-    selectProduct(productId, productName) {
+    filterByProduct(productId) {
       this.selectedProductId = productId;
       
-      const placeholder = document.querySelector('.select-placeholder');
-      const value = document.getElementById('selectedProductText');
-      
-      if (placeholder && value) {
-        if (productId === '') {
-          placeholder.style.display = 'block';
-          value.style.display = 'none';
-        } else {
-          placeholder.style.display = 'none';
-          value.style.display = 'block';
-          value.textContent = productName;
-        }
-      }
-      
-      this.closeSelect();
-      this.filterPurchases();
-    },
-
-    filterPurchases() {
       const rows = document.querySelectorAll('#purchasesTable tbody tr, .purchase-card-modern');
       
       rows.forEach(row => {
-        if (this.selectedProductId === '') {
+        if (productId === '') {
           // Mostrar todas las compras
           row.style.display = '';
         } else {
           // Filtrar por producto
-          const hasProduct = this.checkPurchaseHasProduct(row);
+          const hasProduct = this.checkPurchaseHasProduct(row, productId);
           row.style.display = hasProduct ? '' : 'none';
         }
       });
     },
 
-    checkPurchaseHasProduct(row) {
-      // Esta función necesitaría ser implementada según la estructura de datos
-      // Por ahora, simulamos que todas las compras tienen el producto seleccionado
-      return true;
+    checkPurchaseHasProduct(row, productId) {
+      // Buscar si la compra contiene el producto seleccionado
+      const purchaseId = row.getAttribute('data-purchase-id');
+      if (!purchaseId) return false;
+      
+      // Buscar en los detalles de la compra
+      const productCells = row.querySelectorAll('[data-product-id]');
+      for (let cell of productCells) {
+        if (cell.getAttribute('data-product-id') == productId) {
+          return true;
+        }
+      }
+      
+      return false;
     }
   };
 
@@ -740,8 +584,11 @@
     window.closePurchaseModal = () => modalManager.closePurchaseModal();
     window.closeSupplierModal = () => modalManager.closeSupplierModal();
     window.showSupplierInfo = (supplierId) => supplierManager.showSupplierInfo(supplierId);
-    window.toggleProductSelect = () => productFilterManager.toggleSelect();
-    window.selectProduct = (productId, productName) => productFilterManager.selectProduct(productId, productName);
+    
+    // Expose purchases index for Alpine.js
+    window.purchasesIndex = {
+      filterByProduct: (productId) => productFilterManager.filterByProduct(productId)
+    };
   };
 
   // Start when DOM is ready

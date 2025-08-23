@@ -57,6 +57,12 @@ class PurchaseController extends Controller
          })->count();
          $pendingDeliveries = $purchases->whereNull('payment_receipt')->count();
 
+         // Obtener productos para el filtro
+         $products = Product::with('category')
+            ->where('company_id', $companyId)
+            ->orderBy('name')
+            ->get();
+
          // Optimización: Verificar permisos una sola vez para reducir gates
          $permissions = [
             'can_show' => true, // Asumimos que el usuario tiene permisos básicos
@@ -75,7 +81,8 @@ class PurchaseController extends Controller
             'monthlyPurchases',
             'pendingDeliveries',
             'cashCount',
-            'permissions'
+            'permissions',
+            'products'
          ));
       } catch (\Exception $e) {
 
