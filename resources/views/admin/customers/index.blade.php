@@ -1408,23 +1408,16 @@
                                                         {{ $currency->symbol }} <span
                                                             class="debt-amount-value">{{ number_format($customer->formatted_total_debt, 2) }}</span>
                                                     </p>
-                                                    <p class="bs-debt text-xs text-gray-600"
-                                                        data-debt="{{ $customer->total_debt }}">
-                                                    Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 134), 2) }}
-                                                    </p>
                                                 </div>
                                                     @if ($customersData[$customer->id]['isDefaulter'])
-                                                    <span
-                                                        class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                                                    <span class="debt-warning-badge"
                                                         title="Cliente con deudas de arqueos anteriores">
-                                                        <i class="fas fa-exclamation-triangle mr-1"></i>
-                                                            Moroso
-                                                        </span>
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                    </span>
                                                     @endif
                                             </div>
                                         @else
-                                            <span
-                                                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                            <span class="no-debt-badge">
                                                 Sin deuda
                                             </span>
                                         @endif

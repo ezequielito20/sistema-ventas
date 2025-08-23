@@ -434,7 +434,6 @@ function dataTable() {
                 '.sales-amount',
                 '.sales-count',
                 '.debt-amount-value',
-                '.status-badge',
                 '.no-sales',
                 '.no-debt-badge'
             ];
@@ -1526,17 +1525,12 @@ class SPAPaymentHandler {
                             <p class="text-sm font-semibold text-red-600">
                                 ${this.currencySymbol} <span class="debt-amount-value">${customer.formatted_total_debt}</span>
                             </p>
-                            <p class="bs-debt text-xs text-gray-600" data-debt="${customer.total_debt}">
-                                Bs. ${(customer.total_debt * this.exchangeRate).toFixed(2)}
-                            </p>
                         </div>
-                        ${customer.is_defaulter ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800" title="Cliente con deudas de arqueos anteriores"><i class="fas fa-exclamation-triangle mr-1"></i>Moroso</span>' : ''}
+                        ${customer.is_defaulter ? '<span class="debt-warning-badge" title="Cliente con deudas de arqueos anteriores"><i class="fas fa-exclamation-triangle"></i></span>' : ''}
                     `;
                 } else {
                     debtInfo.innerHTML = `
-                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                            Sin deuda
-                        </span>
+                        <span class="no-debt-badge">Sin deuda</span>
                     `;
                 }
             }
