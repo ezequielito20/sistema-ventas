@@ -578,6 +578,54 @@
         </div>
     </div>
 
+    <!-- Paginación personalizada -->
+    @if($purchases->hasPages())
+        <div class="mt-8 px-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="custom-pagination">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">Mostrando {{ $purchases->firstItem() ?? 0 }}-{{ $purchases->lastItem() ?? 0 }} de {{ $purchases->total() }} compras</span>
+                    </div>
+                    <div class="pagination-controls">
+                        @if($purchases->onFirstPage())
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </button>
+                        @else
+                            <a href="{{ $purchases->previousPageUrl() }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </a>
+                        @endif
+                        
+                        <div class="page-numbers">
+                            @foreach($purchases->getUrlRange(1, $purchases->lastPage()) as $page => $url)
+                                @if($page == $purchases->currentPage())
+                                    <span class="page-number active">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                @endif
+                            @endforeach
+                        </div>
+                        
+                        @if($purchases->hasMorePages())
+                            <a href="{{ $purchases->nextPageUrl() }}" class="pagination-btn">
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Modal para mostrar información de proveedor -->
     <div class="modal-overlay" id="supplierInfoModal" style="display: none;" role="dialog"
         aria-labelledby="supplierInfoTitle" aria-modal="true">

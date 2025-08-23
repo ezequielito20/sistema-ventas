@@ -42,21 +42,25 @@ class PurchaseController extends Controller
             ->first();
 
 
-         // Obtener compras con sus relaciones
+         // Obtener compras con sus relaciones usando paginación
          $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
             ->where('company_id', $companyId)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10); // 10 compras por página
 
-         // Calcular estadísticas
-         $totalPurchases = $purchases->flatMap(function ($purchase) {
+         // Calcular estadísticas (usando todas las compras, no solo la página actual)
+         $allPurchases = Purchase::with(['details'])
+            ->where('company_id', $companyId)
+            ->get();
+            
+         $totalPurchases = $allPurchases->flatMap(function ($purchase) {
             return $purchase->details->pluck('product_id');
          })->unique()->count();
-         $totalAmount = $purchases->sum('total_price');
-         $monthlyPurchases = $purchases->filter(function ($purchase) {
+         $totalAmount = $allPurchases->sum('total_price');
+         $monthlyPurchases = $allPurchases->filter(function ($purchase) {
             return $purchase->purchase_date->isCurrentMonth();
          })->count();
-         $pendingDeliveries = $purchases->whereNull('payment_receipt')->count();
+         $pendingDeliveries = $allPurchases->whereNull('payment_receipt')->count();
 
          // Obtener productos para el filtro
          $products = Product::with('category')
