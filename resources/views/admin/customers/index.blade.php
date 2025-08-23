@@ -734,6 +734,9 @@
                 font-weight: 700;
                 color: #1f2937;
                 font-size: 1rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .customer-email {
@@ -1201,10 +1204,10 @@
                                             </div>
                                         </div>
                                         <div class="customer-details">
-                                                <span class="customer-name">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}</span>
+                                                <span class="customer-name truncate">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}</span>
                                             <div class="customer-email">
                                                 <i class="fas fa-envelope"></i>
-                                                {{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}
+                                                <span class="truncate">{{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1346,24 +1349,26 @@
 
                             <!-- Header de la Tarjeta -->
                             <div class="p-6 pb-4">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div
-                                            class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                <div class="card-header-content">
+                                    <div class="card-header-info">
+                                        <div class="card-header-avatar">
+                                            <div
+                                                class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                     {{ strtoupper(substr($customer->name, 0, 1)) }}
                                 </div>
-                                        <div class="flex-1 min-w-0">
+                                        </div>
+                                        <div class="card-header-details">
                                             <h3 class="text-lg font-semibold text-gray-900 truncate">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}
                                             </h3>
                                             <div class="flex items-center space-x-1 text-sm text-gray-500 mt-1">
                                                 <i class="fas fa-envelope text-xs"></i>
                                                 <span class="truncate">{{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}</span>
                             </div>
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Estado -->
-                                    <div class="flex-shrink-0">
+                                    <div class="card-header-status">
                                 @if ($hasSales)
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -1525,29 +1530,33 @@
 
                             <!-- Header Compacto -->
                             <div class="p-4">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-3">
-                                        <div
-                                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                <div class="card-header-content">
+                                    <div class="card-header-info">
+                                        <div class="card-header-avatar">
+                                            <div
+                                                class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
                                             {{ strtoupper(substr($customer->name, 0, 1)) }}
                                         </div>
-                                        <div class="flex-1 min-w-0">
+                                        </div>
+                                        <div class="card-header-details">
                                             <h3 class="text-sm font-semibold text-gray-900 truncate">{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}
                                             </h3>
                                             <p class="text-xs text-gray-500 truncate">{{ htmlspecialchars($customer->email, ENT_QUOTES, 'UTF-8') }}</p>
                                         </div>
                                     </div>
-                                    @if ($hasSales)
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            <i class="fas fa-check-circle mr-1"></i>
-                                        </span>
-                                    @else
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            <i class="fas fa-times-circle mr-1"></i>
-                                        </span>
-                                    @endif
+                                    <div class="card-header-status">
+                                        @if ($hasSales)
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-times-circle mr-1"></i>
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 <!-- Info Compacta -->
@@ -2945,6 +2954,9 @@
             font-weight: 600;
             color: var(--dark-color);
             margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .customer-email {
@@ -3260,6 +3272,9 @@
             color: var(--dark-color);
             margin-bottom: 0.25rem;
             font-size: 1.1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .customer-email {
