@@ -67,37 +67,37 @@
     <!-- Contenedor Principal con Gradiente de Fondo -->
     <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100" x-data="modalManager()">
 
-        <!-- Hero Section con Tailwind y Alpine.js -->
-        <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl mb-8"
+        <!-- Hero Section Compacto -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl shadow-lg mb-6"
             x-data="heroSection()">
             <!-- Background Pattern -->
             <div class="absolute inset-0 bg-black bg-opacity-10">
                 <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
                 <!-- Decorative circles -->
                 <div
-                    class="absolute top-0 left-0 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob">
+                    class="absolute top-0 left-0 w-48 h-48 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob">
                 </div>
                 <div
-                    class="absolute top-0 right-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000">
+                    class="absolute top-0 right-0 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000">
                 </div>
                 <div
-                    class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000">
+                    class="absolute -bottom-4 left-16 w-48 h-48 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000">
                 </div>
             </div>
 
-            <div class="relative px-6 py-8 sm:px-8 lg:px-12">
+            <div class="relative px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                     <!-- Hero Content -->
-                    <div class="flex-1 lg:pr-8">
-                        <div class="flex items-center mb-4">
+                    <div class="flex-1 lg:pr-6">
+                        <div class="flex items-center mb-2">
                             <div class="flex-shrink-0">
                                 <div
-                                    class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                                    <i class="fas fa-users text-3xl text-white"></i>
+                                    class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-users text-2xl text-white"></i>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <h1 class="text-3xl sm:text-4xl font-bold text-white">
+                            <div class="ml-3">
+                                <h1 class="text-2xl sm:text-3xl font-bold text-white">
                             Gestión de Clientes
                         </h1>
                     </div>
@@ -105,14 +105,14 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="mt-6 lg:mt-0 lg:flex-shrink-0">
-                        <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
+                    <div class="mt-4 lg:mt-0 lg:flex-shrink-0">
+                        <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
                         @if($permissions['can_report'])
                                 <button @click="openDebtReport()"
-                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte de Deudas">
-                                    <i class="fas fa-file-invoice-dollar text-lg mr-2 text-blue-200"></i>
-                                    <span class="hidden sm:inline">Deudas</span>
+                                    <i class="fas fa-file-invoice-dollar text-base mr-1.5 text-blue-200"></i>
+                                    <span class="hidden sm:inline text-sm">Deudas</span>
                                     <!-- Tooltip -->
                                     <div
                                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -123,10 +123,10 @@
 
                         @if($permissions['can_report'])
                                 <a href="{{ route('admin.customers.report') }}" target="_blank"
-                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Reporte PDF">
-                                    <i class="fas fa-file-pdf text-lg mr-2 text-red-200"></i>
-                                    <span class="hidden sm:inline">PDF</span>
+                                    <i class="fas fa-file-pdf text-base mr-1.5 text-red-200"></i>
+                                    <span class="hidden sm:inline text-sm">PDF</span>
                                     <!-- Tooltip -->
                                     <div
                                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -137,10 +137,10 @@
 
                         @if($permissions['can_report'])
                                 <a href="{{ route('admin.customers.payment-history') }}"
-                                    class="group relative inline-flex items-center px-4 py-2.5 bg-white/20 backdrop-blur-sm text-white font-medium rounded-xl hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
                                     title="Historial de Pagos">
-                                    <i class="fas fa-history text-lg mr-2 text-yellow-200"></i>
-                                    <span class="hidden sm:inline">Historial</span>
+                                    <i class="fas fa-history text-base mr-1.5 text-yellow-200"></i>
+                                    <span class="hidden sm:inline text-sm">Historial</span>
                                     <!-- Tooltip -->
                                     <div
                                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -151,10 +151,10 @@
 
                         @if($permissions['can_create'])
                                 <a href="{{ route('admin.customers.create') }}"
-                                    class="group relative inline-flex items-center px-6 py-2.5 bg-white text-blue-600 font-semibold rounded-xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-lg"
+                                    class="group relative inline-flex items-center px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-md"
                                     title="Nuevo Cliente">
-                                    <i class="fas fa-plus text-lg mr-2"></i>
-                                    <span class="hidden sm:inline">Nuevo Cliente</span>
+                                    <i class="fas fa-plus text-base mr-1.5"></i>
+                                    <span class="hidden sm:inline text-sm">Nuevo Cliente</span>
                                     <!-- Tooltip -->
                                     <div
                                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -168,41 +168,41 @@
         </div>
     </div>
 
-        <!-- Stats Widgets optimizados sin animaciones -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <!-- Stats Widgets Compactos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
             <!-- Total de Clientes -->
             <div
-                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <!-- Gradient Background -->
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
                 </div>
 
                 <!-- Content -->
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="relative p-4">
+                    <div class="flex items-center justify-between mb-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-users text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-users text-white text-lg"></i>
             </div>
                     @if ($customerGrowth > 0)
                             <div
-                                class="flex items-center space-x-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                                class="flex items-center space-x-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-xs font-medium">
                                 <i class="fas fa-arrow-up text-xs"></i>
                                 <span>{{ $customerGrowth }}%</span>
                             </div>
                     @endif
                 </div>
 
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900" data-stat="total-customers">
+                    <div class="space-y-1">
+                        <div class="text-2xl font-bold text-gray-900" data-stat="total-customers">
                             {{ $totalCustomers }}
                         </div>
-                        <div class="text-sm font-medium text-gray-600">Total de Clientes</div>
+                        <div class="text-xs font-medium text-gray-600">Total de Clientes</div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: 100%">
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full" style="width: 100%">
                             </div>
                         </div>
                 </div>
@@ -211,31 +211,31 @@
 
             <!-- Clientes Activos -->
             <div
-                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <!-- Gradient Background -->
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
 
                 <!-- Content -->
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="relative p-4">
+                    <div class="flex items-center justify-between mb-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-user-check text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-user-check text-white text-lg"></i>
                 </div>
                 </div>
 
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900" data-stat="active-customers">
+                    <div class="space-y-1">
+                        <div class="text-2xl font-bold text-gray-900" data-stat="active-customers">
                             <span>{{ $activeCustomers }}</span>
                             <span class="text-lg text-gray-500">/{{ $totalCustomers }}</span>
                         </div>
-                        <div class="text-sm font-medium text-gray-600">Clientes Activos</div>
+                        <div class="text-xs font-medium text-gray-600">Clientes Activos</div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-1.5 rounded-full"
                                 style="width: {{ $totalCustomers > 0 ? ($activeCustomers / $totalCustomers) * 100 : 0 }}%">
                             </div>
                         </div>
@@ -245,30 +245,30 @@
 
             <!-- Nuevos este Mes -->
             <div
-                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <!-- Gradient Background -->
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
 
                 <!-- Content -->
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="relative p-4">
+                    <div class="flex items-center justify-between mb-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-user-plus text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-user-plus text-white text-lg"></i>
                 </div>
                 </div>
 
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900" data-stat="new-customers">
+                    <div class="space-y-1">
+                        <div class="text-2xl font-bold text-gray-900" data-stat="new-customers">
                             {{ $newCustomers }}
                         </div>
-                        <div class="text-sm font-medium text-gray-600">Nuevos este Mes</div>
+                        <div class="text-xs font-medium text-gray-600">Nuevos este Mes</div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full"
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-1.5 rounded-full"
                                 style="width: {{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%">
                             </div>
                         </div>
@@ -278,30 +278,30 @@
 
             <!-- Ingresos Totales -->
             <div
-                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <!-- Gradient Background -->
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
 
                 <!-- Content -->
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="relative p-4">
+                    <div class="flex items-center justify-between mb-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-money-bill-wave text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-money-bill-wave text-white text-lg"></i>
                 </div>
                 </div>
 
-                    <div class="space-y-2">
-                        <div class="text-2xl font-bold text-gray-900" data-stat="total-revenue">
+                    <div class="space-y-1">
+                        <div class="text-xl font-bold text-gray-900" data-stat="total-revenue">
                             {{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}
                         </div>
-                        <div class="text-sm font-medium text-gray-600">Ingresos Totales</div>
+                        <div class="text-xs font-medium text-gray-600">Ingresos Totales</div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full"
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-1.5 rounded-full"
                                 style="width: 100%"></div>
                         </div>
                     </div>
@@ -310,37 +310,37 @@
 
             <!-- Clientes Morosos -->
             <div
-                class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 <!-- Gradient Background -->
                 <div
                     class="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
             </div>
 
                 <!-- Content -->
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="relative p-4">
+                    <div class="flex items-center justify-between mb-3">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-exclamation-triangle text-white text-lg"></i>
                 </div>
                         @if ($defaultersCount > 0)
                             <div
-                                class="flex items-center space-x-1 bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                class="flex items-center space-x-1 bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full text-xs font-medium">
                                 <i class="fas fa-exclamation-circle text-xs"></i>
                                 <span>Atención</span>
                 </div>
                         @endif
             </div>
 
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900" data-stat="defaulters-count">
+                    <div class="space-y-1">
+                        <div class="text-2xl font-bold text-gray-900" data-stat="defaulters-count">
                             {{ $defaultersCount }}
                         </div>
-                        <div class="text-sm font-medium text-gray-600">Clientes Morosos</div>
+                        <div class="text-xs font-medium text-gray-600">Clientes Morosos</div>
 
                         <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-red-500 to-pink-600 h-2 rounded-full"
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-red-500 to-pink-600 h-1.5 rounded-full"
                                 style="width: {{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%">
                             </div>
                         </div>
@@ -350,35 +350,35 @@
     </div>
 
         <!-- Filtros Rediseñados y Compactos -->
-        <div class="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden" x-data="filtersPanel()">
+        <div class="bg-white rounded-xl shadow-md mb-6 overflow-hidden" x-data="filtersPanel()">
             <!-- Header del Panel de Filtros -->
-            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <div class="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div
-                            class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-filter text-white"></i>
+                            class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-filter text-white text-sm"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Filtros y Búsqueda</h3>
-                            <p class="text-sm text-gray-500">Personaliza la vista de tus clientes</p>
+                            <h3 class="text-base font-semibold text-gray-900">Filtros y Búsqueda</h3>
+                            <p class="text-xs text-gray-500">Personaliza la vista de tus clientes</p>
                         </div>
                     </div>
 
                     <!-- Toggle Button -->
                     <button @click="toggleFilters()"
-                        class="group flex items-center space-x-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <span class="text-sm font-medium text-gray-700"
+                        class="group flex items-center space-x-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <span class="text-xs font-medium text-gray-700"
                             x-text="filtersOpen ? 'Ocultar Filtros' : 'Mostrar Filtros'"></span>
-                        <i class="fas fa-chevron-down text-gray-500 transition-transform duration-200 group-hover:text-gray-700"
+                        <i class="fas fa-chevron-down text-gray-500 transition-transform duration-200 group-hover:text-gray-700 text-xs"
                             :class="{ 'rotate-180': filtersOpen }"></i>
                     </button>
                 </div>
 
                 <!-- Active Filters Indicator -->
-                <div x-show="hasActiveFilters" x-transition class="mt-3 flex items-center space-x-2">
+                <div x-show="hasActiveFilters" x-transition class="mt-2 flex items-center space-x-2">
                     <span class="text-xs font-medium text-blue-600">Filtros activos:</span>
-                    <div class="flex flex-wrap gap-2" id="activeFiltersContainer">
+                    <div class="flex flex-wrap gap-1" id="activeFiltersContainer">
                         <!-- Los filtros activos se mostrarán aquí dinámicamente -->
                     </div>
                 </div>
@@ -391,11 +391,11 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100 transform translate-y-0"
                 x-transition:leave-end="opacity-0 transform -translate-y-2"
-                class="p-6 bg-gray-50 border-t border-gray-100">
+                class="p-4 bg-gray-50 border-t border-gray-100">
 
                 <!-- Sección Unificada de Filtros -->
-                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         
                         <!-- Tipo de Cambio -->
                         <div x-data="exchangeRateWidget()">
