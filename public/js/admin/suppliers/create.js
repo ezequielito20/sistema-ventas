@@ -1,7 +1,6 @@
 // ===== FUNCIÓN PRINCIPAL DE ALPINE.JS =====
 function supplierForm() {
     return {
-        currentStep: 1,
         isSubmitting: false,
         formData: {
             company_name: '',
@@ -14,46 +13,33 @@ function supplierForm() {
         errors: {},
 
         // ===== COMPUTED PROPERTIES =====
-        get canProceedToStep2() {
+        get isFormValid() {
             return this.formData.company_name.trim() && 
                    this.formData.company_email.trim() && 
                    this.formData.company_phone.trim() && 
                    this.formData.company_address.trim() &&
+                   this.formData.supplier_name.trim() && 
+                   this.formData.supplier_phone.trim() &&
                    !this.errors.company_name && 
                    !this.errors.company_email && 
                    !this.errors.company_phone && 
-                   !this.errors.company_address;
-        },
-
-        get canProceedToStep3() {
-            return this.formData.supplier_name.trim() && 
-                   this.formData.supplier_phone.trim() &&
+                   !this.errors.company_address &&
                    !this.errors.supplier_name && 
                    !this.errors.supplier_phone;
         },
 
-        // ===== MÉTODOS DE NAVEGACIÓN =====
-        nextStep() {
-            if (this.currentStep < 3) {
-                this.currentStep++;
-                this.scrollToTop();
-            }
-        },
-
-        prevStep() {
-            if (this.currentStep > 1) {
-                this.currentStep--;
-                this.scrollToTop();
-            }
-        },
-
-        scrollToTop() {
-            setTimeout(() => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }, 100);
+        // ===== MÉTODOS DE FORMULARIO =====
+        resetForm() {
+            this.formData = {
+                company_name: '',
+                company_email: '',
+                company_phone: '',
+                company_address: '',
+                supplier_name: '',
+                supplier_phone: ''
+            };
+            this.errors = {};
+            this.showNotification('Formulario limpiado', 'info');
         },
 
         // ===== VALIDACIÓN DE CAMPOS =====
@@ -188,134 +174,39 @@ function supplierForm() {
         showNotification(message, type = 'info') {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
-                    title: type === 'success' ? '¡Éxito!' : 'Error',
+                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
                     text: message,
                     icon: type,
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: type === 'success' ? '#22c55e' : '#ef4444',
+                    confirmButtonColor: type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6',
                     background: 'rgba(255, 255, 255, 0.95)',
                     backdrop: 'rgba(0, 0, 0, 0.5)',
                     customClass: {
                         popup: 'modern-swal-popup',
                         title: 'modern-swal-title',
-                        content: 'modern-swal-content'
+                        content: 'modern-swal-content',
+                        confirmButton: 'modern-swal-button'
                     }
                 });
             } else {
-                // Fallback para cuando SweetAlert2 no está disponible
-                this.showFallbackNotification(message, type);
+                // Fallback para cuando SweetAlert no está disponible
+                alert(message);
             }
-        },
-
-        showFallbackNotification(message, type) {
-            // Crear notificación nativa
-            const notification = document.createElement('div');
-            notification.className = `fallback-notification ${type}`;
-            notification.innerHTML = `
-                <div class="notification-content">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
-
-            // Agregar estilos inline para la notificación
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${type === 'success' ? '#22c55e' : '#ef4444'};
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 0.75rem;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-                z-index: 9999;
-                max-width: 400px;
-                animation: slideInRight 0.3s ease-out;
-            `;
-
-            notification.querySelector('.notification-content').style.cssText = `
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-            `;
-
-            notification.querySelector('button').style.cssText = `
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                padding: 0.25rem;
-                border-radius: 0.25rem;
-                transition: background-color 0.2s;
-            `;
-
-            document.body.appendChild(notification);
-
-            // Remover automáticamente después de 5 segundos
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
         },
 
         // ===== INICIALIZACIÓN =====
         init() {
-            
-            // Agregar estilos CSS para la notificación fallback
-            this.addFallbackStyles();
-            
-            // Configurar listeners para validación en tiempo real
-            this.setupRealTimeValidation();
-            
-        },
-
-        addFallbackStyles() {
-            if (!document.getElementById('fallback-notification-styles')) {
-                const style = document.createElement('style');
-                style.id = 'fallback-notification-styles';
-                style.textContent = `
-                    @keyframes slideInRight {
-                        from {
-                            transform: translateX(100%);
-                            opacity: 0;
-                        }
-                        to {
-                            transform: translateX(0);
-                            opacity: 1;
-                        }
-                    }
-                    
-                    .fallback-notification button:hover {
-                        background-color: rgba(255, 255, 255, 0.2) !important;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        },
-
-        setupRealTimeValidation() {
-            // Validación en tiempo real para campos de texto
-            const textInputs = ['company_name', 'supplier_name', 'company_address'];
-            textInputs.forEach(field => {
-                this.$watch(`formData.${field}`, (value) => {
-                    if (value) {
+            // Configurar validación en tiempo real
+            this.$watch('formData', (value) => {
+                // Validar campos cuando cambian
+                Object.keys(value).forEach(field => {
+                    if (value[field]) {
                         this.validateField(field);
                     }
                 });
-            });
-
-            // Validación en tiempo real para email
-            this.$watch('formData.company_email', (value) => {
-                if (value) {
-                    this.validateField('company_email');
-                }
-            });
+            }, { deep: true });
         }
-    }
+    };
 }
 
 // ===== INICIALIZACIÓN GLOBAL =====
