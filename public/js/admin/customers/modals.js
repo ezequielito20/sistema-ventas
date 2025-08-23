@@ -59,47 +59,59 @@ window.modalManager = function() {
         
         loadCustomerDetails(customerId) {
             // Cargar datos del cliente y su historial de ventas
-            fetch(`/customers/${customerId}?customer_details=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Llenar información del cliente
-                        const customerNameElement = document.getElementById('customerName');
-                        const customerNameField = document.getElementById('customer_name_details');
-                        const customerPhoneField = document.getElementById('customer_phone_details');
-                        const customerStatusElement = document.getElementById('customer_status_details');
-                        
-                        if (customerNameElement) customerNameElement.textContent = data.customer.name;
-                        if (customerNameField) customerNameField.value = data.customer.name;
-                        if (customerPhoneField) customerPhoneField.value = data.customer.phone || 'No disponible';
-                        
-                        // Actualizar estado del cliente
-                        if (customerStatusElement) {
-                            if (data.customer.is_defaulter) {
-                                customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
-                                customerStatusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
-                            } else {
-                                customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
-                                customerStatusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
-                            }
+            Promise.all([
+                fetch(`/customers/${customerId}?customer_details=1`),
+                fetch(`/admin/customers/${customerId}/sales-history`)
+            ])
+            .then(responses => Promise.all(responses.map(r => r.json())))
+            .then(([customerData, salesData]) => {
+                console.log('Customer data:', customerData);
+                console.log('Sales data:', salesData);
+                
+                if (customerData.success) {
+                    // Llenar información del cliente
+                    const customerNameElement = document.getElementById('customerName');
+                    const customerNameField = document.getElementById('customer_name_details');
+                    const customerPhoneField = document.getElementById('customer_phone_details');
+                    const customerStatusElement = document.getElementById('customer_status_details');
+                    
+                    if (customerNameElement) customerNameElement.textContent = customerData.customer.name;
+                    if (customerNameField) customerNameField.value = customerData.customer.name;
+                    if (customerPhoneField) customerPhoneField.value = customerData.customer.phone || 'No disponible';
+                    
+                    // Actualizar estado del cliente
+                    if (customerStatusElement) {
+                        if (customerData.customer.is_defaulter) {
+                            customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                            customerStatusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
+                        } else {
+                            customerStatusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                            customerStatusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
                         }
-                        
-                        // Guardar datos de ventas para filtrado
-                        window.customerSalesData = data.sales || [];
-                        
-                        // Cargar historial de ventas
-                        this.loadSalesHistory();
-                        
-                        // Inicializar filtros
-                        this.initializeCustomerDetailsFilters();
-                        
-                        // Cargar filtros guardados
-                        this.loadSavedCustomerFilters();
                     }
-                })
-                .catch(error => {
-                    // Error cargando detalles del cliente
-                });
+                    
+                    // Usar datos de ventas del endpoint correcto
+                    if (salesData.success) {
+                        window.customerSalesData = salesData.sales || [];
+                        console.log('Sales data loaded:', window.customerSalesData);
+                    } else {
+                        window.customerSalesData = [];
+                        console.log('No sales data available');
+                    }
+                    
+                    // Cargar historial de ventas
+                    this.loadSalesHistory();
+                    
+                    // Inicializar filtros
+                    this.initializeCustomerDetailsFilters();
+                    
+                    // Limpiar filtros guardados al abrir el modal
+                    this.clearSavedFiltersOnOpen();
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando detalles del cliente:', error);
+            });
         },
         
         loadDebtPaymentData(customerId) {
@@ -179,10 +191,15 @@ window.modalManager = function() {
         },
 
         loadSalesHistory() {
+            console.log('Loading sales history...');
+            console.log('Customer sales data:', window.customerSalesData);
             if (!window.customerSalesData) return;
             
             const tableBody = document.getElementById('salesHistoryTable');
             const salesCountElement = document.getElementById('salesCount');
+            
+            console.log('Table body found:', !!tableBody);
+            console.log('Sales count element found:', !!salesCountElement);
             
             if (tableBody && salesCountElement) {
                 if (window.customerSalesData.length === 0) {
@@ -200,25 +217,38 @@ window.modalManager = function() {
                     `;
                     salesCountElement.textContent = '0';
                 } else {
-                    const rows = window.customerSalesData.map(sale => `
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
-                                ${new Date(sale.created_at).toLocaleDateString('es-ES')}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">${sale.unique_products} productos únicos</span>
-                                    <span class="text-xs text-gray-500">${sale.total_products} unidades totales</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100">
-                                $ ${parseFloat(sale.total).toFixed(2)}
-                            </td>
-                        </tr>
-                    `).join('');
+                    const rows = window.customerSalesData.map(sale => {
+                        console.log('Processing sale:', sale);
+                        
+                        // Usar directamente los datos del backend
+                        const date = sale.date || 'Fecha no disponible';
+                        const products = sale.products || 'Sin productos';
+                        const total = sale.total || 0;
+                        
+                        console.log('Formatted data:', { date, products, total });
+                        
+                        const rowHtml = `
+                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                    ${date}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600 border-b border-gray-100 products-cell">
+                                    ${products}
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold text-green-600 border-b border-gray-100">
+                                    $ ${parseFloat(total).toFixed(2)}
+                                </td>
+                            </tr>
+                        `;
+                        
+                        console.log('Row HTML:', rowHtml);
+                        return rowHtml;
+                    }).join('');
                     
+                    console.log('Final HTML to insert:', rows);
                     tableBody.innerHTML = rows;
                     salesCountElement.textContent = window.customerSalesData.length;
+                    console.log('✅ All sales loaded successfully:', window.customerSalesData.length, 'sales');
                 }
             }
         },
@@ -254,6 +284,7 @@ window.modalManager = function() {
         },
 
         filterSalesHistory() {
+            console.log('Filtering sales history...');
             if (!window.customerSalesData) return;
             
             const dateFrom = document.getElementById('dateFrom')?.value;
@@ -261,13 +292,25 @@ window.modalManager = function() {
             const amountFrom = parseFloat(document.getElementById('amountFrom')?.value) || 0;
             const amountTo = parseFloat(document.getElementById('amountTo')?.value) || Infinity;
             
+            console.log('Filter values:', { dateFrom, dateTo, amountFrom, amountTo });
+            
             // Guardar filtros actuales
             this.saveCustomerFilters({ dateFrom, dateTo, amountFrom, amountTo });
             
             // Filtrar datos
             let filteredData = window.customerSalesData.filter(sale => {
-                const saleDate = new Date(sale.created_at);
-                const saleAmount = parseFloat(sale.total);
+                // Convertir fecha del formato dd/mm/yyyy a objeto Date
+                let saleDate;
+                if (sale.date && sale.date.includes('/')) {
+                    const [day, month, year] = sale.date.split('/');
+                    saleDate = new Date(year, month - 1, day); // month - 1 porque los meses van de 0-11
+                } else if (sale.created_at) {
+                    saleDate = new Date(sale.created_at);
+                } else {
+                    saleDate = new Date();
+                }
+                
+                const saleAmount = parseFloat(sale.total || 0);
                 
                 // Filtro de fecha
                 if (dateFrom && saleDate < new Date(dateFrom)) return false;
@@ -288,6 +331,8 @@ window.modalManager = function() {
             const tableBody = document.getElementById('salesHistoryTable');
             const salesCountElement = document.getElementById('salesCount');
             
+            console.log('Updating sales table with filtered data:', filteredData);
+            
             if (tableBody && salesCountElement) {
                 if (filteredData.length === 0) {
                     tableBody.innerHTML = `
@@ -303,23 +348,28 @@ window.modalManager = function() {
                         </tr>
                     `;
                 } else {
-                    const rows = filteredData.map(sale => `
-                        <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
-                                ${new Date(sale.created_at).toLocaleDateString('es-ES')}
+                    const rows = filteredData.map(sale => {
+                        // Usar directamente los datos del backend
+                        const date = sale.date || 'Fecha no disponible';
+                        const products = sale.products || 'Sin productos';
+                        const total = sale.total || 0;
+                        
+                        return `
+                            <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                    ${date}
+                                </td>
+                            <td class="px-4 py-3 text-sm text-gray-600 border-b border-gray-100 products-cell">
+                                ${products}
                             </td>
-                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
-                                <div class="flex flex-col">
-                                    <span class="font-medium">${sale.unique_products} productos únicos</span>
-                                    <span class="text-xs text-gray-500">${sale.total_products} unidades totales</span>
-                                </div>
-                            </td>
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100">
-                                $ ${parseFloat(sale.total).toFixed(2)}
+                            <td class="px-4 py-3 text-sm font-semibold text-green-600 border-b border-gray-100">
+                                $ ${parseFloat(total).toFixed(2)}
                             </td>
                         </tr>
-                    `).join('');
+                    `;
+                    }).join('');
                     
+                    console.log('Filtered rows HTML:', rows);
                     tableBody.innerHTML = rows;
                 }
                 
@@ -333,6 +383,7 @@ window.modalManager = function() {
 
         loadSavedCustomerFilters() {
             const savedFilters = localStorage.getItem('customerDetailsFilters');
+            console.log('Loading saved filters:', savedFilters);
             if (savedFilters) {
                 const filters = JSON.parse(savedFilters);
                 
@@ -346,11 +397,29 @@ window.modalManager = function() {
                 if (amountFromInput && filters.amountFrom) amountFromInput.value = filters.amountFrom;
                 if (amountToInput && filters.amountTo) amountToInput.value = filters.amountTo;
                 
-                // Aplicar filtros si hay datos
-                if (window.customerSalesData) {
-                    this.filterSalesHistory();
-                }
+                // NO aplicar filtros automáticamente - solo cargar los valores
+                console.log('Filters loaded but not applied automatically');
             }
+        },
+
+        clearSavedFiltersOnOpen() {
+            console.log('Clearing saved filters on modal open');
+            
+            // Limpiar filtros guardados
+            localStorage.removeItem('customerDetailsFilters');
+            
+            // Limpiar campos de filtros
+            const dateFromInput = document.getElementById('dateFrom');
+            const dateToInput = document.getElementById('dateTo');
+            const amountFromInput = document.getElementById('amountFrom');
+            const amountToInput = document.getElementById('amountTo');
+            
+            if (dateFromInput) dateFromInput.value = '';
+            if (dateToInput) dateToInput.value = '';
+            if (amountFromInput) amountFromInput.value = '';
+            if (amountToInput) amountToInput.value = '';
+            
+            console.log('Filters cleared, showing all sales');
         },
 
         clearCustomerFilters() {

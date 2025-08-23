@@ -1660,17 +1660,17 @@
                  x-transition:leave-end="opacity-0 transform scale-95">
                 
                 <!-- Header del Modal -->
-                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-2xl">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 rounded-t-2xl">
                     <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <i class="fas fa-user-tie text-white text-lg"></i>
                         </div>
                         <div>
-                            <h5 class="text-xl font-bold text-gray-900">Detalles del Cliente</h5>
-                            <p class="text-sm text-gray-600">Información completa y historial de ventas</p>
+                            <h5 class="text-xl font-bold text-white">Detalles del Cliente</h5>
+                            <p class="text-sm text-blue-100">Información completa y historial de ventas</p>
                         </div>
                     </div>
-                    <button type="button" @click="closeModal('showCustomerModal')" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
+                    <button type="button" @click="closeModal('showCustomerModal')" class="w-10 h-10 bg-white/20 hover:bg-white/30 text-white hover:text-white rounded-lg flex items-center justify-center transition-all duration-200 backdrop-blur-sm">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -1715,8 +1715,8 @@
 
                     <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                         <!-- Header de la Sección -->
-                        <div class="flex items-center space-x-4 p-6 bg-gradient-to-r from-blue-500 to-indigo-600 border-b border-gray-200">
-                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <div class="flex items-center space-x-4 p-6 bg-gradient-to-r from-blue-500 to-purple-600 border-b border-gray-200">
+                            <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
                                 <i class="fas fa-shopping-cart text-white"></i>
                             </div>
                             <div>
@@ -1784,8 +1784,8 @@
                         <!-- Tabla de Ventas -->
                         <div class="p-6">
                             <div class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
-                                <table class="w-full">
-                                    <thead class="bg-gradient-to-r from-blue-500 to-indigo-600 sticky top-0">
+                                <table class="w-full sales-history-table">
+                                    <thead class="bg-gradient-to-r from-blue-500 to-purple-600 sticky top-0">
                                         <tr>
                                             <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">Fecha</th>
                                             <th class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">Productos</th>

@@ -1641,13 +1641,17 @@ class SPAPaymentHandler {
                 </tr>
             `;
         } else {
-            tbody.innerHTML = sales.map(sale => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-sm text-gray-900">${sale.date}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">${sale.products}</td>
-                    <td class="px-4 py-3 text-sm font-semibold text-green-600">${this.currencySymbol} ${parseFloat(sale.total).toFixed(2)}</td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = sales.map(sale => {
+                // Asegurar que el HTML se procese correctamente
+                const productsHtml = sale.products || 'Sin productos';
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-900">${sale.date}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 products-cell">${productsHtml}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-green-600">${this.currencySymbol} ${parseFloat(sale.total).toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // Actualizar contador

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DebtPayment;
 
@@ -1571,7 +1572,7 @@ class CustomerController extends Controller
             ], 404);
          }
 
-         // Obtener ventas del cliente
+         // Obtener ventas del cliente con detalles de productos
          $sales = DB::table('sales')
             ->where('customer_id', $customer->id)
             ->where('company_id', $this->company->id)
@@ -1579,11 +1580,28 @@ class CustomerController extends Controller
             ->orderBy('sale_date', 'desc')
             ->get();
 
-         // Formatear datos para la tabla
+         Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $sales->count()]);
+
+         // Formatear datos para la tabla con información de productos
          $formattedSales = $sales->map(function ($sale) {
+            // Obtener detalles de productos para esta venta
+            $saleDetails = DB::table('sale_details')
+               ->where('sale_id', $sale->id)
+               ->selectRaw('COUNT(DISTINCT product_id) as unique_products, SUM(quantity) as total_units')
+               ->first();
+
+            $uniqueProducts = $saleDetails->unique_products ?? 0;
+            $totalUnits = $saleDetails->total_units ?? 0;
+
+            Log::info('Sale details:', [
+               'sale_id' => $sale->id,
+               'unique_products' => $uniqueProducts,
+               'total_units' => $totalUnits
+            ]);
+
             return [
                'date' => Carbon::parse($sale->sale_date)->format('d/m/Y'),
-               'products' => 'Venta #' . $sale->id,
+               'products' => $uniqueProducts . ' productos únicos<br><small class="text-gray-500">' . $totalUnits . ' unidades totales</small>',
                'total' => $sale->total_price
             ];
          });

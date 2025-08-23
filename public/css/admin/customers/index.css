@@ -173,6 +173,43 @@
     }
 }
 
+/* Estilos para la tabla de historial de ventas */
+.sales-history-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.sales-history-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sales-history-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+.sales-history-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.sales-history-table .products-cell {
+    line-height: 1.4;
+}
+
+.sales-history-table .products-cell small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
 .customer-name {
     font-weight: 700;
     color: #1f2937;
