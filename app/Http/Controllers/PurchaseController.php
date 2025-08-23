@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseController extends Controller
@@ -63,13 +64,13 @@ class PurchaseController extends Controller
             ->orderBy('name')
             ->get();
 
-         // Optimización: Verificar permisos una sola vez para reducir gates
+         // Optimización de gates
          $permissions = [
-            'can_show' => true, // Asumimos que el usuario tiene permisos básicos
-            'can_edit' => true,
-            'can_destroy' => true,
-            'can_create' => true,
-            'can_report' => true,
+            'can_show' => Gate::allows('purchases.show'),
+            'can_edit' => Gate::allows('purchases.edit'),
+            'can_destroy' => Gate::allows('purchases.destroy'),
+            'can_create' => Gate::allows('purchases.create'),
+            'can_report' => Gate::allows('purchases.report'),
          ];
 
          return view('admin.purchases.index', compact(
@@ -121,11 +122,11 @@ class PurchaseController extends Controller
             session(['purchases_referrer' => $referrerUrl]);
          }
 
-         // Optimización: Verificar permisos una sola vez para reducir gates
+         // Optimización de gates
          $permissions = [
-            'can_create' => true,
-            'can_edit' => true,
-            'can_show' => true,
+            'can_create' => Gate::allows('purchases.create'),
+            'can_edit' => Gate::allows('purchases.edit'),
+            'can_show' => Gate::allows('purchases.show'),
          ];
 
          return view('admin.purchases.create', compact('products', 'suppliers', 'currency', 'company', 'permissions'));
@@ -294,11 +295,11 @@ class PurchaseController extends Controller
             session(['purchases_referrer' => $referrerUrl]);
          }
 
-         // Optimización: Verificar permisos una sola vez para reducir gates
+         // Optimización de gates
          $permissions = [
-            'can_edit' => true,
-            'can_show' => true,
-            'can_create' => true,
+            'can_edit' => Gate::allows('purchases.edit'),
+            'can_show' => Gate::allows('purchases.show'),
+            'can_create' => Gate::allows('purchases.create'),
          ];
 
          return view('admin.purchases.edit', compact('purchase', 'products', 'suppliers', 'purchaseDetails', 'currency', 'company', 'permissions'));
