@@ -210,15 +210,12 @@ if (typeof window.productsIndex === 'undefined') {
 
         // Aplicar filtros avanzados
         applyAdvancedFilters: function(categoryFilter, stockFilter) {
-            console.log('Aplicando filtros:', { categoryFilter, stockFilter });
-            
             this.filteredProducts = this.allProducts.filter(product => {
                 let matches = true;
                 
                 // Filtro por categoría
                 if (categoryFilter && categoryFilter !== '') {
                     const productCategoryId = product.element.querySelector('.category-text').getAttribute('data-category-id');
-                    console.log('Comparando categoría:', productCategoryId, 'vs', categoryFilter);
                     if (productCategoryId != categoryFilter) { // Usar == para comparación no estricta
                         matches = false;
                     }
@@ -228,7 +225,6 @@ if (typeof window.productsIndex === 'undefined') {
                 if (stockFilter && stockFilter !== '') {
                     const stockElement = product.element.querySelector('.stock-badge');
                     const stockStatus = this.getStockStatus(stockElement);
-                    console.log('Comparando stock:', stockStatus, 'vs', stockFilter, 'para producto:', product.data.name);
                     if (stockStatus !== stockFilter) {
                         matches = false;
                     }
@@ -236,8 +232,6 @@ if (typeof window.productsIndex === 'undefined') {
                 
                 return matches;
             });
-            
-            console.log('Productos filtrados:', this.filteredProducts.length);
             
             this.currentPage = 1;
             this.showPage(1);
