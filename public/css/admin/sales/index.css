@@ -1939,10 +1939,19 @@
 .modal-overlay {
     position: fixed;
     inset: 0; /* equivale a top:0; right:0; bottom:0; left:0 */
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2147483000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Evitar que elementos con z-index altos queden por encima */
-.modal-overlay { z-index: 2147483000; }
 .modal-container { z-index: 2147483001; }
 
 /* Cuando el modal está abierto */
@@ -1952,6 +1961,7 @@
 
 .modal-overlay:not([x-cloak]) {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
 }
 
@@ -1971,12 +1981,25 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    margin: auto;
 }
 
 /* Cuando el modal está abierto */
 .modal-overlay:not([x-cloak]) .modal-container {
     opacity: 1;
     transform: scale(1) translateY(0);
+    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .modal-content {
