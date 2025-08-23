@@ -272,29 +272,29 @@ body {
 
 /* ===== DASHBOARD DE ESTADÍSTICAS ===== */
 .stats-dashboard {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: var(--border-radius-2xl);
     box-shadow: var(--shadow-lg);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-md);
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: var(--border-radius-xl);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
     transition: all var(--transition-normal);
     position: relative;
     overflow: hidden;
@@ -326,14 +326,14 @@ body {
 }
 
 .stat-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
@@ -362,7 +362,7 @@ body {
 }
 
 .stat-value {
-    font-size: 2.25rem;
+    font-size: 1.875rem;
     font-weight: 800;
     color: var(--secondary-900);
     margin: 0;
@@ -371,7 +371,7 @@ body {
 
 .stat-label {
     color: var(--secondary-600);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 600;
     margin-top: var(--spacing-xs);
     text-transform: uppercase;
@@ -382,9 +382,9 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    margin-top: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-md);
     width: fit-content;
@@ -1399,6 +1399,35 @@ body {
 @media (max-width: 1200px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .stats-dashboard {
+        padding: var(--spacing-md);
+    }
+    
+    .stat-card {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+    
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.125rem;
+    }
+    
+    .stat-value {
+        font-size: 1.625rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .stat-trend {
+        font-size: 0.65rem;
+        padding: var(--spacing-xs);
     }
 }
 
@@ -1493,6 +1522,35 @@ body {
 
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .stats-dashboard {
+        padding: var(--spacing-sm);
+    }
+    
+    .stat-card {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem;
+    }
+    
+    .stat-trend {
+        font-size: 0.6rem;
+        padding: var(--spacing-xs);
     }
 
     .content-header {
@@ -1613,18 +1671,32 @@ body {
         font-size: 0.75rem;
     }
 
+    .stats-dashboard {
+        padding: var(--spacing-sm);
+    }
+    
     .stat-card {
-        padding: var(--spacing-md);
+        padding: var(--spacing-xs);
+        gap: var(--spacing-xs);
     }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.25rem;
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
     }
 
     .stat-value {
-        font-size: 1.75rem;
+        font-size: 1.375rem;
+    }
+    
+    .stat-label {
+        font-size: 0.65rem;
+    }
+    
+    .stat-trend {
+        font-size: 0.55rem;
+        padding: var(--spacing-xs);
     }
 
     .btn-glass {
