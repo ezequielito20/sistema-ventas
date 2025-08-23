@@ -51,42 +51,53 @@ class SaleController extends Controller
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
       
-      // Obtener todas las ventas con paginación
-      $sales = Sale::where('company_id', $this->company->id)
-                  ->with(['customer', 'saleDetails', 'saleDetails.product'])
+      // Obtener todas las ventas con paginación - OPTIMIZADO
+      $sales = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id')
+                  ->where('company_id', $this->company->id)
+                  ->with([
+                      'customer:id,name,email',
+                      'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
+                      'saleDetails.product:id,code,name,image,category_id',
+                      'saleDetails.product.category:id,name'
+                  ])
                   ->orderBy('sale_date', 'desc')
                   ->paginate(15);
       
-      // Calcular ventas de esta semana
-      $salesThisWeek = Sale::where('company_id', $this->company->id)
+      // Calcular ventas de esta semana - OPTIMIZADO con DB::table
+      $salesThisWeekData = DB::table('sales')
+                          ->where('company_id', $this->company->id)
                           ->whereBetween('sale_date', [$startOfWeek, $endOfWeek])
+                          ->select('total_price')
                           ->get();
       
       // 1. Total de ventas en dinero esta semana
-      $totalSalesAmountThisWeek = $salesThisWeek->sum('total_price');
+      $totalSalesAmountThisWeek = $salesThisWeekData->sum('total_price');
       
       // 2. Ingresos netos (ganancias) esta semana - asumiendo un margen promedio del 35%
       $profitMargin = 0.35; // 35% de margen de ganancia
       $totalProfitThisWeek = $totalSalesAmountThisWeek * $profitMargin;
       
       // 3. Cantidad de ventas esta semana
-      $salesCountThisWeek = $salesThisWeek->count();
+      $salesCountThisWeek = $salesThisWeekData->count();
       
-      // Otros cálculos existentes
+      // Otros cálculos existentes - OPTIMIZADOS
       $totalSales = $sales->sum(function ($sale) {
           return $sale->saleDetails->count();
       });
       
       $totalAmount = $sales->sum('total_price');
       
-      $monthlySales = Sale::where('company_id', $this->company->id)
+      // OPTIMIZADO: Usar DB::table para contar ventas mensuales
+      $monthlySales = DB::table('sales')
+                          ->where('company_id', $this->company->id)
                           ->whereMonth('sale_date', Carbon::now()->month)
                           ->count();
       
       $averageTicket = $sales->count() > 0 ? $totalAmount / $sales->count() : 0;
       
-      // Obtener la caja actual (abierta)
-      $currentCashCount = CashCount::where('company_id', $this->company->id)
+      // OPTIMIZADO: Obtener solo los campos necesarios de la caja actual
+      $currentCashCount = CashCount::select('id', 'opening_date')
+                                  ->where('company_id', $this->company->id)
                                   ->whereNull('closing_date')
                                   ->first();
       
@@ -97,14 +108,16 @@ class SaleController extends Controller
       $averageTicketPercentage = 0;
       
       if ($currentCashCount) {
-         // Obtener todas las ventas desde que se abrió la caja actual
-         $salesSinceCashOpen = Sale::where('company_id', $this->company->id)
+         // OPTIMIZADO: Obtener estadísticas de ventas desde la apertura de la caja usando DB::table
+         $salesSinceCashOpenStats = DB::table('sales')
+                                  ->where('company_id', $this->company->id)
                                   ->where('sale_date', '>=', $currentCashCount->opening_date)
-                                  ->get();
+                                  ->selectRaw('COUNT(*) as count, SUM(total_price) as total')
+                                  ->first();
          
-         $totalSalesSinceCashOpen = $salesSinceCashOpen->sum('total_price');
+         $totalSalesSinceCashOpen = $salesSinceCashOpenStats->total ?? 0;
          $totalProfitSinceCashOpen = $totalSalesSinceCashOpen * $profitMargin;
-         $totalSalesCountSinceCashOpen = $salesSinceCashOpen->count();
+         $totalSalesCountSinceCashOpen = $salesSinceCashOpenStats->count ?? 0;
          $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
          
          // Calcular porcentajes
@@ -126,7 +139,9 @@ class SaleController extends Controller
       }
       
       $currency = $this->currencies;
-      $cashCount = CashCount::where('company_id', $this->company->id)
+      // OPTIMIZADO: Usar exists() directamente para verificar si hay caja abierta
+      $cashCount = DB::table('cash_counts')
+                          ->where('company_id', $this->company->id)
                           ->whereNull('closing_date')
                           ->exists();
       
