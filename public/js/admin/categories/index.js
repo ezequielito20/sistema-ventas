@@ -334,10 +334,24 @@ async function performDeleteCategory(categoryId) {
             showAlert('¡Eliminado!', data.message, 'success');
             setTimeout(() => window.location.reload(), 1500);
         } else {
-            showAlert('Error', data.message, 'error');
+            // Mostrar mensaje específico para productos asociados
+            if (data.products_count) {
+                showAlert(
+                    'No se puede eliminar', 
+                    `La categoría tiene ${data.products_count} producto(s) asociado(s). Debes eliminar o mover estos productos antes de eliminar la categoría.`, 
+                    'warning'
+                );
+            } else {
+                showAlert('Error', data.message, 'error');
+            }
         }
     } catch (error) {
-        showAlert('Error', 'No se pudo eliminar la categoría', 'error');
+        // Manejar errores de red o servidor
+        if (error.message.includes('422')) {
+            showAlert('Error de validación', 'No se puede eliminar la categoría porque tiene productos asociados', 'warning');
+        } else {
+            showAlert('Error', 'No se pudo eliminar la categoría', 'error');
+        }
     }
 }
 

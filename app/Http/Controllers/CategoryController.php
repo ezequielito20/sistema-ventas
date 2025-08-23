@@ -243,10 +243,17 @@ class CategoryController extends Controller
     */
    public function destroy($id)
    {
-      $category = Category::findOrFail($id);
-
       try {
+         $category = Category::withCount('products')->findOrFail($id);
 
+         // Verificar si la categoría tiene productos asociados
+         if ($category->products_count > 0) {
+            return response()->json([
+               'status' => 'error',
+               'message' => 'No se puede eliminar la categoría porque tiene productos asociados',
+               'products_count' => $category->products_count
+            ], 200);
+         }
 
          $category->delete();
 
