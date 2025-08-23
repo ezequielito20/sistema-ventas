@@ -54,7 +54,7 @@
                 @if($permissions['products.create'])
                     <a href="{{ route('admin.products.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
-                        <span>Nuevo Producto</span>
+                        <span>Nuevo</span>
                         <div class="btn-ripple"></div>
                     </a>
                 @endif
