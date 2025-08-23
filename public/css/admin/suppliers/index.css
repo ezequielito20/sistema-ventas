@@ -469,12 +469,14 @@ body {
 .content-actions {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
 /* ===== BÚSQUEDA ===== */
 .search-container {
-    position: relative;
+    flex: 1;
+    max-width: 400px;
 }
 
 .search-wrapper {
@@ -511,36 +513,36 @@ body {
 /* ===== TOGGLES DE VISTA ===== */
 .view-toggles {
     display: flex;
-    background: var(--secondary-100);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xs);
-    gap: var(--spacing-xs);
+    gap: 0.5rem;
+}
+
+.desktop-only {
+    display: flex;
 }
 
 .view-toggle {
+    background: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: none;
-    border-radius: var(--border-radius-md);
-    background: transparent;
-    color: var(--secondary-600);
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-fast);
+    gap: 0.5rem;
 }
 
 .view-toggle.active {
-    background: white;
-    color: var(--primary-700);
-    box-shadow: var(--shadow-sm);
+    background: var(--gradient-primary);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 .view-toggle:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.5);
-    color: var(--secondary-700);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-light);
 }
 
 /* ===== CUERPO DEL CONTENIDO ===== */
@@ -1713,7 +1715,7 @@ body {
 
 /* ===== UTILIDADES ===== */
 .desktop-only {
-    display: block;
+    display: flex;
 }
 
 @media (max-width: 768px) {
