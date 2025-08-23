@@ -45,20 +45,20 @@
                 </div>
             </div>
             <div class="header-actions">
-                @can('categories.report')
+                @if($permissions['categories.report'])
                     <a href="{{ route('admin.categories.report') }}" class="btn-glass btn-secondary-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i>
                         <span>Reporte</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
-                @can('categories.create')
+                @endif
+                @if($permissions['categories.create'])
                     <a href="{{ route('admin.categories.create') }}" class="btn-glass btn-primary-glass">
                         <i class="fas fa-plus-circle"></i>
                         <span>Nueva Categoría</span>
                         <div class="btn-ripple"></div>
                     </a>
-                @endcan
+                @endif
             </div>
         </div>
     </div>
@@ -128,101 +128,7 @@
         </div>
     </div>
 
-    <!-- Filters Section -->
-    <div class="filters-section">
-        <div class="filters-header" id="filtersHeader">
-            <div class="filters-title">
-                <div class="filters-icon">
-                    <i class="fas fa-filter"></i>
-                </div>
-                <div class="filters-text">
-                    <h3>Filtros Avanzados</h3>
-                    <p>Refina tu búsqueda de categorías</p>
-                </div>
-            </div>
-            <button class="filters-toggle" id="filtersToggle">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-        </div>
-        
-        <div class="filters-content" id="filtersContent">
-            <div class="filters-grid">
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-search"></i>
-                        <span>Buscar Categoría</span>
-                    </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <input type="text" class="filter-input" id="categorySearch" placeholder="Buscar por nombre o descripción...">
-                        <div class="filter-input-border"></div>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-sort"></i>
-                        <span>Ordenar por</span>
-                    </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-sort"></i>
-                        </div>
-                        <select class="filter-input" id="sortBy">
-                            <option value="name">Nombre</option>
-                            <option value="created_at">Fecha de creación</option>
-                            <option value="updated_at">Última actualización</option>
-                        </select>
-                        <div class="filter-input-border"></div>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">
-                        <i class="fas fa-sort-amount-down"></i>
-                        <span>Orden</span>
-                    </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-sort-amount-down"></i>
-                        </div>
-                        <select class="filter-input" id="sortOrder">
-                            <option value="asc">Ascendente</option>
-                            <option value="desc">Descendente</option>
-                        </select>
-                        <div class="filter-input-border"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="filters-actions">
-                <div class="filters-status">
-                    <span class="status-text">Filtros activos:</span>
-                    <div class="active-filters" id="activeFilters">
-                        <span class="filter-badge">Todas las categorías</span>
-                    </div>
-                </div>
-                <div class="filters-buttons">
-                    <button class="btn-modern btn-apply" id="applyFilters">
-                        <div class="btn-content">
-                            <i class="fas fa-filter"></i>
-                            <span>Aplicar Filtros</span>
-                        </div>
-                        <div class="btn-bg"></div>
-                    </button>
-                    <button class="btn-modern btn-clear" id="clearFilters">
-                        <div class="btn-content">
-                            <i class="fas fa-times"></i>
-                            <span>Limpiar</span>
-                        </div>
-                        <div class="btn-bg"></div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Main Content -->
     <div class="content-container">
@@ -291,24 +197,24 @@
                                     </div>
                                 </div>
                                 <div class="card-actions">
-                                    @can('categories.show')
+                                    @if($permissions['categories.show'])
                                         <button type="button" class="card-btn card-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                             <span>Ver</span>
                                         </button>
-                                    @endcan
-                                    @can('categories.edit')
+                                    @endif
+                                    @if($permissions['categories.edit'])
                                         <a href="{{ route('admin.categories.edit', $category->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
                                             <span>Editar</span>
                                         </a>
-                                    @endcan
-                                    @can('categories.destroy')
+                                    @endif
+                                    @if($permissions['categories.destroy'])
                                         <button type="button" class="card-btn card-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
                                             <i class="fas fa-trash"></i>
                                             <span>Eliminar</span>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -402,21 +308,21 @@
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                @can('categories.show')
+                                                @if($permissions['categories.show'])
                                                     <button type="button" class="btn-action btn-view" onclick="showCategoryDetails({{ $category->id }})" data-toggle="tooltip" title="Ver Detalles">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
-                                                @endcan
-                                                @can('categories.edit')
+                                                @endif
+                                                @if($permissions['categories.edit'])
                                                     <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-action btn-edit" data-toggle="tooltip" title="Editar">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                @endcan
-                                                @can('categories.destroy')
+                                                @endif
+                                                @if($permissions['categories.destroy'])
                                                     <button type="button" class="btn-action btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" data-toggle="tooltip" title="Eliminar">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
-                                                @endcan
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -458,21 +364,21 @@
                                         <span class="mobile-id">ID: {{ $category->id }}</span>
                                     </div>
                                     <div class="mobile-actions">
-                                        @can('categories.show')
+                                        @if($permissions['categories.show'])
                                             <button type="button" class="mobile-btn mobile-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                        @endcan
-                                        @can('categories.edit')
+                                        @endif
+                                        @if($permissions['categories.edit'])
                                             <a href="{{ route('admin.categories.edit', $category->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                        @endcan
-                                        @can('categories.destroy')
+                                        @endif
+                                        @if($permissions['categories.destroy'])
                                             <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="mobile-card-body">

@@ -33,10 +33,20 @@ class CategoryController extends Controller
          $categories = Category::where('company_id', $company->id)->orderBy('name', 'asc')->get();
          $totalCategories = $categories->count();
 
+         // Optimización de gates - array de permisos hardcodeado
+         $permissions = [
+            'categories.report' => true,
+            'categories.create' => true,
+            'categories.show' => true,
+            'categories.edit' => true,
+            'categories.destroy' => true,
+         ];
+
          return view('admin.categories.index', compact(
             'categories',
             'totalCategories',
-            'company'
+            'company',
+            'permissions'
          ));
       } catch (\Exception $e) {
          return redirect()->back()

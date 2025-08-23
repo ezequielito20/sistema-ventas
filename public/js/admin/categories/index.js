@@ -234,22 +234,10 @@ function filterCategories(searchTerm) {
     
     currentPage = 1;
     showPage(1);
-    updateActiveFilters(searchTerm);
+
 }
 
-/**
- * Actualizar filtros activos
- */
-function updateActiveFilters(searchTerm) {
-    const activeFilters = document.getElementById('activeFilters');
-    if (!activeFilters) return;
-    
-    if (searchTerm) {
-        activeFilters.innerHTML = `<span class="filter-badge">Búsqueda: "${searchTerm}"</span>`;
-    } else {
-        activeFilters.innerHTML = `<span class="filter-badge">Todas las categorías</span>`;
-    }
-}
+
 
 /**
  * Mostrar detalles de categoría
@@ -406,46 +394,7 @@ function showAlert(title, text, icon) {
     }
 }
 
-/**
- * Aplicar filtros
- */
-function applyFilters() {
-    const searchTerm = document.getElementById('categorySearch')?.value || '';
-    filterCategories(searchTerm);
-}
 
-/**
- * Limpiar filtros
- */
-function clearFilters() {
-    const categorySearch = document.getElementById('categorySearch');
-    if (categorySearch) {
-        categorySearch.value = '';
-    }
-    filterCategories('');
-}
-
-/**
- * Toggle de filtros
- */
-function toggleFilters() {
-    const filtersContent = document.getElementById('filtersContent');
-    const filtersToggle = document.getElementById('filtersToggle');
-    
-    if (filtersContent && filtersToggle) {
-        filtersContent.classList.toggle('show');
-        const icon = filtersToggle.querySelector('i');
-        if (icon) {
-            if (filtersContent.classList.contains('show')) {
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-            } else {
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-            }
-        }
-    }
-}
 
 // ===== INICIALIZACIÓN DE EVENT LISTENERS =====
 
@@ -453,27 +402,10 @@ function toggleFilters() {
  * Inicializar event listeners
  */
 function initializeEventListeners() {
-    // Toggle de filtros
-    const filtersToggle = document.getElementById('filtersToggle');
-    if (filtersToggle) {
-        filtersToggle.addEventListener('click', toggleFilters);
-    }
-    
     // Búsqueda en tiempo real con debounce
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                filterCategories(this.value);
-            }, CATEGORIES_CONFIG.searchDelay);
-        });
-    }
-    
-    // Búsqueda en filtros
-    const categorySearch = document.getElementById('categorySearch');
-    if (categorySearch) {
-        categorySearch.addEventListener('keyup', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 filterCategories(this.value);
@@ -533,17 +465,7 @@ function initializeEventListeners() {
         });
     }
     
-    // Aplicar filtros
-    const applyFiltersBtn = document.getElementById('applyFilters');
-    if (applyFiltersBtn) {
-        applyFiltersBtn.addEventListener('click', applyFilters);
-    }
-    
-    // Limpiar filtros
-    const clearFiltersBtn = document.getElementById('clearFilters');
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', clearFilters);
-    }
+
     
     // Cerrar modal al hacer clic fuera
     const showCategoryModal = document.getElementById('showCategoryModal');
@@ -584,9 +506,6 @@ window.categoriesIndex = {
     showCategoryDetails,
     closeCategoryModal,
     deleteCategory,
-    applyFilters,
-    clearFilters,
-    toggleFilters,
     showConfirmDialog,
     showAlert
 };
