@@ -42,28 +42,47 @@ class PurchaseController extends Controller
             ->first();
 
 
-         // Obtener compras con sus relaciones usando paginación
-         $purchases = Purchase::with(['details.product', 'details.supplier', 'company'])
+         // Obtener compras con sus relaciones usando paginación (solo campos necesarios)
+         $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+            ->with([
+               'details' => function($query) {
+                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
+               },
+               'details.product' => function($query) {
+                  $query->select(['id', 'name', 'code', 'image']);
+               }
+            ])
             ->where('company_id', $companyId)
             ->orderBy('created_at', 'desc')
             ->paginate(10); // 10 compras por página
 
-         // Calcular estadísticas (usando todas las compras, no solo la página actual)
-         $allPurchases = Purchase::with(['details'])
-            ->where('company_id', $companyId)
-            ->get();
+         // Calcular estadísticas usando consultas directas de base de datos (más eficiente)
+         $totalPurchases = DB::table('purchase_details')
+            ->join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->where('purchases.company_id', $companyId)
+            ->distinct('purchase_details.product_id')
+            ->count('purchase_details.product_id');
             
-         $totalPurchases = $allPurchases->flatMap(function ($purchase) {
-            return $purchase->details->pluck('product_id');
-         })->unique()->count();
-         $totalAmount = $allPurchases->sum('total_price');
-         $monthlyPurchases = $allPurchases->filter(function ($purchase) {
-            return $purchase->purchase_date->isCurrentMonth();
-         })->count();
-         $pendingDeliveries = $allPurchases->whereNull('payment_receipt')->count();
+         $totalAmount = DB::table('purchases')
+            ->where('company_id', $companyId)
+            ->sum('total_price');
+            
+         $monthlyPurchases = DB::table('purchases')
+            ->where('company_id', $companyId)
+            ->whereYear('purchase_date', now()->year)
+            ->whereMonth('purchase_date', now()->month)
+            ->count();
+            
+         $pendingDeliveries = DB::table('purchases')
+            ->where('company_id', $companyId)
+            ->whereNull('payment_receipt')
+            ->count();
 
-         // Obtener productos para el filtro
-         $products = Product::with('category')
+         // Obtener productos para el filtro (solo campos necesarios)
+         $products = Product::select(['id', 'name', 'code', 'category_id', 'company_id'])
+            ->with(['category' => function($query) {
+               $query->select(['id', 'name']);
+            }])
             ->where('company_id', $companyId)
             ->orderBy('name')
             ->get();
@@ -107,12 +126,17 @@ class PurchaseController extends Controller
          $company = $this->company;
          $companyId = $company->id;
          $currency = $this->currencies;
-         $products = Product::with('category')->where('company_id', $companyId)
+         $products = Product::select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
+            ->with(['category' => function($query) {
+               $query->select(['id', 'name']);
+            }])
+            ->where('company_id', $companyId)
             ->get()->each(function($product) {
                $product->append('image_url');
             });
 
-         $suppliers = Supplier::where('company_id', $companyId)
+         $suppliers = Supplier::select(['id', 'company_name', 'supplier_name', 'company_id'])
+            ->where('company_id', $companyId)
             ->get();
 
          // Capturar la URL de referencia para redirección posterior
@@ -265,8 +289,19 @@ class PurchaseController extends Controller
          $companyId = $company->id;
          $currency = $this->currencies;
 
-         // Obtener la compra con sus detalles y productos
-         $purchase = Purchase::with(['details.product', 'details.supplier'])
+         // Obtener la compra con sus detalles y productos (solo campos necesarios)
+         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+            ->with([
+               'details' => function($query) {
+                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
+               },
+               'details.product' => function($query) {
+                  $query->select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id']);
+               },
+               'details.product.category' => function($query) {
+                  $query->select(['id', 'name']);
+               }
+            ])
             ->where('company_id', $companyId)
             ->findOrFail($id);
 
@@ -287,11 +322,16 @@ class PurchaseController extends Controller
             ];
          });
 
-         // Obtener productos y proveedores
-         $products = Product::with('category')->where('company_id', $companyId)->get()->each(function($product) {
+         // Obtener productos y proveedores (solo campos necesarios)
+         $products = Product::select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
+            ->with(['category' => function($query) {
+               $query->select(['id', 'name']);
+            }])
+            ->where('company_id', $companyId)->get()->each(function($product) {
             $product->append('image_url');
          });
-         $suppliers = Supplier::where('company_id', $companyId)->get();
+         $suppliers = Supplier::select(['id', 'company_name', 'supplier_name', 'company_id'])
+            ->where('company_id', $companyId)->get();
 
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
@@ -561,7 +601,8 @@ class PurchaseController extends Controller
    public function getProductDetails($code)
    {
       try {
-         $product = Product::where('code', $code)
+         $product = Product::select(['id', 'code', 'name', 'purchase_price', 'stock', 'image', 'company_id'])
+            ->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
 
@@ -596,7 +637,11 @@ class PurchaseController extends Controller
    public function getProductByCode($code)
    {
       try {
-         $product = Product::with('category')->where('code', $code)
+         $product = Product::select(['id', 'code', 'name', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
+            ->with(['category' => function($query) {
+               $query->select(['id', 'name']);
+            }])
+            ->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
 
@@ -634,11 +679,21 @@ class PurchaseController extends Controller
    public function getDetails($id)
    {
       try {
-         $purchaseDetails = PurchaseDetail::with(['product.category', 'purchase'])
+         // Optimizar consulta con select específicos y eager loading
+         $purchaseDetails = PurchaseDetail::select(['id', 'purchase_id', 'product_id', 'quantity'])
+            ->with([
+               'product' => function($query) {
+                  $query->select(['id', 'code', 'name', 'purchase_price', 'image', 'category_id', 'company_id']);
+               },
+               'product.category' => function($query) {
+                  $query->select(['id', 'name']);
+               }
+            ])
             ->where('purchase_id', $id)
             ->get();
 
-         $purchase = Purchase::find($id);
+         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price'])
+            ->find($id);
 
          $details = $purchaseDetails->map(function ($detail) {
             return [
@@ -649,7 +704,6 @@ class PurchaseController extends Controller
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
                   'image_url' => $detail->product->image_url,
-                  // 'stock' => $detail->product->stock
                ],
                'subtotal' => $detail->quantity * $detail->product->purchase_price
             ];
@@ -678,7 +732,21 @@ class PurchaseController extends Controller
    {
       $company = $this->company;
       $currency = $this->currencies;
-      $purchases = Purchase::with(['details.product', 'details.supplier'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+               $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+            ->with([
+               'details' => function($query) {
+                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
+               },
+               'details.product' => function($query) {
+                  $query->select(['id', 'code', 'name', 'purchase_price']);
+               },
+               'details.supplier' => function($query) {
+                  $query->select(['id', 'company_name']);
+               }
+            ])
+            ->where('company_id', $company->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
       $pdf = PDF::loadView('admin.purchases.report', compact('purchases', 'company', 'currency'));
       return $pdf->stream('reporte-compras.pdf');
    }
