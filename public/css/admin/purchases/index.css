@@ -1150,10 +1150,7 @@
     color: white;
 }
 
-.supplier-btn {
-    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
-    color: white;
-}
+
 
 .action-btn:hover {
     transform: scale(1.15);

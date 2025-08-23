@@ -360,11 +360,6 @@
                                                         aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                                         <i class="fas fa-list" aria-hidden="true"></i>
                                                     </button>
-                                                    <button type="button" class="action-btn supplier-btn"
-                                                        onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
-                                                        title="Ver Proveedor" aria-label="Ver información del proveedor">
-                                                        <i class="fas fa-truck" aria-hidden="true"></i>
-                                                    </button>
                                                 @endif
                                                 @if ($permissions['can_edit'])
                                                     <a href="{{ route('admin.purchases.edit', $purchase->id) }}"
@@ -482,14 +477,6 @@
                                             data-id="{{ $purchase->id }}" title="Ver Detalles"
                                             aria-label="Ver detalles de la compra {{ $purchase->payment_receipt ?: 'sin recibo' }}">
                                             <i class="fas fa-eye" aria-hidden="true"></i>
-                                        </button>
-                                    @endif
-
-                                    @if ($permissions['can_show'])
-                                        <button type="button" class="modern-action-btn info"
-                                            onclick="showSupplierInfo({{ $purchase->supplier_id ?? 1 }})"
-                                            title="Ver Proveedor" aria-label="Ver información del proveedor">
-                                            <i class="fas fa-truck" aria-hidden="true"></i>
                                         </button>
                                     @endif
 
@@ -626,120 +613,7 @@
         </div>
     @endif
 
-    <!-- Modal para mostrar información de proveedor -->
-    <div class="modal-overlay" id="supplierInfoModal" style="display: none;" role="dialog"
-        aria-labelledby="supplierInfoTitle" aria-modal="true">
-        <div class="modal-container">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <div class="title-icon">
-                        <i class="fas fa-truck" aria-hidden="true"></i>
-                    </div>
-                    <div class="title-text">
-                        <h3 id="supplierInfoTitle">Detalles del Proveedor</h3>
-                        <p>Información completa del proveedor seleccionado</p>
-                    </div>
-                </div>
-                <button type="button" class="modal-close" onclick="closeSupplierModal()" aria-label="Cerrar modal">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-content-grid">
-                    {{-- Información de la empresa --}}
-                    <div class="info-card">
-                        <div class="info-card-header">
-                            <div class="info-icon">
-                                <i class="fas fa-building"></i>
-                            </div>
-                            <h4>Información de la Empresa</h4>
-                        </div>
-                        <div class="info-card-body">
-                            <div class="info-item">
-                                <span class="info-label">Nombre:</span>
-                                <span class="info-value" id="modalCompanyName"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Email:</span>
-                                <span class="info-value" id="modalCompanyEmail"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Teléfono:</span>
-                                <span class="info-value" id="modalCompanyPhone"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Dirección:</span>
-                                <span class="info-value" id="modalCompanyAddress"></span>
-                            </div>
-                        </div>
-                    </div>
 
-                    {{-- Información del contacto --}}
-                    <div class="info-card">
-                        <div class="info-card-header">
-                            <div class="info-icon">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <h4>Información del Contacto</h4>
-                        </div>
-                        <div class="info-card-body">
-                            <div class="info-item">
-                                <span class="info-label">Nombre:</span>
-                                <span class="info-value" id="modalContactName"></span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Teléfono:</span>
-                                <span class="info-value" id="modalContactPhone"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Estadísticas del Proveedor --}}
-                <div class="stats-section" id="productsDistributedSection" style="display: none;">
-                    <div class="stats-card">
-                        <div class="stats-card-header">
-                            <div class="stats-icon">
-                                <i class="fas fa-box"></i>
-                            </div>
-                            <h4>Resumen de Productos Distribuidos</h4>
-                        </div>
-                        <div class="stats-card-body">
-                            <div class="table-responsive">
-                                <table class="stats-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th class="text-center">Cantidad</th>
-                                            <th class="text-right">Precio Unitario</th>
-                                            <th class="text-right">Sub Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="modalProductsTableBody">
-                                        <!-- Los detalles se cargarán dinámicamente -->
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="3" class="text-right"><strong>Total General:</strong></td>
-                                            <td class="text-right"><strong id="modalTotalAmount">0.00</strong></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-modern btn-secondary" onclick="closeSupplierModal()"
-                    aria-label="Cerrar modal de proveedor">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                    <span>Cerrar</span>
-                </button>
-            </div>
-        </div>
-    </div>
 
     @push('css')
         <link rel="stylesheet" href="{{ asset('css/admin/purchases/index.css') }}">

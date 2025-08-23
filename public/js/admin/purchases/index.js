@@ -8,23 +8,11 @@
     TABLE_VIEW: '#tableView',
     CARDS_VIEW: '#cardsView',
     PURCHASE_DETAILS_MODAL: '#purchaseDetailsModal',
-    SUPPLIER_INFO_MODAL: '#supplierInfoModal',
     PURCHASE_DETAILS_TABLE: '#purchaseDetailsTableBody',
-    MODAL_TOTAL: '#modalTotal',
-    PRODUCTS_SECTION: '#productsDistributedSection',
-    MODAL_PRODUCTS_TABLE: '#modalProductsTableBody',
-    MODAL_TOTAL_AMOUNT: '#modalTotalAmount'
+    MODAL_TOTAL: '#modalTotal'
   };
 
-  // Modal field IDs for supplier info
-  const SUPPLIER_FIELDS = {
-    COMPANY_NAME: 'modalCompanyName',
-    COMPANY_EMAIL: 'modalCompanyEmail',
-    COMPANY_PHONE: 'modalCompanyPhone',
-    COMPANY_ADDRESS: 'modalCompanyAddress',
-    CONTACT_NAME: 'modalContactName',
-    CONTACT_PHONE: 'modalContactPhone'
-  };
+
 
   // Utility functions
   const utils = {
@@ -101,11 +89,9 @@
   // Modal management
   const modalManager = {
     purchaseDetailsModal: null,
-    supplierInfoModal: null,
 
     init() {
       this.purchaseDetailsModal = utils.getElement(SELECTORS.PURCHASE_DETAILS_MODAL);
-      this.supplierInfoModal = utils.getElement(SELECTORS.SUPPLIER_INFO_MODAL);
       this.setupModalEvents();
     },
 
@@ -118,22 +104,11 @@
         });
       }
 
-      // Supplier info modal
-      if (this.supplierInfoModal) {
-        this.supplierInfoModal.style.display = 'none';
-        this.supplierInfoModal.addEventListener('click', (e) => {
-          if (e.target === this.supplierInfoModal) this.closeSupplierModal();
-        });
-      }
-
       // Global escape key handler
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           if (this.purchaseDetailsModal?.style.display === 'flex') {
             this.closePurchaseModal();
-          }
-          if (this.supplierInfoModal?.style.display === 'flex') {
-            this.closeSupplierModal();
           }
         }
       });
@@ -145,23 +120,9 @@
       setTimeout(() => {
         const tbody = utils.getElement(SELECTORS.PURCHASE_DETAILS_TABLE);
         const totalEl = utils.getElement(SELECTORS.MODAL_TOTAL);
-        const productsSection = utils.getElement(SELECTORS.PRODUCTS_SECTION);
         
         if (tbody) tbody.innerHTML = '';
         if (totalEl) totalEl.textContent = '0.00';
-        if (productsSection) productsSection.style.display = 'none';
-      }, 300);
-    },
-
-    closeSupplierModal() {
-      if (!this.supplierInfoModal) return;
-      this.supplierInfoModal.style.display = 'none';
-      setTimeout(() => {
-        Object.values(SUPPLIER_FIELDS).forEach(fieldId => {
-          utils.setText(fieldId, '');
-        });
-        const productsSection = utils.getElement(SELECTORS.PRODUCTS_SECTION);
-        if (productsSection) productsSection.style.display = 'none';
       }, 300);
     }
   };
@@ -390,94 +351,7 @@
     }
   };
 
-  // Supplier management
-  const supplierManager = {
-    async showSupplierInfo(supplierId) {
-      try {
-        if (modalManager.supplierInfoModal) {
-          modalManager.supplierInfoModal.style.display = 'flex';
-        }
-        this.setSupplierModalLoading();
 
-        const response = await fetch(`/suppliers/${supplierId}`);
-        const data = await response.json();
-
-        if (data.icons === 'success') {
-          this.fillSupplierModal(data);
-        } else {
-          const errorMessage = data.message || 'No se pudieron obtener los datos del proveedor';
-          utils.showNotification('Error', errorMessage, 'error');
-          modalManager.closeSupplierModal();
-        }
-      } catch (e) {
-        utils.showNotification('Error', 'Error de conexión. Verifique su conexión a internet e inténtelo de nuevo.', 'error');
-        modalManager.closeSupplierModal();
-      }
-    },
-
-    setSupplierModalLoading() {
-      Object.values(SUPPLIER_FIELDS).forEach(fieldId => {
-        utils.setText(fieldId, 'Cargando...');
-      });
-    },
-
-    fillSupplierModal(data) {
-      utils.setText(SUPPLIER_FIELDS.COMPANY_NAME, data.supplier.company_name || 'No disponible');
-      utils.setText(SUPPLIER_FIELDS.COMPANY_EMAIL, data.supplier.company_email || 'No disponible');
-      utils.setText(SUPPLIER_FIELDS.COMPANY_PHONE, data.supplier.company_phone || 'No disponible');
-      utils.setText(SUPPLIER_FIELDS.COMPANY_ADDRESS, data.supplier.company_address || 'No disponible');
-      utils.setText(SUPPLIER_FIELDS.CONTACT_NAME, data.supplier.supplier_name || 'No disponible');
-      utils.setText(SUPPLIER_FIELDS.CONTACT_PHONE, data.supplier.supplier_phone || 'No disponible');
-
-      const productsSection = utils.getElement(SELECTORS.PRODUCTS_SECTION);
-      if (productsSection) {
-        if (data.stats && data.stats.length > 0) {
-          productsSection.style.display = 'block';
-          this.updateProductStats(data.stats);
-        } else {
-          productsSection.style.display = 'none';
-        }
-      }
-    },
-
-    updateProductStats(stats) {
-      const detailsContainer = utils.getElement(SELECTORS.MODAL_PRODUCTS_TABLE);
-      if (!detailsContainer) return;
-
-      let detailsHTML = '';
-      let grandTotal = 0;
-
-      if (stats && stats.length > 0) {
-        stats.forEach((product) => {
-          const subtotal = product.stock * product.purchase_price;
-          grandTotal += subtotal;
-          detailsHTML += `
-            <tr>
-              <td>${product.name}</td>
-              <td class="text-center">
-                <span class="badge badge-primary">${product.stock}</span>
-              </td>
-              <td class="text-right">${utils.formatCurrency(product.purchase_price, state.currencySymbol)}</td>
-              <td class="text-right">${utils.formatCurrency(subtotal, state.currencySymbol)}</td>
-            </tr>`;
-        });
-      } else {
-        detailsHTML = `
-          <tr>
-            <td colspan="4" class="text-center">
-              <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <p>No hay productos registrados para este proveedor</p>
-              </div>
-            </td>
-          </tr>`;
-      }
-
-      detailsContainer.innerHTML = detailsHTML;
-      const totalEl = utils.getElement(SELECTORS.MODAL_TOTAL_AMOUNT);
-      if (totalEl) totalEl.innerHTML = utils.formatCurrency(grandTotal, state.currencySymbol);
-    }
-  };
 
   // Product filter manager
   const productFilterManager = {
@@ -566,8 +440,6 @@
 
     // Expose functions to global scope for inline handlers
     window.closePurchaseModal = () => modalManager.closePurchaseModal();
-    window.closeSupplierModal = () => modalManager.closeSupplierModal();
-    window.showSupplierInfo = (supplierId) => supplierManager.showSupplierInfo(supplierId);
     
     // Expose purchases index for Alpine.js
     window.purchasesIndex = {
