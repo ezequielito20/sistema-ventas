@@ -360,9 +360,14 @@ if (typeof window.productsIndex === 'undefined') {
                     const purchasePrice = parseFloat(product.purchase_price) || 0;
                     const salePrice = parseFloat(product.sale_price) || 0;
                     const profit = salePrice - purchasePrice;
+                    
+                    // Usar la moneda del sistema
+                    const currencyCode = window.currencyData ? window.currencyData.code : 'USD';
+                    const currencySymbol = window.currencyData ? window.currencyData.symbol : '$';
+                    
                     const profitFormatted = new Intl.NumberFormat('es-ES', {
                         style: 'currency',
-                        currency: 'COP',
+                        currency: currencyCode,
                         minimumFractionDigits: 0
                     }).format(profit);
                     document.getElementById('modalProductProfit').textContent = profitFormatted;
@@ -371,7 +376,7 @@ if (typeof window.productsIndex === 'undefined') {
                     const stockValue = stock * salePrice;
                     const stockValueFormatted = new Intl.NumberFormat('es-ES', {
                         style: 'currency',
-                        currency: 'COP',
+                        currency: currencyCode,
                         minimumFractionDigits: 0
                     }).format(stockValue);
                     document.getElementById('modalStockValue').textContent = stockValueFormatted;

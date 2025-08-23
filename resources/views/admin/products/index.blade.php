@@ -11,6 +11,13 @@
     <script>
     // Pasar datos de categorías al frontend
     window.categoriesData = @js($categories);
+    
+    // Pasar información de moneda al frontend
+    window.currencyData = {
+        symbol: @js($currency->symbol),
+        code: @js($currency->code),
+        name: @js($currency->name)
+    };
 </script>
 <script src="{{ asset('js/admin/products/index.js') }}" defer></script>
 @endpush
@@ -724,12 +731,13 @@
                             <p class="modal-subtitle">Información completa del producto</p>
                         </div>
                     </div>
-                    <button type="button" 
-                            onclick="closeProductModal()" 
-                            class="modal-close-btn">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
+                <!-- Botón de cerrar posicionado absolutamente -->
+                <button type="button" 
+                        onclick="closeProductModal()" 
+                        class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
             <!-- Modal Body -->

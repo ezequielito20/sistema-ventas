@@ -1424,6 +1424,10 @@
     transition: all 0.3s ease;
     font-size: 1.2rem;
     backdrop-filter: blur(10px);
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    z-index: 10;
 }
 
 .modal-close-btn:hover {
