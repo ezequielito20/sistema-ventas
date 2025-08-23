@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 
@@ -32,11 +33,11 @@ class PermissionController extends Controller
          
          // Optimización de gates - verificar permisos una sola vez
          $permissions = [
-            'can_report' => true,
-            'can_create' => true,
-            'can_edit' => true,
-            'can_show' => true,
-            'can_destroy' => true,
+            'can_report' => Gate::allows('permissions.report'),
+            'can_create' => Gate::allows('permissions.create'),
+            'can_edit' => Gate::allows('permissions.edit'),
+            'can_show' => Gate::allows('permissions.show'),
+            'can_destroy' => Gate::allows('permissions.destroy'),
          ];
          
          // Si es una petición AJAX para búsqueda, devolver JSON
@@ -404,11 +405,11 @@ class PermissionController extends Controller
 
          // Preparar datos para la vista
          $permissions = [
-            'can_report' => true,
-            'can_create' => true,
-            'can_edit' => true,
-            'can_show' => true,
-            'can_destroy' => true,
+            'can_report' => Gate::allows('permissions.report'),
+            'can_create' => Gate::allows('permissions.create'),
+            'can_edit' => Gate::allows('permissions.edit'),
+            'can_show' => Gate::allows('permissions.show'),
+            'can_destroy' => Gate::allows('permissions.destroy'),
          ];
 
          return response()->json([

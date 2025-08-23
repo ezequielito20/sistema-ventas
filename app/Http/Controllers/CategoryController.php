@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class CategoryController extends Controller
 {
@@ -33,13 +34,13 @@ class CategoryController extends Controller
          $categories = Category::where('company_id', $company->id)->orderBy('name', 'asc')->get();
          $totalCategories = $categories->count();
 
-         // Optimización de gates - array de permisos hardcodeado
+         // Optimización de gates - verificar permisos una sola vez
          $permissions = [
-            'categories.report' => true,
-            'categories.create' => true,
-            'categories.show' => true,
-            'categories.edit' => true,
-            'categories.destroy' => true,
+            'categories.report' => Gate::allows('categories.report'),
+            'categories.create' => Gate::allows('categories.create'),
+            'categories.show' => Gate::allows('categories.show'),
+            'categories.edit' => Gate::allows('categories.edit'),
+            'categories.destroy' => Gate::allows('categories.destroy'),
          ];
 
          return view('admin.categories.index', compact(

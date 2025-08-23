@@ -9,6 +9,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
@@ -31,12 +32,12 @@ class RoleController extends Controller
    {
       // Optimización de gates - verificar permisos una sola vez
       $permissions = [
-         'can_report' => true,
-         'can_create' => true,
-         'can_edit' => true,
-         'can_show' => true,
-         'can_destroy' => true,
-         'can_assign_permissions' => true,
+         'can_report' => Gate::allows('roles.report'),
+         'can_create' => Gate::allows('roles.create'),
+         'can_edit' => Gate::allows('roles.edit'),
+         'can_show' => Gate::allows('roles.show'),
+         'can_destroy' => Gate::allows('roles.destroy'),
+         'can_assign_permissions' => Gate::allows('roles.permissions'),
       ];
 
       // Optimización: Seleccionar solo campos necesarios y contar relaciones

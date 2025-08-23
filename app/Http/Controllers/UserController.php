@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -23,13 +24,13 @@ class UserController extends Controller
          ->orderBy('name', 'asc')
          ->get();
       
-      // Optimización de gates - array de permisos hardcodeado
+      // Optimización de gates - verificar permisos una sola vez
       $permissions = [
-         'users.report' => true,
-         'users.create' => true,
-         'users.show' => true,
-         'users.edit' => true,
-         'users.destroy' => true,
+         'users.report' => Gate::allows('users.report'),
+         'users.create' => Gate::allows('users.create'),
+         'users.show' => Gate::allows('users.show'),
+         'users.edit' => Gate::allows('users.edit'),
+         'users.destroy' => Gate::allows('users.destroy'),
       ];
       
       return view('admin.users.index', compact('users', 'company', 'permissions'));
