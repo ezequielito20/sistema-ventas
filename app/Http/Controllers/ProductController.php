@@ -32,21 +32,27 @@ class ProductController extends Controller
    public function index()
    {
       try {
-         $products = Product::with('category')
-            ->where('products.company_id', $this->company->id)
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->orderBy('categories.name')
-            ->orderBy('products.stock', 'desc')
-            ->orderBy('products.name')
-            ->select('products.*')
+         // Optimizar consulta de productos con eager loading y select específico
+         $products = Product::select('id', 'name', 'code', 'description', 'stock', 'purchase_price', 'sale_price', 'image', 'category_id', 'company_id', 'created_at', 'updated_at')
+            ->with(['category:id,name'])
+            ->where('company_id', $this->company->id)
+            ->orderBy('name')
             ->get();
-         $categories = Category::where('company_id', $this->company->id)->get();
+
+         // Optimizar consulta de categorías con select específico
+         $categories = Category::select('id', 'name', 'company_id')
+            ->where('company_id', $this->company->id)
+            ->orderBy('name')
+            ->get();
+
          $currency = $this->currencies;
          $company = $this->company;
          
-         // Calcular estadísticas
+         // Calcular estadísticas usando la colección ya cargada
          $totalProducts = $products->count();
-         $lowStockProducts = $products->filter->hasLowStock()->count();
+         $lowStockProducts = $products->filter(function($product) {
+            return $product->stock <= 10;
+         })->count();
          
          // Calcula el valor total del inventario basado en precio de compra
          $totalPurchaseValue = $products->sum(function ($product) {
@@ -102,7 +108,11 @@ class ProductController extends Controller
    public function create(Request $request)
    {
       try {
-         $categories = Category::where('company_id', $this->company->id)->get();
+         // Optimizar consulta de categorías con select específico
+         $categories = Category::select('id', 'name', 'company_id')
+            ->where('company_id', $this->company->id)
+            ->orderBy('name')
+            ->get();
          $currency = $this->currencies;
          $company = $this->company;
          
@@ -214,7 +224,12 @@ class ProductController extends Controller
    public function show($id)
    {
       try {
-         $product = Product::with('category')->findOrFail($id);
+         // Optimizar consulta con select específico y eager loading
+         $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'created_at', 'updated_at')
+            ->with(['category:id,name'])
+            ->where('id', $id)
+            ->where('company_id', $this->company->id)
+            ->firstOrFail();
 
          return response()->json([
             'status' => 'success',
@@ -251,8 +266,17 @@ class ProductController extends Controller
    public function edit(Request $request, $id)
    {
       try {
-         $product = Product::find($id);
-         $categories = Category::where('company_id', $this->company->id)->get();
+         // Optimizar consulta de producto con select específico
+         $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id', 'created_at', 'updated_at')
+            ->where('id', $id)
+            ->where('company_id', $this->company->id)
+            ->firstOrFail();
+            
+         // Optimizar consulta de categorías con select específico
+         $categories = Category::select('id', 'name', 'company_id')
+            ->where('company_id', $this->company->id)
+            ->orderBy('name')
+            ->get();
          $currency = $this->currencies;
          $company = $this->company;
          
@@ -276,7 +300,11 @@ class ProductController extends Controller
     */
    public function update(Request $request, $id)
    {
-      $product = Product::find($id);
+      // Optimizar consulta de producto con select específico
+      $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id')
+         ->where('id', $id)
+         ->where('company_id', $this->company->id)
+         ->firstOrFail();
 
       // Validación
       $validator = Validator::make($request->all(), [
