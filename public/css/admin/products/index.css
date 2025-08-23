@@ -1,5 +1,108 @@
 /* ===== ESTILOS PARA GESTIÓN DE PRODUCTOS ===== */
 
+/* ===== ESTILOS PARA FILTROS AVANZADOS CON ALPINE.JS ===== */
+.filters-section {
+    position: relative;
+    z-index: 1;
+}
+
+.filters-content {
+    position: relative;
+    z-index: 2;
+    overflow: visible !important;
+}
+
+.filters-grid {
+    position: relative;
+    z-index: 3;
+    overflow: visible !important;
+}
+
+.filter-group {
+    position: relative;
+    z-index: 4;
+    overflow: visible !important;
+}
+
+/* Asegurar que los dropdowns aparezcan por encima */
+.filter-group .relative {
+    position: relative;
+    z-index: 5;
+}
+
+.filter-group .absolute {
+    position: absolute !important;
+    z-index: 99999 !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+/* Asegurar que los dropdowns superpongan cualquier elemento */
+.filter-group .absolute[x-show="true"] {
+    z-index: 999999 !important;
+    position: fixed !important;
+    transform: translateY(0) !important;
+}
+
+/* Estilos específicos para las opciones del dropdown */
+.filter-group .absolute button {
+    position: relative;
+    z-index: 1;
+}
+
+/* Asegurar que el contenedor principal no interfiera */
+.filters-section,
+.filters-content,
+.filters-grid {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Forzar que los dropdowns aparezcan por encima de todo */
+.filter-group .absolute[x-show="true"],
+.filter-group .absolute[style*="display: block"],
+.filter-group .absolute[style*="display: flex"] {
+    z-index: 999999 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    transform: none !important;
+}
+
+/* Asegurar que ningún elemento padre corte el dropdown */
+.filters-section *,
+.filters-content *,
+.filters-grid *,
+.filter-group * {
+    overflow: visible !important;
+}
+
+/* Estilos específicos para el overlay del dropdown */
+.filter-group .absolute::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
 /* Variables CSS */
 :root {
     --primary-color: #667eea;

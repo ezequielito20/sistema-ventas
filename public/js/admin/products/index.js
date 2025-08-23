@@ -20,6 +20,8 @@ if (typeof window.productsIndex === 'undefined') {
         currentPage: 1,
         allProducts: [],
         filteredProducts: [],
+        currentCategoryFilter: '',
+        currentStockFilter: '',
 
         // Inicializar la página
         init: function() {
@@ -194,15 +196,30 @@ if (typeof window.productsIndex === 'undefined') {
             this.showPage(1);
         },
 
+        // Aplicar filtros por categoría (desde Alpine.js)
+        filterByCategory: function(categoryId) {
+            this.currentCategoryFilter = categoryId;
+            this.applyAdvancedFilters(categoryId, this.currentStockFilter || '');
+        },
+
+        // Aplicar filtros por stock (desde Alpine.js)
+        filterByStock: function(stockId) {
+            this.currentStockFilter = stockId;
+            this.applyAdvancedFilters(this.currentCategoryFilter || '', stockId);
+        },
+
         // Aplicar filtros avanzados
         applyAdvancedFilters: function(categoryFilter, stockFilter) {
+            console.log('Aplicando filtros:', { categoryFilter, stockFilter });
+            
             this.filteredProducts = this.allProducts.filter(product => {
                 let matches = true;
                 
                 // Filtro por categoría
                 if (categoryFilter && categoryFilter !== '') {
                     const productCategoryId = product.element.querySelector('.category-text').getAttribute('data-category-id');
-                    if (productCategoryId !== categoryFilter) {
+                    console.log('Comparando categoría:', productCategoryId, 'vs', categoryFilter);
+                    if (productCategoryId != categoryFilter) { // Usar == para comparación no estricta
                         matches = false;
                     }
                 }
@@ -211,6 +228,7 @@ if (typeof window.productsIndex === 'undefined') {
                 if (stockFilter && stockFilter !== '') {
                     const stockElement = product.element.querySelector('.stock-badge');
                     const stockStatus = this.getStockStatus(stockElement);
+                    console.log('Comparando stock:', stockStatus, 'vs', stockFilter, 'para producto:', product.data.name);
                     if (stockStatus !== stockFilter) {
                         matches = false;
                     }
@@ -218,6 +236,8 @@ if (typeof window.productsIndex === 'undefined') {
                 
                 return matches;
             });
+            
+            console.log('Productos filtrados:', this.filteredProducts.length);
             
             this.currentPage = 1;
             this.showPage(1);
@@ -250,9 +270,13 @@ if (typeof window.productsIndex === 'undefined') {
             const filters = [];
             
             if (categoryFilter && categoryFilter !== '') {
-                const categorySelect = document.getElementById('categoryFilter');
-                const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-                filters.push(selectedOption.text);
+                // Buscar el nombre de la categoría en los datos globales
+                if (window.categoriesData) {
+                    const selectedCategory = window.categoriesData.find(cat => cat.id == categoryFilter);
+                    if (selectedCategory) {
+                        filters.push(selectedCategory.name);
+                    }
+                }
             }
             
             if (stockFilter && stockFilter !== '') {

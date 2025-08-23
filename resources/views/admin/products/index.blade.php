@@ -8,7 +8,11 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('js/admin/products/index.js') }}" defer></script>
+    <script>
+    // Pasar datos de categorías al frontend
+    window.categoriesData = @js($categories);
+</script>
+<script src="{{ asset('js/admin/products/index.js') }}" defer></script>
 @endpush
 
 @section('content')
@@ -140,17 +144,109 @@
                         <i class="fas fa-tag"></i>
                         <span>Categoría</span>
                     </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-tag"></i>
+                    <div class="relative" 
+                         x-data="{ 
+                             isOpen: false, 
+                             searchTerm: '', 
+                             filteredCategories: @js($categories),
+                             selectedCategoryName: 'Todas las categorías',
+                             selectedCategoryId: '',
+                             filterCategories() {
+                                 if (!this.searchTerm) {
+                                     this.filteredCategories = @js($categories);
+                                     return;
+                                 }
+                                 const term = this.searchTerm.toLowerCase();
+                                 this.filteredCategories = @js($categories).filter(category => 
+                                     category.name.toLowerCase().includes(term)
+                                 );
+                             },
+                             selectCategory(category) {
+                                 if (category) {
+                                     this.selectedCategoryName = category.name;
+                                     this.selectedCategoryId = category.id;
+                                 } else {
+                                     this.selectedCategoryName = 'Todas las categorías';
+                                     this.selectedCategoryId = '';
+                                 }
+                                 this.isOpen = false;
+                                 this.searchTerm = '';
+                                 this.filteredCategories = @js($categories);
+                                 // Trigger filter event
+                                 window.productsIndex.filterByCategory(this.selectedCategoryId);
+                             }
+                         }" 
+                         @click.away="isOpen = false">
+                        
+                        <div class="filter-input-wrapper">
+                            <div class="filter-input-icon">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            
+                            <!-- Select Button -->
+                            <button type="button" 
+                                    @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.categorySearch.focus()) }"
+                                    class="filter-input w-full text-left flex items-center justify-between">
+                                <span class="block truncate" x-text="selectedCategoryName"></span>
+                                <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2" 
+                                     :class="{ 'rotate-180': isOpen }" 
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="filter-input-border"></div>
                         </div>
-                        <select class="filter-input" id="categoryFilter">
-                            <option value="">Todas las categorías</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </select>
-                        <div class="filter-input-border"></div>
+
+                        <!-- Dropdown -->
+                        <div x-show="isOpen" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+                             style="z-index: 9999 !important;">
+                            
+                            <!-- Search Input -->
+                            <div class="p-2 border-b border-gray-100">
+                                <input type="text" 
+                                       x-ref="categorySearch"
+                                       x-model="searchTerm" 
+                                       @input="filterCategories()"
+                                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="Buscar categoría...">
+                            </div>
+                            
+                            <!-- Options -->
+                            <div class="py-1">
+                                <!-- All categories option -->
+                                <button type="button" 
+                                        @click="selectCategory(null)"
+                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                        :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedCategoryId === '' }">
+                                    <i class="fas fa-list text-gray-400"></i>
+                                    <span>Todas las categorías</span>
+                                </button>
+                                
+                                <!-- Category options -->
+                                <template x-for="category in filteredCategories" :key="category.id">
+                                    <button type="button" 
+                                            @click="selectCategory(category)"
+                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedCategoryId == category.id }">
+                                        <i class="fas fa-tag text-gray-400"></i>
+                                        <span x-text="category.name"></span>
+                                    </button>
+                                </template>
+                                
+                                <!-- No results -->
+                                <div x-show="filteredCategories.length === 0" 
+                                     class="px-4 py-3 text-sm text-gray-500 text-center">
+                                    No se encontraron categorías
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -159,17 +255,118 @@
                         <i class="fas fa-boxes"></i>
                         <span>Estado de Stock</span>
                     </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-boxes"></i>
+                    <div class="relative" 
+                         x-data="{ 
+                             isOpen: false, 
+                             searchTerm: '', 
+                             stockOptions: [
+                                 {id: 'low', name: 'Stock Bajo', icon: 'fa-exclamation-triangle', color: 'text-red-500'},
+                                 {id: 'normal', name: 'Stock Normal', icon: 'fa-check-circle', color: 'text-yellow-500'},
+                                 {id: 'high', name: 'Stock Alto', icon: 'fa-arrow-up', color: 'text-green-500'}
+                             ],
+                             filteredStockOptions: [
+                                 {id: 'low', name: 'Stock Bajo', icon: 'fa-exclamation-triangle', color: 'text-red-500'},
+                                 {id: 'normal', name: 'Stock Normal', icon: 'fa-check-circle', color: 'text-yellow-500'},
+                                 {id: 'high', name: 'Stock Alto', icon: 'fa-arrow-up', color: 'text-green-500'}
+                             ],
+                             selectedStockName: 'Todos los estados',
+                             selectedStockId: '',
+                             filterStockOptions() {
+                                 if (!this.searchTerm) {
+                                     this.filteredStockOptions = this.stockOptions;
+                                     return;
+                                 }
+                                 const term = this.searchTerm.toLowerCase();
+                                 this.filteredStockOptions = this.stockOptions.filter(option => 
+                                     option.name.toLowerCase().includes(term)
+                                 );
+                             },
+                             selectStock(stock) {
+                                 if (stock) {
+                                     this.selectedStockName = stock.name;
+                                     this.selectedStockId = stock.id;
+                                 } else {
+                                     this.selectedStockName = 'Todos los estados';
+                                     this.selectedStockId = '';
+                                 }
+                                 this.isOpen = false;
+                                 this.searchTerm = '';
+                                 this.filteredStockOptions = this.stockOptions;
+                                 // Trigger filter event
+                                 window.productsIndex.filterByStock(this.selectedStockId);
+                             }
+                         }" 
+                         @click.away="isOpen = false">
+                        
+                        <div class="filter-input-wrapper">
+                            <div class="filter-input-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                            
+                            <!-- Select Button -->
+                            <button type="button" 
+                                    @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.stockSearch.focus()) }"
+                                    class="filter-input w-full text-left flex items-center justify-between">
+                                <span class="block truncate" x-text="selectedStockName"></span>
+                                <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2" 
+                                     :class="{ 'rotate-180': isOpen }" 
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="filter-input-border"></div>
                         </div>
-                        <select class="filter-input" id="stockFilter">
-                            <option value="">Todos los estados</option>
-                            <option value="low">Stock Bajo</option>
-                            <option value="normal">Stock Normal</option>
-                            <option value="high">Stock Alto</option>
-                        </select>
-                        <div class="filter-input-border"></div>
+
+                        <!-- Dropdown -->
+                        <div x-show="isOpen" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+                             style="z-index: 9999 !important;">
+                            
+                            <!-- Search Input -->
+                            <div class="p-2 border-b border-gray-100">
+                                <input type="text" 
+                                       x-ref="stockSearch"
+                                       x-model="searchTerm" 
+                                       @input="filterStockOptions()"
+                                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="Buscar estado...">
+                            </div>
+                            
+                            <!-- Options -->
+                            <div class="py-1">
+                                <!-- All states option -->
+                                <button type="button" 
+                                        @click="selectStock(null)"
+                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                        :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedStockId === '' }">
+                                    <i class="fas fa-list text-gray-400"></i>
+                                    <span>Todos los estados</span>
+                                </button>
+                                
+                                <!-- Stock options -->
+                                <template x-for="stock in filteredStockOptions" :key="stock.id">
+                                    <button type="button" 
+                                            @click="selectStock(stock)"
+                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedStockId == stock.id }">
+                                        <i class="fas" :class="[stock.icon, stock.color]"></i>
+                                        <span x-text="stock.name"></span>
+                                    </button>
+                                </template>
+                                
+                                <!-- No results -->
+                                <div x-show="filteredStockOptions.length === 0" 
+                                     class="px-4 py-3 text-sm text-gray-500 text-center">
+                                    No se encontraron estados
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
