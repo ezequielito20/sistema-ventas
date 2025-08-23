@@ -200,19 +200,16 @@
                                     @if($permissions['categories.show'])
                                         <button type="button" class="card-btn card-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
-                                            <span>Ver</span>
                                         </button>
                                     @endif
                                     @if($permissions['categories.edit'])
                                         <a href="{{ route('admin.categories.edit', $category->id) }}" class="card-btn card-btn-edit" title="Editar">
                                             <i class="fas fa-edit"></i>
-                                            <span>Editar</span>
                                         </a>
                                     @endif
                                     @if($permissions['categories.destroy'])
                                         <button type="button" class="card-btn card-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
                                             <i class="fas fa-trash"></i>
-                                            <span>Eliminar</span>
                                         </button>
                                     @endif
                                 </div>
