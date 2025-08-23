@@ -254,9 +254,19 @@ if (typeof window.productsIndex === 'undefined') {
                     this.showAlert('¡Eliminado!', data.message, 'success');
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    this.showAlert('Error', data.message, 'error');
+                    // Mostrar mensaje específico para productos con ventas/compras asociadas
+                    if (data.sales_count || data.purchases_count) {
+                        this.showAlert(
+                            'No se puede eliminar', 
+                            data.message, 
+                            'warning'
+                        );
+                    } else {
+                        this.showAlert('Error', data.message || 'Error al eliminar el producto', 'error');
+                    }
                 }
             } catch (error) {
+                console.error('Error al eliminar producto:', error);
                 this.showAlert('Error', 'No se pudo eliminar el producto', 'error');
             }
         },

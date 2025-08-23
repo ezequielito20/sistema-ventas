@@ -187,8 +187,13 @@ class Product extends Model
       return $this->belongsTo(Category::class);
    }
 
-   public function purchases(): HasMany
+   public function purchaseDetails(): HasMany
    {
-      return $this->hasMany(Purchase::class);
+      return $this->hasMany(PurchaseDetail::class);
+   }
+
+   public function saleDetails(): HasMany
+   {
+      return $this->hasMany(SaleDetail::class);
    }
 }

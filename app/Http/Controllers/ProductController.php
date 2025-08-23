@@ -358,7 +358,28 @@ class ProductController extends Controller
    public function destroy($id)
    {
       try {
-         $product = Product::findOrFail($id);
+         $product = Product::withCount(['saleDetails', 'purchaseDetails'])->findOrFail($id);
+
+         // Verificar si el producto tiene ventas o compras asociadas
+         if ($product->sale_details_count > 0 || $product->purchase_details_count > 0) {
+            $reasons = [];
+            if ($product->sale_details_count > 0) {
+               $reasons[] = "tiene ventas asociadas";
+            }
+            if ($product->purchase_details_count > 0) {
+               $reasons[] = "tiene compras asociadas";
+            }
+            
+            $reasonText = implode(' y ', $reasons);
+            
+            return response()->json([
+               'status' => 'error',
+               'message' => "No se puede eliminar el producto porque {$reasonText}",
+               'sales_count' => $product->sale_details_count,
+               'purchases_count' => $product->purchase_details_count
+            ], 200);
+         }
+
          DB::beginTransaction();
 
          // Eliminar imagen si existe
@@ -376,7 +397,6 @@ class ProductController extends Controller
          ]);
       } catch (\Exception $e) {
          DB::rollBack();
-
 
          return response()->json([
             'status' => 'error',
