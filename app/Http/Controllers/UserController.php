@@ -50,7 +50,7 @@ class UserController extends Controller
             ->get();
 
          // Obtener los roles disponibles de la empresa usando select específico
-         $roles = Role::select('id', 'name', 'display_name')
+         $roles = Role::select('id', 'name')
             ->byCompany(Auth::user()->company_id)
             ->get();
 
