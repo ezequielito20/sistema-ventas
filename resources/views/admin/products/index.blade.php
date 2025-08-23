@@ -137,20 +137,6 @@
             <div class="filters-grid">
                 <div class="filter-group">
                     <label class="filter-label">
-                        <i class="fas fa-search"></i>
-                        <span>Buscar Producto</span>
-                    </label>
-                    <div class="filter-input-wrapper">
-                        <div class="filter-input-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <input type="text" class="filter-input" id="productSearch" placeholder="Buscar por nombre, código o categoría...">
-                        <div class="filter-input-border"></div>
-                    </div>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">
                         <i class="fas fa-tag"></i>
                         <span>Categoría</span>
                     </label>
@@ -196,13 +182,6 @@
                     </div>
                 </div>
                 <div class="filters-buttons">
-                    <button class="btn-modern btn-apply" id="applyFilters">
-                        <div class="btn-content">
-                            <i class="fas fa-filter"></i>
-                            <span>Aplicar Filtros</span>
-                        </div>
-                        <div class="btn-bg"></div>
-                    </button>
                     <button class="btn-modern btn-clear" id="clearFilters">
                         <div class="btn-content">
                             <i class="fas fa-times"></i>
@@ -273,7 +252,7 @@
                                     <div class="card-meta">
                                         <div class="meta-item">
                                             <i class="fas fa-tag"></i>
-                                            <span>{{ $product->category->name ?? 'Sin categoría' }}</span>
+                                            <span data-category-id="{{ $product->category->id ?? '' }}">{{ $product->category->name ?? 'Sin categoría' }}</span>
                                         </div>
                                         <div class="meta-item">
                                             <i class="fas fa-boxes"></i>
@@ -404,7 +383,7 @@
                                         </td>
                                         <td>
                                             <div class="category-info">
-                                                <span class="category-text">{{ $product->category->name ?? 'Sin categoría' }}</span>
+                                                <span class="category-text" data-category-id="{{ $product->category->id ?? '' }}">{{ $product->category->name ?? 'Sin categoría' }}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -505,7 +484,7 @@
                                     <div class="mobile-meta">
                                         <div class="mobile-category">
                                             <i class="fas fa-tag"></i>
-                                            <span>{{ $product->category->name ?? 'Sin categoría' }}</span>
+                                            <span data-category-id="{{ $product->category->id ?? '' }}">{{ $product->category->name ?? 'Sin categoría' }}</span>
                                         </div>
                                         <div class="mobile-stock">
                                             <i class="fas fa-boxes"></i>
