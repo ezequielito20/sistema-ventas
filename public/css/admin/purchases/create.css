@@ -831,7 +831,46 @@ select {
     }
 }
 
-@media (min-width: 1201px) and (max-width: 1400px) {
+@media (min-width: 1200px) and (max-width: 1340px) {
+    .compact-layout {
+        max-width: 1100px;
+    }
+    
+    .date-time-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    
+    .date-time-row .date-field,
+    .date-time-row .time-field {
+        min-width: 0;
+        flex: 1;
+        max-width: calc(50% - 0.25rem);
+    }
+    
+    .date-time-row .modern-input {
+        min-width: 120px;
+        width: 100%;
+        max-width: 100%;
+        font-size: 0.875rem;
+        padding: 0.75rem 0.875rem;
+        padding-left: 2.5rem;
+    }
+    
+    .date-time-row .input-wrapper {
+        min-width: 120px;
+        width: 100%;
+    }
+    
+    .date-time-row .input-icon {
+        width: 32px;
+        min-width: 32px;
+        font-size: 0.875rem;
+    }
+}
+
+@media (min-width: 1341px) and (max-width: 1400px) {
     .compact-layout {
         max-width: 1100px;
     }
@@ -1791,19 +1830,12 @@ select {
         max-width: 100%;
         font-size: 0.875rem;
         padding: 0.75rem 0.875rem;
-        padding-left: 2.5rem;
     }
     
     .date-time-row .input-wrapper {
         min-width: 0;
         width: 100%;
         max-width: 100%;
-    }
-    
-    .date-time-row .input-icon {
-        width: 32px;
-        min-width: 32px;
-        font-size: 0.875rem;
     }
     
     /* Hacer que el input de código también sea responsivo */

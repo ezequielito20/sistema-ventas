@@ -149,9 +149,6 @@
 
                                                     <div class="input-container">
                                                         <div class="input-wrapper">
-                                                            <div class="input-icon">
-                                                                <i class="fas fa-calendar"></i>
-                                                            </div>
                                                             <input type="date" name="purchase_date" id="purchase_date"
                                                                 class="modern-input @error('purchase_date') error @enderror"
                                                                 value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}" required>
@@ -181,9 +178,6 @@
 
                                                     <div class="input-container">
                                                         <div class="input-wrapper">
-                                                            <div class="input-icon">
-                                                                <i class="fas fa-clock"></i>
-                                                            </div>
                                                             <input type="time" name="purchase_time" id="purchase_time"
                                                                 class="modern-input @error('purchase_time') error @enderror"
                                                                 value="{{ old('purchase_time', $purchase->purchase_date->format('H:i')) }}" required>
