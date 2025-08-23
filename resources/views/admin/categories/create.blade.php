@@ -160,12 +160,7 @@
 
                     <!-- Action Buttons -->
                     <div class="form-actions">
-                        <div class="actions-left">
-                            <button type="button" onclick="window.categoryCreate.resetForm()" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300">
-                                <i class="fas fa-undo mr-2"></i>
-                                <span>Limpiar</span>
-                            </button>
-                        </div>
+
                         
                         <div class="actions-right">
                             <button type="button" onclick="window.categoryCreate.goBack()" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300">

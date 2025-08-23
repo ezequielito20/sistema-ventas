@@ -580,23 +580,7 @@ body {
     transition: var(--transition-normal);
 }
 
-.btn-reset {
-    color: var(--gray-600);
-}
 
-.btn-reset .btn-bg {
-    background: var(--gray-100);
-}
-
-.btn-reset:hover {
-    color: var(--gray-700);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-reset:hover .btn-bg {
-    background: var(--gray-200);
-}
 
 .btn-cancel {
     color: var(--gray-700);

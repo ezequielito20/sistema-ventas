@@ -23,72 +23,7 @@ window.categoryEdit = {
         }
     },
 
-    // Función para resetear formulario con efectos
-    resetForm: function() {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: '¿Restaurar valores originales?',
-                text: 'Se restaurarán los valores originales de la categoría',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0ea5e9',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, restaurar',
-                cancelButtonText: 'Cancelar',
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    confirmButton: 'swal-modern-confirm',
-                    cancelButton: 'swal-modern-cancel'
-                },
-                backdrop: 'rgba(0,0,0,0.4)'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.resetFormAction();
-                }
-            });
-        } else {
-            if (confirm('¿Restaurar valores originales? Se restaurarán los valores originales de la categoría')) {
-                this.resetFormAction();
-            }
-        }
-    },
 
-    resetFormAction: function() {
-        const fieldWrappers = document.querySelectorAll('.field-wrapper');
-        
-        // Animación de restauración
-        fieldWrappers.forEach((wrapper, index) => {
-            setTimeout(() => {
-                wrapper.style.transform = 'scale(0.95)';
-                wrapper.style.opacity = '0.5';
-            }, index * 100);
-        });
-
-        setTimeout(() => {
-            // Restaurar valores originales
-            const nameInput = document.getElementById('name');
-            const descriptionInput = document.getElementById('description');
-            
-            if (nameInput && window.categoryEdit.originalData) {
-                nameInput.value = window.categoryEdit.originalData.name;
-            }
-            if (descriptionInput && window.categoryEdit.originalData) {
-                descriptionInput.value = window.categoryEdit.originalData.description;
-            }
-            
-            // Restaurar campos
-            fieldWrappers.forEach(wrapper => {
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.opacity = '1';
-            });
-            
-            // Actualizar contador de caracteres
-            this.updateCharCounter();
-            
-            // Mostrar confirmación
-            this.showToast('Valores restaurados correctamente', 'success');
-        }, 500);
-    },
 
     // Actualizar contador de caracteres
     updateCharCounter: function() {

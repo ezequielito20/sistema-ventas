@@ -28,67 +28,7 @@ window.categoryCreate = {
         }
     },
 
-    // Función para resetear formulario con efectos
-    resetForm: function() {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: '¿Limpiar formulario?',
-                text: 'Se borrarán todos los datos ingresados',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0ea5e9',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, limpiar',
-                cancelButtonText: 'Cancelar',
-                customClass: {
-                    popup: 'swal-modern-popup',
-                    confirmButton: 'swal-modern-confirm',
-                    cancelButton: 'swal-modern-cancel'
-                },
-                backdrop: 'rgba(0,0,0,0.4)'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.resetFormAction();
-                }
-            });
-        } else {
-            // Fallback si SweetAlert2 no está disponible
-            if (confirm('¿Limpiar formulario? Se borrarán todos los datos ingresados')) {
-                this.resetFormAction();
-            }
-        }
-    },
 
-    resetFormAction: function() {
-        const fieldWrappers = document.querySelectorAll('.field-wrapper');
-        
-        // Animación de limpieza
-        fieldWrappers.forEach((wrapper, index) => {
-            setTimeout(() => {
-                wrapper.style.transform = 'scale(0.95)';
-                wrapper.style.opacity = '0.5';
-            }, index * 100);
-        });
-
-        setTimeout(() => {
-            const form = document.getElementById('categoryForm');
-            if (form) {
-                form.reset();
-            }
-            
-            // Actualizar vista previa
-            this.updatePreview();
-            
-            // Restaurar campos
-            fieldWrappers.forEach(wrapper => {
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.opacity = '1';
-            });
-            
-            // Mostrar confirmación
-            this.showToast('Formulario limpiado correctamente', 'success');
-        }, 500);
-    },
 
     // Actualizar vista previa
     updatePreview: function() {
