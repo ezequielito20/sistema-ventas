@@ -98,7 +98,6 @@
     setupModalEvents() {
       // Purchase details modal
       if (this.purchaseDetailsModal) {
-        this.purchaseDetailsModal.style.display = 'none';
         this.purchaseDetailsModal.addEventListener('click', (e) => {
           if (e.target === this.purchaseDetailsModal) this.closePurchaseModal();
         });
@@ -107,7 +106,7 @@
       // Global escape key handler
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          if (this.purchaseDetailsModal?.style.display === 'flex') {
+          if (this.purchaseDetailsModal?.classList.contains('show')) {
             this.closePurchaseModal();
           }
         }
@@ -116,7 +115,8 @@
 
     closePurchaseModal() {
       if (!this.purchaseDetailsModal) return;
-      this.purchaseDetailsModal.style.display = 'none';
+      this.purchaseDetailsModal.classList.remove('show');
+      
       setTimeout(() => {
         const tbody = utils.getElement(SELECTORS.PURCHASE_DETAILS_TABLE);
         const totalEl = utils.getElement(SELECTORS.MODAL_TOTAL);
@@ -250,11 +250,8 @@
 
       tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">Cargando...</td></tr>';
       if (modalManager.purchaseDetailsModal) {
-        modalManager.purchaseDetailsModal.style.display = 'flex';
+        modalManager.purchaseDetailsModal.classList.add('show');
       }
-      
-      const productsSection = utils.getElement(SELECTORS.PRODUCTS_SECTION);
-      if (productsSection) productsSection.style.display = 'none';
 
       try {
         const response = await fetch(`/purchases/${purchaseId}/details`, {

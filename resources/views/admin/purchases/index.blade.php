@@ -504,15 +504,18 @@
         </div>
 
         <!-- Modal para Detalles -->
-        <div class="modal-overlay" id="purchaseDetailsModal" style="display: none;" role="dialog"
+        <div class="modal-overlay" id="purchaseDetailsModal" role="dialog"
             aria-labelledby="purchaseDetailsTitle" aria-modal="true">
             <div class="modal-container">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="purchaseDetailsTitle">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important;">
+                    <h3 class="modal-title" id="purchaseDetailsTitle" style="color: white !important;">
                         <i class="fas fa-list-alt mr-2" aria-hidden="true"></i>
                         Detalle de la Compra
                     </h3>
-                    <button type="button" class="modal-close" onclick="closePurchaseModal()" aria-label="Cerrar modal">
+                    <button type="button" class="modal-close" onclick="closePurchaseModal()" aria-label="Cerrar modal" 
+                            style="color: white !important; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 8px !important; padding: 8px 12px !important; transition: all 0.3s ease !important;"
+                            onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='scale(1)'">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -553,7 +556,17 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-modern btn-secondary" onclick="closePurchaseModal()"
-                        aria-label="Cerrar modal de detalles">
+                        aria-label="Cerrar modal de detalles"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; 
+                               color: white !important; 
+                               border: none !important;
+                               box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+                               transition: all 0.3s ease !important;
+                               text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;"
+                        onmouseover="this.style.background='linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'"
+                        onmouseout="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'"
+                        onmousedown="this.style.transform='translateY(0) scale(0.98)'"
+                        onmouseup="this.style.transform='translateY(-2px) scale(1)'">
                         <div class="btn-content">
                             <i class="fas fa-times" aria-hidden="true"></i>
                             <span>Cerrar</span>
