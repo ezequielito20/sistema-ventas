@@ -9,6 +9,7 @@
     'lastUpdate' => null,
     'dataMode' => 'current',
     'dataOptions' => [],
+    'cashCounts' => [],
     'showDataSelector' => true,
     'showStatus' => true,
     'showLastUpdate' => true,
@@ -67,6 +68,13 @@
                                 'id' => $option['value'],
                                 'name' => '📋 ' . $option['text'],
                                 'icon' => 'fas fa-file-alt'
+                            ];
+                        }))->merge(collect($cashCounts)->map(function($cashCount) {
+                            return [
+                                'id' => 'cash_' . $cashCount['id'],
+                                'name' => $cashCount['opening_date_formatted'] . ' - ' . $cashCount['closing_date_formatted'],
+                                'icon' => 'fas fa-cash-register',
+                                'cashCountId' => $cashCount['id']
                             ];
                         }))"
                         itemKey="id"
@@ -277,6 +285,22 @@
 window.sectionHeader = window.sectionHeader || {};
 window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
     console.log('Modo de datos cambiado:', selectedValue, selectedItem);
+    
+    // Manejar selección de arqueo específico
+    if (selectedValue && selectedValue.startsWith('cash_')) {
+        const cashCountId = selectedValue.replace('cash_', '');
+        console.log(`✅ Arqueo específico seleccionado: ${cashCountId}`);
+        
+        // Disparar evento para arqueo específico
+        window.dispatchEvent(new CustomEvent('cashCountSelected', {
+            detail: {
+                cashCountId: cashCountId,
+                selectedItem: selectedItem
+            }
+        }));
+        
+        return;
+    }
     
     // Aquí puedes agregar la lógica para manejar el cambio de modo
     // Por ejemplo, actualizar la variable Alpine.js correspondiente

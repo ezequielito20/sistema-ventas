@@ -89,6 +89,7 @@
             statusColor="green"
             dataMode="cashDataMode"
             :dataOptions="[]"
+            :cashCounts="$closedCashCountsData"
             :showDataSelector="true"
             :showStatus="true"
             :showLastUpdate="true"
