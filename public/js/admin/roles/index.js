@@ -105,14 +105,12 @@ window.showRole = function(roleId) {
         }
     })
         .then(response => {
-            console.log('Response status:', response.status); // Debug
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Respuesta del servidor:', data); // Debug
             if (data.status === 'success') {
                 const role = data.role;
                 
@@ -264,7 +262,6 @@ window.deleteRole = function(roleId) {
             });
 
             // Realizar petición de eliminación
-            console.log('Enviando DELETE a:', `/roles/delete/${roleId}`);
             fetch(`/roles/delete/${roleId}`, {
                 method: 'DELETE',
                 headers: {
@@ -382,7 +379,6 @@ function savePermissions() {
     });
 
     // Realizar petición AJAX
-    console.log('Enviando POST a:', `/roles/${roleId}/permissions`);
     fetch(`/roles/${roleId}/permissions`, {
         method: 'POST',
         headers: {

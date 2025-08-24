@@ -130,7 +130,6 @@
                                                              window.saleCreateData.selectedCustomerId = customer.id;
                                                          }
                                                          
-                                                         console.log(`✅ Cliente auto-seleccionado en Alpine: ${customer.name}`);
                                                      }
                                                  }
                                              },

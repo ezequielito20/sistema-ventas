@@ -126,7 +126,6 @@ function filtersPanel() {
         toggleFilters() { this.filtersOpen = !this.filtersOpen; },
         
         setFilter(filter) {
-            console.log('Setting filter to:', filter);
             this.currentFilter = filter;
             localStorage.setItem('customerFilter', filter);
             this.applyFilters();
@@ -145,7 +144,6 @@ function filtersPanel() {
         applyFilters() {
             requestAnimationFrame(() => {
                 const cards = document.querySelectorAll('[data-defaulter]');
-                console.log('Applying filters:', this.currentFilter, 'to', cards.length, 'elements');
                 let visibleCount = 0;
                 
                 cards.forEach(card => {
@@ -166,7 +164,6 @@ function filtersPanel() {
                     if (shouldShow) visibleCount++;
                 });
                 
-                console.log('Filter result:', visibleCount, 'visible elements');
                 this.searchResultsCount = visibleCount;
                 this.hasActiveFilters = this.currentFilter !== 'all' || this.searchTerm.length > 0;
             });

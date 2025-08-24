@@ -65,8 +65,6 @@ window.modalManager = function() {
             ])
             .then(responses => Promise.all(responses.map(r => r.json())))
             .then(([customerData, salesData]) => {
-                console.log('Customer data:', customerData);
-                console.log('Sales data:', salesData);
                 
                 if (customerData.success) {
                     // Llenar información del cliente
@@ -93,10 +91,8 @@ window.modalManager = function() {
                     // Usar datos de ventas del endpoint correcto
                     if (salesData.success) {
                         window.customerSalesData = salesData.sales || [];
-                        console.log('Sales data loaded:', window.customerSalesData);
                     } else {
                         window.customerSalesData = [];
-                        console.log('No sales data available');
                     }
                     
                     // Cargar historial de ventas
@@ -110,7 +106,7 @@ window.modalManager = function() {
                 }
             })
             .catch(error => {
-                console.error('Error cargando detalles del cliente:', error);
+                // Error cargando detalles del cliente
             });
         },
         
@@ -191,15 +187,10 @@ window.modalManager = function() {
         },
 
         loadSalesHistory() {
-            console.log('Loading sales history...');
-            console.log('Customer sales data:', window.customerSalesData);
             if (!window.customerSalesData) return;
             
             const tableBody = document.getElementById('salesHistoryTable');
             const salesCountElement = document.getElementById('salesCount');
-            
-            console.log('Table body found:', !!tableBody);
-            console.log('Sales count element found:', !!salesCountElement);
             
             if (tableBody && salesCountElement) {
                 if (window.customerSalesData.length === 0) {
@@ -218,14 +209,10 @@ window.modalManager = function() {
                     salesCountElement.textContent = '0';
                 } else {
                     const rows = window.customerSalesData.map(sale => {
-                        console.log('Processing sale:', sale);
-                        
                         // Usar directamente los datos del backend
                         const date = sale.date || 'Fecha no disponible';
                         const products = sale.products || 'Sin productos';
                         const total = sale.total || 0;
-                        
-                        console.log('Formatted data:', { date, products, total });
                         
                         const rowHtml = `
                             <tr class="hover:bg-gray-50 transition-colors duration-200">
@@ -241,14 +228,11 @@ window.modalManager = function() {
                             </tr>
                         `;
                         
-                        console.log('Row HTML:', rowHtml);
                         return rowHtml;
                     }).join('');
                     
-                    console.log('Final HTML to insert:', rows);
                     tableBody.innerHTML = rows;
                     salesCountElement.textContent = window.customerSalesData.length;
-                    console.log('✅ All sales loaded successfully:', window.customerSalesData.length, 'sales');
                 }
             }
         },
@@ -284,15 +268,12 @@ window.modalManager = function() {
         },
 
         filterSalesHistory() {
-            console.log('Filtering sales history...');
             if (!window.customerSalesData) return;
             
             const dateFrom = document.getElementById('dateFrom')?.value;
             const dateTo = document.getElementById('dateTo')?.value;
             const amountFrom = parseFloat(document.getElementById('amountFrom')?.value) || 0;
             const amountTo = parseFloat(document.getElementById('amountTo')?.value) || Infinity;
-            
-            console.log('Filter values:', { dateFrom, dateTo, amountFrom, amountTo });
             
             // Guardar filtros actuales
             this.saveCustomerFilters({ dateFrom, dateTo, amountFrom, amountTo });
@@ -331,8 +312,6 @@ window.modalManager = function() {
             const tableBody = document.getElementById('salesHistoryTable');
             const salesCountElement = document.getElementById('salesCount');
             
-            console.log('Updating sales table with filtered data:', filteredData);
-            
             if (tableBody && salesCountElement) {
                 if (filteredData.length === 0) {
                     tableBody.innerHTML = `
@@ -369,7 +348,6 @@ window.modalManager = function() {
                     `;
                     }).join('');
                     
-                    console.log('Filtered rows HTML:', rows);
                     tableBody.innerHTML = rows;
                 }
                 
@@ -383,7 +361,6 @@ window.modalManager = function() {
 
         loadSavedCustomerFilters() {
             const savedFilters = localStorage.getItem('customerDetailsFilters');
-            console.log('Loading saved filters:', savedFilters);
             if (savedFilters) {
                 const filters = JSON.parse(savedFilters);
                 
@@ -396,15 +373,10 @@ window.modalManager = function() {
                 if (dateToInput && filters.dateTo) dateToInput.value = filters.dateTo;
                 if (amountFromInput && filters.amountFrom) amountFromInput.value = filters.amountFrom;
                 if (amountToInput && filters.amountTo) amountToInput.value = filters.amountTo;
-                
-                // NO aplicar filtros automáticamente - solo cargar los valores
-                console.log('Filters loaded but not applied automatically');
             }
         },
 
         clearSavedFiltersOnOpen() {
-            console.log('Clearing saved filters on modal open');
-            
             // Limpiar filtros guardados
             localStorage.removeItem('customerDetailsFilters');
             
@@ -418,8 +390,6 @@ window.modalManager = function() {
             if (dateToInput) dateToInput.value = '';
             if (amountFromInput) amountFromInput.value = '';
             if (amountToInput) amountToInput.value = '';
-            
-            console.log('Filters cleared, showing all sales');
         },
 
         clearCustomerFilters() {
@@ -615,7 +585,6 @@ window.modalManager = function() {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',

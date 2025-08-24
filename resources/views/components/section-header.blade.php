@@ -284,15 +284,11 @@
 // Función global para manejar el cambio de modo de datos
 window.sectionHeader = window.sectionHeader || {};
 window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
-    console.log('Modo de datos cambiado:', selectedValue, selectedItem);
-    
     // Manejar selección de arqueo específico
     if (selectedValue && selectedValue.startsWith('cash_')) {
         const cashCountId = selectedValue.replace('cash_', '');
-        console.log(`✅ Arqueo específico seleccionado: ${cashCountId}`);
         
         // Disparar evento para arqueo específico
-        console.log('📡 Dispatching cashCountSelected event with cashCountId:', cashCountId);
         window.dispatchEvent(new CustomEvent('cashCountSelected', {
             detail: {
                 cashCountId: cashCountId,
@@ -312,13 +308,11 @@ window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
             const component = alpineComponent.__x;
             if (component.dataMode !== undefined) {
                 component.dataMode = selectedValue;
-                console.log(`✅ Modo de datos actualizado en Alpine: ${selectedValue}`);
             }
         }
     }
     
     // También puedes disparar un evento personalizado
-    console.log('📡 Dispatching dataModeChanged event with value:', selectedValue);
     window.dispatchEvent(new CustomEvent('dataModeChanged', {
         detail: {
             value: selectedValue,

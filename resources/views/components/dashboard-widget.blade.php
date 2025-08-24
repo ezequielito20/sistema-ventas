@@ -48,9 +48,9 @@
                 <div class="text-base sm:text-lg font-bold opacity-90">{{ $title }}</div>
                 <div class="text-xl sm:text-2xl font-black transition-all duration-300">
                     @if($valueType === 'currency')
-                        <span class="widget-value">$0.00</span>
+                        <span class="widget-value">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
                     @else
-                        <span class="widget-value">0</span>
+                        <span class="widget-value">{{ $value }}</span>
                     @endif
                 </div>
             </div>

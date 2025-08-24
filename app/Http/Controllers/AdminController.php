@@ -514,10 +514,10 @@ class AdminController extends Controller
       // DATOS DEL ARQUEO ACTUAL
       // ==========================================
       $currentCashData = [
-         'sales' => 0,
-         'purchases' => 0,
-         'debt' => 0,
-         'balance' => 0,
+         'sales' => 0.0,
+         'purchases' => 0.0,
+         'debt' => 0.0,
+         'balance' => 0.0,
          'opening_date' => null
       ];
 
@@ -526,13 +526,13 @@ class AdminController extends Controller
          $currentCashData['opening_date'] = $cashOpenDate;
          
          // Ventas desde apertura de caja
-         $currentCashData['sales'] = DB::table('sales')
+         $currentCashData['sales'] = (float) DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $cashOpenDate)
             ->sum('total_price');
             
          // Compras desde apertura de caja (dinero gastado)
-         $currentCashData['purchases'] = DB::table('purchases')
+         $currentCashData['purchases'] = (float) DB::table('purchases')
             ->where('company_id', $companyId)
             ->where('purchase_date', '>=', $cashOpenDate)
             ->sum('total_price');
@@ -559,7 +559,7 @@ class AdminController extends Controller
                 ->get()
                 ->keyBy('id');
              
-             $currentCashData['debt_payments'] = $allPayments->sum(function($payment) use ($customerSalesData) {
+             $currentCashData['debt_payments'] = (float) $allPayments->sum(function($payment) use ($customerSalesData) {
                 $customerData = $customerSalesData->get($payment->customer_id);
                 if (!$customerData) return 0;
                 
@@ -572,8 +572,8 @@ class AdminController extends Controller
              });
          } else {
             // Fallback a cash_movements si no existe debt_payments
-            $currentCashData['debt_payments'] = DB::table('cash_movements')
-               ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
+            $currentCashData['debt_payments'] = (float) DB::table('cash_movements')
+               ->join('cash_counts', 'cash_counts.id', '=', 'cash_movements.cash_count_id')
                ->where('cash_counts.company_id', $companyId)
                ->where('cash_movements.type', 'income')
                ->where('cash_movements.description', 'like', '%pago%')
@@ -626,7 +626,7 @@ class AdminController extends Controller
             }
          }
          
-         $currentCashData['debt'] = $currentCashCountDebt;
+         $currentCashData['debt'] = (float) $currentCashCountDebt;
          
          $currentCashData['debt_details'] = [
             'current_count_debt' => $currentCashCountDebt,
@@ -639,7 +639,9 @@ class AdminController extends Controller
          
          // LÓGICA DE BALANCE: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
          // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
-         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['purchases'] - $currentCashData['debt'];
+         $currentCashData['balance'] = (float) ($currentCashData['sales'] - $currentCashData['purchases'] - $currentCashData['debt']);
+         
+
       }
 
       // ==========================================
@@ -647,12 +649,12 @@ class AdminController extends Controller
       // ==========================================
       
       // Ventas históricas totales
-      $totalSales = DB::table('sales')->where('company_id', $companyId)->sum('total_price');
+      $totalSales = (float) DB::table('sales')->where('company_id', $companyId)->sum('total_price');
          
       // Compras históricas totales (dinero gastado)
-      $historicalPurchases = DB::table('purchases')
+      $historicalPurchases = (float) (DB::table('purchases')
          ->where('company_id', $companyId)
-         ->sum('total_price') ?? 0;
+         ->sum('total_price') ?? 0);
          
       // Deuda histórica total optimizada
       $debtStats = DB::select("
@@ -663,7 +665,7 @@ class AdminController extends Controller
          WHERE company_id = ? AND total_debt > 0
       ", [$companyId]);
       
-      $historicalPendingDebt = $debtStats[0]->total_pending_debt ?? 0;
+      $historicalPendingDebt = (float) ($debtStats[0]->total_pending_debt ?? 0);
       $customersWithDebtCount = $debtStats[0]->customers_with_debt ?? 0;
       
       // Para simplificar, asumimos que la mayoría son deudores actuales
@@ -672,18 +674,18 @@ class AdminController extends Controller
       $currentDebtorsDebt = $historicalPendingDebt;
       
       // Deudas pagadas históricas totales (dinero recibido)
-      $historicalDebtPayments = 0;
+      $historicalDebtPayments = 0.0;
       if (Schema::hasTable('debt_payments')) {
-         $historicalDebtPayments = DB::table('debt_payments')
+         $historicalDebtPayments = (float) DB::table('debt_payments')
             ->where('company_id', $companyId)
             ->sum('payment_amount');
       }
       
       $historicalData = [
-         'sales' => $totalSales,
-         'purchases' => $historicalPurchases,
-         'debt' => $historicalPendingDebt,
-         'debt_payments' => $historicalDebtPayments,
+         'sales' => (float) $totalSales,
+         'purchases' => (float) $historicalPurchases,
+         'debt' => (float) $historicalPendingDebt,
+         'debt_payments' => (float) $historicalDebtPayments,
          'balance' => 0, // Se calculará después
          'debt_details' => [
             'total_debt' => $historicalPendingDebt,
@@ -697,7 +699,9 @@ class AdminController extends Controller
 
       // LÓGICA DE BALANCE HISTÓRICO: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
       // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
-      $historicalData['balance'] = $historicalData['sales'] - $historicalData['purchases'] - $historicalData['debt'];
+      $historicalData['balance'] = (float) ($historicalData['sales'] - $historicalData['purchases'] - $historicalData['debt']);
+      
+
 
       // ==========================================
       // DATOS DE ARQUEOS CERRADOS
@@ -718,21 +722,21 @@ class AdminController extends Controller
          $closingDate = $closedCashCount->closing_date;
          
          // Ventas durante este arqueo
-         $salesInPeriod = DB::table('sales')
+         $salesInPeriod = (float) DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $openingDate)
             ->where('sale_date', '<=', $closingDate)
             ->sum('total_price');
             
          // Compras durante este arqueo
-         $purchasesInPeriod = DB::table('purchases')
+         $purchasesInPeriod = (float) DB::table('purchases')
             ->where('company_id', $companyId)
             ->where('purchase_date', '>=', $openingDate)
             ->where('purchase_date', '<=', $closingDate)
             ->sum('total_price');
             
          // Deudas pagadas durante este arqueo (optimizado)
-         $debtPaymentsInPeriod = 0;
+         $debtPaymentsInPeriod = 0.0;
          if (Schema::hasTable('debt_payments')) {
             $allPaymentsInPeriod = DB::table('debt_payments')
                ->select('id', 'company_id', 'customer_id', 'payment_amount', 'created_at')
@@ -756,7 +760,7 @@ class AdminController extends Controller
                   ->keyBy('id');
                
                // Filtrar solo los pagos que corresponden a deudas de este arqueo
-               $debtPaymentsInPeriod = $allPaymentsInPeriod->sum(function($payment) use ($customerSalesInPeriod) {
+               $debtPaymentsInPeriod = (float) $allPaymentsInPeriod->sum(function($payment) use ($customerSalesInPeriod) {
                   $customerData = $customerSalesInPeriod->get($payment->customer_id);
                   if (!$customerData) return 0;
                   
@@ -771,7 +775,7 @@ class AdminController extends Controller
          }
          
          // Calcular deudas pendientes al cierre de este arqueo optimizado
-         $debtAtClosing = 0;
+         $debtAtClosing = 0.0;
          if (Schema::hasTable('debt_payments')) {
             $debtData = DB::select("
                SELECT 
@@ -790,12 +794,12 @@ class AdminController extends Controller
             ", [$companyId, $openingDate, $closingDate, $companyId, $openingDate, $closingDate]);
             
             if (!empty($debtData)) {
-               $debtAtClosing = max(0, $debtData[0]->sales_in_period - $debtData[0]->payments_in_period);
+               $debtAtClosing = (float) max(0, $debtData[0]->sales_in_period - $debtData[0]->payments_in_period);
             }
          }
          
          // Calcular balance: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
-         $balanceInPeriod = $salesInPeriod - $purchasesInPeriod - $debtAtClosing;
+         $balanceInPeriod = (float) ($salesInPeriod - $purchasesInPeriod - $debtAtClosing);
          
          // Formatear fechas para mostrar en las opciones
          $openingDateFormatted = Carbon::parse($openingDate)->format('d/m/y');
@@ -808,12 +812,12 @@ class AdminController extends Controller
             'opening_date_formatted' => $openingDateFormatted,
             'closing_date_formatted' => $closingDateFormatted,
             'option_text' => "Arqueo #{$closedCashCount->id} (desde: {$openingDateFormatted} hasta: {$closingDateFormatted})",
-            'sales' => $salesInPeriod,
-            'purchases' => $purchasesInPeriod,
-            'debt_payments' => $debtPaymentsInPeriod,
-            'debt' => $debtAtClosing,
-            'balance' => $balanceInPeriod,
-            'initial_amount' => $closedCashCount->initial_amount
+            'sales' => (float) $salesInPeriod,
+            'purchases' => (float) $purchasesInPeriod,
+            'debt_payments' => (float) $debtPaymentsInPeriod,
+            'debt' => (float) $debtAtClosing,
+            'balance' => (float) $balanceInPeriod,
+            'initial_amount' => (float) $closedCashCount->initial_amount
                   ];
        }
 

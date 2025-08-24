@@ -49,23 +49,10 @@ document.addEventListener('alpine:init', () => {
             const customerSelected = this.selectedCustomerId || 
                                    (window.saleCreateData && window.saleCreateData.selectedCustomerId);
             
-            const canProcess = customerSelected && 
+            return customerSelected && 
                    this.saleItems.length > 0 && 
                    this.saleDate && 
                    this.saleTime;
-            
-            // Debug log
-            console.log('🔍 canProcessSale check:', {
-                customerSelected,
-                selectedCustomerId: this.selectedCustomerId,
-                globalCustomerId: window.saleCreateData ? window.saleCreateData.selectedCustomerId : null,
-                saleItemsLength: this.saleItems.length,
-                saleDate: this.saleDate,
-                saleTime: this.saleTime,
-                canProcess
-            });
-            
-            return canProcess;
         },
         
         // Función para verificar si hay productos
@@ -140,15 +127,16 @@ document.addEventListener('alpine:init', () => {
 
             // Configurar función global para sincronizar cliente
             window.onCustomerChange = () => {
-                console.log('🔄 onCustomerChange llamado');
-                // Obtener la instancia de Alpine.js del componente principal
+                // Verificar que estamos en la página correcta
                 const saleCreateComponent = document.querySelector('[x-data="saleCreateSPA()"]');
+                if (!saleCreateComponent) {
+                    return;
+                }
+                
+                // Obtener la instancia de Alpine.js del componente principal
                 if (saleCreateComponent && saleCreateComponent.__x && saleCreateComponent.__x.$data) {
                     const component = saleCreateComponent.__x.$data;
                     component.syncSelectedCustomer();
-                    console.log('✅ Cliente sincronizado desde onCustomerChange');
-                } else {
-                    console.warn('⚠️ No se pudo encontrar el componente Alpine.js');
                 }
             };
 
@@ -158,7 +146,6 @@ document.addEventListener('alpine:init', () => {
         syncSelectedCustomer() {
             if (window.saleCreateData && window.saleCreateData.selectedCustomerId) {
                 this.selectedCustomerId = window.saleCreateData.selectedCustomerId;
-                console.log('✅ Cliente sincronizado:', this.selectedCustomerId);
                 
                 // Alpine.js es reactivo, no necesitamos forzar actualización
                 // La propiedad canProcessSale se actualizará automáticamente
@@ -886,7 +873,6 @@ document.addEventListener('alpine:init', () => {
                         // Sincronizar con el componente Alpine
                         this.syncCustomerSelection(customer);
                         
-                        console.log(`✅ Cliente auto-seleccionado en componente principal: ${customer.name} (ID: ${customer.id})`);
                         
                         // Mostrar notificación al usuario
                         this.showToast('Cliente Seleccionado', `Cliente "${customer.name}" seleccionado automáticamente`, 'success', 3000);
@@ -911,7 +897,7 @@ document.addEventListener('alpine:init', () => {
                     customerComponent.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
                     customerComponent.isOpen = false;
                     
-                    console.log(`✅ Componente Alpine sincronizado: ${customer.name}`);
+                    g(`✅ Componente Alpine sincronizado: ${customer.name}`);
                 }
             });
         },
@@ -937,10 +923,15 @@ document.addEventListener('alpine:init', () => {
 
 // ===== FUNCIONES GLOBALES PARA FILTER-SELECT =====
 
-// Función para manejar la selección de cliente
+// Solo definir funciones globales si estamos en la página de crear venta
+if (document.querySelector('[x-data*="saleCreateSPA"]')) {
+    // Función para manejar la selección de cliente
 window.saleCreateData = window.saleCreateData || {};
 window.saleCreateData.onCustomerSelect = function(selectedValue, selectedItem) {
-    console.log('Cliente seleccionado:', selectedValue, selectedItem);
+    // Verificar que estamos en la página correcta
+    if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
+        return;
+    }
     
     // Actualizar el selectedCustomerId en el componente principal
     if (window.Alpine && window.Alpine.store) {
@@ -949,15 +940,16 @@ window.saleCreateData.onCustomerSelect = function(selectedValue, selectedItem) {
             const component = saleCreateComponent.__x;
             component.selectedCustomerId = selectedValue;
             component.saveToLocalStorage();
-            
-            console.log(`✅ Cliente seleccionado en componente principal: ${selectedItem.name} (ID: ${selectedValue})`);
         }
     }
 };
 
 // Función para manejar la selección de pago
 window.saleCreateData.onPaymentSelect = function(selectedValue, selectedItem) {
-    console.log('Opción de pago seleccionada:', selectedValue, selectedItem);
+    // Verificar que estamos en la página correcta
+    if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
+        return;
+    }
     
     // Si selecciona "Sí" (pago automático), mostrar confirmación
     if (selectedValue === '1') {
@@ -979,8 +971,6 @@ window.saleCreateData.onPaymentSelect = function(selectedValue, selectedItem) {
                         const component = saleCreateComponent.__x;
                         component.alreadyPaid = selectedValue;
                         component.saveToLocalStorage();
-                        
-                        console.log(`✅ Pago automático activado: ${selectedItem.name}`);
                         
                         Swal.fire({
                             title: '¡Pago automático activado!',
@@ -1010,8 +1000,9 @@ window.saleCreateData.onPaymentSelect = function(selectedValue, selectedItem) {
                 component.alreadyPaid = selectedValue;
                 component.saveToLocalStorage();
                 
-                console.log(`✅ Pago automático desactivado: ${selectedItem.name}`);
+
             }
         }
     }
 };
+}

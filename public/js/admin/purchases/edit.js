@@ -167,7 +167,6 @@
             }); 
             Toast.fire({icon:type,title:msg}); 
           } else { 
-            console.log(`${type}: ${msg}`);
           } 
         },
         // Función global para verificar si un producto está en la tabla
@@ -243,7 +242,6 @@
             }); 
             Toast.fire({icon:type,title:msg}); 
           } else { 
-            console.log(`${type}: ${msg}`);
           } 
         } 
       }
