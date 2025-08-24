@@ -154,118 +154,24 @@
                     </div>
                     
                     <!-- Product Filter Select -->
-                    <div class="product-filter-container">
-                       
-                        <div class="relative" 
-                             x-data="{ 
-                                 isOpen: false, 
-                                 searchTerm: '', 
-                                 filteredProducts: @js($products),
-                                 selectedProductName: 'Todos los productos',
-                                 selectedProductId: '',
-                                 filterProducts() {
-                                     if (!this.searchTerm) {
-                                         this.filteredProducts = @js($products);
-                                         return;
-                                     }
-                                     const term = this.searchTerm.toLowerCase();
-                                     this.filteredProducts = @js($products).filter(product => 
-                                         product.name.toLowerCase().includes(term) || 
-                                         product.code.toLowerCase().includes(term) ||
-                                         (product.category && product.category.name.toLowerCase().includes(term))
-                                     );
-                                 },
-                                 selectProduct(product) {
-                                     if (product) {
-                                         this.selectedProductName = product.name;
-                                         this.selectedProductId = product.id;
-                                     } else {
-                                         this.selectedProductName = 'Todos los productos';
-                                         this.selectedProductId = '';
-                                     }
-                                     this.isOpen = false;
-                                     this.searchTerm = '';
-                                     this.filteredProducts = @js($products);
-                                     // Trigger filter event
-                                     window.purchasesIndex.filterByProduct(this.selectedProductId);
-                                 }
-                             }" 
-                             @click.away="isOpen = false">
-                            
-                            <div class="filter-input-wrapper">
-                                <div class="filter-input-icon">
-                                    <i class="fas fa-box"></i>
-                                </div>
-                                
-                                <!-- Select Button -->
-                                <button type="button" 
-                                        @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.productSearch.focus()) }"
-                                        class="filter-input w-full text-left flex items-center justify-between">
-                                    <span class="block truncate" x-text="selectedProductName"></span>
-                                    <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2" 
-                                         :class="{ 'rotate-180': isOpen }" 
-                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div class="filter-input-border"></div>
-                            </div>
-
-                            <!-- Dropdown -->
-                            <div x-show="isOpen" 
-                                 x-cloak
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
-                                 style="z-index: 9999 !important;">
-                                
-                                <!-- Search Input -->
-                                <div class="p-2 border-b border-gray-100">
-                                    <input type="text" 
-                                           x-ref="productSearch"
-                                           x-model="searchTerm" 
-                                           @input="filterProducts()"
-                                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                           placeholder="Buscar producto...">
-                                </div>
-                                
-                                <!-- Options -->
-                                <div class="py-1">
-                                    <!-- All products option -->
-                                    <button type="button" 
-                                            @click="selectProduct(null)"
-                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
-                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId === '' }">
-                                        <i class="fas fa-list text-gray-400"></i>
-                                        <span>Todos los productos</span>
-                                    </button>
-                                    
-                                    <!-- Product options -->
-                                    <template x-for="product in filteredProducts" :key="product.id">
-                                        <button type="button" 
-                                                @click="selectProduct(product)"
-                                                class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
-                                                :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId == product.id }">
-                                            <i class="fas fa-box text-gray-400"></i>
-                                            <div class="flex flex-col">
-                                                <span x-text="product.name" class="font-medium"></span>
-                                                <span x-text="product.code + ' • ' + (product.category ? product.category.name : 'Sin categoría')" class="text-xs text-gray-500"></span>
-                                            </div>
-                                        </button>
-                                    </template>
-                                    
-                                    <!-- No results -->
-                                    <div x-show="filteredProducts.length === 0" class="px-4 py-2 text-sm text-gray-500 text-center">
-                                        No se encontraron productos
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <x-filter-select
+                        name="product-filter"
+                        placeholder="Todos los productos"
+                        searchPlaceholder="Buscar producto..."
+                        :items="$products"
+                        itemKey="id"
+                        itemText="name"
+                        itemSubtext="code"
+                        itemIcon="fas fa-box"
+                        allItemsText="Todos los productos"
+                        allItemsIcon="fas fa-list"
+                        :showAllOption="true"
+                        :searchable="true"
+                        searchFields="['name', 'code']"
+                        noResultsText="No se encontraron productos"
+                        containerClass="product-filter-container"
+                        :onChange="'window.purchasesIndex.filterByProduct'"
+                    />
                     
                     <div class="view-toggle" role="group" aria-label="Cambiar vista">
                         <button type="button" class="view-btn active" data-view="table" aria-label="Vista de tabla">
