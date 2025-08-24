@@ -29,7 +29,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-4 mb-4">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                        <div class="w-12 h-12 bg-blue-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                             <i class="fas fa-cash-register text-white text-2xl"></i>
                         </div>
                         <div>
@@ -40,7 +40,7 @@
                 </div>
                 <div class="mt-6 lg:mt-0 hero-buttons">
                     <a href="{{ route('admin.cash-counts.index') }}"
-                       class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                       class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-slate-700 bg-opacity-90 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border border-slate-600 border-opacity-60 shadow-md min-w-[120px] sm:min-w-[140px]">
                         <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
                         <span class="text-xs sm:text-sm">Volver</span>
                     </a>

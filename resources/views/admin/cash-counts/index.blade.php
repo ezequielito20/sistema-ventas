@@ -32,7 +32,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-4 mb-4">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                        <div class="w-12 h-12 bg-blue-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                             <i class="fas fa-cash-register text-white text-2xl"></i>
                         </div>
                         <div>
@@ -55,7 +55,7 @@
                     @if ($currentCashCount)
                         @can('cash-counts.store-movement')
                             <a href="{{ route('admin.cash-counts.create-movement') }}" 
-                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-blue-500 bg-opacity-90 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
                                 <i class="fas fa-money-bill-wave mr-1 sm:mr-2"></i>
                                 <span class="text-xs sm:text-sm">Nuevo Movimiento</span>
                             </a>
@@ -71,7 +71,7 @@
                     @else
                         @can('cash-counts.report')
                             <a href="{{ route('admin.cash-counts.report') }}" 
-                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]"
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]"
                                target="_blank">
                                 <i class="fas fa-file-pdf mr-1 sm:mr-2"></i>
                                 <span class="text-xs sm:text-sm">Reporte</span>
@@ -79,7 +79,7 @@
                         @endcan
                         @can('cash-counts.create')
                             <a href="{{ route('admin.cash-counts.create') }}" 
-                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
+                               class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-green-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
                                 <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
                                 <span class="text-xs sm:text-sm">Abrir Caja</span>
                             </a>
@@ -113,7 +113,7 @@
         <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600">
             <div class="p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-blue-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-wallet text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -128,7 +128,7 @@
         <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600">
             <div class="p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-green-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-arrow-up text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -143,7 +143,7 @@
         <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-red-600 to-pink-600">
             <div class="p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-red-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-arrow-down text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -158,7 +158,7 @@
         <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-yellow-600 to-orange-600">
             <div class="p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-yellow-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-exchange-alt text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -601,7 +601,7 @@
                 <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-3 sm:px-4 md:px-6 py-4 sm:py-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 sm:space-x-4">
-                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-500 bg-opacity-90 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-cash-register text-white text-lg sm:text-xl md:text-2xl"></i>
                             </div>
                             <div class="min-w-0 flex-1">
@@ -610,7 +610,7 @@
                             </div>
                         </div>
                         <button @click="closeModal()" 
-                                class="w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ml-2 sm:ml-4">
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-violet-600 text-white rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ml-2 sm:ml-4 shadow-lg"
                             <i class="fas fa-times text-sm sm:text-base"></i>
                         </button>
                     </div>
@@ -630,7 +630,7 @@
                             <p class="text-gray-600 text-sm sm:text-base">No se pudieron cargar los datos del arqueo de caja</p>
                         </div>
                         <button @click="closeModal()" 
-                                class="px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm sm:text-base">
+                                class="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm sm:text-base shadow-md">
                             Cerrar
                         </button>
                     </div>
@@ -731,7 +731,7 @@
                                     <!-- Widget 1: Total Clientes -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-user-friends text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -753,7 +753,7 @@
                                     <!-- Widget 2: Ventas Totales -->
                                     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -775,7 +775,7 @@
                                     <!-- Widget 3: Deudas Pendientes -->
                                     <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-exclamation-triangle text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -797,7 +797,7 @@
                                     <!-- Widget 4: Promedio por Cliente -->
                                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -886,7 +886,7 @@
                                     <!-- Widget 1: Ventas Totales -->
                                     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -908,7 +908,7 @@
                                     <!-- Widget 2: Balance Teórico -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-calculator text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -930,7 +930,7 @@
                                     <!-- Widget 3: Promedio por Venta -->
                                     <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -952,7 +952,7 @@
                                     <!-- Widget 4: Balance Real -->
                                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1047,7 +1047,7 @@
                                     <!-- Total Pagos Recibidos -->
                                     <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-teal-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1069,7 +1069,7 @@
                                     <!-- Cantidad de Pagos -->
                                     <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-cyan-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-money-bill-wave text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1091,7 +1091,7 @@
                                     <!-- Promedio por Pago -->
                                     <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-emerald-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1113,7 +1113,7 @@
                                     <!-- Deuda Restante -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-balance-scale text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1206,7 +1206,7 @@
                                     <!-- Compras Totales -->
                                     <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-orange-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1228,7 +1228,7 @@
                                     <!-- Cantidad de Compras -->
                                     <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-indigo-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-receipt text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1250,7 +1250,7 @@
                                     <!-- Promedio por Compra -->
                                     <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1272,7 +1272,7 @@
                                     <!-- Margen (%) Ventas vs Compras de productos adquiridos -->
                                     <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-emerald-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-percentage text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1361,7 +1361,7 @@
                                     <!-- Total de productos vendidos (totales y únicos) -->
                                     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-purple-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-boxes text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1374,7 +1374,7 @@
                                     <!-- Valor de inventario (stock * costo) -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1481,7 +1481,7 @@
                                     <!-- Total Pedidos -->
                                     <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-red-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-clipboard-list text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1503,7 +1503,7 @@
                                     <!-- Pendientes -->
                                     <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-yellow-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-clock text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1525,7 +1525,7 @@
                                     <!-- Completados -->
                                     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-green-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-check-circle text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
@@ -1547,7 +1547,7 @@
                                     <!-- Valor Total -->
                                     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
                                         <div class="flex items-center justify-between mb-2 sm:mb-4">
-                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-400 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                                                 <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
