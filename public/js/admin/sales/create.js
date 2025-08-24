@@ -140,11 +140,16 @@ document.addEventListener('alpine:init', () => {
 
             // Configurar función global para sincronizar cliente
             window.onCustomerChange = () => {
-                this.syncSelectedCustomer();
-                // Forzar actualización inmediata
-                setTimeout(() => {
-                    this.$forceUpdate();
-                }, 100);
+                console.log('🔄 onCustomerChange llamado');
+                // Obtener la instancia de Alpine.js del componente principal
+                const saleCreateComponent = document.querySelector('[x-data="saleCreateSPA()"]');
+                if (saleCreateComponent && saleCreateComponent.__x && saleCreateComponent.__x.$data) {
+                    const component = saleCreateComponent.__x.$data;
+                    component.syncSelectedCustomer();
+                    console.log('✅ Cliente sincronizado desde onCustomerChange');
+                } else {
+                    console.warn('⚠️ No se pudo encontrar el componente Alpine.js');
+                }
             };
 
         },
@@ -155,11 +160,8 @@ document.addEventListener('alpine:init', () => {
                 this.selectedCustomerId = window.saleCreateData.selectedCustomerId;
                 console.log('✅ Cliente sincronizado:', this.selectedCustomerId);
                 
-                // Forzar actualización de la UI
-                this.$nextTick(() => {
-                    // Esto forzará la re-evaluación de canProcessSale
-                    this.$forceUpdate();
-                });
+                // Alpine.js es reactivo, no necesitamos forzar actualización
+                // La propiedad canProcessSale se actualizará automáticamente
             }
         },
         

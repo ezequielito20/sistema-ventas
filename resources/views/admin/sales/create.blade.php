@@ -559,7 +559,7 @@
                                         </button>
 
                                         <!-- Botón Procesar Venta -->
-                                        <button type="button" @click.prevent="processSale('save')" :disabled="!canProcessSale"
+                                        <button type="button" @click.prevent="processSale('save')" x-bind:disabled="!canProcessSale"
                                             class="group relative w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
                                             <i
                                                 class="fas fa-save text-sm group-hover:scale-110 transition-transform duration-300"></i>
@@ -571,7 +571,7 @@
 
                                         <!-- Botón Procesar y Nueva Venta -->
                                         <button type="button" @click.prevent="processSale('save_and_new')"
-                                            :disabled="!canProcessSale"
+                                            x-bind:disabled="!canProcessSale"
                                             class="group relative w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
                                             <i
                                                 class="fas fa-plus text-sm group-hover:scale-110 transition-transform duration-300"></i>
