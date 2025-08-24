@@ -279,7 +279,7 @@
                             <template x-if="saleItems.length > 0">
                                 <div class="overflow-x-auto bg-gray-50 rounded-2xl border-2 border-gray-100">
                                     <table class="w-full modern-table">
-                                        <thead class="bg-gradient-to-r from-gray-700 to-gray-800">
+                                        <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
                                             <tr>
                                                 <th class="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                                                     <i class="fas fa-barcode mr-1 sm:mr-2"></i><span class="hidden sm:inline">Código</span>
