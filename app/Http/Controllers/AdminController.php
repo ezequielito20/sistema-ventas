@@ -47,20 +47,30 @@ class AdminController extends Controller
       $companyId = $this->companyId;
       $company = $this->company;
       $currency = $this->currencies;
-      // Obtener conteos básicos optimizados
+      // Obtener conteos básicos optimizados en una sola consulta
       $basicCounts = DB::select("
          SELECT 
             (SELECT COUNT(*) FROM users WHERE company_id = ?) as users_count,
             (SELECT COUNT(*) FROM roles WHERE company_id = ?) as roles_count,
             (SELECT COUNT(*) FROM categories WHERE company_id = ?) as categories_count,
-            (SELECT COUNT(*) FROM products WHERE company_id = ?) as products_count
-      ", [$companyId, $companyId, $companyId, $companyId]);
+            (SELECT COUNT(*) FROM products WHERE company_id = ?) as products_count,
+            (SELECT COUNT(*) FROM suppliers WHERE company_id = ?) as suppliers_count,
+            (SELECT COUNT(*) FROM customers WHERE company_id = ?) as customers_count,
+            (SELECT COUNT(*) FROM customers WHERE company_id = ? AND nit_number IS NOT NULL) as verified_customers
+      ", [$companyId, $companyId, $companyId, $companyId, $companyId, $companyId, $companyId]);
       
       $counts = $basicCounts[0];
       $usersCount = $counts->users_count;
       $rolesCount = $counts->roles_count;
       $categoriesCount = $counts->categories_count;
       $productsCount = $counts->products_count;
+      $suppliersCount = $counts->suppliers_count;
+      $totalCustomers = $counts->customers_count;
+      $verifiedCustomers = $counts->verified_customers;
+      
+      $verifiedPercentage = $totalCustomers > 0
+         ? round(($verifiedCustomers / $totalCustomers) * 100, 1)
+         : 0;
 
       // Usuarios por rol (optimizado)
       $usersByRole = DB::table('roles')
@@ -107,10 +117,7 @@ class AdminController extends Controller
                'count' => $category->products_count
             ];
          });
-      // Obtener conteo de proveedores
-      $suppliersCount = DB::table('suppliers')
-         ->where('company_id', $companyId)
-         ->count();
+
 
       // Proveedores más activos (con más productos asociados)
       $topSuppliers = DB::table('suppliers')
@@ -162,19 +169,9 @@ class AdminController extends Controller
          ->orderByDesc('low_stock_products')
          ->get();
 
-      // Compras mensuales optimizadas
-      $currentMonthStats = DB::select("
-         SELECT 
-            (SELECT COALESCE(SUM(total_price), 0) FROM purchases WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)) as current_month_purchases,
-            (SELECT COALESCE(SUM(total_price), 0) FROM purchases WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')) as last_month_purchases
-      ", [$companyId, $companyId]);
-      
-      $monthlyStats = $currentMonthStats[0];
-      $monthlyPurchases = $monthlyStats->current_month_purchases;
-      $lastMonthPurchases = $monthlyStats->last_month_purchases;
 
-      $purchaseGrowth = $lastMonthPurchases > 0 ?
-         round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
+
+
 
       // Producto más comprado
       $topProduct = DB::table('purchase_details')
@@ -321,13 +318,11 @@ class AdminController extends Controller
       // Datos de clientes optimizados
       $customerStats = DB::select("
          SELECT 
-            (SELECT COUNT(*) FROM customers WHERE company_id = ?) as total_customers,
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')) as last_month_customers,
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)) as new_customers
-      ", [$companyId, $companyId, $companyId]);
+      ", [$companyId, $companyId]);
       
       $customerData = $customerStats[0];
-      $totalCustomers = $customerData->total_customers;
       $lastMonthCustomers = $customerData->last_month_customers;
       $newCustomers = $customerData->new_customers;
       
@@ -386,16 +381,6 @@ class AdminController extends Controller
          $activityData[] = $dayData ? $dayData->purchase_count : 0;
       }
 
-      // Clientes verificados (con NIT)
-      $verifiedCustomers = DB::table('customers')
-         ->where('company_id', $companyId)
-         ->whereNotNull('nit_number')
-         ->count();
-
-      $verifiedPercentage = $totalCustomers > 0
-         ? round(($verifiedCustomers / $totalCustomers) * 100, 1)
-         : 0;
-
       // Top 10 productos más vendidos
       $topSellingProducts = DB::table('sale_details as sd')
          ->select(
@@ -447,7 +432,7 @@ class AdminController extends Controller
 
       // Widgets adicionales optimizados
 
-      // Obtener estadísticas de ventas en una sola consulta
+      // Obtener estadísticas de ventas y compras en consultas separadas (más eficiente)
       $salesStats = DB::select("
          SELECT 
             COALESCE(SUM(CASE WHEN DATE(sale_date) = CURRENT_DATE THEN total_price ELSE 0 END), 0) as today_sales,
@@ -460,11 +445,30 @@ class AdminController extends Controller
          WHERE company_id = ?
       ", [$companyId]);
       
+      $purchaseStats = DB::select("
+         SELECT 
+            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM purchase_date) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                              AND EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                              THEN total_price ELSE 0 END), 0) as monthly_purchases,
+            COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM purchase_date) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month') 
+                              AND EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month') 
+                              THEN total_price ELSE 0 END), 0) as last_month_purchases
+         FROM purchases 
+         WHERE company_id = ?
+      ", [$companyId]);
+      
       $stats = $salesStats[0];
+      $purchaseData = $purchaseStats[0];
+      
       $todaySales = $stats->today_sales;
       $weeklySales = $stats->weekly_sales;
       $averageCustomerSpend = $stats->average_customer_spend;
       $monthlySales = $stats->monthly_sales;
+      $monthlyPurchases = $purchaseData->monthly_purchases;
+      $lastMonthPurchases = $purchaseData->last_month_purchases;
+      
+      $purchaseGrowth = $lastMonthPurchases > 0 ?
+         round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
 
       // 3. Productos más rentables (mayor margen de ganancia)
       $mostProfitableProducts = DB::table('sale_details as sd')
@@ -493,21 +497,20 @@ class AdminController extends Controller
          ->whereNull('closing_date')
          ->first();
 
-      // Calcular estadísticas del día para la caja
+      // Calcular estadísticas del día para la caja en una sola consulta
       $today = now()->startOfDay();
-      $todayIncome = DB::table('cash_movements')
-         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
-         ->where('cash_counts.company_id', $companyId)
-         ->where('cash_movements.type', 'income')
-         ->whereDate('cash_movements.created_at', $today)
-         ->sum('cash_movements.amount');
-
-      $todayExpenses = DB::table('cash_movements')
-         ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
-         ->where('cash_counts.company_id', $companyId)
-         ->where('cash_movements.type', 'expense')
-         ->whereDate('cash_movements.created_at', $today)
-         ->sum('cash_movements.amount');
+      $todayStats = DB::select("
+         SELECT 
+            COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as today_income,
+            COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as today_expenses
+         FROM cash_movements cm
+         JOIN cash_counts cc ON cm.cash_count_id = cc.id
+         WHERE cc.company_id = ? 
+         AND DATE(cm.created_at) = ?
+      ", [$companyId, $today->format('Y-m-d')]);
+      
+      $todayIncome = $todayStats[0]->today_income;
+      $todayExpenses = $todayStats[0]->today_expenses;
 
       // Calcular balance actual basado en flujo de caja real
       // ==========================================
@@ -648,38 +651,29 @@ class AdminController extends Controller
       // DATOS HISTÓRICOS COMPLETOS
       // ==========================================
       
-      // Ventas históricas totales
-      $totalSales = (float) DB::table('sales')->where('company_id', $companyId)->sum('total_price');
-         
-      // Compras históricas totales (dinero gastado)
-      $historicalPurchases = (float) (DB::table('purchases')
-         ->where('company_id', $companyId)
-         ->sum('total_price') ?? 0);
-         
-      // Deuda histórica total optimizada
-      $debtStats = DB::select("
+      // Obtener todos los datos históricos en una sola consulta
+      $historicalStats = DB::select("
          SELECT 
-            SUM(total_debt) as total_pending_debt,
-            COUNT(*) as customers_with_debt
-         FROM customers 
-         WHERE company_id = ? AND total_debt > 0
-      ", [$companyId]);
+            (SELECT COALESCE(SUM(total_price), 0) FROM sales WHERE company_id = ?) as total_sales,
+            (SELECT COALESCE(SUM(total_price), 0) FROM purchases WHERE company_id = ?) as total_purchases,
+            (SELECT COALESCE(SUM(total_debt), 0) FROM customers WHERE company_id = ? AND total_debt > 0) as total_debt,
+            (SELECT COUNT(*) FROM customers WHERE company_id = ? AND total_debt > 0) as customers_with_debt,
+            (SELECT COALESCE(SUM(payment_amount), 0) FROM debt_payments WHERE company_id = ?) as total_debt_payments
+      ", [$companyId, $companyId, $companyId, $companyId, $companyId]);
       
-      $historicalPendingDebt = (float) ($debtStats[0]->total_pending_debt ?? 0);
-      $customersWithDebtCount = $debtStats[0]->customers_with_debt ?? 0;
+      $historicalData = $historicalStats[0];
+      $totalSales = (float) $historicalData->total_sales;
+      $historicalPurchases = (float) $historicalData->total_purchases;
+      $historicalPendingDebt = (float) $historicalData->total_debt;
+      $customersWithDebtCount = $historicalData->customers_with_debt;
+      $historicalDebtPayments = (float) $historicalData->total_debt_payments;
       
       // Para simplificar, asumimos que la mayoría son deudores actuales
       // En una implementación más compleja, se podría hacer una consulta más detallada
       $defaultersDebt = 0; // Se puede calcular con una consulta más compleja si es necesario
       $currentDebtorsDebt = $historicalPendingDebt;
       
-      // Deudas pagadas históricas totales (dinero recibido)
-      $historicalDebtPayments = 0.0;
-      if (Schema::hasTable('debt_payments')) {
-         $historicalDebtPayments = (float) DB::table('debt_payments')
-            ->where('company_id', $companyId)
-            ->sum('payment_amount');
-      }
+
       
       $historicalData = [
          'sales' => (float) $totalSales,
