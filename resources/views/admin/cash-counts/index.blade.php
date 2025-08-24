@@ -610,7 +610,7 @@
                             </div>
                         </div>
                         <button @click="closeModal()" 
-                                class="w-8 h-8 sm:w-10 sm:h-10 bg-violet-600 text-white rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ml-2 sm:ml-4 shadow-lg"
+                                class="w-8 h-8 sm:w-10 sm:h-10 bg-white text-gray-800 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ml-2 sm:ml-4 shadow-lg border border-gray-200 hover:bg-gray-100">
                             <i class="fas fa-times text-sm sm:text-base"></i>
                         </button>
                     </div>
@@ -630,7 +630,7 @@
                             <p class="text-gray-600 text-sm sm:text-base">No se pudieron cargar los datos del arqueo de caja</p>
                         </div>
                         <button @click="closeModal()" 
-                                class="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm sm:text-base shadow-md">
+                                class="px-3 py-2 sm:px-4 sm:py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-sm sm:text-base shadow-lg border border-gray-200">
                             Cerrar
                         </button>
                     </div>
