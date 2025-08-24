@@ -29,28 +29,28 @@
 @section('content')
 <div x-data="paymentHistory()" class="space-y-6">
     <!-- Hero Section -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-2xl shadow-2xl">
+    <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl shadow-lg">
         <div class="absolute inset-0 bg-black opacity-10"></div>
-        <div class="relative px-6 py-8 sm:px-8 sm:py-12">
+        <div class="relative px-4 py-6 sm:px-6 sm:py-8">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex-1">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-history text-white text-2xl"></i>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-10 h-10 bg-emerald-500 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
+                            <i class="fas fa-history text-white text-xl"></i>
                         </div>
                         <div>
-                            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
+                            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">
                                 Historial de Pagos
                             </h1>
-                            <p class="text-blue-100 text-lg">
+                            <p class="text-blue-100 text-sm sm:text-base">
                                 Registro histórico de todos los pagos de deudas realizados por los clientes
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="mt-6 lg:mt-0 flex flex-col sm:flex-row gap-3">
+                <div class="mt-4 lg:mt-0 flex flex-col sm:flex-row gap-2">
                     <a href="{{ route('admin.customers.index') }}" 
-                       class="inline-flex items-center justify-center px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30">
+                    class="inline-flex items-center justify-center px-6 py-3 bg-gray-300 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30">
                         <i class="fas fa-arrow-left mr-2"></i>
                         <span class="hidden sm:inline">Volver a Clientes</span>
                     </a>
@@ -85,6 +85,7 @@
                         <input type="text" 
                                id="customer_search"
                                x-model="filters.customer_search"
+                               autocomplete="off"
                                placeholder="Buscar por nombre del cliente..."
                                class="w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -136,7 +137,7 @@
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-blue-400 rounded-xl flex items-center justify-center">
                         <i class="fas fa-money-bill-wave text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -151,7 +152,7 @@
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-green-600 to-emerald-600 p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-green-400 rounded-xl flex items-center justify-center">
                         <i class="fas fa-receipt text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -166,7 +167,7 @@
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-yellow-600 to-orange-600 p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center">
                         <i class="fas fa-calculator text-white text-xl"></i>
                     </div>
                     <div class="text-right">
@@ -181,7 +182,7 @@
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
                 <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-purple-400 rounded-xl flex items-center justify-center">
                         <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
                     </div>
                     <div class="text-right">
