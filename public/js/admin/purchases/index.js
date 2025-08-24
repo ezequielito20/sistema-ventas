@@ -361,6 +361,7 @@
     filterByProduct(productId) {
       this.selectedProductId = productId;
       
+      // Para filtros del lado del cliente, ocultar/mostrar elementos
       const rows = document.querySelectorAll('#purchasesTable tbody tr, .purchase-card-modern');
       
       rows.forEach(row => {
