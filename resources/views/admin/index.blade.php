@@ -288,170 +288,78 @@
         </div>
 
                 <!-- Ultra Simple Mini Sales Widgets Grid - Single Row Responsive -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Widget de Ventas de la Semana -->
-            <div class="group relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300 h-24 sm:h-28 cursor-pointer transform hover:scale-105">
-                <!-- Animated Background -->
-                <div class="absolute inset-0">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-violet-400/30 rounded-full blur-xl"></div>
-                    <div class="absolute bottom-0 left-0 w-16 h-16 bg-purple-400/30 rounded-full blur-lg"></div>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-3 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="flex items-center justify-center w-6 h-6 bg-white/20 backdrop-blur-lg rounded-md">
-                            <i class="fas fa-calendar-week text-xs"></i>
-                        </div>
-                        <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-1.5 py-0.5 rounded-full text-xs font-bold">
-                            <i class="fas fa-trending-up text-green-300 text-xs"></i>
-                            <span>+12%</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-lg font-black mb-0.5 transition-all duration-300"
-                             data-sales-value="weekly"
-                             x-text="formatCurrency(0)">
-                        </div>
-                        <div class="text-xs font-bold mb-0.5 opacity-90">Ventas de la Semana</div>
-                        <div class="flex items-center gap-1 text-xs opacity-80">
-                            <i class="fas fa-calendar-day text-xs"></i>
-                            <span>Hoy: <span x-text="formatCurrency(0)"></span></span>
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10">
-                        <div class="h-full bg-gradient-to-r from-violet-400 to-purple-400 rounded-r-full transition-all duration-1000" style="width: 78%"></div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Ventas de la Semana"
+                value="0"
+                valueType="currency"
+                icon="fas fa-calendar-week"
+                trend="+12%"
+                trendIcon="fas fa-trending-up"
+                trendColor="text-green-300"
+                subtitle="Hoy: $0.00"
+                subtitleIcon="fas fa-calendar-day"
+                gradientFrom="from-violet-500"
+                gradientTo="to-purple-600"
+                progressWidth="78%"
+                progressGradientFrom="from-violet-400"
+                progressGradientTo="to-purple-400"
+            />
 
             <!-- Widget de Promedio por Cliente -->
-            <div class="group relative overflow-hidden rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 h-24 sm:h-28 cursor-pointer transform hover:scale-105">
-                <!-- Animated Background -->
-                <div class="absolute inset-0">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-pink-400/30 rounded-full blur-xl"></div>
-                    <div class="absolute bottom-0 left-0 w-16 h-16 bg-rose-400/30 rounded-full blur-lg"></div>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-user-chart text-xl"></i>
-                        </div>
-                        <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-xs font-bold">
-                            <i class="fas fa-arrow-up text-green-300"></i>
-                            <span>+8%</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl font-black mb-2 transition-all duration-300"
-                             data-sales-value="average"
-                             x-text="formatCurrency(0)">
-                        </div>
-                        <div class="text-lg font-bold mb-2 opacity-90">Promedio por Cliente</div>
-                        <div class="flex items-center gap-2 text-xs opacity-80">
-                            <i class="fas fa-users"></i>
-                            Ticket promedio de venta
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-                        <div class="h-full bg-gradient-to-r from-pink-400 to-rose-400 rounded-r-full transition-all duration-1000" style="width: 65%"></div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Promedio por Cliente"
+                value="0"
+                valueType="currency"
+                icon="fas fa-user-chart"
+                trend="+8%"
+                trendIcon="fas fa-arrow-up"
+                trendColor="text-green-300"
+                subtitle="Ticket promedio de venta"
+                subtitleIcon="fas fa-users"
+                gradientFrom="from-pink-500"
+                gradientTo="to-rose-600"
+                progressWidth="65%"
+                progressGradientFrom="from-pink-400"
+                progressGradientTo="to-rose-400"
+            />
 
             <!-- Widget de Ganancia Teórica -->
-            <div class="group relative overflow-hidden rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-300 h-24 sm:h-28 cursor-pointer transform hover:scale-105">
-                <!-- Animated Background -->
-                <div class="absolute inset-0">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-cyan-400/30 rounded-full blur-xl"></div>
-                    <div class="absolute bottom-0 left-0 w-16 h-16 bg-blue-400/30 rounded-full blur-lg"></div>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-chart-pie text-xl"></i>
-                        </div>
-                        <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-xs font-bold">
-                            <i class="fas fa-percentage text-green-300"></i>
-                            <span>+15%</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl font-black mb-2 transition-all duration-300"
-                             data-sales-value="profit"
-                             x-text="formatCurrency(0)">
-                        </div>
-                        <div class="text-lg font-bold mb-2 opacity-90">Ganancia Total Teórica</div>
-                        <div class="flex items-center gap-2 text-xs opacity-80">
-                            <i class="fas fa-coins"></i>
-                            Margen de productos vendidos
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-                        <div class="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-r-full transition-all duration-1000" style="width: 88%"></div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Ganancia Total Teórica"
+                value="0"
+                valueType="currency"
+                icon="fas fa-chart-pie"
+                trend="+15%"
+                trendIcon="fas fa-percentage"
+                trendColor="text-green-300"
+                subtitle="Margen de productos vendidos"
+                subtitleIcon="fas fa-coins"
+                gradientFrom="from-cyan-500"
+                gradientTo="to-blue-600"
+                progressWidth="88%"
+                progressGradientFrom="from-cyan-400"
+                progressGradientTo="to-blue-400"
+            />
 
             <!-- Widget de Rendimiento Mensual -->
-            <div class="group relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 h-24 sm:h-28 cursor-pointer transform hover:scale-105">
-                <!-- Animated Background -->
-                <div class="absolute inset-0">
-                    <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-400/30 rounded-full blur-xl"></div>
-                    <div class="absolute bottom-0 left-0 w-16 h-16 bg-teal-400/30 rounded-full blur-lg"></div>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-calendar-alt text-xl"></i>
-                        </div>
-                        <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-xs font-bold">
-                            <i class="fas fa-rocket text-green-300"></i>
-                            <span>+22%</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl font-black mb-2 transition-all duration-300"
-                             data-sales-value="monthly"
-                             x-text="formatCurrency(0)">
-                        </div>
-                        <div class="text-lg font-bold mb-2 opacity-90">Rendimiento Mensual</div>
-                        <div class="flex items-center gap-2 text-xs opacity-80">
-                            <i class="fas fa-chart-bar"></i>
-                            Comparado con mes anterior
-                        </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-                        <div class="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-r-full transition-all duration-1000" style="width: 92%"></div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Rendimiento Mensual"
+                value="0"
+                valueType="currency"
+                icon="fas fa-calendar-alt"
+                trend="+22%"
+                trendIcon="fas fa-rocket"
+                trendColor="text-green-300"
+                subtitle="Comparado con mes anterior"
+                subtitleIcon="fas fa-chart-bar"
+                gradientFrom="from-emerald-500"
+                gradientTo="to-teal-600"
+                progressWidth="92%"
+                progressGradientFrom="from-emerald-400"
+                progressGradientTo="to-teal-400"
+            />
         </div>
     </div>
 

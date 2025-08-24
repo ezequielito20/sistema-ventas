@@ -66,88 +66,77 @@
         </div>
 
         <!-- Dashboard de Estadísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Total de Roles -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-5 group-hover:opacity-10"></div>
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-user-shield text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $roles->count() }}</div>
-                        <div class="text-sm font-medium text-gray-600">Total de Roles</div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Total de Roles"
+                value="{{ $roles->count() }}"
+                valueType="number"
+                icon="fas fa-user-shield"
+                trend="Activos"
+                trendIcon="fas fa-check-circle"
+                trendColor="text-green-300"
+                gradientFrom="from-blue-500"
+                gradientTo="to-indigo-600"
+                progressWidth="100%"
+                progressGradientFrom="from-blue-400"
+                progressGradientTo="to-indigo-400"
+            />
 
             <!-- Usuarios Asignados -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10"></div>
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-users text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $roles->sum('users_count') }}</div>
-                        <div class="text-sm font-medium text-gray-600">Usuarios Asignados</div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Usuarios Asignados"
+                value="{{ $roles->sum('users_count') }}"
+                valueType="number"
+                icon="fas fa-users"
+                trend="Asignados"
+                trendIcon="fas fa-user-check"
+                trendColor="text-green-300"
+                gradientFrom="from-green-500"
+                gradientTo="to-emerald-600"
+                progressWidth="100%"
+                progressGradientFrom="from-green-400"
+                progressGradientTo="to-emerald-400"
+            />
 
             <!-- Permisos Disponibles -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10"></div>
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-key text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $permissionsList->flatten()->count() }}</div>
-                        <div class="text-sm font-medium text-gray-600">Permisos Disponibles</div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Permisos Disponibles"
+                value="{{ $permissionsList->flatten()->count() }}"
+                valueType="number"
+                icon="fas fa-key"
+                trend="Disponibles"
+                trendIcon="fas fa-unlock"
+                trendColor="text-green-300"
+                gradientFrom="from-yellow-500"
+                gradientTo="to-orange-500"
+                progressWidth="100%"
+                progressGradientFrom="from-yellow-400"
+                progressGradientTo="to-orange-400"
+            />
 
             <!-- Roles del Sistema -->
-            <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10"></div>
-                <div class="relative p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-shield-alt text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-3xl font-bold text-gray-900">{{ $roles->filter(function($role) { return $role->isSystemRole(); })->count() }}</div>
-                        <div class="text-sm font-medium text-gray-600">Roles del Sistema</div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-dashboard-widget 
+                title="Roles del Sistema"
+                value="{{ $roles->filter(function($role) { return $role->isSystemRole(); })->count() }}"
+                valueType="number"
+                icon="fas fa-shield-alt"
+                trend="Sistema"
+                trendIcon="fas fa-shield-check"
+                trendColor="text-green-300"
+                gradientFrom="from-purple-500"
+                gradientTo="to-indigo-600"
+                progressWidth="100%"
+                progressGradientFrom="from-purple-400"
+                progressGradientTo="to-indigo-400"
+            />
         </div>
 
-        <!-- Panel de Controles -->
-        <div class="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden">
-            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
-                <div class="flex items-center justify-between">
+        <!-- Selector de Modo de Vista (solo en pantallas grandes) -->
+        <div class="view-mode-selector mb-6">
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <!-- Título y Descripción -->
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                             <i class="fas fa-list text-white"></i>
@@ -158,26 +147,44 @@
                         </div>
                     </div>
 
-                    <!-- Toggle de Vista -->
-                    <div class="flex items-center space-x-2">
-                        <button @click="viewMode = 'table'" 
-                                :class="viewMode === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <i class="fas fa-table mr-2"></i>
-                            Tabla
-                        </button>
-                        <button @click="viewMode = 'cards'" 
-                                :class="viewMode === 'cards' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <i class="fas fa-th-large mr-2"></i>
-                            Tarjetas
-                        </button>
+                    <!-- Controles de Búsqueda y Vista -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <!-- Barra de Búsqueda -->
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" 
+                                   x-model="searchTerm" 
+                                   placeholder="Buscar roles..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64">
+                        </div>
+
+                        <!-- Toggle de Vista - Solo visible en pantallas medianas y grandes -->
+                        <div class="hidden md:flex items-center space-x-2">
+                            <button @click="viewMode = 'table'" 
+                                    :class="viewMode === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                <i class="fas fa-table mr-2"></i>
+                                Tabla
+                            </button>
+                            <button @click="viewMode = 'cards'" 
+                                    :class="viewMode === 'cards' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                                <i class="fas fa-th-large mr-2"></i>
+                                Tarjetas
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Vista de Tabla -->
-            <div x-show="viewMode === 'table'" class="block">
+        <!-- Panel de Controles -->
+        <div class="bg-white rounded-2xl shadow-lg mb-8 overflow-hidden">
+
+            <!-- Vista de Tabla - Solo visible en pantallas medianas y grandes -->
+            <div x-show="viewMode === 'table'" class="hidden md:block">
                 <div class="table-container">
                     <table class="modern-table">
                         <thead>
@@ -228,7 +235,9 @@
                         </thead>
                         <tbody>
                             @foreach ($roles as $role)
-                                <tr class="table-row">
+                                <tr class="table-row" 
+                                    x-show="isRoleVisible('{{ strtolower($role->name . ' ' . ($role->isSystemRole() ? 'sistema' : 'personalizado') . ' ' . $role->users_count . ' usuarios ' . $role->permissions_count . ' permisos') }}')"
+                                    data-search="{{ strtolower($role->name . ' ' . ($role->isSystemRole() ? 'sistema' : 'personalizado') . ' ' . $role->users_count . ' usuarios ' . $role->permissions_count . ' permisos') }}">
                                     <td>
                                         <div class="row-number">{{ $loop->iteration }}</div>
                                     </td>
@@ -312,11 +321,13 @@
                 </div>
             </div>
 
-            <!-- Vista de Tarjetas -->
+            <!-- Vista de Tarjetas - Siempre visible en móviles, condicional en desktop -->
             <div x-show="viewMode === 'cards'" class="block">
                 <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($roles as $role)
-                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border-l-4 {{ $role->isSystemRole() ? 'border-purple-500' : 'border-blue-500' }}">
+                        <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden border-l-4 {{ $role->isSystemRole() ? 'border-purple-500' : 'border-blue-500' }}"
+                             x-show="isRoleVisible('{{ strtolower($role->name . ' ' . ($role->isSystemRole() ? 'sistema' : 'personalizado') . ' ' . $role->users_count . ' usuarios ' . $role->permissions_count . ' permisos') }}')"
+                             data-search="{{ strtolower($role->name . ' ' . ($role->isSystemRole() ? 'sistema' : 'personalizado') . ' ' . $role->users_count . ' usuarios ' . $role->permissions_count . ' permisos') }}">
                             <!-- Header de la Tarjeta -->
                             <div class="p-6 pb-4">
                                 <div class="flex items-start justify-between">

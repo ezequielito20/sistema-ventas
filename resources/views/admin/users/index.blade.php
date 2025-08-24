@@ -34,134 +34,79 @@
     </div>
 
     <!-- Estadísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
         <!-- Total de Usuarios -->
-        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-            <!-- Gradient Background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
-
-            <!-- Content -->
-            <div class="relative p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-users text-white text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-3xl font-bold text-gray-900" data-stat="total-users">
-                        {{ $users->count() }}
-                    </div>
-                    <div class="text-sm font-medium text-gray-600">Total de Usuarios</div>
-
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Total de Usuarios"
+            value="{{ $users->count() }}"
+            valueType="number"
+            icon="fas fa-users"
+            trend="Registrados"
+            trendIcon="fas fa-user-plus"
+            trendColor="text-green-300"
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-400"
+            progressGradientTo="to-blue-500"
+        />
 
         <!-- Usuarios Verificados -->
-        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-            <!-- Gradient Background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
-
-            <!-- Content -->
-            <div class="relative p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-user-check text-white text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-3xl font-bold text-gray-900" data-stat="verified-users">
-                        <span>{{ $users->where('email_verified_at', '!=', null)->count() }}</span>
-                        <span class="text-lg text-gray-500">/{{ $users->count() }}</span>
-                    </div>
-                    <div class="text-sm font-medium text-gray-600">Usuarios Verificados</div>
-
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                        <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
-                            style="width: {{ $users->count() > 0 ? ($users->where('email_verified_at', '!=', null)->count() / $users->count()) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Usuarios Verificados"
+            value="{{ $users->where('email_verified_at', '!=', null)->count() }}"
+            valueType="number"
+            icon="fas fa-user-check"
+            trend="Verificados"
+            trendIcon="fas fa-check-circle"
+            trendColor="text-green-300"
+            subtitle="{{ $users->count() > 0 ? round(($users->where('email_verified_at', '!=', null)->count() / $users->count()) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-green-500"
+            gradientTo="to-emerald-600"
+            progressWidth="{{ $users->count() > 0 ? ($users->where('email_verified_at', '!=', null)->count() / $users->count()) * 100 : 0 }}%"
+            progressGradientFrom="from-green-400"
+            progressGradientTo="to-emerald-500"
+        />
 
         <!-- Usuarios Pendientes -->
-        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-            <!-- Gradient Background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
-
-            <!-- Content -->
-            <div class="relative p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-user-clock text-white text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-3xl font-bold text-gray-900" data-stat="pending-users">
-                        {{ $users->where('email_verified_at', null)->count() }}
-                    </div>
-                    <div class="text-sm font-medium text-gray-600">Pendientes de Verificación</div>
-
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-2 rounded-full"
-                            style="width: {{ $users->count() > 0 ? ($users->where('email_verified_at', null)->count() / $users->count()) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Pendientes de Verificación"
+            value="{{ $users->where('email_verified_at', null)->count() }}"
+            valueType="number"
+            icon="fas fa-user-clock"
+            trend="Pendientes"
+            trendIcon="fas fa-clock"
+            trendColor="text-yellow-300"
+            subtitle="{{ $users->count() > 0 ? round(($users->where('email_verified_at', null)->count() / $users->count()) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-yellow-500"
+            gradientTo="to-orange-500"
+            progressWidth="{{ $users->count() > 0 ? ($users->where('email_verified_at', null)->count() / $users->count()) * 100 : 0 }}%"
+            progressGradientFrom="from-yellow-400"
+            progressGradientTo="to-orange-400"
+        />
 
         <!-- Usuarios con Roles -->
-        <div class="group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-            <!-- Gradient Background -->
-            <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300"></div>
-
-            <!-- Content -->
-            <div class="relative p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-user-tie text-white text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <div class="text-3xl font-bold text-gray-900" data-stat="users-with-roles">
-                        <span>{{ $users->filter(function ($user) {return $user->roles->count() > 0;})->count() }}</span>
-                        <span class="text-lg text-gray-500">/{{ $users->count() }}</span>
-                    </div>
-                    <div class="text-sm font-medium text-gray-600">Con Roles Asignados</div>
-
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
-                        <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-2 rounded-full"
-                            style="width: {{ $users->count() > 0 ? ($users->filter(function ($user) {return $user->roles->count() > 0;})->count() / $users->count()) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Con Roles Asignados"
+            value="{{ $users->filter(function ($user) {return $user->roles->count() > 0;})->count() }}"
+            valueType="number"
+            icon="fas fa-user-tie"
+            trend="Asignados"
+            trendIcon="fas fa-user-shield"
+            trendColor="text-green-300"
+            subtitle="{{ $users->count() > 0 ? round(($users->filter(function ($user) {return $user->roles->count() > 0;})->count() / $users->count()) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-purple-500"
+            gradientTo="to-indigo-600"
+            progressWidth="{{ $users->count() > 0 ? ($users->filter(function ($user) {return $user->roles->count() > 0;})->count() / $users->count()) * 100 : 0 }}%"
+            progressGradientFrom="from-purple-400"
+            progressGradientTo="to-indigo-500"
+        />
     </div>
 
-    <!-- Selector de Modo de Vista (solo en pantallas grandes) -->
-    <div class="view-mode-selector">
-        <div class="view-mode-buttons">
-            <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'table' }" @click="changeViewMode('table')">
-                <i class="fas fa-table"></i>
-                Vista Tabla
-            </button>
-            <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'cards' }" @click="changeViewMode('cards')">
-                <i class="fas fa-th-large"></i>
-                Vista Tarjetas
-            </button>
-        </div>
-    </div>
+    
 
     <!-- Vista de Escritorio -->
     <div class="desktop-view" x-show="viewMode === 'table'">
@@ -173,8 +118,19 @@
                         Lista de Usuarios
                     </h3>
                     <div class="table-search-container">
-                        <div class="search-input-group">
-                            <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
+                        <div class="flex items-center space-x-4">
+                            <div class="search-input-group">
+                                <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
+                            </div>
+                            <!-- Toggle de Vista - Solo visible en pantallas medianas y grandes -->
+                            <div class="hidden md:flex items-center space-x-2">
+                                <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'table' }" @click="changeViewMode('table')">
+                                    <i class="fas fa-table mr-2"></i>
+                                </button>
+                                <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'cards' }" @click="changeViewMode('cards')">
+                                    <i class="fas fa-th-large mr-2"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -266,8 +222,19 @@
     <!-- Vista de Tarjetas para Escritorio -->
     <div class="desktop-view" x-show="viewMode === 'cards'">
         <div class="search-container search-container-right">
-            <div class="search-input-group">
-                <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
+            <div class="flex items-center space-x-4">
+                <div class="search-input-group">
+                    <input type="text" class="search-input" x-model="searchTerm" placeholder="Buscar usuarios...">
+                </div>
+                <!-- Toggle de Vista - Solo visible en pantallas medianas y grandes -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'table' }" @click="changeViewMode('table')">
+                        <i class="fas fa-table"></i>
+                    </button>
+                    <button type="button" class="view-mode-btn" :class="{ 'active': viewMode === 'cards' }" @click="changeViewMode('cards')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
             </div>
         </div>
 

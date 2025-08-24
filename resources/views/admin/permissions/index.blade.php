@@ -34,80 +34,70 @@
         </div>
 
         {{-- Dashboard de Estadísticas Moderno --}}
-        <div class="stats-dashboard">
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <div class="stats-card stats-card-primary" title="Total de permisos en el sistema">
-                        <div class="stats-card-body">
-                            <div class="stats-icon">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3 class="stats-value">{{ $totalPermissions }}</h3>
-                                <p class="stats-label">Total de Permisos</p>
-                                <div class="stats-trend">
-                                    <i class="fas fa-shield-alt"></i>
-                                    <span>Sistema Seguro</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+            <!-- Total de Permisos -->
+            <x-dashboard-widget 
+                title="Total de Permisos"
+                value="{{ $totalPermissions }}"
+                valueType="number"
+                icon="fas fa-lock"
+                trend="Sistema Seguro"
+                trendIcon="fas fa-shield-alt"
+                trendColor="text-green-300"
+                gradientFrom="from-blue-500"
+                gradientTo="to-indigo-600"
+                progressWidth="100%"
+                progressGradientFrom="from-blue-400"
+                progressGradientTo="to-indigo-400"
+            />
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="stats-card stats-card-success" title="Permisos activos y en uso">
-                        <div class="stats-card-body">
-                            <div class="stats-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3 class="stats-value">{{ $activePermissions }}</h3>
-                                <p class="stats-label">Permisos Activos</p>
-                                <div class="stats-trend">
-                                    <i class="fas fa-users"></i>
-                                    <span>En Uso</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Permisos Activos -->
+            <x-dashboard-widget 
+                title="Permisos Activos"
+                value="{{ $activePermissions }}"
+                valueType="number"
+                icon="fas fa-check-circle"
+                trend="En Uso"
+                trendIcon="fas fa-users"
+                trendColor="text-green-300"
+                gradientFrom="from-green-500"
+                gradientTo="to-emerald-600"
+                progressWidth="100%"
+                progressGradientFrom="from-green-400"
+                progressGradientTo="to-emerald-400"
+            />
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="stats-card stats-card-warning" title="Roles que utilizan permisos">
-                        <div class="stats-card-body">
-                            <div class="stats-icon">
-                                <i class="fas fa-user-shield"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3 class="stats-value">{{ $rolesCount }}</h3>
-                                <p class="stats-label">Roles Asociados</p>
-                                <div class="stats-trend">
-                                    <i class="fas fa-link"></i>
-                                    <span>Conectados</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Roles Asociados -->
+            <x-dashboard-widget 
+                title="Roles Asociados"
+                value="{{ $rolesCount }}"
+                valueType="number"
+                icon="fas fa-user-shield"
+                trend="Conectados"
+                trendIcon="fas fa-link"
+                trendColor="text-green-300"
+                gradientFrom="from-yellow-500"
+                gradientTo="to-orange-500"
+                progressWidth="100%"
+                progressGradientFrom="from-yellow-400"
+                progressGradientTo="to-orange-400"
+            />
 
-                <div class="col-lg-3 col-md-6">
-                    <div class="stats-card stats-card-info" title="Permisos sin asignar">
-                        <div class="stats-card-body">
-                            <div class="stats-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3 class="stats-value">{{ $unusedPermissions }}</h3>
-                                <p class="stats-label">Sin Usar</p>
-                                <div class="stats-trend">
-                                    <i class="fas fa-warning"></i>
-                                    <span>Pendientes</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Permisos Sin Usar -->
+            <x-dashboard-widget 
+                title="Sin Usar"
+                value="{{ $unusedPermissions }}"
+                valueType="number"
+                icon="fas fa-exclamation-triangle"
+                trend="Pendientes"
+                trendIcon="fas fa-warning"
+                trendColor="text-yellow-300"
+                gradientFrom="from-red-500"
+                gradientTo="to-pink-600"
+                progressWidth="100%"
+                progressGradientFrom="from-red-400"
+                progressGradientTo="to-pink-400"
+            />
         </div>
 
         {{-- Contenido Principal --}}

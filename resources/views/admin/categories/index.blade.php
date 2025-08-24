@@ -64,68 +64,76 @@
     </div>
 
     <!-- Stats Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-tags"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $categories->count() }}</div>
-                    <div class="stat-label">Total de Categorías</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->count() }}%</span>
-                    </div>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <!-- Total de Categorías -->
+        <x-dashboard-widget 
+            title="Total de Categorías"
+            value="{{ $categories->count() }}"
+            valueType="number"
+            icon="fas fa-tags"
+            trend="Registradas"
+            trendIcon="fas fa-plus-circle"
+            trendColor="text-green-300"
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-400"
+            progressGradientTo="to-blue-500"
+        />
 
-            <div class="stat-card stat-success">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $categories->count() }}</div>
-                    <div class="stat-label">Activas</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+100%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Categorías Activas -->
+        <x-dashboard-widget 
+            title="Categorías Activas"
+            value="{{ $categories->count() }}"
+            valueType="number"
+            icon="fas fa-check-circle"
+            trend="Activas"
+            trendIcon="fas fa-check"
+            trendColor="text-green-300"
+            subtitle="100% del total"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-green-500"
+            gradientTo="to-emerald-600"
+            progressWidth="100%"
+            progressGradientFrom="from-green-400"
+            progressGradientTo="to-emerald-500"
+        />
 
-            <div class="stat-card stat-warning">
-                <div class="stat-icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}</div>
-                    <div class="stat-label">Esta Semana</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Categorías de Esta Semana -->
+        <x-dashboard-widget 
+            title="Esta Semana"
+            value="{{ $categories->where('created_at', '>=', now()->subDays(7))->count() }}"
+            valueType="number"
+            icon="fas fa-clock"
+            trend="Nuevas"
+            trendIcon="fas fa-calendar-week"
+            trendColor="text-yellow-300"
+            subtitle="{{ $categories->count() > 0 ? round(($categories->where('created_at', '>=', now()->subDays(7))->count() / $categories->count()) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-yellow-500"
+            gradientTo="to-orange-500"
+            progressWidth="{{ $categories->count() > 0 ? ($categories->where('created_at', '>=', now()->subDays(7))->count() / $categories->count()) * 100 : 0 }}%"
+            progressGradientFrom="from-yellow-400"
+            progressGradientTo="to-orange-400"
+        />
 
-            <div class="stat-card stat-info">
-                <div class="stat-icon">
-                    <i class="fas fa-box"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $categories->where('products_count', '>', 0)->count() }}</div>
-                    <div class="stat-label">Con Productos</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $categories->where('products_count', '>', 0)->count() }}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Categorías con Productos -->
+        <x-dashboard-widget 
+            title="Con Productos"
+            value="{{ $categories->where('products_count', '>', 0)->count() }}"
+            valueType="number"
+            icon="fas fa-box"
+            trend="Con Productos"
+            trendIcon="fas fa-boxes"
+            trendColor="text-green-300"
+            subtitle="{{ $categories->count() > 0 ? round(($categories->where('products_count', '>', 0)->count() / $categories->count()) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-purple-500"
+            gradientTo="to-indigo-600"
+            progressWidth="{{ $categories->count() > 0 ? ($categories->where('products_count', '>', 0)->count() / $categories->count()) * 100 : 0 }}%"
+            progressGradientFrom="from-purple-400"
+            progressGradientTo="to-indigo-500"
+        />
     </div>
 
 
@@ -360,29 +368,29 @@
                                         <h4 class="mobile-title">{{ $category->name }}</h4>
                                         <span class="mobile-id">ID: {{ $category->id }}</span>
                                     </div>
-                                    <div class="mobile-actions">
-                                        @if($permissions['categories.show'])
-                                            <button type="button" class="mobile-btn mobile-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        @endif
-                                        @if($permissions['categories.edit'])
-                                            <a href="{{ route('admin.categories.edit', $category->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                        @endif
-                                        @if($permissions['categories.destroy'])
-                                            <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        @endif
-                                    </div>
                                 </div>
                                 <div class="mobile-card-body">
                                     <p class="mobile-description">{{ Str::limit($category->description, 100) ?? 'Sin descripción' }}</p>
                                     <div class="mobile-meta">
                                         <span class="mobile-date">{{ \Carbon\Carbon::parse($category->created_at)->format('d/m/Y H:i') }}</span>
                                     </div>
+                                </div>
+                                <div class="mobile-card-actions">
+                                    @if($permissions['categories.show'])
+                                        <button type="button" class="mobile-btn mobile-btn-view" onclick="showCategoryDetails({{ $category->id }})" title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    @endif
+                                    @if($permissions['categories.edit'])
+                                        <a href="{{ route('admin.categories.edit', $category->id) }}" class="mobile-btn mobile-btn-edit" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endif
+                                    @if($permissions['categories.destroy'])
+                                        <button type="button" class="mobile-btn mobile-btn-delete" onclick="deleteCategory({{ $category->id }}, '{{ $category->name }}')" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

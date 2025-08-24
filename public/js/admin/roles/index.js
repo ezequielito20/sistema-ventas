@@ -4,23 +4,52 @@
 window.rolesManager = function() {
     return {
         viewMode: 'table', // 'table' o 'cards'
+        searchTerm: '', // Término de búsqueda
         
         init() {
-            // Inicializar el modo de vista desde localStorage si existe
-            const savedViewMode = localStorage.getItem('rolesViewMode');
-            if (savedViewMode) {
-                this.viewMode = savedViewMode;
+            // En pantallas pequeñas, forzar vista de tarjetas
+            if (window.innerWidth < 768) {
+                this.viewMode = 'cards';
+            } else {
+                // Inicializar el modo de vista desde localStorage si existe
+                const savedViewMode = localStorage.getItem('rolesViewMode');
+                if (savedViewMode) {
+                    this.viewMode = savedViewMode;
+                }
             }
             
             // Observar cambios en el modo de vista
             this.$watch('viewMode', (value) => {
-                localStorage.setItem('rolesViewMode', value);
+                // Solo guardar en localStorage si no es pantalla pequeña
+                if (window.innerWidth >= 768) {
+                    localStorage.setItem('rolesViewMode', value);
+                }
+            });
+            
+            // Escuchar cambios de tamaño de ventana
+            window.addEventListener('resize', () => {
+                if (window.innerWidth < 768) {
+                    this.viewMode = 'cards';
+                }
             });
         },
         
         // Cambiar modo de vista
         toggleViewMode(mode) {
-            this.viewMode = mode;
+            // Solo permitir cambio en pantallas medianas y grandes
+            if (window.innerWidth >= 768) {
+                this.viewMode = mode;
+            }
+        },
+        
+        // Función para verificar si un rol debe ser visible según el término de búsqueda
+        isRoleVisible(searchText) {
+            if (!this.searchTerm) return true;
+            
+            const searchLower = this.searchTerm.toLowerCase();
+            const textLower = searchText.toLowerCase();
+            
+            return textLower.includes(searchLower);
         }
     };
 };

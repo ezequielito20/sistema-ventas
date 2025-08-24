@@ -565,6 +565,16 @@
         font-size: 0.8rem;
         font-weight: 600;
     }
+
+    .mobile-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        justify-content: center;
+        align-items: center;
+    }
 }
 
 /* ===== PAGINACIÓN ===== */

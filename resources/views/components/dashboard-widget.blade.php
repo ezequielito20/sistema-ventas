@@ -15,7 +15,9 @@
     'actionButton' => null,
     'actionButtonText' => '',
     'actionButtonUrl' => '#',
-    'actionButtonIcon' => 'fas fa-eye'
+    'actionButtonIcon' => 'fas fa-eye',
+    'valueType' => 'currency',
+    'currencySymbol' => '$'
 ])
 
 <div class="group relative overflow-hidden rounded-lg bg-gradient-to-br {{ $gradientFrom }} {{ $gradientTo }} text-white shadow-md hover:shadow-lg transition-all duration-300 h-34 sm:h-34 cursor-pointer">
@@ -44,8 +46,12 @@
             <!-- Title and Value Row -->
             <div class="flex items-center space-x-2 mb-2">
                 <div class="text-base sm:text-lg font-bold opacity-90">{{ $title }}</div>
-                <div class="text-xl sm:text-2xl font-black transition-all duration-300"
-                     x-text="formatCurrency({{ $value }})">
+                <div class="text-xl sm:text-2xl font-black transition-all duration-300">
+                    @if($valueType === 'currency')
+                        <span x-text="formatCurrency({{ $value }})"></span>
+                    @else
+                        <span>{{ number_format($value) }}</span>
+                    @endif
                 </div>
             </div>
             @if($subtitle)
