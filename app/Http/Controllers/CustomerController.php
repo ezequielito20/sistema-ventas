@@ -160,12 +160,12 @@ class CustomerController extends Controller
 
          // Optimizar: Verificar permisos una sola vez para evitar múltiples verificaciones
          $permissions = [
-            'can_report' => true,
-            'can_create' => true,
-            'can_edit' => true,
-            'can_show' => true,
-            'can_destroy' => true,
-            'can_create_sales' => true,
+            'can_report' => Gate::allows('customers.report'),
+            'can_create' => Gate::allows('customers.create'),
+            'can_edit' => Gate::allows('customers.edit'),
+            'can_show' => Gate::allows('customers.show'),
+            'can_destroy' => Gate::allows('customers.destroy'),
+            'can_create_sales' => Gate::allows('sales.create'),
          ];
 
          return view('admin.customers.index', compact(
@@ -219,6 +219,13 @@ class CustomerController extends Controller
    public function create()
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.create')) {
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para crear clientes')
+               ->with('icons', 'error');
+         }
+
          $company = $this->company;
          return view('admin.customers.create', compact('company'));
       } catch (\Exception $e) {
@@ -235,6 +242,20 @@ class CustomerController extends Controller
    public function store(Request $request)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.create')) {
+            if ($request->ajax() || $request->wantsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'No tienes permisos para crear clientes'
+               ], 403);
+            }
+            
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para crear clientes')
+               ->with('icons', 'error');
+         }
+
          DB::beginTransaction();
 
          // Validación personalizada
@@ -363,6 +384,14 @@ class CustomerController extends Controller
    public function show($id)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.show')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para ver detalles de clientes'
+            ], 403);
+         }
+
          $customer = Customer::findOrFail($id);
 
          // Verificar si es una petición para datos de pago de deuda
@@ -588,6 +617,13 @@ class CustomerController extends Controller
    public function edit($id)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.edit')) {
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para editar clientes')
+               ->with('icons', 'error');
+         }
+
          $company = $this->company;
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
@@ -609,6 +645,20 @@ class CustomerController extends Controller
    public function update(Request $request, $id)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.edit')) {
+            if ($request->ajax() || $request->wantsJson()) {
+               return response()->json([
+                  'success' => false,
+                  'message' => 'No tienes permisos para editar clientes'
+               ], 403);
+            }
+            
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para editar clientes')
+               ->with('icons', 'error');
+         }
+
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
 
@@ -742,6 +792,14 @@ class CustomerController extends Controller
    public function destroy($id)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.destroy')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para eliminar clientes'
+            ], 403);
+         }
+
          // Buscar el cliente
          $customer = Customer::findOrFail($id);
 
@@ -846,6 +904,13 @@ class CustomerController extends Controller
 
    public function report(Request $request)
    {
+      // Verificar autorización
+      if (!Gate::allows('customers.report')) {
+         return redirect()->route('admin.customers.index')
+            ->with('message', 'No tienes permisos para generar reportes de clientes')
+            ->with('icons', 'error');
+      }
+
       $company = $this->company;
       $currency = $this->currencies;
       
@@ -866,6 +931,14 @@ class CustomerController extends Controller
    public function updateDebt(Request $request, $id)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.edit')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para editar clientes'
+            ], 403);
+         }
+
          // Validar la solicitud
          $validated = $request->validate([
             'total_debt' => 'required|numeric|min:0',
@@ -903,6 +976,13 @@ class CustomerController extends Controller
    public function debtReport(Request $request)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.report')) {
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para generar reportes de deudas')
+               ->with('icons', 'error');
+         }
+
          // Obtener el arqueo de caja actual una sola vez
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
@@ -1079,6 +1159,14 @@ class CustomerController extends Controller
    public function debtReportModal(Request $request)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.report')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para generar reportes de deudas'
+            ], 403);
+         }
+
          // Obtener el arqueo de caja actual una sola vez
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
@@ -1258,6 +1346,14 @@ class CustomerController extends Controller
 
    public function registerDebtPayment(Request $request, Customer $customer)
    {
+      // Verificar autorización
+      if (!Gate::allows('customers.edit')) {
+         return response()->json([
+            'success' => false,
+            'message' => 'No tienes permisos para registrar pagos de deuda'
+         ], 403);
+      }
+
       $request->validate([
          'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
          'payment_date' => 'required|date',
@@ -1325,6 +1421,14 @@ class CustomerController extends Controller
    public function registerDebtPaymentAjax(Request $request, Customer $customer)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.edit')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para registrar pagos de deuda'
+            ], 403);
+         }
+
          $request->validate([
             'payment_amount' => 'required|numeric|min:0.01|max:' . $customer->total_debt,
             'payment_date' => 'required|date',
@@ -1518,6 +1622,14 @@ class CustomerController extends Controller
    public function getCustomerPaymentData(Customer $customer)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.show')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para ver datos de clientes'
+            ], 403);
+         }
+
          // Verificar que el cliente pertenezca a la empresa
          if ($customer->company_id !== $this->company->id) {
             return response()->json([
@@ -1564,6 +1676,14 @@ class CustomerController extends Controller
    public function getCustomerSalesHistory(Customer $customer)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.show')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para ver historial de ventas'
+            ], 403);
+         }
+
          // Verificar que el cliente pertenezca a la empresa
          if ($customer->company_id !== $this->company->id) {
             return response()->json([
@@ -1621,6 +1741,13 @@ class CustomerController extends Controller
 
    public function paymentHistory(Request $request)
    {
+      // Verificar autorización
+      if (!Gate::allows('customers.report')) {
+         return redirect()->route('admin.customers.index')
+            ->with('message', 'No tienes permisos para ver el historial de pagos')
+            ->with('icons', 'error');
+      }
+
       $query = DebtPayment::where('company_id', $this->company->id)
          ->with(['customer', 'user']);
 
@@ -1703,6 +1830,13 @@ class CustomerController extends Controller
    public function exportPaymentHistory(Request $request)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.report')) {
+            return redirect()->route('admin.customers.index')
+               ->with('message', 'No tienes permisos para exportar el historial de pagos')
+               ->with('icons', 'error');
+         }
+
          $query = DebtPayment::where('company_id', $this->company->id)
             ->with(['customer', 'user']);
          
@@ -1780,6 +1914,14 @@ class CustomerController extends Controller
    public function deletePayment(DebtPayment $payment)
    {
       try {
+         // Verificar autorización
+         if (!Gate::allows('customers.edit')) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No tienes permisos para eliminar pagos de deuda'
+            ], 403);
+         }
+
          DB::beginTransaction();
 
          // Obtener el cliente y el monto del pago

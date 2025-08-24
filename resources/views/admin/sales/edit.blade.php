@@ -101,121 +101,121 @@
                                     <i class="fas fa-user text-indigo-500 mr-1"></i>
                                     Cliente <span class="text-red-500">*</span>
                                 </label>
-                                <div class="relative" 
-                                     x-data="{ 
-                                         isOpen: false, 
-                                         searchTerm: '', 
-                                         filteredCustomers: @js($customers),
-                                         selectedCustomerName: '{{ $sale->customer->name ?? 'Seleccione un cliente' }}',
-                                         selectedCustomerDebt: {{ $sale->customer->total_debt ?? 0 }},
-                                         filterCustomers() {
-                                             if (!this.searchTerm) {
-                                                 this.filteredCustomers = @js($customers);
-                                                 return;
+                                <div class="flex space-x-2">
+                                    <div class="relative flex-1" 
+                                         x-data="{ 
+                                             isOpen: false, 
+                                             searchTerm: '', 
+                                             filteredCustomers: @js($customers),
+                                             selectedCustomerName: '{{ $sale->customer->name ?? 'Seleccione un cliente' }}',
+                                             selectedCustomerDebt: {{ $sale->customer->total_debt ?? 0 }},
+                                             filterCustomers() {
+                                                 if (!this.searchTerm) {
+                                                     this.filteredCustomers = @js($customers);
+                                                     return;
+                                                 }
+                                                 const term = this.searchTerm.toLowerCase();
+                                                 this.filteredCustomers = @js($customers).filter(customer => 
+                                                     customer.name.toLowerCase().includes(term)
+                                                 );
+                                             },
+                                             selectCustomer(customer) {
+                                                 selectedCustomerId = customer.id;
+                                                 this.selectedCustomerName = customer.name;
+                                                 this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                                                 this.isOpen = false;
+                                                 this.searchTerm = '';
+                                                 onCustomerChange();
                                              }
-                                             const term = this.searchTerm.toLowerCase();
-                                             this.filteredCustomers = @js($customers).filter(customer => 
-                                                 customer.name.toLowerCase().includes(term)
-                                             );
-                                         },
-                                         selectCustomer(customer) {
-                                             selectedCustomerId = customer.id;
-                                             this.selectedCustomerName = customer.name;
-                                             this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
-                                             this.isOpen = false;
-                                             this.searchTerm = '';
-                                             onCustomerChange();
-                                         }
-                                     }" 
-                                     @click.away="isOpen = false">
-                                     
-                                    <!-- Select Button -->
-                                    <button type="button" 
-                                            @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
-                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
-                                        <div class="flex items-center justify-between min-w-0">
-                                            <span class="block truncate text-gray-700 text-sm" x-text="selectedCustomerName"></span>
-                                            <div class="ml-2 flex-shrink-0" x-show="selectedCustomerName !== 'Seleccione un cliente'">
-                                                <!-- Badge de deuda (rojo) -->
-                                                <span x-show="selectedCustomerDebt > 0" 
-                                                      x-text="'$' + selectedCustomerDebt.toFixed(2)" 
-                                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
-                                                </span>
-                                                <!-- Badge sin deuda (verde) -->
-                                                <span x-show="selectedCustomerDebt === 0" 
-                                                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
-                                                    Sin deuda
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <span class="absolute inset-y-0 right-10 flex items-center pointer-events-none">
-                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
-                                                 :class="{ 'rotate-180': isOpen }" 
-                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </span>
-                                    </button>
-
-                                    <!-- Dropdown -->
-                                    <div x-show="isOpen" 
-                                         x-transition:enter="transition ease-out duration-200"
-                                         x-transition:enter-start="opacity-0 translate-y-1"
-                                         x-transition:enter-end="opacity-1 translate-y-0"
-                                         x-transition:leave="transition ease-in duration-150"
-                                         x-transition:leave-start="opacity-1 translate-y-0"
-                                         x-transition:leave-end="opacity-0 translate-y-1"
-                                         class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                         }" 
+                                         @click.away="isOpen = false">
                                         
-                                        <!-- Search Input -->
-                                        <div class="px-3 py-2 border-b border-gray-100">
-                                            <input type="text"
-                                                   x-ref="customerSearch"
-                                                   x-model="searchTerm"
-                                                   @input="filterCustomers()"
-                                                   @keydown.escape="isOpen = false"
-                                                   placeholder="Buscar cliente..."
-                                                   class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                        </div>
+                                        <!-- Select Button -->
+                                        <button type="button" 
+                                                @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
+                                                class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                            <div class="flex items-center justify-between min-w-0">
+                                                <span class="block truncate text-gray-700 text-sm flex-1" x-text="selectedCustomerName"></span>
+                                                <div class="ml-2 flex-shrink-0" x-show="selectedCustomerName !== 'Seleccione un cliente'">
+                                                    <!-- Badge de deuda (rojo) -->
+                                                    <span x-show="selectedCustomerDebt > 0" 
+                                                          x-text="'$' + selectedCustomerDebt.toFixed(2)" 
+                                                          class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                    </span>
+                                                    <!-- Badge sin deuda (verde) -->
+                                                    <span x-show="selectedCustomerDebt === 0" 
+                                                          class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                        Sin deuda
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                                <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                     :class="{ 'rotate-180': isOpen }" 
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
 
-                                        <!-- Options List -->
-                                        <div class="max-h-48 overflow-y-auto">
-                                            <template x-for="customer in filteredCustomers" :key="customer.id">
-                                                <div @click="selectCustomer(customer)"
-                                                     class="cursor-pointer select-none relative py-3 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
-                                                    <div class="flex items-center justify-between min-w-0">
-                                                        <span class="block text-sm text-gray-900 font-medium flex-1 min-w-0" x-text="customer.name"></span>
-                                                        <div class="ml-2 flex-shrink-0">
-                                                            <!-- Badge de deuda (rojo) -->
-                                                            <span x-show="parseFloat(customer.total_debt || 0) > 0" 
-                                                                  x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
-                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
-                                                            </span>
-                                                            <!-- Badge sin deuda (verde) -->
-                                                            <span x-show="parseFloat(customer.total_debt || 0) === 0" 
-                                                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
-                                                                Sin deuda
-                                                            </span>
+                                        <!-- Dropdown -->
+                                        <div x-show="isOpen" 
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 translate-y-1"
+                                             x-transition:enter-end="opacity-1 translate-y-0"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-1 translate-y-0"
+                                             x-transition:leave-end="opacity-0 translate-y-1"
+                                             class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                            
+                                            <!-- Search Input -->
+                                            <div class="px-3 py-2 border-b border-gray-100">
+                                                <input type="text"
+                                                       x-ref="customerSearch"
+                                                       x-model="searchTerm"
+                                                       @input="filterCustomers()"
+                                                       @keydown.escape="isOpen = false"
+                                                       placeholder="Buscar cliente..."
+                                                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                            </div>
+
+                                            <!-- Options List -->
+                                            <div class="max-h-48 overflow-y-auto">
+                                                <template x-for="customer in filteredCustomers" :key="customer.id">
+                                                    <div @click="selectCustomer(customer)"
+                                                         class="cursor-pointer select-none relative py-2.5 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
+                                                        <div class="flex items-center justify-between min-w-0">
+                                                            <span class="block text-sm text-gray-900 font-medium flex-1 min-w-0 truncate" x-text="customer.name"></span>
+                                                            <div class="ml-2 flex-shrink-0">
+                                                                <!-- Badge de deuda (rojo) -->
+                                                                <span x-show="parseFloat(customer.total_debt || 0) > 0" 
+                                                                      x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
+                                                                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                                </span>
+                                                                <!-- Badge sin deuda (verde) -->
+                                                                <span x-show="parseFloat(customer.total_debt || 0) === 0" 
+                                                                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                                    Sin deuda
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                </template>
+                                                
+                                                <!-- No results -->
+                                                <div x-show="filteredCustomers.length === 0" 
+                                                     class="px-3 py-4 text-sm text-gray-500 text-center">
+                                                    No se encontraron clientes
                                                 </div>
-                                            </template>
-                                            
-                                            <!-- No results -->
-                                            <div x-show="filteredCustomers.length === 0" 
-                                                 class="px-3 py-4 text-sm text-gray-500 text-center">
-                                                No se encontraron clientes
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Add Customer Button -->
-                                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                        <a href="{{ route('admin.customers.create') }}?return_to=sales.edit"
-                                           class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md">
-                                            <i class="fas fa-plus text-xs"></i>
-                                        </a>
-                                    </div>
+                                    <a href="{{ route('admin.customers.create') }}?return_to=sales.edit"
+                                       class="w-11 h-14 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md flex-shrink-0">
+                                        <i class="fas fa-plus text-sm"></i>
+                                    </a>
                                 </div>
                             </div>
 
