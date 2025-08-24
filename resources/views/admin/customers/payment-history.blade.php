@@ -35,16 +35,13 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-3 mb-3">
-                        <div class="w-10 h-10 bg-emerald-500 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
+                        <div class="w-10 h-10 bg-blue-600 bg-opacity-90 rounded-lg flex items-center justify-center shadow-lg">
                             <i class="fas fa-history text-white text-xl"></i>
                         </div>
                         <div>
                             <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">
                                 Historial de Pagos
                             </h1>
-                            <p class="text-blue-100 text-sm sm:text-base">
-                                Registro histórico de todos los pagos de deudas realizados por los clientes
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -122,7 +119,7 @@
                 <div class="space-y-2">
                     <label class="text-sm font-semibold text-gray-700 opacity-0">Acción</label>
                     <button @click="resetFilters()" 
-                            class="w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2">
+                            class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center space-x-2">
                         <i class="fas fa-undo"></i>
                         <span>Reiniciar</span>
                     </button>
@@ -208,34 +205,40 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-600">Vista:</span>
+                    <span class="text-sm text-gray-600 hidden md:inline">Vista:</span>
                     <button @click="viewMode = 'table'" 
                             :class="viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'"
-                            class="px-3 py-2 rounded-lg transition-all duration-200">
+                            class="px-3 py-2 rounded-lg transition-all duration-200 hidden md:flex items-center"
+                            title="Vista de tabla">
                         <i class="fas fa-table"></i>
                     </button>
                     <button @click="viewMode = 'cards'" 
                             :class="viewMode === 'cards' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'"
-                            class="px-3 py-2 rounded-lg transition-all duration-200">
+                            class="px-3 py-2 rounded-lg transition-all duration-200 hidden md:flex items-center"
+                            title="Vista de tarjetas">
                         <i class="fas fa-th-large"></i>
                     </button>
+                    <!-- Indicador para móvil -->
+                    <div class="md:hidden flex items-center space-x-2">
+                        <i class="fas fa-th-large text-blue-600"></i>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Vista de Tabla (Desktop/Tablet) -->
-        <div x-show="viewMode === 'table'" x-cloak class="overflow-x-auto">
+        <div x-show="viewMode === 'table' && window.innerWidth >= 768" x-cloak class="overflow-x-auto hidden md:block">
             <table class="w-full">
-                <thead class="bg-gray-50">
+                <thead class="bg-gradient-to-r from-blue-600 to-purple-600">
                     <tr>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Cliente</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Deuda Anterior</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Monto Pagado</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Deuda Restante</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Registrado por</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Notas</th>
-                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Acciones</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Fecha</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Cliente</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Deuda Anterior</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Monto Pagado</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Deuda Restante</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Registrado por</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-white">Notas</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-white">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -292,56 +295,83 @@
             </table>
         </div>
 
-        <!-- Vista de Tarjetas (Móvil) -->
-        <div x-show="viewMode === 'cards'" x-cloak class="p-6">
-            <div class="grid grid-cols-1 gap-6">
+        <!-- Vista de Tarjetas (Responsive) -->
+        <div x-show="viewMode === 'cards' || window.innerWidth < 768" x-cloak class="p-3 sm:p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 <template x-for="payment in paginatedPayments" :key="payment.id">
-                <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-calendar text-white"></i>
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                    <!-- Header de la tarjeta -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-3 sm:px-4 py-3 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                    <i class="fas fa-calendar text-white text-xs"></i>
                                 </div>
-                                <div>
-                                    <h3 class="font-semibold text-gray-900" x-text="new Date(payment.created_at).toLocaleDateString('es-ES')"></h3>
-                                    <p class="text-sm text-gray-500" x-text="new Date(payment.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})"></p>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="font-semibold text-gray-900 text-sm truncate" x-text="new Date(payment.created_at).toLocaleDateString('es-ES')"></h3>
+                                    <p class="text-xs text-gray-500" x-text="new Date(payment.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})"></p>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                {{ $currency->symbol }} <span x-text="parseFloat(payment.payment_amount).toFixed(2)"></span>
-                            </span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cliente</label>
-                                <p class="text-sm font-medium text-gray-900" x-text="payment.customer.name"></p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Deuda Anterior</label>
-                                <p class="text-sm font-medium text-red-600">{{ $currency->symbol }} <span x-text="parseFloat(payment.previous_debt).toFixed(2)"></span></p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Deuda Restante</label>
-                                <p class="text-sm font-medium text-yellow-600">{{ $currency->symbol }} <span x-text="parseFloat(payment.remaining_debt).toFixed(2)"></span></p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Registrado por</label>
-                                <p class="text-sm font-medium text-gray-900" x-text="payment.user.name"></p>
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {{ $currency->symbol }} <span x-text="parseFloat(payment.payment_amount).toFixed(2)"></span>
+                                </span>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- Contenido de la tarjeta -->
+                    <div class="p-3 sm:p-4">
+                        <!-- Información del cliente -->
+                        <div class="mb-3">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <div class="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white text-xs"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cliente</label>
+                                    <p class="text-sm font-medium text-gray-900 truncate" x-text="payment.customer.name"></p>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div class="mb-4">
+                        <!-- Información financiera -->
+                        <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
+                            <div class="bg-red-50 rounded-md p-2">
+                                <label class="text-xs font-medium text-red-600 uppercase tracking-wide">Deuda Anterior</label>
+                                <p class="text-sm font-bold text-red-700">{{ $currency->symbol }} <span x-text="parseFloat(payment.previous_debt).toFixed(2)"></span></p>
+                            </div>
+                            <div class="bg-yellow-50 rounded-md p-2">
+                                <label class="text-xs font-medium text-yellow-600 uppercase tracking-wide">Deuda Restante</label>
+                                <p class="text-sm font-bold text-yellow-700">{{ $currency->symbol }} <span x-text="parseFloat(payment.remaining_debt).toFixed(2)"></span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Información del usuario -->
+                        <div class="mb-3">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-user-cog text-gray-400 text-xs"></i>
+                                <div class="min-w-0 flex-1">
+                                    <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Registrado por</label>
+                                    <p class="text-sm font-medium text-gray-900 truncate" x-text="payment.user.name"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notas -->
+                        <div class="mb-3">
                             <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Notas</label>
-                            <p class="text-sm text-gray-600" x-text="payment.notes || 'Sin notas'"></p>
+                            <div class="mt-1 bg-gray-50 rounded-md p-2">
+                                <p class="text-xs text-gray-600 leading-relaxed" x-text="payment.notes || 'Sin notas'"></p>
+                            </div>
                         </div>
                         
-                        <div class="flex justify-end">
+                        <!-- Acciones -->
+                        <div class="flex justify-end pt-2 border-t border-gray-100">
                             <button @click="deletePayment(payment.id, payment.customer.name, payment.payment_amount)"
-                                    class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center space-x-2 transition-all duration-200">
-                                <i class="fas fa-trash text-sm"></i>
-                                <span class="text-sm font-medium">Eliminar</span>
+                                    class="inline-flex items-center space-x-2 px-2 sm:px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-all duration-200 group">
+                                <i class="fas fa-trash text-xs group-hover:scale-110 transition-transform duration-200"></i>
+                                <span class="text-xs font-medium hidden sm:inline">Eliminar</span>
                             </button>
                         </div>
                     </div>
