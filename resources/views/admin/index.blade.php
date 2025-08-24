@@ -78,69 +78,21 @@
             }
          }">
         
-        <!-- Modern Section Header -->
-        <div class="bg-gradient-to-r from-slate-50 to-gray-100 rounded-3xl p-8 mb-10 shadow-xl border border-gray-200/50">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                <!-- Title Section -->
-                <div class="flex items-center gap-6">
-                    <div class="relative">
-                        <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-2xl">
-                            <i class="fas fa-cash-register text-3xl text-white"></i>
-                        </div>
-                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl lg:text-4xl font-black text-gray-800 mb-2">Arqueo de Caja</h3>
-                        <p class="text-lg text-gray-600 font-medium">Control financiero y gestión de efectivo</p>
-                        <div class="flex items-center gap-4 mt-3">
-                            <div class="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                Sistema Activo
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Última actualización: {{ date('H:i') }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Controls Section -->
-                <div class="flex flex-col sm:flex-row items-center gap-6">
-                    <!-- Data Selector -->
-                    <div class="relative">
-                        <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-1 rounded-2xl shadow-xl">
-                            <select 
-                                x-model="cashDataMode"
-                                class="bg-gradient-to-r from-emerald-400 to-teal-500 text-white font-bold py-2 px-4 rounded-lg border-0 focus:ring-2 focus:ring-emerald-300 focus:outline-none appearance-none cursor-pointer min-w-[200px] pr-8 text-sm">
-                                <option value="current">📊 Arqueo Actual</option>
-                                <option value="historical">📈 Histórico Completo</option>
-                                <template x-for="cashCount in []" :key="cashCount.id">
-                                    <option :value="'closed_' + cashCount.id" 
-                                            :data-sales="cashCount.sales"
-                                            :data-purchases="cashCount.purchases"
-                                            :data-debt="cashCount.debt"
-                                            :data-balance="cashCount.balance"
-                                            :data-debt-payments="cashCount.debt_payments"
-                                            x-text="'📋 ' + cashCount.option_text">
-                                    </option>
-                                </template>
-                            </select>
-                            <div class="absolute right-6 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                <i class="fas fa-chevron-down text-emerald-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status Indicator -->
-                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold shadow-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white">
-                        <div class="w-2 h-2 rounded-full animate-pulse bg-green-300"></div>
-                        <span>Caja Abierta</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Section Header -->
+        <x-section-header 
+            title="Arqueo de Caja"
+            subtitle="Control financiero y gestión de efectivo"
+            icon="fas fa-cash-register"
+            iconBg="from-emerald-500 to-teal-600"
+            statusIcon="fas fa-check"
+            statusText="Caja Abierta"
+            statusColor="green"
+            dataMode="cashDataMode"
+            :dataOptions="[]"
+            :showDataSelector="true"
+            :showStatus="true"
+            :showLastUpdate="true"
+        />
 
         <!-- Ultra Simple Mini Widgets Grid - Single Row Responsive -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
@@ -228,64 +180,24 @@
             }
          }">
         
-        <!-- Modern Sales Section Header -->
-        <div class="bg-gradient-to-r from-slate-50 to-gray-100 rounded-3xl p-8 mb-10 shadow-xl border border-gray-200/50">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-                <!-- Title Section -->
-                <div class="flex items-center gap-6">
-                    <div class="relative">
-                        <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl shadow-2xl">
-                            <i class="fas fa-chart-line text-3xl text-white"></i>
-                        </div>
-                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-trending-up text-white text-sm"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-3xl lg:text-4xl font-black text-gray-800 mb-2">Análisis de Ventas</h3>
-                        <p class="text-lg text-gray-600 font-medium">Métricas y rendimiento comercial</p>
-                        <div class="flex items-center gap-4 mt-3">
-                            <div class="flex items-center gap-2 bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold">
-                                <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                                Datos en Tiempo Real
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                Última actualización: {{ date('H:i') }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Controls Section -->
-                <div class="flex flex-col sm:flex-row items-center gap-6">
-                    <!-- Data Selector -->
-                    <div class="relative">
-                        <div class="bg-gradient-to-r from-violet-500 to-purple-600 p-1 rounded-2xl shadow-xl">
-                            <select 
-                                x-model="salesDataMode"
-                                class="bg-gradient-to-r from-purple-400 to-violet-500 text-white font-bold py-2 px-4 rounded-lg border-0 focus:ring-2 focus:ring-purple-300 focus:outline-none appearance-none cursor-pointer min-w-[200px] pr-8 text-sm">
-                                <option value="current">📊 Arqueo Actual</option>
-                                <option value="historical">📈 Histórico Completo</option>
-                                <template x-for="(data, cashCountId) in []" :key="cashCountId">
-                                    <option :value="'closed_' + cashCountId" 
-                                            x-text="'📋 Arqueo ' + cashCountId">
-                                    </option>
-                                </template>
-                            </select>
-                            <div class="absolute right-6 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                <i class="fas fa-chevron-down text-purple-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Refresh Button -->
-                    <button class="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-bold hover:shadow-xl transition-all duration-300 flex items-center gap-3 shadow-lg">
-                        <i class="fas fa-sync-alt text-lg"></i>
-                        Actualizar Datos
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- Section Header -->
+        <x-section-header 
+            title="Análisis de Ventas"
+            subtitle="Métricas y rendimiento comercial"
+            icon="fas fa-chart-line"
+            iconBg="from-violet-500 to-purple-600"
+            statusIcon="fas fa-trending-up"
+            statusText="Datos en Tiempo Real"
+            statusColor="purple"
+            dataMode="salesDataMode"
+            :dataOptions="[]"
+            :showDataSelector="true"
+            :showStatus="true"
+            :showLastUpdate="true"
+            :refreshButton="true"
+            refreshButtonText="Actualizar Datos"
+            refreshButtonIcon="fas fa-sync-alt"
+        />
 
                 <!-- Ultra Simple Mini Sales Widgets Grid - Single Row Responsive -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
@@ -629,27 +541,21 @@
          }">
         
         <!-- Section Header -->
-        <div class="bg-white/80 backdrop-blur-lg rounded-3xl p-6 mb-8 shadow-lg">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <!-- Title -->
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl">
-                        <i class="fas fa-users text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-2xl lg:text-3xl font-bold text-gray-800">Información de Clientes</h3>
-                        <p class="text-gray-600">Gestión y análisis de clientes</p>
-                    </div>
-                </div>
-
-                <!-- Refresh Button -->
-                <button @click="refreshCustomerData()"
-                        class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2">
-                    <i class="fas fa-sync-alt"></i>
-                    Actualizar
-                </button>
-            </div>
-        </div>
+        <x-section-header 
+            title="Información de Clientes"
+            subtitle="Gestión y análisis de clientes"
+            icon="fas fa-users"
+            iconBg="from-cyan-400 to-blue-500"
+            statusIcon="fas fa-users"
+            statusText="Sistema Activo"
+            statusColor="blue"
+            :showDataSelector="false"
+            :showStatus="false"
+            :showLastUpdate="false"
+            :refreshButton="true"
+            refreshButtonText="Actualizar"
+            refreshButtonIcon="fas fa-sync-alt"
+        />
 
         <!-- Widgets Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
