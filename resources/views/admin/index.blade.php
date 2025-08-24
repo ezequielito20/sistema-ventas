@@ -86,7 +86,7 @@
             :showDataSelector="true" :showStatus="true" :showLastUpdate="true" />
 
         <!-- Ultra Simple Mini Widgets Grid - Single Row Responsive -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6"
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch"
             x-data="{
                 selectedCashMode: 'current',
                 currentCashData: @js($currentCashData ?? []),
@@ -295,12 +295,11 @@
 
             <!-- Widget de Deudas Dinámico -->
             <div class="widget-debt">
-                <x-dashboard-widget title="Por Cobrar en Período" value="0" icon="fas fa-hourglass-half"
+                <x-dashboard-widget title="Por Cobrar" value="0" icon="fas fa-hourglass-half"
                     trend="Pendiente" trendIcon="fas fa-exclamation-triangle" trendColor="text-yellow-300"
+                    subtitle="Deudas pendientes" subtitleIcon="fas fa-clock"
                     gradientFrom="from-yellow-500" gradientTo="to-orange-500" progressWidth="45%"
-                    progressGradientFrom="from-yellow-400" progressGradientTo="to-orange-400" :actionButton="true"
-                    actionButtonText="Ver Deudas" actionButtonUrl="{{ route('admin.customers.index') }}"
-                    actionButtonIcon="fas fa-eye" />
+                    progressGradientFrom="from-yellow-400" progressGradientTo="to-orange-400" />
             </div>
 
             <!-- Widget de Pagos de Deuda -->
@@ -332,7 +331,7 @@
             refreshButtonIcon="fas fa-sync-alt" />
 
         <!-- Ultra Simple Mini Sales Widgets Grid - Single Row Responsive -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch">
             <!-- Widget de Ventas de la Semana -->
             <x-dashboard-widget title="Ventas de la Semana" value="0" valueType="currency"
                 icon="fas fa-calendar-week" trend="+12%" trendIcon="fas fa-trending-up" trendColor="text-green-300"

@@ -20,7 +20,7 @@
     'currencySymbol' => '$'
 ])
 
-<div class="group relative overflow-hidden rounded-lg bg-gradient-to-br {{ $gradientFrom }} {{ $gradientTo }} text-white shadow-md hover:shadow-lg transition-all duration-300 h-34 sm:h-34 cursor-pointer">
+<div class="group relative overflow-hidden rounded-lg bg-gradient-to-br {{ $gradientFrom }} {{ $gradientTo }} text-white shadow-md hover:shadow-lg transition-all duration-300 h-36 sm:h-36 cursor-pointer">
     <!-- Animated Background -->
     <div class="absolute inset-0">
         <div class="absolute top-0 right-0 w-20 h-20 {{ str_replace('from-', 'bg-', $gradientFrom) }}/30 rounded-full blur-xl"></div>
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Content -->
-    <div class="relative z-10 p-3 sm:p-4 h-full flex flex-col">
+    <div class="relative z-10 p-3 sm:p-4 h-full flex flex-col justify-between">
         <!-- Header -->
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-white/20 backdrop-blur-lg rounded-md">
@@ -43,17 +43,18 @@
 
         <!-- Body -->
         <div class="flex-1 flex flex-col justify-center">
-            <!-- Title and Value Row -->
-            <div class="flex items-center space-x-2 mb-2">
-                <div class="text-base sm:text-lg font-bold opacity-90">{{ $title }}</div>
-                <div class="text-xl sm:text-2xl font-black transition-all duration-300">
-                    @if($valueType === 'currency')
-                        <span class="widget-value">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
-                    @else
-                        <span class="widget-value">{{ $value }}</span>
-                    @endif
-                </div>
+            <!-- Title -->
+            <div class="text-base sm:text-lg font-bold opacity-90 mb-1">{{ $title }}</div>
+            
+            <!-- Value -->
+            <div class="text-xl sm:text-2xl font-black transition-all duration-300 mb-2">
+                @if($valueType === 'currency')
+                    <span class="widget-value">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
+                @else
+                    <span class="widget-value">{{ $value }}</span>
+                @endif
             </div>
+            
             @if($subtitle)
                 <div class="flex items-center gap-1 text-xs opacity-80">
                     <i class="{{ $subtitleIcon }} text-xs"></i>
@@ -65,7 +66,7 @@
 
         <!-- Action Button (if provided) -->
         @if($actionButton)
-            <div class="mt-2">
+            <div class="mt-auto">
                 <a href="{{ $actionButtonUrl }}" 
                    class="inline-flex items-center gap-1 bg-white/20 backdrop-blur-lg text-white px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-lg text-xs font-bold hover:bg-white/30 transition-all duration-300">
                     <i class="{{ $actionButtonIcon }} text-xs"></i>
@@ -73,6 +74,9 @@
                     <span class="sm:hidden">{{ Str::limit($actionButtonText, 3) }}</span>
                 </a>
             </div>
+        @else
+            <!-- Spacer to maintain consistent height -->
+            <div class="mt-auto h-6"></div>
         @endif
 
         <!-- Progress Bar -->
