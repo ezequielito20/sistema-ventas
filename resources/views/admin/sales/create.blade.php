@@ -53,7 +53,7 @@
 
                     <div class="p-6">
                         <!-- Primera fila: Código, Cliente, Fecha, Hora -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 form-grid-responsive">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                             <!-- Código de Producto -->
                             <div>
                                 <label for="product_code" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -101,41 +101,154 @@
                                     <i class="fas fa-user text-indigo-500 mr-1"></i>
                                     Cliente <span class="text-red-500">*</span>
                                 </label>
-                                <div class="flex space-x-2 min-w-0">
-                                    <div class="flex-1 min-w-0">
-                                        <x-filter-select
-                                            name="customer-select"
-                                            placeholder="Seleccione un cliente"
-                                            searchPlaceholder="Buscar cliente..."
-                                            :items="$customers->map(function($customer) {
-                                                return [
-                                                    'id' => $customer->id,
-                                                    'name' => $customer->name,
-                                                    'debt_badge' => $customer->total_debt > 0 ? '$' . number_format($customer->total_debt, 2) : 'Sin deuda',
-                                                    'debt_badge_color' => $customer->total_debt > 0 ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-green-100 text-green-800 border border-green-200',
-                                                    'icon' => 'fas fa-user',
-                                                    'color' => 'text-gray-400'
-                                                ];
-                                            })"
-                                            itemKey="id"
-                                            itemText="name"
-                                            itemIcon="icon"
-                                            itemBadge="debt_badge"
-                                            itemBadgeColor="debt_badge_color"
-                                            allItemsText="Todos los clientes"
-                                            allItemsIcon="fas fa-users"
-                                            :showAllOption="false"
-                                            :searchable="true"
-                                            searchFields="['name']"
-                                            noResultsText="No se encontraron clientes"
-                                            containerClass="customer-filter-container"
-                                            :onChange="'window.saleCreateData.onCustomerSelect'"
-                                        />
+                                <div class="flex space-x-2">
+                                    <div class="relative flex-1" 
+                                         x-data="{ 
+                                             isOpen: false, 
+                                             searchTerm: '', 
+                                             filteredCustomers: @js($customers),
+                                             selectedCustomerName: 'Seleccione un cliente',
+                                             selectedCustomerDebt: 0,
+                                             init() {
+                                                 // Asegurar que el dropdown esté cerrado al inicializar
+                                                 this.isOpen = false;
+                                                 
+                                                 // Auto-seleccionar cliente si viene en la URL
+                                                 const urlParams = new URLSearchParams(window.location.search);
+                                                 const customerId = urlParams.get('customer_id');
+                                                 
+                                                 if (customerId && window.saleCreateData && window.saleCreateData.customers) {
+                                                     const customerIdNum = parseInt(customerId);
+                                                     const customer = window.saleCreateData.customers.find(c => c.id === customerIdNum);
+                                                     
+                                                     if (customer) {
+                                                         this.selectedCustomerName = customer.name;
+                                                         this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                                                         
+                                                         // Actualizar el selectedCustomerId en el componente padre
+                                                         if (typeof window.saleCreateData !== 'undefined' && window.saleCreateData.selectedCustomerId !== undefined) {
+                                                             window.saleCreateData.selectedCustomerId = customer.id;
+                                                         }
+                                                         
+                                                         console.log(`✅ Cliente auto-seleccionado en Alpine: ${customer.name}`);
+                                                     }
+                                                 }
+                                             },
+                                             filterCustomers() {
+                                                 if (!this.searchTerm) {
+                                                     this.filteredCustomers = @js($customers);
+                                                     return;
+                                                 }
+                                                 const term = this.searchTerm.toLowerCase();
+                                                 this.filteredCustomers = @js($customers).filter(customer => 
+                                                     customer.name.toLowerCase().includes(term)
+                                                 );
+                                             },
+                                             selectCustomer(customer) {
+                                                 // Actualizar la variable global del componente padre
+                                                 if (typeof window.saleCreateData !== 'undefined') {
+                                                     window.saleCreateData.selectedCustomerId = customer.id;
+                                                 }
+                                                 
+                                                 this.selectedCustomerName = customer.name;
+                                                 this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                                                 this.isOpen = false;
+                                                 this.searchTerm = '';
+                                                 
+                                                 // Llamar a la función del componente padre si existe
+                                                 if (typeof onCustomerChange === 'function') {
+                                                     onCustomerChange();
+                                                 }
+                                             }
+                                         }" 
+                                         @click.away="isOpen = false"
+                                         x-init="init()">
+                                        
+                                        <!-- Select Button -->
+                                        <button type="button" 
+                                                @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.customerSearch.focus()) }"
+                                                class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                            <div class="flex items-center justify-between min-w-0">
+                                                <span class="block truncate text-gray-700 text-sm flex-1" x-text="selectedCustomerName"></span>
+                                                <div class="ml-2 flex-shrink-0" x-show="selectedCustomerName !== 'Seleccione un cliente'">
+                                                    <!-- Badge de deuda (rojo) -->
+                                                    <span x-show="selectedCustomerDebt > 0" 
+                                                          x-text="'$' + selectedCustomerDebt.toFixed(2)" 
+                                                          class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                    </span>
+                                                    <!-- Badge sin deuda (verde) -->
+                                                    <span x-show="selectedCustomerDebt === 0" 
+                                                          class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                        Sin deuda
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                                <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                     :class="{ 'rotate-180': isOpen }" 
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
+
+                                        <!-- Dropdown -->
+                                        <div x-show="isOpen" 
+                                             x-cloak
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 translate-y-1"
+                                             x-transition:enter-end="opacity-1 translate-y-0"
+                                             x-transition:leave="transition ease-in duration-150"
+                                             x-transition:leave-start="opacity-1 translate-y-0"
+                                             x-transition:leave-end="opacity-0 translate-y-1"
+                                             class="absolute z-50 mt-1 w-full bg-white shadow-lg max-h-60 rounded-xl border border-gray-200 overflow-auto">
+                                            
+                                            <!-- Search Input -->
+                                            <div class="px-3 py-2 border-b border-gray-100">
+                                                <input type="text"
+                                                       x-ref="customerSearch"
+                                                       x-model="searchTerm"
+                                                       @input="filterCustomers()"
+                                                       @keydown.escape="isOpen = false"
+                                                       placeholder="Buscar cliente..."
+                                                       class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                            </div>
+
+                                            <!-- Options List -->
+                                            <div class="max-h-48 overflow-y-auto">
+                                                <template x-for="customer in filteredCustomers" :key="customer.id">
+                                                    <div @click="selectCustomer(customer)"
+                                                         class="cursor-pointer select-none relative py-2.5 pl-3 pr-3 hover:bg-gray-50 transition-colors duration-150">
+                                                        <div class="flex items-center justify-between min-w-0">
+                                                            <span class="block text-sm text-gray-900 font-medium flex-1 min-w-0 truncate" x-text="customer.name"></span>
+                                                            <div class="ml-2 flex-shrink-0">
+                                                                <!-- Badge de deuda (rojo) -->
+                                                                <span x-show="parseFloat(customer.total_debt || 0) > 0" 
+                                                                      x-text="'$' + parseFloat(customer.total_debt || 0).toFixed(2)" 
+                                                                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200 whitespace-nowrap">
+                                                                </span>
+                                                                <!-- Badge sin deuda (verde) -->
+                                                                <span x-show="parseFloat(customer.total_debt || 0) === 0" 
+                                                                      class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200 whitespace-nowrap">
+                                                                    Sin deuda
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                
+                                                <!-- No results -->
+                                                <div x-show="filteredCustomers.length === 0" 
+                                                     class="px-3 py-4 text-sm text-gray-500 text-center">
+                                                    No se encontraron clientes
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Add Customer Button -->
                                     <a href="{{ route('admin.customers.create') }}?return_to=sales.create"
-                                       class="w-11 h-11 lg:h-16 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md flex-shrink-0">
+                                       class="w-11 h-16 bg-green-500 hover:bg-green-600 text-white rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md flex-shrink-0">
                                         <i class="fas fa-plus text-sm"></i>
                                     </a>
                                 </div>
@@ -173,25 +286,90 @@
                                     ¿Ya pagó?
                                 </label>
 
-                                <x-filter-select
-                                    name="payment-select"
-                                    placeholder="No"
-                                    searchPlaceholder="Buscar opción..."
-                                    :items="[
-                                        ['id' => '0', 'name' => 'No', 'icon' => 'fas fa-times-circle', 'color' => 'text-red-500'],
-                                        ['id' => '1', 'name' => 'Sí', 'icon' => 'fas fa-check-circle', 'color' => 'text-green-500']
-                                    ]"
-                                    itemKey="id"
-                                    itemText="name"
-                                    itemIcon="icon"
-                                    allItemsText="Seleccionar opción"
-                                    allItemsIcon="fas fa-question-circle"
-                                    :showAllOption="false"
-                                    :searchable="false"
-                                    noResultsText="No hay opciones disponibles"
-                                    containerClass="payment-filter-container"
-                                    :onChange="'window.saleCreateData.onPaymentSelect'"
-                                />
+                                <!-- Select personalizado de pago -->
+                                <div class="relative" 
+                                     x-data="{ 
+                                         isOpen: false, 
+                                         selectedPaymentText: 'No',
+                                         selectPayment(value, text) {
+                                             if (value === '1') {
+                                                 Swal.fire({
+                                                     title: '¿Confirmar pago automático?',
+                                                     text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
+                                                     icon: 'question',
+                                                     showCancelButton: true,
+                                                     confirmButtonColor: '#10b981',
+                                                     cancelButtonColor: '#6b7280',
+                                                     confirmButtonText: 'Sí, confirmar',
+                                                     cancelButtonText: 'Cancelar'
+                                                 }).then((result) => {
+                                                     if (result.isConfirmed) {
+                                                         alreadyPaid = value;
+                                                         this.selectedPaymentText = text;
+                                                         this.isOpen = false;
+                                                         
+                                                         Swal.fire({
+                                                             title: '¡Pago automático activado!',
+                                                             text: 'El pago se registrará automáticamente al crear la venta.',
+                                                             icon: 'success',
+                                                             timer: 2000,
+                                                             showConfirmButton: false
+                                                         });
+                                                     }
+                                                 });
+                                             } else {
+                                                 alreadyPaid = value;
+                                                 this.selectedPaymentText = text;
+                                                 this.isOpen = false;
+                                             }
+                                         }
+                                     }" 
+                                     @click.away="isOpen = false"
+                                     x-init="init()">
+                                     
+                                    <!-- Select Button -->
+                                    <button type="button" 
+                                            @click="isOpen = !isOpen"
+                                            class="relative w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-3 py-2.5 pr-10 text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:bg-white hover:border-gray-300 h-11">
+                                        <span class="block truncate text-gray-700 text-sm" x-text="selectedPaymentText"></span>
+                                        <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-gray-400 transition-transform duration-200" 
+                                                 :class="{ 'rotate-180': isOpen }" 
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div x-show="isOpen" 
+                                         x-cloak
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1"
+                                         x-transition:enter-end="opacity-1 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-1 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-1"
+                                         class="absolute z-50 mt-1 w-full bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+                                        
+                                        <!-- Options List -->
+                                        <div @click="selectPayment('0', 'No')"
+                                             class="cursor-pointer select-none relative py-3 px-3 hover:bg-gray-50 transition-colors duration-150">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                                                <span class="block text-sm text-gray-900">No</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div @click="selectPayment('1', 'Sí')"
+                                             class="cursor-pointer select-none relative py-3 px-3 hover:bg-gray-50 transition-colors duration-150 border-t border-gray-100">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                                <span class="block text-sm text-gray-900">Sí</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <p class="text-gray-500 text-xs mt-2 flex items-center">
                                     <i class="fas fa-info-circle mr-1"></i>
