@@ -299,20 +299,7 @@ window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
         return;
     }
     
-    // Aquí puedes agregar la lógica para manejar el cambio de modo
-    // Por ejemplo, actualizar la variable Alpine.js correspondiente
-    if (window.Alpine && window.Alpine.store) {
-        // Buscar el componente Alpine.js que maneja el modo de datos
-        const alpineComponent = document.querySelector('[x-data*="dataMode"]');
-        if (alpineComponent && alpineComponent.__x) {
-            const component = alpineComponent.__x;
-            if (component.dataMode !== undefined) {
-                component.dataMode = selectedValue;
-            }
-        }
-    }
-    
-    // También puedes disparar un evento personalizado
+    // Para modo 'current' o 'historical', disparar evento dataModeChanged
     window.dispatchEvent(new CustomEvent('dataModeChanged', {
         detail: {
             value: selectedValue,
