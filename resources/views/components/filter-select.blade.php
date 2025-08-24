@@ -94,7 +94,12 @@
     
     <div class="filter-input-wrapper">
         <div class="filter-input-icon">
-            <i class="{{ $itemIcon }}"></i>
+            <i x-show="!selectedValue" class="{{ $itemIcon }}"></i>
+            <template x-for="item in items" :key="item.{{ $itemKey }}">
+                <i x-show="selectedValue == item.{{ $itemKey }}" 
+                   :class="item.{{ $itemIcon }} || '{{ $itemIcon }}'"
+                   :class="item.color || 'text-gray-400'"></i>
+            </template>
         </div>
         
         <!-- Select Button -->

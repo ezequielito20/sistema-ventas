@@ -64,22 +64,33 @@
             @if($showDataSelector)
                 <!-- Data Selector -->
                 <div class="relative w-full sm:w-auto">
-                    <div class="bg-gradient-to-r {{ $iconBg }} p-0.5 sm:p-1 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl">
-                        <select 
-                            x-model="{{ $dataMode }}"
-                            class="bg-gradient-to-r {{ str_replace('to-', 'from-', $iconBg) }} {{ str_replace('from-', 'to-', $iconBg) }} text-white font-bold py-2 px-3 sm:px-4 rounded-lg border-0 focus:ring-2 focus:ring-opacity-50 focus:outline-none appearance-none cursor-pointer w-full sm:min-w-[180px] md:min-w-[200px] lg:min-w-[200px] pr-6 sm:pr-8 text-xs sm:text-sm">
-                            <option value="current">📊 Arqueo Actual</option>
-                            <option value="historical">📈 Histórico Completo</option>
-                            @foreach($dataOptions as $option)
-                                <option value="{{ $option['value'] }}" 
-                                        x-text="'📋 ' + '{{ $option['text'] }}'">
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute right-3 sm:right-4 md:right-6 lg:right-6 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                            <i class="fas fa-chevron-down text-white text-sm sm:text-lg md:text-xl lg:text-xl"></i>
-                        </div>
-                    </div>
+                    <x-filter-select
+                        name="data-mode-select"
+                        placeholder="📊 Arqueo Actual"
+                        searchPlaceholder="Buscar opción..."
+                        :items="collect([
+                            ['id' => 'current', 'name' => '📊 Arqueo Actual', 'icon' => 'fas fa-chart-bar'],
+                            ['id' => 'historical', 'name' => '📈 Histórico Completo', 'icon' => 'fas fa-history']
+                        ])->merge(collect($dataOptions)->map(function($option) {
+                            return [
+                                'id' => $option['value'],
+                                'name' => '📋 ' . $option['text'],
+                                'icon' => 'fas fa-file-alt'
+                            ];
+                        }))"
+                        itemKey="id"
+                        itemText="name"
+                        itemIcon="icon"
+                        allItemsText="📊 Arqueo Actual"
+                        allItemsIcon="fas fa-chart-bar"
+                        :showAllOption="false"
+                        :searchable="false"
+                        noResultsText="No hay opciones disponibles"
+                        containerClass="data-mode-filter-container"
+                        :onChange="'window.sectionHeader.onDataModeChange'"
+                        selectedValue="current"
+                        selectedText="📊 Arqueo Actual"
+                    />
                 </div>
             @endif
 
@@ -113,3 +124,191 @@
         </div>
     </div>
 </div>
+
+@push('css')
+<style>
+/* ===== ESTILOS PARA FILTER-SELECT EN SECTION-HEADER ===== */
+
+/* Contenedor del filter-select */
+.data-mode-filter-container {
+    position: relative;
+    width: 100%;
+    min-width: 180px;
+}
+
+/* Estilos específicos para el select de modo de datos */
+.data-mode-filter-container .filter-input {
+    background: white !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+    font-size: 0.875rem !important;
+    color: #374151 !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+    min-height: 44px !important;
+    width: 100% !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Asegurar que el texto del placeholder y valor seleccionado sea visible */
+.data-mode-filter-container .filter-input::placeholder {
+    color: #9ca3af !important;
+}
+
+/* Estilos para el texto del botón seleccionado */
+.data-mode-filter-container .filter-input span {
+    color: #374151 !important;
+}
+
+/* Asegurar que el texto del botón sea visible */
+.data-mode-filter-container button span {
+    color: #374151 !important;
+}
+
+.data-mode-filter-container button.bg-blue-50 span {
+    color: #1d4ed8 !important;
+}
+
+/* Asegurar que el texto del input sea visible */
+.data-mode-filter-container .filter-input {
+    color: #374151 !important;
+}
+
+.data-mode-filter-container .filter-input * {
+    color: #374151 !important;
+}
+
+/* Estilos específicos para el texto del botón principal */
+.data-mode-filter-container .filter-input-wrapper .filter-input span {
+    color: #374151 !important;
+    font-weight: bold !important;
+}
+
+/* Estilos para el icono del dropdown */
+.data-mode-filter-container .filter-input svg {
+    color: #6b7280 !important;
+}
+
+/* Estilos para el icono del input */
+.data-mode-filter-container .filter-input-icon {
+    color: #6b7280 !important;
+}
+
+.data-mode-filter-container .filter-input:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-1px) !important;
+}
+
+.data-mode-filter-container .filter-input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2) !important;
+    outline: none !important;
+}
+
+/* Icono del input */
+.data-mode-filter-container .filter-input-icon {
+    position: absolute !important;
+    left: 0.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #6b7280 !important;
+    font-size: 0.875rem !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+}
+
+/* Estilos específicos para el icono dentro del input */
+.data-mode-filter-container .filter-input-icon i {
+    color: #6b7280 !important;
+}
+
+/* Dropdown mejorado */
+.data-mode-filter-container .absolute {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e5e7eb !important;
+    background: white !important;
+    z-index: 9999 !important;
+    max-height: 300px !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-top: 0.25rem !important;
+}
+
+/* Opciones del dropdown */
+.data-mode-filter-container button {
+    transition: all 0.2s ease !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    min-height: 50px !important;
+    padding: 0.75rem 1rem !important;
+    color: #374151 !important;
+}
+
+.data-mode-filter-container button:last-child {
+    border-bottom: none !important;
+}
+
+.data-mode-filter-container button:hover {
+    background-color: #f8fafc !important;
+    transform: translateX(2px) !important;
+}
+
+.data-mode-filter-container button.bg-blue-50 {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    font-weight: 600 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .data-mode-filter-container {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .data-mode-filter-container .filter-input {
+        padding: 0.5rem 0.875rem 0.5rem 2.25rem !important;
+        font-size: 0.8125rem !important;
+    }
+    
+    .data-mode-filter-container .absolute {
+        max-height: 250px !important;
+    }
+}
+</style>
+@endpush
+
+@push('js')
+<script>
+// Función global para manejar el cambio de modo de datos
+window.sectionHeader = window.sectionHeader || {};
+window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
+    console.log('Modo de datos cambiado:', selectedValue, selectedItem);
+    
+    // Aquí puedes agregar la lógica para manejar el cambio de modo
+    // Por ejemplo, actualizar la variable Alpine.js correspondiente
+    if (window.Alpine && window.Alpine.store) {
+        // Buscar el componente Alpine.js que maneja el modo de datos
+        const alpineComponent = document.querySelector('[x-data*="dataMode"]');
+        if (alpineComponent && alpineComponent.__x) {
+            const component = alpineComponent.__x;
+            if (component.dataMode !== undefined) {
+                component.dataMode = selectedValue;
+                console.log(`✅ Modo de datos actualizado en Alpine: ${selectedValue}`);
+            }
+        }
+    }
+    
+    // También puedes disparar un evento personalizado
+    window.dispatchEvent(new CustomEvent('dataModeChanged', {
+        detail: {
+            value: selectedValue,
+            item: selectedItem
+        }
+    }));
+};
+</script>
+@endpush
