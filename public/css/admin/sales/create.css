@@ -1581,3 +1581,235 @@ select {
 .custom-dropdown::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* ===== ESTILOS PARA FILTER-SELECT EN VENTAS ===== */
+
+/* Contenedor del filter-select */
+.customer-filter-container,
+.payment-filter-container {
+    position: relative;
+    width: 100%;
+    min-width: 0; /* Evita que el contenido se desborde */
+}
+
+/* Estilos específicos para el select de clientes */
+.customer-filter-container .filter-input {
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.3s ease;
+    min-height: 44px;
+}
+
+.customer-filter-container .filter-input:hover {
+    background-color: white;
+    border-color: #d1d5db;
+}
+
+.customer-filter-container .filter-input:focus {
+    background-color: white;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+}
+
+/* Estilos específicos para el select de pago */
+.payment-filter-container .filter-input {
+    background-color: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.3s ease;
+    min-height: 44px;
+}
+
+.payment-filter-container .filter-input:hover {
+    background-color: white;
+    border-color: #d1d5db;
+}
+
+.payment-filter-container .filter-input:focus {
+    background-color: white;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+}
+
+/* Iconos en los selects */
+.customer-filter-container .filter-input-icon,
+.payment-filter-container .filter-input-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 0.875rem;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Dropdown mejorado */
+.customer-filter-container .absolute,
+.payment-filter-container .absolute {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    background: white;
+    z-index: 9999;
+}
+
+/* Opciones del dropdown */
+.customer-filter-container button,
+.payment-filter-container button {
+    transition: all 0.2s ease;
+}
+
+.customer-filter-container button:hover,
+.payment-filter-container button:hover {
+    background-color: #f8fafc;
+    transform: translateX(2px);
+}
+
+/* Estilos específicos para opciones con badges */
+.customer-filter-container button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    min-height: 60px;
+}
+
+.customer-filter-container button:last-child {
+    border-bottom: none;
+}
+
+.customer-filter-container button .flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+.customer-filter-container button .flex-1 {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Badges de deuda en el select de clientes */
+.customer-filter-container .text-red-500 {
+    color: #ef4444;
+}
+
+.customer-filter-container .text-green-500 {
+    color: #10b981;
+}
+
+/* Estilos para badges en las opciones */
+.customer-filter-container .bg-red-100 {
+    background-color: #fee2e2;
+}
+
+.customer-filter-container .text-red-800 {
+    color: #991b1b;
+}
+
+.customer-filter-container .border-red-200 {
+    border-color: #fecaca;
+}
+
+.customer-filter-container .bg-green-100 {
+    background-color: #dcfce7;
+}
+
+.customer-filter-container .text-green-800 {
+    color: #166534;
+}
+
+.customer-filter-container .border-green-200 {
+    border-color: #bbf7d0;
+}
+
+/* Hover effects para badges */
+.customer-filter-container button:hover .bg-red-100 {
+    background-color: #fecaca;
+}
+
+.customer-filter-container button:hover .bg-green-100 {
+    background-color: #bbf7d0;
+}
+
+/* Iconos de pago */
+.payment-filter-container .text-red-500 {
+    color: #ef4444;
+}
+
+.payment-filter-container .text-green-500 {
+    color: #10b981;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .customer-filter-container,
+    .payment-filter-container {
+        min-width: auto;
+    }
+    
+    .customer-filter-container .filter-input,
+    .payment-filter-container .filter-input {
+        padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Estilos específicos para pantallas grandes (1024px - 1620px) */
+@media (min-width: 1024px) and (max-width: 1620px) {
+    /* Grid container */
+    .form-grid-responsive {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .customer-filter-container {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    .customer-filter-container .filter-input {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    /* Asegurar que el botón de agregar cliente no cause desbordamiento */
+    .customer-filter-container + a {
+        flex-shrink: 0;
+        min-width: 44px;
+    }
+    
+    /* Contenedor flex del select de cliente */
+    .customer-filter-container {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Asegurar que los inputs de fecha y hora no se superpongan */
+    input[type="date"],
+    input[type="time"] {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+/* Estilos para pantallas extra grandes (1620px+) */
+@media (min-width: 1620px) {
+    .customer-filter-container,
+    .payment-filter-container {
+        min-width: 280px;
+    }
+}

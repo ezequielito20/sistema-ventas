@@ -869,3 +869,84 @@ document.addEventListener('alpine:init', () => {
         }
     }));
 });
+
+// ===== FUNCIONES GLOBALES PARA FILTER-SELECT =====
+
+// Función para manejar la selección de cliente
+window.saleCreateData = window.saleCreateData || {};
+window.saleCreateData.onCustomerSelect = function(selectedValue, selectedItem) {
+    console.log('Cliente seleccionado:', selectedValue, selectedItem);
+    
+    // Actualizar el selectedCustomerId en el componente principal
+    if (window.Alpine && window.Alpine.store) {
+        const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
+        if (saleCreateComponent && saleCreateComponent.__x) {
+            const component = saleCreateComponent.__x;
+            component.selectedCustomerId = selectedValue;
+            component.saveToLocalStorage();
+            
+            console.log(`✅ Cliente seleccionado en componente principal: ${selectedItem.name} (ID: ${selectedValue})`);
+        }
+    }
+};
+
+// Función para manejar la selección de pago
+window.saleCreateData.onPaymentSelect = function(selectedValue, selectedItem) {
+    console.log('Opción de pago seleccionada:', selectedValue, selectedItem);
+    
+    // Si selecciona "Sí" (pago automático), mostrar confirmación
+    if (selectedValue === '1') {
+        Swal.fire({
+            title: '¿Confirmar pago automático?',
+            text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Actualizar el alreadyPaid en el componente principal
+                if (window.Alpine && window.Alpine.store) {
+                    const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
+                    if (saleCreateComponent && saleCreateComponent.__x) {
+                        const component = saleCreateComponent.__x;
+                        component.alreadyPaid = selectedValue;
+                        component.saveToLocalStorage();
+                        
+                        console.log(`✅ Pago automático activado: ${selectedItem.name}`);
+                        
+                        Swal.fire({
+                            title: '¡Pago automático activado!',
+                            text: 'El pago se registrará automáticamente al crear la venta.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                }
+            } else {
+                // Si cancela, revertir la selección
+                const paymentSelect = document.querySelector('[name="payment-select"]');
+                if (paymentSelect) {
+                    paymentSelect.value = '0';
+                    // Disparar evento para actualizar el componente
+                    paymentSelect.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    } else {
+        // Si selecciona "No", actualizar directamente
+        if (window.Alpine && window.Alpine.store) {
+            const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
+            if (saleCreateComponent && saleCreateComponent.__x) {
+                const component = saleCreateComponent.__x;
+                component.alreadyPaid = selectedValue;
+                component.saveToLocalStorage();
+                
+                console.log(`✅ Pago automático desactivado: ${selectedItem.name}`);
+            }
+        }
+    }
+};

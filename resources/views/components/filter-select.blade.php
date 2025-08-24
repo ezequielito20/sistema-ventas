@@ -10,6 +10,8 @@
     'itemText' => 'name',
     'itemSubtext' => null,
     'itemIcon' => 'fas fa-box',
+    'itemBadge' => null,
+    'itemBadgeColor' => null,
     'allItemsText' => 'Todos',
     'allItemsIcon' => 'fas fa-list',
     'showAllOption' => true,
@@ -156,13 +158,21 @@
                         @click="selectItem(item)"
                         class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
                         :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedValue == item.{{ $itemKey }} }">
-                    <i class="{{ $itemIcon }} text-gray-400"></i>
-                    <div class="flex flex-col">
-                        <span x-text="item.{{ $itemText }}" class="font-medium"></span>
+                    <i :class="item.{{ $itemIcon }} || '{{ $itemIcon }}'" 
+                       :class="item.color || 'text-gray-400'"></i>
+                    <div class="flex flex-col flex-1 min-w-0">
+                        <span x-text="item.{{ $itemText }}" class="font-medium truncate"></span>
                         @if($itemSubtext)
-                            <span x-text="item.{{ $itemSubtext }}" class="text-xs text-gray-500"></span>
+                            <span x-text="item.{{ $itemSubtext }}" class="text-xs text-gray-500 truncate"></span>
                         @endif
                     </div>
+                    @if($itemBadge)
+                        <div class="flex-shrink-0 ml-2">
+                            <span x-text="item.{{ $itemBadge }}" 
+                                  class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap"
+                                  :class="item.{{ $itemBadgeColor }} || 'bg-gray-100 text-gray-800'"></span>
+                        </div>
+                    @endif
                 </button>
             </template>
             
