@@ -2,8 +2,17 @@
   document.addEventListener('alpine:init', () => {
     window.purchaseForm = function purchaseForm(){
       return {
-        formChanged:false, products:[], totalAmount:0, totalProducts:0, totalQuantity:0, productCode:'', autoAddExecuted:false,
-        init(){ if(window.purchaseFormInstance) return; this.$nextTick(()=>{ this.initializeEventListeners(); this.updateEmptyState(); window.purchaseFormInstance=this; this.checkAndAddSingleProduct(); }); },
+        formChanged:false, products:[], totalAmount:0, totalProducts:0, totalQuantity:0, productCode:'', autoAddExecuted:false, isSubmitting:false,
+        init(){ 
+          if(window.purchaseFormInstance) return; 
+          this.$nextTick(()=>{ 
+            this.initializeEventListeners(); 
+            this.updateEmptyState(); 
+            window.purchaseFormInstance=this; 
+            this.checkAndAddSingleProduct();
+            this.setupFormSubmitListener();
+          }); 
+        },
         checkAndAddSingleProduct(){ 
             if(this.autoAddExecuted) return; 
             this.autoAddExecuted = true;
@@ -53,9 +62,31 @@
         openSearchModal(){ window.dispatchEvent(new CustomEvent('openSearchModal')); },
         cancelPurchase(){ if(this.formChanged){ if(confirm('¿Está seguro? Se perderán todos los datos ingresados en esta compra')) this.goBack(); } else { this.goBack(); } },
         goBack(){ if(document.referrer && !/purchases\/(create|edit)/.test(document.referrer)){ history.back(); } else { window.location.href='/purchases'; } },
-        submitForm(){ if(this.products.length===0){ this.showToast('Debe agregar al menos un producto','warning'); return false;} if(!document.getElementById('purchase_date')?.value){ this.showToast('Debe seleccionar una fecha de compra','warning'); return false;} this.prepareFormData(); return true; },
+        submitForm(){ 
+          if(this.products.length===0){
+            this.showToast('Debe agregar al menos un producto','warning'); 
+            return false;
+          } 
+          if(!document.getElementById('purchase_date')?.value){
+            this.showToast('Debe seleccionar una fecha de compra','warning'); 
+            return false;
+          } 
+          
+          // Marcar que se está enviando el formulario para evitar la alerta de beforeunload
+          this.isSubmitting = true;
+          this.prepareFormData(); 
+          return true; 
+        },
         prepareFormData(){ this.products.forEach(p=>{ const q=document.createElement('input'); q.type='hidden'; q.name=`items[${p.id}][quantity]`; q.value=p.quantity; const pr=document.createElement('input'); pr.type='hidden'; pr.name=`items[${p.id}][price]`; pr.value=p.price; document.getElementById('purchaseForm').appendChild(q); document.getElementById('purchaseForm').appendChild(pr); }); },
-        showToast(msg,type='success'){ if(window.Swal){ const Toast=Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:3000,timerProgressBar:true}); Toast.fire({icon:type,title:msg}); } else { } }
+        showToast(msg,type='success'){ if(window.Swal){ const Toast=Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:3000,timerProgressBar:true}); Toast.fire({icon:type,title:msg}); } else { } },
+        setupFormSubmitListener(){
+          const form = document.getElementById('purchaseForm');
+          if(form){
+            form.addEventListener('submit', () => {
+              this.isSubmitting = true;
+            });
+          }
+        }
       }
     }
     window.searchModal = function searchModal(){
@@ -63,7 +94,13 @@
     }
   });
 
-  window.addEventListener('beforeunload',(e)=>{ if(window.purchaseFormInstance?.formChanged){ e.preventDefault(); e.returnValue=''; }});
+  // Event listener para beforeunload - solo se activa si no se está enviando el formulario
+  window.addEventListener('beforeunload',(e)=>{
+    if(window.purchaseFormInstance?.formChanged && !window.purchaseFormInstance.isSubmitting){
+      e.preventDefault();
+      e.returnValue='';
+    }
+  });
   
   // Función global para el botón "Volver"
   window.goBack = function() {
