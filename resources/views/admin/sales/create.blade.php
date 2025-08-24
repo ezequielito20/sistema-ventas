@@ -68,7 +68,9 @@
                                         placeholder="Código del producto">
 
                                     <!-- Autocompletado de códigos -->
-                                    <div x-show="codeSuggestions.length > 0" x-transition
+                                    <div x-show="codeSuggestions.length > 0" 
+                                         x-cloak
+                                         x-transition
                                         class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                         <template x-for="suggestion in codeSuggestions" :key="suggestion.code">
                                             <div @click="selectCodeSuggestion(suggestion)"
@@ -106,6 +108,31 @@
                                          filteredCustomers: @js($customers),
                                          selectedCustomerName: 'Seleccione un cliente',
                                          selectedCustomerDebt: 0,
+                                         init() {
+                                             // Asegurar que el dropdown esté cerrado al inicializar
+                                             this.isOpen = false;
+                                             
+                                             // Auto-seleccionar cliente si viene en la URL
+                                             const urlParams = new URLSearchParams(window.location.search);
+                                             const customerId = urlParams.get('customer_id');
+                                             
+                                             if (customerId && window.saleCreateData && window.saleCreateData.customers) {
+                                                 const customerIdNum = parseInt(customerId);
+                                                 const customer = window.saleCreateData.customers.find(c => c.id === customerIdNum);
+                                                 
+                                                 if (customer) {
+                                                     this.selectedCustomerName = customer.name;
+                                                     this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                                                     
+                                                     // Actualizar el selectedCustomerId en el componente padre
+                                                     if (typeof window.saleCreateData !== 'undefined' && window.saleCreateData.selectedCustomerId !== undefined) {
+                                                         window.saleCreateData.selectedCustomerId = customer.id;
+                                                     }
+                                                     
+                                                     console.log(`✅ Cliente auto-seleccionado en Alpine: ${customer.name}`);
+                                                 }
+                                             }
+                                         },
                                          filterCustomers() {
                                              if (!this.searchTerm) {
                                                  this.filteredCustomers = @js($customers);
@@ -117,15 +144,24 @@
                                              );
                                          },
                                          selectCustomer(customer) {
-                                             selectedCustomerId = customer.id;
+                                             // Actualizar la variable global del componente padre
+                                             if (typeof window.saleCreateData !== 'undefined') {
+                                                 window.saleCreateData.selectedCustomerId = customer.id;
+                                             }
+                                             
                                              this.selectedCustomerName = customer.name;
                                              this.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
                                              this.isOpen = false;
                                              this.searchTerm = '';
-                                             onCustomerChange();
+                                             
+                                             // Llamar a la función del componente padre si existe
+                                             if (typeof onCustomerChange === 'function') {
+                                                 onCustomerChange();
+                                             }
                                          }
                                      }" 
-                                     @click.away="isOpen = false">
+                                     @click.away="isOpen = false"
+                                     x-init="init()">
                                      
                                                                     <!-- Select Button -->
                                 <button type="button" 
@@ -157,6 +193,7 @@
 
                                     <!-- Dropdown -->
                                     <div x-show="isOpen" 
+                                         x-cloak
                                          x-transition:enter="transition ease-out duration-200"
                                          x-transition:enter-start="opacity-0 translate-y-1"
                                          x-transition:enter-end="opacity-1 translate-y-0"
@@ -287,7 +324,8 @@
                                              }
                                          }
                                      }" 
-                                     @click.away="isOpen = false">
+                                     @click.away="isOpen = false"
+                                     x-init="init()">
                                      
                                     <!-- Select Button -->
                                     <button type="button" 
@@ -305,6 +343,7 @@
 
                                     <!-- Dropdown -->
                                     <div x-show="isOpen" 
+                                         x-cloak
                                          x-transition:enter="transition ease-out duration-200"
                                          x-transition:enter-start="opacity-0 translate-y-1"
                                          x-transition:enter-end="opacity-1 translate-y-0"

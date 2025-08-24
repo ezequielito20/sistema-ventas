@@ -80,6 +80,9 @@ document.addEventListener('alpine:init', () => {
                 // Cargar datos guardados localmente
                 this.loadFromLocalStorage();
                 
+                // Procesar parámetro customer_id de la URL (después de cargar localStorage)
+                this.processCustomerIdFromURL();
+                
                 // Auto-agregar producto si hay solo uno con stock > 0 y no hay productos en la venta
                 this.autoAddSingleProduct();
                 
@@ -798,6 +801,54 @@ document.addEventListener('alpine:init', () => {
         // ===== EVENTOS =====
         onCustomerChange() {
             this.saveToLocalStorage();
+        },
+
+        // Procesar parámetro customer_id de la URL
+        processCustomerIdFromURL() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const customerId = urlParams.get('customer_id');
+                
+                if (customerId && window.saleCreateData && window.saleCreateData.customers) {
+                    // Buscar el cliente en la lista (convertir a número para comparación)
+                    const customerIdNum = parseInt(customerId);
+                    const customer = window.saleCreateData.customers.find(c => c.id === customerIdNum);
+                    
+                    if (customer) {
+                        // Auto-seleccionar el cliente en el componente principal
+                        this.selectedCustomerId = customer.id;
+                        
+                        // Sincronizar con el componente Alpine
+                        this.syncCustomerSelection(customer);
+                        
+                        console.log(`✅ Cliente auto-seleccionado en componente principal: ${customer.name} (ID: ${customer.id})`);
+                        
+                        // Mostrar notificación al usuario
+                        this.showToast('Cliente Seleccionado', `Cliente "${customer.name}" seleccionado automáticamente`, 'success', 3000);
+                    } else {
+                        console.warn(`⚠️ Cliente con ID ${customerId} no encontrado en la lista`);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Error procesando customer_id de la URL:', error);
+            }
+        },
+
+        // Sincronizar selección de cliente con componente Alpine
+        syncCustomerSelection(customer) {
+            this.$nextTick(() => {
+                const customerSelectContainer = this.$el.querySelector('[x-data*="selectedCustomerName"]');
+                if (customerSelectContainer && customerSelectContainer.__x) {
+                    const customerComponent = customerSelectContainer.__x;
+                    
+                    // Actualizar las propiedades del componente Alpine
+                    customerComponent.selectedCustomerName = customer.name;
+                    customerComponent.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
+                    customerComponent.isOpen = false;
+                    
+                    console.log(`✅ Componente Alpine sincronizado: ${customer.name}`);
+                }
+            });
         },
 
         autoAddSingleProduct() {
