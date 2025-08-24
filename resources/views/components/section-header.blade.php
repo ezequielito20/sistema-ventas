@@ -38,22 +38,13 @@
             <div class="flex-1 min-w-0">
                 <h3 class="text-xl sm:text-2xl md:text-4xl lg:text-4xl font-black text-gray-800 mb-1 sm:mb-2">{{ $title }}</h3>
                 <p class="text-sm sm:text-base md:text-lg lg:text-lg text-gray-600 font-medium">{{ $subtitle }}</p>
-                @if($showStatus || $showLastUpdate)
+                @if($showLastUpdate)
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-3">
-                        @if($showStatus)
-                            <div class="flex items-center gap-1 sm:gap-2 bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800 px-2 sm:px-3 md:px-4 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2 rounded-full text-xs sm:text-sm font-semibold">
-                                <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-{{ $statusColor }}-500 rounded-full animate-pulse"></div>
-                                <span class="hidden xs:inline">{{ $statusText }}</span>
-                                <span class="xs:hidden">{{ strlen($statusText) > 10 ? Str::limit($statusText, 8) : $statusText }}</span>
-                            </div>
-                        @endif
-                        @if($showLastUpdate)
-                            <div class="text-xs sm:text-sm text-gray-500">
-                                <span class="hidden sm:inline">Última actualización:</span>
-                                <span class="sm:hidden">Actualizado:</span>
-                                {{ $lastUpdate ?? date('H:i') }}
-                            </div>
-                        @endif
+                        <div class="text-xs sm:text-sm text-gray-500">
+                            <span class="hidden sm:inline">Última actualización:</span>
+                            <span class="sm:hidden">Actualizado:</span>
+                            {{ $lastUpdate ?? date('H:i') }}
+                        </div>
                     </div>
                 @endif
             </div>
@@ -117,8 +108,7 @@
             @if(!$actionButton && !$refreshButton && $showStatus)
                 <div class="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md sm:shadow-lg bg-gradient-to-r from-{{ $statusColor }}-500 to-{{ $statusColor }}-600 text-white">
                     <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-pulse bg-{{ $statusColor }}-300"></div>
-                    <span class="hidden sm:inline">{{ $statusText }}</span>
-                    <span class="sm:hidden">{{ strlen($statusText) > 10 ? Str::limit($statusText, 8) : $statusText }}</span>
+                    <span>{{ $statusText }}</span>
                 </div>
             @endif
         </div>
