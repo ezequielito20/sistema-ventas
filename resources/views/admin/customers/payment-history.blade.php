@@ -130,19 +130,32 @@
         <!-- Filtros -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-6 border-b border-gray-200">
-                <div class="flex items-center space-x-4">
-                    <div
-                        class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-filter text-white text-xl"></i>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-filter text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Filtros</h2>
+                            <p class="text-gray-600">Filtre los pagos por cliente y fechas</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Filtros</h2>
-                        <p class="text-gray-600">Filtre los pagos por cliente y fechas</p>
-                    </div>
+                    <button @click="showFilters = !showFilters" 
+                            class="inline-flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all duration-200 border border-gray-200">
+                        <i class="fas" :class="showFilters ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        <span x-text="showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'"></span>
+                    </button>
                 </div>
             </div>
 
-            <div class="p-6">
+            <div x-show="showFilters" x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform -translate-y-2" 
+                 x-transition:enter-end="opacity-100 transform translate-y-0" 
+                 x-transition:leave="transition ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 transform translate-y-0" 
+                 x-transition:leave-end="opacity-0 transform -translate-y-2" 
+                 class="p-6 border-t border-gray-100">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Cliente -->
                     <div class="space-y-2">

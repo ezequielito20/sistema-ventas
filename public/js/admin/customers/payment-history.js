@@ -23,6 +23,7 @@ const PAYMENT_HISTORY_CONFIG = {
 function paymentHistory() {
     return {
         viewMode: window.innerWidth >= 1024 ? 'table' : 'cards',
+        showFilters: false,
         filters: {
             customer_search: '',
             date_from: '',
