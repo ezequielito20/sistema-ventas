@@ -637,9 +637,9 @@ class AdminController extends Controller
             ]
          ];
          
-         // LÓGICA DE BALANCE: Ventas - Compras + Deudas Pagadas (Flujo de caja real)
-         // Solo cuenta el dinero que realmente tienes disponible
-         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['purchases'] + $currentCashData['debt_payments'];
+         // LÓGICA DE BALANCE: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
+         // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
+         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['purchases'] - $currentCashData['debt'];
       }
 
       // ==========================================
@@ -695,9 +695,9 @@ class AdminController extends Controller
          ]
       ];
 
-      // LÓGICA DE BALANCE HISTÓRICO: Ventas - Compras + Deudas Pagadas (Flujo de caja real)
-      // Solo cuenta el dinero que realmente tienes disponible
-      $historicalData['balance'] = $historicalData['sales'] - $historicalData['purchases'] + $historicalData['debt_payments'];
+      // LÓGICA DE BALANCE HISTÓRICO: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
+      // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
+      $historicalData['balance'] = $historicalData['sales'] - $historicalData['purchases'] - $historicalData['debt'];
 
       // ==========================================
       // DATOS DE ARQUEOS CERRADOS
@@ -794,8 +794,8 @@ class AdminController extends Controller
             }
          }
          
-         // Calcular balance: -Compras + Deudas Pagadas
-         $balanceInPeriod = -$purchasesInPeriod + $debtPaymentsInPeriod;
+         // Calcular balance: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
+         $balanceInPeriod = $salesInPeriod - $purchasesInPeriod - $debtAtClosing;
          
          // Formatear fechas para mostrar en las opciones
          $openingDateFormatted = Carbon::parse($openingDate)->format('d/m/y');

@@ -45,10 +45,27 @@ document.addEventListener('alpine:init', () => {
         },
         
         get canProcessSale() {
-            return this.selectedCustomerId && 
+            // Verificar tanto la variable local como la global
+            const customerSelected = this.selectedCustomerId || 
+                                   (window.saleCreateData && window.saleCreateData.selectedCustomerId);
+            
+            const canProcess = customerSelected && 
                    this.saleItems.length > 0 && 
                    this.saleDate && 
                    this.saleTime;
+            
+            // Debug log
+            console.log('🔍 canProcessSale check:', {
+                customerSelected,
+                selectedCustomerId: this.selectedCustomerId,
+                globalCustomerId: window.saleCreateData ? window.saleCreateData.selectedCustomerId : null,
+                saleItemsLength: this.saleItems.length,
+                saleDate: this.saleDate,
+                saleTime: this.saleTime,
+                canProcess
+            });
+            
+            return canProcess;
         },
         
         // Función para verificar si hay productos
@@ -60,6 +77,12 @@ document.addEventListener('alpine:init', () => {
         get saleItemsWatcher() {
             // Esta función se ejecuta cada vez que saleItems cambia
             return this.saleItems.length;
+        },
+        
+        // Watcher para detectar cambios en el cliente seleccionado
+        get customerWatcher() {
+            // Esta función se ejecuta cada vez que cambia el cliente
+            return window.saleCreateData ? window.saleCreateData.selectedCustomerId : null;
         },
         
         // ===== INICIALIZACIÓN =====
@@ -89,6 +112,12 @@ document.addEventListener('alpine:init', () => {
                 // Configurar persistencia automática
                 this.setupAutoSave();
                 
+                // Sincronizar cliente seleccionado
+                this.syncSelectedCustomer();
+                
+                // Activar watcher para cambios en cliente
+                this.watchCustomerSelection();
+                
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
                 this.showAlert('Error al inicializar el sistema', 'error');
@@ -109,7 +138,41 @@ document.addEventListener('alpine:init', () => {
                 { value: '1', text: 'Sí' }
             ];
 
+            // Configurar función global para sincronizar cliente
+            window.onCustomerChange = () => {
+                this.syncSelectedCustomer();
+                // Forzar actualización inmediata
+                setTimeout(() => {
+                    this.$forceUpdate();
+                }, 100);
+            };
 
+        },
+        
+        // Función para sincronizar el cliente seleccionado
+        syncSelectedCustomer() {
+            if (window.saleCreateData && window.saleCreateData.selectedCustomerId) {
+                this.selectedCustomerId = window.saleCreateData.selectedCustomerId;
+                console.log('✅ Cliente sincronizado:', this.selectedCustomerId);
+                
+                // Forzar actualización de la UI
+                this.$nextTick(() => {
+                    // Esto forzará la re-evaluación de canProcessSale
+                    this.$forceUpdate();
+                });
+            }
+        },
+        
+        // ===== WATCHERS =====
+        // Watcher para detectar cambios en el cliente seleccionado
+        watchCustomerSelection() {
+            // Verificar cada 500ms si cambió el cliente seleccionado
+            setInterval(() => {
+                const currentGlobalCustomer = window.saleCreateData ? window.saleCreateData.selectedCustomerId : null;
+                if (currentGlobalCustomer !== this.selectedCustomerId) {
+                    this.syncSelectedCustomer();
+                }
+            }, 500);
         },
         
         // ===== BÚSQUEDA Y AUTocompletado =====

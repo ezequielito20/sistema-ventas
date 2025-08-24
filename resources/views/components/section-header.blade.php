@@ -292,6 +292,7 @@ window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
         console.log(`✅ Arqueo específico seleccionado: ${cashCountId}`);
         
         // Disparar evento para arqueo específico
+        console.log('📡 Dispatching cashCountSelected event with cashCountId:', cashCountId);
         window.dispatchEvent(new CustomEvent('cashCountSelected', {
             detail: {
                 cashCountId: cashCountId,
@@ -317,6 +318,7 @@ window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
     }
     
     // También puedes disparar un evento personalizado
+    console.log('📡 Dispatching dataModeChanged event with value:', selectedValue);
     window.dispatchEvent(new CustomEvent('dataModeChanged', {
         detail: {
             value: selectedValue,

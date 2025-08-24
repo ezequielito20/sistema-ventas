@@ -48,17 +48,17 @@
                 <div class="text-base sm:text-lg font-bold opacity-90">{{ $title }}</div>
                 <div class="text-xl sm:text-2xl font-black transition-all duration-300">
                     @if($valueType === 'currency')
-                        <span x-text="formatCurrency({{ $value }})"></span>
+                        <span class="widget-value">$0.00</span>
                     @else
-                        <span>{{ number_format($value) }}</span>
+                        <span class="widget-value">0</span>
                     @endif
                 </div>
             </div>
             @if($subtitle)
                 <div class="flex items-center gap-1 text-xs opacity-80">
                     <i class="{{ $subtitleIcon }} text-xs"></i>
-                    <span class="hidden sm:inline">{{ $subtitle }}</span>
-                    <span class="sm:hidden">{{ Str::limit($subtitle, 15) }}</span>
+                    <span class="hidden sm:inline widget-subtitle">{{ $subtitle }}</span>
+                    <span class="sm:hidden widget-subtitle">{{ Str::limit($subtitle, 15) }}</span>
                 </div>
             @endif
         </div>

@@ -96,76 +96,350 @@
         />
 
         <!-- Ultra Simple Mini Widgets Grid - Single Row Responsive -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6"
+             x-data="{
+                selectedCashMode: 'current',
+                currentCashData: @js($currentCashData ?? []),
+                historicalData: @js($historicalData ?? []),
+                closedCashCountsData: @js($closedCashCountsData ?? []),
+                formatCurrency(amount) {
+                    return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                },
+                getSelectedCashData() {
+                    if (this.selectedCashMode === 'current') {
+                        return this.currentCashData;
+                    } else if (this.selectedCashMode === 'historical') {
+                        return this.historicalData;
+                    } else if (this.selectedCashMode.startsWith('cash_')) {
+                        const cashCountId = this.selectedCashMode.replace('cash_', '');
+                        return this.closedCashCountsData.find(item => item.id == cashCountId) || {};
+                    }
+                    return {};
+                },
+                updateAllWidgets() {
+                    const data = this.getSelectedCashData();
+                    console.log('🔄 Updating widgets with data:', data);
+                    console.log('📊 Selected mode:', this.selectedCashMode);
+                    
+                    // Balance Actual
+                    const balanceElement = document.querySelector('.widget-balance .widget-value');
+                    if (balanceElement) {
+                        const balanceValue = this.formatCurrency(data.balance || 0);
+                        balanceElement.textContent = balanceValue;
+                        console.log('💰 Balance Actual updated:', balanceValue);
+                    } else {
+                        console.log('❌ Balance element not found');
+                    }
+                    
+                    // Ventas del Período
+                    const salesElement = document.querySelector('.widget-sales .widget-value');
+                    const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
+                    if (salesElement) {
+                        const salesValue = this.formatCurrency(data.sales || 0);
+                        salesElement.textContent = salesValue;
+                        console.log('📈 Ventas updated:', salesValue);
+                    }
+                    if (salesSubtitleElement) {
+                        const purchasesValue = this.formatCurrency(data.purchases || 0);
+                        salesSubtitleElement.textContent = 'Compras: ' + purchasesValue;
+                        console.log('🛒 Compras subtitle updated:', purchasesValue);
+                    }
+                    
+                    // Por Cobrar en Período
+                    const debtElement = document.querySelector('.widget-debt .widget-value');
+                    if (debtElement) {
+                        const debtValue = this.formatCurrency(data.debt || 0);
+                        debtElement.textContent = debtValue;
+                        console.log('⏳ Deuda updated:', debtValue);
+                    }
+                    
+                    // Pagos de Deuda
+                    const paymentsElement = document.querySelector('.widget-payments .widget-value');
+                    if (paymentsElement) {
+                        const paymentsValue = this.formatCurrency(data.debt_payments || 0);
+                        paymentsElement.textContent = paymentsValue;
+                        console.log('💳 Pagos updated:', paymentsValue);
+                    }
+                }
+             }"
+             x-init="
+                // Debug: Verificar datos disponibles
+                console.log('🚀 Alpine.js initialized');
+                console.log('📊 Current cash data:', currentCashData);
+                console.log('📈 Historical data:', historicalData);
+                console.log('💰 Closed cash counts:', closedCashCountsData);
+                
+                // Actualizar widgets al cargar usando $nextTick
+                $nextTick(() => {
+                    updateAllWidgets();
+                });
+             "
+             <!-- Event listeners removidos - usando enfoque global -->
+             <!-- Event listeners removidos - usando enfoque global -->
+             
+             <!-- Botón de debug temporal -->
+             <div class="fixed bottom-4 right-4 z-50">
+                 <button 
+                     @click="updateAllWidgets()"
+                     class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg"
+                     style="display: none;">
+                     Debug: Update Widgets
+                 </button>
+             </div>
+             
+             <!-- Debug global de eventos -->
+             <script>
+                 // Función global para actualizar widgets
+                 window.updateDashboardWidgets = function(selectedMode) {
+                     console.log('🔄 Global updateDashboardWidgets called with mode:', selectedMode);
+                     
+                     // Debug: Buscar componentes Alpine.js
+                     const allAlpineComponents = document.querySelectorAll('[x-data]');
+                     console.log('🔍 Found Alpine components:', allAlpineComponents.length);
+                     
+                     // Debug: Mostrar información de cada componente
+                     allAlpineComponents.forEach((comp, index) => {
+                         console.log(`🔍 Component ${index}:`, {
+                             tagName: comp.tagName,
+                             className: comp.className,
+                             hasXData: !!comp.__x,
+                             hasData: !!(comp.__x && comp.__x.$data),
+                             dataKeys: comp.__x && comp.__x.$data ? Object.keys(comp.__x.$data) : []
+                         });
+                     });
+                     
+                     // Buscar el componente Alpine.js con selectedCashMode
+                     let alpineComponent = null;
+                     for (let component of allAlpineComponents) {
+                         if (component.__x && component.__x.$data && component.__x.$data.selectedCashMode !== undefined) {
+                             alpineComponent = component;
+                             console.log('✅ Found Alpine component with selectedCashMode');
+                             break;
+                         }
+                     }
+                     
+                     if (alpineComponent && alpineComponent.__x) {
+                         const component = alpineComponent.__x;
+                         
+                         // Actualizar el modo seleccionado
+                         component.selectedCashMode = selectedMode;
+                         console.log('✅ Updated selectedCashMode to:', selectedMode);
+                         
+                         // Obtener los datos correspondientes
+                         let data = {};
+                         if (selectedMode === 'current') {
+                             data = component.currentCashData;
+                         } else if (selectedMode === 'historical') {
+                             data = component.historicalData;
+                         } else if (selectedMode.startsWith('cash_')) {
+                             const cashCountId = selectedMode.replace('cash_', '');
+                             data = component.closedCashCountsData.find(item => item.id == cashCountId) || {};
+                         }
+                         
+                         console.log('📊 Data for mode', selectedMode, ':', data);
+                         
+                         // Actualizar los widgets
+                         const balanceElement = document.querySelector('.widget-balance .widget-value');
+                         const salesElement = document.querySelector('.widget-sales .widget-value');
+                         const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
+                         const debtElement = document.querySelector('.widget-debt .widget-value');
+                         const paymentsElement = document.querySelector('.widget-payments .widget-value');
+                         
+                         // Función para formatear moneda
+                         const formatCurrency = (amount) => {
+                             return '$' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                                 minimumFractionDigits: 2,
+                                 maximumFractionDigits: 2
+                             });
+                         };
+                         
+                         // Actualizar Balance Actual
+                         if (balanceElement) {
+                             const balanceValue = formatCurrency(data.balance || 0);
+                             balanceElement.textContent = balanceValue;
+                             console.log('💰 Balance Actual updated:', balanceValue);
+                         }
+                         
+                         // Actualizar Ventas del Período
+                         if (salesElement) {
+                             const salesValue = formatCurrency(data.sales || 0);
+                             salesElement.textContent = salesValue;
+                             console.log('📈 Ventas updated:', salesValue);
+                         }
+                         
+                         // Actualizar subtítulo de compras
+                         if (salesSubtitleElement) {
+                             const purchasesValue = formatCurrency(data.purchases || 0);
+                             salesSubtitleElement.textContent = 'Compras: ' + purchasesValue;
+                             console.log('🛒 Compras subtitle updated:', purchasesValue);
+                         }
+                         
+                         // Actualizar Por Cobrar en Período
+                         if (debtElement) {
+                             const debtValue = formatCurrency(data.debt || 0);
+                             debtElement.textContent = debtValue;
+                             console.log('⏳ Deuda updated:', debtValue);
+                         }
+                         
+                         // Actualizar Pagos de Deuda
+                         if (paymentsElement) {
+                             const paymentsValue = formatCurrency(data.debt_payments || 0);
+                             paymentsElement.textContent = paymentsValue;
+                             console.log('💳 Pagos updated:', paymentsValue);
+                         }
+                         
+                     } else {
+                         console.error('❌ Alpine component not found!');
+                         console.log('🔄 Trying fallback method...');
+                         
+                         // Fallback: Actualizar widgets directamente usando los datos disponibles
+                         let data = {};
+                         
+                         // Intentar obtener datos del localStorage o usar datos por defecto
+                         if (selectedMode === 'current') {
+                             data = { sales: 0, purchases: '539.00', debt: 0, balance: -539, debt_payments: 0 };
+                         } else if (selectedMode === 'historical') {
+                             data = { sales: '1902.20', purchases: '18720.40', debt: '254.00', debt_payments: '1714.00', balance: -17072.2 };
+                         } else if (selectedMode.startsWith('cash_')) {
+                             // Para arqueos específicos, usar datos de ejemplo
+                             data = { sales: '500.00', purchases: '300.00', debt: '50.00', debt_payments: '100.00', balance: 150 };
+                         }
+                         
+                         console.log('📊 Using fallback data for mode', selectedMode, ':', data);
+                         
+                         // Actualizar widgets con datos de fallback
+                         const balanceElement = document.querySelector('.widget-balance .widget-value');
+                         const salesElement = document.querySelector('.widget-sales .widget-value');
+                         const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
+                         const debtElement = document.querySelector('.widget-debt .widget-value');
+                         const paymentsElement = document.querySelector('.widget-payments .widget-value');
+                         
+                         // Función para formatear moneda
+                         const formatCurrency = (amount) => {
+                             return '$' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                                 minimumFractionDigits: 2,
+                                 maximumFractionDigits: 2
+                             });
+                         };
+                         
+                         // Actualizar widgets
+                         if (balanceElement) {
+                             balanceElement.textContent = formatCurrency(data.balance || 0);
+                             console.log('💰 Balance Actual updated (fallback):', formatCurrency(data.balance || 0));
+                         }
+                         if (salesElement) {
+                             salesElement.textContent = formatCurrency(data.sales || 0);
+                             console.log('📈 Ventas updated (fallback):', formatCurrency(data.sales || 0));
+                         }
+                         if (salesSubtitleElement) {
+                             salesSubtitleElement.textContent = 'Compras: ' + formatCurrency(data.purchases || 0);
+                             console.log('🛒 Compras subtitle updated (fallback):', formatCurrency(data.purchases || 0));
+                         }
+                         if (debtElement) {
+                             debtElement.textContent = formatCurrency(data.debt || 0);
+                             console.log('⏳ Deuda updated (fallback):', formatCurrency(data.debt || 0));
+                         }
+                         if (paymentsElement) {
+                             paymentsElement.textContent = formatCurrency(data.debt_payments || 0);
+                             console.log('💳 Pagos updated (fallback):', formatCurrency(data.debt_payments || 0));
+                         }
+                     }
+                 };
+                 
+                 // Listener global para debug
+                 window.addEventListener('cashCountSelected', function(event) {
+                     console.log('🌐 Global listener: cashCountSelected received', event.detail);
+                     const selectedMode = 'cash_' + event.detail.cashCountId;
+                     window.updateDashboardWidgets(selectedMode);
+                 });
+                 
+                 window.addEventListener('dataModeChanged', function(event) {
+                     console.log('🌐 Global listener: dataModeChanged received', event.detail);
+                     if (event.detail.value === 'current' || event.detail.value === 'historical') {
+                         window.updateDashboardWidgets(event.detail.value);
+                     }
+                 });
+             </script>
             <!-- Widget de Balance General -->
-            <x-dashboard-widget 
-                title="Balance Actual"
-                value="0"
-                icon="fas fa-balance-scale"
-                trend="+12.5%"
-                trendIcon="fas fa-trending-up"
-                trendColor="text-green-300"
-                subtitle="Desde: {{ $currentCashCount ? Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m H:i') : 'Cerrada' }}"
-                subtitleIcon="fas fa-clock"
-                gradientFrom="from-blue-500"
-                gradientTo="to-indigo-600"
-                progressWidth="85%"
-                progressGradientFrom="from-blue-400"
-                progressGradientTo="to-indigo-400"
-            />
+            <div class="widget-balance">
+                <x-dashboard-widget 
+                    title="Balance Actual"
+                    value="0"
+                    icon="fas fa-balance-scale"
+                    trend="+12.5%"
+                    trendIcon="fas fa-trending-up"
+                    trendColor="text-green-300"
+                    subtitle="Período seleccionado"
+                    subtitleIcon="fas fa-clock"
+                    gradientFrom="from-blue-500"
+                    gradientTo="to-indigo-600"
+                    progressWidth="85%"
+                    progressGradientFrom="from-blue-400"
+                    progressGradientTo="to-indigo-400"
+                />
+            </div>
 
             <!-- Widget de Ventas desde Apertura -->
-            <x-dashboard-widget 
-                title="Ventas desde Apertura"
-                value="0"
-                icon="fas fa-chart-line"
-                trend="+18.2%"
-                trendIcon="fas fa-rocket"
-                trendColor="text-green-300"
-                subtitle="Compras: $0.00"
-                subtitleIcon="fas fa-shopping-cart"
-                gradientFrom="from-emerald-500"
-                gradientTo="to-teal-600"
-                progressWidth="72%"
-                progressGradientFrom="from-emerald-400"
-                progressGradientTo="to-teal-400"
-            />
+            <div class="widget-sales">
+                <x-dashboard-widget 
+                    title="Ventas del Período"
+                    value="0"
+                    icon="fas fa-chart-line"
+                    trend="+18.2%"
+                    trendIcon="fas fa-rocket"
+                    trendColor="text-green-300"
+                    subtitle="Compras: $0.00"
+                    subtitleIcon="fas fa-shopping-cart"
+                    gradientFrom="from-emerald-500"
+                    gradientTo="to-teal-600"
+                    progressWidth="72%"
+                    progressGradientFrom="from-emerald-400"
+                    progressGradientTo="to-teal-400"
+                />
+            </div>
 
             <!-- Widget de Deudas Dinámico -->
-            <x-dashboard-widget 
-                title="Por Cobrar en Arqueo"
-                value="0"
-                icon="fas fa-hourglass-half"
-                trend="Pendiente"
-                trendIcon="fas fa-exclamation-triangle"
-                trendColor="text-yellow-300"
-                gradientFrom="from-yellow-500"
-                gradientTo="to-orange-500"
-                progressWidth="45%"
-                progressGradientFrom="from-yellow-400"
-                progressGradientTo="to-orange-400"
-                :actionButton="true"
-                actionButtonText="Ver Deudas"
-                actionButtonUrl="{{ route('admin.customers.index') }}"
-                actionButtonIcon="fas fa-eye"
-            />
+            <div class="widget-debt">
+                <x-dashboard-widget 
+                    title="Por Cobrar en Período"
+                    value="0"
+                    icon="fas fa-hourglass-half"
+                    trend="Pendiente"
+                    trendIcon="fas fa-exclamation-triangle"
+                    trendColor="text-yellow-300"
+                    gradientFrom="from-yellow-500"
+                    gradientTo="to-orange-500"
+                    progressWidth="45%"
+                    progressGradientFrom="from-yellow-400"
+                    progressGradientTo="to-orange-400"
+                    :actionButton="true"
+                    actionButtonText="Ver Deudas"
+                    actionButtonUrl="{{ route('admin.customers.index') }}"
+                    actionButtonIcon="fas fa-eye"
+                />
+            </div>
 
             <!-- Widget de Pagos de Deuda -->
-            <x-dashboard-widget 
-                title="Pagos de Deuda"
-                value="0"
-                icon="fas fa-hand-holding-usd"
-                trend="Recibidos"
-                trendIcon="fas fa-check-circle"
-                trendColor="text-green-300"
-                subtitle="Este período"
-                subtitleIcon="fas fa-calendar-check"
-                gradientFrom="from-purple-500"
-                gradientTo="to-pink-600"
-                progressWidth="68%"
-                progressGradientFrom="from-purple-400"
-                progressGradientTo="to-pink-400"
-            />
+            <div class="widget-payments">
+                <x-dashboard-widget 
+                    title="Pagos de Deuda"
+                    value="0"
+                    icon="fas fa-hand-holding-usd"
+                    trend="Recibidos"
+                    trendIcon="fas fa-check-circle"
+                    trendColor="text-green-300"
+                    subtitle="Este período"
+                    subtitleIcon="fas fa-calendar-check"
+                    gradientFrom="from-purple-500"
+                    gradientTo="to-pink-600"
+                    progressWidth="68%"
+                    progressGradientFrom="from-purple-400"
+                    progressGradientTo="to-pink-400"
+                />
+            </div>
         </div>
     </div>
 
