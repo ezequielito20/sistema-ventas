@@ -46,100 +46,78 @@
     </div>
 
     {{-- Dashboard de Estadísticas Moderno --}}
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary" title="Porcentaje de ventas de esta semana respecto al total vendido desde que se abrió la caja actual">
-                <div class="stat-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalSalesAmountThisWeek, 2) }}</div>
-                    <div class="stat-label">Ventas esta semana</div>
-                    <div class="stat-trend">
-                        @if($salesPercentageThisWeek > 0)
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+{{ $salesPercentageThisWeek }}%</span>
-                        @elseif($salesPercentageThisWeek < 0)
-                            <i class="fas fa-arrow-down"></i>
-                            <span>{{ $salesPercentageThisWeek }}%</span>
-                        @else
-                            <i class="fas fa-minus"></i>
-                            <span>0%</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <!-- Ventas Esta Semana -->
+        <x-dashboard-widget 
+            title="Ventas Esta Semana"
+            value="{{ $totalSalesAmountThisWeek }}"
+            valueType="currency"
+            icon="fas fa-shopping-bag"
+            trend="{{ $salesPercentageThisWeek > 0 ? '+' . $salesPercentageThisWeek : $salesPercentageThisWeek }}%"
+            trendIcon="{{ $salesPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($salesPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+            trendColor="{{ $salesPercentageThisWeek > 0 ? 'text-green-300' : ($salesPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
+            subtitle="Respecto al total"
+            subtitleIcon="fas fa-chart-bar"
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-400"
+            progressGradientTo="to-blue-500"
+        />
 
-            <div class="stat-card stat-success" title="Porcentaje de ganancias de esta semana respecto al total de ganancias desde que se abrió la caja actual">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalProfitThisWeek, 2) }}</div>
-                    <div class="stat-label">Ganancias esta semana</div>
-                    <div class="stat-trend">
-                        @if($profitPercentageThisWeek > 0)
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+{{ $profitPercentageThisWeek }}%</span>
-                        @elseif($profitPercentageThisWeek < 0)
-                            <i class="fas fa-arrow-down"></i>
-                            <span>{{ $profitPercentageThisWeek }}%</span>
-                        @else
-                            <i class="fas fa-minus"></i>
-                            <span>0%</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
+        <!-- Ganancias Esta Semana -->
+        <x-dashboard-widget 
+            title="Ganancias Esta Semana"
+            value="{{ $totalProfitThisWeek }}"
+            valueType="currency"
+            icon="fas fa-chart-line"
+            trend="{{ $profitPercentageThisWeek > 0 ? '+' . $profitPercentageThisWeek : $profitPercentageThisWeek }}%"
+            trendIcon="{{ $profitPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($profitPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+            trendColor="{{ $profitPercentageThisWeek > 0 ? 'text-green-300' : ($profitPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
+            subtitle="Respecto al total"
+            subtitleIcon="fas fa-chart-bar"
+            gradientFrom="from-green-500"
+            gradientTo="to-emerald-600"
+            progressWidth="100%"
+            progressGradientFrom="from-green-400"
+            progressGradientTo="to-emerald-500"
+        />
 
-            <div class="stat-card stat-warning" title="Porcentaje de cantidad de ventas de esta semana respecto al total de ventas desde que se abrió la caja actual">
-                <div class="stat-icon">
-                    <i class="fas fa-receipt"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $salesCountThisWeek }}</div>
-                    <div class="stat-label">Ventas realizadas</div>
-                    <div class="stat-trend">
-                        @if($salesCountPercentageThisWeek > 0)
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+{{ $salesCountPercentageThisWeek }}%</span>
-                        @elseif($salesCountPercentageThisWeek < 0)
-                            <i class="fas fa-arrow-down"></i>
-                            <span>{{ $salesCountPercentageThisWeek }}%</span>
-                        @else
-                            <i class="fas fa-minus"></i>
-                            <span>0%</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
+        <!-- Ventas Realizadas -->
+        <x-dashboard-widget 
+            title="Ventas Realizadas"
+            value="{{ $salesCountThisWeek }}"
+            valueType="number"
+            icon="fas fa-receipt"
+            trend="{{ $salesCountPercentageThisWeek > 0 ? '+' . $salesCountPercentageThisWeek : $salesCountPercentageThisWeek }}%"
+            trendIcon="{{ $salesCountPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($salesCountPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+            trendColor="{{ $salesCountPercentageThisWeek > 0 ? 'text-green-300' : ($salesCountPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
+            subtitle="Esta semana"
+            subtitleIcon="fas fa-calendar-week"
+            gradientFrom="from-yellow-500"
+            gradientTo="to-orange-500"
+            progressWidth="100%"
+            progressGradientFrom="from-yellow-400"
+            progressGradientTo="to-orange-400"
+        />
 
-            <div class="stat-card stat-info" title="Variación del ticket promedio de esta semana respecto al promedio desde que se abrió la caja actual">
-                <div class="stat-icon">
-                    <i class="fas fa-calculator"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($averageTicket, 2) }}</div>
-                    <div class="stat-label">Ticket promedio</div>
-                    <div class="stat-trend">
-                        @if($averageTicketPercentage > 0)
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+{{ $averageTicketPercentage }}%</span>
-                        @elseif($averageTicketPercentage < 0)
-                            <i class="fas fa-arrow-down"></i>
-                            <span>{{ $averageTicketPercentage }}%</span>
-                        @else
-                            <i class="fas fa-minus"></i>
-                            <span>0%</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Ticket Promedio -->
+        <x-dashboard-widget 
+            title="Ticket Promedio"
+            value="{{ $averageTicket }}"
+            valueType="currency"
+            icon="fas fa-calculator"
+            trend="{{ $averageTicketPercentage > 0 ? '+' . $averageTicketPercentage : $averageTicketPercentage }}%"
+            trendIcon="{{ $averageTicketPercentage > 0 ? 'fas fa-arrow-up' : ($averageTicketPercentage < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+            trendColor="{{ $averageTicketPercentage > 0 ? 'text-green-300' : ($averageTicketPercentage < 0 ? 'text-red-300' : 'text-gray-300') }}"
+            subtitle="Esta semana"
+            subtitleIcon="fas fa-chart-line"
+            gradientFrom="from-purple-500"
+            gradientTo="to-indigo-600"
+            progressWidth="100%"
+            progressGradientFrom="from-purple-400"
+            progressGradientTo="to-indigo-500"
+        />
     </div>
 
     {{-- Tabla de Ventas Moderna --}}
@@ -735,7 +713,7 @@
                                 </div>
                                 <div class="total-content">
                                     <span class="total-label">Total de la Venta</span>
-                                    <span class="total-amount" x-text="selectedSale ? formatCurrency(selectedSale.total_price) : '$0.00'"></span>
+                                    <span class="total-amount bg-green-500" x-text="selectedSale ? formatCurrency(selectedSale.total_price) : '$0.00'"></span>
                                 </div>
                             </div>
                         </div>

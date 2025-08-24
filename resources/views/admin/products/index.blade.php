@@ -63,68 +63,76 @@
     </div>
 
     <!-- Stats Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-boxes"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $totalProducts }}</div>
-                    <div class="stat-label">Total Productos</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $totalProducts }}%</span>
-                    </div>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <!-- Total de Productos -->
+        <x-dashboard-widget 
+            title="Total de Productos"
+            value="{{ $totalProducts }}"
+            valueType="number"
+            icon="fas fa-boxes"
+            trend="Registrados"
+            trendIcon="fas fa-plus-circle"
+            trendColor="text-green-300"
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-400"
+            progressGradientTo="to-blue-500"
+        />
 
-            <div class="stat-card stat-success">
-                <div class="stat-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalPurchaseValue, 2) }}</div>
-                    <div class="stat-label">Valor de Compra</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ number_format($totalPurchaseValue, 0) }}%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Valor de Compra -->
+        <x-dashboard-widget 
+            title="Valor de Compra"
+            value="{{ $totalPurchaseValue }}"
+            valueType="currency"
+            icon="fas fa-shopping-cart"
+            trend="Total"
+            trendIcon="fas fa-cart-plus"
+            trendColor="text-green-300"
+            subtitle="Promedio: {{ $totalProducts > 0 ? $currency->symbol . ' ' . number_format($totalPurchaseValue / $totalProducts, 2) : $currency->symbol . ' 0.00' }}"
+            subtitleIcon="fas fa-calculator"
+            gradientFrom="from-green-500"
+            gradientTo="to-emerald-600"
+            progressWidth="100%"
+            progressGradientFrom="from-green-400"
+            progressGradientTo="to-emerald-500"
+        />
 
-            <div class="stat-card stat-warning">
-                <div class="stat-icon">
-                    <i class="fas fa-cash-register"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($totalSaleValue, 2) }}</div>
-                    <div class="stat-label">Valor de Venta</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ number_format($totalSaleValue, 0) }}%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Valor de Venta -->
+        <x-dashboard-widget 
+            title="Valor de Venta"
+            value="{{ $totalSaleValue }}"
+            valueType="currency"
+            icon="fas fa-cash-register"
+            trend="Total"
+            trendIcon="fas fa-cash-register"
+            trendColor="text-green-300"
+            subtitle="Promedio: {{ $totalProducts > 0 ? $currency->symbol . ' ' . number_format($totalSaleValue / $totalProducts, 2) : $currency->symbol . ' 0.00' }}"
+            subtitleIcon="fas fa-calculator"
+            gradientFrom="from-yellow-500"
+            gradientTo="to-orange-500"
+            progressWidth="100%"
+            progressGradientFrom="from-yellow-400"
+            progressGradientTo="to-orange-400"
+        />
 
-            <div class="stat-card stat-info">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $currency->symbol }} {{ number_format($potentialProfit, 2) }}</div>
-                    <div class="stat-label">Ganancia Potencial</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>{{ number_format($profitPercentage, 2) }}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Ganancia Potencial -->
+        <x-dashboard-widget 
+            title="Ganancia Potencial"
+            value="{{ $potentialProfit }}"
+            valueType="currency"
+            icon="fas fa-chart-line"
+            trend="{{ number_format($profitPercentage, 1) }}%"
+            trendIcon="fas fa-trending-up"
+            trendColor="text-green-300"
+            subtitle="Margen: {{ number_format($profitPercentage, 1) }}%"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-purple-500"
+            gradientTo="to-indigo-600"
+            progressWidth="100%"
+            progressGradientFrom="from-purple-400"
+            progressGradientTo="to-indigo-500"
+        />
     </div>
 
     <!-- Filters Section -->

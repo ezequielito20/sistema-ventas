@@ -55,69 +55,78 @@
             </div>
         </div>
         <!-- Stats Dashboard -->
-        <div class="stats-dashboard" role="region" aria-label="Estadísticas de compras">
-            <div class="stats-grid">
-                <div class="stat-card stat-primary" role="article" aria-label="Productos únicos comprados">
-                    <div class="stat-icon" aria-hidden="true">
-                        <i class="fas fa-boxes"></i>
-                    </div>
-                    <div class="stat-glow" aria-hidden="true"></div>
-                    <div class="stat-content">
-                        <div class="stat-value" aria-label="Total de productos únicos">{{ $totalPurchases }}</div>
-                        <div class="stat-label">Productos Únicos</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
-                            <span>Comprados en total</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+            <!-- Productos Únicos -->
+            <x-dashboard-widget 
+                title="Productos Únicos"
+                value="{{ $totalPurchases }}"
+                valueType="number"
+                icon="fas fa-boxes"
+                trend="Comprados"
+                trendIcon="fas fa-shopping-cart"
+                trendColor="text-green-300"
+                subtitle="Productos únicos comprados"
+                subtitleIcon="fas fa-box"
+                gradientFrom="from-blue-500"
+                gradientTo="to-blue-600"
+                progressWidth="100%"
+                progressGradientFrom="from-blue-400"
+                progressGradientTo="to-blue-500"
+            />
 
-                <div class="stat-card stat-success" role="article" aria-label="Total invertido en compras">
-                    <div class="stat-icon" aria-hidden="true">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-glow" aria-hidden="true"></div>
-                    <div class="stat-content">
-                        <div class="stat-value" aria-label="Total invertido">{{ $currency->symbol }}
-                            {{ number_format($totalAmount, 2) }}</div>
-                        <div class="stat-label">Total Invertido</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-dollar-sign" aria-hidden="true"></i>
-                            <span>Capital comprometido</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Total Invertido -->
+            <x-dashboard-widget 
+                title="Total Invertido"
+                value="{{ $totalAmount }}"
+                valueType="currency"
+                icon="fas fa-chart-line"
+                trend="Capital"
+                trendIcon="fas fa-dollar-sign"
+                trendColor="text-green-300"
+                subtitle="Capital comprometido"
+                subtitleIcon="fas fa-chart-bar"
+                gradientFrom="from-green-500"
+                gradientTo="to-emerald-600"
+                progressWidth="100%"
+                progressGradientFrom="from-green-400"
+                progressGradientTo="to-emerald-500"
+            />
 
-                <div class="stat-card stat-warning" role="article" aria-label="Compras del mes actual">
-                    <div class="stat-icon" aria-hidden="true">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-glow" aria-hidden="true"></div>
-                    <div class="stat-content">
-                        <div class="stat-value" aria-label="Compras del mes">{{ $monthlyPurchases }}</div>
-                        <div class="stat-label">Compras del Mes</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
-                            <span>Actividad reciente</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Compras del Mes -->
+            <x-dashboard-widget 
+                title="Compras del Mes"
+                value="{{ $monthlyPurchases }}"
+                valueType="number"
+                icon="fas fa-calendar-check"
+                trend="Recientes"
+                trendIcon="fas fa-calendar-month"
+                trendColor="text-yellow-300"
+                subtitle="Actividad reciente"
+                subtitleIcon="fas fa-clock"
+                gradientFrom="from-yellow-500"
+                gradientTo="to-orange-500"
+                progressWidth="100%"
+                progressGradientFrom="from-yellow-400"
+                progressGradientTo="to-orange-400"
+            />
 
-                <div class="stat-card stat-info" role="article" aria-label="Entregas pendientes">
-                    <div class="stat-icon" aria-hidden="true">
-                        <i class="fas fa-hourglass-half"></i>
-                    </div>
-                    <div class="stat-glow" aria-hidden="true"></div>
-                    <div class="stat-content">
-                        <div class="stat-value" aria-label="Entregas pendientes">{{ $pendingDeliveries }}</div>
-                        <div class="stat-label">Pendientes</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-clock" aria-hidden="true"></i>
-                            <span>Por entregar</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Entregas Pendientes -->
+            <x-dashboard-widget 
+                title="Entregas Pendientes"
+                value="{{ $pendingDeliveries }}"
+                valueType="number"
+                icon="fas fa-hourglass-half"
+                trend="Pendientes"
+                trendIcon="fas fa-clock"
+                trendColor="text-red-300"
+                subtitle="Por entregar"
+                subtitleIcon="fas fa-truck"
+                gradientFrom="from-red-500"
+                gradientTo="to-pink-600"
+                progressWidth="100%"
+                progressGradientFrom="from-red-400"
+                progressGradientTo="to-pink-500"
+            />
         </div>
 
         <!-- Data Container -->

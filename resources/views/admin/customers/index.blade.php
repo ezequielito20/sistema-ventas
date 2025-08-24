@@ -169,185 +169,79 @@
     </div>
 
         <!-- Stats Widgets Compactos -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Total de Clientes -->
-            <div
-                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <!-- Gradient Background -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-                </div>
-
-                <!-- Content -->
-                <div class="relative p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
-                            <i class="fas fa-users text-white text-lg"></i>
-            </div>
-                    @if ($customerGrowth > 0)
-                            <div
-                                class="flex items-center space-x-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full text-xs font-medium">
-                                <i class="fas fa-arrow-up text-xs"></i>
-                                <span>{{ $customerGrowth }}%</span>
-                            </div>
-                    @endif
-                </div>
-
-                    <div class="space-y-1">
-                        <div class="text-2xl font-bold text-gray-900" data-stat="total-customers">
-                            {{ $totalCustomers }}
-                        </div>
-                        <div class="text-xs font-medium text-gray-600">Total de Clientes</div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full" style="width: 100%">
-                            </div>
-                        </div>
-                </div>
-            </div>
-        </div>
-
-            <!-- Clientes Activos -->
-            <div
-                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <!-- Gradient Background -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-            </div>
-
-                <!-- Content -->
-                <div class="relative p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md">
-                            <i class="fas fa-user-check text-white text-lg"></i>
-                </div>
-                </div>
-
-                    <div class="space-y-1">
-                        <div class="text-2xl font-bold text-gray-900" data-stat="active-customers">
-                            <span>{{ $activeCustomers }}</span>
-                            <span class="text-lg text-gray-500">/{{ $totalCustomers }}</span>
-                        </div>
-                        <div class="text-xs font-medium text-gray-600">Clientes Activos</div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div class="bg-gradient-to-r from-green-500 to-emerald-600 h-1.5 rounded-full"
-                                style="width: {{ $totalCustomers > 0 ? ($activeCustomers / $totalCustomers) * 100 : 0 }}%">
-                            </div>
-                        </div>
-                    </div>
-            </div>
-        </div>
+            <x-dashboard-widget 
+                title="Total de Clientes"
+                value="{{ $totalCustomers }}"
+                valueType="number"
+                icon="fas fa-users"
+                trend="{{ $customerGrowth > 0 ? '+' . $customerGrowth : $customerGrowth }}%"
+                trendIcon="{{ $customerGrowth > 0 ? 'fas fa-arrow-up' : ($customerGrowth < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+                trendColor="{{ $customerGrowth > 0 ? 'text-green-300' : ($customerGrowth < 0 ? 'text-red-300' : 'text-gray-300') }}"
+                subtitle="Crecimiento"
+                subtitleIcon="fas fa-chart-line"
+                gradientFrom="from-blue-500"
+                gradientTo="to-blue-600"
+                progressWidth="100%"
+                progressGradientFrom="from-blue-400"
+                progressGradientTo="to-blue-500"
+            />
 
             <!-- Nuevos este Mes -->
-            <div
-                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <!-- Gradient Background -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-yellow-500 to-orange-500 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-            </div>
-
-                <!-- Content -->
-                <div class="relative p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center shadow-md">
-                            <i class="fas fa-user-plus text-white text-lg"></i>
-                </div>
-                </div>
-
-                    <div class="space-y-1">
-                        <div class="text-2xl font-bold text-gray-900" data-stat="new-customers">
-                            {{ $newCustomers }}
-                        </div>
-                        <div class="text-xs font-medium text-gray-600">Nuevos este Mes</div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 h-1.5 rounded-full"
-                                style="width: {{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%">
-                            </div>
-                        </div>
-                    </div>
-            </div>
-        </div>
+            <x-dashboard-widget 
+                title="Nuevos este Mes"
+                value="{{ $newCustomers }}"
+                valueType="number"
+                icon="fas fa-user-plus"
+                trend="Nuevos"
+                trendIcon="fas fa-calendar-month"
+                trendColor="text-yellow-300"
+                subtitle="{{ $totalCustomers > 0 ? round(($newCustomers / $totalCustomers) * 100, 1) . '% del total' : '0% del total' }}"
+                subtitleIcon="fas fa-percentage"
+                gradientFrom="from-yellow-500"
+                gradientTo="to-orange-500"
+                progressWidth="{{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%"
+                progressGradientFrom="from-yellow-400"
+                progressGradientTo="to-orange-400"
+            />
 
             <!-- Ingresos Totales -->
-            <div
-                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <!-- Gradient Background -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-            </div>
-
-                <!-- Content -->
-                <div class="relative p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                            <i class="fas fa-money-bill-wave text-white text-lg"></i>
-                </div>
-                </div>
-
-                    <div class="space-y-1">
-                        <div class="text-xl font-bold text-gray-900" data-stat="total-revenue">
-                            {{ $currency->symbol }} {{ number_format($totalRevenue, 2) }}
-                        </div>
-                        <div class="text-xs font-medium text-gray-600">Ingresos Totales</div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-1.5 rounded-full"
-                                style="width: 100%"></div>
-                        </div>
-                    </div>
-            </div>
-        </div>
+            <x-dashboard-widget 
+                title="Ingresos Totales"
+                value="{{ $totalRevenue }}"
+                valueType="currency"
+                icon="fas fa-money-bill-wave"
+                trend="Total"
+                trendIcon="fas fa-chart-bar"
+                trendColor="text-green-300"
+                subtitle="Ingresos generados"
+                subtitleIcon="fas fa-dollar-sign"
+                gradientFrom="from-purple-500"
+                gradientTo="to-indigo-600"
+                progressWidth="100%"
+                progressGradientFrom="from-purple-400"
+                progressGradientTo="to-indigo-500"
+            />
 
             <!-- Clientes Morosos -->
-            <div
-                class="group relative bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-                <!-- Gradient Background -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-red-500 to-pink-600 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-            </div>
-
-                <!-- Content -->
-                <div class="relative p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md">
-                            <i class="fas fa-exclamation-triangle text-white text-lg"></i>
-                </div>
-                        @if ($defaultersCount > 0)
-                            <div
-                                class="flex items-center space-x-1 bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full text-xs font-medium">
-                                <i class="fas fa-exclamation-circle text-xs"></i>
-                                <span>Atención</span>
-                </div>
-                        @endif
-            </div>
-
-                    <div class="space-y-1">
-                        <div class="text-2xl font-bold text-gray-900" data-stat="defaulters-count">
-                            {{ $defaultersCount }}
-                        </div>
-                        <div class="text-xs font-medium text-gray-600">Clientes Morosos</div>
-
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div class="bg-gradient-to-r from-red-500 to-pink-600 h-1.5 rounded-full"
-                                style="width: {{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <x-dashboard-widget 
+                title="Clientes Morosos"
+                value="{{ $defaultersCount }}"
+                valueType="number"
+                icon="fas fa-exclamation-triangle"
+                trend="Atención"
+                trendIcon="fas fa-exclamation-circle"
+                trendColor="text-red-300"
+                subtitle="{{ $totalCustomers > 0 ? round(($defaultersCount / $totalCustomers) * 100, 1) . '% del total' : '0% del total' }}"
+                subtitleIcon="fas fa-percentage"
+                gradientFrom="from-red-500"
+                gradientTo="to-pink-600"
+                progressWidth="{{ $totalCustomers > 0 ? ($defaultersCount / $totalCustomers) * 100 : 0 }}%"
+                progressGradientFrom="from-red-400"
+                progressGradientTo="to-pink-500"
+            />
         </div>
-    </div>
 
         <!-- Filtros Rediseñados y Compactos -->
         <div class="bg-white rounded-xl shadow-md mb-6 overflow-hidden" x-data="filtersPanel()">

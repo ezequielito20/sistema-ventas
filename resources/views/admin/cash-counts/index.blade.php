@@ -108,66 +108,78 @@
     @endif
 
     <!-- Estadísticas -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6">
         <!-- Balance Actual -->
-        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600">
-            <div class="p-6">
-                <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-blue-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-wallet text-white text-xl"></i>
-                    </div>
-                    <div class="text-right">
-                        <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($currentBalance, 2) }}</h3>
-                        <p class="text-blue-100 text-sm">Balance Actual</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Balance Actual"
+            value="{{ $currentBalance }}"
+            valueType="currency"
+            icon="fas fa-wallet"
+            trend="Disponible"
+            trendIcon="fas fa-check-circle"
+            trendColor="text-blue-300"
+            subtitle="Saldo en caja"
+            subtitleIcon="fas fa-coins"
+            gradientFrom="from-blue-600"
+            gradientTo="to-purple-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-500"
+            progressGradientTo="to-purple-500"
+        />
 
         <!-- Ingresos del Día -->
-        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600">
-            <div class="p-6">
-                <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-green-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-arrow-up text-white text-xl"></i>
-                    </div>
-                    <div class="text-right">
-                        <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($todayIncome, 2) }}</h3>
-                        <p class="text-green-100 text-sm">Ingresos del Día</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Ingresos del Día"
+            value="{{ $todayIncome }}"
+            valueType="currency"
+            icon="fas fa-arrow-up"
+            trend="Entradas"
+            trendIcon="fas fa-plus-circle"
+            trendColor="text-green-300"
+            subtitle="Dinero recibido"
+            subtitleIcon="fas fa-money-bill-wave"
+            gradientFrom="from-green-600"
+            gradientTo="to-emerald-600"
+            progressWidth="100%"
+            progressGradientFrom="from-green-500"
+            progressGradientTo="to-emerald-500"
+        />
 
         <!-- Egresos del Día -->
-        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-red-600 to-pink-600">
-            <div class="p-6">
-                <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-red-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-arrow-down text-white text-xl"></i>
-                    </div>
-                    <div class="text-right">
-                        <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($todayExpenses, 2) }}</h3>
-                        <p class="text-red-100 text-sm">Egresos del Día</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Egresos del Día"
+            value="{{ $todayExpenses }}"
+            valueType="currency"
+            icon="fas fa-arrow-down"
+            trend="Salidas"
+            trendIcon="fas fa-minus-circle"
+            trendColor="text-red-300"
+            subtitle="Dinero gastado"
+            subtitleIcon="fas fa-receipt"
+            gradientFrom="from-red-600"
+            gradientTo="to-pink-600"
+            progressWidth="100%"
+            progressGradientFrom="from-red-500"
+            progressGradientTo="to-pink-500"
+        />
 
         <!-- Movimientos del Día -->
-        <div class="rounded-2xl shadow-xl overflow-hidden bg-gradient-to-r from-yellow-600 to-orange-600">
-            <div class="p-6">
-                <div class="flex items-center justify-between">
-                    <div class="w-12 h-12 bg-yellow-500 bg-opacity-90 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-exchange-alt text-white text-xl"></i>
-                    </div>
-                    <div class="text-right">
-                        <h3 class="text-2xl font-bold text-white">{{ $totalMovements }}</h3>
-                        <p class="text-yellow-100 text-sm">Movimientos del Día</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-dashboard-widget 
+            title="Movimientos del Día"
+            value="{{ $totalMovements }}"
+            valueType="number"
+            icon="fas fa-exchange-alt"
+            trend="Transacciones"
+            trendIcon="fas fa-chart-line"
+            trendColor="text-yellow-300"
+            subtitle="Total operaciones"
+            subtitleIcon="fas fa-list"
+            gradientFrom="from-yellow-600"
+            gradientTo="to-orange-600"
+            progressWidth="100%"
+            progressGradientFrom="from-yellow-500"
+            progressGradientTo="to-orange-500"
+        />
     </div>
 
     <!-- Tabla de Arqueos -->

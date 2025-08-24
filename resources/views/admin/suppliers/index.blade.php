@@ -43,68 +43,76 @@
     </div>
 
     <!-- Stats Dashboard -->
-    <div class="stats-dashboard">
-        <div class="stats-grid">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $totalSuppliers }}</div>
-                    <div class="stat-label">Total de Proveedores</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $totalSuppliers }}%</span>
-                    </div>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <!-- Total de Proveedores -->
+        <x-dashboard-widget 
+            title="Total de Proveedores"
+            value="{{ $totalSuppliers }}"
+            valueType="number"
+            icon="fas fa-truck"
+            trend="Registrados"
+            trendIcon="fas fa-plus-circle"
+            trendColor="text-green-300"
+            gradientFrom="from-blue-500"
+            gradientTo="to-blue-600"
+            progressWidth="100%"
+            progressGradientFrom="from-blue-400"
+            progressGradientTo="to-blue-500"
+        />
 
-            <div class="stat-card stat-success">
-                <div class="stat-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $activeSuppliers }}</div>
-                    <div class="stat-label">Activos</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+100%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Proveedores Activos -->
+        <x-dashboard-widget 
+            title="Proveedores Activos"
+            value="{{ $activeSuppliers }}"
+            valueType="number"
+            icon="fas fa-check-circle"
+            trend="Activos"
+            trendIcon="fas fa-check"
+            trendColor="text-green-300"
+            subtitle="{{ $totalSuppliers > 0 ? round(($activeSuppliers / $totalSuppliers) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-green-500"
+            gradientTo="to-emerald-600"
+            progressWidth="{{ $totalSuppliers > 0 ? ($activeSuppliers / $totalSuppliers) * 100 : 0 }}%"
+            progressGradientFrom="from-green-400"
+            progressGradientTo="to-emerald-500"
+        />
 
-            <div class="stat-card stat-warning">
-                <div class="stat-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $recentSuppliers }}</div>
-                    <div class="stat-label">Este Mes</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $recentSuppliers }}%</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Proveedores Este Mes -->
+        <x-dashboard-widget 
+            title="Este Mes"
+            value="{{ $recentSuppliers }}"
+            valueType="number"
+            icon="fas fa-user-plus"
+            trend="Nuevos"
+            trendIcon="fas fa-calendar-month"
+            trendColor="text-yellow-300"
+            subtitle="{{ $totalSuppliers > 0 ? round(($recentSuppliers / $totalSuppliers) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-yellow-500"
+            gradientTo="to-orange-500"
+            progressWidth="{{ $totalSuppliers > 0 ? ($recentSuppliers / $totalSuppliers) * 100 : 0 }}%"
+            progressGradientFrom="from-yellow-400"
+            progressGradientTo="to-orange-400"
+        />
 
-            <div class="stat-card stat-info">
-                <div class="stat-icon">
-                    <i class="fas fa-user-slash"></i>
-                </div>
-                <div class="stat-glow"></div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $inactiveSuppliers }}</div>
-                    <div class="stat-label">Inactivos</div>
-                    <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+{{ $inactiveSuppliers }}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Proveedores Inactivos -->
+        <x-dashboard-widget 
+            title="Inactivos"
+            value="{{ $inactiveSuppliers }}"
+            valueType="number"
+            icon="fas fa-user-slash"
+            trend="Inactivos"
+            trendIcon="fas fa-pause-circle"
+            trendColor="text-red-300"
+            subtitle="{{ $totalSuppliers > 0 ? round(($inactiveSuppliers / $totalSuppliers) * 100, 1) . '% del total' : '0% del total' }}"
+            subtitleIcon="fas fa-percentage"
+            gradientFrom="from-red-500"
+            gradientTo="to-pink-600"
+            progressWidth="{{ $totalSuppliers > 0 ? ($inactiveSuppliers / $totalSuppliers) * 100 : 0 }}%"
+            progressGradientFrom="from-red-400"
+            progressGradientTo="to-pink-500"
+        />
     </div>
 
 
