@@ -268,6 +268,30 @@ class AdminController extends Controller
          $salesMonthlyData[] = $saleData ? $saleData->sale_total : 0;
       }
 
+      // Datos para gráfico de ventas por categoría
+      $salesByCategoryStats = DB::select("
+         SELECT 
+            c.name as category_name,
+            SUM(sd.quantity * sd.unit_price) as total_sales
+         FROM sale_details sd
+         JOIN sales s ON sd.sale_id = s.id
+         JOIN products p ON sd.product_id = p.id
+         JOIN categories c ON p.category_id = c.id
+         WHERE s.company_id = ? 
+         AND s.sale_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '6 months')
+         GROUP BY c.id, c.name
+         ORDER BY total_sales DESC
+         LIMIT 6
+      ", [$companyId]);
+      
+      $salesByCategoryLabels = [];
+      $salesByCategoryData = [];
+      
+      foreach ($salesByCategoryStats as $category) {
+         $salesByCategoryLabels[] = $category->category_name;
+         $salesByCategoryData[] = $category->total_sales;
+      }
+
       // Top 5 productos más comprados
       $topProducts = DB::table('purchase_details as pd')
          ->select(
@@ -613,9 +637,9 @@ class AdminController extends Controller
             ]
          ];
          
-         // LÓGICA DE BALANCE: -Compras + Deudas Pagadas (Flujo de caja real)
+         // LÓGICA DE BALANCE: Ventas - Compras + Deudas Pagadas (Flujo de caja real)
          // Solo cuenta el dinero que realmente tienes disponible
-         $currentCashData['balance'] = -$currentCashData['purchases'] + $currentCashData['debt_payments'];
+         $currentCashData['balance'] = $currentCashData['sales'] - $currentCashData['purchases'] + $currentCashData['debt_payments'];
       }
 
       // ==========================================
@@ -671,9 +695,9 @@ class AdminController extends Controller
          ]
       ];
 
-      // LÓGICA DE BALANCE HISTÓRICO: -Compras + Deudas Pagadas (Flujo de caja real)
+      // LÓGICA DE BALANCE HISTÓRICO: Ventas - Compras + Deudas Pagadas (Flujo de caja real)
       // Solo cuenta el dinero que realmente tienes disponible
-      $historicalData['balance'] = -$historicalData['purchases'] + $historicalData['debt_payments'];
+      $historicalData['balance'] = $historicalData['sales'] - $historicalData['purchases'] + $historicalData['debt_payments'];
 
       // ==========================================
       // DATOS DE ARQUEOS CERRADOS
@@ -1001,6 +1025,8 @@ class AdminController extends Controller
          'purchaseMonthlyData',
          'salesMonthlyLabels',
          'salesMonthlyData',
+         'salesByCategoryLabels',
+         'salesByCategoryData',
          'topProducts',
          'totalCustomers',
          'customerGrowth',
