@@ -58,7 +58,20 @@ class PurchaseController extends Controller
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
                $q->where('payment_receipt', 'ILIKE', "%{$search}%")
-                 ->orWhere('purchase_date', 'ILIKE', "%{$search}%");
+                 ->orWhere('purchase_date', 'ILIKE', "%{$search}%")
+                 // Buscar por nombre de productos incluidos en la compra
+                 ->orWhereHas('details.product', function($q2) use ($search) {
+                     $q2->where('name', 'ILIKE', "%{$search}%");
+                 })
+                 // Buscar por total de productos vendidos en la compra (sumatoria de quantity)
+                 ->orWhereHas('details', function($q3) use ($search) {
+                     // Solo filtrar si el search es numérico
+                     if (is_numeric($search)) {
+                        $q3->select(DB::raw('SUM(quantity) as total_quantity'))
+                           ->groupBy('purchase_id')
+                           ->havingRaw('SUM(quantity)::text ILIKE ?', ["%{$search}%"]);
+                     }
+                 });
             });
          }
 
