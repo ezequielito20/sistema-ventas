@@ -428,6 +428,9 @@
                                                 <th class="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
                                                     <i class="fas fa-sort-numeric-up mr-1 sm:mr-2"></i><span class="hidden sm:inline">Cantidad</span>
                                                 </th>
+                                                <th class="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                                                    <i class="fas fa-percentage mr-1 sm:mr-2"></i><span class="hidden sm:inline">Descuento</span>
+                                                </th>
                                                 <th class="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
                                                     <i class="fas fa-dollar-sign mr-1 sm:mr-2"></i><span class="hidden sm:inline">Precio</span>
                                                 </th>
@@ -471,10 +474,36 @@
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900"
-                                                        x-text="`{{ $currency->symbol }} ${item.price.toFixed(2)}`"></td>
-                                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900"
-                                                        x-text="`{{ $currency->symbol }} ${item.subtotal.toFixed(2)}`">
+                                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                                                        <div class="flex items-center justify-center space-x-1">
+                                                            <input type="number" 
+                                                                x-model.number="item.discountValue" 
+                                                                @input="updateItemDiscount(index)"
+                                                                min="0" 
+                                                                :max="item.discountIsPercentage ? 100 : item.price"
+                                                                step="0.01"
+                                                                class="w-16 sm:w-20 text-center border border-gray-300 rounded-lg px-1 py-1 text-xs sm:text-sm"
+                                                                placeholder="0">
+                                                            <button type="button" 
+                                                                @click="toggleItemDiscountType(index)"
+                                                                class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-xs sm:text-sm font-bold"
+                                                                :class="item.discountIsPercentage ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-500 hover:bg-gray-600 text-white'"
+                                                                :title="item.discountIsPercentage ? 'Cambiar a descuento fijo' : 'Cambiar a descuento porcentual'">
+                                                                <span x-text="item.discountIsPercentage ? '%' : '$'"></span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">
+                                                        <div class="flex flex-col items-end">
+                                                            <span class="line-through text-gray-400" x-text="`{{ $currency->symbol }} ${item.price.toFixed(2)}`"></span>
+                                                            <span class="text-green-600 font-bold" x-text="`{{ $currency->symbol }} ${getItemPriceWithDiscount(item).toFixed(2)}`"></span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-semibold text-gray-900">
+                                                        <div class="flex flex-col items-end">
+                                                            <span class="line-through text-gray-400" x-text="`{{ $currency->symbol }} ${(item.price * item.quantity).toFixed(2)}`"></span>
+                                                            <span class="text-green-600 font-bold" x-text="`{{ $currency->symbol }} ${getItemSubtotalWithDiscount(item).toFixed(2)}`"></span>
+                                                        </div>
                                                     </td>
                                                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                                                         <button type="button" @click="removeItem(index)"
@@ -539,9 +568,32 @@
                                         </div>
                                         <div>
                                             <p class="text-emerald-100 text-sm mb-0.5">Total de la Venta</p>
-                                            <p class="text-lg sm:text-xl font-bold"
-                                                x-text="`{{ $currency->symbol }} ${totalAmount.toFixed(2)}`"></p>
+                                            <div class="flex flex-col">
+                                                <span class="line-through text-emerald-200 text-sm" x-text="`{{ $currency->symbol }} ${getSubtotalBeforeGeneralDiscount().toFixed(2)}`"></span>
+                                                <span class="text-lg sm:text-xl font-bold" x-text="`{{ $currency->symbol }} ${totalAmount.toFixed(2)}`"></span>
+                                            </div>
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Descuento General -->
+                                    <div class="flex items-center space-x-2 bg-white/10 rounded-xl p-2">
+                                        <div class="flex items-center space-x-1">
+                                            <input type="number" 
+                                                x-model.number="generalDiscountValue" 
+                                                @input="updateGeneralDiscount()"
+                                                min="0" 
+                                                :max="generalDiscountIsPercentage ? 100 : getSubtotalBeforeGeneralDiscount()"
+                                                step="0.01"
+                                                class="w-16 sm:w-20 text-center bg-white/20 border border-white/30 rounded-lg px-1 py-1 text-white text-xs sm:text-sm placeholder-white/70"
+                                                placeholder="0">
+                                            <button type="button" 
+                                                @click="toggleGeneralDiscountType()"
+                                                class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-xs sm:text-sm font-bold bg-white/20 hover:bg-white/30 text-white"
+                                                :title="generalDiscountIsPercentage ? 'Cambiar a descuento fijo' : 'Cambiar a descuento porcentual'">
+                                                <span x-text="generalDiscountIsPercentage ? '%' : '$'"></span>
+                                            </button>
+                                        </div>
+                                        <span class="text-white text-xs">Descuento</span>
                                     </div>
 
                                     <!-- Botones de acción -->
