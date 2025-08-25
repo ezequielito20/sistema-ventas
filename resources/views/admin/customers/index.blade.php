@@ -256,6 +256,11 @@
                         <div>
                             <h3 class="text-base font-semibold text-gray-900">Filtros y Búsqueda</h3>
                             <p class="text-xs text-gray-500">Personaliza la vista de tus clientes</p>
+                            @if(request('filter') === 'defaulters')
+                                <p class="text-xs text-red-600 font-medium mt-1">
+                                    <i class="fas fa-filter mr-1"></i>Mostrando solo clientes morosos
+                                </p>
+                            @endif
                         </div>
                     </div>
 

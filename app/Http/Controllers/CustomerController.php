@@ -55,6 +55,29 @@ class CustomerController extends Controller
             });
          }
          
+         // Aplicar filtro de morosos si se proporciona
+         if ($request->has('filter') && $request->filter === 'defaulters') {
+            // Obtener IDs de clientes morosos
+            $defaulterIds = DB::table('customers')
+               ->where('customers.company_id', $this->company->id)
+               ->where('customers.total_debt', '>', 0)
+               ->whereExists(function ($subQuery) use ($openingDate) {
+                  $subQuery->select(DB::raw(1))
+                     ->from('sales')
+                     ->whereColumn('sales.customer_id', 'customers.id')
+                     ->where('sales.company_id', $this->company->id)
+                     ->where('sales.sale_date', '<', $openingDate);
+               })
+               ->pluck('customers.id');
+            
+            if ($defaulterIds->isNotEmpty()) {
+               $query->whereIn('id', $defaulterIds);
+            } else {
+               // Si no hay morosos, devolver resultados vacíos
+               $query->whereRaw('1 = 0');
+            }
+         }
+         
          // Aplicar paginación manteniendo los parámetros de búsqueda
          $customers = $query->orderBy('name')->paginate(10)->withQueryString();
 

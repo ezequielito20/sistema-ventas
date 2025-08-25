@@ -128,7 +128,7 @@ function filtersPanel() {
         setFilter(filter) {
             this.currentFilter = filter;
             localStorage.setItem('customerFilter', filter);
-            this.applyFilters();
+            this.executeServerFilter(filter);
         },
         
         performSearch() {
@@ -172,6 +172,129 @@ function filtersPanel() {
         updateSearchResultsCount() {
             const visible = document.querySelectorAll('[data-defaulter]:not([style*="display: none"])');
             this.searchResultsCount = visible.length;
+        },
+        
+        executeServerFilter(filter) {
+            // Mostrar indicador de carga
+            this.showFilterLoading();
+            
+            // Construir URL con parámetros de filtro
+            const url = new URL(window.location.href);
+            if (filter && filter !== 'all') {
+                url.searchParams.set('filter', filter);
+            } else {
+                url.searchParams.delete('filter');
+            }
+            
+            // Mantener búsqueda si existe
+            const searchTerm = document.querySelector('input[x-model="searchTerm"]')?.value;
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+            }
+            
+            // Realizar petición AJAX
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al aplicar filtro');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualizar la tabla con los nuevos resultados
+                this.updateTableWithFilterResults(html, filter);
+                this.hideFilterLoading();
+            })
+            .catch(error => {
+                console.error('Error al aplicar filtro:', error);
+                this.hideFilterLoading();
+                this.showFilterError('Error al aplicar el filtro');
+            });
+        },
+        
+        updateTableWithFilterResults(html, filter) {
+            // Crear un elemento temporal para parsear el HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extraer la nueva tabla
+            const newTableBody = tempDiv.querySelector('#customersTableBody');
+            const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
+            const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
+            const newPagination = tempDiv.querySelector('.custom-pagination');
+            
+            // Actualizar la tabla
+            const currentTableBody = document.getElementById('customersTableBody');
+            if (newTableBody && currentTableBody) {
+                currentTableBody.innerHTML = newTableBody.innerHTML;
+            }
+            
+            // Actualizar las tarjetas
+            const currentCardsContainer = document.getElementById('mobileCustomersContainer');
+            if (newCardsContainer && currentCardsContainer) {
+                currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
+            }
+            
+            // Actualizar vista móvil
+            const currentMobileContainer = document.getElementById('mobileOnlyContainer');
+            if (newMobileContainer && currentMobileContainer) {
+                currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
+            }
+            
+            // Actualizar paginación
+            const currentPagination = document.querySelector('.custom-pagination');
+            if (newPagination && currentPagination) {
+                currentPagination.innerHTML = newPagination.innerHTML;
+            }
+            
+            // Actualizar contador de resultados
+            this.updateSearchResultsCount();
+            
+            // Actualizar URL sin recargar la página
+            const url = new URL(window.location.href);
+            if (filter && filter !== 'all') {
+                url.searchParams.set('filter', filter);
+            } else {
+                url.searchParams.delete('filter');
+            }
+            window.history.pushState({}, '', url.toString());
+        },
+        
+        showFilterLoading() {
+            // Mostrar indicador de carga en el panel de filtros
+            const filterPanel = document.querySelector('[x-data="filtersPanel()"]');
+            if (filterPanel) {
+                filterPanel.style.opacity = '0.7';
+                filterPanel.style.pointerEvents = 'none';
+            }
+        },
+        
+        hideFilterLoading() {
+            // Ocultar indicador de carga
+            const filterPanel = document.querySelector('[x-data="filtersPanel()"]');
+            if (filterPanel) {
+                filterPanel.style.opacity = '1';
+                filterPanel.style.pointerEvents = 'auto';
+            }
+        },
+        
+        showFilterError(message) {
+            // Mostrar error de filtro
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al aplicar filtro',
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         }
     };
 }
@@ -334,9 +457,16 @@ function dataTable() {
         initializeSearchFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const searchParam = urlParams.get('search');
+            const filterParam = urlParams.get('filter');
+            
             if (searchParam) {
                 this.searchTerm = searchParam;
                 // No ejecutar búsqueda automáticamente para evitar doble búsqueda
+            }
+            
+            if (filterParam) {
+                this.currentFilter = filterParam;
+                localStorage.setItem('customerFilter', filterParam);
             }
         },
         
@@ -416,6 +546,12 @@ function dataTable() {
                 url.searchParams.set('search', searchTerm);
             } else {
                 url.searchParams.delete('search');
+            }
+            
+            // Mantener filtro activo si existe
+            const currentFilter = document.querySelector('[x-data="filtersPanel()"]')?._x_dataStack?.[0]?.currentFilter;
+            if (currentFilter && currentFilter !== 'all') {
+                url.searchParams.set('filter', currentFilter);
             }
             
             // Realizar petición AJAX
@@ -758,7 +894,7 @@ function dataTable() {
             this.searchTerm = '';
             this.searchResultsCount = 0;
             
-            // Realizar búsqueda del servidor para limpiar filtros
+            // Realizar búsqueda del servidor para limpiar filtros pero mantener filtro activo
             this.executeServerSearch();
         },
         
