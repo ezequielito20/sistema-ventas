@@ -196,8 +196,20 @@
                     </div>
                 </div>
                 
-                <!-- Controles de Vista -->
-                <div class="flex items-center space-x-2">
+                <!-- Controles de Vista y Búsqueda -->
+                <div class="flex items-center space-x-4">
+                    <!-- Campo de búsqueda -->
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" 
+                               id="searchInput"
+                               placeholder="Buscar por ID de arqueo..." 
+                               value="{{ request('search') }}"
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+                    
                     <!-- Botones de cambio de vista (solo en desktop/tablet) -->
                     <div class="hidden md:flex items-center bg-gray-100 rounded-lg p-1">
                         <button @click="viewMode = 'table'"
@@ -528,18 +540,18 @@
         </div>
 
         <!-- Paginación -->
-        @if($cashCounts->hasPages())
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-gray-700 mb-4 sm:mb-0">
                     Mostrando {{ $cashCounts->firstItem() ?? 0 }} a {{ $cashCounts->lastItem() ?? 0 }} de {{ $cashCounts->total() }} registros
                 </div>
+                @if($cashCounts->hasPages())
                 <div class="flex justify-center">
                     {{ $cashCounts->appends(request()->query())->links() }}
                 </div>
+                @endif
             </div>
         </div>
-        @endif
     </div>
 
     <!-- Gráficos -->

@@ -35,7 +35,7 @@ class CashCountController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       $currency = $this->currencies;
       $company = $this->company;
@@ -47,53 +47,111 @@ class CashCountController extends Controller
          ->whereNull('closing_date')
          ->first();
 
-      // Obtener todos los arqueos con paginación (solo campos necesarios)
-      $cashCounts = CashCount::select('id', 'initial_amount', 'opening_date', 'closing_date', 'created_at')
-         ->where('company_id', $companyId)
-         ->orderBy('created_at', 'desc')
-         ->paginate(10);
+      // Consulta base de arqueos con paginación
+      $query = CashCount::select('id', 'initial_amount', 'opening_date', 'closing_date', 'created_at')
+         ->where('company_id', $companyId);
 
-      // Cargar movimientos para los arqueos paginados en una sola consulta
-      $cashCountIds = $cashCounts->pluck('id');
-      $movements = CashMovement::select('cash_count_id', 'type', 'amount', 'created_at')
-         ->whereIn('cash_count_id', $cashCountIds)
-         ->get()
-         ->groupBy('cash_count_id');
-
-      // Asignar movimientos a cada arqueo
-      $cashCounts->getCollection()->transform(function ($cashCount) use ($movements) {
-         $cashCount->movements = $movements->get($cashCount->id, collect());
-         return $cashCount;
-      });
-
-      // Calcular estadísticas del día en una sola consulta consolidada
-      $today = Carbon::today();
-      $todayStats = DB::select("
-         SELECT 
-            COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as today_income,
-            COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as today_expenses,
-            COUNT(*) as total_movements
-         FROM cash_movements cm
-         INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
-         WHERE cc.company_id = ? 
-         AND cc.closing_date IS NULL
-         AND DATE(cm.created_at) = ?
-      ", [$companyId, $today->format('Y-m-d')]);
-
-      $todayIncome = $todayStats[0]->today_income ?? 0;
-      $todayExpenses = $todayStats[0]->today_expenses ?? 0;
-      $totalMovements = $todayStats[0]->total_movements ?? 0;
-
-      // Calcular balance actual usando los datos ya cargados
-      $currentBalance = 0;
-      if ($currentCashCount) {
-         $currentMovements = $movements->get($currentCashCount->id, collect());
-         $income = $currentMovements->where('type', 'income')->sum('amount');
-         $expenses = $currentMovements->where('type', 'expense')->sum('amount');
-         $currentBalance = $currentCashCount->initial_amount + $income - $expenses;
+      // Búsqueda por ID de arqueo
+      if ($request->filled('search')) {
+         $search = $request->input('search');
+         $query->where(function($q) use ($search) {
+            $q->where('id', 'ILIKE', "%{$search}%")
+              ->orWhereRaw("TO_CHAR(opening_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+              ->orWhereRaw("TO_CHAR(opening_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+              ->orWhereRaw("TO_CHAR(closing_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+              ->orWhereRaw("TO_CHAR(closing_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+         });
       }
 
-      // Obtener datos del gráfico en una sola consulta consolidada
+      // Filtro por estado (abierto/cerrado)
+      if ($request->filled('status')) {
+         $status = $request->input('status');
+         if ($status === 'open') {
+            $query->whereNull('closing_date');
+         } elseif ($status === 'closed') {
+            $query->whereNotNull('closing_date');
+         }
+      }
+
+      // Filtro por rango de fechas de apertura
+      if ($request->filled('date_from')) {
+         $query->whereDate('opening_date', '>=', $request->input('date_from'));
+      }
+
+      if ($request->filled('date_to')) {
+         $query->whereDate('opening_date', '<=', $request->input('date_to'));
+      }
+
+      // Filtro por rango de montos iniciales
+      if ($request->filled('amount_min')) {
+         $query->where('initial_amount', '>=', $request->input('amount_min'));
+      }
+
+      if ($request->filled('amount_max')) {
+         $query->where('initial_amount', '<=', $request->input('amount_max'));
+      }
+
+      // Paginación del lado del servidor
+      $cashCounts = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+
+      // OBTENER TODAS LAS ESTADÍSTICAS EN UNA SOLA CONSULTA CONSOLIDADA
+      $today = Carbon::today();
+      
+      // Consulta consolidada para obtener todas las estadísticas necesarias
+      $allStats = DB::select("
+         WITH current_cash_count AS (
+            SELECT id, initial_amount, opening_date, closing_date
+            FROM cash_counts 
+            WHERE company_id = ? AND closing_date IS NULL
+            LIMIT 1
+         ),
+         today_movements AS (
+            SELECT 
+               COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as today_income,
+               COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as today_expenses,
+               COUNT(*) as total_movements
+            FROM cash_movements cm
+            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
+            WHERE cc.company_id = ? 
+            AND cc.closing_date IS NULL
+            AND DATE(cm.created_at) = ?
+         ),
+         current_balance_stats AS (
+            SELECT 
+               COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as total_income,
+               COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as total_expenses
+            FROM cash_movements cm
+            INNER JOIN current_cash_count ccc ON cm.cash_count_id = ccc.id
+         )
+         SELECT 
+            COALESCE(tm.today_income, 0) as today_income,
+            COALESCE(tm.today_expenses, 0) as today_expenses,
+            COALESCE(tm.total_movements, 0) as total_movements,
+            COALESCE(ccc.initial_amount, 0) as initial_amount,
+            COALESCE(cbs.total_income, 0) as total_income,
+            COALESCE(cbs.total_expenses, 0) as total_expenses,
+            COALESCE((ccc.initial_amount + cbs.total_income - cbs.total_expenses), 0) as current_balance
+         FROM current_cash_count ccc
+         LEFT JOIN today_movements tm ON true
+         LEFT JOIN current_balance_stats cbs ON true
+      ", [$companyId, $companyId, $today->format('Y-m-d')]);
+
+      $stats = $allStats[0] ?? (object)[
+         'today_income' => 0,
+         'today_expenses' => 0,
+         'total_movements' => 0,
+         'initial_amount' => 0,
+         'total_income' => 0,
+         'total_expenses' => 0,
+         'current_balance' => 0
+      ];
+
+      $todayIncome = $stats->today_income;
+      $todayExpenses = $stats->today_expenses;
+      $totalMovements = $stats->total_movements;
+      $currentBalance = $stats->current_balance;
+
+      // OBTENER DATOS DEL GRÁFICO OPTIMIZADO
       $lastDays = collect(range(6, 0))->map(function ($days) {
          return Carbon::today()->subDays($days);
       });
@@ -103,64 +161,75 @@ class CashCountController extends Controller
          $lastDays->last()->format('Y-m-d')
       ];
 
+      // Consulta optimizada para el gráfico usando PIVOT
       $chartDataRaw = DB::select("
          SELECT 
-            DATE(cm.created_at) as date,
-            cm.type,
-            SUM(cm.amount) as total_amount
-         FROM cash_movements cm
-         INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
-         WHERE cc.company_id = ?
-         AND DATE(cm.created_at) BETWEEN ? AND ?
-         GROUP BY DATE(cm.created_at), cm.type
-         ORDER BY date
-      ", [$companyId, $dateRange[0], $dateRange[1]]);
+            date_series.date,
+            COALESCE(income_data.total_amount, 0) as income,
+            COALESCE(expense_data.total_amount, 0) as expenses
+         FROM (
+            SELECT generate_series(?, ?, '1 day'::interval)::date as date
+         ) date_series
+         LEFT JOIN (
+            SELECT 
+               DATE(cm.created_at) as date,
+               SUM(cm.amount) as total_amount
+            FROM cash_movements cm
+            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
+            WHERE cc.company_id = ? 
+            AND cm.type = 'income'
+            AND DATE(cm.created_at) BETWEEN ? AND ?
+            GROUP BY DATE(cm.created_at)
+         ) income_data ON date_series.date = income_data.date
+         LEFT JOIN (
+            SELECT 
+               DATE(cm.created_at) as date,
+               SUM(cm.amount) as total_amount
+            FROM cash_movements cm
+            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
+            WHERE cc.company_id = ? 
+            AND cm.type = 'expense'
+            AND DATE(cm.created_at) BETWEEN ? AND ?
+            GROUP BY DATE(cm.created_at)
+         ) expense_data ON date_series.date = expense_data.date
+         ORDER BY date_series.date
+      ", [
+         $dateRange[0], $dateRange[1], 
+         $companyId, $dateRange[0], $dateRange[1],
+         $companyId, $dateRange[0], $dateRange[1]
+      ]);
 
-      // Procesar datos del gráfico
-      $chartDataByDate = collect($chartDataRaw)->groupBy('date');
-      
       $chartData = [
          'labels' => $lastDays->map(fn($date) => $date->format('d/m')),
-         'income' => [],
-         'expenses' => []
+         'income' => collect($chartDataRaw)->pluck('income')->toArray(),
+         'expenses' => collect($chartDataRaw)->pluck('expenses')->toArray()
       ];
 
-      foreach ($lastDays as $date) {
-         $dateStr = $date->format('Y-m-d');
-         $dayData = $chartDataByDate->get($dateStr, collect());
-         
-         $chartData['income'][] = $dayData->where('type', 'income')->first()->total_amount ?? 0;
-         $chartData['expenses'][] = $dayData->where('type', 'expense')->first()->total_amount ?? 0;
-      }
-
-      // Calcular total de productos vendidos y comprados en una sola consulta
+      // CALCULAR PRODUCTOS VENDIDOS Y COMPRADOS OPTIMIZADO
+      $openingDate = $currentCashCount->opening_date ?? now();
+      $closingDate = $currentCashCount->closing_date ?? now();
+      
       $productStats = DB::select("
          SELECT 
-            COALESCE(SUM(sd.quantity), 0) as total_products_sold,
-            COALESCE(SUM(pd.quantity), 0) as total_products_purchased
+            COALESCE(sales_stats.total_products_sold, 0) as total_products_sold,
+            COALESCE(purchases_stats.total_products_purchased, 0) as total_products_purchased
          FROM (
-            SELECT 
-               COALESCE(SUM(sd.quantity), 0) as quantity
+            SELECT SUM(sd.quantity) as total_products_sold
             FROM sale_details sd
             INNER JOIN sales s ON sd.sale_id = s.id
             WHERE s.company_id = ?
             AND s.created_at BETWEEN ? AND ?
-         ) sd,
-         (
-            SELECT 
-               COALESCE(SUM(pd.quantity), 0) as quantity
+         ) sales_stats
+         CROSS JOIN (
+            SELECT SUM(pd.quantity) as total_products_purchased
             FROM purchase_details pd
             INNER JOIN purchases p ON pd.purchase_id = p.id
             WHERE p.company_id = ?
             AND p.created_at BETWEEN ? AND ?
-         ) pd
+         ) purchases_stats
       ", [
-         $companyId, 
-         $currentCashCount->opening_date ?? now(), 
-         $currentCashCount->closing_date ?? now(),
-         $companyId, 
-         $currentCashCount->opening_date ?? now(), 
-         $currentCashCount->closing_date ?? now()
+         $companyId, $openingDate, $closingDate,
+         $companyId, $openingDate, $closingDate
       ]);
 
       $totalProducts = $productStats[0]->total_products_sold ?? 0;

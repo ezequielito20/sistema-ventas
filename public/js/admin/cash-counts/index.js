@@ -38,6 +38,140 @@ const CASH_COUNTS_CONFIG = {
     }
 };
 
+// ===== FUNCIONES DE DETECCIÓN Y CARGA DEL SERVIDOR =====
+
+/**
+ * Inicializar event listeners
+ */
+function initializeEventListeners() {
+    // Reinicializar event listeners para elementos dinámicos
+    // Esto se llama después de cargar contenido via AJAX
+}
+
+// Utilidad: detectar si la vista usa paginación del servidor
+function isServerPaginationActive() {
+    // Siempre activar la búsqueda del servidor para cash-counts
+    // ya que el controlador está configurado para paginación del servidor
+    return true;
+}
+
+// Cargar una URL y reemplazar secciones (tabla/tarjetas + paginación) sin recargar
+function loadCashCountsPage(url) {
+    // Mostrar indicador de carga en el campo de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.classList.add('search-loading');
+        searchInput.disabled = true;
+    }
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/xhtml+xml'
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Error al cargar');
+        return r.text();
+    })
+    .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Reemplazar tabla
+        const newTableBody = temp.querySelector('.modern-table tbody');
+        const tableBody = document.querySelector('.modern-table tbody');
+        if (newTableBody && tableBody) {
+            tableBody.innerHTML = newTableBody.innerHTML;
+        }
+
+        // Reemplazar tarjetas
+        const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+        const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+        if (newCardsGrid && cardsGrid) {
+            cardsGrid.innerHTML = newCardsGrid.innerHTML;
+        }
+
+        // Reemplazar información de paginación
+        const newPaginationInfo = temp.querySelector('.text-sm.text-gray-700');
+        const paginationInfo = document.querySelector('.text-sm.text-gray-700');
+        if (newPaginationInfo && paginationInfo) {
+            paginationInfo.innerHTML = newPaginationInfo.innerHTML;
+        }
+
+        // Reemplazar enlaces de paginación si existen
+        const newPagination = temp.querySelector('.pagination');
+        const pagination = document.querySelector('.pagination');
+        if (newPagination && pagination) {
+            pagination.innerHTML = newPagination.innerHTML;
+        }
+
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
+
+        // Reinicializar event listeners para nuevos elementos
+        initializeEventListeners();
+    })
+    .catch(err => {
+        console.error('Error al cargar página:', err);
+        // Mostrar error al usuario
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los resultados de búsqueda',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .finally(() => {
+        // Ocultar indicador de carga
+        if (searchInput) {
+            searchInput.classList.remove('search-loading');
+            searchInput.disabled = false;
+        }
+    });
+}
+
+// Interceptar clicks de paginación cuando servidor está activo
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.pagination .page-link');
+    if (link && isServerPaginationActive()) {
+        e.preventDefault();
+        loadCashCountsPage(link.href);
+    }
+});
+
+// Interceptar búsqueda para servidor
+function initializeSearchListener() {
+    const search = document.getElementById('searchInput');
+    if (search) {
+        let t;
+        search.addEventListener('input', function () {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                if (isServerPaginationActive()) {
+                    const url = new URL(window.location.href);
+                    if (this.value.trim()) url.searchParams.set('search', this.value.trim());
+                    else url.searchParams.delete('search');
+                    loadCashCountsPage(url.toString());
+                }
+            }, 300);
+        });
+    }
+}
+
+// Intentar inicializar inmediatamente y también después de que Alpine.js esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSearchListener();
+});
+
+// También intentar después de que Alpine.js esté listo
+document.addEventListener('alpine:init', () => {
+    setTimeout(initializeSearchListener, 100);
+});
+
 // ===== FUNCIONES GLOBALES =====
 
 /**
@@ -561,6 +695,9 @@ window.cashCountModal = function() {
 function initializeApp() {
     // Inicializar gráficos
     initializeCharts();
+    
+    // Inicializar event listeners
+    initializeEventListeners();
 }
 
 // Hacer funciones disponibles globalmente
@@ -573,7 +710,11 @@ window.cashCountsIndex = {
     formatCurrency,
     formatDate,
     formatDateTime,
-    showNotification
+    showNotification,
+    // Nuevas funciones de servidor
+    isServerPaginationActive,
+    loadCashCountsPage,
+    initializeEventListeners
 };
 
 
