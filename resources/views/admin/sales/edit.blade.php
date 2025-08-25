@@ -330,11 +330,11 @@
                                                             </button>
                                                             <input type="number" x-model.number="item.quantity"
                                                                 @input="updateItemSubtotal(index)" min="1"
-                                                                :max="item.stock"
+                                                                :max="getMaxQuantityForItem(item)"
                                                                 class="w-12 sm:w-16 text-center border border-gray-300 rounded-lg px-1 sm:px-2 py-1 text-xs sm:text-sm">
                                                             <button type="button" @click="increaseQuantity(index)"
                                                                 class="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center transition-all duration-300"
-                                                                :disabled="item.quantity >= item.stock">
+                                                                :disabled="item.quantity >= getMaxQuantityForItem(item)">
                                                                 <i class="fas fa-plus text-xs"></i>
                                                             </button>
                                                         </div>

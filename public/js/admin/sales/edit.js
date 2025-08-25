@@ -199,8 +199,8 @@ document.addEventListener('alpine:init', () => {
             const term = this.productCode.toLowerCase().trim();
             const suggestions = this.productsCache
                 .filter(product => 
-                    product.code.toLowerCase().includes(term) ||
-                    product.name.toLowerCase().includes(term)
+                    (product.code && product.code.toLowerCase().trim().includes(term)) ||
+                    (product.name && product.name.toLowerCase().trim().includes(term))
                 )
                 .slice(0, 5)
                 .map(product => ({
@@ -221,15 +221,19 @@ document.addEventListener('alpine:init', () => {
         addProductByCode() {
             if (!this.productCode.trim()) return;
             
+            const searchCode = this.productCode.toLowerCase().trim();
             const product = this.productsCache.find(p => 
-                p.code.toLowerCase() === this.productCode.toLowerCase().trim()
+                p.code.toLowerCase().trim() === searchCode
             );
             
             if (product) {
                 this.addProductToSale(product);
                 this.productCode = '';
             } else {
-                this.showToast('Producto No Encontrado', 'El código ingresado no corresponde a ningún producto', 'warning', 2000);
+                // Mostrar información de debug
+                console.log('Código buscado:', searchCode);
+                console.log('Productos disponibles:', this.productsCache.map(p => ({ code: p.code, name: p.name })));
+                this.showToast('Producto No Encontrado', `Producto '${this.productCode}' no encontrado en el inventario`, 'warning', 2000);
             }
         },
         
@@ -259,15 +263,15 @@ document.addEventListener('alpine:init', () => {
         
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
-            // Validar stock
-            if (product.stock <= 0) {
-                this.showToast('Sin Stock', 'Este producto no tiene stock disponible', 'warning', 2000);
-                return;
-            }
-
             // Verificar si ya está en la venta
             if (this.isProductInSale(product.id)) {
                 this.showToast('Producto Duplicado', 'Este producto ya está en la venta', 'info', 2000);
+                return;
+            }
+
+            // Validar stock solo para productos nuevos (no para productos que ya están en la venta)
+            if (product.stock <= 0) {
+                this.showToast('Sin Stock', 'Este producto no tiene stock disponible', 'warning', 2000);
                 return;
             }
 
@@ -313,11 +317,18 @@ document.addEventListener('alpine:init', () => {
         
         increaseQuantity(index) {
             const item = this.saleItems[index];
+            
+            // Para productos que ya están en la venta, el stock máximo es el stock real + cantidad actual
+            // item.stock ya incluye la cantidad en venta, así que es el stock máximo disponible
             if (item.quantity < item.stock) {
                 item.quantity++;
                 // El subtotal se calcula automáticamente con la computed property
                 this.updateTotal();
                 this.saveToLocalStorage();
+            } else {
+                // Calcular stock disponible real para el mensaje
+                const stockDisponible = item.real_stock || (item.stock - item.quantity);
+                this.showToast('Stock Insuficiente', `Stock insuficiente para '${item.name}'. Disponible: ${stockDisponible}`, 'warning', 2000);
             }
         },
         
@@ -516,8 +527,14 @@ document.addEventListener('alpine:init', () => {
                     return false;
                 }
                 
-                if (item.quantity > product.stock) {
-                    this.showToast('Stock Insuficiente', `Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error', 2000);
+                // Aplicar la fórmula: stock_disponible + cantidad_actual_en_venta >= nueva_cantidad
+                // Para productos que ya están en la venta, usar item.stock que ya incluye la cantidad en venta
+                const stockMaximo = item.stock; // item.stock ya incluye la cantidad en venta
+                
+                if (item.quantity > stockMaximo) {
+                    // Calcular stock disponible real para el mensaje
+                    const stockDisponible = product.stock;
+                    this.showToast('Stock Insuficiente', `Stock insuficiente para "${item.name}". Disponible: ${stockDisponible}`, 'error', 2000);
                     return false;
                 }
             }
@@ -954,6 +971,13 @@ document.addEventListener('alpine:init', () => {
         // ===== EVENTOS =====
         onCustomerChange() {
             this.saveToLocalStorage();
+        },
+        
+        // Función para calcular el stock máximo disponible para un producto
+        getMaxQuantityForItem(item) {
+            // Para productos que ya están en la venta, el stock máximo es el stock real + cantidad actual
+            // item.stock ya incluye la cantidad en venta, así que es el stock máximo disponible
+            return item.stock;
         }
     }));
 });

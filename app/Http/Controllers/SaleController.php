@@ -479,7 +479,8 @@ class SaleController extends Controller
                'quantity' => $detail->quantity,
                'sale_price' => $detail->product->sale_price,
                'subtotal' => $detail->quantity * $detail->product->sale_price,
-               'stock' => $detail->product->stock + $detail->quantity,
+               'stock' => $detail->product->stock + $detail->quantity, // Stock real + cantidad en venta
+               'real_stock' => $detail->product->stock, // Stock real del producto
                'category' => $detail->product->category->name ?? 'Sin categoría',
                'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
                'discount_value' => $detail->discount_value ?? 0,
@@ -493,8 +494,8 @@ class SaleController extends Controller
          $totalAmount = $saleDetails->sum('subtotal');
 
          // Obtener productos y clientes para los selectores
+         // Incluir todos los productos, incluso los que están en la venta actual
          $products = Product::where('company_id', $companyId)
-            ->where('stock', '>', 0)
             ->with(['category'])
             ->get();
          $customers = Customer::where('company_id', $companyId)->get();
@@ -581,11 +582,20 @@ class SaleController extends Controller
          
          $sale->save();
 
+         // PASO 1: Restaurar todo el stock de la venta actual al inicio
+         foreach ($sale->saleDetails as $detail) {
+            $product = Product::find($detail->product_id);
+            if ($product) {
+               $product->stock += $detail->quantity;
+               $product->save();
+            }
+         }
+
          // Obtener IDs de detalles actuales
          $currentDetailIds = $sale->saleDetails->pluck('id')->toArray();
          $newDetailIds = [];
 
-         // Procesar cada producto en la venta
+         // PASO 2: Procesar cada producto en la venta con nueva lógica de validación
          foreach ($request->items as $productId => $item) {
             // Validar que el productId sea un entero válido
             if (!is_numeric($productId) || $productId <= 0) {
@@ -612,17 +622,24 @@ class SaleController extends Controller
                ->where('product_id', $productId)
                ->first();
 
-            if ($detail) {
-               // Actualizar stock: devolver la cantidad anterior y restar la nueva
-               $stockDifference = $detail->quantity - $item['quantity'];
-               $product->stock += $stockDifference;
+            // PASO 3: Aplicar fórmula universal de validación
+            $stockDisponible = $product->stock;
+            $cantidadActualEnVenta = $detail ? $detail->quantity : 0;
+            $nuevaCantidad = $item['quantity'];
 
-               // Verificar stock suficiente
-               if ($product->stock < 0) {
-                  throw new \Exception("Stock insuficiente para el producto: {$product->name}");
+            // Validación: stock_disponible + cantidad_actual_en_venta >= nueva_cantidad
+            if (($stockDisponible + $cantidadActualEnVenta) < $nuevaCantidad) {
+               if ($detail) {
+                  // Producto existente - aumentar cantidad
+                  throw new \Exception("Stock insuficiente para aumentar la cantidad de {$product->name}. Stock disponible: {$stockDisponible}, cantidad actual en venta: {$cantidadActualEnVenta}, cantidad solicitada: {$nuevaCantidad}");
+               } else {
+                  // Producto nuevo
+                  throw new \Exception("No hay stock disponible para agregar {$product->name}. Stock disponible: {$stockDisponible}, cantidad solicitada: {$nuevaCantidad}");
                }
+            }
 
-               // Actualizar detalle con descuentos
+            if ($detail) {
+               // Producto existente - actualizar detalle con descuentos
                $detail->quantity = $item['quantity'];
                $detail->discount_value = $item['discount_value'] ?? 0;
                $detail->discount_type = $item['discount_type'] ?? 'fixed';
@@ -631,12 +648,7 @@ class SaleController extends Controller
                $detail->save();
                $newDetailIds[] = $detail->id;
             } else {
-               // Verificar stock suficiente para nuevo detalle
-               if ($product->stock < $item['quantity']) {
-                  throw new \Exception("Stock insuficiente para el producto: {$product->name}");
-               }
-
-               // Crear nuevo detalle con descuentos
+               // Producto nuevo - crear detalle con descuentos
                $detail = SaleDetail::create([
                   'sale_id' => $sale->id,
                   'product_id' => $productId,
@@ -648,26 +660,20 @@ class SaleController extends Controller
                   'original_price' => $item['original_price'] ?? $product->sale_price,
                   'final_price' => $item['final_price'] ?? $product->sale_price,
                ]);
-
-               // Actualizar stock
-               $product->stock -= $item['quantity'];
                $newDetailIds[] = $detail->id;
             }
 
+            // PASO 4: Descontar stock según la nueva cantidad
+            $product->stock -= $item['quantity'];
             $product->save();
          }
 
-         // Eliminar detalles que ya no están en la venta
+         // PASO 5: Eliminar detalles que ya no están en la venta
          $detailsToDelete = array_diff($currentDetailIds, $newDetailIds);
          foreach ($detailsToDelete as $detailId) {
             $detail = SaleDetail::find($detailId);
             if ($detail) {
-               // Devolver al stock la cantidad que se elimina
-               $product = Product::find($detail->product_id);
-               if ($product) {
-                  $product->stock += $detail->quantity;
-                  $product->save();
-               }
+               // El stock ya fue restaurado en el PASO 1, solo eliminar el detalle
                $detail->delete();
             }
          }
