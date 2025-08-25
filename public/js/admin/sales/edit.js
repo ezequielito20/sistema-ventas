@@ -99,6 +99,8 @@ document.addEventListener('alpine:init', () => {
                     this.saleDate = window.saleEditData.saleDate || '';
                     this.saleTime = window.saleEditData.saleTime || '';
                     this.saleNote = window.saleEditData.saleNote || '';
+                    this.generalDiscountValue = parseFloat(window.saleEditData.generalDiscountValue || 0);
+                    this.generalDiscountIsPercentage = window.saleEditData.generalDiscountType === 'percentage';
                     
                     // Transformar los saleItems del servidor al formato del SPA
                     if (window.saleEditData.saleItems && window.saleEditData.saleItems.length > 0) {
@@ -111,8 +113,8 @@ document.addEventListener('alpine:init', () => {
                             quantity: Number(item.quantity) || 1,
                             subtotal: parseFloat(item.sale_price || 0) * Number(item.quantity || 1),
                             category: { name: item.category || 'Sin categoría' },
-                            discountValue: 0,
-                            discountIsPercentage: false
+                            discountValue: parseFloat(item.discount_value || 0),
+                            discountIsPercentage: item.discount_type === 'percentage'
                         }));
                     }
                 }
@@ -594,11 +596,23 @@ document.addEventListener('alpine:init', () => {
                 formData.append('note', this.saleNote || '');
                 formData.append('_method', 'PUT');
                 
-                // Agregar productos
+                // Agregar productos con descuentos
                 this.saleItems.forEach((item, index) => {
                     formData.append(`items[${item.id}][product_id]`, item.id);
                     formData.append(`items[${item.id}][quantity]`, item.quantity);
+                    formData.append(`items[${item.id}][unit_price]`, item.price);
+                    formData.append(`items[${item.id}][subtotal]`, this.getItemSubtotalWithDiscount(item));
+                    formData.append(`items[${item.id}][discount_value]`, item.discountValue || 0);
+                    formData.append(`items[${item.id}][discount_type]`, item.discountIsPercentage ? 'percentage' : 'fixed');
+                    formData.append(`items[${item.id}][original_price]`, item.price);
+                    formData.append(`items[${item.id}][final_price]`, this.getItemPriceWithDiscount(item));
                 });
+                
+                // Agregar descuento general
+                formData.append('general_discount_value', this.generalDiscountValue || 0);
+                formData.append('general_discount_type', this.generalDiscountIsPercentage ? 'percentage' : 'fixed');
+                formData.append('subtotal_before_discount', this.getSubtotalBeforeGeneralDiscount());
+                formData.append('total_with_discount', this.totalAmount);
                 
                 const url = window.saleEditRoutes?.update || `/sales/update/${window.saleEditData.saleId}`;
                 const response = await fetch(url, {

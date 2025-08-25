@@ -647,7 +647,9 @@
             saleItems: @json($saleDetails),
             products: @json($products),
             customers: @json($customers),
-            currency: @json($currency)
+            currency: @json($currency),
+            generalDiscountValue: {{ $sale->general_discount_value ?? 0 }},
+            generalDiscountType: '{{ $sale->general_discount_type ?? 'fixed' }}'
         };
         
         window.saleEditRoutes = {

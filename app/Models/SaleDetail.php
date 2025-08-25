@@ -20,6 +20,10 @@ class SaleDetail extends Model
       'product_id',
       'unit_price',
       'subtotal',
+      'discount_value',
+      'discount_type',
+      'original_price',
+      'final_price',
    ];
 
    /**
@@ -31,6 +35,9 @@ class SaleDetail extends Model
       'quantity' => 'integer',
       'unit_price' => 'decimal:2',
       'subtotal' => 'decimal:2',
+      'discount_value' => 'decimal:2',
+      'original_price' => 'decimal:2',
+      'final_price' => 'decimal:2',
    ];
 
    /**

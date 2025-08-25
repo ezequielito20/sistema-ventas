@@ -295,6 +295,10 @@ class SaleController extends Controller
             'customer_id' => $validated['customer_id'],
             'cash_count_id' => $currentCashCount->id,
             'note' => $validated['note'] ?? null,
+            'general_discount_value' => $request->input('general_discount_value', 0),
+            'general_discount_type' => $request->input('general_discount_type', 'fixed'),
+            'subtotal_before_discount' => $request->input('subtotal_before_discount', $validated['total_price']),
+            'total_with_discount' => $request->input('total_with_discount', $validated['total_price']),
          ]);
 
          // Manejar el pago automático si ya pagó
@@ -339,6 +343,10 @@ class SaleController extends Controller
                'quantity' => $item['quantity'],
                'unit_price' => $item['unit_price'],
                'subtotal' => $item['subtotal'],
+               'discount_value' => $item['discount_value'] ?? 0,
+               'discount_type' => $item['discount_type'] ?? 'fixed',
+               'original_price' => $item['original_price'] ?? $item['unit_price'],
+               'final_price' => $item['final_price'] ?? $item['unit_price'],
             ]);
 
             // Actualizar el stock del producto usando el modelo ya cargado
@@ -474,6 +482,10 @@ class SaleController extends Controller
                'stock' => $detail->product->stock + $detail->quantity,
                'category' => $detail->product->category->name ?? 'Sin categoría',
                'stock_status_class' => $detail->product->stock > 10 ? 'success' : ($detail->product->stock > 0 ? 'warning' : 'danger'),
+               'discount_value' => $detail->discount_value ?? 0,
+               'discount_type' => $detail->discount_type ?? 'fixed',
+               'original_price' => $detail->original_price ?? $detail->product->sale_price,
+               'final_price' => $detail->final_price ?? $detail->product->sale_price,
             ];
          });
 
@@ -555,11 +567,18 @@ class SaleController extends Controller
          if (isset($validated['sale_time'])) {
             $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
          } else {
-         $sale->sale_date = $validated['sale_date'];
+            $sale->sale_date = $validated['sale_date'];
          }
          $sale->customer_id = $validated['customer_id'];
          $sale->total_price = $validated['total_price'];
          $sale->note = $validated['note'] ?? null;
+         
+         // Actualizar descuentos generales
+         $sale->general_discount_value = $request->input('general_discount_value', 0);
+         $sale->general_discount_type = $request->input('general_discount_type', 'fixed');
+         $sale->subtotal_before_discount = $request->input('subtotal_before_discount', $validated['total_price']);
+         $sale->total_with_discount = $request->input('total_with_discount', $validated['total_price']);
+         
          $sale->save();
 
          // Obtener IDs de detalles actuales
@@ -603,8 +622,12 @@ class SaleController extends Controller
                   throw new \Exception("Stock insuficiente para el producto: {$product->name}");
                }
 
-               // Actualizar detalle
+               // Actualizar detalle con descuentos
                $detail->quantity = $item['quantity'];
+               $detail->discount_value = $item['discount_value'] ?? 0;
+               $detail->discount_type = $item['discount_type'] ?? 'fixed';
+               $detail->original_price = $item['original_price'] ?? $item['unit_price'];
+               $detail->final_price = $item['final_price'] ?? $item['unit_price'];
                $detail->save();
                $newDetailIds[] = $detail->id;
             } else {
@@ -613,11 +636,17 @@ class SaleController extends Controller
                   throw new \Exception("Stock insuficiente para el producto: {$product->name}");
                }
 
-               // Crear nuevo detalle
+               // Crear nuevo detalle con descuentos
                $detail = SaleDetail::create([
                   'sale_id' => $sale->id,
                   'product_id' => $productId,
-                  'quantity' => $item['quantity']
+                  'quantity' => $item['quantity'],
+                  'unit_price' => $item['unit_price'] ?? $product->sale_price,
+                  'subtotal' => $item['subtotal'] ?? ($item['quantity'] * $product->sale_price),
+                  'discount_value' => $item['discount_value'] ?? 0,
+                  'discount_type' => $item['discount_type'] ?? 'fixed',
+                  'original_price' => $item['original_price'] ?? $product->sale_price,
+                  'final_price' => $item['final_price'] ?? $product->sale_price,
                ]);
 
                // Actualizar stock

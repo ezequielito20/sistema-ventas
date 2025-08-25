@@ -20,6 +20,10 @@ class Sale extends Model
         'company_id',
         'customer_id',
         'note',
+        'general_discount_value',
+        'general_discount_type',
+        'subtotal_before_discount',
+        'total_with_discount',
     ];
 
     /**
@@ -43,6 +47,9 @@ class Sale extends Model
     protected $casts = [
         'sale_date' => 'datetime',
         'total_price' => 'decimal:2',
+        'general_discount_value' => 'decimal:2',
+        'subtotal_before_discount' => 'decimal:2',
+        'total_with_discount' => 'decimal:2',
     ];
 
     /**

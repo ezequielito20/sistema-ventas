@@ -755,13 +755,23 @@ document.addEventListener('alpine:init', () => {
                 formData.append('note', this.saleNote || '');
                 formData.append('action', action);
                 
-                // Agregar productos
+                // Agregar productos con descuentos
                 this.saleItems.forEach((item, index) => {
                     formData.append(`sale_details[${index}][product_id]`, item.id);
                     formData.append(`sale_details[${index}][quantity]`, item.quantity);
                     formData.append(`sale_details[${index}][unit_price]`, item.price);
-                    formData.append(`sale_details[${index}][subtotal]`, item.subtotal);
+                    formData.append(`sale_details[${index}][subtotal]`, this.getItemSubtotalWithDiscount(item));
+                    formData.append(`sale_details[${index}][discount_value]`, item.discountValue || 0);
+                    formData.append(`sale_details[${index}][discount_type]`, item.discountIsPercentage ? 'percentage' : 'fixed');
+                    formData.append(`sale_details[${index}][original_price]`, item.price);
+                    formData.append(`sale_details[${index}][final_price]`, this.getItemPriceWithDiscount(item));
                 });
+                
+                // Agregar descuento general
+                formData.append('general_discount_value', this.generalDiscountValue || 0);
+                formData.append('general_discount_type', this.generalDiscountIsPercentage ? 'percentage' : 'fixed');
+                formData.append('subtotal_before_discount', this.getSubtotalBeforeGeneralDiscount());
+                formData.append('total_with_discount', this.totalAmount);
                 
                 const url = (window.saleCreateRoutes?.store || '/sales/create') + '?action=' + action;
                 const response = await fetch(url, {
