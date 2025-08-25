@@ -23,6 +23,19 @@ class Sale extends Model
     ];
 
     /**
+     * Boot del modelo para configurar eventos
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Configurar eliminación en cascada para los detalles de venta
+        static::deleting(function ($sale) {
+            $sale->saleDetails()->delete();
+        });
+    }
+
+    /**
      * Los atributos que deben ser convertidos a tipos nativos.
      *
      * @var array<string, string>

@@ -736,10 +736,21 @@ class SaleController extends Controller
          $customer->total_debt = max(0, $customer->total_debt - $sale->total_price);
          $customer->save();
 
+         // Restaurar el stock de los productos antes de eliminar los detalles
+         $saleDetails = SaleDetail::where('sale_id', $sale->id)->get();
+         
+         foreach ($saleDetails as $detail) {
+            $product = Product::find($detail->product_id);
+            if ($product) {
+               $product->stock += $detail->quantity;
+               $product->save();
+            }
+         }
+
          // Eliminar movimientos de caja asociados a esta venta
          CashMovement::where('description', 'Venta #' . $sale->id)->delete();
 
-         // Eliminar la venta
+         // Eliminar la venta (esto también eliminará los detalles por la relación)
          $sale->delete();
 
          DB::commit();
