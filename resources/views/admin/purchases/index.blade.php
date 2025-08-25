@@ -147,7 +147,7 @@
                     <div class="search-box">
                         <i class="fas fa-search" aria-hidden="true"></i>
                         <input type="text" id="purchasesSearch" placeholder="Buscar compra por recibo o fecha..."
-                            aria-label="Buscar compras" autocomplete="off">
+                            aria-label="Buscar compras" autocomplete="off" value="{{ request('search') }}">
                         <button type="button" id="clearSearch" class="clear-btn" aria-label="Limpiar búsqueda">
                             <i class="fas fa-times" aria-hidden="true"></i>
                         </button>

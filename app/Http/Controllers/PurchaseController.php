@@ -31,7 +31,7 @@ class PurchaseController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
          $company = $this->company;
@@ -41,9 +41,8 @@ class PurchaseController extends Controller
             ->whereNull('closing_date')
             ->first();
 
-
-         // Obtener compras con sus relaciones usando paginación (solo campos necesarios)
-         $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+         // Consulta base de compras con relaciones
+         $query = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
             ->with([
                'details' => function($query) {
                   $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
@@ -52,9 +51,54 @@ class PurchaseController extends Controller
                   $query->select(['id', 'name', 'code', 'image']);
                }
             ])
-            ->where('company_id', $companyId)
-            ->orderBy('created_at', 'desc')
-            ->paginate(10); // 10 compras por página
+            ->where('company_id', $companyId);
+
+         // Búsqueda por texto: recibo de pago, fecha
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+               $q->where('payment_receipt', 'ILIKE', "%{$search}%")
+                 ->orWhere('purchase_date', 'ILIKE', "%{$search}%");
+            });
+         }
+
+         // Filtro por producto específico
+         if ($request->filled('product_id')) {
+            $query->whereHas('details', function($q) use ($request) {
+               $q->where('product_id', $request->input('product_id'));
+            });
+         }
+
+         // Filtro por estado de pago (con recibo = completado, sin recibo = pendiente)
+         if ($request->filled('payment_status')) {
+            $status = $request->input('payment_status');
+            if ($status === 'completed') {
+               $query->whereNotNull('payment_receipt');
+            } elseif ($status === 'pending') {
+               $query->whereNull('payment_receipt');
+            }
+         }
+
+         // Filtro por rango de fechas
+         if ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->input('date_to'));
+         }
+
+         // Filtro por rango de montos
+         if ($request->filled('amount_min')) {
+            $query->where('total_price', '>=', $request->input('amount_min'));
+         }
+
+         if ($request->filled('amount_max')) {
+            $query->where('total_price', '<=', $request->input('amount_max'));
+         }
+
+         // Paginación del lado del servidor
+         $purchases = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
          // Calcular estadísticas usando consultas directas de base de datos (más eficiente)
          $totalPurchases = DB::table('purchase_details')

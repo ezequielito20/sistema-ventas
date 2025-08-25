@@ -12,7 +12,94 @@
     MODAL_TOTAL: '#modalTotal'
   };
 
+  // Utilidad: detectar si la vista usa paginación del servidor
+  function isServerPaginationActive() {
+    const paginator = document.querySelector('.custom-pagination .page-numbers a');
+    return !!paginator; // existen enlaces → servidor
+  }
 
+  // Cargar una URL y reemplazar secciones (tabla/tarjetas + paginación) sin recargar
+  function loadPurchasesPage(url) {
+    const container = document.querySelector('.data-container');
+    if (!container) return;
+
+    // Indicador simple de carga
+    container.style.opacity = '0.6';
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html, application/xhtml+xml'
+      }
+    })
+    .then(r => {
+      if (!r.ok) throw new Error('Error al cargar');
+      return r.text();
+    })
+    .then(html => {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+
+      // Reemplazar tabla
+      const newTableBody = temp.querySelector('#purchasesTable tbody');
+      const tableBody = document.querySelector('#purchasesTable tbody');
+      if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
+
+      // Reemplazar cards
+      const newCardsGrid = temp.querySelector('.cards-grid');
+      const cardsGrid = document.querySelector('.cards-grid');
+      if (newCardsGrid && cardsGrid) cardsGrid.innerHTML = newCardsGrid.innerHTML;
+
+      // Reemplazar paginación
+      const newPagination = temp.querySelector('.custom-pagination');
+      const pagination = document.querySelector('.custom-pagination');
+      if (newPagination && pagination) pagination.innerHTML = newPagination.innerHTML;
+
+      // Actualizar URL sin recargar
+      window.history.pushState({}, '', url);
+
+      // Reinicializar event listeners para nuevos elementos
+      purchaseManager.setupDetailsButtons();
+      purchaseManager.setupDeleteButtons();
+    })
+    .catch(err => console.error(err))
+    .finally(() => {
+      container.style.opacity = '';
+    });
+  }
+
+  // Interceptar clicks de paginación cuando servidor está activo
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('.custom-pagination a');
+    if (link && isServerPaginationActive()) {
+      e.preventDefault();
+      loadPurchasesPage(link.href);
+    }
+  });
+
+  // Interceptar búsqueda para servidor
+  document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('purchasesSearch');
+    if (search) {
+      let t;
+      search.addEventListener('input', function () {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          if (isServerPaginationActive()) {
+            const url = new URL(window.location.href);
+            if (this.value.trim()) url.searchParams.set('search', this.value.trim());
+            else url.searchParams.delete('search');
+            loadPurchasesPage(url.toString());
+          } else {
+            // Fallback: filtrado cliente existente
+            state.searchTerm = this.value.toLowerCase();
+            searchManager.applySearch();
+          }
+        }, 300);
+      });
+    }
+  });
 
   // Utility functions
   const utils = {
@@ -179,7 +266,7 @@
     },
 
     setupSearchEvents() {
-      if (this.searchInput) {
+      if (this.searchInput && !isServerPaginationActive()) {
         const debouncedSearch = utils.debounce((value) => {
           state.searchTerm = value.toLowerCase();
           this.applySearch();
@@ -193,13 +280,21 @@
       if (this.clearSearchBtn) {
         this.clearSearchBtn.addEventListener('click', () => {
           if (this.searchInput) this.searchInput.value = '';
-          state.searchTerm = '';
-          this.applySearch();
+          if (isServerPaginationActive()) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('search');
+            loadPurchasesPage(url.toString());
+          } else {
+            state.searchTerm = '';
+            this.applySearch();
+          }
         });
       }
     },
 
     applySearch() {
+      if (isServerPaginationActive()) return; // servidor maneja
+
       if (state.currentView === 'table') {
         const tableRows = document.querySelectorAll('.modern-table tbody tr');
         tableRows.forEach((row) => {
@@ -348,8 +443,6 @@
     }
   };
 
-
-
   // Product filter manager
   const productFilterManager = {
     selectedProductId: '',
@@ -360,6 +453,14 @@
 
     filterByProduct(productId) {
       this.selectedProductId = productId;
+      
+      if (isServerPaginationActive()) {
+        const url = new URL(window.location.href);
+        if (productId) url.searchParams.set('product_id', productId);
+        else url.searchParams.delete('product_id');
+        loadPurchasesPage(url.toString());
+        return;
+      }
       
       // Para filtros del lado del cliente, ocultar/mostrar elementos
       const rows = document.querySelectorAll('#purchasesTable tbody tr, .purchase-card-modern');
