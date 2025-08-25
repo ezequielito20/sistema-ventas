@@ -323,6 +323,18 @@ function dataTable() {
             
             // Actualizar contador de resultados
             this.updateSearchResultsCount();
+            
+            // Inicializar búsqueda desde URL si existe
+            this.initializeSearchFromURL();
+        },
+        
+        initializeSearchFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            if (searchParam) {
+                this.searchTerm = searchParam;
+                // No ejecutar búsqueda automáticamente para evitar doble búsqueda
+            }
         },
         
         updateViewMode() {
@@ -334,23 +346,82 @@ function dataTable() {
         },
         
         performSearch() {
-            // Búsqueda en tiempo real con debounce
+            // Búsqueda del lado del servidor con debounce
             this.isSearching = true;
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
-                this.executeSearch();
+                this.executeServerSearch();
                 this.isSearching = false;
-            }, 300); // 300ms de debounce
+            }, 300); // 500ms de debounce para búsqueda del servidor
         },
-        
-        executeSearch() {
-            const searchTerm = this.searchTerm.toLowerCase().trim();
+
+        executeServerSearch() {
+            const searchTerm = this.searchTerm.trim();
             
-            // Buscar en modo tabla
-            this.searchInTable(searchTerm);
+            // Mostrar indicador de carga
+            this.showSearchLoading();
             
-            // Buscar en modo tarjetas
-            this.searchInCards(searchTerm);
+            // Construir URL con parámetros de búsqueda
+            const url = new URL(window.location.href);
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+            } else {
+                url.searchParams.delete('search');
+            }
+            
+            // Realizar petición AJAX
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la búsqueda');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualizar la tabla con los nuevos resultados
+                this.updateTableWithSearchResults(html, searchTerm);
+                this.hideSearchLoading();
+            })
+            .catch(error => {
+                console.error('Error en búsqueda:', error);
+                this.hideSearchLoading();
+                this.showSearchError('Error al realizar la búsqueda');
+            });
+        },
+
+        updateTableWithSearchResults(html, searchTerm) {
+            // Crear un elemento temporal para parsear el HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extraer la nueva tabla
+            const newTableBody = tempDiv.querySelector('#customersTableBody');
+            const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
+            const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
+            
+            // Actualizar la tabla
+            const currentTableBody = document.getElementById('customersTableBody');
+            if (newTableBody && currentTableBody) {
+                currentTableBody.innerHTML = newTableBody.innerHTML;
+            }
+            
+            // Actualizar las tarjetas
+            const currentCardsContainer = document.getElementById('mobileCustomersContainer');
+            if (newCardsContainer && currentCardsContainer) {
+                currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
+            }
+            
+            // Actualizar vista móvil
+            const currentMobileContainer = document.getElementById('mobileOnlyContainer');
+            if (newMobileContainer && currentMobileContainer) {
+                currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
+            }
             
             // Actualizar contador de resultados
             this.updateSearchResultsCount();
@@ -358,6 +429,45 @@ function dataTable() {
             // Mostrar mensaje si no hay resultados
             const totalVisible = this.getVisibleCount();
             this.showNoResultsMessage(totalVisible === 0 && searchTerm !== '');
+            
+            // Actualizar URL sin recargar la página
+            if (searchTerm) {
+                window.history.pushState({}, '', `?search=${encodeURIComponent(searchTerm)}`);
+            } else {
+                window.history.pushState({}, '', window.location.pathname);
+            }
+        },
+
+        showSearchLoading() {
+            // Mostrar indicador de carga en la barra de búsqueda
+            const searchInput = document.querySelector('input[x-model="searchTerm"]');
+            if (searchInput) {
+                searchInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\'/%3E%3C/svg%3E")';
+                searchInput.style.backgroundRepeat = 'no-repeat';
+                searchInput.style.backgroundPosition = 'right 0.5rem center';
+                searchInput.style.backgroundSize = '1.5rem';
+            }
+        },
+
+        hideSearchLoading() {
+            // Ocultar indicador de carga
+            const searchInput = document.querySelector('input[x-model="searchTerm"]');
+            if (searchInput) {
+                searchInput.style.backgroundImage = '';
+            }
+        },
+
+        showSearchError(message) {
+            // Mostrar error de búsqueda
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en la búsqueda',
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         },
         
         // Buscar en modo tabla
@@ -516,7 +626,7 @@ function dataTable() {
         handleKeydown(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                this.executeSearch();
+                this.executeServerSearch();
             } else if (event.key === 'Escape') {
                 this.clearSearch();
             }
@@ -592,28 +702,8 @@ function dataTable() {
             this.searchTerm = '';
             this.searchResultsCount = 0;
             
-            // Restaurar todas las filas de la tabla a su estado original
-            const table = document.getElementById('customersTable');
-            if (table) {
-                const rows = table.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    row.style.display = '';
-                    this.removeHighlights(row);
-                });
-            }
-            
-            // Restaurar todas las tarjetas a su estado original
-            const cardsContainer = document.getElementById('mobileCustomersContainer');
-            if (cardsContainer) {
-                const cards = cardsContainer.querySelectorAll('.bg-white.rounded-2xl');
-                cards.forEach(card => {
-                    card.style.display = '';
-                    this.removeHighlightsFromCard(card);
-                });
-            }
-            
-            this.updateSearchResultsCount();
-            this.showNoResultsMessage(false); // Ocultar mensaje de no resultados
+            // Realizar búsqueda del servidor para limpiar filtros
+            this.executeServerSearch();
         },
         
         updateSearchResultsCount() {

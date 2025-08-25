@@ -42,9 +42,20 @@ class CustomerController extends Controller
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
          // Consulta básica de clientes con paginación
-         $customers = Customer::where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->paginate(20); // 20 clientes por página
+         $query = Customer::where('company_id', $this->company->id);
+         
+         // Aplicar búsqueda si se proporciona
+         if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+               $q->where('name', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+            });
+         }
+         
+         $customers = $query->orderBy('name')->paginate(20); // 20 clientes por página
 
          $currency = $this->currencies;
          $company = $this->company;
@@ -167,6 +178,28 @@ class CustomerController extends Controller
             'can_destroy' => Gate::allows('customers.destroy'),
             'can_create_sales' => Gate::allows('sales.create'),
          ];
+
+         // Si es una petición AJAX, devolver solo el contenido necesario
+         if ($request->ajax() || $request->wantsJson()) {
+            return view('admin.customers.index', compact(
+               'customers',
+               'customersData',
+               'totalCustomers',
+               'activeCustomers',
+               'newCustomers',
+               'customerGrowth',
+               'totalRevenue',
+               'totalDebt',
+               'defaultersCount',
+               'currentDebtorsCount',
+               'previousCashCountDebtTotal',
+               'currentCashCountDebtTotal',
+               'currency',
+               'company',
+               'exchangeRate',
+               'permissions'
+            ));
+         }
 
          return view('admin.customers.index', compact(
             'customers',
