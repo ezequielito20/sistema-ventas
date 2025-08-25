@@ -326,6 +326,9 @@ function dataTable() {
             
             // Inicializar búsqueda desde URL si existe
             this.initializeSearchFromURL();
+            
+            // Inicializar manejadores de paginación
+            this.initializePaginationHandlers();
         },
         
         initializeSearchFromURL() {
@@ -335,6 +338,52 @@ function dataTable() {
                 this.searchTerm = searchParam;
                 // No ejecutar búsqueda automáticamente para evitar doble búsqueda
             }
+        },
+        
+        initializePaginationHandlers() {
+            // Delegar eventos de clic para enlaces de paginación
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.pagination-btn') || e.target.closest('.page-number')) {
+                    e.preventDefault();
+                    const link = e.target.closest('a');
+                    if (link) {
+                        this.loadPage(link.href);
+                    }
+                }
+            });
+        },
+        
+        loadPage(url) {
+            // Mostrar indicador de carga
+            this.showSearchLoading();
+            
+            // Realizar petición AJAX para la nueva página
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar la página');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualizar la tabla con los nuevos resultados
+                this.updateTableWithSearchResults(html, this.searchTerm);
+                this.hideSearchLoading();
+                
+                // Actualizar URL sin recargar la página
+                window.history.pushState({}, '', url);
+            })
+            .catch(error => {
+                console.error('Error al cargar página:', error);
+                this.hideSearchLoading();
+                this.showSearchError('Error al cargar la página');
+            });
         },
         
         updateViewMode() {
@@ -404,6 +453,7 @@ function dataTable() {
             const newTableBody = tempDiv.querySelector('#customersTableBody');
             const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
             const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
+            const newPagination = tempDiv.querySelector('.custom-pagination');
             
             // Actualizar la tabla
             const currentTableBody = document.getElementById('customersTableBody');
@@ -421,6 +471,12 @@ function dataTable() {
             const currentMobileContainer = document.getElementById('mobileOnlyContainer');
             if (newMobileContainer && currentMobileContainer) {
                 currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
+            }
+            
+            // Actualizar paginación
+            const currentPagination = document.querySelector('.custom-pagination');
+            if (newPagination && currentPagination) {
+                currentPagination.innerHTML = newPagination.innerHTML;
             }
             
             // Actualizar contador de resultados

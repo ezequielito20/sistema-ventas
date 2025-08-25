@@ -55,7 +55,8 @@ class CustomerController extends Controller
             });
          }
          
-         $customers = $query->orderBy('name')->paginate(20); // 20 clientes por página
+         // Aplicar paginación manteniendo los parámetros de búsqueda
+         $customers = $query->orderBy('name')->paginate(10)->withQueryString();
 
          $currency = $this->currencies;
          $company = $this->company;
