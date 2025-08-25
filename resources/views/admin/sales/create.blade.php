@@ -477,11 +477,11 @@
                                                     <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
                                                         <div class="flex items-center justify-center space-x-1">
                                                             <input type="number" 
-                                                                x-model.number="item.discountValue" 
+                                                                x-model="item.discountValue" 
                                                                 @input="updateItemDiscount(index)"
                                                                 min="0" 
                                                                 :max="item.discountIsPercentage ? 100 : item.price"
-                                                                step="0.01"
+                                                                step="0.1"
                                                                 class="w-16 sm:w-20 text-center border border-gray-300 rounded-lg px-1 py-1 text-xs sm:text-sm"
                                                                 placeholder="0">
                                                             <button type="button" 
@@ -579,11 +579,11 @@
                                     <div class="flex items-center space-x-2 bg-white/10 rounded-xl p-2">
                                         <div class="flex items-center space-x-1">
                                             <input type="number" 
-                                                x-model.number="generalDiscountValue" 
+                                                x-model="generalDiscountValue" 
                                                 @input="updateGeneralDiscount()"
                                                 min="0" 
                                                 :max="generalDiscountIsPercentage ? 100 : getSubtotalBeforeGeneralDiscount()"
-                                                step="0.01"
+                                                step="0.1"
                                                 class="w-16 sm:w-20 text-center bg-white/20 border border-white/30 rounded-lg px-1 py-1 text-white text-xs sm:text-sm placeholder-white/70"
                                                 placeholder="0">
                                             <button type="button" 
@@ -853,7 +853,6 @@
             window.defaultSaleDate = `${year}-${month}-${day}`;
             window.defaultSaleTime = `${hours}:${minutes}`;
             
-            console.log('Fecha establecida:', window.defaultSaleDate, window.defaultSaleTime);
         });
     </script>
 @endsection

@@ -1372,7 +1372,6 @@
                         });
                     } else {
                 // Fallback para navegadores sin SweetAlert2
-                console.log(`${type.toUpperCase()}: ${message}`);
             }
         }
 

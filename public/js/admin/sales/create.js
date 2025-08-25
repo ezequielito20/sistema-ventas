@@ -500,15 +500,27 @@ document.addEventListener('alpine:init', () => {
         updateItemDiscount(index) {
             const item = this.saleItems[index];
             
-            // Validar el valor del descuento
-            if (item.discountValue < 0) {
-                item.discountValue = 0;
+            // Permitir escritura libre, solo validar si es un número válido
+            const numericValue = parseFloat(item.discountValue);
+            
+            // Si no es un número válido, mantener el valor como string para permitir escritura
+            if (isNaN(numericValue)) {
+                // Solo validar si el valor no es un string vacío y no termina en punto
+                if (item.discountValue !== '' && !item.discountValue.endsWith('.')) {
+                    item.discountValue = 0;
+                }
+                return; // No actualizar totales si no es un número válido
             }
             
-            if (item.discountIsPercentage && item.discountValue > 100) {
+            // Si es un número válido, aplicar validaciones
+            if (numericValue < 0) {
+                item.discountValue = 0;
+            } else if (item.discountIsPercentage && numericValue > 100) {
                 item.discountValue = 100;
-            } else if (!item.discountIsPercentage && item.discountValue > item.price) {
+            } else if (!item.discountIsPercentage && numericValue > item.price) {
                 item.discountValue = item.price;
+            } else {
+                item.discountValue = numericValue;
             }
             
             this.updateTotal();
@@ -519,11 +531,15 @@ document.addEventListener('alpine:init', () => {
             const item = this.saleItems[index];
             item.discountIsPercentage = !item.discountIsPercentage;
             
-            // Resetear el valor si es necesario
-            if (item.discountIsPercentage && item.discountValue > 100) {
-                item.discountValue = 100;
-            } else if (!item.discountIsPercentage && item.discountValue > item.price) {
-                item.discountValue = item.price;
+            // Solo validar si es un número válido
+            const numericValue = parseFloat(item.discountValue);
+            if (!isNaN(numericValue)) {
+                // Resetear el valor si es necesario
+                if (item.discountIsPercentage && numericValue > 100) {
+                    item.discountValue = 100;
+                } else if (!item.discountIsPercentage && numericValue > item.price) {
+                    item.discountValue = item.price;
+                }
             }
             
             this.updateTotal();
@@ -531,15 +547,16 @@ document.addEventListener('alpine:init', () => {
         },
         
         getItemPriceWithDiscount(item) {
-            if (!item.discountValue || item.discountValue <= 0) {
+            const discountValue = parseFloat(item.discountValue);
+            if (isNaN(discountValue) || discountValue <= 0) {
                 return item.price;
             }
             
             if (item.discountIsPercentage) {
-                const discountAmount = item.price * (item.discountValue / 100);
+                const discountAmount = item.price * (discountValue / 100);
                 return Math.max(0, item.price - discountAmount);
             } else {
-                return Math.max(0, item.price - item.discountValue);
+                return Math.max(0, item.price - discountValue);
             }
         },
         
@@ -549,17 +566,31 @@ document.addEventListener('alpine:init', () => {
         },
         
         updateGeneralDiscount() {
-            // Validar el valor del descuento general
-            if (this.generalDiscountValue < 0) {
-                this.generalDiscountValue = 0;
+            // Permitir escritura libre, solo validar si es un número válido
+            const numericValue = parseFloat(this.generalDiscountValue);
+            
+            // Si no es un número válido, mantener el valor como string para permitir escritura
+            if (isNaN(numericValue)) {
+                // Solo validar si el valor no es un string vacío y no termina en punto
+                if (this.generalDiscountValue !== '' && !this.generalDiscountValue.endsWith('.')) {
+                    this.generalDiscountValue = 0;
+                }
+                return; // No actualizar totales si no es un número válido
             }
             
-            const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-            
-            if (this.generalDiscountIsPercentage && this.generalDiscountValue > 100) {
-                this.generalDiscountValue = 100;
-            } else if (!this.generalDiscountIsPercentage && this.generalDiscountValue > subtotalBeforeDiscount) {
-                this.generalDiscountValue = subtotalBeforeDiscount;
+            // Si es un número válido, aplicar validaciones
+            if (numericValue < 0) {
+                this.generalDiscountValue = 0;
+            } else {
+                const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
+                
+                if (this.generalDiscountIsPercentage && numericValue > 100) {
+                    this.generalDiscountValue = 100;
+                } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
+                    this.generalDiscountValue = subtotalBeforeDiscount;
+                } else {
+                    this.generalDiscountValue = numericValue;
+                }
             }
             
             this.saveToLocalStorage();
@@ -568,13 +599,17 @@ document.addEventListener('alpine:init', () => {
         toggleGeneralDiscountType() {
             this.generalDiscountIsPercentage = !this.generalDiscountIsPercentage;
             
-            // Resetear el valor si es necesario
-            const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-            
-            if (this.generalDiscountIsPercentage && this.generalDiscountValue > 100) {
-                this.generalDiscountValue = 100;
-            } else if (!this.generalDiscountIsPercentage && this.generalDiscountValue > subtotalBeforeDiscount) {
-                this.generalDiscountValue = subtotalBeforeDiscount;
+            // Solo validar si es un número válido
+            const numericValue = parseFloat(this.generalDiscountValue);
+            if (!isNaN(numericValue)) {
+                // Resetear el valor si es necesario
+                const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
+                
+                if (this.generalDiscountIsPercentage && numericValue > 100) {
+                    this.generalDiscountValue = 100;
+                } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
+                    this.generalDiscountValue = subtotalBeforeDiscount;
+                }
             }
             
             this.saveToLocalStorage();
@@ -587,15 +622,16 @@ document.addEventListener('alpine:init', () => {
         },
         
         applyGeneralDiscount(subtotal) {
-            if (!this.generalDiscountValue || this.generalDiscountValue <= 0) {
+            const discountValue = parseFloat(this.generalDiscountValue);
+            if (isNaN(discountValue) || discountValue <= 0) {
                 return subtotal;
             }
             
             if (this.generalDiscountIsPercentage) {
-                const discountAmount = subtotal * (this.generalDiscountValue / 100);
+                const discountAmount = subtotal * (discountValue / 100);
                 return Math.max(0, subtotal - discountAmount);
             } else {
-                return Math.max(0, subtotal - this.generalDiscountValue);
+                return Math.max(0, subtotal - discountValue);
             }
         },
         
