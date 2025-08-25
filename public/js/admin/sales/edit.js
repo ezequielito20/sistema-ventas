@@ -52,6 +52,33 @@ document.addEventListener('alpine:init', () => {
             return this.saleItems.length > 0;
         },
         
+        // ===== FUNCIONES DE FECHA Y HORA =====
+        updateCurrentDateTime() {
+            // Obtener fecha y hora actual de Caracas usando una mejor aproximación
+            const now = new Date();
+            
+            // Calcular la diferencia horaria de Caracas (UTC-4)
+            const caracasOffset = -4 * 60; // -4 horas en minutos
+            const utcOffset = now.getTimezoneOffset(); // Offset local en minutos
+            const totalOffset = caracasOffset + utcOffset;
+            
+            const caracasDate = new Date(now.getTime() + (totalOffset * 60 * 1000));
+            
+            // Formatear fecha en formato YYYY-MM-DD
+            const year = caracasDate.getFullYear();
+            const month = String(caracasDate.getMonth() + 1).padStart(2, '0');
+            const day = String(caracasDate.getDate()).padStart(2, '0');
+            this.saleDate = `${year}-${month}-${day}`;
+            
+            // Formatear hora en formato HH:MM
+            const hours = String(caracasDate.getHours()).padStart(2, '0');
+            const minutes = String(caracasDate.getMinutes()).padStart(2, '0');
+            this.saleTime = `${hours}:${minutes}`;
+            
+            // Mostrar notificación
+            this.showAlert('Fecha y hora actualizadas a la hora de Caracas, Venezuela', 'success');
+        },
+
         // ===== INICIALIZACIÓN =====
         async init() {
             try {

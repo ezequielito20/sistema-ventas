@@ -97,14 +97,24 @@ class Customer extends Model
    }
 
    /**
-    * Scope para clientes morosos (con deudas de arqueos anteriores)
+    * Scope para clientes morosos (con deudas de arqueos anteriores usando lógica FIFO)
     */
    public function scopeDefaulters($query)
    {
-      return $query->where('total_debt', '>', 0)
-         ->whereHas('sales', function($q) {
-            $q->where('sale_date', '<', $this->getCurrentCashCountOpeningDate());
-         });
+      $openingDate = $this->getCurrentCashCountOpeningDate();
+      
+      return $query->whereRaw('(
+         SELECT COALESCE(SUM(sales.total_price), 0) 
+         FROM sales 
+         WHERE sales.customer_id = customers.id 
+         AND sales.company_id = customers.company_id 
+         AND sales.sale_date < ?
+      ) > (
+         SELECT COALESCE(SUM(debt_payments.payment_amount), 0) 
+         FROM debt_payments 
+         WHERE debt_payments.customer_id = customers.id 
+         AND debt_payments.company_id = customers.company_id
+      )', [$openingDate]);
    }
 
    /**
@@ -271,31 +281,58 @@ class Customer extends Model
    }
 
    /**
-    * Obtiene el monto de deuda de arqueos anteriores
+    * Obtiene el monto de deuda de arqueos anteriores usando lógica FIFO
     */
    public function getPreviousCashCountDebtAmount()
    {
       $currentCashCountOpeningDate = $this->getCurrentCashCountOpeningDate();
-      $totalDebtsBeforeCurrentCashCount = $this->getTotalDebtsBeforeDate($currentCashCountOpeningDate);
       
-      // CORRECCIÓN: Considerar TODOS los pagos, no solo los antes del arqueo
-      $totalPayments = 0;
+      // Obtener todas las ventas del cliente ordenadas por fecha (más antiguas primero)
+      $sales = $this->sales()
+         ->where('sale_date', '<', $currentCashCountOpeningDate)
+         ->orderBy('sale_date', 'asc')
+         ->get(['id', 'total_price', 'sale_date']);
+      
+      // Obtener todos los pagos del cliente ordenados por fecha
+      $payments = [];
       if (Schema::hasTable('debt_payments')) {
-         $totalPayments = DB::table('debt_payments')
+         $payments = DB::table('debt_payments')
             ->where('customer_id', $this->id)
             ->where('company_id', $this->company_id)
-            ->sum('payment_amount');
-      } else {
-         // Fallback a cash_movements si no existe debt_payments
-         $totalPayments = DB::table('cash_movements')
-            ->join('cash_counts', 'cash_movements.cash_count_id', '=', 'cash_counts.id')
-            ->where('cash_counts.company_id', $this->company_id)
-            ->where('cash_movements.type', 'income')
-            ->where('cash_movements.description', 'like', '%' . $this->name . '%')
-            ->sum('cash_movements.amount');
+            ->orderBy('created_at', 'asc')
+            ->get(['id', 'payment_amount', 'created_at']);
       }
-
-      return max(0, $totalDebtsBeforeCurrentCashCount - $totalPayments);
+      
+      $remainingDebt = 0;
+      $totalPayments = $payments->sum('payment_amount');
+      $totalSalesBefore = $sales->sum('total_price');
+      
+      // Si no hay ventas anteriores, no hay deuda
+      if ($totalSalesBefore == 0) {
+         return 0;
+      }
+      
+      // Si no hay pagos, toda la deuda anterior está pendiente
+      if ($totalPayments == 0) {
+         return $totalSalesBefore;
+      }
+      
+      // Aplicar pagos a ventas usando FIFO
+      $remainingPayment = $totalPayments;
+      
+      foreach ($sales as $sale) {
+         if ($remainingPayment >= $sale->total_price) {
+            // El pago cubre completamente esta venta
+            $remainingPayment -= $sale->total_price;
+         } else {
+            // El pago no cubre completamente esta venta
+            $remainingDebt += ($sale->total_price - $remainingPayment);
+            $remainingPayment = 0;
+            break; // No hay más pagos disponibles
+         }
+      }
+      
+      return $remainingDebt;
    }
 
    /**
@@ -329,7 +366,7 @@ class Customer extends Model
     */
    public function isDefaulter()
    {
-      // CORRECCIÓN: Solo verificar si tiene deuda pendiente de arqueos anteriores
+      // Verificar si tiene deuda pendiente de arqueos anteriores usando lógica FIFO
       return $this->getPreviousCashCountDebtAmount() > 0;
    }
 

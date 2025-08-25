@@ -57,17 +57,21 @@ class CustomerController extends Controller
          
          // Aplicar filtro de morosos si se proporciona
          if ($request->has('filter') && $request->filter === 'defaulters') {
-            // Obtener IDs de clientes morosos
+            // Obtener IDs de clientes morosos usando la lógica FIFO
             $defaulterIds = DB::table('customers')
                ->where('customers.company_id', $this->company->id)
-               ->where('customers.total_debt', '>', 0)
-               ->whereExists(function ($subQuery) use ($openingDate) {
-                  $subQuery->select(DB::raw(1))
-                     ->from('sales')
-                     ->whereColumn('sales.customer_id', 'customers.id')
-                     ->where('sales.company_id', $this->company->id)
-                     ->where('sales.sale_date', '<', $openingDate);
-               })
+               ->whereRaw('(
+                  SELECT COALESCE(SUM(sales.total_price), 0) 
+                  FROM sales 
+                  WHERE sales.customer_id = customers.id 
+                  AND sales.company_id = customers.company_id 
+                  AND sales.sale_date < ?
+               ) > (
+                  SELECT COALESCE(SUM(debt_payments.payment_amount), 0) 
+                  FROM debt_payments 
+                  WHERE debt_payments.customer_id = customers.id 
+                  AND debt_payments.company_id = customers.company_id
+               )', [$openingDate])
                ->pluck('customers.id');
             
             if ($defaulterIds->isNotEmpty()) {
@@ -162,7 +166,8 @@ class CustomerController extends Controller
                $salesAfter = $sales ? $sales->sales_after : 0;
                $totalPayments = $payments ? $payments->total_payments : 0;
                
-               $previousDebt = max(0, $salesBefore - $totalPayments);
+               // Calcular deuda de arqueos anteriores usando lógica FIFO
+               $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
                $currentDebt = max(0, $salesAfter);
                $isDefaulter = $previousDebt > 0;
                
@@ -291,6 +296,58 @@ class CustomerController extends Controller
             ->with('message', 'Error al cargar el formulario de creación')
             ->with('icons', 'error');
       }
+   }
+
+   /**
+    * Calcula la deuda de arqueos anteriores usando lógica FIFO
+    */
+   private function calculatePreviousCashCountDebt($customerId, $openingDate)
+   {
+      // Obtener todas las ventas del cliente ordenadas por fecha (más antiguas primero)
+      $sales = DB::table('sales')
+         ->where('customer_id', $customerId)
+         ->where('company_id', $this->company->id)
+         ->where('sale_date', '<', $openingDate)
+         ->orderBy('sale_date', 'asc')
+         ->get(['id', 'total_price', 'sale_date']);
+      
+      // Obtener todos los pagos del cliente ordenados por fecha
+      $payments = DB::table('debt_payments')
+         ->where('customer_id', $customerId)
+         ->where('company_id', $this->company->id)
+         ->orderBy('created_at', 'asc')
+         ->get(['id', 'payment_amount', 'created_at']);
+      
+      $remainingDebt = 0;
+      $totalPayments = $payments->sum('payment_amount');
+      $totalSalesBefore = $sales->sum('total_price');
+      
+      // Si no hay ventas anteriores, no hay deuda
+      if ($totalSalesBefore == 0) {
+         return 0;
+      }
+      
+      // Si no hay pagos, toda la deuda anterior está pendiente
+      if ($totalPayments == 0) {
+         return $totalSalesBefore;
+      }
+      
+      // Aplicar pagos a ventas usando FIFO
+      $remainingPayment = $totalPayments;
+      
+      foreach ($sales as $sale) {
+         if ($remainingPayment >= $sale->total_price) {
+            // El pago cubre completamente esta venta
+            $remainingPayment -= $sale->total_price;
+         } else {
+            // El pago no cubre completamente esta venta
+            $remainingDebt += ($sale->total_price - $remainingPayment);
+            $remainingPayment = 0;
+            break; // No hay más pagos disponibles
+         }
+      }
+      
+      return $remainingDebt;
    }
 
    /**

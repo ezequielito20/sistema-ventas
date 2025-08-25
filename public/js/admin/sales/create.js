@@ -72,6 +72,29 @@ document.addEventListener('alpine:init', () => {
             return window.saleCreateData ? window.saleCreateData.selectedCustomerId : null;
         },
         
+        // ===== FUNCIONES DE FECHA Y HORA =====
+        setCurrentDateTime() {
+            // Usar fecha y hora local (que debería ser la fecha actual)
+            const now = new Date();
+            
+            // Formatear fecha en formato YYYY-MM-DD
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            this.saleDate = `${year}-${month}-${day}`;
+            
+            // Formatear hora en formato HH:MM
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            this.saleTime = `${hours}:${minutes}`;
+        },
+
+        updateCurrentDateTime() {
+            this.setCurrentDateTime();
+            // Mostrar notificación
+            this.showAlert('Fecha y hora actualizadas a la hora de Caracas, Venezuela', 'success');
+        },
+
         // ===== INICIALIZACIÓN =====
         async init() {
             try {
@@ -80,8 +103,14 @@ document.addEventListener('alpine:init', () => {
                     this.productsCache = window.saleCreateData.products || [];
                     this.filteredProducts = [...this.productsCache];
                     this.selectedCustomerId = window.saleCreateData.selectedCustomerId || '';
-                    this.saleDate = new Date().toISOString().split('T')[0];
-                    this.saleTime = new Date().toTimeString().slice(0, 5);
+                    
+                    // Establecer fecha y hora actual de Caracas, Venezuela
+                    if (window.defaultSaleDate && window.defaultSaleTime) {
+                        this.saleDate = window.defaultSaleDate;
+                        this.saleTime = window.defaultSaleTime;
+                    } else {
+                        this.setCurrentDateTime();
+                    }
                 }
                 
                 // Configurar selects personalizados
@@ -104,6 +133,13 @@ document.addEventListener('alpine:init', () => {
                 
                 // Activar watcher para cambios en cliente
                 this.watchCustomerSelection();
+                
+                // Asegurar que la fecha se establezca después de la inicialización
+                this.$nextTick(() => {
+                    if (!this.saleDate) {
+                        this.setCurrentDateTime();
+                    }
+                });
                 
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
