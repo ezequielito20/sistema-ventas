@@ -27,12 +27,64 @@ class CategoryController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
          $company = $this->company;
-         $categories = Category::where('company_id', $company->id)->orderBy('name', 'asc')->get();
-         $totalCategories = $categories->count();
+         
+         // Consulta base de categorías con conteo de productos
+         $query = Category::withCount('products')
+            ->where('company_id', $company->id);
+
+         // Búsqueda por texto: nombre, descripción
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+               $q->where('name', 'ILIKE', "%{$search}%")
+                 ->orWhere('description', 'ILIKE', "%{$search}%");
+            });
+         }
+
+         // Filtro por categorías con productos
+         if ($request->filled('has_products')) {
+            $hasProducts = $request->input('has_products');
+            if ($hasProducts === 'yes') {
+               $query->having('products_count', '>', 0);
+            } elseif ($hasProducts === 'no') {
+               $query->having('products_count', '=', 0);
+            }
+         }
+
+         // Filtro por fecha de creación
+         if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+         }
+
+         // Filtro por cantidad de productos
+         if ($request->filled('products_min')) {
+            $query->having('products_count', '>=', $request->input('products_min'));
+         }
+
+         if ($request->filled('products_max')) {
+            $query->having('products_count', '<=', $request->input('products_max'));
+         }
+
+         // Paginación del lado del servidor
+         $categories = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
+
+         // Calcular estadísticas para el dashboard
+         $totalCategories = Category::where('company_id', $company->id)->count();
+         $activeCategories = $totalCategories; // Todas las categorías están activas
+         $weeklyCategories = Category::where('company_id', $company->id)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+         $categoriesWithProducts = Category::where('company_id', $company->id)
+            ->whereHas('products')
+            ->count();
 
          // Optimización de gates - verificar permisos una sola vez
          $permissions = [
@@ -46,6 +98,9 @@ class CategoryController extends Controller
          return view('admin.categories.index', compact(
             'categories',
             'totalCategories',
+            'activeCategories',
+            'weeklyCategories',
+            'categoriesWithProducts',
             'company',
             'permissions'
          ));

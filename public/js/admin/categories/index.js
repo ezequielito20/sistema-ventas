@@ -5,8 +5,6 @@
  * Descripción: Funciones específicas para la gestión de categorías
  */
 
-
-
 // ===== CONFIGURACIÓN GLOBAL =====
 const CATEGORIES_CONFIG = {
     itemsPerPage: 10,
@@ -22,6 +20,106 @@ let currentPage = 1;
 let allCategories = [];
 let filteredCategories = [];
 let searchTimeout = null;
+
+// ===== FUNCIONES DE DETECCIÓN Y CARGA DEL SERVIDOR =====
+
+// Utilidad: detectar si la vista usa paginación del servidor
+function isServerPaginationActive() {
+    const paginator = document.querySelector('.custom-pagination .page-numbers a');
+    return !!paginator; // existen enlaces → servidor
+}
+
+// Cargar una URL y reemplazar secciones (tabla/tarjetas + paginación) sin recargar
+function loadCategoriesPage(url) {
+    const container = document.querySelector('.content-body');
+    if (!container) return;
+
+    // Indicador simple de carga
+    container.style.opacity = '0.6';
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/xhtml+xml'
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Error al cargar');
+        return r.text();
+    })
+    .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Reemplazar tarjetas desktop
+        const newCardsGrid = temp.querySelector('#cardsGrid');
+        const cardsGrid = document.querySelector('#cardsGrid');
+        if (newCardsGrid && cardsGrid) cardsGrid.innerHTML = newCardsGrid.innerHTML;
+
+        // Reemplazar tabla desktop
+        const newTableBody = temp.querySelector('#categoriesTableBody');
+        const tableBody = document.querySelector('#categoriesTableBody');
+        if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
+
+        // Reemplazar tarjetas móviles
+        const newMobileCards = temp.querySelector('#mobileCards');
+        const mobileCards = document.querySelector('#mobileCards');
+        if (newMobileCards && mobileCards) mobileCards.innerHTML = newMobileCards.innerHTML;
+
+        // Reemplazar paginación
+        const newPagination = temp.querySelectorAll('.custom-pagination');
+        const currentPagination = document.querySelectorAll('.custom-pagination');
+        if (newPagination.length && currentPagination.length) {
+            newPagination.forEach((newPag, index) => {
+                if (currentPagination[index]) {
+                    currentPagination[index].innerHTML = newPag.innerHTML;
+                }
+            });
+        }
+
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
+
+        // Reinicializar event listeners para nuevos elementos
+        initializeEventListeners();
+    })
+    .catch(err => console.error(err))
+    .finally(() => {
+        container.style.opacity = '';
+    });
+}
+
+// Interceptar clicks de paginación cuando servidor está activo
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.custom-pagination a');
+    if (link && isServerPaginationActive()) {
+        e.preventDefault();
+        loadCategoriesPage(link.href);
+    }
+});
+
+// Interceptar búsqueda para servidor
+document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('searchInput');
+    if (search) {
+        let t;
+        search.addEventListener('input', function () {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                if (isServerPaginationActive()) {
+                    const url = new URL(window.location.href);
+                    if (this.value.trim()) url.searchParams.set('search', this.value.trim());
+                    else url.searchParams.delete('search');
+                    loadCategoriesPage(url.toString());
+                } else {
+                    // Fallback: filtrado cliente existente
+                    filterCategories(this.value);
+                }
+            }, 300);
+        });
+    }
+});
 
 // ===== FUNCIONES PRINCIPALES =====
 
@@ -39,11 +137,11 @@ function initializeCategoriesPage() {
         changeViewMode(CATEGORIES_CONFIG.defaultViewMode);
     }
 
-    // Obtener todas las categorías
-    getAllCategories();
-    
-    // Mostrar primera página
-    showPage(1);
+    // Solo obtener categorías si no hay paginación del servidor
+    if (!isServerPaginationActive()) {
+        getAllCategories();
+        showPage(1);
+    }
 }
 
 /**
@@ -104,15 +202,19 @@ function changeViewMode(mode) {
         if (cardsView) cardsView.style.display = 'block';
     }
     
-    // Reiniciar paginación
-    currentPage = 1;
-    showPage(1);
+    // Solo reiniciar paginación si no hay servidor
+    if (!isServerPaginationActive()) {
+        currentPage = 1;
+        showPage(1);
+    }
 }
 
 /**
- * Mostrar página específica
+ * Mostrar página específica (solo para cliente)
  */
 function showPage(page) {
+    if (isServerPaginationActive()) return; // servidor maneja
+
     const startIndex = (page - 1) * CATEGORIES_CONFIG.itemsPerPage;
     const endIndex = startIndex + CATEGORIES_CONFIG.itemsPerPage;
     
@@ -142,9 +244,11 @@ function showPage(page) {
 }
 
 /**
- * Actualizar información de paginación
+ * Actualizar información de paginación (solo para cliente)
  */
 function updatePaginationInfo(currentPage, totalItems) {
+    if (isServerPaginationActive()) return; // servidor maneja
+
     const startItem = (currentPage - 1) * CATEGORIES_CONFIG.itemsPerPage + 1;
     const endItem = Math.min(currentPage * CATEGORIES_CONFIG.itemsPerPage, totalItems);
     
@@ -160,9 +264,11 @@ function updatePaginationInfo(currentPage, totalItems) {
 }
 
 /**
- * Actualizar controles de paginación
+ * Actualizar controles de paginación (solo para cliente)
  */
 function updatePaginationControls(currentPage, totalPages) {
+    if (isServerPaginationActive()) return; // servidor maneja
+
     const prevBtn = document.getElementById('prevPage');
     const nextBtn = document.getElementById('nextPage');
     const pageNumbers = document.getElementById('pageNumbers');
@@ -185,7 +291,7 @@ function updatePaginationControls(currentPage, totalPages) {
 }
 
 /**
- * Generar HTML de números de página
+ * Generar HTML de números de página (solo para cliente)
  */
 function generatePageNumbersHTML(currentPage, totalPages) {
     let pageNumbersHTML = '';
@@ -209,17 +315,20 @@ function generatePageNumbersHTML(currentPage, totalPages) {
 }
 
 /**
- * Ir a página específica
+ * Ir a página específica (solo para cliente)
  */
 function goToPage(page) {
+    if (isServerPaginationActive()) return; // servidor maneja
     currentPage = page;
     showPage(page);
 }
 
 /**
- * Función de búsqueda con debounce
+ * Función de búsqueda con debounce (solo para cliente)
  */
 function filterCategories(searchTerm) {
+    if (isServerPaginationActive()) return; // servidor maneja
+
     const searchLower = searchTerm.toLowerCase().trim();
     
     if (!searchLower) {
@@ -234,10 +343,7 @@ function filterCategories(searchTerm) {
     
     currentPage = 1;
     showPage(1);
-
 }
-
-
 
 /**
  * Mostrar detalles de categoría
@@ -408,17 +514,15 @@ function showAlert(title, text, icon) {
     }
 }
 
-
-
 // ===== INICIALIZACIÓN DE EVENT LISTENERS =====
 
 /**
  * Inicializar event listeners
  */
 function initializeEventListeners() {
-    // Búsqueda en tiempo real con debounce
+    // Búsqueda en tiempo real con debounce (solo para cliente)
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
+    if (searchInput && !isServerPaginationActive()) {
         searchInput.addEventListener('keyup', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -435,51 +539,51 @@ function initializeEventListeners() {
         });
     });
     
-    // Paginación
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    const cardsPrevPageBtn = document.getElementById('cardsPrevPage');
-    const cardsNextPageBtn = document.getElementById('cardsNextPage');
-    
-    if (prevPageBtn) {
-        prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
+    // Paginación (solo para cliente)
+    if (!isServerPaginationActive()) {
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const cardsPrevPageBtn = document.getElementById('cardsPrevPage');
+        const cardsNextPageBtn = document.getElementById('cardsNextPage');
+        
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+        }
+        
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredCategories.length / CATEGORIES_CONFIG.itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+        }
+        
+        if (cardsPrevPageBtn) {
+            cardsPrevPageBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+        }
+        
+        if (cardsNextPageBtn) {
+            cardsNextPageBtn.addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredCategories.length / CATEGORIES_CONFIG.itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+        }
     }
-    
-    if (nextPageBtn) {
-        nextPageBtn.addEventListener('click', function() {
-            const totalPages = Math.ceil(filteredCategories.length / CATEGORIES_CONFIG.itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-    }
-    
-    if (cardsPrevPageBtn) {
-        cardsPrevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-    }
-    
-    if (cardsNextPageBtn) {
-        cardsNextPageBtn.addEventListener('click', function() {
-            const totalPages = Math.ceil(filteredCategories.length / CATEGORIES_CONFIG.itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-    }
-    
-
     
     // Cerrar modal al hacer clic fuera
     const showCategoryModal = document.getElementById('showCategoryModal');

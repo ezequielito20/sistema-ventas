@@ -158,7 +158,7 @@
                             <div class="search-icon">
                                 <i class="fas fa-search"></i>
                             </div>
-                            <input type="text" placeholder="Buscar categorías..." id="searchInput" class="search-input">
+                            <input type="text" placeholder="Buscar categorías..." id="searchInput" class="search-input" value="{{ request('search') }}">
                             <div class="search-border"></div>
                         </div>
                     </div>
@@ -226,22 +226,48 @@
                     </div>
 
                     {{-- Paginación para tarjetas --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $categories->count()) }} de {{ $categories->count() }} registros</span>
+                    @if($categories->hasPages())
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $categories->firstItem() ?? 0 }}-{{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} categorías</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($categories->onFirstPage())
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                @else
+                                    <a href="{{ $categories->previousPageUrl() }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                @endif
+                                
+                                <div class="page-numbers">
+                                    @foreach($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
+                                        @if($page == $categories->currentPage())
+                                            <span class="page-number active">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                
+                                @if($categories->hasMorePages())
+                                    <a href="{{ $categories->nextPageUrl() }}" class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            <button id="cardsPrevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="cardsPageNumbers" class="page-numbers"></div>
-                            <button id="cardsNextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Vista de tabla (solo desktop) --}}
@@ -337,22 +363,48 @@
                     </div>
 
                     {{-- Paginación personalizada --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="paginationInfo">Mostrando 1-{{ min(10, $categories->count()) }} de {{ $categories->count() }} registros</span>
+                    @if($categories->hasPages())
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $categories->firstItem() ?? 0 }}-{{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} categorías</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($categories->onFirstPage())
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                @else
+                                    <a href="{{ $categories->previousPageUrl() }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                @endif
+                                
+                                <div class="page-numbers">
+                                    @foreach($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
+                                        @if($page == $categories->currentPage())
+                                            <span class="page-number active">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                
+                                @if($categories->hasMorePages())
+                                    <a href="{{ $categories->nextPageUrl() }}" class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            <button id="prevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="pageNumbers" class="page-numbers"></div>
-                            <button id="nextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Vista móvil (siempre tarjetas) --}}
