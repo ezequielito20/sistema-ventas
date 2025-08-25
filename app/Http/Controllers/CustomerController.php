@@ -1376,32 +1376,15 @@ class CustomerController extends Controller
          
          // Procesar estadísticas optimizadas y aplicar filtro de tipo de deuda
          foreach ($customers as $customer) {
-            $customerSales = $salesInfo->get($customer->id, collect());
-            $customerPayments = $paymentsInfo->get($customer->id, collect());
-            
-            // Calcular ventas antes del arqueo actual
-            $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-            
-            $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
-            $totalPayments = $customerPayments->sum('payment_amount');
-            
-            // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
-            // La deuda anterior = Ventas anteriores - Pagos totales (si hay ventas anteriores)
-            $previousDebt = 0;
-            if ($totalSalesBefore > 0) {
-               // Si tiene ventas anteriores, calcular cuánto debe de esas ventas
-               $previousDebt = max(0, $totalSalesBefore - $totalPayments);
-            }
-            
-            // Determinar si es moroso (SOLO si tiene deuda pendiente de arqueos anteriores)
-            $hasOldSales = $salesBeforeCashCount->count() > 0;
+            // Usar la misma función que en el método index para consistencia
+            $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
             $isDefaulter = $previousDebt > 0;
             
             // Almacenar datos calculados
             $customersData[$customer->id] = [
                'isDefaulter' => $isDefaulter,
                'previousDebt' => $previousDebt,
-               'hasOldSales' => $hasOldSales
+               'hasOldSales' => $previousDebt > 0
             ];
             
             // Aplicar filtro por tipo de deuda
