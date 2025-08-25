@@ -963,6 +963,8 @@ class SaleController extends Controller
       }
    }
 
+
+
    public function report()
    {
       $company = $this->company;

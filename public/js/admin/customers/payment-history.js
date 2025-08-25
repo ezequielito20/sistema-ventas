@@ -2,7 +2,7 @@
 const PAYMENT_HISTORY_CONFIG = {
     routes: {
         delete: '/admin/customers/payment-history',
-        index: '/admin/customers'
+        index: '/admin/customers/payment-history'
     },
     pagination: {
         itemsPerPage: 15
@@ -24,21 +24,9 @@ function paymentHistory() {
     return {
         viewMode: window.innerWidth >= 1024 ? 'table' : 'cards',
         showFilters: false,
-        filters: {
-            customer_search: '',
-            date_from: '',
-            date_to: ''
-        },
-        filteredPayments: [],
-        allPayments: [],
-        currentPage: 1,
-        itemsPerPage: PAYMENT_HISTORY_CONFIG.pagination.itemsPerPage,
         isDeleting: false,
 
         init() {
-            // Inicializar datos desde window.paymentHistoryData
-            this.initializeData();
-            
             // Detectar el modo de vista inicial basado en el tamaño de pantalla
             this.updateViewMode();
             
@@ -47,19 +35,11 @@ function paymentHistory() {
                 this.updateViewMode();
             });
 
-            // Configurar watchers para filtros
-            this.$watch('filters.customer_search', () => this.applyFilters());
-            this.$watch('filters.date_from', () => this.applyFilters());
-            this.$watch('filters.date_to', () => this.applyFilters());
+            // Inicializar búsqueda del servidor
+            this.initializeServerSearch();
         },
 
         // ===== MÉTODOS DE INICIALIZACIÓN =====
-
-        initializeData() {
-            const paymentData = window.paymentHistoryData || {};
-            this.allPayments = paymentData.payments || [];
-            this.filteredPayments = [...this.allPayments];
-        },
 
         updateViewMode() {
             if (window.innerWidth >= 1024) {
@@ -69,88 +49,160 @@ function paymentHistory() {
             }
         },
 
-        // ===== MÉTODOS DE FILTRADO =====
+        // ===== MÉTODOS DE BÚSQUEDA DEL SERVIDOR =====
 
-        applyFilters() {
-            // Filtrar pagos en tiempo real
-            this.filteredPayments = this.allPayments.filter(payment => {
-                let matches = true;
-                
-                // Filtro por nombre de cliente
-                if (this.filters.customer_search) {
-                    const customerName = payment.customer.name.toLowerCase();
-                    const searchTerm = this.filters.customer_search.toLowerCase();
-                    matches = matches && customerName.includes(searchTerm);
-                }
-                
-                // Filtro por fecha desde
-                if (this.filters.date_from) {
-                    const paymentDate = new Date(payment.created_at);
-                    const fromDate = new Date(this.filters.date_from);
-                    matches = matches && paymentDate >= fromDate;
-                }
-                
-                // Filtro por fecha hasta
-                if (this.filters.date_to) {
-                    const paymentDate = new Date(payment.created_at);
-                    const toDate = new Date(this.filters.date_to);
-                    toDate.setHours(23, 59, 59); // Incluir todo el día
-                    matches = matches && paymentDate <= toDate;
-                }
-                
-                return matches;
-            });
+        initializeServerSearch() {
+            // Configurar búsqueda por cliente
+            const customerSearch = document.getElementById('customer_search');
+            if (customerSearch) {
+                let timeout;
+                customerSearch.addEventListener('input', (e) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        this.executeServerSearch();
+                    }, 300);
+                });
+            }
+
+            // Configurar filtros de fecha
+            const dateFrom = document.getElementById('date_from');
+            const dateTo = document.getElementById('date_to');
             
-            // Resetear a la primera página
-            this.currentPage = 1;
+            if (dateFrom) {
+                dateFrom.addEventListener('change', () => this.executeServerSearch());
+            }
+            if (dateTo) {
+                dateTo.addEventListener('change', () => this.executeServerSearch());
+            }
+        },
+
+        executeServerSearch() {
+            const url = new URL(window.location.href);
+            
+            // Obtener valores de los filtros
+            const customerSearch = document.getElementById('customer_search')?.value || '';
+            const dateFrom = document.getElementById('date_from')?.value || '';
+            const dateTo = document.getElementById('date_to')?.value || '';
+            
+            // Actualizar parámetros de URL
+            if (customerSearch.trim()) {
+                url.searchParams.set('customer_search', customerSearch.trim());
+            } else {
+                url.searchParams.delete('customer_search');
+            }
+            
+            if (dateFrom) {
+                url.searchParams.set('date_from', dateFrom);
+            } else {
+                url.searchParams.delete('date_from');
+            }
+            
+            if (dateTo) {
+                url.searchParams.set('date_to', dateTo);
+            } else {
+                url.searchParams.delete('date_to');
+            }
+            
+            // Cargar página con filtros
+            this.loadPaymentHistoryPage(url.toString());
+        },
+
+        loadPaymentHistoryPage(url) {
+            // Mostrar indicador de carga
+            this.showLoadingIndicator();
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Actualizar tabla
+                const newTableBody = doc.querySelector('tbody');
+                const currentTableBody = document.querySelector('tbody');
+                if (newTableBody && currentTableBody) {
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                }
+                
+                // Actualizar tarjetas
+                const newCardsGrid = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                const currentCardsGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                if (newCardsGrid && currentCardsGrid) {
+                    currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
+                }
+                
+                // Actualizar paginación
+                const newPagination = doc.querySelector('.px-6.py-4.bg-gray-50');
+                const currentPagination = document.querySelector('.px-6.py-4.bg-gray-50');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+                
+                // Actualizar estadísticas
+                this.updateStatistics(doc);
+                
+                // Actualizar URL sin recargar
+                window.history.pushState({}, '', url);
+                
+                // Reinicializar event listeners
+                this.initializeEventListeners();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.showAlert('Error al cargar los resultados', 'error');
+            })
+            .finally(() => {
+                this.hideLoadingIndicator();
+            });
+        },
+
+        showLoadingIndicator() {
+            const searchInput = document.getElementById('customer_search');
+            if (searchInput) {
+                searchInput.classList.add('search-loading');
+                searchInput.disabled = true;
+            }
+        },
+
+        hideLoadingIndicator() {
+            const searchInput = document.getElementById('customer_search');
+            if (searchInput) {
+                searchInput.classList.remove('search-loading');
+                searchInput.disabled = false;
+            }
+        },
+
+        updateStatistics(doc) {
+            // Actualizar estadísticas si es necesario
+            // Los gráficos se mantienen igual ya que son datos globales
+        },
+
+        initializeEventListeners() {
+            // Reinicializar event listeners para elementos dinámicos
+            // Esto se llama después de cargar contenido via AJAX
         },
 
         resetFilters() {
-            this.filters = {
-                customer_search: '',
-                date_from: '',
-                date_to: ''
-            };
-            this.filteredPayments = [...this.allPayments];
-            this.currentPage = 1;
-        },
-
-        // ===== MÉTODOS DE PAGINACIÓN =====
-
-        get paginatedPayments() {
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            const end = start + this.itemsPerPage;
-            return this.filteredPayments.slice(start, end);
-        },
-
-        get totalPages() {
-            return Math.ceil(this.filteredPayments.length / this.itemsPerPage);
-        },
-
-        get hasNextPage() {
-            return this.currentPage < this.totalPages;
-        },
-
-        get hasPrevPage() {
-            return this.currentPage > 1;
-        },
-
-        nextPage() {
-            if (this.hasNextPage) {
-                this.currentPage++;
-            }
-        },
-
-        prevPage() {
-            if (this.hasPrevPage) {
-                this.currentPage--;
-            }
-        },
-
-        goToPage(page) {
-            if (page >= 1 && page <= this.totalPages) {
-                this.currentPage = page;
-            }
+            // Limpiar campos de filtro
+            const customerSearch = document.getElementById('customer_search');
+            const dateFrom = document.getElementById('date_from');
+            const dateTo = document.getElementById('date_to');
+            
+            if (customerSearch) customerSearch.value = '';
+            if (dateFrom) dateFrom.value = '';
+            if (dateTo) dateTo.value = '';
+            
+            // Ejecutar búsqueda sin filtros
+            this.executeServerSearch();
         },
 
         // ===== MÉTODOS DE ELIMINACIÓN =====
@@ -500,6 +552,20 @@ function calculateAveragePayment(payments) {
 
 // ===== EVENT LISTENERS =====
 
+// Interceptar clicks de paginación para navegación sin recargar
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.pagination .page-link');
+    if (link) {
+        e.preventDefault();
+        const url = link.href;
+        if (window.paymentHistory && window.paymentHistory.loadPaymentHistoryPage) {
+            window.paymentHistory.loadPaymentHistoryPage(url);
+        } else {
+            window.location.href = url;
+        }
+    }
+});
+
 // Limpiar gráficos cuando se navegue fuera de la página
 window.addEventListener('beforeunload', cleanupCharts);
 
@@ -518,6 +584,97 @@ window.addEventListener('load', function() {
     }
 });
 
+// ===== FUNCIÓN GLOBAL PARA ELIMINAR PAGOS =====
+async function deletePayment(paymentId, customerName, paymentAmount) {
+    const result = await showConfirmAlert(
+        '¿Estás seguro?',
+        `Vas a eliminar el pago de ${paymentAmount} ${getCurrencySymbol()} del cliente ${customerName}. Esta acción restaurará la deuda al cliente.`,
+        'warning'
+    );
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`${PAYMENT_HISTORY_CONFIG.routes.delete}/${paymentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert('¡Pago eliminado exitosamente!', 'success');
+                
+                // Recargar la página para actualizar datos
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Error al eliminar el pago', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showAlert('Error de conexión. Intente nuevamente.', 'error');
+        }
+    }
+}
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+           document.querySelector('input[name="_token"]')?.value || 
+           '';
+}
+
+function getCurrencySymbol() {
+    return window.paymentHistoryData?.currency?.symbol || '$';
+}
+
+async function showConfirmAlert(title, text, icon = 'warning') {
+    if (typeof Swal !== 'undefined') {
+        const result = await Swal.fire({
+            title: title,
+            text: text,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        });
+        return result;
+    } else {
+        return { isConfirmed: confirm(text) };
+    }
+}
+
+function showAlert(message, type = 'info') {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: getAlertTitle(type),
+            text: message,
+            icon: type,
+            confirmButtonText: 'Entendido',
+            timer: type === 'success' ? 3000 : undefined,
+            timerProgressBar: type === 'success'
+        });
+    } else {
+        alert(message);
+    }
+}
+
+function getAlertTitle(type) {
+    switch(type) {
+        case 'success': return '¡Éxito!';
+        case 'error': return 'Error';
+        case 'warning': return 'Advertencia';
+        default: return 'Información';
+    }
+}
+
 // ===== EXPONER FUNCIONES GLOBALMENTE =====
 window.paymentHistory = paymentHistory;
 window.showNotification = showNotification;
@@ -529,3 +686,6 @@ window.calculateAveragePayment = calculateAveragePayment;
 window.initializeCharts = initializeCharts;
 window.cleanupCharts = cleanupCharts;
 window.PAYMENT_HISTORY_CONFIG = PAYMENT_HISTORY_CONFIG;
+window.deletePayment = deletePayment;
+window.showAlert = showAlert;
+window.showConfirmAlert = showConfirmAlert;

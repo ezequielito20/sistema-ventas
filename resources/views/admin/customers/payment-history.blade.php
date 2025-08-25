@@ -69,9 +69,7 @@
                             <i class="fas fa-money-bill-wave text-white text-xl"></i>
                         </div>
                         <div class="text-right">
-                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} <span
-                                    x-text="filteredPayments.reduce((sum, payment) => sum + parseFloat(payment.payment_amount), 0).toFixed(2)"></span>
-                            </h3>
+                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($totalPayments, 2) }}</h3>
                             <p class="text-blue-100 text-sm">Total Pagos</p>
                         </div>
                     </div>
@@ -86,7 +84,7 @@
                             <i class="fas fa-receipt text-white text-xl"></i>
                         </div>
                         <div class="text-right">
-                            <h3 class="text-2xl font-bold text-white" x-text="filteredPayments.length"></h3>
+                            <h3 class="text-2xl font-bold text-white">{{ $paymentsCount }}</h3>
                             <p class="text-green-100 text-sm">Número de Pagos</p>
                         </div>
                     </div>
@@ -101,9 +99,7 @@
                             <i class="fas fa-calculator text-white text-xl"></i>
                         </div>
                         <div class="text-right">
-                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} <span
-                                    x-text="filteredPayments.length > 0 ? (filteredPayments.reduce((sum, payment) => sum + parseFloat(payment.payment_amount), 0) / filteredPayments.length).toFixed(2) : '0.00'"></span>
-                            </h3>
+                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($averagePayment, 2) }}</h3>
                             <p class="text-yellow-100 text-sm">Pago Promedio</p>
                         </div>
                     </div>
@@ -165,9 +161,11 @@
                             <span>Buscar Cliente</span>
                         </label>
                         <div class="relative">
-                            <input type="text" id="customer_search" x-model="filters.customer_search" autocomplete="off"
-                                placeholder="Buscar por nombre del cliente..."
-                                class="w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <input type="text" id="customer_search" 
+                               value="{{ request('customer_search') }}"
+                               autocomplete="off"
+                               placeholder="Buscar por nombre del cliente..."
+                               class="w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                             </div>
                         </div>
@@ -179,8 +177,9 @@
                             <i class="fas fa-calendar-alt text-blue-500"></i>
                             <span>Fecha desde</span>
                         </label>
-                        <input type="date" id="date_from" x-model="filters.date_from"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="date" id="date_from" 
+                               value="{{ request('date_from') }}"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
 
                     <!-- Fecha Hasta -->
@@ -189,8 +188,9 @@
                             <i class="fas fa-calendar-check text-blue-500"></i>
                             <span>Fecha hasta</span>
                         </label>
-                        <input type="date" id="date_to" x-model="filters.date_to"
-                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="date" id="date_to" 
+                               value="{{ request('date_to') }}"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
 
                     <!-- Botón Reiniciar -->
@@ -259,14 +259,16 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <template x-for="payment in paginatedPayments" :key="payment.id">
+                        @foreach($payments as $payment)
                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
-                                        <span class="font-semibold text-gray-900"
-                                            x-text="new Date(payment.created_at).toLocaleDateString('es-ES')"></span>
-                                        <span class="text-sm text-gray-500"
-                                            x-text="new Date(payment.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})"></span>
+                                        <span class="font-semibold text-gray-900">
+                                            {{ $payment->created_at->format('d/m/Y') }}
+                                        </span>
+                                        <span class="text-sm text-gray-500">
+                                            {{ $payment->created_at->format('H:i') }}
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
@@ -275,50 +277,48 @@
                                             class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                             <i class="fas fa-user text-white text-xs"></i>
                                         </div>
-                                        <span class="font-medium text-gray-900" x-text="payment.customer.name"></span>
+                                        <span class="font-medium text-gray-900">{{ $payment->customer->name }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span
                                         class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                                        {{ $currency->symbol }} <span
-                                            x-text="parseFloat(payment.previous_debt).toFixed(2)"></span>
+                                        {{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span
                                         class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        {{ $currency->symbol }} <span
-                                            x-text="parseFloat(payment.payment_amount).toFixed(2)"></span>
+                                        {{ $currency->symbol }} {{ number_format($payment->payment_amount, 2) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span
                                         class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                        {{ $currency->symbol }} <span
-                                            x-text="parseFloat(payment.remaining_debt).toFixed(2)"></span>
+                                        {{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-2">
                                         <i class="fas fa-user-cog text-gray-400"></i>
-                                        <span class="text-gray-900" x-text="payment.user.name"></span>
+                                        <span class="text-gray-900">{{ $payment->user->name }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm text-gray-600 max-w-xs truncate block"
-                                        x-text="payment.notes || 'Sin notas'"></span>
+                                    <span class="text-sm text-gray-600 max-w-xs truncate block">
+                                        {{ $payment->notes ?: 'Sin notas' }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <button
-                                        @click="deletePayment(payment.id, payment.customer.name, payment.payment_amount)"
+                                        onclick="deletePayment({{ $payment->id }}, '{{ $payment->customer->name }}', {{ $payment->payment_amount }})"
                                         class="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200"
                                         title="Eliminar Pago">
                                         <i class="fas fa-trash text-sm"></i>
                                     </button>
                                 </td>
                             </tr>
-                        </template>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -326,7 +326,7 @@
             <!-- Vista de Tarjetas (Responsive) -->
             <div x-show="viewMode === 'cards' || window.innerWidth < 768" x-cloak class="p-3 sm:p-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                    <template x-for="payment in paginatedPayments" :key="payment.id">
+                    @foreach($payments as $payment)
                         <div
                             class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                             <!-- Header de la tarjeta -->
@@ -339,18 +339,18 @@
                                             <i class="fas fa-calendar text-white text-xs"></i>
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <h3 class="font-semibold text-gray-900 text-sm truncate"
-                                                x-text="new Date(payment.created_at).toLocaleDateString('es-ES')"></h3>
-                                            <p class="text-xs text-gray-500"
-                                                x-text="new Date(payment.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})">
+                                            <h3 class="font-semibold text-gray-900 text-sm truncate">
+                                                {{ $payment->created_at->format('d/m/Y') }}
+                                            </h3>
+                                            <p class="text-xs text-gray-500">
+                                                {{ $payment->created_at->format('H:i') }}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="flex-shrink-0">
                                         <span
                                             class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            {{ $currency->symbol }} <span
-                                                x-text="parseFloat(payment.payment_amount).toFixed(2)"></span>
+                                            {{ $currency->symbol }} {{ number_format($payment->payment_amount, 2) }}
                                         </span>
                                     </div>
                                 </div>
@@ -368,8 +368,9 @@
                                         <div class="min-w-0 flex-1">
                                             <label
                                                 class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cliente</label>
-                                            <p class="text-sm font-medium text-gray-900 truncate"
-                                                x-text="payment.customer.name"></p>
+                                            <p class="text-sm font-medium text-gray-900 truncate">
+                                                {{ $payment->customer->name }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -379,14 +380,12 @@
                                     <div class="bg-red-50 rounded-md p-2">
                                         <label class="text-xs font-medium text-red-600 uppercase tracking-wide">Deuda
                                             Anterior</label>
-                                        <p class="text-sm font-bold text-red-700">{{ $currency->symbol }} <span
-                                                x-text="parseFloat(payment.previous_debt).toFixed(2)"></span></p>
+                                        <p class="text-sm font-bold text-red-700">{{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}</p>
                                     </div>
                                     <div class="bg-yellow-50 rounded-md p-2">
                                         <label class="text-xs font-medium text-yellow-600 uppercase tracking-wide">Deuda
                                             Restante</label>
-                                        <p class="text-sm font-bold text-yellow-700">{{ $currency->symbol }} <span
-                                                x-text="parseFloat(payment.remaining_debt).toFixed(2)"></span></p>
+                                        <p class="text-sm font-bold text-yellow-700">{{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}</p>
                                     </div>
                                 </div>
 
@@ -398,8 +397,9 @@
                                             <label
                                                 class="text-xs font-medium text-gray-500 uppercase tracking-wide">Registrado
                                                 por</label>
-                                            <p class="text-sm font-medium text-gray-900 truncate"
-                                                x-text="payment.user.name"></p>
+                                            <p class="text-sm font-medium text-gray-900 truncate">
+                                                {{ $payment->user->name }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -408,15 +408,16 @@
                                 <div class="mb-3">
                                     <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Notas</label>
                                     <div class="mt-1 bg-gray-50 rounded-md p-2">
-                                        <p class="text-xs text-gray-600 leading-relaxed"
-                                            x-text="payment.notes || 'Sin notas'"></p>
+                                        <p class="text-xs text-gray-600 leading-relaxed">
+                                            {{ $payment->notes ?: 'Sin notas' }}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <!-- Acciones -->
                                 <div class="flex justify-end pt-2 border-t border-gray-100">
                                     <button
-                                        @click="deletePayment(payment.id, payment.customer.name, payment.payment_amount)"
+                                        onclick="deletePayment({{ $payment->id }}, '{{ $payment->customer->name }}', {{ $payment->payment_amount }})"
                                         class="inline-flex items-center space-x-2 px-2 sm:px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition-all duration-200 group">
                                         <i
                                             class="fas fa-trash text-xs group-hover:scale-110 transition-transform duration-200"></i>
@@ -425,45 +426,23 @@
                                 </div>
                             </div>
                         </div>
-                    </template>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Paginación -->
+            <!-- Paginación del servidor -->
+            @if($payments->hasPages())
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div class="text-sm text-gray-700 mb-4 sm:mb-0">
-                        Mostrando <span x-text="((currentPage - 1) * itemsPerPage) + 1"></span> a <span
-                            x-text="Math.min(currentPage * itemsPerPage, filteredPayments.length)"></span> de <span
-                            x-text="filteredPayments.length"></span> registros
+                        Mostrando {{ $payments->firstItem() ?? 0 }} a {{ $payments->lastItem() ?? 0 }} de {{ $payments->total() }} registros
                     </div>
-                    <div class="flex justify-center space-x-2">
-                        <!-- Botón Anterior -->
-                        <button @click="prevPage()" :disabled="!hasPrevPage"
-                            class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
-                            <i class="fas fa-chevron-left mr-1"></i>
-                            Anterior
-                        </button>
-
-                        <!-- Números de página -->
-                        <template x-for="page in Math.min(5, totalPages)" :key="page">
-                            <button @click="goToPage(page)"
-                                :class="page === currentPage ? 'bg-blue-600 text-white' :
-                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium transition-all duration-200"
-                                x-text="page">
-                            </button>
-                        </template>
-
-                        <!-- Botón Siguiente -->
-                        <button @click="nextPage()" :disabled="!hasNextPage"
-                            class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
-                            Siguiente
-                            <i class="fas fa-chevron-right ml-1"></i>
-                        </button>
+                    <div class="flex justify-center">
+                        {{ $payments->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
         <!-- Gráficos -->

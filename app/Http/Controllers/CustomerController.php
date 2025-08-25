@@ -1862,34 +1862,62 @@ class CustomerController extends Controller
             ->with('icons', 'error');
       }
 
-      $query = DebtPayment::where('company_id', $this->company->id)
+      $companyId = Auth::user()->company_id;
+      $currency = $this->currencies;
+
+      // Consulta base de pagos con paginación
+      $query = DebtPayment::where('company_id', $companyId)
          ->with(['customer', 'user']);
 
-      // Aplicar filtros
-      if ($request->has('customer_search') && $request->customer_search) {
-         $query->whereHas('customer', function ($q) use ($request) {
-            $q->where('name', 'ilike', '%' . $request->customer_search . '%');
+      // Búsqueda por nombre de cliente
+      if ($request->filled('customer_search')) {
+         $search = $request->input('customer_search');
+         $query->whereHas('customer', function ($q) use ($search) {
+            $q->where('name', 'ILIKE', "%{$search}%")
+              ->orWhere('email', 'ILIKE', "%{$search}%")
+              ->orWhere('phone', 'ILIKE', "%{$search}%");
          });
       }
 
-      if ($request->has('date_from') && $request->date_from) {
-         $query->whereDate('created_at', '>=', $request->date_from);
+      // Filtro por rango de fechas
+      if ($request->filled('date_from')) {
+         $query->whereDate('created_at', '>=', $request->input('date_from'));
       }
 
-      if ($request->has('date_to') && $request->date_to) {
-         $query->whereDate('created_at', '<=', $request->date_to);
+      if ($request->filled('date_to')) {
+         $query->whereDate('created_at', '<=', $request->input('date_to'));
       }
 
-      $payments = $query->orderBy('created_at', 'desc')->paginate(15);
+      // Filtro por monto mínimo
+      if ($request->filled('amount_min')) {
+         $query->where('payment_amount', '>=', $request->input('amount_min'));
+      }
 
-      // Estadísticas
-      $totalPayments = $query->sum('payment_amount');
-      $paymentsCount = $query->count();
+      // Filtro por monto máximo
+      if ($request->filled('amount_max')) {
+         $query->where('payment_amount', '<=', $request->input('amount_max'));
+      }
+
+      // Filtro por usuario que registró el pago
+      if ($request->filled('user_search')) {
+         $userSearch = $request->input('user_search');
+         $query->whereHas('user', function ($q) use ($userSearch) {
+            $q->where('name', 'ILIKE', "%{$userSearch}%")
+              ->orWhere('email', 'ILIKE', "%{$userSearch}%");
+         });
+      }
+
+      // Paginación del lado del servidor
+      $payments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+
+      // Estadísticas usando consultas directas para eficiencia
+      $totalPayments = DebtPayment::where('company_id', $companyId)->sum('payment_amount');
+      $paymentsCount = DebtPayment::where('company_id', $companyId)->count();
       $averagePayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0;
-      $totalRemainingDebt = Customer::where('company_id', $this->company->id)->sum('total_debt');
+      $totalRemainingDebt = Customer::where('company_id', $companyId)->sum('total_debt');
 
       // Datos para gráficos
-      $weekdayData = DebtPayment::where('company_id', $this->company->id)
+      $weekdayData = DebtPayment::where('company_id', $companyId)
          ->selectRaw('EXTRACT(DOW FROM created_at) as day_of_week, SUM(payment_amount) as total')
          ->groupBy('day_of_week')
          ->orderBy('day_of_week')
@@ -1906,7 +1934,7 @@ class CustomerController extends Controller
       }
 
       // Datos mensuales - Compatible con PostgreSQL
-      $monthlyData = DebtPayment::where('company_id', $this->company->id)
+      $monthlyData = DebtPayment::where('company_id', $companyId)
          ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
          ->selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(payment_amount) as total')
          ->groupBy('month')
@@ -1921,8 +1949,6 @@ class CustomerController extends Controller
       for ($i = 1; $i <= 12; $i++) {
          $monthlyDataArray[] = $monthlyData[$i] ?? 0;
       }
-
-      $currency = $this->currencies;
 
       return view('admin.customers.payment-history', [
          'payments' => $payments,

@@ -492,7 +492,7 @@ document.addEventListener('alpine:init', () => {
         
         // ===== ACCIONES DE VENTA =====
         editSale(saleId) {
-            window.location.href = `/admin/sales/${saleId}/edit`;
+                            window.location.href = `/sales/edit/${saleId}`;
         },
 
         async deleteSale(saleId) {
@@ -504,7 +504,7 @@ document.addEventListener('alpine:init', () => {
             if (!confirmed) return;
 
             try {
-                const response = await fetch(`/admin/sales/${saleId}`, {
+                const response = await fetch(`/sales/delete/${saleId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -536,7 +536,7 @@ document.addEventListener('alpine:init', () => {
         
         printSale(saleId) {
             if (saleId) {
-                window.open(`/admin/sales/${saleId}/print`, '_blank');
+                window.open(`/sales/print/${saleId}`, '_blank');
             }
         },
         
@@ -645,7 +645,7 @@ window.showSaleDetails = function(saleId) {
 };
 
 window.editSale = function(saleId) {
-    window.location.href = `/admin/sales/${saleId}/edit`;
+    window.location.href = `/sales/edit/${saleId}`;
 };
 
 window.deleteSale = function(saleId) {
@@ -656,5 +656,5 @@ window.deleteSale = function(saleId) {
 };
 
 window.printSale = function(saleId) {
-    window.open(`/admin/sales/${saleId}/print`, '_blank');
+    window.open(`/sales/print/${saleId}`, '_blank');
 };
