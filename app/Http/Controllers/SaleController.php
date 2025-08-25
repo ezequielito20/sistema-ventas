@@ -35,7 +35,7 @@ class SaleController extends Controller
       });
    }
 
-   public function index()
+   public function index(Request $request)
    {
       // Optimización de permisos - verificar una sola vez
       $permissions = [
@@ -51,17 +51,51 @@ class SaleController extends Controller
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
       
-      // Obtener todas las ventas con paginación - OPTIMIZADO
-      $sales = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id')
+      // Consulta básica de ventas con paginación
+      $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id')
                   ->where('company_id', $this->company->id)
                   ->with([
                       'customer:id,name,email',
                       'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
                       'saleDetails.product:id,code,name,image,category_id',
                       'saleDetails.product.category:id,name'
-                  ])
-                  ->orderBy('sale_date', 'desc')
-                  ->paginate(15);
+                  ]);
+      
+      // Aplicar búsqueda si se proporciona
+      if ($request->has('search') && $request->search) {
+         $searchTerm = $request->search;
+         $query->where(function($q) use ($searchTerm) {
+            $q->where('id', 'ILIKE', "%{$searchTerm}%")
+              ->orWhereHas('customer', function($customerQuery) use ($searchTerm) {
+                  $customerQuery->where('name', 'ILIKE', "%{$searchTerm}%")
+                               ->orWhere('email', 'ILIKE', "%{$searchTerm}%");
+              })
+              ->orWhere('sale_date', 'ILIKE', "%{$searchTerm}%");
+         });
+      }
+      
+      // Aplicar filtro por fecha desde
+      if ($request->has('dateFrom') && $request->dateFrom) {
+         $query->whereDate('sale_date', '>=', $request->dateFrom);
+      }
+      
+      // Aplicar filtro por fecha hasta
+      if ($request->has('dateTo') && $request->dateTo) {
+         $query->whereDate('sale_date', '<=', $request->dateTo);
+      }
+      
+      // Aplicar filtro por monto mínimo
+      if ($request->has('amountMin') && $request->amountMin) {
+         $query->where('total_price', '>=', $request->amountMin);
+      }
+      
+      // Aplicar filtro por monto máximo
+      if ($request->has('amountMax') && $request->amountMax) {
+         $query->where('total_price', '<=', $request->amountMax);
+      }
+      
+      // Aplicar paginación manteniendo los parámetros de búsqueda
+      $sales = $query->orderBy('sale_date', 'desc')->paginate(15)->withQueryString();
       
       // Calcular ventas de esta semana - OPTIMIZADO con DB::table
       $salesThisWeekData = DB::table('sales')

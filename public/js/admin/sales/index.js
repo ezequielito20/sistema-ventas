@@ -1,7 +1,7 @@
 /**
  * SPA de Gestión de Ventas con Alpine.js
  * Archivo: public/js/admin/sales/index.js
- * Versión: 2.0.0 - SPA Edition
+ * Versión: 2.0.0 - SPA Edition con Paginación del Servidor
  */
 
 
@@ -10,7 +10,7 @@ document.addEventListener('alpine:init', () => {
     
     Alpine.data('salesSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
-        loading: true,
+        loading: false,
         currentView: 'table',
         searchTerm: '',
         searchSuggestions: [],
@@ -24,21 +24,20 @@ document.addEventListener('alpine:init', () => {
         
         // Filtros
         filters: {
-    dateFrom: '',
-    dateTo: '',
-    amountMin: '',
-    amountMax: ''
+            dateFrom: '',
+            dateTo: '',
+            amountMin: '',
+            amountMax: ''
         },
         
-        // Paginación
+        // Paginación del lado del servidor
         currentPage: 1,
         itemsPerPage: 15,
         
         // ===== COMPUTED PROPERTIES =====
         get paginatedSales() {
-            const start = (this.currentPage - 1) * this.itemsPerPage;
-            const end = start + this.itemsPerPage;
-            return this.filteredSales.slice(start, end);
+            // Para la paginación del lado del servidor, usamos directamente los datos
+            return this.filteredSales;
         },
         
         get totalPages() {
@@ -93,12 +92,11 @@ document.addEventListener('alpine:init', () => {
                 // Cargar datos iniciales desde la ventana global
                 if (window.salesData) {
                     this.allSales = window.salesData;
+                    this.filteredSales = [...this.allSales];
                 } else {
                     // Fallback: cargar desde API
                     await this.loadSales();
                 }
-                
-                this.filteredSales = [...this.allSales];
                 
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
@@ -108,7 +106,11 @@ document.addEventListener('alpine:init', () => {
                 // Configurar responsive
                 this.setupResponsive();
                 
-
+                // Inicializar búsqueda desde URL si existe
+                this.initializeSearchFromURL();
+                
+                // Inicializar manejadores de paginación
+                this.initializePaginationHandlers();
                 
                 this.loading = false;
             } catch (error) {
@@ -124,6 +126,7 @@ document.addEventListener('alpine:init', () => {
                 
                 const data = await response.json();
                 this.allSales = data.sales || [];
+                this.filteredSales = [...this.allSales];
             } catch (error) {
                 console.error('Error cargando ventas:', error);
                 throw error;
@@ -132,56 +135,162 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FUNCIONES DE FILTRADO Y BÚSQUEDA =====
         filterSales() {
-            let filtered = [...this.allSales];
+            // Para la búsqueda del lado del servidor, redirigir con parámetros
+            this.executeServerSearch();
+        },
+        
+        executeServerSearch() {
+            const searchTerm = this.searchTerm.trim();
             
-            // Filtro por término de búsqueda
-            if (this.searchTerm.trim()) {
-                const term = this.searchTerm.toLowerCase().trim();
-                filtered = filtered.filter(sale => {
-                    return (
-                        sale.customer?.name?.toLowerCase().includes(term) ||
-                        sale.customer?.email?.toLowerCase().includes(term) ||
-                        sale.id.toString().includes(term) ||
-                        this.formatDate(sale.sale_date).includes(term)
-                    );
-                });
+            // Mostrar indicador de carga
+            this.showSearchLoading();
+            
+            // Construir URL con parámetros de búsqueda
+            const url = new URL(window.location.href);
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+            } else {
+                url.searchParams.delete('search');
             }
             
-            // Filtro por fecha desde
+            // Agregar filtros de fecha
             if (this.filters.dateFrom) {
-                filtered = filtered.filter(sale => {
-                    const saleDate = new Date(sale.sale_date);
-                    const fromDate = new Date(this.filters.dateFrom);
-                    return saleDate >= fromDate;
-                });
+                url.searchParams.set('dateFrom', this.filters.dateFrom);
+            } else {
+                url.searchParams.delete('dateFrom');
             }
             
-            // Filtro por fecha hasta
             if (this.filters.dateTo) {
-                filtered = filtered.filter(sale => {
-                    const saleDate = new Date(sale.sale_date);
-                    const toDate = new Date(this.filters.dateTo);
-                    return saleDate <= toDate;
-                });
+                url.searchParams.set('dateTo', this.filters.dateTo);
+            } else {
+                url.searchParams.delete('dateTo');
             }
             
-            // Filtro por monto mínimo
+            // Agregar filtros de monto
             if (this.filters.amountMin) {
-                filtered = filtered.filter(sale => {
-                    return parseFloat(sale.total_price) >= parseFloat(this.filters.amountMin);
-                });
+                url.searchParams.set('amountMin', this.filters.amountMin);
+            } else {
+                url.searchParams.delete('amountMin');
             }
             
-            // Filtro por monto máximo
             if (this.filters.amountMax) {
-                filtered = filtered.filter(sale => {
-                    return parseFloat(sale.total_price) <= parseFloat(this.filters.amountMax);
-                });
+                url.searchParams.set('amountMax', this.filters.amountMax);
+            } else {
+                url.searchParams.delete('amountMax');
             }
             
-            this.filteredSales = filtered;
-            this.currentPage = 1; // Resetear paginación
-            this.updateSearchSuggestions();
+            // Realizar petición AJAX
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la búsqueda');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualizar la tabla con los nuevos resultados
+                this.updateTableWithSearchResults(html, searchTerm);
+                this.hideSearchLoading();
+            })
+            .catch(error => {
+                console.error('Error en búsqueda:', error);
+                this.hideSearchLoading();
+                this.showSearchError('Error al realizar la búsqueda');
+            });
+        },
+
+        updateTableWithSearchResults(html, searchTerm) {
+            // Crear un elemento temporal para parsear el HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extraer la nueva tabla
+            const newTableBody = tempDiv.querySelector('tbody');
+            const newCardsContainer = tempDiv.querySelector('.modern-cards-grid');
+            const newPagination = tempDiv.querySelector('.pagination-container');
+            
+            // Actualizar la tabla
+            const currentTableBody = document.querySelector('.modern-table tbody');
+            if (newTableBody && currentTableBody) {
+                currentTableBody.innerHTML = newTableBody.innerHTML;
+            }
+            
+            // Actualizar las tarjetas
+            const currentCardsContainer = document.querySelector('.modern-cards-grid');
+            if (newCardsContainer && currentCardsContainer) {
+                currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
+            }
+            
+            // Actualizar paginación
+            const currentPagination = document.querySelector('.pagination-container');
+            if (newPagination && currentPagination) {
+                currentPagination.innerHTML = newPagination.innerHTML;
+            }
+            
+            // Actualizar datos locales si están disponibles
+            const scriptTag = tempDiv.querySelector('script');
+            if (scriptTag) {
+                try {
+                    const scriptContent = scriptTag.textContent;
+                    const match = scriptContent.match(/window\.salesData\s*=\s*(\[.*?\]);/s);
+                    if (match) {
+                        const newSalesData = JSON.parse(match[1]);
+                        this.allSales = newSalesData;
+                        this.filteredSales = [...newSalesData];
+                    }
+                } catch (e) {
+                    console.error('Error parsing sales data:', e);
+                }
+            }
+            
+            // Actualizar URL sin recargar la página
+            if (searchTerm || this.activeFiltersCount > 0) {
+                const url = new URL(window.location.href);
+                if (searchTerm) {
+                    url.searchParams.set('search', searchTerm);
+                }
+                window.history.pushState({}, '', url.toString());
+            } else {
+                window.history.pushState({}, '', window.location.pathname);
+            }
+        },
+
+        showSearchLoading() {
+            // Mostrar indicador de carga en la barra de búsqueda
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\'/%3E%3C/svg%3E")';
+                searchInput.style.backgroundRepeat = 'no-repeat';
+                searchInput.style.backgroundPosition = 'right 0.5rem center';
+                searchInput.style.backgroundSize = '1.5rem';
+            }
+        },
+
+        hideSearchLoading() {
+            // Ocultar indicador de carga
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.style.backgroundImage = '';
+            }
+        },
+
+        showSearchError(message) {
+            // Mostrar error de búsqueda
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en la búsqueda',
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
         },
         
         updateSearchSuggestions() {
@@ -230,8 +339,7 @@ document.addEventListener('alpine:init', () => {
                 amountMax: ''
             };
             this.searchSuggestions = [];
-            this.filteredSales = [...this.allSales];
-            this.currentPage = 1;
+            this.filterSales();
         },
         
         // ===== FUNCIONES DE VISTA =====
@@ -245,16 +353,84 @@ document.addEventListener('alpine:init', () => {
         },
         
         // ===== FUNCIONES DE PAGINACIÓN =====
-        changePage(page) {
-            if (page >= 1 && page <= this.totalPages) {
-                this.currentPage = page;
+        initializeSearchFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            const dateFromParam = urlParams.get('dateFrom');
+            const dateToParam = urlParams.get('dateTo');
+            const amountMinParam = urlParams.get('amountMin');
+            const amountMaxParam = urlParams.get('amountMax');
+            
+            if (searchParam) {
+                this.searchTerm = searchParam;
             }
+            
+            if (dateFromParam) {
+                this.filters.dateFrom = dateFromParam;
+            }
+            
+            if (dateToParam) {
+                this.filters.dateTo = dateToParam;
+            }
+            
+            if (amountMinParam) {
+                this.filters.amountMin = amountMinParam;
+            }
+            
+            if (amountMaxParam) {
+                this.filters.amountMax = amountMaxParam;
+            }
+        },
+        
+        initializePaginationHandlers() {
+            // Delegar eventos de clic para enlaces de paginación
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.pagination-btn') || e.target.closest('.page-number')) {
+                    e.preventDefault();
+                    const link = e.target.closest('a');
+                    if (link) {
+                        this.loadPage(link.href);
+                    }
+                }
+            });
+        },
+        
+        loadPage(url) {
+            // Mostrar indicador de carga
+            this.showSearchLoading();
+            
+            // Realizar petición AJAX para la nueva página
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar la página');
+                }
+                return response.text();
+            })
+            .then(html => {
+                // Actualizar la tabla con los nuevos resultados
+                this.updateTableWithSearchResults(html, this.searchTerm);
+                this.hideSearchLoading();
+                
+                // Actualizar URL sin recargar la página
+                window.history.pushState({}, '', url);
+            })
+            .catch(error => {
+                console.error('Error al cargar página:', error);
+                this.hideSearchLoading();
+                this.showSearchError('Error al cargar la página');
+            });
         },
         
         // ===== FUNCIONES DE MODAL =====
         async showSaleDetails(saleId) {
             try {
-                
                 this.loading = true;
                 
                 // Buscar la venta en los datos locales
@@ -316,41 +492,41 @@ document.addEventListener('alpine:init', () => {
         
         // ===== ACCIONES DE VENTA =====
         editSale(saleId) {
-    window.location.href = `/sales/edit/${saleId}`;
+            window.location.href = `/admin/sales/${saleId}/edit`;
         },
 
         async deleteSale(saleId) {
             const confirmed = await this.showConfirmDialog(
-        '¿Estás seguro de que quieres eliminar esta venta?',
-        'Esta acción no se puede deshacer.'
-    );
+                '¿Estás seguro de que quieres eliminar esta venta?',
+                'Esta acción no se puede deshacer.'
+            );
 
-    if (!confirmed) return;
+            if (!confirmed) return;
 
-    try {
-        const response = await fetch(`/sales/delete/${saleId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            }
-        });
+            try {
+                const response = await fetch(`/admin/sales/${saleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-        const data = await response.json();
+                const data = await response.json();
 
-        if (!response.ok) {
+                if (!response.ok) {
                     this.showAlert(data.message || 'Error al eliminar la venta', data.icons || 'warning');
-            return;
-        }
+                    return;
+                }
 
-        if (data.error) {
+                if (data.error) {
                     this.showAlert(data.message, 'error');
-        } else {
+                } else {
                     this.showAlert(data.message || 'Venta eliminada correctamente', 'success');
                     
                     // Remover la venta de los datos locales
                     this.allSales = this.allSales.filter(sale => sale.id !== saleId);
-                    this.filterSales();
+                    this.filteredSales = this.filteredSales.filter(sale => sale.id !== saleId);
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -360,7 +536,7 @@ document.addEventListener('alpine:init', () => {
         
         printSale(saleId) {
             if (saleId) {
-                window.open(`/sales/print/${saleId}`, '_blank');
+                window.open(`/admin/sales/${saleId}/print`, '_blank');
             }
         },
         
@@ -421,39 +597,39 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FUNCIONES DE UI =====
         showAlert(message, type = 'info') {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
-            text: message,
-            icon: type,
-            confirmButtonText: 'Aceptar',
-            confirmButtonColor: '#667eea'
-        });
-    } else {
-        alert(message);
-    }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+                    text: message,
+                    icon: type,
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#667eea'
+                });
+            } else {
+                alert(message);
+            }
         },
 
         showConfirmDialog(title, text) {
-    return new Promise((resolve) => {
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: title,
-                text: text,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#667eea',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                resolve(result.isConfirmed);
+            return new Promise((resolve) => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#667eea',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        resolve(result.isConfirmed);
+                    });
+                } else {
+                    resolve(confirm(`${title}\n${text}`));
+                }
             });
-        } else {
-            resolve(confirm(`${title}\n${text}`));
-        }
-    });
-},
+        },
 
 
     }));
@@ -469,7 +645,7 @@ window.showSaleDetails = function(saleId) {
 };
 
 window.editSale = function(saleId) {
-    window.location.href = `/sales/edit/${saleId}`;
+    window.location.href = `/admin/sales/${saleId}/edit`;
 };
 
 window.deleteSale = function(saleId) {
@@ -480,5 +656,5 @@ window.deleteSale = function(saleId) {
 };
 
 window.printSale = function(saleId) {
-    window.open(`/sales/print/${saleId}`, '_blank');
+    window.open(`/admin/sales/${saleId}/print`, '_blank');
 };

@@ -502,39 +502,49 @@
                 </div>
             </div>
 
-            {{-- Paginación --}}
-            <div x-show="!loading && filteredSales.length > 0" class="pagination-container">
-                <div class="pagination-info">
-                    <span x-text="`Mostrando ${(currentPage - 1) * itemsPerPage + 1} a ${Math.min(currentPage * itemsPerPage, filteredSales.length)} de ${filteredSales.length} ventas`"></span>
-                </div>
-                <div class="pagination-controls">
-                    <button type="button" 
-                            class="pagination-btn"
-                            :disabled="currentPage === 1"
-                            @click="changePage(currentPage - 1)">
-                        <i class="fas fa-chevron-left"></i>
-                        <span>Anterior</span>
-                    </button>
-                    
-                    <div class="page-numbers">
-                        <template x-for="page in visiblePages" :key="page">
-                            <button type="button" 
-                                    class="page-number"
-                                    :class="{ 'active': page === currentPage }"
-                                    @click="changePage(page)"
-                                    x-text="page"></button>
-                        </template>
+            {{-- Paginación del lado del servidor --}}
+            @if($sales->hasPages())
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Mostrando {{ $sales->firstItem() ?? 0 }}-{{ $sales->lastItem() ?? 0 }} de {{ $sales->total() }} ventas</span>
                     </div>
-                    
-                    <button type="button" 
-                            class="pagination-btn"
-                            :disabled="currentPage === totalPages"
-                            @click="changePage(currentPage + 1)">
-                        <span>Siguiente</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+                    <div class="pagination-controls">
+                        @if($sales->onFirstPage())
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </button>
+                        @else
+                            <a href="{{ $sales->previousPageUrl() }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </a>
+                        @endif
+                        
+                        <div class="page-numbers">
+                            @foreach($sales->getUrlRange(1, $sales->lastPage()) as $page => $url)
+                                @if($page == $sales->currentPage())
+                                    <span class="page-number active">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                @endif
+                            @endforeach
+                        </div>
+                        
+                        @if($sales->hasMorePages())
+                            <a href="{{ $sales->nextPageUrl() }}" class="pagination-btn">
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 
