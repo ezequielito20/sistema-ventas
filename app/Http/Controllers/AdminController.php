@@ -460,12 +460,21 @@ class AdminController extends Controller
       $stats = $salesStats[0];
       $purchaseData = $purchaseStats[0];
       
-      $todaySales = $stats->today_sales;
-      $weeklySales = $stats->weekly_sales;
-      $averageCustomerSpend = $stats->average_customer_spend;
-      $monthlySales = $stats->monthly_sales;
-      $monthlyPurchases = $purchaseData->monthly_purchases;
-      $lastMonthPurchases = $purchaseData->last_month_purchases;
+      $todaySales = $stats->today_sales ?? 0;
+      $weeklySales = $stats->weekly_sales ?? 0;
+      $averageCustomerSpend = $stats->average_customer_spend ?? 0;
+      $monthlySales = $stats->monthly_sales ?? 0;
+      
+
+      $monthlyPurchases = $purchaseData->monthly_purchases ?? 0;
+      $lastMonthPurchases = $purchaseData->last_month_purchases ?? 0;
+      
+      // Calcular ganancia total teórica
+      $totalProfit = DB::table('sale_details as sd')
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $companyId)
+         ->sum(DB::raw('sd.quantity * (p.sale_price - p.purchase_price)'));
       
       $purchaseGrowth = $lastMonthPurchases > 0 ?
          round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
@@ -908,7 +917,8 @@ class AdminController extends Controller
             ->where('sale_date', '<=', $closingDate)
             ->sum('total_price');
          
-         $closedSalesData[$closedCashCount->id] = [
+         $closedSalesData[] = [
+            'id' => $closedCashCount->id,
             'today_sales' => $todaySalesInPeriod,
             'weekly_sales' => $weeklySalesInPeriod,
             'average_customer_spend' => $averageCustomerSpendInPeriod,
@@ -1041,6 +1051,8 @@ class AdminController extends Controller
          'todaySales',
          'weeklySales',
          'averageCustomerSpend',
+         'totalProfit',
+         'monthlySales',
          'mostProfitableProducts',
          'totalPendingDebt',
          'currentCashCount',

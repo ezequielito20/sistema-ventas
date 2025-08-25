@@ -19,10 +19,11 @@
     'actionButtonIcon' => 'fas fa-eye',
     'refreshButton' => false,
     'refreshButtonText' => 'Actualizar Datos',
-    'refreshButtonIcon' => 'fas fa-sync-alt'
+    'refreshButtonIcon' => 'fas fa-sync-alt',
+    'sectionId' => null
 ])
 
-<div class="bg-gradient-to-r from-slate-50 to-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-8 mb-6 sm:mb-8 md:mb-10 lg:mb-10 shadow-lg sm:shadow-xl border border-gray-200/50">
+<div class="bg-gradient-to-r from-slate-50 to-gray-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-8 mb-6 sm:mb-8 md:mb-10 lg:mb-10 shadow-lg sm:shadow-xl border border-gray-200/50" @if($sectionId) data-section-id="{{ $sectionId }}" @endif>
     <div class="flex flex-col md:flex-row md:items-center lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 md:gap-8 lg:gap-8">
         <!-- Title Section -->
         <div class="flex items-center gap-3 sm:gap-4 md:gap-6 lg:gap-6 flex-1 min-w-0">
@@ -55,7 +56,7 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 md:gap-6 lg:gap-6 flex-shrink-0">
             @if($showDataSelector)
                 <!-- Data Selector -->
-                <div class="relative w-full sm:w-auto">
+                <div class="relative w-full sm:w-auto" @if($sectionId) data-section-id="{{ $sectionId }}" @endif>
                     <x-filter-select
                         name="data-mode-select"
                         placeholder="📊 Arqueo Actual"
@@ -284,28 +285,52 @@
 // Función global para manejar el cambio de modo de datos
 window.sectionHeader = window.sectionHeader || {};
 window.sectionHeader.onDataModeChange = function(selectedValue, selectedItem) {
+    // Obtener el sectionId del elemento que disparó el evento
+    const sectionElement = event.target.closest('[data-section-id]');
+    const sectionId = sectionElement ? sectionElement.getAttribute('data-section-id') : null;
+    
     // Manejar selección de arqueo específico
     if (selectedValue && selectedValue.startsWith('cash_')) {
         const cashCountId = selectedValue.replace('cash_', '');
         
-        // Disparar evento para arqueo específico
-        window.dispatchEvent(new CustomEvent('cashCountSelected', {
-            detail: {
-                cashCountId: cashCountId,
-                selectedItem: selectedItem
-            }
-        }));
+        // Disparar evento específico por sección
+        if (sectionId === 'cash-section') {
+            window.dispatchEvent(new CustomEvent('cashDataModeChanged', {
+                detail: {
+                    value: selectedValue,
+                    item: selectedItem,
+                    cashCountId: cashCountId
+                }
+            }));
+        } else if (sectionId === 'sales-section') {
+            window.dispatchEvent(new CustomEvent('salesDataModeChanged', {
+                detail: {
+                    value: selectedValue,
+                    item: selectedItem,
+                    cashCountId: cashCountId
+                }
+            }));
+        }
         
         return;
     }
     
-    // Para modo 'current' o 'historical', disparar evento dataModeChanged
-    window.dispatchEvent(new CustomEvent('dataModeChanged', {
-        detail: {
-            value: selectedValue,
-            item: selectedItem
-        }
-    }));
+    // Para modo 'current' o 'historical', disparar evento específico por sección
+    if (sectionId === 'cash-section') {
+        window.dispatchEvent(new CustomEvent('cashDataModeChanged', {
+            detail: {
+                value: selectedValue,
+                item: selectedItem
+            }
+        }));
+    } else if (sectionId === 'sales-section') {
+        window.dispatchEvent(new CustomEvent('salesDataModeChanged', {
+            detail: {
+                value: selectedValue,
+                item: selectedItem
+            }
+        }));
+    }
 };
 </script>
 @endpush

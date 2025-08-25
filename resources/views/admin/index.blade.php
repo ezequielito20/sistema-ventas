@@ -68,175 +68,78 @@
 @stop
 
 @section('content')
-    {{-- Sección de Arqueo de Caja --}}
+        {{-- Sección de Arqueo de Caja --}}
     <div class="mb-16" x-data="{
-        cashDataMode: 'current',
-        formatCurrency(amount) {
-            return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-    }">
+            cashDataMode: 'current',
+            currentCashData: @js($currentCashData ?? []),
+            historicalData: @js($historicalData ?? []),
+            closedCashCountsData: @js($closedCashCountsData ?? []),
 
+            formatCurrency(amount) {
+                return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+            });
+        },
+        updateCashWidgets(selectedMode) {
+            let selectedData = {};
+            if (selectedMode === 'current') {
+                selectedData = this.currentCashData;
+            } else if (selectedMode === 'historical') {
+                selectedData = this.historicalData;
+            } else if (selectedMode.startsWith('cash_')) {
+                const cashCountId = selectedMode.replace('cash_', '');
+                selectedData = this.closedCashCountsData.find(item => item.id == cashCountId) || {};
+            }
+            
+            // Actualizar widgets de arqueo de caja
+            const balanceElement = document.querySelector('.widget-balance .widget-value');
+            const salesElement = document.querySelector('.widget-sales .widget-value');
+            const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
+            const debtElement = document.querySelector('.widget-debt .widget-value');
+            const paymentsElement = document.querySelector('.widget-payments .widget-value');
+            
+            if (balanceElement) {
+                balanceElement.textContent = this.formatCurrency(selectedData.balance || 0);
+            }
+            if (salesElement) {
+                salesElement.textContent = this.formatCurrency(selectedData.sales || 0);
+            }
+            if (salesSubtitleElement) {
+                salesSubtitleElement.textContent = 'Compras: ' + this.formatCurrency(selectedData.purchases || 0);
+            }
+            if (debtElement) {
+                debtElement.textContent = this.formatCurrency(selectedData.debt || 0);
+            }
+            if (paymentsElement) {
+                paymentsElement.textContent = this.formatCurrency(selectedData.debt_payments || 0);
+            }
+        }
+             }" x-init="
+            // Inicializar widgets con datos por defecto (Arqueo Actual)
+            $nextTick(() => {
+                updateCashWidgets('current');
+            });
+            
+            // Listener específico para arqueo de caja
+            window.addEventListener('cashDataModeChanged', function(event) {
+                Alpine.store('cashDataMode', event.detail.value);
+                Alpine.$data(document.querySelector('[x-data*=\'cashDataMode\']')).updateCashWidgets(event.detail.value);
+            });
+         ">
+        
         <!-- Section Header -->
         <x-section-header title="Arqueo de Caja" subtitle="Control financiero y gestión de efectivo"
             icon="fas fa-cash-register" iconBg="from-emerald-500 to-teal-600" statusIcon="fas fa-check"
             statusText="Caja Abierta" statusColor="green" dataMode="cashDataMode" :dataOptions="[]" :cashCounts="$closedCashCountsData"
-            :showDataSelector="true" :showStatus="true" :showLastUpdate="true" />
+            :showDataSelector="true" :showStatus="true" :showLastUpdate="true" sectionId="cash-section" />
 
         <!-- Ultra Simple Mini Widgets Grid - Single Row Responsive -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch"
-            x-data="{
-                selectedCashMode: 'current',
-                currentCashData: @js($currentCashData ?? []),
-                historicalData: @js($historicalData ?? []),
-                closedCashCountsData: @js($closedCashCountsData ?? []),
-                formatCurrency(amount) {
-                    return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                },
-                getSelectedCashData() {
-                    if (this.selectedCashMode === 'current') {
-                        return this.currentCashData;
-                    } else if (this.selectedCashMode === 'historical') {
-                        return this.historicalData;
-                    } else if (this.selectedCashMode.startsWith('cash_')) {
-                        const cashCountId = this.selectedCashMode.replace('cash_', '');
-                        const cashData = this.closedCashCountsData.find(item => item.id == cashCountId) || {};
-                        return cashData;
-                    }
-                    return {};
-                },
-                updateAllWidgets() {
-                    const data = this.getSelectedCashData();
-            
-                    // Balance Actual
-                    const balanceElement = document.querySelector('.widget-balance .widget-value');
-                    if (balanceElement) {
-                        const balanceValue = this.formatCurrency(data.balance || 0);
-                        balanceElement.textContent = balanceValue;
-                    }
-            
-                    // Ventas del Período
-                    const salesElement = document.querySelector('.widget-sales .widget-value');
-                    const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
-                    if (salesElement) {
-                        const salesValue = this.formatCurrency(data.sales || 0);
-                        salesElement.textContent = salesValue;
-                    }
-                    if (salesSubtitleElement) {
-                        const purchasesValue = this.formatCurrency(data.purchases || 0);
-                        salesSubtitleElement.textContent = 'Compras: ' + purchasesValue;
-                    }
-            
-                    // Por Cobrar en Período
-                    const debtElement = document.querySelector('.widget-debt .widget-value');
-                    if (debtElement) {
-                        const debtValue = this.formatCurrency(data.debt || 0);
-                        debtElement.textContent = debtValue;
-                    }
-            
-                    // Pagos de Deuda
-                    const paymentsElement = document.querySelector('.widget-payments .widget-value');
-                    if (paymentsElement) {
-                        const paymentsValue = this.formatCurrency(data.debt_payments || 0);
-                        paymentsElement.textContent = paymentsValue;
-                    }
-                }
-            }" x-init="$nextTick(() => {
-                updateAllWidgets();
-            });" <!-- Event listeners removidos - usando enfoque global -->
-            <!-- Event listeners removidos - usando enfoque global -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch">
 
 
 
-            <!-- Debug global de eventos -->
-            <script>
-                // Función global para actualizar widgets
-                window.updateDashboardWidgets = function(selectedMode) {
-                    // Datos del controlador
-                    const currentData = @json($currentCashData);
-                    const historicalData = @json($historicalData);
-                    const closedCashCountsData = @json($closedCashCountsData);
-                    
-                    // Obtener los datos correspondientes
-                    let selectedData = {};
-                    if (selectedMode === 'current') {
-                        selectedData = currentData;
-                    } else if (selectedMode === 'historical') {
-                        selectedData = historicalData;
-                    } else if (selectedMode.startsWith('cash_')) {
-                        const cashCountId = selectedMode.replace('cash_', '');
-                        selectedData = closedCashCountsData.find(item => item.id == cashCountId) || {};
-                    } else {
-                        selectedData = currentData;
-                    }
-                    
-                    // Función para formatear moneda
-                    const formatCurrency = (amount) => {
-                        return '$' + parseFloat(amount || 0).toLocaleString('es-PE', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                    };
-                    
-                    // Actualizar los widgets directamente
-                    const balanceElement = document.querySelector('.widget-balance .widget-value');
-                    const salesElement = document.querySelector('.widget-sales .widget-value');
-                    const salesSubtitleElement = document.querySelector('.widget-sales .widget-subtitle');
-                    const debtElement = document.querySelector('.widget-debt .widget-value');
-                    const paymentsElement = document.querySelector('.widget-payments .widget-value');
-                    
-                    // Actualizar Balance Actual
-                    if (balanceElement) {
-                        const balanceValue = formatCurrency(selectedData.balance || 0);
-                        balanceElement.textContent = balanceValue;
-                    }
-                    
-                    // Actualizar Ventas del Período
-                    if (salesElement) {
-                        const salesValue = formatCurrency(selectedData.sales || 0);
-                        salesElement.textContent = salesValue;
-                    }
-                    
-                    // Actualizar subtítulo de compras
-                    if (salesSubtitleElement) {
-                        const purchasesValue = formatCurrency(selectedData.purchases || 0);
-                        salesSubtitleElement.textContent = 'Compras: ' + purchasesValue;
-                    }
-                    
-                    // Actualizar Por Cobrar en Período
-                    if (debtElement) {
-                        const debtValue = formatCurrency(selectedData.debt || 0);
-                        debtElement.textContent = debtValue;
-                    }
-                    
-                    // Actualizar Pagos de Deuda
-                    if (paymentsElement) {
-                        const paymentsValue = formatCurrency(selectedData.debt_payments || 0);
-                        paymentsElement.textContent = paymentsValue;
-                    }
-                };
 
-
-
-                // Listener global para eventos
-                window.addEventListener('cashCountSelected', function(event) {
-                    const selectedMode = 'cash_' + event.detail.cashCountId;
-                    window.updateDashboardWidgets(selectedMode);
-                });
-
-                window.addEventListener('dataModeChanged', function(event) {
-                    if (event.detail.value === 'current' || event.detail.value === 'historical') {
-                        window.updateDashboardWidgets(event.detail.value);
-                    }
-                });
-                
-
-            </script>
             <!-- Widget de Balance General -->
             <div class="widget-balance">
                 <x-dashboard-widget title="Balance Actual" value="0" icon="fas fa-balance-scale" trend="+12.5%"
@@ -272,53 +175,106 @@
                 </div>
             </div>
 
-    {{-- Sección de Ventas --}}
+        {{-- Sección de Ventas --}}
     <div class="mb-16" x-data="{
-        salesDataMode: 'current',
-        formatCurrency(amount) {
-            return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-    }">
+            salesDataMode: 'current',
+            currentSalesData: @js($currentSalesData ?? []),
+            historicalSalesData: @js($historicalSalesData ?? []),
+            closedSalesData: @js($closedSalesData ?? []),
 
+            formatCurrency(amount) {
+                return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+            });
+            },
+            updateSalesWidgets(selectedMode) {
+                let selectedData = {};
+                if (selectedMode === 'current') {
+                    selectedData = this.currentSalesData;
+                } else if (selectedMode === 'historical') {
+                    selectedData = this.historicalSalesData;
+                } else if (selectedMode.startsWith('cash_')) {
+                    const cashCountId = selectedMode.replace('cash_', '');
+                    selectedData = this.closedSalesData.find(item => item.id == cashCountId) || {};
+                }
+                
+                // Actualizar widgets de análisis de ventas
+                const weeklySalesElement = document.querySelector('.widget-weekly-sales .widget-value');
+                const averageCustomerElement = document.querySelector('.widget-average-customer .widget-value');
+                const totalProfitElement = document.querySelector('.widget-total-profit .widget-value');
+                const monthlyPerformanceElement = document.querySelector('.widget-monthly-performance .widget-value');
+                
+                if (weeklySalesElement) {
+                    weeklySalesElement.textContent = this.formatCurrency(selectedData.weekly_sales || 0);
+                }
+                if (averageCustomerElement) {
+                    averageCustomerElement.textContent = this.formatCurrency(selectedData.average_customer_spend || 0);
+                }
+                if (totalProfitElement) {
+                    totalProfitElement.textContent = this.formatCurrency(selectedData.total_profit || 0);
+                }
+                if (monthlyPerformanceElement) {
+                    monthlyPerformanceElement.textContent = this.formatCurrency(selectedData.monthly_sales || 0);
+                }
+            }
+         }" x-init="
+            // Inicializar widgets con datos por defecto (Arqueo Actual)
+            $nextTick(() => {
+                updateSalesWidgets('current');
+            });
+            
+            // Listener específico para análisis de ventas
+            window.addEventListener('salesDataModeChanged', function(event) {
+                Alpine.store('salesDataMode', event.detail.value);
+                Alpine.$data(document.querySelector('[x-data*=\'salesDataMode\']')).updateSalesWidgets(event.detail.value);
+            });
+         ">
+        
         <!-- Section Header -->
         <x-section-header title="Análisis de Ventas" subtitle="Métricas y rendimiento comercial" icon="fas fa-chart-line"
             iconBg="from-violet-500 to-purple-600" statusIcon="fas fa-trending-up" statusText="Datos en Tiempo Real"
-            statusColor="purple" dataMode="salesDataMode" :dataOptions="[]" :showDataSelector="true" :showStatus="true"
-            :showLastUpdate="true" :refreshButton="true" refreshButtonText="Actualizar Datos"
-            refreshButtonIcon="fas fa-sync-alt" />
+            statusColor="purple" dataMode="salesDataMode" :dataOptions="[]" :cashCounts="$closedCashCountsData"
+            :showDataSelector="true" :showStatus="true" :showLastUpdate="true" :refreshButton="true" 
+            refreshButtonText="Actualizar Datos" refreshButtonIcon="fas fa-sync-alt" sectionId="sales-section" />
 
         <!-- Ultra Simple Mini Sales Widgets Grid - Single Row Responsive -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch">
             <!-- Widget de Ventas de la Semana -->
-            <x-dashboard-widget title="Ventas de la Semana" value="0" valueType="currency"
-                icon="fas fa-calendar-week" trend="+12%" trendIcon="fas fa-trending-up" trendColor="text-green-300"
-                subtitle="Hoy: $0.00" subtitleIcon="fas fa-calendar-day" gradientFrom="from-violet-500"
-                gradientTo="to-purple-600" progressWidth="78%" progressGradientFrom="from-violet-400"
-                progressGradientTo="to-purple-400" />
+            <div class="widget-weekly-sales">
+                <x-dashboard-widget title="Ventas de la Semana" value="{{ $weeklySales }}" valueType="currency"
+                    icon="fas fa-calendar-week" trend="+12%" trendIcon="fas fa-trending-up" trendColor="text-green-300"
+                    subtitle="Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}" subtitleIcon="fas fa-calendar-day" gradientFrom="from-violet-500"
+                    gradientTo="to-purple-600" progressWidth="78%" progressGradientFrom="from-violet-400"
+                    progressGradientTo="to-purple-400" />
+            </div>
 
             <!-- Widget de Promedio por Cliente -->
-            <x-dashboard-widget title="Promedio por Cliente" value="0" valueType="currency"
-                icon="fas fa-user-chart" trend="+8%" trendIcon="fas fa-arrow-up" trendColor="text-green-300"
-                subtitle="Ticket promedio de venta" subtitleIcon="fas fa-users" gradientFrom="from-pink-500"
-                gradientTo="to-rose-600" progressWidth="65%" progressGradientFrom="from-pink-400"
-                progressGradientTo="to-rose-400" />
+            <div class="widget-average-customer">
+                <x-dashboard-widget title="Promedio por Cliente" value="{{ $averageCustomerSpend }}" valueType="currency"
+                    icon="fas fa-user-chart" trend="+8%" trendIcon="fas fa-arrow-up" trendColor="text-green-300"
+                    subtitle="Ticket promedio de venta" subtitleIcon="fas fa-users" gradientFrom="from-pink-500"
+                    gradientTo="to-rose-600" progressWidth="65%" progressGradientFrom="from-pink-400"
+                    progressGradientTo="to-rose-400" />
+            </div>
 
             <!-- Widget de Ganancia Teórica -->
-            <x-dashboard-widget title="Ganancia Total Teórica" value="0" valueType="currency"
-                icon="fas fa-chart-pie" trend="+15%" trendIcon="fas fa-percentage" trendColor="text-green-300"
-                subtitle="Margen de productos vendidos" subtitleIcon="fas fa-coins" gradientFrom="from-cyan-500"
-                gradientTo="to-blue-600" progressWidth="88%" progressGradientFrom="from-cyan-400"
-                progressGradientTo="to-blue-400" />
+            <div class="widget-total-profit">
+                <x-dashboard-widget title="Ganancia Total Teórica" value="{{ $totalProfit }}" valueType="currency"
+                    icon="fas fa-chart-pie" trend="+15%" trendIcon="fas fa-percentage" trendColor="text-green-300"
+                    subtitle="Margen de productos vendidos" subtitleIcon="fas fa-coins" gradientFrom="from-cyan-500"
+                    gradientTo="to-blue-600" progressWidth="88%" progressGradientFrom="from-cyan-400"
+                    progressGradientTo="to-blue-400" />
+            </div>
 
             <!-- Widget de Rendimiento Mensual -->
-            <x-dashboard-widget title="Rendimiento Mensual" value="0" valueType="currency"
-                icon="fas fa-calendar-alt" trend="+22%" trendIcon="fas fa-rocket" trendColor="text-green-300"
-                subtitle="Comparado con mes anterior" subtitleIcon="fas fa-chart-bar" gradientFrom="from-emerald-500"
-                gradientTo="to-teal-600" progressWidth="92%" progressGradientFrom="from-emerald-400"
-                progressGradientTo="to-teal-400" />
+            <div class="widget-monthly-performance">
+                <x-dashboard-widget title="Rendimiento Mensual" value="{{ $monthlySales }}" valueType="currency"
+                    icon="fas fa-calendar-alt" trend="+22%" trendIcon="fas fa-rocket" trendColor="text-green-300"
+                    subtitle="Comparado con mes anterior" subtitleIcon="fas fa-chart-bar" gradientFrom="from-emerald-500"
+                    gradientTo="to-teal-600" progressWidth="92%" progressGradientFrom="from-emerald-400"
+                    progressGradientTo="to-teal-400" />
+            </div>
         </div>
     </div>
 
