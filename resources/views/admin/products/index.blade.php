@@ -426,7 +426,7 @@
                             <div class="search-icon">
                                 <i class="fas fa-search"></i>
                             </div>
-                            <input type="text" placeholder="Buscar productos..." id="searchInput" class="search-input">
+                            <input type="text" placeholder="Buscar productos..." id="searchInput" class="search-input" value="{{ request('search') }}">
                             <div class="search-border"></div>
                         </div>
                     </div>
@@ -507,23 +507,64 @@
                         @endforeach
                     </div>
 
-                    {{-- Paginación para tarjetas --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $products->count()) }} de {{ $products->count() }} registros</span>
+                    @if($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($products->onFirstPage())
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                @else
+                                    <a href="{{ $products->previousPageUrl() }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                @endif
+                                <div class="page-numbers">
+                                    @foreach($products->getUrlRange(1, $products->lastPage()) as $page => $url)
+                                        @if($page == $products->currentPage())
+                                            <span class="page-number active">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                @if($products->hasMorePages())
+                                    <a href="{{ $products->nextPageUrl() }}" class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            <button id="cardsPrevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="cardsPageNumbers" class="page-numbers"></div>
-                            <button id="cardsNextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
+                    @else
+                        {{-- Paginación cliente (fallback) --}}
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $products->count()) }} de {{ $products->count() }} registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="cardsPrevPage" class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    Anterior
+                                </button>
+                                <div id="cardsPageNumbers" class="page-numbers"></div>
+                                <button id="cardsNextPage" class="pagination-btn">
+                                    Siguiente
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Vista de tabla (solo desktop) --}}
@@ -642,23 +683,64 @@
                         </table>
                     </div>
 
-                    {{-- Paginación personalizada --}}
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span id="paginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de {{ $products->count() }} registros</span>
+                    @if($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($products->onFirstPage())
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                @else
+                                    <a href="{{ $products->previousPageUrl() }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                @endif
+                                <div class="page-numbers">
+                                    @foreach($products->getUrlRange(1, $products->lastPage()) as $page => $url)
+                                        @if($page == $products->currentPage())
+                                            <span class="page-number active">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                @if($products->hasMorePages())
+                                    <a href="{{ $products->nextPageUrl() }}" class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            <button id="prevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </button>
-                            <div id="pageNumbers" class="page-numbers"></div>
-                            <button id="nextPage" class="pagination-btn">
-                                Siguiente
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
+                    @else
+                        {{-- Paginación personalizada (fallback) --}}
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span id="paginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de {{ $products->count() }} registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="prevPage" class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    Anterior
+                                </button>
+                                <div id="pageNumbers" class="page-numbers"></div>
+                                <button id="nextPage" class="pagination-btn">
+                                    Siguiente
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Vista móvil (siempre tarjetas) --}}

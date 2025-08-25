@@ -29,15 +29,45 @@ class ProductController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
          // Optimizar consulta de productos con eager loading y select específico
-         $products = Product::select('id', 'name', 'code', 'description', 'stock', 'purchase_price', 'sale_price', 'image', 'category_id', 'company_id', 'created_at', 'updated_at')
+         $query = Product::select('id', 'name', 'code', 'description', 'stock', 'purchase_price', 'sale_price', 'image', 'category_id', 'company_id', 'created_at', 'updated_at')
             ->with(['category:id,name'])
-            ->where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->get();
+            ->where('company_id', $this->company->id);
+
+         // Búsqueda por texto: nombre, código, categoría
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+               $q->where('name', 'ILIKE', "%{$search}%")
+                 ->orWhere('code', 'ILIKE', "%{$search}%")
+                 ->orWhereHas('category', function ($cq) use ($search) {
+                    $cq->where('name', 'ILIKE', "%{$search}%");
+                 });
+            });
+         }
+
+         // Filtro por categoría
+         if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+         }
+
+         // Filtro por estado de stock: low|normal|high (según umbrales simples)
+         if ($request->filled('stock_status')) {
+            $stock = $request->input('stock_status');
+            if ($stock === 'low') {
+               $query->where('stock', '<=', 10);
+            } elseif ($stock === 'high') {
+               $query->where('stock', '>', 50);
+            } else { // normal
+               $query->whereBetween('stock', [11, 50]);
+            }
+         }
+
+         // Paginación del lado del servidor
+         $products = $query->orderBy('name')->paginate(12)->withQueryString();
 
          // Optimizar consulta de categorías con select específico
          $categories = Category::select('id', 'name', 'company_id')
@@ -48,26 +78,26 @@ class ProductController extends Controller
          $currency = $this->currencies;
          $company = $this->company;
          
-         // Calcular estadísticas usando la colección ya cargada
-         $totalProducts = $products->count();
-         $lowStockProducts = $products->filter(function($product) {
-            return $product->stock <= 10;
-         })->count();
+         // Calcular estadísticas usando todos los productos de la empresa (no filtrados)
+         $allProducts = Product::select('id', 'stock', 'purchase_price', 'sale_price')
+            ->where('company_id', $this->company->id)
+            ->get();
+
+         $totalProducts = $allProducts->count();
+         $lowStockProducts = $allProducts->where('stock', '<=', 10)->count();
          
-         // Calcula el valor total del inventario basado en precio de compra
-         $totalPurchaseValue = $products->sum(function ($product) {
+         // Valor de compra total
+         $totalPurchaseValue = $allProducts->sum(function ($product) {
             return $product->stock * $product->purchase_price;
          });
 
-         // Calcula el valor total del inventario basado en precio de venta
-         $totalSaleValue = $products->sum(function ($product) {
+         // Valor de venta total
+         $totalSaleValue = $allProducts->sum(function ($product) {
             return $product->stock * $product->sale_price;
          });
 
-         // Calcula la ganancia potencial
+         // Ganancia potencial y porcentaje
          $potentialProfit = $totalSaleValue - $totalPurchaseValue;
-
-         // Calcula el porcentaje de ganancia
          $profitPercentage = $totalPurchaseValue > 0 
             ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100 
             : 0;
