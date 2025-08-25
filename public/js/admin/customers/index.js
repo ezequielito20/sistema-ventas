@@ -175,8 +175,6 @@ function filtersPanel() {
         },
         
         executeServerFilter(filter) {
-            // Mostrar indicador de carga
-            this.showFilterLoading();
             
             // Construir URL con parámetros de filtro
             const url = new URL(window.location.href);
@@ -209,12 +207,9 @@ function filtersPanel() {
             .then(html => {
                 // Actualizar la tabla con los nuevos resultados
                 this.updateTableWithFilterResults(html, filter);
-                this.hideFilterLoading();
             })
             .catch(error => {
                 console.error('Error al aplicar filtro:', error);
-                this.hideFilterLoading();
-                this.showFilterError('Error al aplicar el filtro');
             });
         },
         
@@ -266,36 +261,7 @@ function filtersPanel() {
             window.history.pushState({}, '', url.toString());
         },
         
-        showFilterLoading() {
-            // Mostrar indicador de carga en el panel de filtros
-            const filterPanel = document.querySelector('[x-data="filtersPanel()"]');
-            if (filterPanel) {
-                filterPanel.style.opacity = '0.7';
-                filterPanel.style.pointerEvents = 'none';
-            }
-        },
-        
-        hideFilterLoading() {
-            // Ocultar indicador de carga
-            const filterPanel = document.querySelector('[x-data="filtersPanel()"]');
-            if (filterPanel) {
-                filterPanel.style.opacity = '1';
-                filterPanel.style.pointerEvents = 'auto';
-            }
-        },
-        
-        showFilterError(message) {
-            // Mostrar error de filtro
-            Swal.fire({
-                icon: 'error',
-                title: 'Error al aplicar filtro',
-                text: message,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        }
+
     };
 }
 
