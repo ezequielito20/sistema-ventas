@@ -485,13 +485,31 @@ document.addEventListener('alpine:init', () => {
         },
         
         cancelSale() {
-            this.showConfirmDialog(
-                '¿Cancelar edición?',
-                'Se perderán todos los cambios no guardados'
-            ).then(confirmed => {
-                if (confirmed) {
+            Swal.fire({
+                title: '¿Cancelar edición?',
+                text: 'Se perderán todos los cambios no guardados',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, cancelar',
+                cancelButtonText: 'No, continuar'
+            }).then((result) => {
+                if (result.isConfirmed) {
                     this.clearLocalStorage();
-                    window.location.href = '/sales';
+                    
+                    // Obtener la URL de referencia para evitar bucles
+                    const referrer = document.referrer;
+                    const currentUrl = window.location.href;
+                    
+                    // Verificar si la URL de referencia es válida y diferente a la actual
+                    if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
+                        // Usar la URL de referencia si es válida
+                        window.location.href = referrer;
+                    } else {
+                        // Fallback: ir a la lista de ventas
+                        window.location.href = '/sales';
+                    }
                 }
             });
         },
@@ -529,18 +547,43 @@ document.addEventListener('alpine:init', () => {
             const hasChanges = this.hasUnsavedChanges();
             
             if (hasChanges) {
-                this.showConfirmDialog(
-                    '¿Salir sin guardar?',
-                    'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?'
-                ).then(confirmed => {
-                    if (confirmed) {
+                Swal.fire({
+                    title: '¿Salir sin guardar?',
+                    text: 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Sí, salir',
+                    cancelButtonText: 'No, continuar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
                         this.clearLocalStorage();
-                        window.location.href = '/sales';
+                        
+                        // Obtener la URL de referencia para evitar bucles
+                        const referrer = document.referrer;
+                        const currentUrl = window.location.href;
+                        
+                        // Verificar si la URL de referencia es válida y diferente a la actual
+                        if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
+                            // Usar la URL de referencia si es válida
+                            window.location.href = referrer;
+                        } else {
+                            // Fallback: ir a la lista de ventas
+                            window.location.href = '/sales';
+                        }
                     }
                 });
             } else {
                 // No hay cambios, redirigir directamente
-                window.location.href = '/sales';
+                const referrer = document.referrer;
+                const currentUrl = window.location.href;
+                
+                if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
+                    window.location.href = referrer;
+                } else {
+                    window.location.href = '/sales';
+                }
             }
         },
         
@@ -722,7 +765,7 @@ document.addEventListener('alpine:init', () => {
                         showCancelButton: true,
                         confirmButtonColor: '#10b981', // Verde
                         cancelButtonColor: '#6b7280', // Gris
-                        confirmButtonText: 'Sí, Actualizar Venta',
+                        confirmButtonText: 'Sí, confirmar',
                         cancelButtonText: 'Cancelar',
                         width: '32rem',
                         customClass: {

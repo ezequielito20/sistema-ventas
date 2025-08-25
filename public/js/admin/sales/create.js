@@ -658,13 +658,31 @@ document.addEventListener('alpine:init', () => {
         },
         
         cancelSale() {
-            this.showConfirmDialog(
-                '¿Cancelar venta?',
-                'Se perderán todos los datos no guardados'
-            ).then(confirmed => {
-                if (confirmed) {
+            Swal.fire({
+                title: '¿Cancelar venta?',
+                text: 'Se perderán todos los datos no guardados',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, cancelar',
+                cancelButtonText: 'No, continuar'
+            }).then((result) => {
+                if (result.isConfirmed) {
                     this.clearLocalStorage();
-                    window.location.href = '{{ route("admin.sales.index") }}';
+                    
+                    // Obtener la URL de referencia para evitar bucles
+                    const referrer = document.referrer;
+                    const currentUrl = window.location.href;
+                    
+                    // Verificar si la URL de referencia es válida y diferente a la actual
+                    if (referrer && referrer !== currentUrl && !referrer.includes('/sales/create')) {
+                        // Usar la URL de referencia si es válida
+                        window.location.href = referrer;
+                    } else {
+                        // Fallback: ir a la lista de ventas
+                        window.location.href = '/sales';
+                    }
                 }
             });
         },
@@ -865,7 +883,7 @@ document.addEventListener('alpine:init', () => {
                         showCancelButton: true,
                         confirmButtonColor: '#10b981', // Verde
                         cancelButtonColor: '#6b7280', // Gris
-                        confirmButtonText: 'Sí, Procesar Venta',
+                        confirmButtonText: 'Sí, confirmar',
                         cancelButtonText: 'Cancelar',
                         width: '32rem',
                         customClass: {

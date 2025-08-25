@@ -411,17 +411,6 @@
 
                                     <!-- Botones de acción -->
                                     <div class="flex items-center justify-center sm:justify-end space-x-2">
-                                        <!-- Botón Cancelar -->
-                                        <button type="button" @click="cancelSale()"
-                                            class="group relative w-10 h-10 sm:w-12 sm:h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
-                                            <i
-                                                class="fas fa-times text-sm group-hover:scale-110 transition-transform duration-300"></i>
-                                            <div
-                                                class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                                Cancelar
-                                            </div>
-                                        </button>
-
                                         <!-- Botón Procesar Venta -->
                                         <button type="button" @click.prevent="processSale('save')" :disabled="!canProcessSale"
                                             class="group relative w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
@@ -442,6 +431,17 @@
                                             <div
                                                 class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                                 Procesar y Nueva
+                                            </div>
+                                        </button>
+
+                                        <!-- Botón Cancelar -->
+                                        <button type="button" @click="cancelSale()"
+                                            class="group relative w-10 h-10 sm:w-12 sm:h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-center shadow-lg">
+                                            <i
+                                                class="fas fa-times text-sm group-hover:scale-110 transition-transform duration-300"></i>
+                                            <div
+                                                class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                                Cancelar
                                             </div>
                                         </button>
                                     </div>
