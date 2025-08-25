@@ -29,27 +29,63 @@ class SupplierController extends Controller
          return $next($request);
       });
    }
-   public function index()
+   public function index(Request $request)
    {
       try {
-         // Obtener todos los proveedores de la compañía actual
-         $suppliers = Supplier::where('company_id', Auth::user()->company_id)
-            ->orderBy('company_name', 'asc')
-            ->get();
-
+         $companyId = Auth::user()->company_id;
          $currency = $this->currencies;
          $company = $this->company;
-         // Estadísticas para los widgets
-         $totalSuppliers = $suppliers->count();
 
-         // Proveedores activos (podemos agregar un campo 'status' en el futuro)
-         $activeSuppliers = $totalSuppliers;
+         // Consulta base de proveedores con paginación
+         $query = Supplier::where('company_id', $companyId);
 
-         // Proveedores nuevos este mes
-         $recentSuppliers = $suppliers->where('created_at', '>=', now()->startOfMonth())->count();
+         // Búsqueda por nombre de empresa, contacto, email o teléfono
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+               $q->where('company_name', 'ILIKE', "%{$search}%")
+                 ->orWhere('supplier_name', 'ILIKE', "%{$search}%")
+                 ->orWhere('company_email', 'ILIKE', "%{$search}%")
+                 ->orWhere('company_phone', 'ILIKE', "%{$search}%")
+                 ->orWhere('supplier_phone', 'ILIKE', "%{$search}%")
+                 ->orWhere('company_address', 'ILIKE', "%{$search}%");
+            });
+         }
 
-         // Proveedores inactivos (para futura implementación con campo 'status')
-         $inactiveSuppliers = 0;
+         // Filtro por estado (activo/inactivo) - para futura implementación
+         if ($request->filled('status')) {
+            $status = $request->input('status');
+            // Aquí se puede implementar cuando se añada el campo status
+         }
+
+         // Filtro por rango de fechas de registro
+         if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+         }
+
+         // Filtro por cantidad de productos (proveedores con más/menos productos)
+         if ($request->filled('products_min')) {
+            $query->withCount('products')->having('products_count', '>=', $request->input('products_min'));
+         }
+
+         if ($request->filled('products_max')) {
+            $query->withCount('products')->having('products_count', '<=', $request->input('products_max'));
+         }
+
+         // Paginación del lado del servidor
+         $suppliers = $query->orderBy('company_name', 'asc')->paginate(12)->withQueryString();
+
+         // Estadísticas para los widgets (usando consultas directas para eficiencia)
+         $totalSuppliers = Supplier::where('company_id', $companyId)->count();
+         $activeSuppliers = $totalSuppliers; // Por ahora todos están activos
+         $recentSuppliers = Supplier::where('company_id', $companyId)
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+         $inactiveSuppliers = 0; // Para futura implementación
 
          // Optimización de gates
          $permissions = [

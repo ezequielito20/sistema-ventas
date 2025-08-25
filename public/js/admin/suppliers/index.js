@@ -1,28 +1,176 @@
 /**
  * JavaScript optimizado para la vista de proveedores
  * Archivo: public/js/admin/suppliers/index.js
- * Versión: 1.0.0
+ * Versión: 2.0.0
+ * Descripción: Funciones específicas para la gestión de proveedores con búsqueda del servidor
  */
+
+// Verificar si ya se ha cargado para evitar redeclaraciones
+if (typeof window.suppliersIndexLoaded !== 'undefined') {
+    console.warn('suppliers/index.js ya ha sido cargado anteriormente');
+} else {
+    window.suppliersIndexLoaded = true;
+}
 
 // ===== VARIABLES GLOBALES =====
 let currentViewMode = 'cards';
-let currentPage = 1;
-const itemsPerPage = 10;
-const cardsPerPage = 12;
-let allSuppliers = [];
-let filteredSuppliers = [];
 
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
-    initializeSuppliersPage();
-    initializeEventListeners();
+// ===== FUNCIONES DE DETECCIÓN Y CARGA DEL SERVIDOR =====
+
+/**
+ * Inicializar event listeners
+ */
+function initializeEventListeners() {
+    // Reinicializar event listeners para elementos dinámicos
+    // Esto se llama después de cargar contenido via AJAX
+    
+    // Botones de vista
+    document.querySelectorAll('.view-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const viewMode = this.dataset.view;
+            changeViewMode(viewMode);
+        });
+    });
+    
+    // Cerrar modal al hacer clic fuera
+    const modal = document.getElementById('showSupplierModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSupplierModal();
+            }
+        });
+    }
+
+    // Cerrar modal con la tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('showSupplierModal');
+            if (modal && modal.classList.contains('show')) {
+                closeSupplierModal();
+            }
+        }
+    });
+}
+
+// Utilidad: detectar si la vista usa paginación del servidor
+function isServerPaginationActive() {
+    // Siempre activar la búsqueda del servidor para suppliers
+    // ya que el controlador está configurado para paginación del servidor
+    return true;
+}
+
+// Cargar una URL y reemplazar secciones (tabla/tarjetas + paginación) sin recargar
+function loadSuppliersPage(url) {
+    // Mostrar indicador de carga en el campo de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.classList.add('search-loading');
+        searchInput.disabled = true;
+    }
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/xhtml+xml'
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Error al cargar');
+        return r.text();
+    })
+    .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Reemplazar tabla
+        const newTableBody = temp.querySelector('#suppliersTableBody');
+        const tableBody = document.querySelector('#suppliersTableBody');
+        if (newTableBody && tableBody) {
+            tableBody.innerHTML = newTableBody.innerHTML;
+        }
+
+        // Reemplazar tarjetas
+        const newCardsGrid = temp.querySelector('#cardsGrid');
+        const cardsGrid = document.querySelector('#cardsGrid');
+        if (newCardsGrid && cardsGrid) {
+            cardsGrid.innerHTML = newCardsGrid.innerHTML;
+        }
+
+        // Reemplazar información de paginación
+        const newPaginationInfo = temp.querySelector('.pagination-info span');
+        const paginationInfo = document.querySelector('.pagination-info span');
+        if (newPaginationInfo && paginationInfo) {
+            paginationInfo.innerHTML = newPaginationInfo.innerHTML;
+        }
+
+        // Reemplazar enlaces de paginación si existen
+        const newPagination = temp.querySelector('.pagination');
+        const pagination = document.querySelector('.pagination');
+        if (newPagination && pagination) {
+            pagination.innerHTML = newPagination.innerHTML;
+        }
+
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
+
+        // Reinicializar event listeners para nuevos elementos
+        initializeEventListeners();
+    })
+    .catch(err => {
+        console.error('Error al cargar página:', err);
+        // Mostrar error al usuario
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los resultados de búsqueda',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .finally(() => {
+        // Ocultar indicador de carga
+        if (searchInput) {
+            searchInput.classList.remove('search-loading');
+            searchInput.disabled = false;
+        }
+    });
+}
+
+// Interceptar clicks de paginación cuando servidor está activo
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('.pagination .page-link');
+    if (link && isServerPaginationActive()) {
+        e.preventDefault();
+        loadSuppliersPage(link.href);
+    }
 });
+
+// Interceptar búsqueda para servidor
+function initializeSearchListener() {
+    const search = document.getElementById('searchInput');
+    if (search) {
+        let t;
+        search.addEventListener('input', function () {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                if (isServerPaginationActive()) {
+                    const url = new URL(window.location.href);
+                    if (this.value.trim()) url.searchParams.set('search', this.value.trim());
+                    else url.searchParams.delete('search');
+                    loadSuppliersPage(url.toString());
+                }
+            }, 300);
+        });
+    }
+}
 
 // ===== FUNCIONES PRINCIPALES =====
 
 // Inicializar la página de proveedores
 function initializeSuppliersPage() {
-    
     // Cargar modo de vista guardado
     const savedViewMode = localStorage.getItem('suppliersViewMode');
     if (savedViewMode && (savedViewMode === 'table' || savedViewMode === 'cards')) {
@@ -32,40 +180,6 @@ function initializeSuppliersPage() {
         // Modo por defecto: tarjetas
         changeViewMode('cards');
     }
-
-    // Obtener todos los proveedores
-    getAllSuppliers();
-    
-    // Mostrar primera página
-    showPage(1);
-}
-
-// Obtener todos los proveedores
-function getAllSuppliers() {
-    const tableRows = document.querySelectorAll('#suppliersTableBody tr');
-    const supplierCards = document.querySelectorAll('.supplier-card');
-    const mobileCards = document.querySelectorAll('.mobile-card');
-    
-    allSuppliers = [];
-    
-    // Procesar filas de tabla
-    tableRows.forEach((row, index) => {
-        const companyName = row.querySelector('.supplier-name')?.textContent.trim() || '';
-        const supplierName = row.querySelector('.contact-name')?.textContent.trim() || '';
-        
-        allSuppliers.push({
-            element: row,
-            cardElement: supplierCards[index],
-            mobileElement: mobileCards[index],
-            data: {
-                id: row.dataset.supplierId,
-                company_name: companyName,
-                supplier_name: supplierName
-            }
-        });
-    });
-    
-    filteredSuppliers = [...allSuppliers];
 }
 
 // Cambiar modo de vista
@@ -93,110 +207,10 @@ function changeViewMode(mode) {
         if (tableView) tableView.style.display = 'none';
         if (cardsView) cardsView.style.display = 'block';
     }
-    
-    // Reiniciar paginación
-    currentPage = 1;
-    showPage(1);
-}
-
-// Mostrar página específica
-function showPage(page) {
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    
-    // Ocultar todas las filas/tarjetas
-    document.querySelectorAll('#suppliersTableBody tr').forEach(row => row.style.display = 'none');
-    document.querySelectorAll('.supplier-card').forEach(card => card.style.display = 'none');
-    document.querySelectorAll('.mobile-card').forEach(card => card.style.display = 'none');
-    
-    // Mostrar solo los elementos de la página actual
-    filteredSuppliers.slice(startIndex, endIndex).forEach((supplier, index) => {
-        if (supplier.element) supplier.element.style.display = 'table-row';
-        if (supplier.cardElement) supplier.cardElement.style.display = 'block';
-        if (supplier.mobileElement) supplier.mobileElement.style.display = 'block';
-        
-        // Actualizar números de fila
-        if (supplier.element) {
-            const rowNumber = supplier.element.querySelector('.row-number');
-            if (rowNumber) rowNumber.textContent = startIndex + index + 1;
-        }
-    });
-    
-    // Actualizar información de paginación
-    updatePaginationInfo(page, filteredSuppliers.length);
-    updatePaginationControls(page, Math.ceil(filteredSuppliers.length / itemsPerPage));
-}
-
-// Actualizar información de paginación
-function updatePaginationInfo(currentPage, totalItems) {
-    const startItem = (currentPage - 1) * itemsPerPage + 1;
-    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-    const paginationInfo = document.getElementById('paginationInfo');
-    if (paginationInfo) {
-        paginationInfo.textContent = `Mostrando ${startItem}-${endItem} de ${totalItems} registros`;
-    }
-}
-
-// Actualizar controles de paginación
-function updatePaginationControls(currentPage, totalPages) {
-    const prevBtn = document.getElementById('prevPage');
-    const nextBtn = document.getElementById('nextPage');
-    const pageNumbers = document.getElementById('pageNumbers');
-    
-    // Habilitar/deshabilitar botones
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-    
-    // Generar números de página
-    if (pageNumbers) {
-        let pageNumbersHTML = '';
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-            pageNumbersHTML += `
-                <button class="page-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
-                    ${i}
-                </button>
-            `;
-        }
-        
-        pageNumbers.innerHTML = pageNumbersHTML;
-    }
-}
-
-// Ir a página específica
-function goToPage(page) {
-    currentPage = page;
-    showPage(page);
-}
-
-// Función de búsqueda
-function filterSuppliers(searchTerm) {
-    const searchLower = searchTerm.toLowerCase().trim();
-    
-    if (!searchLower) {
-        filteredSuppliers = [...allSuppliers];
-    } else {
-        filteredSuppliers = allSuppliers.filter(supplier => {
-            const companyMatch = supplier.data.company_name.toLowerCase().includes(searchLower);
-            const supplierMatch = supplier.data.supplier_name.toLowerCase().includes(searchLower);
-            return companyMatch || supplierMatch;
-        });
-    }
-    
-    currentPage = 1;
-    showPage(1);
 }
 
 // Mostrar detalles de proveedor
 async function showSupplierDetails(supplierId) {
-    
     try {
         // Mostrar loading en el modal
         const modal = document.getElementById('showSupplierModal');
@@ -216,7 +230,6 @@ async function showSupplierDetails(supplierId) {
             if (element) element.textContent = 'Cargando...';
         });
         
-        
         // Obtener el token CSRF
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
         
@@ -229,7 +242,6 @@ async function showSupplierDetails(supplierId) {
             }
         });
         
-        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -237,7 +249,6 @@ async function showSupplierDetails(supplierId) {
         const data = await response.json();
         
         if (data.icons === 'success' && data.supplier) {
-
             // Llenar datos en el modal
             const supplier = data.supplier;
             const fieldMappings = {
@@ -253,7 +264,6 @@ async function showSupplierDetails(supplierId) {
                 const element = document.getElementById(fieldId);
                 if (element) {
                     element.textContent = value;
-                } else {
                 }
             });
             
@@ -267,7 +277,6 @@ async function showSupplierDetails(supplierId) {
                     productsSection.style.display = 'none';
                 }
             }
-            
         } else {
             console.error('❌ Error response:', data);
             const errorMessage = data.message || 'No se pudieron obtener los datos del proveedor';
@@ -304,7 +313,6 @@ function closeSupplierModal() {
 
 // Eliminar proveedor
 function deleteSupplier(supplierId, supplierName) {
-    
     showConfirmDialog(
         '¿Estás seguro?',
         `¿Deseas eliminar el proveedor <strong>${supplierName}</strong>?<br><small class="text-muted">Esta acción no se puede revertir</small>`,
@@ -434,67 +442,37 @@ function showAlert(title, text, icon) {
     }
 }
 
-// Inicializar event listeners
-function initializeEventListeners() {
-    
-    // Búsqueda en tiempo real
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value;
-            filterSuppliers(searchTerm);
-        });
-    }
-    
-    // Botones de vista
-    document.querySelectorAll('.view-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const viewMode = this.dataset.view;
-            changeViewMode(viewMode);
-        });
-    });
-    
-    // Paginación
-    const prevPageBtn = document.getElementById('prevPage');
-    const nextPageBtn = document.getElementById('nextPage');
-    
-    if (prevPageBtn) {
-        prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-    }
-    
-    if (nextPageBtn) {
-        nextPageBtn.addEventListener('click', function() {
-            const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-    }
-    
-    // Cerrar modal al hacer clic fuera
-    const modal = document.getElementById('showSupplierModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeSupplierModal();
-            }
-        });
-    }
+// ===== INICIALIZACIÓN =====
 
-    // Cerrar modal con la tecla Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('showSupplierModal');
-            if (modal && modal.classList.contains('show')) {
-                closeSupplierModal();
-            }
-        }
-    });
-    
-}
+// Intentar inicializar inmediatamente y también después de que Alpine.js esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSuppliersPage();
+    initializeSearchListener();
+    initializeEventListeners();
+});
+
+// También intentar después de que Alpine.js esté listo
+document.addEventListener('alpine:init', () => {
+    setTimeout(initializeSearchListener, 100);
+});
+
+// ===== FUNCIONES GLOBALES =====
+
+// Hacer funciones disponibles globalmente
+window.suppliersIndex = {
+    initializeSuppliersPage,
+    changeViewMode,
+    showSupplierDetails,
+    closeSupplierModal,
+    deleteSupplier,
+    performDeleteSupplier,
+    updateProductStats,
+    formatCurrency,
+    number_format,
+    showConfirmDialog,
+    showAlert,
+    // Nuevas funciones de servidor
+    isServerPaginationActive,
+    loadSuppliersPage,
+    initializeEventListeners
+};

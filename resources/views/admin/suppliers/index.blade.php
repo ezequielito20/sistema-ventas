@@ -137,7 +137,11 @@
                             <div class="search-icon">
                                 <i class="fas fa-search"></i>
                             </div>
-                            <input type="text" placeholder="Buscar proveedores..." id="searchInput" class="search-input">
+                            <input type="text" 
+                                   placeholder="Buscar proveedores..." 
+                                   id="searchInput" 
+                                   value="{{ request('search') }}"
+                                   class="search-input">
                             <div class="search-border"></div>
                         </div>
                     </div>
@@ -207,23 +211,17 @@
                         @endforeach
                     </div>
 
-                    {{-- Paginación para tarjetas --}}
+                    {{-- Paginación del servidor para tarjetas --}}
+                    @if($suppliers->hasPages())
                     <div class="custom-pagination">
                         <div class="pagination-info">
-                            <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $suppliers->count()) }} de {{ $suppliers->count() }} registros</span>
+                            <span>Mostrando {{ $suppliers->firstItem() ?? 0 }} a {{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} registros</span>
                         </div>
                         <div class="pagination-controls">
-                            <button id="cardsPrevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                <span>Anterior</span>
-                            </button>
-                            <div id="cardsPageNumbers" class="page-numbers"></div>
-                            <button id="cardsNextPage" class="pagination-btn">
-                                <span>Siguiente</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
+                            {{ $suppliers->appends(request()->query())->links() }}
                         </div>
                     </div>
+                    @endif
                 </div>
 
                 {{-- Vista de tabla (solo desktop) --}}
@@ -330,23 +328,17 @@
                         </table>
                     </div>
 
-                    {{-- Paginación personalizada --}}
+                    {{-- Paginación del servidor para tabla --}}
+                    @if($suppliers->hasPages())
                     <div class="custom-pagination">
                         <div class="pagination-info">
-                            <span id="paginationInfo">Mostrando 1-{{ min(10, $suppliers->count()) }} de {{ $suppliers->count() }} registros</span>
+                            <span>Mostrando {{ $suppliers->firstItem() ?? 0 }} a {{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} registros</span>
                         </div>
                         <div class="pagination-controls">
-                            <button id="prevPage" class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                <span>Anterior</span>
-                            </button>
-                            <div id="pageNumbers" class="page-numbers"></div>
-                            <button id="nextPage" class="pagination-btn">
-                                <span>Siguiente</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
+                            {{ $suppliers->appends(request()->query())->links() }}
                         </div>
                     </div>
+                    @endif
                 </div>
 
 
