@@ -390,6 +390,8 @@ function dataTable() {
         searchTerm: '',
         searchResultsCount: 0,
         isSearching: false,
+        isLoadingPage: false,
+        _lastPageRequestId: 0,
         
         init() {
             // Detectar el modo de vista inicial basado en el tamaño de pantalla
@@ -441,6 +443,7 @@ function dataTable() {
             document.addEventListener('click', (e) => {
                 if (e.target.closest('.pagination-btn') || e.target.closest('.page-number')) {
                     e.preventDefault();
+                    if (this.isLoadingPage) return;
                     const link = e.target.closest('a');
                     if (link) {
                         this.loadPage(link.href);
@@ -450,8 +453,13 @@ function dataTable() {
         },
         
         loadPage(url) {
-            // Mostrar indicador de carga
+            // Asignar ID de solicitud para invalidar respuestas antiguas
+            const requestId = ++this._lastPageRequestId;
+            this.isLoadingPage = true;
+
+            // Mostrar indicador de carga y deshabilitar controles
             this.showSearchLoading();
+            this.setPaginationDisabled(true);
             
             // Realizar petición AJAX para la nueva página
             fetch(url, {
@@ -468,17 +476,40 @@ function dataTable() {
                 return response.text();
             })
             .then(html => {
+                // Descartar respuesta si ya existe una solicitud más nueva
+                if (requestId !== this._lastPageRequestId) return;
                 // Actualizar la tabla con los nuevos resultados
                 this.updateTableWithSearchResults(html, this.searchTerm);
                 this.hideSearchLoading();
+                // Scroll al inicio del contenedor principal
+                try {
+                    const container = document.querySelector('.table-container') || document.body;
+                    const topTarget = container.getBoundingClientRect ? (window.scrollY + container.getBoundingClientRect().top - 80) : 0;
+                    window.scrollTo({ top: Math.max(0, topTarget), behavior: 'smooth' });
+                } catch (_) {}
                 
                 // Actualizar URL sin recargar la página
                 window.history.pushState({}, '', url);
+                // Asegurar que la página activa quede visible centrada en el contenedor
+                setTimeout(() => {
+                    try {
+                        const numbers = document.querySelector('.page-numbers');
+                        const active = numbers ? numbers.querySelector('.page-number.active') : null;
+                        if (numbers && active) {
+                            const offsetLeft = active.offsetLeft - (numbers.clientWidth / 2) + (active.clientWidth / 2);
+                            numbers.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+                        }
+                    } catch (_) {}
+                }, 0);
             })
             .catch(error => {
                 console.error('Error al cargar página:', error);
                 this.hideSearchLoading();
-                this.showSearchError('Error al cargar la página');
+                this.showSearchError('Error al cargar la página. Intenta nuevamente.');
+            })
+            .finally(() => {
+                this.setPaginationDisabled(false);
+                this.isLoadingPage = false;
             });
         },
         
@@ -613,6 +644,27 @@ function dataTable() {
             if (searchInput) {
                 searchInput.style.backgroundImage = '';
             }
+        },
+
+        // Deshabilitar/enhabilitar controles de paginado mientras hay carga
+        setPaginationDisabled(disabled) {
+            try {
+                const pagination = document.querySelector('.custom-pagination');
+                if (!pagination) return;
+                const links = pagination.querySelectorAll('a.page-number, a.pagination-btn');
+                links.forEach(a => {
+                    if (disabled) {
+                        a.setAttribute('data-href', a.getAttribute('href'));
+                        a.removeAttribute('href');
+                        a.classList.add('pointer-events-none', 'opacity-60');
+                    } else {
+                        const saved = a.getAttribute('data-href');
+                        if (saved) a.setAttribute('href', saved);
+                        a.removeAttribute('data-href');
+                        a.classList.remove('pointer-events-none', 'opacity-60');
+                    }
+                });
+            } catch (_) {}
         },
 
         showSearchError(message) {

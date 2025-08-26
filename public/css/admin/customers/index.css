@@ -441,6 +441,7 @@
     background: white;
     border-top: 1px solid var(--border-color);
     border-radius: 0 0 24px 24px;
+    gap: 1rem;
 }
 
 .pagination-info {
@@ -453,6 +454,9 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 .pagination-btn {
@@ -489,6 +493,7 @@
 .page-numbers {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: nowrap;
 }
 
 .page-number {
@@ -532,13 +537,16 @@
     }
     
     .pagination-controls {
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        width: 100%;
     }
     
     .page-numbers {
         order: -1;
         margin-bottom: 0.5rem;
+        overflow-x: auto;
+        width: 100%;
     }
     
     .pagination-btn {
