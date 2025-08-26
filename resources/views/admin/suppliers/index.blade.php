@@ -211,16 +211,52 @@
                         @endforeach
                     </div>
 
-                    {{-- Paginación del servidor para tarjetas --}}
+                    {{-- Paginación inteligente para tarjetas --}}
                     @if($suppliers->hasPages())
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span>Mostrando {{ $suppliers->firstItem() ?? 0 }} a {{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} registros</span>
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $suppliers->firstItem() ?? 0 }}-{{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} proveedores</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($suppliers->hasPrevious)
+                                    <a href="{{ $suppliers->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </button>
+                                @endif
+
+                                <div class="page-numbers">
+                                    @foreach($suppliers->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
+                                        @else
+                                            @if($link == $suppliers->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $suppliers->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
+                                        @endif
+                                    @endforeach
+                                </div>
+
+                                @if($suppliers->hasNext)
+                                    <a href="{{ $suppliers->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        <span>Siguiente</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            {{ $suppliers->appends(request()->query())->links() }}
-                        </div>
-                    </div>
                     @endif
                 </div>
 
@@ -328,16 +364,52 @@
                         </table>
                     </div>
 
-                    {{-- Paginación del servidor para tabla --}}
+                    {{-- Paginación inteligente para tabla --}}
                     @if($suppliers->hasPages())
-                    <div class="custom-pagination">
-                        <div class="pagination-info">
-                            <span>Mostrando {{ $suppliers->firstItem() ?? 0 }} a {{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} registros</span>
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ $suppliers->firstItem() ?? 0 }}-{{ $suppliers->lastItem() ?? 0 }} de {{ $suppliers->total() }} proveedores</span>
+                            </div>
+                            <div class="pagination-controls">
+                                @if($suppliers->hasPrevious)
+                                    <a href="{{ $suppliers->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </button>
+                                @endif
+
+                                <div class="page-numbers">
+                                    @foreach($suppliers->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
+                                        @else
+                                            @if($link == $suppliers->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $suppliers->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
+                                        @endif
+                                    @endforeach
+                                </div>
+
+                                @if($suppliers->hasNext)
+                                    <a href="{{ $suppliers->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        <span>Siguiente</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="pagination-controls">
-                            {{ $suppliers->appends(request()->query())->links() }}
-                        </div>
-                    </div>
                     @endif
                 </div>
 
