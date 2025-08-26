@@ -216,6 +216,54 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- Paginación inteligente para tabla --}}
+            @if($users->hasPages())
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Mostrando {{ $users->firstItem() ?? 0 }}-{{ $users->lastItem() ?? 0 }} de {{ $users->total() }} usuarios</span>
+                    </div>
+                    <div class="pagination-controls">
+                        @if($users->hasPrevious)
+                            <a href="{{ $users->previousPageUrl }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </button>
+                        @endif
+
+                        <div class="page-numbers">
+                            @foreach($users->smartLinks as $link)
+                                @if($link === '...')
+                                    <span class="page-separator">...</span>
+                                @else
+                                    @if($link == $users->currentPage())
+                                        <span class="page-number active">{{ $link }}</span>
+                                    @else
+                                        <a href="{{ $users->url($link) }}" class="page-number">{{ $link }}</a>
+                                    @endif
+                                @endif
+                            @endforeach
+                        </div>
+
+                        @if($users->hasNext)
+                            <a href="{{ $users->nextPageUrl }}" class="pagination-btn">
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -308,6 +356,54 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- Paginación inteligente para tarjetas --}}
+        @if($users->hasPages())
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span>Mostrando {{ $users->firstItem() ?? 0 }}-{{ $users->lastItem() ?? 0 }} de {{ $users->total() }} usuarios</span>
+                </div>
+                <div class="pagination-controls">
+                    @if($users->hasPrevious)
+                        <a href="{{ $users->previousPageUrl }}" class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </button>
+                    @endif
+
+                    <div class="page-numbers">
+                        @foreach($users->smartLinks as $link)
+                            @if($link === '...')
+                                <span class="page-separator">...</span>
+                            @else
+                                @if($link == $users->currentPage())
+                                    <span class="page-number active">{{ $link }}</span>
+                                @else
+                                    <a href="{{ $users->url($link) }}" class="page-number">{{ $link }}</a>
+                                @endif
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($users->hasNext)
+                        <a href="{{ $users->nextPageUrl }}" class="pagination-btn">
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Vista Móvil -->
@@ -388,6 +484,54 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- Paginación inteligente para móvil --}}
+        @if($users->hasPages())
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span>Mostrando {{ $users->firstItem() ?? 0 }}-{{ $users->lastItem() ?? 0 }} de {{ $users->total() }} usuarios</span>
+                </div>
+                <div class="pagination-controls">
+                    @if($users->hasPrevious)
+                        <a href="{{ $users->previousPageUrl }}" class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </button>
+                    @endif
+
+                    <div class="page-numbers">
+                        @foreach($users->smartLinks as $link)
+                            @if($link === '...')
+                                <span class="page-separator">...</span>
+                            @else
+                                @if($link == $users->currentPage())
+                                    <span class="page-number active">{{ $link }}</span>
+                                @else
+                                    <a href="{{ $users->url($link) }}" class="page-number">{{ $link }}</a>
+                                @endif
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($users->hasNext)
+                        <a href="{{ $users->nextPageUrl }}" class="pagination-btn">
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- Modal de Detalles -->

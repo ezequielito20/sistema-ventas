@@ -16,24 +16,123 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class UserController extends Controller
 {
    
-   public function index()
+   /**
+    * Genera paginación inteligente con ventana dinámica
+    */
+   private function generateSmartPagination($paginator, $windowSize = 2)
    {
-      $company = Auth::user()->company;
-      $users = User::where('company_id', $company->id)
-         ->with(['company', 'roles']) // Eager loading para evitar N+1 queries
-         ->orderBy('name', 'asc')
-         ->get();
+      $currentPage = $paginator->currentPage();
+      $lastPage = $paginator->lastPage();
       
-      // Optimización de gates - verificar permisos una sola vez
-      $permissions = [
-         'users.report' => Gate::allows('users.report'),
-         'users.create' => Gate::allows('users.create'),
-         'users.show' => Gate::allows('users.show'),
-         'users.edit' => Gate::allows('users.edit'),
-         'users.destroy' => Gate::allows('users.destroy'),
-      ];
+      $links = [];
       
-      return view('admin.users.index', compact('users', 'company', 'permissions'));
+      // Siempre agregar la primera página
+      $links[] = 1;
+      
+      // Calcular el rango de páginas alrededor de la página actual
+      $start = max(2, $currentPage - $windowSize);
+      $end = min($lastPage - 1, $currentPage + $windowSize);
+      
+      // Agregar separador si hay gap entre la primera página y el rango
+      if ($start > 2) {
+         $links[] = '...';
+      }
+      
+      // Agregar páginas en el rango
+      for ($i = $start; $i <= $end; $i++) {
+         if ($i > 1 && $i < $lastPage) {
+            $links[] = $i;
+         }
+      }
+      
+      // Agregar separador si hay gap entre el rango y la última página
+      if ($end < $lastPage - 1) {
+         $links[] = '...';
+      }
+      
+      // Siempre agregar la última página (si no es la primera)
+      if ($lastPage > 1) {
+         $links[] = $lastPage;
+      }
+      
+      // Agregar propiedades al paginador
+      $paginator->smartLinks = $links;
+      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
+      $paginator->hasNext = $paginator->nextPageUrl() !== null;
+      $paginator->previousPageUrl = $paginator->previousPageUrl();
+      $paginator->nextPageUrl = $paginator->nextPageUrl();
+      $paginator->firstPageUrl = $paginator->url(1);
+      $paginator->lastPageUrl = $paginator->url($lastPage);
+      
+      return $paginator;
+   }
+
+   public function index(Request $request)
+   {
+      try {
+         $company = Auth::user()->company;
+         
+         // Consulta base de usuarios con relaciones
+         $query = User::with(['company', 'roles'])
+            ->where('company_id', $company->id);
+
+         // Búsqueda por texto: nombre, email
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+               $q->where('name', 'ILIKE', "%{$search}%")
+                 ->orWhere('email', 'ILIKE', "%{$search}%");
+            });
+         }
+
+         // Filtro por estado de verificación
+         if ($request->filled('verification_status')) {
+            $status = $request->input('verification_status');
+            if ($status === 'verified') {
+               $query->whereNotNull('email_verified_at');
+            } elseif ($status === 'unverified') {
+               $query->whereNull('email_verified_at');
+            }
+         }
+
+         // Filtro por rol
+         if ($request->filled('role_id')) {
+            $roleId = $request->input('role_id');
+            $query->whereHas('roles', function($q) use ($roleId) {
+               $q->where('roles.id', $roleId);
+            });
+         }
+
+         // Filtro por fecha de creación
+         if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+         }
+
+         // Paginación del lado del servidor
+         $users = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
+         
+         // Aplicar paginación inteligente
+         $users = $this->generateSmartPagination($users, 2);
+
+         // Optimización de gates - verificar permisos una sola vez
+         $permissions = [
+            'users.report' => Gate::allows('users.report'),
+            'users.create' => Gate::allows('users.create'),
+            'users.show' => Gate::allows('users.show'),
+            'users.edit' => Gate::allows('users.edit'),
+            'users.destroy' => Gate::allows('users.destroy'),
+         ];
+         
+         return view('admin.users.index', compact('users', 'company', 'permissions'));
+      } catch (\Exception $e) {
+         return redirect()->back()
+            ->with('message', 'Error al cargar los usuarios')
+            ->with('icons', 'error');
+      }
    }
 
    /**

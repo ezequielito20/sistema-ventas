@@ -1094,6 +1094,105 @@ body {
     }
 }
 
+/* ===== PAGINACIÓN INTELIGENTE ===== */
+
+/* Separadores de página */
+.page-separator {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: default;
+    user-select: none;
+}
+
+/* Contenedor de paginación */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: 1px solid var(--secondary-200);
+    background: var(--secondary-50);
+}
+
+.pagination-info {
+    color: var(--secondary-600);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--secondary-200);
+    border-radius: var(--border-radius-md);
+    background: white;
+    color: var(--secondary-700);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--secondary-100);
+    border-color: var(--secondary-300);
+    color: var(--secondary-800);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.page-number {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--secondary-200);
+    border-radius: var(--border-radius-md);
+    background: white;
+    color: var(--secondary-700);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.page-number:hover {
+    background: var(--secondary-100);
+    border-color: var(--secondary-300);
+    color: var(--secondary-800);
+}
+
+.page-number.active {
+    background: var(--gradient-primary);
+    border-color: transparent;
+    color: white;
+}
+
 /* ===== ESTILOS ADICIONALES ===== */
 .space-y-6 {
     position: relative;
