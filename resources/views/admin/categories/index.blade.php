@@ -225,43 +225,47 @@
                         @endforeach
                     </div>
 
-                    {{-- Paginación para tarjetas --}}
+                    {{-- Paginación inteligente para tarjetas --}}
                     @if($categories->hasPages())
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
                                 <span>Mostrando {{ $categories->firstItem() ?? 0 }}-{{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} categorías</span>
                             </div>
                             <div class="pagination-controls">
-                                @if($categories->onFirstPage())
+                                @if($categories->hasPrevious)
+                                    <a href="{{ $categories->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
                                     <button class="pagination-btn" disabled>
                                         <i class="fas fa-chevron-left"></i>
-                                        Anterior
+                                        <span>Anterior</span>
                                     </button>
-                                @else
-                                    <a href="{{ $categories->previousPageUrl() }}" class="pagination-btn">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </a>
                                 @endif
-                                
+
                                 <div class="page-numbers">
-                                    @foreach($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
-                                        @if($page == $categories->currentPage())
-                                            <span class="page-number active">{{ $page }}</span>
+                                    @foreach($categories->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
                                         @else
-                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                            @if($link == $categories->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $categories->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
-                                
-                                @if($categories->hasMorePages())
-                                    <a href="{{ $categories->nextPageUrl() }}" class="pagination-btn">
-                                        Siguiente
+
+                                @if($categories->hasNext)
+                                    <a href="{{ $categories->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 @else
                                     <button class="pagination-btn" disabled>
-                                        Siguiente
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </button>
                                 @endif
@@ -362,43 +366,47 @@
                         </table>
                     </div>
 
-                    {{-- Paginación personalizada --}}
+                    {{-- Paginación inteligente para tabla --}}
                     @if($categories->hasPages())
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
                                 <span>Mostrando {{ $categories->firstItem() ?? 0 }}-{{ $categories->lastItem() ?? 0 }} de {{ $categories->total() }} categorías</span>
                             </div>
                             <div class="pagination-controls">
-                                @if($categories->onFirstPage())
+                                @if($categories->hasPrevious)
+                                    <a href="{{ $categories->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
                                     <button class="pagination-btn" disabled>
                                         <i class="fas fa-chevron-left"></i>
-                                        Anterior
+                                        <span>Anterior</span>
                                     </button>
-                                @else
-                                    <a href="{{ $categories->previousPageUrl() }}" class="pagination-btn">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </a>
                                 @endif
-                                
+
                                 <div class="page-numbers">
-                                    @foreach($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
-                                        @if($page == $categories->currentPage())
-                                            <span class="page-number active">{{ $page }}</span>
+                                    @foreach($categories->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
                                         @else
-                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                            @if($link == $categories->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $categories->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
-                                
-                                @if($categories->hasMorePages())
-                                    <a href="{{ $categories->nextPageUrl() }}" class="pagination-btn">
-                                        Siguiente
+
+                                @if($categories->hasNext)
+                                    <a href="{{ $categories->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 @else
                                     <button class="pagination-btn" disabled>
-                                        Siguiente
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </button>
                                 @endif

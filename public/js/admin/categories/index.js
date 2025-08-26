@@ -25,7 +25,7 @@ let searchTimeout = null;
 
 // Utilidad: detectar si la vista usa paginación del servidor
 function isServerPaginationActive() {
-    const paginator = document.querySelector('.custom-pagination .page-numbers a');
+    const paginator = document.querySelector('.pagination-container .page-numbers a');
     return !!paginator; // existen enlaces → servidor
 }
 
@@ -67,13 +67,13 @@ function loadCategoriesPage(url) {
         const mobileCards = document.querySelector('#mobileCards');
         if (newMobileCards && mobileCards) mobileCards.innerHTML = newMobileCards.innerHTML;
 
-        // Reemplazar paginación
-        const newPagination = temp.querySelectorAll('.custom-pagination');
-        const currentPagination = document.querySelectorAll('.custom-pagination');
-        if (newPagination.length && currentPagination.length) {
-            newPagination.forEach((newPag, index) => {
-                if (currentPagination[index]) {
-                    currentPagination[index].innerHTML = newPag.innerHTML;
+        // Reemplazar contenedores de paginación si existen
+        const newPaginationContainers = temp.querySelectorAll('.pagination-container');
+        const paginationContainers = document.querySelectorAll('.pagination-container');
+        if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
+            newPaginationContainers.forEach((newContainer, index) => {
+                if (paginationContainers[index]) {
+                    paginationContainers[index].innerHTML = newContainer.innerHTML;
                 }
             });
         }
@@ -92,10 +92,11 @@ function loadCategoriesPage(url) {
 
 // Interceptar clicks de paginación cuando servidor está activo
 document.addEventListener('click', (e) => {
-    const link = e.target.closest('.custom-pagination a');
-    if (link && isServerPaginationActive()) {
+    // Interceptar clicks en enlaces de paginación
+    const paginationLink = e.target.closest('.pagination-btn, .page-number');
+    if (paginationLink && paginationLink.href && isServerPaginationActive()) {
         e.preventDefault();
-        loadCategoriesPage(link.href);
+        loadCategoriesPage(paginationLink.href);
     }
 });
 
