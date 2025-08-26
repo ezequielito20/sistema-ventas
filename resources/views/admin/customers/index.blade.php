@@ -1745,7 +1745,6 @@
                         </div>
                         <div>
                             <h5 class="text-xl font-bold text-gray-900">Registrar Pago de Deuda</h5>
-                            <p class="text-sm text-gray-600">Gestiona los pagos de tus clientes de forma eficiente</p>
                         </div>
                     </div>
                     <button type="button" onclick="spaPaymentHandler.closePaymentModal()" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 rounded-lg flex items-center justify-center transition-all duration-200">
@@ -1900,14 +1899,13 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Footer del Modal -->
-                    <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-                        <button type="submit" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg">
-                            <i class="fas fa-save text-sm"></i>
-                            <span class="text-sm font-medium">Registrar Pago</span>
-                        </button>
+                        <!-- Footer del Modal (sticky dentro del área scrollable) -->
+                        <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl sticky bottom-0">
+                            <button type="submit" class="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg">
+                                <i class="fas fa-save text-sm"></i>
+                                <span class="text-sm font-medium">Registrar Pago</span>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
