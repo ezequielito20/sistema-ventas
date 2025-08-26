@@ -31,6 +31,86 @@ class CustomerController extends Controller
          return $next($request);
       });
    }
+
+   /**
+    * Genera paginación inteligente con ventana dinámica
+    */
+   private function generateSmartPagination($paginator, $windowSize = 2)
+   {
+      $currentPage = $paginator->currentPage();
+      $lastPage = $paginator->lastPage();
+      
+      if ($lastPage <= 1) {
+         return $paginator;
+      }
+
+      $links = [];
+      
+      // Siempre mostrar primera página
+      $links[] = 1;
+      
+      // Calcular rango de ventana
+      $start = max(2, $currentPage - $windowSize);
+      $end = min($lastPage - 1, $currentPage + $windowSize);
+      
+      // Agregar "..." si hay gap entre primera página y ventana
+      if ($start > 2) {
+         $links[] = '...';
+      }
+      
+      // Agregar páginas de la ventana
+      for ($i = $start; $i <= $end; $i++) {
+         $links[] = $i;
+      }
+      
+      // Agregar "..." si hay gap entre ventana y última página
+      if ($end < $lastPage - 1) {
+         $links[] = '...';
+      }
+      
+      // Siempre mostrar última página (si no es la primera)
+      if ($lastPage > 1) {
+         $links[] = $lastPage;
+      }
+      
+      // Filtrar duplicados y ordenar
+      $links = array_unique($links);
+      sort($links);
+      
+      // Crear array de enlaces con información adicional
+      $smartLinks = [];
+      foreach ($links as $page) {
+         if ($page === '...') {
+            $smartLinks[] = [
+               'page' => '...',
+               'url' => null,
+               'label' => '...',
+               'active' => false,
+               'isSeparator' => true
+            ];
+         } else {
+            $smartLinks[] = [
+               'page' => $page,
+               'url' => $paginator->url($page),
+               'label' => $page,
+               'active' => $page == $currentPage,
+               'isSeparator' => false
+            ];
+         }
+      }
+      
+      // Agregar información de navegación
+      $paginator->smartLinks = $smartLinks;
+      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
+      $paginator->hasNext = $paginator->nextPageUrl() !== null;
+      $paginator->previousPageUrl = $paginator->previousPageUrl();
+      $paginator->nextPageUrl = $paginator->nextPageUrl();
+      $paginator->firstPageUrl = $paginator->url(1);
+      $paginator->lastPageUrl = $paginator->url($lastPage);
+      
+      return $paginator;
+   }
+
    public function index(Request $request)
    {
       try {
@@ -87,6 +167,9 @@ class CustomerController extends Controller
          
          // Aplicar paginación manteniendo los parámetros de búsqueda
          $customers = $query->orderBy('name')->paginate(10)->withQueryString();
+         
+         // Generar paginación inteligente
+         $customers = $this->generateSmartPagination($customers, 2);
 
          $currency = $this->currencies;
          $company = $this->company;

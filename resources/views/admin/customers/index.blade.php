@@ -1912,7 +1912,7 @@
         </div>
     </div>
 
-    <!-- Paginación personalizada -->
+    <!-- Paginación Inteligente -->
     @if($customers->hasPages())
         <div class="mt-8 px-6">
             <div class="bg-white rounded-xl shadow-lg p-6">
@@ -1921,30 +1921,37 @@
                         <span id="paginationInfo">Mostrando {{ $customers->firstItem() ?? 0 }}-{{ $customers->lastItem() ?? 0 }} de {{ $customers->total() }} clientes</span>
                     </div>
                     <div class="pagination-controls">
-                        @if($customers->onFirstPage())
+                        <!-- Botón Anterior -->
+                        @if($customers->hasPrevious)
+                            <a href="{{ $customers->previousPageUrl }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </a>
+                        @else
                             <button class="pagination-btn" disabled>
                                 <i class="fas fa-chevron-left"></i>
                                 Anterior
                             </button>
-                        @else
-                            <a href="{{ $customers->previousPageUrl() }}" class="pagination-btn">
-                                <i class="fas fa-chevron-left"></i>
-                                Anterior
-                            </a>
                         @endif
                         
+                        <!-- Números de página inteligentes -->
                         <div class="page-numbers">
-                            @foreach($customers->getUrlRange(1, $customers->lastPage()) as $page => $url)
-                                @if($page == $customers->currentPage())
-                                    <span class="page-number active">{{ $page }}</span>
+                            @foreach($customers->smartLinks as $link)
+                                @if($link['isSeparator'])
+                                    <span class="page-separator">{{ $link['label'] }}</span>
                                 @else
-                                    <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                    @if($link['active'])
+                                        <span class="page-number active">{{ $link['label'] }}</span>
+                                    @else
+                                        <a href="{{ $link['url'] }}" class="page-number">{{ $link['label'] }}</a>
+                                    @endif
                                 @endif
                             @endforeach
                         </div>
                         
-                        @if($customers->hasMorePages())
-                            <a href="{{ $customers->nextPageUrl() }}" class="pagination-btn">
+                        <!-- Botón Siguiente -->
+                        @if($customers->hasNext)
+                            <a href="{{ $customers->nextPageUrl }}" class="pagination-btn">
                                 Siguiente
                                 <i class="fas fa-chevron-right"></i>
                             </a>
