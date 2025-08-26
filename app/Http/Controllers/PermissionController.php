@@ -26,6 +26,58 @@ class PermissionController extends Controller
          return $next($request);
       });
    }
+
+   /**
+    * Genera paginación inteligente con ventana dinámica
+    */
+   private function generateSmartPagination($paginator, $windowSize = 2)
+   {
+      $currentPage = $paginator->currentPage();
+      $lastPage = $paginator->lastPage();
+      
+      $links = [];
+      
+      // Siempre agregar la primera página
+      $links[] = 1;
+      
+      // Calcular el rango de páginas alrededor de la página actual
+      $start = max(2, $currentPage - $windowSize);
+      $end = min($lastPage - 1, $currentPage + $windowSize);
+      
+      // Agregar separador si hay gap entre la primera página y el rango
+      if ($start > 2) {
+         $links[] = '...';
+      }
+      
+      // Agregar páginas en el rango
+      for ($i = $start; $i <= $end; $i++) {
+         if ($i > 1 && $i < $lastPage) {
+            $links[] = $i;
+         }
+      }
+      
+      // Agregar separador si hay gap entre el rango y la última página
+      if ($end < $lastPage - 1) {
+         $links[] = '...';
+      }
+      
+      // Siempre agregar la última página (si no es la primera)
+      if ($lastPage > 1) {
+         $links[] = $lastPage;
+      }
+      
+      // Agregar propiedades al paginador
+      $paginator->smartLinks = $links;
+      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
+      $paginator->hasNext = $paginator->nextPageUrl() !== null;
+      $paginator->previousPageUrl = $paginator->previousPageUrl();
+      $paginator->nextPageUrl = $paginator->nextPageUrl();
+      $paginator->firstPageUrl = $paginator->url(1);
+      $paginator->lastPageUrl = $paginator->url($lastPage);
+      
+      return $paginator;
+   }
+
    public function index(Request $request)
    {
       try {
@@ -45,6 +97,73 @@ class PermissionController extends Controller
             return $this->searchPermissions($request);
          }
          
+         // Consulta base de permisos con relaciones
+         $query = Permission::with(['roles']);
+
+         // Búsqueda por texto: nombre del permiso o guard
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+               $q->where('name', 'ILIKE', "%{$search}%")
+                 ->orWhere('guard_name', 'ILIKE', "%{$search}%");
+            });
+         }
+
+         // Filtro por módulo (primera parte del nombre del permiso)
+         if ($request->filled('module')) {
+            $module = $request->input('module');
+            $query->where('name', 'ILIKE', "{$module}.%");
+         }
+
+         // Filtro por acción (segunda parte del nombre del permiso)
+         if ($request->filled('action')) {
+            $action = $request->input('action');
+            $query->where('name', 'ILIKE', "%.{$action}");
+         }
+
+         // Filtro por guard
+         if ($request->filled('guard')) {
+            $query->where('guard_name', $request->input('guard'));
+         }
+
+         // Filtro por cantidad de roles asignados
+         if ($request->filled('roles_min')) {
+            $query->whereHas('roles', function($q) use ($request) {
+               $q->havingRaw('COUNT(*) >= ?', [$request->input('roles_min')]);
+            });
+         }
+
+         if ($request->filled('roles_max')) {
+            $query->whereHas('roles', function($q) use ($request) {
+               $q->havingRaw('COUNT(*) <= ?', [$request->input('roles_max')]);
+            });
+         }
+
+         // Filtro por fecha de creación
+         if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+         }
+
+         // Filtro por estado (activo/inactivo)
+         if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') {
+               $query->whereHas('roles')->orWhereHas('users');
+            } elseif ($status === 'inactive') {
+               $query->whereDoesntHave('roles')->whereDoesntHave('users');
+            }
+         }
+
+         // Paginación del lado del servidor
+         $permissionsList = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
+         
+         // Aplicar paginación inteligente
+         $permissionsList = $this->generateSmartPagination($permissionsList, 2);
+
          // Optimización: Obtener estadísticas con consultas optimizadas
          $totalPermissions = Permission::count();
          
@@ -63,11 +182,6 @@ class PermissionController extends Controller
          $unusedPermissions = Permission::whereDoesntHave('roles')
             ->whereDoesntHave('users')
             ->count();
-
-         // Optimización: Obtener permisos paginados con conteos optimizados
-         $permissionsList = Permission::with(['roles'])
-            ->orderBy('name', 'asc')
-            ->paginate(10);
 
          // Optimización: Obtener conteo de usuarios por permiso en una sola consulta
          $usersCountByPermission = DB::table('permissions')

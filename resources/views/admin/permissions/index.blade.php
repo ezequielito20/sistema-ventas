@@ -359,45 +359,49 @@
             </div>
         </div>
 
-        <!-- Paginación -->
+        <!-- Paginación Inteligente -->
         @if($permissionsList->hasPages())
             <div class="mt-8 px-6">
                 <div class="bg-white rounded-xl shadow-lg p-6">
-                    <div class="custom-pagination">
+                    <div class="pagination-container">
                         <div class="pagination-info">
-                            <span id="paginationInfo">Mostrando {{ $permissionsList->firstItem() ?? 0 }}-{{ $permissionsList->lastItem() ?? 0 }} de {{ $permissionsList->total() }} permisos</span>
+                            <span>Mostrando {{ $permissionsList->firstItem() ?? 0 }}-{{ $permissionsList->lastItem() ?? 0 }} de {{ $permissionsList->total() }} permisos</span>
                         </div>
                         <div class="pagination-controls">
-                            @if($permissionsList->onFirstPage())
+                            @if($permissionsList->hasPrevious)
+                                <a href="{{ $permissionsList->previousPageUrl }}" class="pagination-btn">
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span>Anterior</span>
+                                </a>
+                            @else
                                 <button class="pagination-btn" disabled>
                                     <i class="fas fa-chevron-left"></i>
-                                    Anterior
+                                    <span>Anterior</span>
                                 </button>
-                            @else
-                                <a href="{{ $permissionsList->previousPageUrl() }}" class="pagination-btn">
-                                    <i class="fas fa-chevron-left"></i>
-                                    Anterior
-                                </a>
                             @endif
-                            
+
                             <div class="page-numbers">
-                                @foreach($permissionsList->getUrlRange(1, $permissionsList->lastPage()) as $page => $url)
-                                    @if($page == $permissionsList->currentPage())
-                                        <span class="page-number active">{{ $page }}</span>
+                                @foreach($permissionsList->smartLinks as $link)
+                                    @if($link === '...')
+                                        <span class="page-separator">...</span>
                                     @else
-                                        <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                        @if($link == $permissionsList->currentPage())
+                                            <span class="page-number active">{{ $link }}</span>
+                                        @else
+                                            <a href="{{ $permissionsList->url($link) }}" class="page-number">{{ $link }}</a>
+                                        @endif
                                     @endif
                                 @endforeach
                             </div>
-                            
-                            @if($permissionsList->hasMorePages())
-                                <a href="{{ $permissionsList->nextPageUrl() }}" class="pagination-btn">
-                                    Siguiente
+
+                            @if($permissionsList->hasNext)
+                                <a href="{{ $permissionsList->nextPageUrl }}" class="pagination-btn">
+                                    <span>Siguiente</span>
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             @else
                                 <button class="pagination-btn" disabled>
-                                    Siguiente
+                                    <span>Siguiente</span>
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             @endif

@@ -774,7 +774,7 @@ function updateResultsCounter(total, searchTerm) {
 
 // Función para actualizar paginación para resultados de búsqueda
 function updatePaginationForSearch(total, searchTerm) {
-    const paginationContainer = document.querySelector('.custom-pagination');
+    const paginationContainer = document.querySelector('.pagination-container');
     if (!paginationContainer) return;
     
     // Si hay búsqueda, mostrar paginación simplificada
@@ -783,7 +783,7 @@ function updatePaginationForSearch(total, searchTerm) {
         const paginationControls = paginationContainer.querySelector('.pagination-controls');
         
         if (paginationInfo) {
-            paginationInfo.innerHTML = `<span id="paginationInfo">Búsqueda: "${searchTerm}" - ${total} permisos encontrados</span>`;
+            paginationInfo.innerHTML = `<span>Búsqueda: "${searchTerm}" - ${total} permisos encontrados</span>`;
         }
         
         if (paginationControls) {
@@ -808,7 +808,109 @@ function reinitializeEffects() {
     initializeMobileCardButtonEffects();
 }
 
-// ===== FUNCIONES DE PAGINACIÓN =====
+// ===== FUNCIONES DE PAGINACIÓN INTELIGENTE =====
+
+// Función para detectar si la paginación del servidor está activa
+function isServerPaginationActive() {
+    const paginator = document.querySelector('.pagination-container .page-numbers a');
+    return !!paginator; // existen enlaces → servidor
+}
+
+// Función para cargar una página de permisos via AJAX
+async function loadPermissionsPage(url) {
+    const container = document.querySelector('.space-y-6');
+    if (!container) return;
+
+    // Indicador simple de carga
+    container.style.opacity = '0.6';
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html, application/xhtml+xml'
+            }
+        });
+
+        if (!response.ok) throw new Error('Error al cargar');
+        
+        const html = await response.text();
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Reemplazar tabla
+        const newTableBody = temp.querySelector('#permissionsTable tbody');
+        const tableBody = document.querySelector('#permissionsTable tbody');
+        if (newTableBody && tableBody) {
+            tableBody.innerHTML = newTableBody.innerHTML;
+        }
+
+        // Reemplazar tarjetas móviles
+        const newMobileCards = temp.querySelector('#mobileCardsView');
+        const mobileCards = document.querySelector('#mobileCardsView');
+        if (newMobileCards && mobileCards) {
+            mobileCards.innerHTML = newMobileCards.innerHTML;
+        }
+
+        // Reemplazar tarjetas desktop
+        const newCardsView = temp.querySelector('#cardsView');
+        const cardsView = document.querySelector('#cardsView');
+        if (newCardsView && cardsView) {
+            cardsView.innerHTML = newCardsView.innerHTML;
+        }
+
+        // Reemplazar contenedor de paginación
+        const newPaginationContainer = temp.querySelector('.pagination-container');
+        const paginationContainer = document.querySelector('.pagination-container');
+        if (newPaginationContainer && paginationContainer) {
+            paginationContainer.innerHTML = newPaginationContainer.innerHTML;
+        }
+
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
+
+        // Reinicializar event listeners
+        reinitializeEffects();
+        setupButtonEvents();
+    } catch (error) {
+        console.error('Error al cargar página:', error);
+    } finally {
+        container.style.opacity = '';
+    }
+}
+
+// Función para inicializar interceptación de paginación
+function initializePaginationInterception() {
+    // Interceptar clicks de paginación cuando servidor está activo
+    document.addEventListener('click', (e) => {
+        const paginationLink = e.target.closest('.pagination-btn, .page-number');
+        if (paginationLink && paginationLink.href && isServerPaginationActive()) {
+            e.preventDefault();
+            loadPermissionsPage(paginationLink.href);
+        }
+    });
+
+    // Interceptar búsqueda para servidor
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (isServerPaginationActive()) {
+                    const url = new URL(window.location.href);
+                    if (searchInput.value.trim()) {
+                        url.searchParams.set('search', searchInput.value.trim());
+                    } else {
+                        url.searchParams.delete('search');
+                    }
+                    loadPermissionsPage(url.toString());
+                }
+            }, 300);
+        });
+    }
+}
 
 // Función para inicializar efectos de paginación
 function initializePaginationEffects() {
@@ -990,7 +1092,8 @@ function initializePermissionsIndex() {
     // Inicializar búsqueda
     initializeSearch();
     
-    // Inicializar paginación
+    // Inicializar paginación inteligente
+    initializePaginationInterception();
     initializePaginationEffects();
     
     // Configurar eventos
