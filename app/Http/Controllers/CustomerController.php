@@ -34,6 +34,9 @@ class CustomerController extends Controller
    public function index(Request $request)
    {
       try {
+         // Verificar si existe la tabla debt_payments una sola vez para evitar consultas repetidas
+         $hasDebtPaymentsTable = Schema::hasTable('debt_payments');
+         
          // Obtener el arqueo de caja actual una sola vez para evitar N+1 queries
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
@@ -141,7 +144,7 @@ class CustomerController extends Controller
 
             // Consulta de pagos para todos los clientes
             $allPaymentsData = [];
-            if (Schema::hasTable('debt_payments')) {
+            if ($hasDebtPaymentsTable) {
                $allPaymentsData = DB::table('debt_payments')
                   ->whereIn('customer_id', $allCustomerIds)
                   ->where('company_id', $this->company->id)
@@ -151,17 +154,26 @@ class CustomerController extends Controller
                   ->keyBy('customer_id');
             }
 
+            // Obtener datos de clientes en una sola consulta para evitar N+1
+            $allCustomersData = DB::table('customers')
+               ->whereIn('id', $allCustomerIds)
+               ->where('company_id', $this->company->id)
+               ->select('id', 'total_debt')
+               ->get()
+               ->keyBy('id');
+
             // Calcular estadísticas para todos los clientes
             foreach ($allCustomerIds as $customerId) {
                $sales = $allSalesData->get($customerId);
                $payments = $allPaymentsData->get($customerId);
+               $customer = $allCustomersData->get($customerId);
                
                $salesBefore = $sales ? $sales->sales_before : 0;
                $salesAfter = $sales ? $sales->sales_after : 0;
                $totalPayments = $payments ? $payments->total_payments : 0;
                
                // Calcular deuda de arqueos anteriores usando lógica FIFO
-               $previousDebt = $this->calculatePreviousCashCountDebt($customerId, $openingDate);
+               $previousDebt = max(0, $salesBefore - $totalPayments);
                $currentDebt = max(0, $salesAfter);
                $isDefaulter = $previousDebt > 0;
                
@@ -171,7 +183,6 @@ class CustomerController extends Controller
                }
                
                // Para clientes con deuda actual pero no morosos
-               $customer = Customer::find($customerId);
                if ($customer && $customer->total_debt > 0 && !$isDefaulter) {
                   $currentDebtorsCount++;
                   $currentCashCountDebtTotal += $currentDebt;
@@ -201,7 +212,7 @@ class CustomerController extends Controller
 
             // Consulta de pagos optimizada para clientes paginados
             $paymentsData = [];
-            if (Schema::hasTable('debt_payments')) {
+            if ($hasDebtPaymentsTable) {
                $paymentsData = DB::table('debt_payments')
                   ->whereIn('customer_id', $customerIds)
                   ->where('company_id', $this->company->id)
@@ -223,7 +234,7 @@ class CustomerController extends Controller
                $totalPayments = $payments ? $payments->total_payments : 0;
                
                // Calcular deuda de arqueos anteriores usando lógica FIFO
-               $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
+               $previousDebt = max(0, $salesBefore - $totalPayments);
                $currentDebt = max(0, $salesAfter);
                $isDefaulter = $previousDebt > 0;
                
@@ -238,11 +249,6 @@ class CustomerController extends Controller
 
          // Obtener el tipo de cambio desde localStorage o usar valor por defecto
          $exchangeRate = 134.0; // Valor por defecto
-
-         // Optimizar: NO cargar relaciones innecesarias - ya tenemos los datos calculados
-         // $customers->load(['sales' => function($query) {
-         //    $query->select('id', 'customer_id', 'sale_date', 'total_price');
-         // }]);
 
          // Optimizar: Verificar permisos una sola vez para evitar múltiples verificaciones
          $permissions = [
@@ -1817,26 +1823,28 @@ class CustomerController extends Controller
             ], 404);
          }
 
-         // Obtener ventas del cliente con detalles de productos
-         $sales = DB::table('sales')
-            ->where('customer_id', $customer->id)
-            ->where('company_id', $this->company->id)
-            ->select('sale_date', 'total_price', 'id')
-            ->orderBy('sale_date', 'desc')
+         // Obtener ventas del cliente con detalles de productos en una sola consulta optimizada
+         $salesWithDetails = DB::table('sales')
+            ->leftJoin('sale_details', 'sales.id', '=', 'sale_details.sale_id')
+            ->where('sales.customer_id', $customer->id)
+            ->where('sales.company_id', $this->company->id)
+            ->select(
+               'sales.sale_date',
+               'sales.total_price',
+               'sales.id',
+               DB::raw('COUNT(DISTINCT sale_details.product_id) as unique_products'),
+               DB::raw('SUM(sale_details.quantity) as total_units')
+            )
+            ->groupBy('sales.id', 'sales.sale_date', 'sales.total_price')
+            ->orderBy('sales.sale_date', 'desc')
             ->get();
 
-         Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $sales->count()]);
+         Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $salesWithDetails->count()]);
 
-         // Formatear datos para la tabla con información de productos
-         $formattedSales = $sales->map(function ($sale) {
-            // Obtener detalles de productos para esta venta
-            $saleDetails = DB::table('sale_details')
-               ->where('sale_id', $sale->id)
-               ->selectRaw('COUNT(DISTINCT product_id) as unique_products, SUM(quantity) as total_units')
-               ->first();
-
-            $uniqueProducts = $saleDetails->unique_products ?? 0;
-            $totalUnits = $saleDetails->total_units ?? 0;
+         // Formatear datos para la tabla
+         $formattedSales = $salesWithDetails->map(function ($sale) {
+            $uniqueProducts = $sale->unique_products ?? 0;
+            $totalUnits = $sale->total_units ?? 0;
 
             Log::info('Sale details:', [
                'sale_id' => $sale->id,
