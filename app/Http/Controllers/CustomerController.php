@@ -41,65 +41,77 @@ class CustomerController extends Controller
       $lastPage = $paginator->lastPage();
       
       if ($lastPage <= 1) {
+         // No hay paginación
+         $paginator->smartLinks = [];
+         $paginator->hasPrevious = false;
+         $paginator->hasNext = false;
+         $paginator->previousPageUrl = null;
+         $paginator->nextPageUrl = null;
+         $paginator->firstPageUrl = null;
+         $paginator->lastPageUrl = null;
          return $paginator;
       }
 
-      $links = [];
-      
+      $smartLinks = [];
+
       // Siempre mostrar primera página
-      $links[] = 1;
-      
-      // Calcular rango de ventana
+      $smartLinks[] = [
+         'page' => 1,
+         'url' => $paginator->url(1),
+         'label' => 1,
+         'active' => $currentPage == 1,
+         'isSeparator' => false,
+      ];
+
+      // Calcular rango de ventana centrado en la página actual
       $start = max(2, $currentPage - $windowSize);
       $end = min($lastPage - 1, $currentPage + $windowSize);
-      
-      // Agregar "..." si hay gap entre primera página y ventana
+
+      // Separador izquierdo si hay hueco entre 1 y el inicio de la ventana
       if ($start > 2) {
-         $links[] = '...';
+         $smartLinks[] = [
+            'page' => '...',
+            'url' => null,
+            'label' => '...',
+            'active' => false,
+            'isSeparator' => true,
+         ];
       }
-      
-      // Agregar páginas de la ventana
+
+      // Páginas de la ventana
       for ($i = $start; $i <= $end; $i++) {
-         $links[] = $i;
+         $smartLinks[] = [
+            'page' => $i,
+            'url' => $paginator->url($i),
+            'label' => $i,
+            'active' => $i == $currentPage,
+            'isSeparator' => false,
+         ];
       }
-      
-      // Agregar "..." si hay gap entre ventana y última página
+
+      // Separador derecho si hay hueco entre el final de la ventana y la última página
       if ($end < $lastPage - 1) {
-         $links[] = '...';
+         $smartLinks[] = [
+            'page' => '...',
+            'url' => null,
+            'label' => '...',
+            'active' => false,
+            'isSeparator' => true,
+         ];
       }
-      
-      // Siempre mostrar última página (si no es la primera)
+
+      // Siempre mostrar última página (si hay más de una)
       if ($lastPage > 1) {
-         $links[] = $lastPage;
+         $smartLinks[] = [
+            'page' => $lastPage,
+            'url' => $paginator->url($lastPage),
+            'label' => $lastPage,
+            'active' => $currentPage == $lastPage,
+            'isSeparator' => false,
+         ];
       }
-      
-      // Filtrar duplicados y ordenar
-      $links = array_unique($links);
-      sort($links);
-      
-      // Crear array de enlaces con información adicional
-      $smartLinks = [];
-      foreach ($links as $page) {
-         if ($page === '...') {
-            $smartLinks[] = [
-               'page' => '...',
-               'url' => null,
-               'label' => '...',
-               'active' => false,
-               'isSeparator' => true
-            ];
-         } else {
-            $smartLinks[] = [
-               'page' => $page,
-               'url' => $paginator->url($page),
-               'label' => $page,
-               'active' => $page == $currentPage,
-               'isSeparator' => false
-            ];
-         }
-      }
-      
-      // Agregar información de navegación
+
+      // Info adicional de navegación
       $paginator->smartLinks = $smartLinks;
       $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
       $paginator->hasNext = $paginator->nextPageUrl() !== null;
@@ -107,7 +119,7 @@ class CustomerController extends Controller
       $paginator->nextPageUrl = $paginator->nextPageUrl();
       $paginator->firstPageUrl = $paginator->url(1);
       $paginator->lastPageUrl = $paginator->url($lastPage);
-      
+
       return $paginator;
    }
 
