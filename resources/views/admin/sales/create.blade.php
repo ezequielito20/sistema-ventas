@@ -868,6 +868,15 @@
             store: "{{ route('admin.sales.store') }}",
             index: "{{ route('admin.sales.index') }}"
         };
+        // Guard de limpieza: si venimos de una creación exitosa, limpiar storage lo antes posible
+        (function() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('sale_created') || params.has('sale_created_form')) {
+                    localStorage.removeItem('saleCreateData');
+                }
+            } catch (e) { /* noop */ }
+        })();
     </script>
     <script src="{{ asset('vendor/config.js') }}"></script>
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>

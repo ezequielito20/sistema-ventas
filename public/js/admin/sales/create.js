@@ -54,13 +54,12 @@ document.addEventListener('alpine:init', () => {
         },
         
         get canProcessSale() {
-            // Verificar tanto la variable local como la global
-            const customerSelected = this.selectedCustomerId || 
-                                   (window.saleCreateData && window.saleCreateData.selectedCustomerId);
+            // Validar SOLO contra el estado local del componente para evitar arrastrar datos antiguos
+            const customerSelected = !!this.selectedCustomerId;
             
-            return customerSelected && 
-                   this.saleItems.length > 0 && 
-                   this.saleDate && 
+            return customerSelected &&
+                   this.saleItems.length > 0 &&
+                   this.saleDate &&
                    this.saleTime;
         },
         
@@ -793,9 +792,8 @@ document.addEventListener('alpine:init', () => {
                 if (data.success) {
                     // Redirigir inmediatamente con parámetro de éxito
                     if (action === 'save_and_new') {
-                        // Para "guardar y nueva", limpiar solo los productos pero mantener datos del cliente
-                        this.saleItems = [];
-                        this.saveToLocalStorage(); // Guardar el estado actualizado
+                        // Para "guardar y nueva", limpiar todo el estado para evitar arrastres
+                        this.clearLocalStorage();
                         // Redirigir al formulario de creación con parámetro de éxito
                         window.location.href = '/sales/create?sale_created_form=true';
                     } else {
@@ -869,6 +867,12 @@ document.addEventListener('alpine:init', () => {
         
         loadFromLocalStorage() {
             try {
+                // Si venimos de una creación exitosa o se solicita resetear el estado, limpiar storage y no restaurar
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('sale_created') || params.has('sale_created_form') || params.has('reset_state')) {
+                    this.clearLocalStorage();
+                    return;
+                }
                 const saved = localStorage.getItem('saleCreateData');
                 if (saved) {
                     const data = JSON.parse(saved);
