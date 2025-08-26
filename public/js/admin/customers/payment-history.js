@@ -37,6 +37,9 @@ function paymentHistory() {
 
             // Inicializar búsqueda del servidor
             this.initializeServerSearch();
+            
+            // Inicializar paginación inteligente
+            this.initializeSmartPagination();
         },
 
         // ===== MÉTODOS DE INICIALIZACIÓN =====
@@ -47,6 +50,25 @@ function paymentHistory() {
             } else {
                 this.viewMode = 'cards';
             }
+        },
+
+        // ===== MÉTODOS DE PAGINACIÓN INTELIGENTE =====
+
+        initializeSmartPagination() {
+            // Interceptar clicks de paginación cuando servidor está activo
+            document.addEventListener('click', (e) => {
+                const paginationLink = e.target.closest('.pagination-btn, .page-number');
+                if (paginationLink && paginationLink.href && this.isServerPaginationActive()) {
+                    e.preventDefault();
+                    this.loadPaymentHistoryPage(paginationLink.href);
+                }
+            });
+        },
+
+        // Detectar si la paginación del servidor está activa
+        isServerPaginationActive() {
+            const paginator = document.querySelector('.pagination-container .page-numbers a');
+            return !!paginator; // existen enlaces → servidor
         },
 
         // ===== MÉTODOS DE BÚSQUEDA DEL SERVIDOR =====
@@ -140,11 +162,11 @@ function paymentHistory() {
                     currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
                 }
                 
-                // Actualizar paginación
-                const newPagination = doc.querySelector('.px-6.py-4.bg-gray-50');
-                const currentPagination = document.querySelector('.px-6.py-4.bg-gray-50');
-                if (newPagination && currentPagination) {
-                    currentPagination.innerHTML = newPagination.innerHTML;
+                // Actualizar paginación inteligente
+                const newPaginationContainer = doc.querySelector('.pagination-container');
+                const currentPaginationContainer = document.querySelector('.pagination-container');
+                if (newPaginationContainer && currentPaginationContainer) {
+                    currentPaginationContainer.innerHTML = newPaginationContainer.innerHTML;
                 }
                 
                 // Actualizar estadísticas
@@ -189,6 +211,9 @@ function paymentHistory() {
         initializeEventListeners() {
             // Reinicializar event listeners para elementos dinámicos
             // Esto se llama después de cargar contenido via AJAX
+            
+            // Reinicializar paginación inteligente
+            this.initializeSmartPagination();
         },
 
         resetFilters() {
@@ -554,8 +579,8 @@ function calculateAveragePayment(payments) {
 
 // Interceptar clicks de paginación para navegación sin recargar
 document.addEventListener('click', (e) => {
-    const link = e.target.closest('.pagination .page-link');
-    if (link) {
+    const link = e.target.closest('.pagination .page-link, .pagination-btn, .page-number');
+    if (link && link.href) {
         e.preventDefault();
         const url = link.href;
         if (window.paymentHistory && window.paymentHistory.loadPaymentHistoryPage) {

@@ -430,18 +430,52 @@
                 </div>
             </div>
 
-            <!-- Paginación del servidor -->
+            <!-- Paginación inteligente -->
             @if($payments->hasPages())
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div class="text-sm text-gray-700 mb-4 sm:mb-0">
-                        Mostrando {{ $payments->firstItem() ?? 0 }} a {{ $payments->lastItem() ?? 0 }} de {{ $payments->total() }} registros
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Mostrando {{ $payments->firstItem() ?? 0 }}-{{ $payments->lastItem() ?? 0 }} de {{ $payments->total() }} pagos</span>
                     </div>
-                    <div class="flex justify-center">
-                        {{ $payments->appends(request()->query())->links() }}
+                    <div class="pagination-controls">
+                        @if($payments->hasPrevious)
+                            <a href="{{ $payments->previousPageUrl }}" class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i>
+                                <span>Anterior</span>
+                            </button>
+                        @endif
+
+                        <div class="page-numbers">
+                            @foreach($payments->smartLinks as $link)
+                                @if($link['isSeparator'])
+                                    <span class="page-separator">{{ $link['label'] }}</span>
+                                @else
+                                    @if($link['active'])
+                                        <span class="page-number active">{{ $link['label'] }}</span>
+                                    @else
+                                        <a href="{{ $link['url'] }}" class="page-number">{{ $link['label'] }}</a>
+                                    @endif
+                                @endif
+                            @endforeach
+                        </div>
+
+                        @if($payments->hasNext)
+                            <a href="{{ $payments->nextPageUrl }}" class="pagination-btn">
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <button class="pagination-btn" disabled>
+                                <span>Siguiente</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
                     </div>
                 </div>
-            </div>
             @endif
         </div>
 

@@ -1967,6 +1967,8 @@ class CustomerController extends Controller
       }
    }
 
+
+
    public function paymentHistory(Request $request)
    {
       // Verificar autorización
@@ -2023,6 +2025,9 @@ class CustomerController extends Controller
 
       // Paginación del lado del servidor
       $payments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+      
+      // Aplicar paginación inteligente
+      $payments = $this->generateSmartPagination($payments, 2);
 
       // Estadísticas usando consultas directas para eficiencia
       $totalPayments = DebtPayment::where('company_id', $companyId)->sum('payment_amount');
