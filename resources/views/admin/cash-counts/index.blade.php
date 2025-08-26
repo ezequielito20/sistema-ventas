@@ -539,19 +539,53 @@
             </div>
         </div>
 
-        <!-- Paginación -->
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div class="text-sm text-gray-700 mb-4 sm:mb-0">
-                    Mostrando {{ $cashCounts->firstItem() ?? 0 }} a {{ $cashCounts->lastItem() ?? 0 }} de {{ $cashCounts->total() }} registros
+        <!-- Paginación inteligente -->
+        @if($cashCounts->hasPages())
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span>Mostrando {{ $cashCounts->firstItem() ?? 0 }}-{{ $cashCounts->lastItem() ?? 0 }} de {{ $cashCounts->total() }} arqueos</span>
                 </div>
-                @if($cashCounts->hasPages())
-                <div class="flex justify-center">
-                    {{ $cashCounts->appends(request()->query())->links() }}
+                <div class="pagination-controls">
+                    @if($cashCounts->hasPrevious)
+                        <a href="{{ $cashCounts->previousPageUrl }}" class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Anterior</span>
+                        </button>
+                    @endif
+
+                    <div class="page-numbers">
+                        @foreach($cashCounts->smartLinks as $link)
+                            @if($link === '...')
+                                <span class="page-separator">...</span>
+                            @else
+                                @if($link == $cashCounts->currentPage())
+                                    <span class="page-number active">{{ $link }}</span>
+                                @else
+                                    <a href="{{ $cashCounts->url($link) }}" class="page-number">{{ $link }}</a>
+                                @endif
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($cashCounts->hasNext)
+                        <a href="{{ $cashCounts->nextPageUrl }}" class="pagination-btn">
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    @else
+                        <button class="pagination-btn" disabled>
+                            <span>Siguiente</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    @endif
                 </div>
-                @endif
             </div>
-        </div>
+        @endif
     </div>
 
     <!-- Gráficos -->

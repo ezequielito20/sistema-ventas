@@ -35,6 +35,57 @@ class CashCountController extends Controller
          return $next($request);
       });
    }
+
+   /**
+    * Genera paginación inteligente con ventana dinámica
+    */
+   private function generateSmartPagination($paginator, $windowSize = 2)
+   {
+      $currentPage = $paginator->currentPage();
+      $lastPage = $paginator->lastPage();
+      
+      $links = [];
+      
+      // Siempre agregar la primera página
+      $links[] = 1;
+      
+      // Calcular el rango de páginas alrededor de la página actual
+      $start = max(2, $currentPage - $windowSize);
+      $end = min($lastPage - 1, $currentPage + $windowSize);
+      
+      // Agregar separador si hay gap entre la primera página y el rango
+      if ($start > 2) {
+         $links[] = '...';
+      }
+      
+      // Agregar páginas en el rango
+      for ($i = $start; $i <= $end; $i++) {
+         if ($i > 1 && $i < $lastPage) {
+            $links[] = $i;
+         }
+      }
+      
+      // Agregar separador si hay gap entre el rango y la última página
+      if ($end < $lastPage - 1) {
+         $links[] = '...';
+      }
+      
+      // Siempre agregar la última página (si no es la primera)
+      if ($lastPage > 1) {
+         $links[] = $lastPage;
+      }
+      
+      // Agregar propiedades al paginador
+      $paginator->smartLinks = $links;
+      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
+      $paginator->hasNext = $paginator->nextPageUrl() !== null;
+      $paginator->previousPageUrl = $paginator->previousPageUrl();
+      $paginator->nextPageUrl = $paginator->nextPageUrl();
+      $paginator->firstPageUrl = $paginator->url(1);
+      $paginator->lastPageUrl = $paginator->url($lastPage);
+      
+      return $paginator;
+   }
    public function index(Request $request)
    {
       $currency = $this->currencies;
@@ -93,6 +144,9 @@ class CashCountController extends Controller
 
       // Paginación del lado del servidor
       $cashCounts = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+      
+      // Aplicar paginación inteligente
+      $cashCounts = $this->generateSmartPagination($cashCounts, 2);
 
       // OBTENER TODAS LAS ESTADÍSTICAS EN UNA SOLA CONSULTA CONSOLIDADA
       $today = Carbon::today();

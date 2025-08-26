@@ -38,6 +38,94 @@ const CASH_COUNTS_CONFIG = {
     }
 };
 
+// ===== FUNCIONES DE PAGINACIÓN INTELIGENTE =====
+
+// Función para detectar si la paginación del servidor está activa
+function isServerPaginationActive() {
+    const paginator = document.querySelector('.pagination-container .page-numbers a');
+    return !!paginator; // existen enlaces → servidor
+}
+
+// Cargar una URL y reemplazar secciones sin recargar
+function loadCashCountsPage(url) {
+    const container = document.querySelector('.space-y-6');
+    if (!container) return;
+
+    // Indicador simple de carga
+    container.style.opacity = '0.6';
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html, application/xhtml+xml'
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Error al cargar');
+        return r.text();
+    })
+    .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        // Reemplazar tabla
+        const newTableBody = temp.querySelector('.modern-table tbody');
+        const tableBody = document.querySelector('.modern-table tbody');
+        if (newTableBody && tableBody) {
+            tableBody.innerHTML = newTableBody.innerHTML;
+        }
+
+        // Reemplazar tarjetas
+        const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+        const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+        if (newCardsGrid && cardsGrid) {
+            cardsGrid.innerHTML = newCardsGrid.innerHTML;
+        }
+
+        // Reemplazar contenedores de paginación
+        const newPaginationContainers = temp.querySelectorAll('.pagination-container');
+        const paginationContainers = document.querySelectorAll('.pagination-container');
+        if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
+            newPaginationContainers.forEach((newContainer, index) => {
+                if (paginationContainers[index]) {
+                    paginationContainers[index].innerHTML = newContainer.innerHTML;
+                }
+            });
+        }
+
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
+
+        // Reinicializar event listeners
+        initializeEventListeners();
+    })
+    .catch(err => {
+        console.error('Error al cargar página:', err);
+        // Mostrar error al usuario
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los resultados de búsqueda',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .finally(() => {
+        container.style.opacity = '';
+    });
+}
+
+// Interceptar clicks de paginación cuando servidor está activo
+document.addEventListener('click', (e) => {
+    const paginationLink = e.target.closest('.pagination-btn, .page-number');
+    if (paginationLink && paginationLink.href && isServerPaginationActive()) {
+        e.preventDefault();
+        loadCashCountsPage(paginationLink.href);
+    }
+});
+
 // ===== FUNCIONES DE DETECCIÓN Y CARGA DEL SERVIDOR =====
 
 /**
@@ -164,12 +252,12 @@ function initializeSearchListener() {
 
 // Intentar inicializar inmediatamente y también después de que Alpine.js esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    initializeSearchListener();
+    initializeApp();
 });
 
 // También intentar después de que Alpine.js esté listo
 document.addEventListener('alpine:init', () => {
-    setTimeout(initializeSearchListener, 100);
+    setTimeout(initializeApp, 100);
 });
 
 // ===== FUNCIONES GLOBALES =====
@@ -698,6 +786,9 @@ function initializeApp() {
     
     // Inicializar event listeners
     initializeEventListeners();
+    
+    // Inicializar búsqueda del servidor
+    initializeSearchListener();
 }
 
 // Hacer funciones disponibles globalmente
@@ -714,7 +805,8 @@ window.cashCountsIndex = {
     // Nuevas funciones de servidor
     isServerPaginationActive,
     loadCashCountsPage,
-    initializeEventListeners
+    initializeEventListeners,
+    initializeSearchListener
 };
 
 
