@@ -28,134 +28,239 @@ class RoleController extends Controller
          return $next($request);
       });
    }
-   public function index()
+
+   /**
+    * Genera paginación inteligente con ventana dinámica
+    */
+   private function generateSmartPagination($paginator, $windowSize = 2)
    {
-      // Optimización de gates - verificar permisos una sola vez
-      $permissions = [
-         'can_report' => Gate::allows('roles.report'),
-         'can_create' => Gate::allows('roles.create'),
-         'can_edit' => Gate::allows('roles.edit'),
-         'can_show' => Gate::allows('roles.show'),
-         'can_destroy' => Gate::allows('roles.destroy'),
-         'can_assign_permissions' => Gate::allows('roles.permissions'),
-      ];
+      $currentPage = $paginator->currentPage();
+      $lastPage = $paginator->lastPage();
+      
+      $links = [];
+      
+      // Siempre agregar la primera página
+      $links[] = 1;
+      
+      // Calcular el rango de páginas alrededor de la página actual
+      $start = max(2, $currentPage - $windowSize);
+      $end = min($lastPage - 1, $currentPage + $windowSize);
+      
+      // Agregar separador si hay gap entre la primera página y el rango
+      if ($start > 2) {
+         $links[] = '...';
+      }
+      
+      // Agregar páginas en el rango
+      for ($i = $start; $i <= $end; $i++) {
+         if ($i > 1 && $i < $lastPage) {
+            $links[] = $i;
+         }
+      }
+      
+      // Agregar separador si hay gap entre el rango y la última página
+      if ($end < $lastPage - 1) {
+         $links[] = '...';
+      }
+      
+      // Siempre agregar la última página (si no es la primera)
+      if ($lastPage > 1) {
+         $links[] = $lastPage;
+      }
+      
+      // Agregar propiedades al paginador
+      $paginator->smartLinks = $links;
+      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
+      $paginator->hasNext = $paginator->nextPageUrl() !== null;
+      $paginator->previousPageUrl = $paginator->previousPageUrl();
+      $paginator->nextPageUrl = $paginator->nextPageUrl();
+      $paginator->firstPageUrl = $paginator->url(1);
+      $paginator->lastPageUrl = $paginator->url($lastPage);
+      
+      return $paginator;
+   }
 
-      // Optimización: Seleccionar solo campos necesarios y contar relaciones
-      $roles = Role::select('id', 'name', 'created_at', 'updated_at', 'company_id')
-         ->withCount(['users', 'permissions'])
-         ->byCompany($this->company->id)
-         ->orderBy('name', 'asc')
-         ->get();
-
-      $company = $this->company;
-
-      // Optimización: Solo cargar permisos necesarios para el modal (sin eager loading de roles)
-      $permissionsList = Permission::select('id', 'name')->get()->map(function($permission) {
-         // Agregar descripción amigable basada en el nombre técnico
-         $friendlyNames = [
-            // Usuarios
-            'users.index' => 'Ver listado de usuarios',
-            'users.create' => 'Crear usuarios',
-            'users.edit' => 'Editar usuarios',
-            'users.destroy' => 'Eliminar usuarios',
-            'users.report' => 'Generar reportes de usuarios',
-            'users.show' => 'Ver detalles de usuarios',
-
-            // Roles
-            'roles.index' => 'Ver listado de roles',
-            'roles.create' => 'Crear roles',
-            'roles.edit' => 'Editar roles',
-            'roles.destroy' => 'Eliminar roles',
-            'roles.report' => 'Generar reportes de roles',
-            'roles.show' => 'Ver detalles de roles',
-            'roles.permissions' => 'Asignar permisos a roles',
-            'roles.assign.permissions' => 'Asignar permisos a roles',
-
-            // Permisos
-            'permissions.index' => 'Ver listado de permisos',
-            'permissions.create' => 'Crear permisos',
-            'permissions.edit' => 'Editar permisos',
-            'permissions.destroy' => 'Eliminar permisos',
-            'permissions.report' => 'Generar reportes de permisos',
-            'permissions.show' => 'Ver detalles de permisos',
-
-            // Clientes
-            'customers.index' => 'Ver listado de clientes',
-            'customers.create' => 'Crear clientes',
-            'customers.edit' => 'Editar clientes',
-            'customers.destroy' => 'Eliminar clientes',
-            'customers.report' => 'Generar reportes de clientes',
-            'customers.show' => 'Ver detalles de clientes',
-
-            // Proveedores
-            'suppliers.index' => 'Ver listado de proveedores',
-            'suppliers.create' => 'Crear proveedores',
-            'suppliers.edit' => 'Editar proveedores',
-            'suppliers.destroy' => 'Eliminar proveedores',
-            'suppliers.report' => 'Generar reportes de proveedores',
-            'suppliers.show' => 'Ver detalles de proveedores',
-
-            // Productos
-            'products.index' => 'Ver listado de productos',
-            'products.create' => 'Crear productos',
-            'products.edit' => 'Editar productos',
-            'products.destroy' => 'Eliminar productos',
-            'products.report' => 'Generar reportes de productos',
-            'products.show' => 'Ver detalles de productos',
-
-            // Categorías
-            'categories.index' => 'Ver listado de categorías',
-            'categories.create' => 'Crear categorías',
-            'categories.edit' => 'Editar categorías',
-            'categories.destroy' => 'Eliminar categorías',
-            'categories.report' => 'Generar reportes de categorías',
-            'categories.show' => 'Ver detalles de categorías',
-
-            // Ventas
-            'sales.index' => 'Ver listado de ventas',
-            'sales.create' => 'Crear ventas',
-            'sales.show' => 'Ver detalles de ventas',
-            'sales.destroy' => 'Eliminar ventas',
-            'sales.report' => 'Generar reportes de ventas',
-            'sales.print' => 'Imprimir ventas',
-            'sales.details' => 'Ver detalles de productos en ventas',
-            'sales.product-details' => 'Ver detalles de producto específico en ventas',
-            'sales.product-by-code' => 'Buscar producto por código en ventas',
-
-            // Compras
-            'purchases.index' => 'Ver listado de compras',
-            'purchases.create' => 'Crear compras',
-            'purchases.show' => 'Ver detalles de compras',
-            'purchases.destroy' => 'Eliminar compras',
-            'purchases.report' => 'Generar reportes de compras',
-            'purchases.details' => 'Ver detalles de productos en compras',
-            'purchases.product-details' => 'Ver detalles de producto específico en compras',
-            'purchases.product-by-code' => 'Buscar producto por código en compras',
-
-            // Arqueos
-            'cash-counts.index' => 'Ver listado de arqueos',
-            'cash-counts.create' => 'Crear arqueos',
-            'cash-counts.edit' => 'Editar arqueos',
-            'cash-counts.destroy' => 'Eliminar arqueos',
-            'cash-counts.report' => 'Generar reportes de arqueos',
-            'cash-counts.show' => 'Ver detalles de arqueos',
-            'cash-counts.store-movement' => 'Registrar movimientos de caja',
-            'cash-counts.close' => 'Cerrar arqueo de caja',
-
-            // Configuración
-            'companies.edit' => 'Editar configuración',
-            'companies.create' => 'Crear configuración inicial',
-            'companies.store' => 'Guardar configuración inicial',
-            'companies.update' => 'Actualizar configuración',
+   public function index(Request $request)
+   {
+      try {
+         // Optimización de gates - verificar permisos una sola vez
+         $permissions = [
+            'can_report' => Gate::allows('roles.report'),
+            'can_create' => Gate::allows('roles.create'),
+            'can_edit' => Gate::allows('roles.edit'),
+            'can_show' => Gate::allows('roles.show'),
+            'can_destroy' => Gate::allows('roles.destroy'),
+            'can_assign_permissions' => Gate::allows('roles.permissions'),
          ];
 
-         $permission->friendly_name = $friendlyNames[$permission->name] ?? ucfirst(str_replace('.', ' ', $permission->name));
-         return $permission;
-      })->groupBy(function($permission) {
-         return explode('.', $permission->name)[0];
-      });
+         // Consulta base de roles con conteo de relaciones
+         $query = Role::select('id', 'name', 'created_at', 'updated_at', 'company_id')
+            ->withCount(['users', 'permissions'])
+            ->byCompany($this->company->id);
 
-      return view('admin.roles.index', compact('roles', 'permissions', 'permissionsList', 'company'));
+         // Búsqueda por texto: nombre del rol
+         if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('name', 'ILIKE', "%{$search}%");
+         }
+
+         // Filtro por tipo de rol (sistema o personalizado)
+         if ($request->filled('role_type')) {
+            $roleType = $request->input('role_type');
+            if ($roleType === 'system') {
+               $query->whereIn('name', ['admin', 'user', 'superadmin']);
+            } elseif ($roleType === 'custom') {
+               $query->whereNotIn('name', ['admin', 'user', 'superadmin']);
+            }
+         }
+
+         // Filtro por cantidad de usuarios
+         if ($request->filled('users_min')) {
+            $query->having('users_count', '>=', $request->input('users_min'));
+         }
+
+         if ($request->filled('users_max')) {
+            $query->having('users_count', '<=', $request->input('users_max'));
+         }
+
+         // Filtro por cantidad de permisos
+         if ($request->filled('permissions_min')) {
+            $query->having('permissions_count', '>=', $request->input('permissions_min'));
+         }
+
+         if ($request->filled('permissions_max')) {
+            $query->having('permissions_count', '<=', $request->input('permissions_max'));
+         }
+
+         // Filtro por fecha de creación
+         if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+         }
+
+         if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+         }
+
+         // Paginación del lado del servidor
+         $roles = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
+         
+         // Aplicar paginación inteligente
+         $roles = $this->generateSmartPagination($roles, 2);
+
+         $company = $this->company;
+
+         // Optimización: Solo cargar permisos necesarios para el modal (sin eager loading de roles)
+         $permissionsList = Permission::select('id', 'name')->get()->map(function($permission) {
+            // Agregar descripción amigable basada en el nombre técnico
+            $friendlyNames = [
+               // Usuarios
+               'users.index' => 'Ver listado de usuarios',
+               'users.create' => 'Crear usuarios',
+               'users.edit' => 'Editar usuarios',
+               'users.destroy' => 'Eliminar usuarios',
+               'users.report' => 'Generar reportes de usuarios',
+               'users.show' => 'Ver detalles de usuarios',
+
+               // Roles
+               'roles.index' => 'Ver listado de roles',
+               'roles.create' => 'Crear roles',
+               'roles.edit' => 'Editar roles',
+               'roles.destroy' => 'Eliminar roles',
+               'roles.report' => 'Generar reportes de roles',
+               'roles.show' => 'Ver detalles de roles',
+               'roles.permissions' => 'Asignar permisos a roles',
+               'roles.assign.permissions' => 'Asignar permisos a roles',
+
+               // Permisos
+               'permissions.index' => 'Ver listado de permisos',
+               'permissions.create' => 'Crear permisos',
+               'permissions.edit' => 'Editar permisos',
+               'permissions.destroy' => 'Eliminar permisos',
+               'permissions.report' => 'Generar reportes de permisos',
+               'permissions.show' => 'Ver detalles de permisos',
+
+               // Clientes
+               'customers.index' => 'Ver listado de clientes',
+               'customers.create' => 'Crear clientes',
+               'customers.edit' => 'Editar clientes',
+               'customers.destroy' => 'Eliminar clientes',
+               'customers.report' => 'Generar reportes de clientes',
+               'customers.show' => 'Ver detalles de clientes',
+
+               // Proveedores
+               'suppliers.index' => 'Ver listado de proveedores',
+               'suppliers.create' => 'Crear proveedores',
+               'suppliers.edit' => 'Editar proveedores',
+               'suppliers.destroy' => 'Eliminar proveedores',
+               'suppliers.report' => 'Generar reportes de proveedores',
+               'suppliers.show' => 'Ver detalles de proveedores',
+
+               // Productos
+               'products.index' => 'Ver listado de productos',
+               'products.create' => 'Crear productos',
+               'products.edit' => 'Editar productos',
+               'products.destroy' => 'Eliminar productos',
+               'products.report' => 'Generar reportes de productos',
+               'products.show' => 'Ver detalles de productos',
+
+               // Categorías
+               'categories.index' => 'Ver listado de categorías',
+               'categories.create' => 'Crear categorías',
+               'categories.edit' => 'Editar categorías',
+               'categories.destroy' => 'Eliminar categorías',
+               'categories.report' => 'Generar reportes de categorías',
+               'categories.show' => 'Ver detalles de categorías',
+
+               // Ventas
+               'sales.index' => 'Ver listado de ventas',
+               'sales.create' => 'Crear ventas',
+               'sales.show' => 'Ver detalles de ventas',
+               'sales.destroy' => 'Eliminar ventas',
+               'sales.report' => 'Generar reportes de ventas',
+               'sales.print' => 'Imprimir ventas',
+               'sales.details' => 'Ver detalles de productos en ventas',
+               'sales.product-details' => 'Ver detalles de producto específico en ventas',
+               'sales.product-by-code' => 'Buscar producto por código en ventas',
+
+               // Compras
+               'purchases.index' => 'Ver listado de compras',
+               'purchases.create' => 'Crear compras',
+               'purchases.show' => 'Ver detalles de compras',
+               'purchases.destroy' => 'Eliminar compras',
+               'purchases.report' => 'Generar reportes de compras',
+               'purchases.details' => 'Ver detalles de productos en compras',
+               'purchases.product-details' => 'Ver detalles de producto específico en compras',
+               'purchases.product-by-code' => 'Buscar producto por código en compras',
+
+               // Arqueos
+               'cash-counts.index' => 'Ver listado de arqueos',
+               'cash-counts.create' => 'Crear arqueos',
+               'cash-counts.edit' => 'Editar arqueos',
+               'cash-counts.destroy' => 'Eliminar arqueos',
+               'cash-counts.report' => 'Generar reportes de arqueos',
+               'cash-counts.show' => 'Ver detalles de arqueos',
+               'cash-counts.store-movement' => 'Registrar movimientos de caja',
+               'cash-counts.close' => 'Cerrar arqueo de caja',
+
+               // Configuración
+               'companies.edit' => 'Editar configuración',
+               'companies.create' => 'Crear configuración inicial',
+               'companies.store' => 'Guardar configuración inicial',
+               'companies.update' => 'Actualizar configuración',
+            ];
+
+            $permission->friendly_name = $friendlyNames[$permission->name] ?? ucfirst(str_replace('.', ' ', $permission->name));
+            return $permission;
+         })->groupBy(function($permission) {
+            return explode('.', $permission->name)[0];
+         });
+
+         return view('admin.roles.index', compact('roles', 'permissions', 'permissionsList', 'company'));
+      } catch (\Exception $e) {
+         return redirect()->back()
+            ->with('message', 'Error al cargar los roles')
+            ->with('icons', 'error');
+      }
    }
 
    /**

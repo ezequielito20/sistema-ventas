@@ -319,6 +319,54 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Paginación inteligente para tabla --}}
+                @if($roles->hasPages())
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            <span>Mostrando {{ $roles->firstItem() ?? 0 }}-{{ $roles->lastItem() ?? 0 }} de {{ $roles->total() }} roles</span>
+                        </div>
+                        <div class="pagination-controls">
+                            @if($roles->hasPrevious)
+                                <a href="{{ $roles->previousPageUrl }}" class="pagination-btn">
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span>Anterior</span>
+                                </a>
+                            @else
+                                <button class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span>Anterior</span>
+                                </button>
+                            @endif
+
+                            <div class="page-numbers">
+                                @foreach($roles->smartLinks as $link)
+                                    @if($link === '...')
+                                        <span class="page-separator">...</span>
+                                    @else
+                                        @if($link == $roles->currentPage())
+                                            <span class="page-number active">{{ $link }}</span>
+                                        @else
+                                            <a href="{{ $roles->url($link) }}" class="page-number">{{ $link }}</a>
+                                        @endif
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            @if($roles->hasNext)
+                                <a href="{{ $roles->nextPageUrl }}" class="pagination-btn">
+                                    <span>Siguiente</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <button class="pagination-btn" disabled>
+                                    <span>Siguiente</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Vista de Tarjetas - Siempre visible en móviles, condicional en desktop -->
@@ -429,6 +477,54 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- Paginación inteligente para tarjetas --}}
+                @if($roles->hasPages())
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            <span>Mostrando {{ $roles->firstItem() ?? 0 }}-{{ $roles->lastItem() ?? 0 }} de {{ $roles->total() }} roles</span>
+                        </div>
+                        <div class="pagination-controls">
+                            @if($roles->hasPrevious)
+                                <a href="{{ $roles->previousPageUrl }}" class="pagination-btn">
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span>Anterior</span>
+                                </a>
+                            @else
+                                <button class="pagination-btn" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    <span>Anterior</span>
+                                </button>
+                            @endif
+
+                            <div class="page-numbers">
+                                @foreach($roles->smartLinks as $link)
+                                    @if($link === '...')
+                                        <span class="page-separator">...</span>
+                                    @else
+                                        @if($link == $roles->currentPage())
+                                            <span class="page-number active">{{ $link }}</span>
+                                        @else
+                                            <a href="{{ $roles->url($link) }}" class="page-number">{{ $link }}</a>
+                                        @endif
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            @if($roles->hasNext)
+                                <a href="{{ $roles->nextPageUrl }}" class="pagination-btn">
+                                    <span>Siguiente</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <button class="pagination-btn" disabled>
+                                    <span>Siguiente</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

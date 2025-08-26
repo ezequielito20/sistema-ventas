@@ -32,6 +32,107 @@ window.rolesManager = function() {
                     this.viewMode = 'cards';
                 }
             });
+
+            // Inicializar interceptación de paginación
+            this.initializePagination();
+        },
+
+        // Detectar si la vista usa paginación del servidor
+        isServerPaginationActive() {
+            const paginator = document.querySelector('.pagination-container .page-numbers a');
+            return !!paginator; // existen enlaces → servidor
+        },
+
+        // Cargar una URL y reemplazar secciones sin recargar
+        async loadRolesPage(url) {
+            const container = document.querySelector('.min-h-screen');
+            if (!container) return;
+
+            // Indicador simple de carga
+            container.style.opacity = '0.6';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'text/html, application/xhtml+xml'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al cargar');
+                
+                const html = await response.text();
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+
+                // Reemplazar tabla
+                const newTableBody = temp.querySelector('.modern-table tbody');
+                const tableBody = document.querySelector('.modern-table tbody');
+                if (newTableBody && tableBody) {
+                    tableBody.innerHTML = newTableBody.innerHTML;
+                }
+
+                // Reemplazar tarjetas
+                const newCardsGrid = temp.querySelector('.grid.grid-cols-1');
+                const cardsGrid = document.querySelector('.grid.grid-cols-1');
+                if (newCardsGrid && cardsGrid) {
+                    cardsGrid.innerHTML = newCardsGrid.innerHTML;
+                }
+
+                // Reemplazar contenedores de paginación
+                const newPaginationContainers = temp.querySelectorAll('.pagination-container');
+                const paginationContainers = document.querySelectorAll('.pagination-container');
+                if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
+                    newPaginationContainers.forEach((newContainer, index) => {
+                        if (paginationContainers[index]) {
+                            paginationContainers[index].innerHTML = newContainer.innerHTML;
+                        }
+                    });
+                }
+
+                // Actualizar URL sin recargar
+                window.history.pushState({}, '', url);
+
+                // Reinicializar event listeners
+                this.initializePagination();
+            } catch (error) {
+                console.error('Error al cargar página:', error);
+            } finally {
+                container.style.opacity = '';
+            }
+        },
+
+        // Inicializar interceptación de paginación
+        initializePagination() {
+            // Interceptar clicks de paginación cuando servidor está activo
+            document.addEventListener('click', (e) => {
+                const paginationLink = e.target.closest('.pagination-btn, .page-number');
+                if (paginationLink && paginationLink.href && this.isServerPaginationActive()) {
+                    e.preventDefault();
+                    this.loadRolesPage(paginationLink.href);
+                }
+            });
+
+            // Interceptar búsqueda para servidor
+            const searchInput = document.querySelector('input[x-model="searchTerm"]');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        if (this.isServerPaginationActive()) {
+                            const url = new URL(window.location.href);
+                            if (this.searchTerm.trim()) {
+                                url.searchParams.set('search', this.searchTerm.trim());
+                            } else {
+                                url.searchParams.delete('search');
+                            }
+                            this.loadRolesPage(url.toString());
+                        }
+                    }, 300);
+                });
+            }
         },
         
         // Cambiar modo de vista
@@ -44,6 +145,9 @@ window.rolesManager = function() {
         
         // Función para verificar si un rol debe ser visible según el término de búsqueda
         isRoleVisible(searchText) {
+            // Si hay paginación del servidor, no filtrar en el cliente
+            if (this.isServerPaginationActive()) return true;
+            
             if (!this.searchTerm) return true;
             
             const searchLower = this.searchTerm.toLowerCase();
