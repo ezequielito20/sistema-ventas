@@ -51,12 +51,16 @@ function loadProductsPage(url) {
         const tableBody = document.getElementById('productsTableBody');
         if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
 
-        // Reemplazar paginación
-        const newPaginations = temp.querySelectorAll('.custom-pagination');
-        const paginations = document.querySelectorAll('.custom-pagination');
-        newPaginations.forEach((np, idx) => {
-            if (paginations[idx]) paginations[idx].innerHTML = np.innerHTML;
-        });
+        // Reemplazar contenedores de paginación si existen
+        const newPaginationContainers = temp.querySelectorAll('.pagination-container');
+        const paginationContainers = document.querySelectorAll('.pagination-container');
+        if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
+            newPaginationContainers.forEach((newContainer, index) => {
+                if (paginationContainers[index]) {
+                    paginationContainers[index].innerHTML = newContainer.innerHTML;
+                }
+            });
+        }
 
         // Actualizar URL sin recargar
         window.history.pushState({}, '', url);
@@ -75,10 +79,11 @@ function loadProductsPage(url) {
 
 // Interceptar clicks de paginación cuando servidor está activo
 document.addEventListener('click', (e) => {
-    const link = e.target.closest('.custom-pagination a');
-    if (link && isServerPaginationActive()) {
+    // Interceptar clicks en enlaces de paginación
+    const paginationLink = e.target.closest('.pagination-btn, .page-number');
+    if (paginationLink && paginationLink.href && isServerPaginationActive()) {
         e.preventDefault();
-        loadProductsPage(link.href);
+        loadProductsPage(paginationLink.href);
     }
 });
 

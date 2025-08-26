@@ -508,39 +508,45 @@
                     </div>
 
                     @if($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
-                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} registros</span>
+                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} productos</span>
                             </div>
                             <div class="pagination-controls">
-                                @if($products->onFirstPage())
+                                @if($products->hasPrevious)
+                                    <a href="{{ $products->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
                                     <button class="pagination-btn" disabled>
                                         <i class="fas fa-chevron-left"></i>
-                                        Anterior
+                                        <span>Anterior</span>
                                     </button>
-                                @else
-                                    <a href="{{ $products->previousPageUrl() }}" class="pagination-btn">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </a>
                                 @endif
+
                                 <div class="page-numbers">
-                                    @foreach($products->getUrlRange(1, $products->lastPage()) as $page => $url)
-                                        @if($page == $products->currentPage())
-                                            <span class="page-number active">{{ $page }}</span>
+                                    @foreach($products->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
                                         @else
-                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                            @if($link == $products->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $products->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
-                                @if($products->hasMorePages())
-                                    <a href="{{ $products->nextPageUrl() }}" class="pagination-btn">
-                                        Siguiente
+
+                                @if($products->hasNext)
+                                    <a href="{{ $products->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 @else
                                     <button class="pagination-btn" disabled>
-                                        Siguiente
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </button>
                                 @endif
@@ -548,9 +554,9 @@
                         </div>
                     @else
                         {{-- Paginación cliente (fallback) --}}
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
-                                <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $products->count()) }} de {{ $products->count() }} registros</span>
+                                <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $products->count()) }} de {{ $products->count() }} productos</span>
                             </div>
                             <div class="pagination-controls">
                                 <button id="cardsPrevPage" class="pagination-btn" disabled>
@@ -684,39 +690,45 @@
                     </div>
 
                     @if($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
-                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} registros</span>
+                                <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de {{ $products->total() }} productos</span>
                             </div>
                             <div class="pagination-controls">
-                                @if($products->onFirstPage())
+                                @if($products->hasPrevious)
+                                    <a href="{{ $products->previousPageUrl }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Anterior</span>
+                                    </a>
+                                @else
                                     <button class="pagination-btn" disabled>
                                         <i class="fas fa-chevron-left"></i>
-                                        Anterior
+                                        <span>Anterior</span>
                                     </button>
-                                @else
-                                    <a href="{{ $products->previousPageUrl() }}" class="pagination-btn">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </a>
                                 @endif
+
                                 <div class="page-numbers">
-                                    @foreach($products->getUrlRange(1, $products->lastPage()) as $page => $url)
-                                        @if($page == $products->currentPage())
-                                            <span class="page-number active">{{ $page }}</span>
+                                    @foreach($products->smartLinks as $link)
+                                        @if($link === '...')
+                                            <span class="page-separator">...</span>
                                         @else
-                                            <a href="{{ $url }}" class="page-number">{{ $page }}</a>
+                                            @if($link == $products->currentPage())
+                                                <span class="page-number active">{{ $link }}</span>
+                                            @else
+                                                <a href="{{ $products->url($link) }}" class="page-number">{{ $link }}</a>
+                                            @endif
                                         @endif
                                     @endforeach
                                 </div>
-                                @if($products->hasMorePages())
-                                    <a href="{{ $products->nextPageUrl() }}" class="pagination-btn">
-                                        Siguiente
+
+                                @if($products->hasNext)
+                                    <a href="{{ $products->nextPageUrl }}" class="pagination-btn">
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 @else
                                     <button class="pagination-btn" disabled>
-                                        Siguiente
+                                        <span>Siguiente</span>
                                         <i class="fas fa-chevron-right"></i>
                                     </button>
                                 @endif
@@ -724,9 +736,9 @@
                         </div>
                     @else
                         {{-- Paginación personalizada (fallback) --}}
-                        <div class="custom-pagination">
+                        <div class="pagination-container">
                             <div class="pagination-info">
-                                <span id="paginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de {{ $products->count() }} registros</span>
+                                <span id="paginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de {{ $products->count() }} productos</span>
                             </div>
                             <div class="pagination-controls">
                                 <button id="prevPage" class="pagination-btn" disabled>
