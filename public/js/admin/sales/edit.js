@@ -231,8 +231,6 @@ document.addEventListener('alpine:init', () => {
                 this.productCode = '';
             } else {
                 // Mostrar información de debug
-                console.log('Código buscado:', searchCode);
-                console.log('Productos disponibles:', this.productsCache.map(p => ({ code: p.code, name: p.name })));
                 this.showToast('Producto No Encontrado', `Producto '${this.productCode}' no encontrado en el inventario`, 'warning', 2000);
             }
         },

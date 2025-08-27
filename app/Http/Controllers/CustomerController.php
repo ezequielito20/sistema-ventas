@@ -580,7 +580,8 @@ class CustomerController extends Controller
             return response()->json([
                'success' => true,
                'message' => $message,
-               'customer' => $customer
+               'customer' => $customer,
+               'return_to' => $request->input('return_to')
             ]);
          }
 

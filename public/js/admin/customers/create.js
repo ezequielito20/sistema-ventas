@@ -214,7 +214,6 @@ function customerForm() {
                 const response = await this.sendFormData(formData);
                 await this.handleResponse(response, action);
             } catch (error) {
-                console.error('Error:', error);
                 this.showAlert('Error de conexión. Intente nuevamente.', 'error');
             } finally {
                 this.isSubmitting = false;
@@ -263,7 +262,7 @@ function customerForm() {
                 } else {
                     // Redirigir según el contexto
                     setTimeout(() => {
-                        this.goBack();
+                        this.handleRedirect(result.customer);
                     }, 1500);
                 }
             } else {
@@ -324,6 +323,44 @@ function customerForm() {
                 case 'warning': return 'Advertencia';
                 default: return 'Información';
             }
+        },
+
+        handleRedirect(customer) {
+            // Obtener el valor de return_to del formulario
+            const returnTo = this.getReturnToValue();
+            
+            // Si hay un return_to específico, manejarlo primero
+            if (returnTo) {
+                switch(returnTo) {
+                    case 'sales.create':
+                        // Redirigir a crear venta con el cliente seleccionado
+                        const salesCreateUrl = `/sales/create?customer_id=${customer.id}`;
+                        window.location.href = salesCreateUrl;
+                        return;
+                    case 'sales.edit':
+                        // Redirigir a editar venta con el cliente seleccionado
+                        const salesEditUrl = `/sales/edit?customer_id=${customer.id}`;
+                        window.location.href = salesEditUrl;
+                        return;
+                    case 'customers.index':
+                        // Redirigir al índice de clientes
+                        window.location.href = '/customers';
+                        return;
+                    case 'customers.create':
+                        // Redirigir a crear otro cliente
+                        window.location.href = '/customers/create';
+                        return;
+                    default:
+                        // Si es una URL completa, redirigir directamente
+                        if (returnTo.startsWith('http') || returnTo.startsWith('/')) {
+                            window.location.href = returnTo;
+                            return;
+                        }
+                }
+            }
+            
+            // Si no hay return_to específico, usar la lógica de goBack
+            this.goBack();
         },
 
         goBack() {
