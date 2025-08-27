@@ -47,6 +47,9 @@ class AdminController extends Controller
       $companyId = $this->companyId;
       $company = $this->company;
       $currency = $this->currencies;
+      
+      // Verificar si existe la tabla debt_payments una sola vez para evitar consultas repetidas
+      $hasDebtPaymentsTable = Schema::hasTable('debt_payments');
       // Obtener conteos básicos optimizados en una sola consulta
       $basicCounts = DB::select("
          SELECT 
@@ -551,7 +554,7 @@ class AdminController extends Controller
             
          // Deudas pagadas desde apertura de caja (dinero recibido)
          // Solo contar pagos de deudas del arqueo actual
-         if (Schema::hasTable('debt_payments')) {
+         if ($hasDebtPaymentsTable) {
             // Obtener todos los pagos desde la apertura del arqueo (optimizado)
             $allPayments = DB::table('debt_payments')
                ->select('id', 'company_id', 'customer_id', 'payment_amount', 'created_at')
@@ -600,32 +603,35 @@ class AdminController extends Controller
          
          if ($cashOpenDate) {
             // Obtener deudas del arqueo actual en una sola consulta
-            $debtData = DB::select("
-               SELECT 
-                  c.id,
-                  c.name,
-                  c.total_debt,
-                  COALESCE(sales_data.sales_in_current, 0) as sales_in_current,
-                  COALESCE(payments_data.payments_in_current, 0) as payments_in_current
-               FROM customers c
-               LEFT JOIN (
+            $debtData = [];
+            if ($hasDebtPaymentsTable) {
+               $debtData = DB::select("
                   SELECT 
-                     customer_id,
-                     SUM(total_price) as sales_in_current
-                  FROM sales 
-                  WHERE company_id = ? AND sale_date >= ?
-                  GROUP BY customer_id
-               ) sales_data ON c.id = sales_data.customer_id
-               LEFT JOIN (
-                  SELECT 
-                     customer_id,
-                     SUM(payment_amount) as payments_in_current
-                  FROM debt_payments 
-                  WHERE company_id = ? AND created_at >= ?
-                  GROUP BY customer_id
-               ) payments_data ON c.id = payments_data.customer_id
-               WHERE c.company_id = ? AND c.total_debt > 0
-            ", [$companyId, $cashOpenDate, $companyId, $cashOpenDate, $companyId]);
+                     c.id,
+                     c.name,
+                     c.total_debt,
+                     COALESCE(sales_data.sales_in_current, 0) as sales_in_current,
+                     COALESCE(payments_data.payments_in_current, 0) as payments_in_current
+                  FROM customers c
+                  LEFT JOIN (
+                     SELECT 
+                        customer_id,
+                        SUM(total_price) as sales_in_current
+                     FROM sales 
+                     WHERE company_id = ? AND sale_date >= ?
+                     GROUP BY customer_id
+                  ) sales_data ON c.id = sales_data.customer_id
+                  LEFT JOIN (
+                     SELECT 
+                        customer_id,
+                        SUM(payment_amount) as payments_in_current
+                     FROM debt_payments 
+                     WHERE company_id = ? AND created_at >= ?
+                     GROUP BY customer_id
+                  ) payments_data ON c.id = payments_data.customer_id
+                  WHERE c.company_id = ? AND c.total_debt > 0
+               ", [$companyId, $cashOpenDate, $companyId, $cashOpenDate, $companyId]);
+            }
             
             foreach ($debtData as $customerData) {
                $currentDebt = max(0, $customerData->sales_in_current - $customerData->payments_in_current);
@@ -707,7 +713,7 @@ class AdminController extends Controller
 
 
       // ==========================================
-      // DATOS DE ARQUEOS CERRADOS
+      // DATOS DE ARQUEOS CERRADOS - OPTIMIZADO
       // ==========================================
       
       // Obtener todos los arqueos cerrados (con fecha de cierre) - optimizado
@@ -719,12 +725,14 @@ class AdminController extends Controller
          ->get();
 
       $closedCashCountsData = [];
+      $closedSalesData = [];
       
+      // Procesar cada arqueo con consultas individuales pero optimizadas - COMBINADO
       foreach ($closedCashCounts as $closedCashCount) {
          $openingDate = $closedCashCount->opening_date;
          $closingDate = $closedCashCount->closing_date;
          
-         // Ventas durante este arqueo
+         // Ventas durante este arqueo (UNA SOLA CONSULTA)
          $salesInPeriod = (float) DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $openingDate)
@@ -740,65 +748,18 @@ class AdminController extends Controller
             
          // Deudas pagadas durante este arqueo (optimizado)
          $debtPaymentsInPeriod = 0.0;
-         if (Schema::hasTable('debt_payments')) {
-            $allPaymentsInPeriod = DB::table('debt_payments')
-               ->select('id', 'company_id', 'customer_id', 'payment_amount', 'created_at')
+         if ($hasDebtPaymentsTable) {
+            $debtPaymentsInPeriod = (float) DB::table('debt_payments')
                ->where('company_id', $companyId)
                ->where('created_at', '>=', $openingDate)
                ->where('created_at', '<=', $closingDate)
-               ->get();
-            
-            if ($allPaymentsInPeriod->isNotEmpty()) {
-               // Obtener datos de ventas de clientes en una sola consulta
-               $customerSalesInPeriod = DB::table('customers')
-                  ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
-                  ->leftJoin('sales', function($join) use ($openingDate, $closingDate) {
-                     $join->on('customers.id', '=', 'sales.customer_id')
-                          ->where('sales.sale_date', '>=', $openingDate)
-                          ->where('sales.sale_date', '<=', $closingDate);
-                  })
-                  ->whereIn('customers.id', $allPaymentsInPeriod->pluck('customer_id'))
-                  ->groupBy('customers.id')
-                  ->get()
-                  ->keyBy('id');
-               
-               // Filtrar solo los pagos que corresponden a deudas de este arqueo
-               $debtPaymentsInPeriod = (float) $allPaymentsInPeriod->sum(function($payment) use ($customerSalesInPeriod) {
-                  $customerData = $customerSalesInPeriod->get($payment->customer_id);
-                  if (!$customerData) return 0;
-                  
-                  // Si el cliente tiene ventas en este arqueo, contar el pago
-                  if ($customerData->sales_in_period > 0) {
-                     return $payment->payment_amount;
-                  } else {
-                     return 0;
-                  }
-               });
-            }
+               ->sum('payment_amount');
          }
          
-         // Calcular deudas pendientes al cierre de este arqueo optimizado
+         // Calcular deudas pendientes al cierre de este arqueo
          $debtAtClosing = 0.0;
-         if (Schema::hasTable('debt_payments')) {
-            $debtData = DB::select("
-               SELECT 
-                  COALESCE(sales_data.sales_in_period, 0) as sales_in_period,
-                  COALESCE(payments_data.payments_in_period, 0) as payments_in_period
-               FROM (
-                  SELECT SUM(total_price) as sales_in_period
-                  FROM sales 
-                  WHERE company_id = ? AND sale_date >= ? AND sale_date <= ?
-               ) sales_data
-               CROSS JOIN (
-                  SELECT SUM(payment_amount) as payments_in_period
-                  FROM debt_payments 
-                  WHERE company_id = ? AND created_at >= ? AND created_at <= ?
-               ) payments_data
-            ", [$companyId, $openingDate, $closingDate, $companyId, $openingDate, $closingDate]);
-            
-            if (!empty($debtData)) {
-               $debtAtClosing = (float) max(0, $debtData[0]->sales_in_period - $debtData[0]->payments_in_period);
-            }
+         if ($hasDebtPaymentsTable) {
+            $debtAtClosing = max(0, $salesInPeriod - $debtPaymentsInPeriod);
          }
          
          // Calcular balance: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
@@ -808,6 +769,7 @@ class AdminController extends Controller
          $openingDateFormatted = Carbon::parse($openingDate)->format('d/m/y');
          $closingDateFormatted = Carbon::parse($closingDate)->format('d/m/y');
          
+         // Datos para closedCashCountsData
          $closedCashCountsData[] = [
             'id' => $closedCashCount->id,
             'opening_date' => $openingDate,
@@ -821,11 +783,57 @@ class AdminController extends Controller
             'debt' => (float) $debtAtClosing,
             'balance' => (float) $balanceInPeriod,
             'initial_amount' => (float) $closedCashCount->initial_amount
-                  ];
-       }
+         ];
+         
+         // Datos para closedSalesData (usando los mismos datos calculados)
+         $todaySalesInPeriod = 0;
+         if (Carbon::parse($openingDate)->startOfDay() <= now()->startOfDay() && 
+             Carbon::parse($closingDate)->startOfDay() >= now()->startOfDay()) {
+            $todaySalesInPeriod = $todaySales; // Usar la variable ya calculada
+         }
+         
+         // Ventas de la semana en este arqueo
+         $startOfWeek = now()->startOfWeek();
+         $weeklySalesInPeriod = 0;
+         if (Carbon::parse($openingDate) <= $startOfWeek && Carbon::parse($closingDate) >= $startOfWeek) {
+            $weeklySalesInPeriod = DB::table('sales')
+               ->where('company_id', $companyId)
+               ->where('sale_date', '>=', $openingDate)
+               ->where('sale_date', '<=', $closingDate)
+               ->where('sale_date', '>=', $startOfWeek)
+               ->sum('total_price');
+         }
+         
+         // Promedio de venta por cliente en este arqueo
+         $averageCustomerSpendInPeriod = DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $openingDate)
+            ->where('sale_date', '<=', $closingDate)
+            ->avg('total_price') ?? 0;
+         
+         // Ganancia total teórica en este arqueo
+         $totalProfitInPeriod = DB::table('sale_details as sd')
+            ->select(DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit'))
+            ->join('products as p', 'sd.product_id', '=', 'p.id')
+            ->join('sales as s', 'sd.sale_id', '=', 's.id')
+            ->where('s.company_id', $companyId)
+            ->where('s.sale_date', '>=', $openingDate)
+            ->where('s.sale_date', '<=', $closingDate)
+            ->value('total_profit') ?? 0;
+         
+         $closedSalesData[] = [
+            'id' => $closedCashCount->id,
+            'today_sales' => $todaySalesInPeriod,
+            'weekly_sales' => $weeklySalesInPeriod,
+            'average_customer_spend' => $averageCustomerSpendInPeriod,
+            'total_profit' => $totalProfitInPeriod,
+            'monthly_sales' => $salesInPeriod, // Usar los datos ya calculados
+            'total_sales' => $salesInPeriod
+         ];
+      }
 
        // ==========================================
-       // DATOS DE VENTAS POR ARQUEO
+       //           DATOS DE VENTAS POR ARQUEO
        // ==========================================
        
        // Datos de ventas del arqueo actual
@@ -870,63 +878,7 @@ class AdminController extends Controller
          'monthly_sales' => $monthlySales // Usar la variable ya calculada
        ];
 
-       // Datos de ventas por arqueo cerrado
-       $closedSalesData = [];
-       
-       foreach ($closedCashCounts as $closedCashCount) {
-         $openingDate = $closedCashCount->opening_date;
-         $closingDate = $closedCashCount->closing_date;
-         
-         // Ventas de hoy en este arqueo (si el arqueo estaba abierto hoy)
-         $todaySalesInPeriod = 0;
-         if (Carbon::parse($openingDate)->startOfDay() <= now()->startOfDay() && 
-             Carbon::parse($closingDate)->startOfDay() >= now()->startOfDay()) {
-            $todaySalesInPeriod = $todaySales; // Usar la variable ya calculada
-         }
-         
-         // Ventas de la semana en este arqueo
-         $startOfWeek = now()->startOfWeek();
-         $weeklySalesInPeriod = DB::table('sales')
-            ->where('company_id', $companyId)
-            ->where('sale_date', '>=', $openingDate)
-            ->where('sale_date', '<=', $closingDate)
-            ->where('sale_date', '>=', $startOfWeek)
-            ->sum('total_price');
-            
-         // Promedio de venta por cliente en este arqueo
-         $averageCustomerSpendInPeriod = DB::table('sales')
-            ->where('company_id', $companyId)
-            ->where('sale_date', '>=', $openingDate)
-            ->where('sale_date', '<=', $closingDate)
-            ->avg('total_price') ?? 0;
-            
-         // Ganancia total teórica en este arqueo
-         $totalProfitInPeriod = DB::table('sale_details as sd')
-            ->select(DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit'))
-            ->join('products as p', 'sd.product_id', '=', 'p.id')
-            ->join('sales as s', 'sd.sale_id', '=', 's.id')
-            ->where('s.company_id', $companyId)
-            ->where('s.sale_date', '>=', $openingDate)
-            ->where('s.sale_date', '<=', $closingDate)
-            ->value('total_profit') ?? 0;
-            
-         // Ventas totales del arqueo
-         $totalSalesInPeriod = DB::table('sales')
-            ->where('company_id', $companyId)
-            ->where('sale_date', '>=', $openingDate)
-            ->where('sale_date', '<=', $closingDate)
-            ->sum('total_price');
-         
-         $closedSalesData[] = [
-            'id' => $closedCashCount->id,
-            'today_sales' => $todaySalesInPeriod,
-            'weekly_sales' => $weeklySalesInPeriod,
-            'average_customer_spend' => $averageCustomerSpendInPeriod,
-            'total_profit' => $totalProfitInPeriod,
-            'monthly_sales' => $totalSalesInPeriod, // Para arqueos cerrados, mostramos el total del arqueo
-            'total_sales' => $totalSalesInPeriod
-         ];
-       }
+       // NOTA: $closedSalesData ya se procesó en el bucle combinado anterior
 
        // Mantener variables originales para compatibilidad
        $salesSinceCashOpen = $currentCashData['sales'];
