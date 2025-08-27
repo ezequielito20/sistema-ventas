@@ -58,8 +58,10 @@
             @if($subtitle)
                 <div class="flex items-center gap-1 text-xs opacity-80">
                     <i class="{{ $subtitleIcon }} text-xs"></i>
-                    <span class="hidden sm:inline widget-subtitle">{{ $subtitle }}</span>
-                    <span class="sm:hidden widget-subtitle">{{ Str::limit($subtitle, 15) }}</span>
+                    <span class="hidden lg:inline widget-subtitle">{{ $subtitle }}</span>
+                    <span class="hidden md:inline lg:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
+                    <span class="hidden sm:inline md:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
+                    <span class="sm:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
                 </div>
             @endif
         </div>
