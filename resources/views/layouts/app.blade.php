@@ -192,6 +192,52 @@
             transform: translateX(0);
         }
 
+        /* Ocultar toda la página hasta que Alpine.js esté listo */
+        body[style*="opacity: 0"] {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* Layout del contenido principal */
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+            margin-left: 0;
+        }
+
+        /* Cuando el sidebar está abierto (solo en desktop) */
+        @media (min-width: 1024px) {
+            .main-content.sidebar-open {
+                margin-left: 256px !important;
+            }
+        }
+
+        /* En móvil, siempre sin margen */
+        @media (max-width: 1023px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        /* Asegurar que el sidebar esté en su posición correcta */
+        .fixed.inset-y-0.left-0 {
+            z-index: 50 !important;
+        }
+
+        /* Debug temporal - mostrar bordes para ver el layout */
+        .main-content {
+            border: 2px solid red;
+        }
+        
+        .fixed.inset-y-0.left-0 {
+            border: 2px solid blue;
+        }
+
+        /* Mostrar la página cuando esté lista */
+        body.alpine-loaded {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
         /* Estilos para el header de la página */
         .flex.items-center.justify-between {
             display: flex;
@@ -222,7 +268,16 @@
     </style>
     </head>
 
-    <body class="bg-gray-50" x-data="appLayout()">
+    <body class="bg-gray-50" x-data="appLayout()" style="opacity: 0; visibility: hidden;">
+        <script>
+            // Script que se ejecuta inmediatamente para ocultar toda la página
+            (function() {
+                // Ocultar toda la página hasta que Alpine.js esté completamente listo
+                document.body.style.opacity = '0';
+                document.body.style.visibility = 'hidden';
+                document.body.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+            })();
+        </script>
     <div class="flex h-screen">
         <!-- Sidebar para móviles (overlay) -->
         <div x-show="sidebarOpen" x-cloak x-transition:enter="transition-opacity ease-linear duration-300"
@@ -233,12 +288,15 @@
         </div>
 
         <!-- Sidebar -->
-        <div x-show="sidebarOpen" x-cloak x-transition:enter="transition ease-in-out duration-300 transform"
-            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-            x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
-            x-transition:leave-end="-translate-x-full" @click.stop
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform lg:translate-x-0"
-            :class="sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'">
+        <div x-show="sidebarOpen" x-cloak 
+             x-transition:enter="transition ease-in-out duration-300 transform"
+             x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="-translate-x-full" 
+             @click.stop
+             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform"
+             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+             style="width: 256px;">
 
             <!-- Logo -->
             <div class="flex items-center justify-between h-16 px-6 border-b border-white/20">
@@ -406,7 +464,8 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
+        <div class="flex-1 flex flex-col overflow-hidden main-content" 
+             :class="sidebarOpen ? 'sidebar-open' : 'sidebar-closed'">
             <!-- Top Navigation -->
             <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -419,7 +478,7 @@
                     <!-- Desktop sidebar toggle button -->
                     <button @click="sidebarOpen = !sidebarOpen"
                         class="sidebar-toggle-btn p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200"
-                        style="display: none;">
+                        style="display: flex;">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
 
@@ -683,58 +742,74 @@
                     init() {
                         // Inicializar después de que Alpine.js esté completamente cargado
                         this.$nextTick(() => {
-                            // Mostrar/ocultar botón de toggle según el tamaño de pantalla
-                            const toggleButton = document.querySelector('.sidebar-toggle-btn');
-
-                            function updateButtonVisibility() {
-                                if (window.innerWidth >= 1024) {
-                                    toggleButton.style.display = 'flex';
-                                } else {
-                                    toggleButton.style.display = 'none';
-                                }
-                            }
-
-                            // Ejecutar al inicio
-                            setTimeout(updateButtonVisibility, 100);
-
-                            // Ejecutar cuando cambie el tamaño de la ventana
-                            window.addEventListener('resize', updateButtonVisibility);
-
-                            // Manejar el estado del sidebar en localStorage
-                            const savedState = localStorage.getItem('sidebarOpen');
-                            if (savedState !== null) {
-                                // Solo cargar el estado guardado si estamos en desktop
-                                if (window.innerWidth >= 1024) {
-                                    this.sidebarOpen = JSON.parse(savedState);
-                                }
-                            } else {
-                                // Si no hay estado guardado, establecer según el tamaño de pantalla
-                                this.sidebarOpen = window.innerWidth >= 1024;
-                            }
-
-                            // Guardar el estado cuando cambie (solo en desktop)
-                            this.$watch('sidebarOpen', value => {
-                                if (window.innerWidth >= 1024) {
-                                    localStorage.setItem('sidebarOpen', JSON.stringify(value));
-                                }
-                            });
-
-                            // Manejar cambios de tamaño de ventana
-                            window.addEventListener('resize', () => {
-                                if (window.innerWidth < 1024) {
-                                    // En móviles, siempre cerrar el sidebar
-                                    this.sidebarOpen = false;
-                                } else {
-                                    // En desktop, restaurar el estado guardado
-                                    const savedState = localStorage.getItem('sidebarOpen');
-                                    if (savedState !== null) {
-                                        this.sidebarOpen = JSON.parse(savedState);
-                                    } else {
-                                        this.sidebarOpen = true; // Por defecto abierto en desktop
-                                    }
-                                }
-                            });
+                            // Esperar a que todo esté completamente listo
+                            setTimeout(() => {
+                                // Marcar que Alpine.js está cargado y mostrar la página
+                                document.body.classList.add('alpine-loaded');
+                                
+                                // Configurar el estado inicial del sidebar
+                                this.setupSidebarState();
+                                
+                                // Configurar la visibilidad del botón
+                                this.setupButtonVisibility();
+                            }, 100);
                         });
+                    },
+                    
+                    setupSidebarState() {
+                        // Manejar el estado del sidebar en localStorage
+                        const savedState = localStorage.getItem('sidebarOpen');
+                        if (savedState !== null && window.innerWidth >= 1024) {
+                            // Solo cargar el estado guardado si estamos en desktop
+                            this.sidebarOpen = JSON.parse(savedState);
+                        } else {
+                            // Si no hay estado guardado o estamos en móvil, mantener cerrado por defecto
+                            this.sidebarOpen = false;
+                        }
+                        
+
+
+                        // Guardar el estado cuando cambie (solo en desktop)
+                        this.$watch('sidebarOpen', value => {
+                            if (window.innerWidth >= 1024) {
+                                localStorage.setItem('sidebarOpen', JSON.stringify(value));
+                            }
+                        });
+
+                        // Manejar cambios de tamaño de ventana
+                        window.addEventListener('resize', () => {
+                            if (window.innerWidth < 1024) {
+                                // En móviles, siempre cerrar el sidebar
+                                this.sidebarOpen = false;
+                            } else {
+                                // En desktop, restaurar el estado guardado
+                                const savedState = localStorage.getItem('sidebarOpen');
+                                if (savedState !== null) {
+                                    this.sidebarOpen = JSON.parse(savedState);
+                                } else {
+                                    this.sidebarOpen = false; // Por defecto cerrado
+                                }
+                            }
+                        });
+                    },
+                    
+                    setupButtonVisibility() {
+                        const toggleButton = document.querySelector('.sidebar-toggle-btn');
+                        if (!toggleButton) return;
+
+                        function updateButtonVisibility() {
+                            if (window.innerWidth >= 1024) {
+                                toggleButton.style.display = 'flex';
+                            } else {
+                                toggleButton.style.display = 'none';
+                            }
+                        }
+
+                        // Ejecutar al inicio con un pequeño delay para asegurar que Alpine.js esté listo
+                        setTimeout(updateButtonVisibility, 50);
+
+                        // Ejecutar cuando cambie el tamaño de la ventana
+                        window.addEventListener('resize', updateButtonVisibility);
                     }
                 }
             }
