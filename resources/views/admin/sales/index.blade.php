@@ -86,13 +86,13 @@
         <!-- Ventas Realizadas -->
         <x-dashboard-widget 
             title="Ventas Realizadas"
-            value="{{ $salesCountThisWeek }}"
+            value="{{ $salesCountSinceCashOpen }}"
             valueType="number"
             icon="fas fa-receipt"
             trend="{{ $salesCountPercentageThisWeek > 0 ? '+' . $salesCountPercentageThisWeek : $salesCountPercentageThisWeek }}%"
             trendIcon="{{ $salesCountPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($salesCountPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
             trendColor="{{ $salesCountPercentageThisWeek > 0 ? 'text-green-300' : ($salesCountPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
-            subtitle="Esta semana"
+            :subtitle="'Arqueo actual | Semana: ' . $salesCountThisWeek . ' | Hoy: ' . $salesCountToday"
             subtitleIcon="fas fa-calendar-week"
             gradientFrom="from-yellow-500"
             gradientTo="to-orange-500"

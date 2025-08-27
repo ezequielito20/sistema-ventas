@@ -235,8 +235,10 @@ class SaleController extends Controller
       $salesCountPercentageThisWeek = 0;
       $averageTicketPercentage = 0;
       
+      $salesCountSinceCashOpen = 0;
+      $salesCountToday = 0;
+      
       if ($currentCashCount) {
-         // OPTIMIZADO: Obtener estadísticas de ventas desde la apertura de la caja usando DB::table
          $salesSinceCashOpenStats = DB::table('sales')
                                   ->where('company_id', $this->company->id)
                                   ->where('sale_date', '>=', $currentCashCount->opening_date)
@@ -247,6 +249,7 @@ class SaleController extends Controller
          $totalProfitSinceCashOpen = $totalSalesSinceCashOpen * $profitMargin;
          $totalSalesCountSinceCashOpen = $salesSinceCashOpenStats->count ?? 0;
          $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
+         $salesCountSinceCashOpen = $totalSalesCountSinceCashOpen;
          
          // Calcular porcentajes
          if ($totalSalesSinceCashOpen > 0) {
@@ -265,6 +268,13 @@ class SaleController extends Controller
             $averageTicketPercentage = round((($averageTicket - $averageTicketSinceCashOpen) / $averageTicketSinceCashOpen) * 100, 1);
          }
       }
+      
+      // Calcular ventas de hoy desde las 00:00
+      $startOfToday = Carbon::today();
+      $salesCountToday = DB::table('sales')
+                           ->where('company_id', $this->company->id)
+                           ->where('sale_date', '>=', $startOfToday)
+                           ->count();
       
       $currency = $this->currencies;
       // OPTIMIZADO: Usar exists() directamente para verificar si hay caja abierta
@@ -288,6 +298,8 @@ class SaleController extends Controller
           'profitPercentageThisWeek',
           'salesCountPercentageThisWeek',
           'averageTicketPercentage',
+          'salesCountSinceCashOpen',
+          'salesCountToday',
           'permissions'
       ));
    }
