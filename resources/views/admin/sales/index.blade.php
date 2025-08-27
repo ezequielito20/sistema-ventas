@@ -427,7 +427,7 @@
                                     </div>
                                     <div class="customer-info-card">
                                         <h4 class="customer-name" x-text="sale.customer.name"></h4>
-                                        <p class="customer-email" x-text="sale.customer.email || 'Sin email'"></p>
+                                        <p class="customer-phone" x-text="sale.customer.phone || 'Sin teléfono'"></p>
                                     </div>
                                 </div>
 

@@ -146,7 +146,7 @@ class SaleController extends Controller
       $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id')
                   ->where('company_id', $this->company->id)
                   ->with([
-                      'customer:id,name,email',
+                      'customer:id,name,email,phone',
                       'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
                       'saleDetails.product:id,code,name,image,category_id',
                       'saleDetails.product.category:id,name'
