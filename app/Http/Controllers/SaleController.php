@@ -294,6 +294,8 @@ class SaleController extends Controller
                            ->where('company_id', $this->company->id)
                            ->where('sale_date', '>=', $startOfToday)
                            ->sum('total_price');
+      // Ganancia estimada de hoy
+      $totalProfitToday = $totalSalesAmountToday * $profitMargin;
 
       // Cantidad total de productos vendidos esta semana
       $productsQtyThisWeek = DB::table('sale_details as sd')
@@ -332,7 +334,9 @@ class SaleController extends Controller
           'salesCountPercentageThisWeek',
           'averageTicketPercentage',
           'totalSalesAmountSinceCashOpen',
+          'totalProfitSinceCashOpen',
           'totalSalesAmountToday',
+          'totalProfitToday',
           'salesCountSinceCashOpen',
           'salesCountToday',
           'productsQtySinceCashOpen',

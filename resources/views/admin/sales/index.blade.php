@@ -65,17 +65,17 @@
             progressGradientTo="to-blue-500"
         />
 
-        <!-- Ganancias Esta Semana -->
+        <!-- Ganancias Esta Semana (muestra arqueo/semana/hoy) -->
         <x-dashboard-widget 
             title="Ganancias Esta Semana"
-            value="{{ $totalProfitThisWeek }}"
+            value="{{ $totalProfitSinceCashOpen ?? 0 }}"
             valueType="currency"
             icon="fas fa-chart-line"
             trend="{{ $profitPercentageThisWeek > 0 ? '+' . $profitPercentageThisWeek : $profitPercentageThisWeek }}%"
             trendIcon="{{ $profitPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($profitPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
             trendColor="{{ $profitPercentageThisWeek > 0 ? 'text-green-300' : ($profitPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
-            subtitle="Respecto al total"
-            subtitleIcon="fas fa-chart-bar"
+            :subtitle="'Arqueo Actual | Semana: ' . number_format($totalProfitThisWeek ?? 0, 2) . ' | Hoy: ' . number_format($totalProfitToday ?? 0, 2)"
+            subtitleIcon="fas fa-calendar-week"
             gradientFrom="from-green-500"
             gradientTo="to-emerald-600"
             progressWidth="100%"
