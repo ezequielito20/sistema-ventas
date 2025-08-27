@@ -250,6 +250,8 @@ class SaleController extends Controller
                                   ->first();
          
          $totalSalesSinceCashOpen = $salesSinceCashOpenStats->total ?? 0;
+         // Exponer monto total de ventas desde apertura de arqueo
+         $totalSalesAmountSinceCashOpen = $totalSalesSinceCashOpen;
          $totalProfitSinceCashOpen = $totalSalesSinceCashOpen * $profitMargin;
          $totalSalesCountSinceCashOpen = $salesSinceCashOpenStats->count ?? 0;
          $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
@@ -287,6 +289,12 @@ class SaleController extends Controller
                            ->where('sale_date', '>=', $startOfToday)
                            ->count();
 
+      // Monto total de ventas de hoy desde las 00:00
+      $totalSalesAmountToday = DB::table('sales')
+                           ->where('company_id', $this->company->id)
+                           ->where('sale_date', '>=', $startOfToday)
+                           ->sum('total_price');
+
       // Cantidad total de productos vendidos esta semana
       $productsQtyThisWeek = DB::table('sale_details as sd')
          ->join('sales as s', 'sd.sale_id', '=', 's.id')
@@ -323,6 +331,8 @@ class SaleController extends Controller
           'profitPercentageThisWeek',
           'salesCountPercentageThisWeek',
           'averageTicketPercentage',
+          'totalSalesAmountSinceCashOpen',
+          'totalSalesAmountToday',
           'salesCountSinceCashOpen',
           'salesCountToday',
           'productsQtySinceCashOpen',

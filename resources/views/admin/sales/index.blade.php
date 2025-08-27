@@ -47,17 +47,17 @@
 
     {{-- Dashboard de Estadísticas Moderno --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
-        <!-- Ventas Esta Semana -->
+        <!-- Ventas Esta Semana (muestra montos de arqueo/semana/hoy) -->
         <x-dashboard-widget 
             title="Ventas Esta Semana"
-            value="{{ $totalSalesAmountThisWeek }}"
+            value="{{ $totalSalesAmountSinceCashOpen ?? 0 }}"
             valueType="currency"
             icon="fas fa-shopping-bag"
             trend="{{ $salesPercentageThisWeek > 0 ? '+' . $salesPercentageThisWeek : $salesPercentageThisWeek }}%"
             trendIcon="{{ $salesPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($salesPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
             trendColor="{{ $salesPercentageThisWeek > 0 ? 'text-green-300' : ($salesPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
-            subtitle="Respecto al total"
-            subtitleIcon="fas fa-chart-bar"
+            :subtitle="'Arqueo Actual '  . ' | Semana: ' . number_format($totalSalesAmountThisWeek ?? 0, 2) . ' | Hoy: ' . number_format($totalSalesAmountToday ?? 0, 2)"
+            subtitleIcon="fas fa-calendar-week"
             gradientFrom="from-blue-500"
             gradientTo="to-blue-600"
             progressWidth="100%"
