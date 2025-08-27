@@ -101,17 +101,17 @@
             progressGradientTo="to-orange-400"
         />
 
-        <!-- Ticket Promedio -->
+        <!-- Productos Vendidos (sustituye Ticket Promedio) -->
         <x-dashboard-widget 
-            title="Ticket Promedio"
-            value="{{ $averageTicket }}"
-            valueType="currency"
-            icon="fas fa-calculator"
-            trend="{{ $averageTicketPercentage > 0 ? '+' . $averageTicketPercentage : $averageTicketPercentage }}%"
-            trendIcon="{{ $averageTicketPercentage > 0 ? 'fas fa-arrow-up' : ($averageTicketPercentage < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
-            trendColor="{{ $averageTicketPercentage > 0 ? 'text-green-300' : ($averageTicketPercentage < 0 ? 'text-red-300' : 'text-gray-300') }}"
-            subtitle="Esta semana"
-            subtitleIcon="fas fa-chart-line"
+            title="Productos Vendidos"
+            value="{{ $productsQtySinceCashOpen }}"
+            valueType="number"
+            icon="fas fa-boxes"
+            trend=""
+            trendIcon="fas fa-minus"
+            trendColor="text-gray-300"
+            :subtitle="'Arqueo actual | Semana: ' . $productsQtyThisWeek . ' | Hoy: ' . $productsQtyToday"
+            subtitleIcon="fas fa-calendar-week"
             gradientFrom="from-purple-500"
             gradientTo="to-indigo-600"
             progressWidth="100%"

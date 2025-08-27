@@ -234,9 +234,13 @@ class SaleController extends Controller
       $profitPercentageThisWeek = 0;
       $salesCountPercentageThisWeek = 0;
       $averageTicketPercentage = 0;
-      
+
       $salesCountSinceCashOpen = 0;
       $salesCountToday = 0;
+      // Cantidades totales de productos vendidos (unidades)
+      $productsQtySinceCashOpen = 0;
+      $productsQtyThisWeek = 0;
+      $productsQtyToday = 0;
       
       if ($currentCashCount) {
          $salesSinceCashOpenStats = DB::table('sales')
@@ -250,6 +254,13 @@ class SaleController extends Controller
          $totalSalesCountSinceCashOpen = $salesSinceCashOpenStats->count ?? 0;
          $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
          $salesCountSinceCashOpen = $totalSalesCountSinceCashOpen;
+
+         // Cantidad total de productos vendidos desde apertura de arqueo
+         $productsQtySinceCashOpen = DB::table('sale_details as sd')
+            ->join('sales as s', 'sd.sale_id', '=', 's.id')
+            ->where('s.company_id', $this->company->id)
+            ->where('s.sale_date', '>=', $currentCashCount->opening_date)
+            ->sum('sd.quantity');
          
          // Calcular porcentajes
          if ($totalSalesSinceCashOpen > 0) {
@@ -275,6 +286,20 @@ class SaleController extends Controller
                            ->where('company_id', $this->company->id)
                            ->where('sale_date', '>=', $startOfToday)
                            ->count();
+
+      // Cantidad total de productos vendidos esta semana
+      $productsQtyThisWeek = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $this->company->id)
+         ->whereBetween('s.sale_date', [$startOfWeek, $endOfWeek])
+         ->sum('sd.quantity');
+
+      // Cantidad total de productos vendidos hoy
+      $productsQtyToday = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $this->company->id)
+         ->where('s.sale_date', '>=', $startOfToday)
+         ->sum('sd.quantity');
       
       $currency = $this->currencies;
       // OPTIMIZADO: Usar exists() directamente para verificar si hay caja abierta
@@ -300,6 +325,9 @@ class SaleController extends Controller
           'averageTicketPercentage',
           'salesCountSinceCashOpen',
           'salesCountToday',
+          'productsQtySinceCashOpen',
+          'productsQtyThisWeek',
+          'productsQtyToday',
           'permissions'
       ));
    }
