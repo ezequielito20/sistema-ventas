@@ -49,7 +49,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
         <!-- Ventas Esta Semana (muestra montos de arqueo/semana/hoy) -->
         <x-dashboard-widget 
-            title="Ventas Esta Semana"
+            title="Total en Ventas"
             value="{{ $totalSalesAmountSinceCashOpen ?? 0 }}"
             valueType="currency"
             icon="fas fa-shopping-bag"
@@ -67,7 +67,7 @@
 
         <!-- Ganancias Esta Semana (muestra arqueo/semana/hoy) -->
         <x-dashboard-widget 
-            title="Ganancias Esta Semana"
+            title="Ganancias Totales"
             value="{{ $totalProfitSinceCashOpen ?? 0 }}"
             valueType="currency"
             icon="fas fa-chart-line"
