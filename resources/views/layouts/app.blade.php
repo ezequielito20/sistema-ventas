@@ -313,13 +313,19 @@
             <div class="flex items-center justify-between h-16 px-6 border-b border-white/20">
                 <a href="{{ route('admin.index') }}" class="flex items-center group">
                     <div class="flex-shrink-0">
-                        <i
-                            class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
+                        @if(Auth::check() && Auth::user()->company && Auth::user()->company->logo)
+                            <img src="{{ Auth::user()->company->logo_url }}" 
+                                 alt="Logo de {{ Auth::user()->company->name }}" 
+                                 class="w-8 h-8 object-contain rounded-lg group-hover:scale-110 transition-transform duration-200"
+                                 style="max-width: 32px; max-height: 32px;">
+                        @else
+                            <i class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
+                        @endif
                     </div>
                     <div class="ml-3">
-                        <h1
-                            class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">
-                            Test Company</h1>
+                        <h1 class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">
+                            {{ Auth::check() && Auth::user()->company ? Auth::user()->company->name : 'Test Company' }}
+                        </h1>
                     </div>
                 </a>
                 <button @click="sidebarOpen = false"
