@@ -177,6 +177,29 @@ class CustomerController extends Controller
             }
          }
          
+         // Aplicar filtro de deuda actual si se proporciona
+         if ($request->has('filter') && $request->filter === 'current_debt') {
+            // Obtener IDs de clientes con deuda del arqueo actual
+            // Lógica: Clientes que tienen ventas en el arqueo actual Y tienen deuda total > 0
+            $currentDebtIds = DB::table('customers')
+               ->where('customers.company_id', $this->company->id)
+               ->where('customers.total_debt', '>', 0)
+               ->whereRaw('EXISTS (
+                  SELECT 1 FROM sales 
+                  WHERE sales.customer_id = customers.id 
+                  AND sales.company_id = customers.company_id 
+                  AND sales.sale_date >= ?
+               )', [$openingDate])
+               ->pluck('customers.id');
+            
+            if ($currentDebtIds->isNotEmpty()) {
+               $query->whereIn('id', $currentDebtIds);
+            } else {
+               // Si no hay deudas actuales, devolver resultados vacíos
+               $query->whereRaw('1 = 0');
+            }
+         }
+         
          // Aplicar paginación manteniendo los parámetros de búsqueda
          $customers = $query->orderBy('name')->paginate(10)->withQueryString();
          

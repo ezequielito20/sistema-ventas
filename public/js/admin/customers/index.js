@@ -117,8 +117,13 @@ function filtersPanel() {
         
         init() {
             setTimeout(() => {
-                const saved = localStorage.getItem('customerFilter');
-                if (saved) this.currentFilter = saved;
+                // Siempre establecer 'all' como predeterminado y guardarlo
+                this.currentFilter = 'all';
+                localStorage.setItem('customerFilter', 'all');
+                
+                // Ejecutar el filtro 'all' para asegurar que se muestren todos los clientes
+                this.executeServerFilter('all');
+                
                 this.updateSearchResultsCount();
             }, 0);
         },
@@ -127,7 +132,12 @@ function filtersPanel() {
         
         setFilter(filter) {
             this.currentFilter = filter;
-            localStorage.setItem('customerFilter', filter);
+            // Si se selecciona 'all', siempre guardarlo como predeterminado
+            if (filter === 'all') {
+                localStorage.setItem('customerFilter', 'all');
+            } else {
+                localStorage.setItem('customerFilter', filter);
+            }
             this.executeServerFilter(filter);
         },
         
@@ -153,6 +163,7 @@ function filtersPanel() {
                     switch (this.currentFilter) {
                         case 'all': shouldShow = true; break;
                         case 'defaulters': shouldShow = isDefaulter; break;
+                        case 'current_debt': shouldShow = isDefaulter; break; // Por ahora usa la misma lógica, se maneja en el servidor
                     }
                     
                     if (shouldShow && this.searchTerm) {
@@ -432,7 +443,8 @@ function dataTable() {
                 // No ejecutar búsqueda automáticamente para evitar doble búsqueda
             }
             
-            if (filterParam) {
+            // Solo aplicar filtro de URL si no es la primera carga o si no hay filtro guardado
+            if (filterParam && !localStorage.getItem('customerFilter')) {
                 this.currentFilter = filterParam;
                 localStorage.setItem('customerFilter', filterParam);
             }
