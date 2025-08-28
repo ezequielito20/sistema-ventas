@@ -37,7 +37,10 @@ class CompanyController extends Controller
         $countries = Country::all();
         $states = State::all();
         $cities = City::all();
-        $currencies = Currency::all();
+        $currencies = Currency::select('code', 'symbol', 'name')
+            ->groupBy('code', 'symbol', 'name')
+            ->orderBy('code')
+            ->get();
         return view('admin.companies.create', compact('countries', 'states', 'cities', 'currencies'));
     }
 
@@ -231,7 +234,10 @@ class CompanyController extends Controller
         $countries = Country::all();
         $states = State::all();
         $cities = City::all();
-        $currencies = Currency::all();
+        $currencies = Currency::select('code', 'symbol', 'name')
+            ->groupBy('code', 'symbol', 'name')
+            ->orderBy('code')
+            ->get();
         $company = Auth::user()->company;
         return view('admin.companies.edit', compact('countries', 'states', 'cities', 'currencies', 'company'));
     }

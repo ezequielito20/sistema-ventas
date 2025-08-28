@@ -196,6 +196,7 @@
 
             <!-- Ingresos Totales -->
             <x-dashboard-widget title="Ingresos Totales" value="{{ $totalRevenue }}" valueType="currency"
+                currencySymbol="{{ $currency->symbol }}"
                 icon="fas fa-money-bill-wave" trend="Total" trendIcon="fas fa-chart-bar" trendColor="text-green-300"
                 subtitle="Ingresos generados" subtitleIcon="fas fa-dollar-sign" gradientFrom="from-purple-500"
                 gradientTo="to-indigo-600" progressWidth="100%" progressGradientFrom="from-purple-400"

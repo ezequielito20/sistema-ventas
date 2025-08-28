@@ -1,8 +1,8 @@
 // ===== CONFIGURACIÓN GLOBAL =====
 const COMPANY_EDIT_CONFIG = {
     routes: {
-        searchCountry: '/admin/company/search_country',
-        searchState: '/admin/company/search_state'
+        searchCountry: '/create-company',
+        searchState: '/search-state'
     },
     fileTypes: {
         allowed: ['image/*'],
@@ -70,8 +70,20 @@ window.companyEdit = {
 
     // Función para buscar países
     searchCountry: function(countryId) {
+        const stateSelect = document.getElementById('state');
+        const citySelect = document.getElementById('city');
+        
+        // Limpiar y deshabilitar campos dependientes
+        if (stateSelect) {
+            stateSelect.innerHTML = '<option value="">Seleccione estado</option>';
+            stateSelect.disabled = true;
+        }
+        if (citySelect) {
+            citySelect.innerHTML = '<option value="">Seleccione ciudad</option>';
+            citySelect.disabled = true;
+        }
+        
         if (!countryId) {
-            this.clearLocationFields();
             return;
         }
 
@@ -79,7 +91,6 @@ window.companyEdit = {
             .then(response => response.json())
             .then(data => {
                 this.updateStateSelect(data.states || []);
-                this.updateLocationFields(data.postal_code, data.currency_code);
             })
             .catch(error => {
                 console.error('Error al obtener estados:', error);
@@ -90,8 +101,15 @@ window.companyEdit = {
 
     // Función para buscar estados
     searchState: function(stateId) {
+        const citySelect = document.getElementById('city');
+        
+        // Limpiar y deshabilitar campos dependientes
+        if (citySelect) {
+            citySelect.innerHTML = '<option value="">Seleccione ciudad</option>';
+            citySelect.disabled = true;
+        }
+        
         if (!stateId) {
-            this.clearCityFields();
             return;
         }
 
@@ -99,7 +117,6 @@ window.companyEdit = {
             .then(response => response.json())
             .then(data => {
                 this.updateCitySelect(data.cities || []);
-                this.updatePostalCode(data.postal_code);
             })
             .catch(error => {
                 console.error('Error al obtener datos del estado:', error);
@@ -112,13 +129,18 @@ window.companyEdit = {
     updateStateSelect: function(states) {
         const stateSelect = document.getElementById('state');
         if (stateSelect) {
-            stateSelect.innerHTML = '<option value="">Estado</option>';
-            states.forEach(state => {
-                const option = document.createElement('option');
-                option.value = state.id;
-                option.textContent = state.name;
-                stateSelect.appendChild(option);
-            });
+            stateSelect.innerHTML = '<option value="">Seleccione estado</option>';
+            if (states && states.length > 0) {
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state.id;
+                    option.textContent = state.name;
+                    stateSelect.appendChild(option);
+                });
+                stateSelect.disabled = false;
+            } else {
+                stateSelect.disabled = true;
+            }
         }
     },
 
@@ -126,44 +148,31 @@ window.companyEdit = {
     updateCitySelect: function(cities) {
         const citySelect = document.getElementById('city');
         if (citySelect) {
-            citySelect.innerHTML = '<option value="">Ciudad</option>';
-            cities.forEach(city => {
-                const option = document.createElement('option');
-                option.value = city.id;
-                option.textContent = city.name;
-                citySelect.appendChild(option);
-            });
+            citySelect.innerHTML = '<option value="">Seleccione ciudad</option>';
+            if (cities && cities.length > 0) {
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false;
+            } else {
+                citySelect.disabled = true;
+            }
         }
     },
 
-    // Función para actualizar campos de ubicación
+    // Función para actualizar campos de ubicación (ya no se usa)
     updateLocationFields: function(postalCode, currencyCode) {
-        const postalCodeInput = document.querySelector('input[name="postal_code"]');
-        const currencyInput = document.querySelector('input[name="currency"]');
-        
-        if (postalCodeInput) postalCodeInput.value = postalCode || '';
-        if (currencyInput) currencyInput.value = currencyCode || '';
-    },
-
-    // Función para actualizar código postal
-    updatePostalCode: function(postalCode) {
-        const postalCodeInput = document.querySelector('input[name="postal_code"]');
-        if (postalCodeInput) {
-            postalCodeInput.value = postalCode || '';
-        }
+        // Ya no actualizamos el código postal automáticamente, ahora es independiente
     },
 
     // Función para limpiar campos de ubicación
     clearLocationFields: function() {
         this.updateStateSelect([]);
         this.updateCitySelect([]);
-        this.updateLocationFields('', '');
-    },
-
-    // Función para limpiar campos de ciudad
-    clearCityFields: function() {
-        this.updateCitySelect([]);
-        this.updatePostalCode('');
+        // Ya no limpiamos el código postal automáticamente, ahora es independiente
     },
 
     // Función para cargar estados iniciales
@@ -187,20 +196,17 @@ window.companyEdit = {
                             }
                             stateSelect.appendChild(option);
                         });
+                        stateSelect.disabled = false;
                         
                         // Después de cargar los estados, cargar las ciudades del estado seleccionado
                         if (initialStateId) {
                             this.loadInitialCities(initialStateId);
                         }
+                    } else {
+                        stateSelect.disabled = true;
                     }
                     
-                    // Actualizar código postal y moneda
-                    if (data.postal_code) {
-                        this.updatePostalCode(data.postal_code);
-                    }
-                    if (data.currency_code) {
-                        this.updateLocationFields(data.postal_code, data.currency_code);
-                    }
+                    // Ya no actualizamos el código postal automáticamente, ahora es independiente
                 }
             })
             .catch(error => {
@@ -229,6 +235,9 @@ window.companyEdit = {
                             }
                             citySelect.appendChild(option);
                         });
+                        citySelect.disabled = false;
+                    } else {
+                        citySelect.disabled = true;
                     }
                 }
             })

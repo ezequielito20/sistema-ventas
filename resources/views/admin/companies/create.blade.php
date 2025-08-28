@@ -53,28 +53,6 @@
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <!-- Country field -->
-                            <div class="form-group">
-                                <label for="country" class="form-label">País</label>
-                                <div class="input-group">
-                                    <select id="country" name="country" class="form-select @error('country') is-invalid @enderror" required>
-                                        <option value="">Seleccione un país</option>
-                                        @foreach ($countries as $country)
-                                            <option value="{{ $country->id }}" {{ old('country') == $country->name ? 'selected' : '' }}>
-                                                {{ $country->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <i class="fas fa-globe input-icon"></i>
-                                </div>
-                                @error('country')
-                                    <div class="error-message">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-
                             <!-- Company name field -->
                             <div class="form-group">
                                 <label for="name" class="form-label">Nombre de la Empresa</label>
@@ -216,7 +194,31 @@
                     </h3>
                     
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <!-- Country field -->
+                            <div class="form-group">
+                                <label for="country" class="form-label">País</label>
+                                <div class="input-group">
+                                    <select id="country" name="country" class="form-select country-select @error('country') is-invalid @enderror" required>
+                                        <option value="">Seleccione un país</option>
+                                        @foreach ($countries as $country)
+                                            <option value="{{ $country->id }}" {{ old('country') == $country->name ? 'selected' : '' }}>
+                                                {{ $country->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <i class="fas fa-globe input-icon"></i>
+                                </div>
+                                @error('country')
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
                             <!-- State -->
                             <div class="form-group">
                                 <label for="state" class="form-label">Estado / Provincia</label>
@@ -235,7 +237,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <!-- City -->
                             <div class="form-group">
                                 <label for="city" class="form-label">Ciudad</label>
@@ -254,13 +256,13 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <!-- Postal Code -->
                             <div class="form-group">
                                 <label for="postal_code" class="form-label">Código Postal</label>
                                 <div class="input-group">
                                     <input type="text" id="postal_code" name="postal_code" class="form-input @error('postal_code') is-invalid @enderror"
-                                           value="{{ old('postal_code') }}" placeholder="Código postal" readonly>
+                                           value="{{ old('postal_code') }}" placeholder="Código postal" required>
                                     <i class="fas fa-mail-bulk input-icon"></i>
                                 </div>
                                 @error('postal_code')
@@ -293,8 +295,15 @@
                     <div class="form-group">
                         <label for="currency" class="form-label">Moneda de la Empresa</label>
                         <div class="input-group">
-                            <input type="text" id="currency" name="currency" class="form-input @error('currency') is-invalid @enderror"
-                                   value="{{ old('currency') }}" placeholder="Moneda" readonly required>
+                            <select id="currency" name="currency" class="form-select @error('currency') is-invalid @enderror" required>
+                                <option value="">Seleccione una moneda</option>
+                                @foreach ($currencies as $currency_option)
+                                    <option value="{{ $currency_option->code }}" 
+                                        {{ old('currency') == $currency_option->code ? 'selected' : '' }}>
+                                        {{ $currency_option->code }} - {{ $currency_option->symbol }} ({{ $currency_option->name }})
+                                    </option>
+                                @endforeach
+                            </select>
                             <i class="fas fa-coins input-icon"></i>
                         </div>
                         @error('currency')

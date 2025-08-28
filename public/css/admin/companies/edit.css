@@ -528,3 +528,22 @@ body::before {
     50% { transform: translate(-50%, -50%) scale(1.2); }
     100% { transform: translate(-50%, -50%) scale(1); }
 }
+
+/* Country Select Styling */
+.country-select {
+    width: 100% !important;
+}
+
+/* Disabled Select Styling */
+.form-select:disabled,
+.form-input:disabled {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.form-select:disabled + .input-icon,
+.form-input:disabled + .input-icon {
+    color: #6c757d !important;
+}

@@ -243,6 +243,7 @@
             <!-- Widget de Ventas de la Semana -->
             <div class="widget-weekly-sales">
                 <x-dashboard-widget title="Ventas de la Semana" value="{{ $weeklySales }}" valueType="currency"
+                    currencySymbol="{{ $currency->symbol }}"
                     icon="fas fa-calendar-week" trend="+12%" trendIcon="fas fa-trending-up" trendColor="text-green-300"
                     subtitle="Hoy: {{ $currency->symbol }}{{ number_format($todaySales, 2) }}" subtitleIcon="fas fa-calendar-day" gradientFrom="from-violet-500"
                     gradientTo="to-purple-600" progressWidth="78%" progressGradientFrom="from-violet-400"
@@ -252,6 +253,7 @@
             <!-- Widget de Promedio por Cliente -->
             <div class="widget-average-customer">
                 <x-dashboard-widget title="Promedio por Cliente" value="{{ $averageCustomerSpend }}" valueType="currency"
+                    currencySymbol="{{ $currency->symbol }}"
                     icon="fas fa-user-chart" trend="+8%" trendIcon="fas fa-arrow-up" trendColor="text-green-300"
                     subtitle="Ticket promedio de venta" subtitleIcon="fas fa-users" gradientFrom="from-pink-500"
                     gradientTo="to-rose-600" progressWidth="65%" progressGradientFrom="from-pink-400"
@@ -261,6 +263,7 @@
             <!-- Widget de Ganancia Teórica -->
             <div class="widget-total-profit">
                 <x-dashboard-widget title="Ganancia Total Teórica" value="{{ $totalProfit }}" valueType="currency"
+                    currencySymbol="{{ $currency->symbol }}"
                     icon="fas fa-chart-pie" trend="+15%" trendIcon="fas fa-percentage" trendColor="text-green-300"
                     subtitle="Margen de productos vendidos" subtitleIcon="fas fa-coins" gradientFrom="from-cyan-500"
                     gradientTo="to-blue-600" progressWidth="88%" progressGradientFrom="from-cyan-400"
@@ -270,6 +273,7 @@
             <!-- Widget de Rendimiento Mensual -->
             <div class="widget-monthly-performance">
                 <x-dashboard-widget title="Rendimiento Mensual" value="{{ $monthlySales }}" valueType="currency"
+                    currencySymbol="{{ $currency->symbol }}"
                     icon="fas fa-calendar-alt" trend="+22%" trendIcon="fas fa-rocket" trendColor="text-green-300"
                     subtitle="Comparado con mes anterior" subtitleIcon="fas fa-chart-bar" gradientFrom="from-emerald-500"
                     gradientTo="to-teal-600" progressWidth="92%" progressGradientFrom="from-emerald-400"

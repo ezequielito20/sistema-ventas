@@ -79,6 +79,7 @@
                 title="Total Invertido"
                 value="{{ $totalAmount }}"
                 valueType="currency"
+                currencySymbol="{{ $currency->symbol }}"
                 icon="fas fa-chart-line"
                 trend="Capital"
                 trendIcon="fas fa-dollar-sign"
