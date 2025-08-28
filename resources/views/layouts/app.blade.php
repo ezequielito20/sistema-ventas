@@ -178,6 +178,17 @@
             transform: scale(1.05);
         }
 
+        /* Override específico para íconos del botón - SOLUCIÓN CLAVE */
+        header .sidebar-toggle-btn i,
+        header .sidebar-toggle-btn .fas {
+            color: #6b7280 !important; /* text-gray-600 */
+        }
+
+        header .sidebar-toggle-btn:hover i,
+        header .sidebar-toggle-btn:hover .fas {
+            color: #111827 !important; /* hover:text-gray-900 */
+        }
+
         /* Prevenir flash del sidebar antes de que Alpine.js se inicialice */
         [x-cloak] {
             display: none !important;
