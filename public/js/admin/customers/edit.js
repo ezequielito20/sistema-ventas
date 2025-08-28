@@ -200,7 +200,95 @@ function customerEditForm() {
             }
         },
 
+        // Método para manejar la entrada de teléfono en tiempo real
+        handlePhoneInput(event) {
+            let value = event.target.value;
+            const cursorPosition = event.target.selectionStart;
+            const oldValue = this.form.phone;
+            
+            // Obtener solo los dígitos
+            const digitsOnly = value.replace(/\D/g, '');
+            
+            // Limitar a 10 dígitos
+            if (digitsOnly.length > 10) {
+                return; // No permitir más de 10 dígitos
+            }
+            
+            // Aplicar formato según la cantidad de dígitos
+            let formattedValue = '';
+            if (digitsOnly.length === 0) {
+                formattedValue = '';
+            } else if (digitsOnly.length >= 6) {
+                formattedValue = digitsOnly.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (digitsOnly.length >= 3) {
+                formattedValue = digitsOnly.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            } else {
+                formattedValue = digitsOnly;
+            }
+            
+            // Actualizar el valor
+            this.form.phone = formattedValue;
+            
+            // Restaurar la posición del cursor después del formato
+            this.$nextTick(() => {
+                let newCursorPosition;
+                
+                // Si se está borrando (el valor anterior es más largo), colocar al final
+                if (oldValue.length > formattedValue.length) {
+                    newCursorPosition = formattedValue.length;
+                } else if (oldValue.length < formattedValue.length) {
+                    // Si se está agregando (el valor nuevo es más largo), colocar al final
+                    newCursorPosition = formattedValue.length;
+                } else {
+                    // Si no hay cambio en la longitud, mantener la posición actual
+                    newCursorPosition = Math.min(cursorPosition, formattedValue.length);
+                }
+                
+                event.target.setSelectionRange(newCursorPosition, newCursorPosition);
+            });
+        },
 
+        // Calcular la nueva posición del cursor después del formato
+        calculateCursorPosition(oldPosition, oldValue, newValue) {
+            // Obtener solo los dígitos hasta la posición del cursor en el valor anterior
+            const oldDigitsBeforeCursor = oldValue.substring(0, oldPosition).replace(/\D/g, '');
+            const newDigits = newValue.replace(/\D/g, '');
+            
+            // Si se eliminaron dígitos (borrado), colocar el cursor al final
+            if (oldDigitsBeforeCursor.length > newDigits.length) {
+                return newValue.length;
+            }
+            
+            // Si se agregaron dígitos, calcular la nueva posición
+            if (oldDigitsBeforeCursor.length < newDigits.length) {
+                // Contar caracteres no-dígitos antes del cursor en el valor anterior
+                let nonDigitsBefore = 0;
+                for (let i = 0; i < oldPosition; i++) {
+                    if (/\D/.test(oldValue[i])) {
+                        nonDigitsBefore++;
+                    }
+                }
+                
+                // Calcular la nueva posición basada en los dígitos
+                let newPosition = oldDigitsBeforeCursor.length;
+                let digitCount = 0;
+                
+                for (let i = 0; i < newValue.length; i++) {
+                    if (/\d/.test(newValue[i])) {
+                        if (digitCount === newPosition) {
+                            return i + 1; // Posición después del dígito
+                        }
+                        digitCount++;
+                    }
+                }
+                
+                // Si no se encontró la posición exacta, ir al final
+                return newValue.length;
+            }
+            
+            // Si no hay cambios en la cantidad de dígitos, mantener la posición relativa
+            return Math.min(oldPosition, newValue.length);
+        },
 
         // ===== MÉTODOS DE GESTIÓN DE DEUDA =====
 
