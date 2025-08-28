@@ -38,6 +38,11 @@ const CASH_COUNTS_CONFIG = {
     }
 };
 
+// Función para obtener el símbolo de moneda actual
+function getCurrentCurrencySymbol() {
+    return window.cashCountsData?.currencySymbol || '$';
+}
+
 // ===== FUNCIONES DE PAGINACIÓN INTELIGENTE =====
 
 // Función para detectar si la paginación del servidor está activa
@@ -413,6 +418,12 @@ window.openCashCountModal = function(cashCountId) {
         modalInstance.isOpen = true;
         modalInstance.cashCountData = null;
         
+        // Asegurar que la configuración de moneda esté actualizada
+        if (window.cashCountsData && window.cashCountsData.currencySymbol) {
+            CASH_COUNTS_CONFIG.currencySymbol = window.cashCountsData.currencySymbol;
+            modalInstance.currencySymbol = window.cashCountsData.currencySymbol;
+        }
+        
         // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
         
@@ -483,14 +494,15 @@ window.testModal = function() {
  * Formatear moneda
  */
 function formatCurrency(amount) {
+    const currencySymbol = getCurrentCurrencySymbol();
     if (amount === null || amount === undefined || amount === '') {
-        return CASH_COUNTS_CONFIG.currencySymbol + ' 0.00';
+        return currencySymbol + ' 0.00';
     }
     const num = parseFloat(amount);
     if (isNaN(num)) {
-        return CASH_COUNTS_CONFIG.currencySymbol + ' 0.00';
+        return currencySymbol + ' 0.00';
     }
-    return CASH_COUNTS_CONFIG.currencySymbol + ' ' + num.toFixed(2);
+    return currencySymbol + ' ' + num.toFixed(2);
 }
 
 /**
@@ -716,6 +728,12 @@ window.cashCountModal = function() {
                 window.cashCountModalInstance = this;
             }
             cashCountModalInstance = this;
+            
+            // Asegurar que la configuración de moneda esté actualizada
+            if (window.cashCountsData && window.cashCountsData.currencySymbol) {
+                this.currencySymbol = window.cashCountsData.currencySymbol;
+                CASH_COUNTS_CONFIG.currencySymbol = window.cashCountsData.currencySymbol;
+            }
         },
 
         closeModal() {
@@ -748,6 +766,10 @@ window.cashCountModal = function() {
                 
                 if (data.success && data.data) {
                     this.cashCountData = data.data;
+                    // Asegurar que la configuración de moneda esté actualizada
+                    if (window.cashCountsData && window.cashCountsData.currencySymbol) {
+                        CASH_COUNTS_CONFIG.currencySymbol = window.cashCountsData.currencySymbol;
+                    }
                 } else {
                     throw new Error(data.message || 'Error al cargar los datos');
                 }
@@ -758,7 +780,15 @@ window.cashCountModal = function() {
         },
 
         formatCurrency(amount) {
-            return formatCurrency(amount);
+            const currencySymbol = this.currencySymbol || getCurrentCurrencySymbol();
+            if (amount === null || amount === undefined || amount === '') {
+                return currencySymbol + ' 0.00';
+            }
+            const num = parseFloat(amount);
+            if (isNaN(num)) {
+                return currencySymbol + ' 0.00';
+            }
+            return currencySymbol + ' ' + num.toFixed(2);
         },
 
         formatDate(dateString) {
@@ -802,6 +832,7 @@ window.cashCountsIndex = {
     formatDate,
     formatDateTime,
     showNotification,
+    getCurrentCurrencySymbol,
     // Nuevas funciones de servidor
     isServerPaginationActive,
     loadCashCountsPage,

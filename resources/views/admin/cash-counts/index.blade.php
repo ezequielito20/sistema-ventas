@@ -818,7 +818,7 @@
                                                 <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_sales : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_sales : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-green-100 text-xs sm:text-sm">Ventas Totales</div>
                                             </div>
                                         </div>
@@ -840,7 +840,7 @@
                                                 <i class="fas fa-exclamation-triangle text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_debt : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.total_debt : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-red-100 text-xs sm:text-sm">Deudas Pendientes</div>
                                             </div>
                                         </div>
@@ -862,7 +862,7 @@
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.average_per_customer : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.customer_stats ? cashCountData.customer_stats.current.average_per_customer : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-purple-100 text-xs sm:text-sm">Promedio por Cliente</div>
                                             </div>
                                         </div>
@@ -951,7 +951,7 @@
                                                 <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.total_sales : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.total_sales : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-green-100 text-xs sm:text-sm">Ventas Totales</div>
                                             </div>
                                         </div>
@@ -973,7 +973,7 @@
                                                 <i class="fas fa-calculator text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.theoretical_balance : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.theoretical_balance : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-blue-100 text-xs sm:text-sm">Balance Teórico</div>
                                             </div>
                                         </div>
@@ -995,7 +995,7 @@
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.average_per_sale : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.average_per_sale : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-yellow-100 text-xs sm:text-sm">Promedio por Venta</div>
                                             </div>
                                         </div>
@@ -1017,7 +1017,7 @@
                                                 <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.real_balance : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.sales_stats ? cashCountData.sales_stats.current.real_balance : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-purple-100 text-xs sm:text-sm">Balance Real</div>
                                             </div>
                                         </div>
@@ -1112,7 +1112,7 @@
                                                 <i class="fas fa-coins text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.total_payments : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.total_payments : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-teal-100 text-xs sm:text-sm">Pagos Totales</div>
                                             </div>
                                         </div>
@@ -1156,7 +1156,7 @@
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.average_per_payment : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.average_per_payment : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-emerald-100 text-xs sm:text-sm">Promedio por Pago</div>
                                             </div>
                                         </div>
@@ -1178,7 +1178,7 @@
                                                 <i class="fas fa-balance-scale text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.remaining_debt : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.payments_stats ? cashCountData.payments_stats.current.remaining_debt : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-blue-100 text-xs sm:text-sm">Deuda Restante</div>
                                             </div>
                                         </div>
@@ -1271,7 +1271,7 @@
                                                 <i class="fas fa-shopping-cart text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.total_purchases : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.total_purchases : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-orange-100 text-xs sm:text-sm">Compras Totales</div>
                                             </div>
                                         </div>
@@ -1315,7 +1315,7 @@
                                                 <i class="fas fa-chart-line text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.average_per_purchase : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.purchases_stats ? cashCountData.purchases_stats.current.average_per_purchase : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-yellow-100 text-xs sm:text-sm">Promedio por Compra</div>
                                             </div>
                                         </div>
@@ -1440,7 +1440,7 @@
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-sm sm:text-base text-blue-100">Valor Inventario (costo)</div>
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.products_stats ? cashCountData.products_stats.current.inventory_value_cost : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.products_stats ? cashCountData.products_stats.current.inventory_value_cost : 0)">{{ $currency->symbol }}0.00</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1612,7 +1612,7 @@
                                                 <i class="fas fa-dollar-sign text-white text-sm sm:text-lg md:text-xl"></i>
                                             </div>
                                             <div class="text-right">
-                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.orders_stats ? cashCountData.orders_stats.current.total_value : 0)">$0.00</div>
+                                                <div class="text-xl sm:text-2xl md:text-3xl font-bold" x-text="formatCurrency(cashCountData && cashCountData.orders_stats ? cashCountData.orders_stats.current.total_value : 0)">{{ $currency->symbol }}0.00</div>
                                                 <div class="text-blue-100 text-xs sm:text-sm">Valor Total</div>
                                             </div>
                                         </div>
