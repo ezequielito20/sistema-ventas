@@ -42,7 +42,57 @@
                 </div>
             @endif
 
-            <form wire:submit.prevent="submitOrder">
+            <!-- SPA Product Catalog -->
+            <div class="product-catalog-spa">
+                <!-- Categories Navigation -->
+                <div class="categories-nav mb-8">
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button data-category="all"
+                                class="category-btn active px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 bg-blue-500 text-white">
+                            <i class="fas fa-th-large mr-2"></i>
+                            Todos los Productos
+                        </button>
+                        
+                        @foreach($categories as $category)
+                        <button data-category="{{ $category->id }}"
+                                class="category-btn px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                            <i class="fas fa-tag mr-2"></i>
+                            {{ $category->name }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="products-grid">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        @foreach($products as $product)
+                        <div data-product-category="{{ $product->category_id }}" class="product-card-wrapper">
+                            @livewire('components.product-card', ['product' => $product], key('product-'.$product->id))
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="text-center py-12" style="display: none;" id="empty-state">
+                    <div class="text-gray-400 text-6xl mb-4">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay productos en esta categoría</h3>
+                    <p class="text-gray-500">Selecciona otra categoría para ver más productos</p>
+                </div>
+            </div>
+
+            <!-- Checkout Form (Hidden by default, shown when cart has items) -->
+            <div class="checkout-section mt-8" x-data="{ showCheckout: false }" x-show="showCheckout">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">
+                        <i class="fas fa-shopping-cart mr-2"></i>
+                        Finalizar Pedido
+                    </h3>
+                    
+                    <form wire:submit.prevent="submitOrder">
                 <!-- Phone Number with Search Button -->
                 <div class="form-group">
                     <label for="phone" class="form-label">

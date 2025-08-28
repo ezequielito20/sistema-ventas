@@ -12,6 +12,9 @@
     
     <!-- Animate.css - Servido localmente -->
     <link rel="stylesheet" href="{{ asset('vendor/animate-css/animate.min.css') }}">
+    
+    <!-- Tailwind CSS - Compilado localmente -->
+    <link rel="stylesheet" href="{{ asset('build/assets/app-CTStYJ3J.css') }}">
 
     @livewireStyles
 
@@ -526,6 +529,43 @@
                 transform: scale(1);
             }
         }
+
+        /* Product catalog transitions */
+        .product-card-wrapper {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .category-btn {
+            transition: all 0.3s ease-in-out;
+        }
+
+        #empty-state {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Product card styles */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Animación de entrada para tarjetas */
+        .product-card-wrapper {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -547,6 +587,7 @@
     
     @livewireScripts
 
+
     <script>
         // Auto-hide success message after 5 seconds
         document.addEventListener('livewire:init', () => {
@@ -557,17 +598,81 @@
             });
         });
 
-        // Smooth tab transitions
+        // Category switching logic
         document.addEventListener('DOMContentLoaded', function() {
-            const tabTriggers = document.querySelectorAll('[data-bs-toggle="tab"]');
-            
-            tabTriggers.forEach(trigger => {
-                trigger.addEventListener('shown.bs.tab', function(e) {
-                    const targetPane = document.querySelector(e.target.getAttribute('data-bs-target'));
-                    if (targetPane) {
-                        targetPane.style.animation = 'fadeInUp 0.4s ease-out';
+            const categoryButtons = document.querySelectorAll('[data-category]');
+            const productCards = document.querySelectorAll('[data-product-category]');
+            const emptyState = document.getElementById('empty-state');
+
+            function showCategory(categoryId) {
+                let hasVisibleProducts = false;
+                
+                // Update button states
+                categoryButtons.forEach(btn => {
+                    if (btn.dataset.category === categoryId) {
+                        btn.classList.remove('bg-gray-100', 'text-gray-700');
+                        btn.classList.add('bg-blue-500', 'text-white');
+                    } else {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-100', 'text-gray-700');
                     }
                 });
+                
+                // Show/hide products with animation
+                productCards.forEach(card => {
+                    if (categoryId === 'all' || card.dataset.productCategory === categoryId) {
+                        card.style.opacity = '0';
+                        card.style.display = 'block';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                        }, 50);
+                        hasVisibleProducts = true;
+                    } else {
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
+                });
+
+                // Show/hide empty state
+                if (emptyState) {
+                    if (hasVisibleProducts) {
+                        emptyState.style.opacity = '0';
+                        setTimeout(() => {
+                            emptyState.style.display = 'none';
+                        }, 300);
+                    } else {
+                        emptyState.style.display = 'block';
+                        setTimeout(() => {
+                            emptyState.style.opacity = '1';
+                        }, 50);
+                    }
+                }
+            }
+
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const categoryId = this.dataset.category;
+                    showCategory(categoryId);
+                });
+            });
+        });
+
+        // Product success animation
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('productAdded', (data) => {
+                const successElement = document.querySelector(`[data-product-id="${data.productId}"] .success-notification`);
+                if (successElement) {
+                    successElement.style.display = 'block';
+                    successElement.style.opacity = '1';
+                    setTimeout(() => {
+                        successElement.style.opacity = '0';
+                        setTimeout(() => {
+                            successElement.style.display = 'none';
+                        }, 300);
+                    }, 2000);
+                }
             });
         });
 

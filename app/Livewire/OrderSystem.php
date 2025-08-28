@@ -281,6 +281,7 @@ class OrderSystem extends Component
     {
         return view('livewire.order-system', [
             'products' => $this->products,
+            'categories' => \App\Models\Category::where('company_id', 1)->get(),
         ]);
     }
 }
