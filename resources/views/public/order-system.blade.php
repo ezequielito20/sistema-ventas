@@ -7,15 +7,11 @@
 
     <title>Pedidos Online - Sistema de Ventas</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Fonts - Servidos localmente -->
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
     
-    <!-- FontAwesome -->
-    
-    <!-- Bootstrap eliminado: usamos Tailwind -->
-    
-    <!-- Animate.css -->
+    <!-- Animate.css - Servido localmente -->
+    <link rel="stylesheet" href="{{ asset('vendor/animate-css/animate.min.css') }}">
 
     @livewireStyles
 
@@ -47,7 +43,7 @@
         }
 
         body {
-            font-family: 'Figtree', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             min-height: 100vh;
             position: relative;
