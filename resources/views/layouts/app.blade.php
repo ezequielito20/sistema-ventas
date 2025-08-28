@@ -341,33 +341,12 @@
                             Pedidos Online
                         </a>
 
-                        <!-- Configuración -->
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200">
-                                <div class="flex items-center">
-                                    <i class="fas fa-cog mr-3 text-lg"></i>
-                                    Config empresa
-                                </div>
-                                <i class="fas fa-chevron-down text-xs transition-transform duration-200"
-                                    :class="{ 'rotate-180': open }"></i>
-                            </button>
-                            <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                                x-transition:enter-start="transform opacity-0 scale-95"
-                                x-transition:enter-end="transform opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-75"
-                                x-transition:leave-start="transform opacity-100 scale-100"
-                                x-transition:leave-end="transform opacity-0 scale-95" class="ml-6 mt-1 space-y-1">
-                                <a href="#"
-                                    class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
-                                    Configuración General
-                                </a>
-                                <a href="#"
-                                    class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
-                                    Configuración Avanzada
-                                </a>
-                            </div>
-                        </div>
+                        <!-- Config empresa -->
+                        <a href="{{ route('admin.company.edit') }}"
+                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.company.edit') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            <i class="fas fa-cog mr-3 text-lg"></i>
+                            Config empresa
+                        </a>
 
                         <!-- Roles y Permisos -->
                         <div x-data="{ open: false }">
