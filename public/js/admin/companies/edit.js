@@ -176,11 +176,16 @@ window.companyEdit = {
     },
 
     // Función para cargar estados iniciales
-    loadInitialStates: function(countryId, initialStateId) {
+    loadInitialStates: function(countryId, initialStateId, initialCityId) {
         if (!countryId) return;
 
         fetch(`${COMPANY_EDIT_CONFIG.routes.searchCountry}/${countryId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 const stateSelect = document.getElementById('state');
                 if (stateSelect) {
@@ -200,13 +205,11 @@ window.companyEdit = {
                         
                         // Después de cargar los estados, cargar las ciudades del estado seleccionado
                         if (initialStateId) {
-                            this.loadInitialCities(initialStateId);
+                            this.loadInitialCities(initialStateId, initialCityId);
                         }
                     } else {
                         stateSelect.disabled = true;
                     }
-                    
-                    // Ya no actualizamos el código postal automáticamente, ahora es independiente
                 }
             })
             .catch(error => {
@@ -219,7 +222,12 @@ window.companyEdit = {
         if (!stateId) return;
 
         fetch(`${COMPANY_EDIT_CONFIG.routes.searchState}/${stateId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 const citySelect = document.getElementById('city');
                 if (citySelect) {
@@ -354,9 +362,14 @@ function initializeCompanyEdit() {
         const initialStateId = document.querySelector('meta[name="initial-state-id"]')?.content;
         const initialCityId = document.querySelector('meta[name="initial-city-id"]')?.content;
 
+        // Verificar que los valores no estén vacíos o sean "null"
+        const validCountryId = initialCountryId && initialCountryId !== 'null' && initialCountryId !== '';
+        const validStateId = initialStateId && initialStateId !== 'null' && initialStateId !== '';
+        const validCityId = initialCityId && initialCityId !== 'null' && initialCityId !== '';
+
         // Cargar estados iniciales basados en el país de la compañía
-        if (initialCountryId) {
-            window.companyEdit.loadInitialStates(initialCountryId, initialStateId);
+        if (validCountryId) {
+            window.companyEdit.loadInitialStates(initialCountryId, validStateId ? initialStateId : null, validCityId ? initialCityId : null);
         }
     }
 
