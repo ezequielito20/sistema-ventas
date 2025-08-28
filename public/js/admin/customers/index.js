@@ -619,9 +619,6 @@ function dataTable() {
         },
 
 
-        hideSearchLoading() {
-            // Función vacía - no hay indicador de carga que ocultar
-        },
 
         // Deshabilitar/enhabilitar controles de paginado mientras hay carga
         setPaginationDisabled(disabled) {

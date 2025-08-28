@@ -142,9 +142,6 @@ document.addEventListener('alpine:init', () => {
         executeServerSearch() {
             const searchTerm = this.searchTerm.trim();
             
-            // Mostrar indicador de carga
-            this.showSearchLoading();
-            
             // Construir URL con parámetros de búsqueda
             const url = new URL(window.location.href);
             if (searchTerm) {
@@ -196,11 +193,9 @@ document.addEventListener('alpine:init', () => {
             .then(html => {
                 // Actualizar la tabla con los nuevos resultados
                 this.updateTableWithSearchResults(html, searchTerm);
-                this.hideSearchLoading();
             })
             .catch(error => {
                 console.error('Error en búsqueda:', error);
-                this.hideSearchLoading();
                 this.showSearchError('Error al realizar la búsqueda');
             });
         },
@@ -261,24 +256,7 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        showSearchLoading() {
-            // Mostrar indicador de carga en la barra de búsqueda
-            const searchInput = document.querySelector('.search-input');
-            if (searchInput) {
-                searchInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\'%3E%3Cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15\'/%3E%3C/svg%3E")';
-                searchInput.style.backgroundRepeat = 'no-repeat';
-                searchInput.style.backgroundPosition = 'right 0.5rem center';
-                searchInput.style.backgroundSize = '1.5rem';
-            }
-        },
-
-        hideSearchLoading() {
-            // Ocultar indicador de carga
-            const searchInput = document.querySelector('.search-input');
-            if (searchInput) {
-                searchInput.style.backgroundImage = '';
-            }
-        },
+       
 
         showSearchError(message) {
             // Mostrar error de búsqueda
@@ -396,8 +374,6 @@ document.addEventListener('alpine:init', () => {
         },
         
         loadPage(url) {
-            // Mostrar indicador de carga
-            this.showSearchLoading();
             
             // Realizar petición AJAX para la nueva página
             fetch(url, {
@@ -416,14 +392,12 @@ document.addEventListener('alpine:init', () => {
             .then(html => {
                 // Actualizar la tabla con los nuevos resultados
                 this.updateTableWithSearchResults(html, this.searchTerm);
-                this.hideSearchLoading();
                 
                 // Actualizar URL sin recargar la página
                 window.history.pushState({}, '', url);
             })
             .catch(error => {
                 console.error('Error al cargar página:', error);
-                this.hideSearchLoading();
                 this.showSearchError('Error al cargar la página');
             });
         },
