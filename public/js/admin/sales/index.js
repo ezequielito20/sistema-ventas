@@ -89,6 +89,9 @@ document.addEventListener('alpine:init', () => {
             try {
                 this.loading = true;
                 
+                // Hacer el componente disponible globalmente para los onclick handlers
+                window.salesSPAInstance = this;
+                
                 // Cargar datos iniciales desde la ventana global
                 if (window.salesData) {
                     this.allSales = window.salesData;
@@ -97,6 +100,12 @@ document.addEventListener('alpine:init', () => {
                     // Fallback: cargar desde API
                     await this.loadSales();
                 }
+                
+                // Renderizar contenido inicial
+                this.renderTableFromData();
+                this.renderCardsFromData();
+                this.updatePagination();
+                this.updateResultsCount();
                 
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
@@ -111,6 +120,28 @@ document.addEventListener('alpine:init', () => {
                 
                 // Inicializar manejadores de paginación
                 this.initializePaginationHandlers();
+                
+                // Configurar watchers para búsqueda en tiempo real
+                this.$watch('searchTerm', (value) => {
+                    this.updateSearchSuggestions();
+                });
+                
+                // Configurar watchers para filtros en tiempo real
+                this.$watch('filters.dateFrom', () => {
+                    this.filterSales();
+                });
+                
+                this.$watch('filters.dateTo', () => {
+                    this.filterSales();
+                });
+                
+                this.$watch('filters.amountMin', () => {
+                    this.filterSales();
+                });
+                
+                this.$watch('filters.amountMax', () => {
+                    this.filterSales();
+                });
                 
                 this.loading = false;
             } catch (error) {
@@ -135,8 +166,11 @@ document.addEventListener('alpine:init', () => {
         
         // ===== FUNCIONES DE FILTRADO Y BÚSQUEDA =====
         filterSales() {
-            // Para la búsqueda del lado del servidor, redirigir con parámetros
-            this.executeServerSearch();
+            // Búsqueda en tiempo real con debounce
+            clearTimeout(this._searchTimeout);
+            this._searchTimeout = setTimeout(() => {
+                this.executeServerSearch();
+            }, 300);
         },
         
         executeServerSearch() {
@@ -181,18 +215,28 @@ document.addEventListener('alpine:init', () => {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html, application/xhtml+xml'
+                    'Accept': 'application/json, text/html, application/xhtml+xml'
                 }
             })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error en la búsqueda');
                 }
-                return response.text();
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text();
+                }
             })
-            .then(html => {
-                // Actualizar la tabla con los nuevos resultados
-                this.updateTableWithSearchResults(html, searchTerm);
+            .then(data => {
+                if (typeof data === 'object' && data.success) {
+                    // Respuesta JSON del servidor
+                    this.updateTableWithJsonData(data, searchTerm);
+                } else {
+                    // Respuesta HTML (fallback)
+                    this.updateTableWithSearchResults(data, searchTerm);
+                }
             })
             .catch(error => {
                 console.error('Error en búsqueda:', error);
@@ -244,6 +288,9 @@ document.addEventListener('alpine:init', () => {
                 }
             }
             
+            // Actualizar contador de resultados
+            this.updateResultsCount();
+            
             // Actualizar URL sin recargar la página
             if (searchTerm || this.activeFiltersCount > 0) {
                 const url = new URL(window.location.href);
@@ -293,19 +340,232 @@ document.addEventListener('alpine:init', () => {
                 }
             });
             
+            // Sugerencias de IDs de venta
+            const saleIds = this.allSales.map(sale => sale.id.toString());
+            saleIds.forEach(id => {
+                if (id.includes(term) && suggestions.length < 5) {
+                    suggestions.push({
+                        id: `sale-${id}`,
+                        text: `Venta #${id}`,
+                        type: 'sale',
+                        value: id
+                    });
+                }
+            });
+            
+            // Sugerencias de fechas (evitar duplicados)
+            const dateMap = new Map();
+            this.allSales.forEach(sale => {
+                const date = new Date(sale.sale_date);
+                const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                
+                if (!dateMap.has(dateKey)) {
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear().toString();
+                    const yearShort = year.slice(-2);
+                    
+                    dateMap.set(dateKey, {
+                        full: date.toLocaleDateString('es-ES'),
+                        day: day,
+                        month: month,
+                        year: year,
+                        yearShort: yearShort,
+                        monthName: date.toLocaleDateString('es-ES', { month: 'long' }),
+                        monthShort: date.toLocaleDateString('es-ES', { month: 'short' }),
+                        // Formatos adicionales
+                        dd_mm_yy: `${day}/${month}/${yearShort}`,
+                        dd_mm_yyyy: `${day}/${month}/${year}`,
+                        dd_mm: `${day}/${month}`
+                    });
+                }
+            });
+            
+            // Sugerencias de productos
+            const productMap = new Map();
+            this.allSales.forEach(sale => {
+                sale.sale_details?.forEach(detail => {
+                    if (detail.product) {
+                        const productKey = detail.product.id;
+                        if (!productMap.has(productKey)) {
+                            productMap.set(productKey, {
+                                code: detail.product.code,
+                                name: detail.product.name,
+                                category: detail.product.category?.name || 'Sin categoría'
+                            });
+                        }
+                    }
+                });
+            });
+            
+            const products = Array.from(productMap.values());
+            products.forEach(product => {
+                // Buscar por código de producto
+                if (product.code?.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `product-${product.code}`,
+                        text: `Producto: ${product.code} - ${product.name}`,
+                        type: 'product',
+                        value: product.code
+                    });
+                }
+                // Buscar por nombre de producto
+                else if (product.name?.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `product-${product.name}`,
+                        text: `Producto: ${product.name}`,
+                        type: 'product',
+                        value: product.name
+                    });
+                }
+                // Buscar por categoría
+                else if (product.category?.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `category-${product.category}`,
+                        text: `Categoría: ${product.category}`,
+                        type: 'category',
+                        value: product.category
+                    });
+                }
+            });
+            
+            // Sugerencias de montos
+            const amounts = [...new Set(this.allSales.map(sale => sale.total_price).filter(Boolean))];
+            amounts.forEach(amount => {
+                const amountStr = amount.toString();
+                if (amountStr.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `amount-${amount}`,
+                        text: `Monto: $${amount}`,
+                        type: 'amount',
+                        value: amountStr
+                    });
+                }
+            });
+            
+            // Sugerencias de teléfonos de clientes
+            const phones = [...new Set(this.allSales.map(sale => sale.customer?.phone).filter(Boolean))];
+            phones.forEach(phone => {
+                if (phone.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `phone-${phone}`,
+                        text: `Teléfono: ${phone}`,
+                        type: 'phone',
+                        value: phone
+                    });
+                }
+            });
+            
+            const dates = Array.from(dateMap.values());
+            
+            dates.forEach(date => {
+                // Buscar por fecha completa
+                if (date.full.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `date-${date.full}`,
+                        text: `Fecha: ${date.full}`,
+                        type: 'date',
+                        value: date.full
+                    });
+                }
+                // Buscar por formato dd/mm/aa
+                else if (date.dd_mm_yy.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `date-dd-mm-yy-${date.dd_mm_yy}`,
+                        text: `Fecha: ${date.dd_mm_yy}`,
+                        type: 'date',
+                        value: date.dd_mm_yy
+                    });
+                }
+                // Buscar por formato dd/mm/aaaa
+                else if (date.dd_mm_yyyy.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `date-dd-mm-yyyy-${date.dd_mm_yyyy}`,
+                        text: `Fecha: ${date.dd_mm_yyyy}`,
+                        type: 'date',
+                        value: date.dd_mm_yyyy
+                    });
+                }
+                // Buscar por formato dd/mm
+                else if (date.dd_mm.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `date-dd-mm-${date.dd_mm}`,
+                        text: `Fecha: ${date.dd_mm}`,
+                        type: 'date',
+                        value: date.dd_mm
+                    });
+                }
+                // Buscar por día
+                else if (date.day.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `day-${date.day}`,
+                        text: `Día: ${date.day}`,
+                        type: 'date',
+                        value: date.day
+                    });
+                }
+                // Buscar por mes (número)
+                else if (date.month.toString().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `month-${date.month}`,
+                        text: `Mes: ${date.month}`,
+                        type: 'date',
+                        value: date.month.toString()
+                    });
+                }
+                // Buscar por año
+                else if (date.year.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `year-${date.year}`,
+                        text: `Año: ${date.year}`,
+                        type: 'date',
+                        value: date.year
+                    });
+                }
+                // Buscar por año corto
+                else if (date.yearShort.includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `year-short-${date.yearShort}`,
+                        text: `Año: ${date.yearShort}`,
+                        type: 'date',
+                        value: date.yearShort
+                    });
+                }
+                // Buscar por nombre de mes
+                else if (date.monthName.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `monthname-${date.monthName}`,
+                        text: `Mes: ${date.monthName}`,
+                        type: 'date',
+                        value: date.monthName
+                    });
+                }
+                // Buscar por nombre corto de mes
+                else if (date.monthShort.toLowerCase().includes(term) && suggestions.length < 8) {
+                    suggestions.push({
+                        id: `monthshort-${date.monthShort}`,
+                        text: `Mes: ${date.monthShort}`,
+                        type: 'date',
+                        value: date.monthShort
+                    });
+                }
+            });
+            
             this.searchSuggestions = suggestions;
         },
         
         selectSuggestion(suggestion) {
             this.searchTerm = suggestion.value;
             this.searchSuggestions = [];
-            this.filterSales();
+            // Ejecutar búsqueda inmediatamente al seleccionar una sugerencia
+            this.executeServerSearch();
         },
 
         clearSearch() {
             this.searchTerm = '';
             this.searchSuggestions = [];
-            this.filterSales();
+            // Ejecutar búsqueda inmediatamente al limpiar
+            this.executeServerSearch();
         },
         
         clearFilters() {
@@ -317,7 +577,304 @@ document.addEventListener('alpine:init', () => {
                 amountMax: ''
             };
             this.searchSuggestions = [];
-            this.filterSales();
+            // Ejecutar búsqueda inmediatamente al limpiar filtros
+            this.executeServerSearch();
+        },
+        
+        updateResultsCount() {
+            // Actualizar el contador de resultados mostrados
+            const tableRows = document.querySelectorAll('.modern-table tbody tr');
+            const cardItems = document.querySelectorAll('.modern-cards-grid .sale-card');
+            const count = Math.max(tableRows.length, cardItems.length);
+            
+            // Actualizar algún elemento que muestre el contador si existe
+            const counterElement = document.querySelector('.results-counter');
+            if (counterElement) {
+                counterElement.textContent = `${count} ventas encontradas`;
+            }
+        },
+        
+        updateTableWithJsonData(data, searchTerm) {
+            // Actualizar datos locales
+            this.allSales = data.sales || [];
+            this.filteredSales = [...this.allSales];
+            
+            // Actualizar página actual desde la paginación
+            if (data.pagination) {
+                this.currentPage = data.pagination.current_page || 1;
+            }
+            
+            // Actualizar la tabla con los nuevos datos
+            this.renderTableFromData();
+            
+            // Actualizar las tarjetas
+            this.renderCardsFromData();
+            
+            // Actualizar paginación
+            this.updatePagination(data.pagination);
+            
+            // Actualizar contador de resultados
+            this.updateResultsCount();
+            
+            // Actualizar URL sin recargar la página
+            if (searchTerm || this.activeFiltersCount > 0) {
+                const url = new URL(window.location.href);
+                if (searchTerm) {
+                    url.searchParams.set('search', searchTerm);
+                }
+                window.history.pushState({}, '', url.toString());
+            } else {
+                window.history.pushState({}, '', window.location.pathname);
+            }
+        },
+        
+        renderTableFromData() {
+            const tableBody = document.getElementById('salesTableBody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = this.filteredSales.map((sale, index) => {
+                const rowNumber = (this.currentPage - 1) * this.itemsPerPage + index + 1;
+                const formattedDate = this.formatDate(sale.sale_date);
+                const formattedTime = this.formatTime(sale.sale_date);
+                const totalQuantity = this.getTotalQuantity(sale.sale_details);
+                const formattedCurrency = this.formatCurrency(sale.total_price);
+                
+                return `
+                    <tr class="table-row">
+                        <td>
+                            <div class="row-number">${rowNumber}</div>
+                        </td>
+                        <td>
+                            <div class="customer-info">
+                                <div class="customer-avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div class="customer-details">
+                                    <span class="customer-name">${sale.customer?.name || 'Cliente no especificado'}</span>
+                                    <span class="customer-email">${sale.customer?.email || 'Sin email'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="date-info">
+                                <span class="date-main">${formattedDate}</span>
+                                <span class="date-time">${formattedTime}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="products-info">
+                                <div class="product-badge unique">
+                                    <i class="fas fa-boxes"></i>
+                                    <span>${sale.sale_details?.length || 0} únicos</span>
+                                </div>
+                                <div class="product-badge total">
+                                    <i class="fas fa-cubes"></i>
+                                    <span>${totalQuantity} totales</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="price-info">
+                                <span class="price-amount">${formattedCurrency}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; justify-content: center; align-items: center;">
+                                <button type="button" 
+                                        class="btn-modern btn-primary view-details"
+                                        onclick="window.salesSPAInstance.showSaleDetails(${sale.id})">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" 
+                                        class="btn-action btn-edit"
+                                        onclick="window.salesSPAInstance.editSale(${sale.id})"
+                                        title="Editar venta">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn-action btn-delete"
+                                        onclick="window.salesSPAInstance.deleteSale(${sale.id})"
+                                        title="Eliminar venta">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        },
+        
+        renderCardsFromData() {
+            const cardsContainer = document.getElementById('salesCardsGrid');
+            if (!cardsContainer) return;
+            
+            cardsContainer.innerHTML = this.filteredSales.map((sale, index) => {
+                const rowNumber = (this.currentPage - 1) * this.itemsPerPage + index + 1;
+                const formattedDate = this.formatDate(sale.sale_date);
+                const formattedTime = this.formatTime(sale.sale_date);
+                const totalQuantity = this.getTotalQuantity(sale.sale_details);
+                const formattedCurrency = this.formatCurrency(sale.total_price);
+                
+                return `
+                    <div class="modern-sale-card">
+                        <div class="sale-card-header">
+                            <div class="sale-number">#${String(rowNumber).padStart(3, '0')}</div>
+                            <div class="sale-status">
+                                <span class="status-dot active"></span>
+                                <span class="status-text">Completada</span>
+                            </div>
+                        </div>
+
+                        <div class="sale-card-body">
+                            <div class="customer-section">
+                                <div class="customer-avatar-large">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div class="customer-info-card">
+                                    <h4 class="customer-name">${sale.customer?.name || 'Cliente no especificado'}</h4>
+                                    <p class="customer-phone">${sale.customer?.phone || 'Sin teléfono'}</p>
+                                </div>
+                            </div>
+
+                            <div class="sale-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>Fecha</span>
+                                    </div>
+                                    <div class="detail-value">${formattedDate} ${formattedTime}</div>
+                                </div>
+
+                                <div class="detail-row">
+                                    <div class="detail-label">
+                                        <i class="fas fa-boxes"></i>
+                                        <span>Productos</span>
+                                    </div>
+                                    <div class="detail-value">
+                                        <div class="product-badges">
+                                            <span class="mini-badge unique">${sale.sale_details?.length || 0} únicos</span>
+                                            <span class="mini-badge total">${totalQuantity} totales</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="detail-row total-row">
+                                    <div class="detail-label">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span>Total</span>
+                                    </div>
+                                    <div class="detail-value total-amount">${formattedCurrency}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sale-card-footer">
+                            <button type="button" 
+                                    class="btn-card-primary"
+                                    onclick="window.salesSPAInstance.showSaleDetails(${sale.id})">
+                                <i class="fas fa-list"></i>
+                            </button>
+
+                            <div class="card-actions">
+                                <button type="button" 
+                                        class="btn-card-action btn-edit"
+                                        onclick="window.salesSPAInstance.editSale(${sale.id})"
+                                        title="Editar venta">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn-card-action btn-delete"
+                                        onclick="window.salesSPAInstance.deleteSale(${sale.id})"
+                                        title="Eliminar venta">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button type="button" 
+                                        class="btn-card-action print"
+                                        onclick="window.salesSPAInstance.printSale(${sale.id})"
+                                        title="Imprimir venta">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        },
+        
+        updatePagination(pagination) {
+            const paginationContainer = document.getElementById('salesPagination');
+            if (!paginationContainer) return;
+            
+            // Si no hay paginación, mostrar información básica
+            if (!pagination) {
+                paginationContainer.innerHTML = `
+                    <div class="pagination-info">
+                        <span>Mostrando ${this.filteredSales.length} ventas</span>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Generar enlaces de paginación
+            const links = [];
+            
+            // Información de paginación
+            const startItem = (pagination.current_page - 1) * pagination.per_page + 1;
+            const endItem = Math.min(pagination.current_page * pagination.per_page, pagination.total);
+            
+            links.push(`
+                <div class="pagination-info">
+                    <span>Mostrando ${startItem}-${endItem} de ${pagination.total} ventas</span>
+                </div>
+            `);
+            
+            links.push('<div class="pagination-controls">');
+            
+            if (pagination.current_page > 1) {
+                links.push(`<button onclick="window.salesSPAInstance.loadPage(${pagination.current_page - 1})" class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Anterior</span>
+                </button>`);
+            } else {
+                links.push(`<button class="pagination-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Anterior</span>
+                </button>`);
+            }
+            
+            // Números de página inteligentes
+            links.push('<div class="page-numbers">');
+            if (pagination.smart_links) {
+                pagination.smart_links.forEach(link => {
+                    if (link.isSeparator) {
+                        links.push(`<span class="page-separator">${link.label}</span>`);
+                    } else {
+                        const activeClass = link.active ? 'active' : '';
+                        links.push(`<button onclick="window.salesSPAInstance.loadPage(${link.page})" class="page-number ${activeClass}">${link.label}</button>`);
+                    }
+                });
+            }
+            links.push('</div>');
+            
+            if (pagination.current_page < pagination.last_page) {
+                links.push(`<button onclick="window.salesSPAInstance.loadPage(${pagination.current_page + 1})" class="pagination-btn">
+                    <span>Siguiente</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>`);
+            } else {
+                links.push(`<button class="pagination-btn" disabled>
+                    <span>Siguiente</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>`);
+            }
+            
+            links.push('</div>'); // Cerrar pagination-controls
+            
+            paginationContainer.innerHTML = links.join('');
         },
         
         // ===== FUNCIONES DE VISTA =====
@@ -373,28 +930,61 @@ document.addEventListener('alpine:init', () => {
             });
         },
         
-        loadPage(url) {
+        loadPage(pageNumber) {
+            // Actualizar la página actual
+            this.currentPage = pageNumber;
+            
+            // Construir la URL con los parámetros actuales
+            const url = new URL(window.location.href);
+            url.searchParams.set('page', pageNumber);
+            
+            // Mantener los filtros y búsqueda actuales
+            if (this.searchTerm) {
+                url.searchParams.set('search', this.searchTerm);
+            }
+            if (this.filters.dateFrom) {
+                url.searchParams.set('dateFrom', this.filters.dateFrom);
+            }
+            if (this.filters.dateTo) {
+                url.searchParams.set('dateTo', this.filters.dateTo);
+            }
+            if (this.filters.amountMin) {
+                url.searchParams.set('amountMin', this.filters.amountMin);
+            }
+            if (this.filters.amountMax) {
+                url.searchParams.set('amountMax', this.filters.amountMax);
+            }
             
             // Realizar petición AJAX para la nueva página
-            fetch(url, {
+            fetch(url.toString(), {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html, application/xhtml+xml'
+                    'Accept': 'application/json, text/html, application/xhtml+xml'
                 }
             })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error al cargar la página');
                 }
-                return response.text();
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text();
+                }
             })
-            .then(html => {
-                // Actualizar la tabla con los nuevos resultados
-                this.updateTableWithSearchResults(html, this.searchTerm);
+            .then(data => {
+                if (typeof data === 'object' && data.success) {
+                    // Respuesta JSON del servidor
+                    this.updateTableWithJsonData(data, this.searchTerm);
+                } else {
+                    // Respuesta HTML (fallback)
+                    this.updateTableWithSearchResults(data, this.searchTerm);
+                }
                 
                 // Actualizar URL sin recargar la página
-                window.history.pushState({}, '', url);
+                window.history.pushState({}, '', url.toString());
             })
             .catch(error => {
                 console.error('Error al cargar página:', error);
@@ -537,6 +1127,23 @@ document.addEventListener('alpine:init', () => {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        },
+        
+        // Función helper para detectar si el término de búsqueda es una fecha
+        isDateSearch(term) {
+            // Patrones de fecha comunes
+            const datePatterns = [
+                /^\d{1,2}\/\d{1,2}\/\d{2,4}$/, // dd/mm/yyyy o dd/mm/yy
+                /^\d{1,2}-\d{1,2}-\d{2,4}$/,   // dd-mm-yyyy o dd-mm-yy
+                /^\d{4}-\d{1,2}-\d{1,2}$/,     // yyyy-mm-dd
+                /^\d{1,2}$/,                    // solo día
+                /^\d{1,2}$/,                    // solo mes
+                /^\d{4}$/,                      // solo año
+                /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$/i,
+                /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)$/i
+            ];
+            
+            return datePatterns.some(pattern => pattern.test(term));
         },
         
         getTotalQuantity(saleDetails) {

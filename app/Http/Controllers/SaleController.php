@@ -156,12 +156,36 @@ class SaleController extends Controller
       if ($request->has('search') && $request->search) {
          $searchTerm = $request->search;
          $query->where(function($q) use ($searchTerm) {
-            $q->where('id', 'ILIKE', "%{$searchTerm}%")
+            // Buscar por ID de venta
+            $q->where('id', 'LIKE', "%{$searchTerm}%")
+              // Buscar por monto total (convertir a texto para búsqueda)
+              ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
+              // Buscar por fecha en múltiples formatos
+              ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YYYY') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YY') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YYYY') ILIKE ?", ["%{$searchTerm}%"])
+              // Buscar por día y mes (formato dd/mm)
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM') ILIKE ?", ["%{$searchTerm}%"])
+              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM') ILIKE ?", ["%{$searchTerm}%"])
+              // Buscar en información del cliente
               ->orWhereHas('customer', function($customerQuery) use ($searchTerm) {
-                  $customerQuery->where('name', 'ILIKE', "%{$searchTerm}%")
-                               ->orWhere('email', 'ILIKE', "%{$searchTerm}%");
+                  $customerQuery->whereRaw('name ILIKE ?', ["%{$searchTerm}%"])
+                               ->orWhereRaw('email ILIKE ?', ["%{$searchTerm}%"])
+                               ->orWhereRaw('phone ILIKE ?', ["%{$searchTerm}%"]);
               })
-              ->orWhere('sale_date', 'ILIKE', "%{$searchTerm}%");
+              // Buscar en productos de la venta
+              ->orWhereHas('saleDetails.product', function($productQuery) use ($searchTerm) {
+                  $productQuery->whereRaw('code ILIKE ?', ["%{$searchTerm}%"])
+                               ->orWhereRaw('name ILIKE ?', ["%{$searchTerm}%"])
+                               ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
+                                   $categoryQuery->whereRaw('name ILIKE ?', ["%{$searchTerm}%"]);
+                               });
+              });
          });
       }
       
@@ -317,6 +341,54 @@ class SaleController extends Controller
                           ->where('company_id', $this->company->id)
                           ->whereNull('closing_date')
                           ->exists();
+      
+      // Si es una petición AJAX, devolver solo la vista parcial con los datos
+      if ($request->expectsJson() || $request->hasHeader('X-Requested-With')) {
+         // Preparar datos para JavaScript
+         $salesData = $sales->map(function ($sale) {
+             return [
+                 'id' => $sale->id,
+                 'sale_date' => $sale->sale_date,
+                 'total_price' => $sale->total_price,
+                 'customer' => $sale->customer ? [
+                     'id' => $sale->customer->id,
+                     'name' => $sale->customer->name,
+                     'email' => $sale->customer->email,
+                     'phone' => $sale->customer->phone
+                 ] : null,
+                 'sale_details' => $sale->saleDetails->map(function ($detail) {
+                     return [
+                         'id' => $detail->id,
+                         'quantity' => $detail->quantity,
+                         'unit_price' => $detail->unit_price,
+                         'subtotal' => $detail->subtotal,
+                         'product' => $detail->product ? [
+                             'id' => $detail->product->id,
+                             'code' => $detail->product->code,
+                             'name' => $detail->product->name,
+                             'image' => $detail->product->image,
+                             'category' => $detail->product->category ? [
+                                 'id' => $detail->product->category->id,
+                                 'name' => $detail->product->category->name
+                             ] : null
+                         ] : null
+                     ];
+                 })
+             ];
+         });
+         
+         return response()->json([
+             'success' => true,
+             'sales' => $salesData,
+             'pagination' => [
+                 'current_page' => $sales->currentPage(),
+                 'last_page' => $sales->lastPage(),
+                 'per_page' => $sales->perPage(),
+                 'total' => $sales->total(),
+                 'smart_links' => $sales->smartLinks ?? []
+             ]
+         ]);
+      }
       
       return view('admin.sales.index', compact(
           'sales', 

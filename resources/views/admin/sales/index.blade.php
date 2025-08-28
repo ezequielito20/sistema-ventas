@@ -140,7 +140,7 @@
                         <input type="text" 
                                x-model="searchTerm" 
                                @input.debounce.300ms="filterSales()"
-                               placeholder="Buscar por cliente, fecha o ID..."
+                               placeholder="Buscar por cliente, producto, fecha (dd/mm/aa), monto, teléfono..."
                                class="search-input">
                         <button type="button" 
                                 class="search-clear-btn"
@@ -331,77 +331,8 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <template x-for="(sale, index) in paginatedSales" :key="sale.id">
-                                <tr class="table-row">
-                                    <td>
-                                        <div class="row-number" x-text="(currentPage - 1) * itemsPerPage + index + 1"></div>
-                                    </td>
-                                    <td>
-                                        <div class="customer-info">
-                                            <div class="customer-avatar">
-                                                <i class="fas fa-user-circle"></i>
-                                            </div>
-                                            <div class="customer-details">
-                                                <span class="customer-name" x-text="sale.customer.name"></span>
-                                                <span class="customer-email" x-text="sale.customer.email || 'Sin email'"></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="date-info">
-                                            <span class="date-main" x-text="formatDate(sale.sale_date)"></span>
-                                            <span class="date-time" x-text="formatTime(sale.sale_date)"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="products-info">
-                                            <div class="product-badge unique">
-                                                <i class="fas fa-boxes"></i>
-                                                <span x-text="sale.sale_details.length + ' únicos'"></span>
-                                            </div>
-                                            <div class="product-badge total">
-                                                <i class="fas fa-cubes"></i>
-                                                <span x-text="getTotalQuantity(sale.sale_details) + ' totales'"></span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="price-info">
-                                            <span class="price-amount" x-text="formatCurrency(sale.total_price)"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="display: flex; justify-content: center; align-items: center;">
-                                            <button type="button" 
-                                                    class="btn-modern btn-primary view-details"
-                                                    @click="showSaleDetails(sale.id)">
-                                                <i class="fas fa-list"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            @if ($permissions['can_edit'])
-                                                <button type="button" 
-                                                        class="btn-action btn-edit"
-                                                        @click="editSale(sale.id)"
-                                                        title="Editar venta">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            @endif
-                                            @if ($permissions['can_destroy'])
-                                                <button type="button" 
-                                                        class="btn-action btn-delete"
-                                                        @click="deleteSale(sale.id)"
-                                                        title="Eliminar venta">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
+                        <tbody id="salesTableBody">
+                            <!-- Table content will be dynamically rendered by JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -409,149 +340,15 @@
 
             {{-- Vista de tarjetas moderna --}}
             <div class="cards-view" x-show="!loading && currentView === 'cards' && filteredSales.length > 0">
-                <div class="modern-cards-grid">
-                    <template x-for="(sale, index) in paginatedSales" :key="sale.id">
-                        <div class="modern-sale-card">
-                            <div class="sale-card-header">
-                                <div class="sale-number" x-text="'#' + String((currentPage - 1) * itemsPerPage + index + 1).padStart(3, '0')"></div>
-                                <div class="sale-status">
-                                    <span class="status-dot active"></span>
-                                    <span class="status-text">Completada</span>
-                                </div>
-                            </div>
-
-                            <div class="sale-card-body">
-                                <div class="customer-section">
-                                    <div class="customer-avatar-large">
-                                        <i class="fas fa-user-circle"></i>
-                                    </div>
-                                    <div class="customer-info-card">
-                                        <h4 class="customer-name" x-text="sale.customer.name"></h4>
-                                        <p class="customer-phone" x-text="sale.customer.phone || 'Sin teléfono'"></p>
-                                    </div>
-                                </div>
-
-                                <div class="sale-details">
-                                    <div class="detail-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>Fecha</span>
-                                        </div>
-                                        <div class="detail-value" x-text="formatDate(sale.sale_date) + ' ' + formatTime(sale.sale_date)"></div>
-                                    </div>
-
-                                    <div class="detail-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-boxes"></i>
-                                            <span>Productos</span>
-                                        </div>
-                                        <div class="detail-value">
-                                            <div class="product-badges">
-                                                <span class="mini-badge unique" x-text="sale.sale_details.length + ' únicos'"></span>
-                                                <span class="mini-badge total" x-text="getTotalQuantity(sale.sale_details) + ' totales'"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="detail-row total-row">
-                                        <div class="detail-label">
-                                            <i class="fas fa-dollar-sign"></i>
-                                            <span>Total</span>
-                                        </div>
-                                        <div class="detail-value total-amount" x-text="formatCurrency(sale.total_price)"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="sale-card-footer">
-                                <button type="button" 
-                                        class="btn-card-primary"
-                                        @click="showSaleDetails(sale.id)">
-                                    <i class="fas fa-list"></i>
-                                </button>
-
-                                <div class="card-actions">
-                                    @if ($permissions['can_edit'])
-                                        <button type="button" 
-                                                class="btn-card-action btn-edit"
-                                                @click="editSale(sale.id)"
-                                                title="Editar venta">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    @endif
-                                    @if ($permissions['can_destroy'])
-                                        <button type="button" 
-                                                class="btn-card-action btn-delete"
-                                                @click="deleteSale(sale.id)"
-                                                title="Eliminar venta">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    @endif
-                                    @if ($permissions['can_print'])
-                                        <button type="button" 
-                                                class="btn-card-action print"
-                                                @click="printSale(sale.id)"
-                                                title="Imprimir venta">
-                                            <i class="fas fa-print"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                <div class="modern-cards-grid" id="salesCardsGrid">
+                    <!-- Cards content will be dynamically rendered by JavaScript -->
                 </div>
             </div>
 
             {{-- Paginación Inteligente --}}
-            @if($sales->hasPages())
-                <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span>Mostrando {{ $sales->firstItem() ?? 0 }}-{{ $sales->lastItem() ?? 0 }} de {{ $sales->total() }} ventas</span>
-                    </div>
-                    <div class="pagination-controls">
-                        <!-- Botón Anterior -->
-                        @if($sales->hasPrevious)
-                            <a href="{{ $sales->previousPageUrl }}" class="pagination-btn">
-                                <i class="fas fa-chevron-left"></i>
-                                <span>Anterior</span>
-                            </a>
-                        @else
-                            <button class="pagination-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                                <span>Anterior</span>
-                            </button>
-                        @endif
-                        
-                        <!-- Números de página inteligentes -->
-                        <div class="page-numbers">
-                            @foreach($sales->smartLinks as $link)
-                                @if($link['isSeparator'])
-                                    <span class="page-separator">{{ $link['label'] }}</span>
-                                @else
-                                    @if($link['active'])
-                                        <span class="page-number active">{{ $link['label'] }}</span>
-                                    @else
-                                        <a href="{{ $link['url'] }}" class="page-number">{{ $link['label'] }}</a>
-                                    @endif
-                                @endif
-                            @endforeach
-                        </div>
-                        
-                        <!-- Botón Siguiente -->
-                        @if($sales->hasNext)
-                            <a href="{{ $sales->nextPageUrl }}" class="pagination-btn">
-                                <span>Siguiente</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        @else
-                            <button class="pagination-btn" disabled>
-                                <span>Siguiente</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            @endif
+            <div class="pagination-container" id="salesPagination">
+                <!-- Pagination content will be dynamically rendered by JavaScript -->
+            </div>
         </div>
     </div>
 
