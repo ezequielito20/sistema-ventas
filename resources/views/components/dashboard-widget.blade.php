@@ -20,7 +20,7 @@
     'currencySymbol' => '$'
 ])
 
-<div class="group relative overflow-hidden rounded-lg bg-gradient-to-br {{ $gradientFrom }} {{ $gradientTo }} text-white shadow-md hover:shadow-lg transition-all duration-300 h-36 sm:h-36 cursor-pointer">
+<div class="group relative overflow-hidden rounded-lg bg-gradient-to-br {{ $gradientFrom }} {{ $gradientTo }} text-white shadow-md hover:shadow-lg transition-all duration-300 h-36 sm:h-36 cursor-pointer widget-responsive">
     <!-- Animated Background -->
     <div class="absolute inset-0">
         <div class="absolute top-0 right-0 w-20 h-20 {{ str_replace('from-', 'bg-', $gradientFrom) }}/30 rounded-full blur-xl"></div>
@@ -31,13 +31,12 @@
     <div class="relative z-10 p-3 sm:p-4 h-full flex flex-col justify-between">
         <!-- Header -->
         <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-white/20 backdrop-blur-lg rounded-md">
+            <div class="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-white/20 backdrop-blur-lg rounded-md flex-shrink-0">
                 <i class="{{ $icon }} text-xs"></i>
             </div>
-            <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-1 py-0.5 sm:px-1.5 rounded-full text-xs font-bold">
+            <div class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-1 py-0.5 sm:px-1.5 rounded-full text-xs font-bold flex-shrink-0">
                 <i class="{{ $trendIcon }} {{ $trendColor }} text-xs"></i>
-                <span class="hidden sm:inline">{{ $trend }}</span>
-                <span class="sm:hidden">{{ str_replace('.0%', '%', $trend) }}</span>
+                <span class="trend-text">{{ $trend }}</span>
             </div>
         </div>
 
@@ -47,7 +46,7 @@
             <div class="text-base sm:text-lg font-bold opacity-90 mb-1">{{ $title }}</div>
             
             <!-- Value -->
-            <div class="text-xl sm:text-2xl font-black transition-all duration-300 mb-2">
+            <div class="text-lg sm:text-xl lg:text-2xl font-black transition-all duration-300 mb-2">
                 @if($valueType === 'currency')
                     <span class="widget-value">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
                 @else
@@ -57,11 +56,8 @@
             
             @if($subtitle)
                 <div class="flex items-center gap-1 text-xs opacity-80">
-                    <i class="{{ $subtitleIcon }} text-xs"></i>
-                    <span class="hidden lg:inline widget-subtitle">{{ $subtitle }}</span>
-                    <span class="hidden md:inline lg:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
-                    <span class="hidden sm:inline md:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
-                    <span class="sm:hidden widget-subtitle">{{ Str::limit($subtitle, 60) }}</span>
+                    <i class="{{ $subtitleIcon }} text-xs flex-shrink-0"></i>
+                    <span class="widget-subtitle truncate">{{ $subtitle }}</span>
                 </div>
             @endif
         </div>
@@ -87,3 +83,74 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Responsividad específica para widgets */
+.widget-responsive {
+    min-height: 144px; /* h-36 */
+}
+
+/* Para pantallas menores a 1024px */
+@media (max-width: 1023px) {
+    .widget-responsive {
+        min-height: 144px;
+    }
+    
+    .widget-responsive .widget-value {
+        font-size: 1.125rem; /* text-lg */
+        line-height: 1.25rem;
+    }
+    
+    .widget-responsive .trend-text {
+        font-size: 0.75rem; /* text-xs */
+    }
+    
+    .widget-responsive .widget-subtitle {
+        font-size: 0.75rem; /* text-xs */
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Para pantallas menores a 768px */
+@media (max-width: 767px) {
+    .widget-responsive .widget-value {
+        font-size: 1rem; /* text-base */
+        line-height: 1.25rem;
+    }
+    
+    .widget-responsive .trend-text {
+        font-size: 0.625rem; /* text-xs más pequeño */
+    }
+}
+
+/* Para pantallas menores a 640px */
+@media (max-width: 639px) {
+    .widget-responsive {
+        min-height: 128px; /* h-32 */
+    }
+    
+    .widget-responsive .widget-value {
+        font-size: 0.875rem; /* text-sm */
+        line-height: 1.25rem;
+    }
+    
+    .widget-responsive .widget-subtitle {
+        font-size: 0.625rem; /* text-xs más pequeño */
+    }
+}
+
+/* Asegurar que el contenido no se corte */
+.widget-responsive .flex {
+    min-width: 0;
+}
+
+.widget-responsive .truncate {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>

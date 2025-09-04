@@ -150,10 +150,11 @@
 
             <!-- Widget de Ventas desde Apertura -->
             <div class="widget-sales">
-                <x-dashboard-widget title="Ventas del Período" value="0" icon="fas fa-chart-line" trend="+18.2%"
-                    trendIcon="fas fa-rocket" trendColor="text-green-300" subtitle="Compras: $0.00"
+                <x-dashboard-widget title="Ventas del Período" value="{{ $monthlySales }}" icon="fas fa-chart-line" trend="+18.2%"
+                    trendIcon="fas fa-rocket" trendColor="text-green-300" subtitle="Compras: {{ $currency->symbol }}{{ number_format($monthlyPurchases, 2) }}"
                     subtitleIcon="fas fa-shopping-cart" gradientFrom="from-emerald-500" gradientTo="to-teal-600"
-                    progressWidth="72%" progressGradientFrom="from-emerald-400" progressGradientTo="to-teal-400" />
+                    progressWidth="72%" progressGradientFrom="from-emerald-400" progressGradientTo="to-teal-400" 
+                    currencySymbol="{{ $currency->symbol }}" />
                 </div>
 
             <!-- Widget de Deudas Dinámico -->
