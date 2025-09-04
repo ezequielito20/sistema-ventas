@@ -24,21 +24,12 @@ use App\Http\Controllers\DebtPaymentController;
 //     return view('public.order-system');
 // })->name('public.orders');
 
-// Ruta duplicada que redirige a /admin
-Route::get('/', function () {
-    return redirect('/admin');
-})->name('redirect.to.admin');
-
-Route::get('/test-livewire', function () {
-    return view('test-livewire');
-})->name('test.livewire');
-
 Auth::routes();
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Dashboard administrativo (requiere autenticación)
-Route::get('/admin', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
+Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middleware('auth');
 
 Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
