@@ -56,6 +56,25 @@
             background: #94a3b8;
         }
 
+        /* Scrollbar personalizada para el sidebar */
+        .sidebar-navigation::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-navigation::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .sidebar-navigation::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .sidebar-navigation::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
         /* Animaciones */
         .fade-in {
             animation: fadeIn 0.3s ease-in-out;
@@ -234,13 +253,163 @@
             z-index: 50 !important;
         }
 
-        /* Debug temporal - mostrar bordes para ver el layout */
-        .main-content {
-            border: 2px solid red;
+        /* Responsividad del sidebar para pantallas pequeñas */
+        .sidebar-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
-        
-        .fixed.inset-y-0.left-0 {
-            border: 2px solid blue;
+
+        .sidebar-navigation {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-user-info {
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        /* Para pantallas menores a 700px de alto */
+        @media (max-height: 700px) {
+            .sidebar-container {
+                height: 100vh;
+            }
+            
+            .sidebar-navigation {
+                flex: 1;
+                min-height: 0;
+                padding-bottom: 1rem;
+            }
+            
+            .sidebar-user-info {
+                position: relative;
+                margin-top: 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            /* Reducir espaciado en elementos de navegación */
+            .sidebar-navigation .space-y-1 > * + * {
+                margin-top: 0.25rem;
+            }
+            
+            .sidebar-navigation .px-3 {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            .sidebar-navigation .py-2 {
+                padding-top: 0.375rem;
+                padding-bottom: 0.375rem;
+            }
+            
+            /* Reducir tamaño de fuente en pantallas pequeñas */
+            .sidebar-navigation .text-sm {
+                font-size: 0.75rem;
+            }
+            
+            .sidebar-navigation .text-lg {
+                font-size: 1rem;
+            }
+        }
+
+        /* Para pantallas muy pequeñas (menos de 600px de alto) */
+        @media (max-height: 600px) {
+            .sidebar-navigation .space-y-1 > * + * {
+                margin-top: 0.125rem;
+            }
+            
+            .sidebar-navigation .py-2 {
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+            }
+            
+            .sidebar-navigation .text-sm {
+                font-size: 0.7rem;
+            }
+            
+            .sidebar-navigation .text-lg {
+                font-size: 0.875rem;
+            }
+            
+            /* Ocultar algunos elementos menos críticos en pantallas muy pequeñas */
+            .sidebar-navigation .ml-6 {
+                margin-left: 0.75rem;
+            }
+        }
+
+        /* Para pantallas extremadamente pequeñas (menos de 500px de alto) */
+        @media (max-height: 500px) {
+            .sidebar-container {
+                height: 100vh;
+            }
+            
+            .sidebar-navigation {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            
+            .sidebar-navigation .space-y-1 > * + * {
+                margin-top: 0.0625rem;
+            }
+            
+            .sidebar-navigation .py-2 {
+                padding-top: 0.125rem;
+                padding-bottom: 0.125rem;
+            }
+            
+            .sidebar-navigation .text-sm {
+                font-size: 0.65rem;
+            }
+            
+            .sidebar-navigation .text-lg {
+                font-size: 0.75rem;
+            }
+            
+            .sidebar-navigation .mr-3 {
+                margin-right: 0.5rem;
+            }
+            
+            .sidebar-navigation .ml-6 {
+                margin-left: 0.5rem;
+            }
+            
+            /* Reducir altura del logo en pantallas muy pequeñas */
+            .sidebar-container .h-16 {
+                height: 3rem;
+            }
+            
+            /* Reducir padding del usuario */
+            .sidebar-user-info {
+                padding: 0.5rem;
+            }
+            
+            .sidebar-user-info .text-sm {
+                font-size: 0.65rem;
+            }
+            
+            .sidebar-user-info .text-xs {
+                font-size: 0.55rem;
+            }
+        }
+
+        /* Mejoras para dispositivos móviles en landscape */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .sidebar-navigation {
+                padding-top: 0.25rem;
+                padding-bottom: 0.25rem;
+            }
+            
+            .sidebar-navigation .space-y-1 > * + * {
+                margin-top: 0.03125rem;
+            }
+            
+            .sidebar-navigation .py-2 {
+                padding-top: 0.0625rem;
+                padding-bottom: 0.0625rem;
+            }
         }
 
         /* Mostrar la página cuando esté lista */
@@ -305,12 +474,12 @@
              x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
              x-transition:leave-end="-translate-x-full" 
              @click.stop
-             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform"
+             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform sidebar-container"
              :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
              style="width: 256px;">
 
             <!-- Logo -->
-            <div class="flex items-center justify-between h-16 px-6 border-b border-white/20">
+            <div class="flex items-center justify-between h-16 px-6 border-b border-white/20 flex-shrink-0">
                 <a href="{{ route('admin.index') }}" class="flex items-center group">
                     <div class="flex-shrink-0">
                         @if(Auth::check() && Auth::user()->company && Auth::user()->company->logo)
@@ -336,7 +505,7 @@
 
             <!-- Navigation -->
             @auth
-                <nav class="mt-6 px-3">
+                <nav class="sidebar-navigation mt-6 px-3">
                     <div class="space-y-1">
 
 
@@ -443,7 +612,7 @@
 
             <!-- User Info -->
             @auth
-                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
+                <div class="sidebar-user-info p-4 border-t border-white/20">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
