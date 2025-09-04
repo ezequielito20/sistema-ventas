@@ -19,9 +19,15 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DebtPaymentController;
 
 // Ruta pública para pedidos de clientes
+// Ruta pública para pedidos de clientes, muestra la vista 'public.order-system'
+// Route::get('/', function () {
+//     return view('public.order-system');
+// })->name('public.orders');
+
+// Ruta duplicada que redirige a /admin
 Route::get('/', function () {
-    return view('public.order-system');
-})->name('public.orders');
+    return redirect('/admin');
+})->name('redirect.to.admin');
 
 Route::get('/test-livewire', function () {
     return view('test-livewire');
