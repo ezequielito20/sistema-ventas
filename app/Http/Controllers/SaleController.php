@@ -1217,7 +1217,21 @@ class SaleController extends Controller
          // Obtener el cliente
          $customer = Customer::find($sale->customer_id);
 
-         $currency = DB::table('currencies')->where('country_id', $company->country)->first();
+         // Obtener la moneda de la empresa configurada
+         if ($company && $company->currency) {
+            $currency = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('code', $company->currency)
+               ->first();
+         }
+         
+         // Fallback si no se encuentra la moneda configurada
+         if (!$currency) {
+            $currency = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('code', 'USD')
+               ->first();
+         }
 
          // Generar el PDF
          $pdf = PDF::loadView('admin.sales.print', compact(
