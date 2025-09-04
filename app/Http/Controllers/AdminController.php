@@ -28,13 +28,26 @@ class AdminController extends Controller
       $this->middleware(function ($request, $next) {
          // Obtener la company directamente para evitar N+1 queries (optimizado)
          $this->company = DB::table('companies')
-            ->select('id', 'name', 'logo', 'country')
+            ->select('id', 'name', 'logo', 'country', 'currency')
             ->where('id', Auth::user()->company_id)
             ->first();
-         $this->currencies = DB::table('currencies')
-            ->select('id', 'name', 'code', 'symbol', 'country_id')
-            ->where('country_id', $this->company->country)
-            ->first();
+         
+         // Obtener la moneda de la empresa configurada
+         if ($this->company && $this->company->currency) {
+            // Buscar la moneda por código en lugar de por país
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('code', $this->company->currency)
+               ->first();
+         }
+         
+         // Fallback si no se encuentra la moneda configurada
+         if (!$this->currencies) {
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('country_id', $this->company->country)
+               ->first();
+         }
          
          // Almacenar valores comúnmente usados para evitar accesos repetidos
          $this->companyId = $this->company->id;

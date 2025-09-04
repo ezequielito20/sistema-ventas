@@ -24,9 +24,23 @@ class CustomerController extends Controller
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
-         $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->country)
-            ->first();
+         
+         // Obtener la moneda de la empresa configurada
+         if ($this->company && $this->company->currency) {
+            // Buscar la moneda por código en lugar de por país
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('code', $this->company->currency)
+               ->first();
+         }
+         
+         // Fallback si no se encuentra la moneda configurada
+         if (!$this->currencies) {
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('country_id', $this->company->country)
+               ->first();
+         }
 
          return $next($request);
       });

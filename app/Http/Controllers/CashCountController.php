@@ -22,15 +22,28 @@ class CashCountController extends Controller
       $this->middleware(function ($request, $next) {
          // Obtener company y currency en una sola consulta
          $userCompany = DB::table('companies')
-            ->select('companies.id', 'companies.name', 'companies.country')
+            ->select('companies.id', 'companies.name', 'companies.country', 'companies.currency')
             ->where('companies.id', Auth::user()->company_id)
             ->first();
             
          $this->company = $userCompany;
-         $this->currencies = DB::table('currencies')
-            ->select('id', 'name', 'code', 'symbol', 'country_id')
-            ->where('country_id', $userCompany->country)
-            ->first();
+         
+         // Obtener la moneda de la empresa configurada
+         if ($userCompany && $userCompany->currency) {
+            // Buscar la moneda por código en lugar de por país
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('code', $userCompany->currency)
+               ->first();
+         }
+         
+         // Fallback si no se encuentra la moneda configurada
+         if (!$this->currencies) {
+            $this->currencies = DB::table('currencies')
+               ->select('id', 'name', 'code', 'symbol', 'country_id')
+               ->where('country_id', $userCompany->country)
+               ->first();
+         }
 
          return $next($request);
       });
