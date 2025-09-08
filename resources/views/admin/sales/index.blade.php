@@ -276,7 +276,7 @@
             </div>
 
             {{-- No Results State --}}
-            <div x-show="!loading && filteredSales.length === 0" class="no-results">
+            <div x-show="!loading && {{ $sales->count() }} === 0" class="no-results">
                 <div class="no-results-icon">
                     <i class="fas fa-search"></i>
                 </div>
@@ -285,7 +285,7 @@
             </div>
 
             {{-- Vista de tabla moderna --}}
-            <div class="table-view" x-show="!loading && currentView === 'table' && filteredSales.length > 0">
+            <div class="table-view" x-show="!loading && currentView === 'table' && {{ $sales->count() }} > 0">
                 <div class="modern-table-container">
                     <table class="modern-table">
                         <thead>
@@ -334,23 +334,260 @@
                             </tr>
                         </thead>
                         <tbody id="salesTableBody">
-                            <!-- Table content will be dynamically rendered by JavaScript -->
+                            @forelse ($sales as $index => $sale)
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $sales->firstItem() + $index }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <i class="fas fa-user text-blue-600"></i>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $sale->customer->name ?? 'Cliente no especificado' }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    {{ $sale->customer->phone ?? 'Sin teléfono' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-calendar text-gray-400 mr-2"></i>
+                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-boxes text-gray-400 mr-2"></i>
+                                            {{ $sale->products_count }} productos
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-dollar-sign text-green-500 mr-1"></i>
+                                            {{ $currency->symbol }}{{ number_format($sale->total_price, 2) }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-list text-gray-400 mr-2"></i>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $sale->total_quantity }} unidades
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div class="flex items-center justify-end space-x-2">
+                                            @if ($permissions['can_show'])
+                                                <button type="button" 
+                                                        class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
+                                                        @click="showSaleDetails({{ $sale->id }})"
+                                                        title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            @endif
+                                            @if ($permissions['can_edit'])
+                                                <a href="{{ route('admin.sales.edit', $sale->id) }}" 
+                                                   class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"
+                                                   title="Editar venta">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            @endif
+                                            @if ($permissions['can_print'])
+                                                <button type="button" 
+                                                        class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                                                        @click="printSale({{ $sale->id }})"
+                                                        title="Imprimir">
+                                                    <i class="fas fa-print"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-shopping-bag text-gray-300 text-4xl mb-4"></i>
+                                            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay ventas registradas</h3>
+                                            <p class="text-gray-500">Comienza registrando tu primera venta</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
 
             {{-- Vista de tarjetas moderna --}}
-            <div class="cards-view" x-show="!loading && currentView === 'cards' && filteredSales.length > 0">
+            <div class="cards-view" x-show="!loading && currentView === 'cards' && {{ $sales->count() }} > 0">
                 <div class="modern-cards-grid" id="salesCardsGrid">
-                    <!-- Cards content will be dynamically rendered by JavaScript -->
+                    @forelse ($sales as $index => $sale)
+                        <div class="modern-card sale-card">
+                            <div class="card-header">
+                                <div class="card-icon">
+                                    <i class="fas fa-shopping-bag"></i>
+                                </div>
+                                <div class="card-title">
+                                    <h4>Venta #{{ $sales->firstItem() + $index }}</h4>
+                                    <p>{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y H:i') }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card-content">
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <i class="fas fa-user text-blue-500"></i>
+                                        <span class="info-label">Cliente:</span>
+                                        <span class="info-value">{{ $sale->customer->name ?? 'Cliente no especificado' }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <i class="fas fa-boxes text-green-500"></i>
+                                        <span class="info-label">Productos:</span>
+                                        <span class="info-value">{{ $sale->products_count }} productos</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <i class="fas fa-list text-purple-500"></i>
+                                        <span class="info-label">Unidades:</span>
+                                        <span class="info-value">{{ $sale->total_quantity }} unidades</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="total-section">
+                                    <div class="total-amount">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span>{{ $currency->symbol }}{{ number_format($sale->total_price, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-actions">
+                                @if ($permissions['can_show'])
+                                    <button type="button" 
+                                            class="btn-action btn-view"
+                                            @click="showSaleDetails({{ $sale->id }})"
+                                            title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                @endif
+                                @if ($permissions['can_edit'])
+                                    <a href="{{ route('admin.sales.edit', $sale->id) }}" 
+                                       class="btn-action btn-edit"
+                                       title="Editar venta">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                @endif
+                                @if ($permissions['can_print'])
+                                    <button type="button" 
+                                            class="btn-action btn-print"
+                                            @click="printSale({{ $sale->id }})"
+                                            title="Imprimir">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full">
+                            <div class="text-center py-12">
+                                <i class="fas fa-shopping-bag text-gray-300 text-6xl mb-4"></i>
+                                <h3 class="text-xl font-medium text-gray-900 mb-2">No hay ventas registradas</h3>
+                                <p class="text-gray-500">Comienza registrando tu primera venta</p>
+                            </div>
+                        </div>
+                    @endforelse
                 </div>
             </div>
 
             {{-- Paginación Inteligente --}}
-            <div class="pagination-container" id="salesPagination">
-                <!-- Pagination content will be dynamically rendered by JavaScript -->
-            </div>
+            @if ($sales->hasPages())
+                <div class="mt-8 px-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="custom-pagination">
+                            <div class="pagination-info">
+                                <span id="paginationInfo">Mostrando
+                                    {{ $sales->firstItem() ?? 0 }}-{{ $sales->lastItem() ?? 0 }} de
+                                    {{ $sales->total() }} ventas</span>
+                            </div>
+                            <div class="pagination-controls">
+                                <!-- Botón Anterior -->
+                                @if ($sales->onFirstPage())
+                                    <button class="pagination-btn" disabled>
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                @else
+                                    <a href="{{ $sales->previousPageUrl() }}" class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                @endif
+
+                                <!-- Números de página -->
+                                <div class="pagination-numbers">
+                                    @php
+                                        $currentPage = $sales->currentPage();
+                                        $lastPage = $sales->lastPage();
+                                        $start = max(1, $currentPage - 2);
+                                        $end = min($lastPage, $currentPage + 2);
+                                    @endphp
+                                    
+                                    @if($start > 1)
+                                        <a href="{{ $sales->url(1) }}" class="pagination-number">1</a>
+                                        @if($start > 2)
+                                            <span class="page-separator">...</span>
+                                        @endif
+                                    @endif
+                                    
+                                    @for($i = $start; $i <= $end; $i++)
+                                        @if($i == $currentPage)
+                                            <span class="pagination-number active">{{ $i }}</span>
+                                        @else
+                                            <a href="{{ $sales->url($i) }}" class="pagination-number">{{ $i }}</a>
+                                        @endif
+                                    @endfor
+                                    
+                                    @if($end < $lastPage)
+                                        @if($end < $lastPage - 1)
+                                            <span class="page-separator">...</span>
+                                        @endif
+                                        <a href="{{ $sales->url($lastPage) }}" class="pagination-number">{{ $lastPage }}</a>
+                                    @endif
+                                </div>
+
+                                <!-- Botón Siguiente -->
+                                @if ($sales->hasMorePages())
+                                    <a href="{{ $sales->nextPageUrl() }}" class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <button class="pagination-btn" disabled>
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

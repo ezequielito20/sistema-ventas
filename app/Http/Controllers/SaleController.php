@@ -156,8 +156,8 @@ class SaleController extends Controller
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
       
-      // Consulta básica de ventas con paginación
-      $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id')
+      // Consulta básica de ventas con paginación - OPTIMIZADA para evitar N+1
+      $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id', 'note')
                   ->where('company_id', $this->company->id)
                   ->with([
                       'customer:id,name,email,phone',
@@ -225,6 +225,13 @@ class SaleController extends Controller
       
       // Aplicar paginación manteniendo los parámetros de búsqueda
       $sales = $query->orderBy('sale_date', 'desc')->paginate(15)->withQueryString();
+      
+      // OPTIMIZACIÓN: Agregar atributos calculados para evitar N+1 en la vista
+      $sales->getCollection()->transform(function ($sale) {
+         $sale->products_count = $sale->sale_details ? $sale->sale_details->count() : 0;
+         $sale->total_quantity = $sale->sale_details ? $sale->sale_details->sum('quantity') : 0;
+         return $sale;
+      });
       
       // Generar paginación inteligente
       $sales = $this->generateSmartPagination($sales, 2);
@@ -449,8 +456,7 @@ class SaleController extends Controller
             ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
             ->get()
             ->map(function ($product) {
-                // Agregar el image_url al producto
-                $product->image_url = $product->image_url;
+                // El image_url ya está disponible como accessor en el modelo
                 return $product;
             });
 
@@ -988,8 +994,8 @@ class SaleController extends Controller
                            "📊 Detalles:\n" .
                            "• Cliente: {$customerName}\n" .
                            "• Venta #{$sale->id} del " . $sale->sale_date->format('d/m/Y') . "\n" .
-                           "• Total de la venta: $" . number_format($sale->total_price, 2) . "\n" .
-                           "• Pagos posteriores: $" . number_format($totalPaid, 2) . "\n" .
+                           "• Total de la venta: $" . number_format((float)$sale->total_price, 2) . "\n" .
+                           "• Pagos posteriores: $" . number_format((float)$totalPaid, 2) . "\n" .
                            "• Cantidad de pagos posteriores: {$debtPayments->count()}\n\n" .
                            "🔧 Acción requerida:\n" .
                            "Primero debes eliminar todos los pagos de deuda posteriores a esta venta antes de poder eliminarla.",
