@@ -22,7 +22,7 @@ class AdminController extends Controller
    protected $company;
    protected $companyId;
    protected $companyCountry;
-   
+
    public function __construct()
    {
       $this->middleware(function ($request, $next) {
@@ -31,7 +31,7 @@ class AdminController extends Controller
             ->select('id', 'name', 'logo', 'country', 'currency')
             ->where('id', Auth::user()->company_id)
             ->first();
-         
+
          // Obtener la moneda de la empresa configurada
          if ($this->company && $this->company->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -40,7 +40,7 @@ class AdminController extends Controller
                ->where('code', $this->company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -48,7 +48,7 @@ class AdminController extends Controller
                ->where('country_id', $this->company->country)
                ->first();
          }
-         
+
          // Almacenar valores comúnmente usados para evitar accesos repetidos
          $this->companyId = $this->company->id;
          $this->companyCountry = $this->company->country;
@@ -60,7 +60,7 @@ class AdminController extends Controller
       $companyId = $this->companyId;
       $company = $this->company;
       $currency = $this->currencies;
-      
+
       // Verificar si existe la tabla debt_payments una sola vez para evitar consultas repetidas
       $hasDebtPaymentsTable = Schema::hasTable('debt_payments');
       // Obtener conteos básicos optimizados en una sola consulta
@@ -74,7 +74,7 @@ class AdminController extends Controller
             (SELECT COUNT(*) FROM customers WHERE company_id = ?) as customers_count,
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND nit_number IS NOT NULL) as verified_customers
       ", [$companyId, $companyId, $companyId, $companyId, $companyId, $companyId, $companyId]);
-      
+
       $counts = $basicCounts[0];
       $usersCount = $counts->users_count;
       $rolesCount = $counts->roles_count;
@@ -83,7 +83,7 @@ class AdminController extends Controller
       $suppliersCount = $counts->suppliers_count;
       $totalCustomers = $counts->customers_count;
       $verifiedCustomers = $counts->verified_customers;
-      
+
       $verifiedPercentage = $totalCustomers > 0
          ? round(($verifiedCustomers / $totalCustomers) * 100, 1)
          : 0;
@@ -92,10 +92,10 @@ class AdminController extends Controller
       $usersByRole = DB::table('roles')
          ->select('roles.id', 'roles.name', DB::raw('COUNT(users.id) as users_count'))
          ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
-         ->leftJoin('users', function($join) use ($companyId) {
+         ->leftJoin('users', function ($join) use ($companyId) {
             $join->on('model_has_roles.model_id', '=', 'users.id')
-                 ->where('model_has_roles.model_type', 'App\\Models\\User')
-                 ->where('users.company_id', $companyId);
+               ->where('model_has_roles.model_type', 'App\\Models\\User')
+               ->where('users.company_id', $companyId);
          })
          ->where('roles.company_id', $companyId)
          ->groupBy('roles.id', 'roles.name')
@@ -233,7 +233,7 @@ class AdminController extends Controller
             'year' => $date->year
          ];
       }
-      
+
       // Obtener todos los datos mensuales en una sola consulta
       $monthlyStats = DB::select("
          SELECT 
@@ -246,7 +246,7 @@ class AdminController extends Controller
          GROUP BY EXTRACT(MONTH FROM created_at), EXTRACT(YEAR FROM created_at)
          ORDER BY year, month
       ", [$companyId]);
-      
+
       $salesMonthlyStats = DB::select("
          SELECT 
             EXTRACT(MONTH FROM sale_date) as month,
@@ -258,24 +258,24 @@ class AdminController extends Controller
          GROUP BY EXTRACT(MONTH FROM sale_date), EXTRACT(YEAR FROM sale_date)
          ORDER BY year, month
       ", [$companyId]);
-      
+
       // Crear arrays de datos para gráficos
       $purchaseMonthlyLabels = [];
       $purchaseMonthlyData = [];
       $salesMonthlyLabels = [];
       $salesMonthlyData = [];
-      
+
       foreach ($monthlyData as $data) {
          $purchaseMonthlyLabels[] = $data['month'];
          $salesMonthlyLabels[] = $data['month'];
-         
+
          // Buscar datos en los resultados
-         $purchaseData = collect($monthlyStats)->firstWhere(function($item) use ($data) {
+         $purchaseData = collect($monthlyStats)->firstWhere(function ($item) use ($data) {
             return $item->month == $data['month_num'] && $item->year == $data['year'];
          });
          $purchaseMonthlyData[] = $purchaseData ? $purchaseData->purchase_total : 0;
-         
-         $saleData = collect($salesMonthlyStats)->firstWhere(function($item) use ($data) {
+
+         $saleData = collect($salesMonthlyStats)->firstWhere(function ($item) use ($data) {
             return $item->month == $data['month_num'] && $item->year == $data['year'];
          });
          $salesMonthlyData[] = $saleData ? $saleData->sale_total : 0;
@@ -296,10 +296,10 @@ class AdminController extends Controller
          ORDER BY total_sales DESC
          LIMIT 6
       ", [$companyId]);
-      
+
       $salesByCategoryLabels = [];
       $salesByCategoryData = [];
-      
+
       foreach ($salesByCategoryStats as $category) {
          $salesByCategoryLabels[] = $category->category_name;
          $salesByCategoryData[] = $category->total_sales;
@@ -337,11 +337,11 @@ class AdminController extends Controller
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')) as last_month_customers,
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)) as new_customers
       ", [$companyId, $companyId]);
-      
+
       $customerData = $customerStats[0];
       $lastMonthCustomers = $customerData->last_month_customers;
       $newCustomers = $customerData->new_customers;
-      
+
       $customerGrowth = $lastMonthCustomers > 0 ?
          round((($totalCustomers - $lastMonthCustomers) / $lastMonthCustomers) * 100, 1) : 0;
 
@@ -358,14 +358,14 @@ class AdminController extends Controller
          GROUP BY EXTRACT(MONTH FROM created_at), EXTRACT(YEAR FROM created_at)
          ORDER BY year, month
       ", [$companyId]);
-      
+
       $monthlyLabels = [];
       $monthlyActivity = [];
-      
+
       foreach ($monthlyData as $data) {
          $monthlyLabels[] = $data['month'];
-         
-         $customerData = collect($customersMonthlyStats)->firstWhere(function($item) use ($data) {
+
+         $customerData = collect($customersMonthlyStats)->firstWhere(function ($item) use ($data) {
             return $item->month == $data['month_num'] && $item->year == $data['year'];
          });
          $monthlyActivity[] = $customerData ? $customerData->customer_count : 0;
@@ -374,7 +374,7 @@ class AdminController extends Controller
       // Datos para el gráfico de actividad de clientes optimizado (últimos 30 días)
       $activityData = [];
       $activityLabels = [];
-      
+
       // Obtener todos los datos de actividad en una sola consulta
       $activityStats = DB::select("
          SELECT 
@@ -386,12 +386,12 @@ class AdminController extends Controller
          GROUP BY DATE(created_at)
          ORDER BY date
       ", [$companyId]);
-      
+
       for ($i = 29; $i >= 0; $i--) {
          $date = now()->subDays($i);
          $dateStr = $date->format('Y-m-d');
          $activityLabels[] = $date->format('d M');
-         
+
          // Buscar datos en los resultados
          $dayData = collect($activityStats)->firstWhere('date', $dateStr);
          $activityData[] = $dayData ? $dayData->purchase_count : 0;
@@ -460,7 +460,7 @@ class AdminController extends Controller
          FROM sales 
          WHERE company_id = ?
       ", [$companyId]);
-      
+
       $purchaseStats = DB::select("
          SELECT 
             COALESCE(SUM(CASE WHEN EXTRACT(MONTH FROM purchase_date) = EXTRACT(MONTH FROM CURRENT_DATE) 
@@ -472,26 +472,26 @@ class AdminController extends Controller
          FROM purchases 
          WHERE company_id = ?
       ", [$companyId]);
-      
+
       $stats = $salesStats[0];
       $purchaseData = $purchaseStats[0];
-      
+
       $todaySales = $stats->today_sales ?? 0;
       $weeklySales = $stats->weekly_sales ?? 0;
       $averageCustomerSpend = $stats->average_customer_spend ?? 0;
       $monthlySales = $stats->monthly_sales ?? 0;
-      
+
 
       $monthlyPurchases = $purchaseData->monthly_purchases ?? 0;
       $lastMonthPurchases = $purchaseData->last_month_purchases ?? 0;
-      
+
       // Calcular ganancia total teórica
       $totalProfit = DB::table('sale_details as sd')
          ->join('products as p', 'sd.product_id', '=', 'p.id')
          ->join('sales as s', 'sd.sale_id', '=', 's.id')
          ->where('s.company_id', $companyId)
          ->sum(DB::raw('sd.quantity * (p.sale_price - p.purchase_price)'));
-      
+
       $purchaseGrowth = $lastMonthPurchases > 0 ?
          round((($monthlyPurchases - $lastMonthPurchases) / $lastMonthPurchases) * 100, 1) : 0;
 
@@ -533,7 +533,7 @@ class AdminController extends Controller
          WHERE cc.company_id = ? 
          AND DATE(cm.created_at) = ?
       ", [$companyId, $today->format('Y-m-d')]);
-      
+
       $todayIncome = $todayStats[0]->today_income;
       $todayExpenses = $todayStats[0]->today_expenses;
 
@@ -552,19 +552,19 @@ class AdminController extends Controller
       if ($currentCashCount) {
          $cashOpenDate = $currentCashCount->opening_date;
          $currentCashData['opening_date'] = $cashOpenDate;
-         
+
          // Ventas desde apertura de caja
          $currentCashData['sales'] = (float) DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $cashOpenDate)
             ->sum('total_price');
-            
+
          // Compras desde apertura de caja (dinero gastado)
          $currentCashData['purchases'] = (float) DB::table('purchases')
             ->where('company_id', $companyId)
             ->where('purchase_date', '>=', $cashOpenDate)
             ->sum('total_price');
-            
+
          // Deudas pagadas desde apertura de caja (dinero recibido)
          // Solo contar pagos de deudas del arqueo actual
          if ($hasDebtPaymentsTable) {
@@ -574,30 +574,30 @@ class AdminController extends Controller
                ->where('company_id', $companyId)
                ->where('created_at', '>=', $cashOpenDate)
                ->get();
-            
-                         // Filtrar solo los pagos que corresponden a deudas del arqueo actual (optimizado)
-             $customerSalesData = DB::table('customers')
-                ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
-                ->leftJoin('sales', function($join) use ($cashOpenDate) {
-                   $join->on('customers.id', '=', 'sales.customer_id')
-                        ->where('sales.sale_date', '>=', $cashOpenDate);
-                })
-                ->whereIn('customers.id', $allPayments->pluck('customer_id'))
-                ->groupBy('customers.id')
-                ->get()
-                ->keyBy('id');
-             
-             $currentCashData['debt_payments'] = (float) $allPayments->sum(function($payment) use ($customerSalesData) {
-                $customerData = $customerSalesData->get($payment->customer_id);
-                if (!$customerData) return 0;
-                
-                // Si el cliente tiene ventas en el arqueo actual, contar el pago
-                if ($customerData->sales_in_period > 0) {
-                   return $payment->payment_amount;
-                } else {
-                   return 0;
-                }
-             });
+
+            // Filtrar solo los pagos que corresponden a deudas del arqueo actual (optimizado)
+            $customerSalesData = DB::table('customers')
+               ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
+               ->leftJoin('sales', function ($join) use ($cashOpenDate) {
+                  $join->on('customers.id', '=', 'sales.customer_id')
+                     ->where('sales.sale_date', '>=', $cashOpenDate);
+               })
+               ->whereIn('customers.id', $allPayments->pluck('customer_id'))
+               ->groupBy('customers.id')
+               ->get()
+               ->keyBy('id');
+
+            $currentCashData['debt_payments'] = (float) $allPayments->sum(function ($payment) use ($customerSalesData) {
+               $customerData = $customerSalesData->get($payment->customer_id);
+               if (!$customerData) return 0;
+
+               // Si el cliente tiene ventas en el arqueo actual, contar el pago
+               if ($customerData->sales_in_period > 0) {
+                  return $payment->payment_amount;
+               } else {
+                  return 0;
+               }
+            });
          } else {
             // Fallback a cash_movements si no existe debt_payments
             $currentCashData['debt_payments'] = (float) DB::table('cash_movements')
@@ -608,12 +608,12 @@ class AdminController extends Controller
                ->where('cash_movements.created_at', '>=', $cashOpenDate)
                ->sum('cash_movements.amount');
          }
-            
+
          // Calcular deudas del arqueo actual optimizado
          $currentCashCountDebt = 0;
          $customersWithDebtCount = 0;
          $customersWithCurrentDebtCount = 0;
-         
+
          if ($cashOpenDate) {
             // Obtener deudas del arqueo actual en una sola consulta
             $debtData = [];
@@ -645,40 +645,84 @@ class AdminController extends Controller
                   WHERE c.company_id = ? AND c.total_debt > 0
                ", [$companyId, $cashOpenDate, $companyId, $cashOpenDate, $companyId]);
             }
-            
+
             foreach ($debtData as $customerData) {
                $currentDebt = max(0, $customerData->sales_in_current - $customerData->payments_in_current);
                $currentCashCountDebt += $currentDebt;
                $customersWithDebtCount++;
-               
+
                if ($currentDebt > 0) {
                   $customersWithCurrentDebtCount++;
                }
             }
          }
-         
-         $currentCashData['debt'] = (float) $currentCashCountDebt;
-         
+
+      
+
+         $customersWithDebt = DB::table('customers')
+            ->where('company_id', $companyId)
+            ->where('total_debt', '>', 0)
+            ->select('id', 'total_debt', 'name')
+            ->get();
+
+         $totalCurrentPeriodDebt = 0;
+         $totalOldDebtRecovered = 0; // Dinero que entró pagando deudas viejas
+
+         foreach ($customersWithDebt as $customer) {
+            // 1. Calcular Deuda Vieja Inicial (Antes de abrir la caja)
+            $oldSales = DB::table('sales')
+               ->where('customer_id', $customer->id)
+               ->where('sale_date', '<', $cashOpenDate)
+               ->sum('total_with_discount');
+
+            $oldPayments = DB::table('debt_payments')
+               ->where('customer_id', $customer->id)
+               ->where('created_at', '<', $cashOpenDate)
+               ->sum('payment_amount');
+
+            $oldDebtInitial = max(0, $oldSales - $oldPayments);
+
+            // 2. Calcular cuánto de esa deuda vieja se pagó en este período
+            $recovered = 0;
+            $oldDebtRemaining = 0;
+
+            if ($oldDebtInitial > 0) {
+               $paymentsInPeriod = DB::table('debt_payments')
+                  ->where('customer_id', $customer->id)
+                  ->where('created_at', '>=', $cashOpenDate)
+                  ->sum('payment_amount');
+
+               // Si hubo pagos, primero cubren la deuda vieja (FIFO)
+               $recovered = min($oldDebtInitial, $paymentsInPeriod);
+               $oldDebtRemaining = max(0, $oldDebtInitial - $recovered);
+            }
+
+            // 3. La deuda que pertenece a ESTE período es el Total menos lo que queda de viejo
+            
+            $currentPeriodDebt = max(0, $customer->total_debt - $oldDebtRemaining);
+
+            $totalCurrentPeriodDebt += $currentPeriodDebt;
+            $totalOldDebtRecovered += $recovered;
+         }
+
+         $currentCashData['debt'] = (float) $totalCurrentPeriodDebt;
+
          $currentCashData['debt_details'] = [
-            'current_count_debt' => $currentCashCountDebt,
-            'customers_with_current_debt' => $customersWithCurrentDebtCount,
-            'total_customers_with_debt' => $customersWithDebtCount,
+            'current_count_debt' => $totalCurrentPeriodDebt,
+            'old_debt_recovered' => $totalOldDebtRecovered,
+            'total_system_debt' => $customersWithDebt->sum('total_debt'),
             'debug_info' => [
                'cash_open_date' => $cashOpenDate
             ]
          ];
-         
-         // LÓGICA DE BALANCE: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
-         // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
-         $currentCashData['balance'] = (float) ($currentCashData['sales'] - $currentCashData['purchases'] - $currentCashData['debt']);
-         
 
+         $currentCashData['balance'] = (float) ($currentCashData['sales'] - $currentCashData['purchases'] - $totalCurrentPeriodDebt + $totalOldDebtRecovered);
       }
 
       // ==========================================
       // DATOS HISTÓRICOS COMPLETOS
       // ==========================================
-      
+
       // Obtener todos los datos históricos en una sola consulta
       $historicalStats = DB::select("
          SELECT 
@@ -688,21 +732,21 @@ class AdminController extends Controller
             (SELECT COUNT(*) FROM customers WHERE company_id = ? AND total_debt > 0) as customers_with_debt,
             (SELECT COALESCE(SUM(payment_amount), 0) FROM debt_payments WHERE company_id = ?) as total_debt_payments
       ", [$companyId, $companyId, $companyId, $companyId, $companyId]);
-      
+
       $historicalData = $historicalStats[0];
       $totalSales = (float) $historicalData->total_sales;
       $historicalPurchases = (float) $historicalData->total_purchases;
       $historicalPendingDebt = (float) $historicalData->total_debt;
       $customersWithDebtCount = $historicalData->customers_with_debt;
       $historicalDebtPayments = (float) $historicalData->total_debt_payments;
-      
+
       // Para simplificar, asumimos que la mayoría son deudores actuales
       // En una implementación más compleja, se podría hacer una consulta más detallada
       $defaultersDebt = 0; // Se puede calcular con una consulta más compleja si es necesario
       $currentDebtorsDebt = $historicalPendingDebt;
-      
 
-      
+
+
       $historicalData = [
          'sales' => (float) $totalSales,
          'purchases' => (float) $historicalPurchases,
@@ -722,13 +766,13 @@ class AdminController extends Controller
       // LÓGICA DE BALANCE HISTÓRICO: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
       // Balance = Total Ventas - Total Compras - Deuda Restante por Cobrar
       $historicalData['balance'] = (float) ($historicalData['sales'] - $historicalData['purchases'] - $historicalData['debt']);
-      
+
 
 
       // ==========================================
       // DATOS DE ARQUEOS CERRADOS - OPTIMIZADO
       // ==========================================
-      
+
       // Obtener todos los arqueos cerrados (con fecha de cierre) - optimizado
       $closedCashCounts = DB::table('cash_counts')
          ->select('id', 'company_id', 'opening_date', 'closing_date', 'initial_amount')
@@ -739,18 +783,18 @@ class AdminController extends Controller
 
       $closedCashCountsData = [];
       $closedSalesData = [];
-      
+
       if ($closedCashCounts->isNotEmpty()) {
          // Obtener todos los datos de arqueos cerrados usando UNION ALL para evitar problemas de GROUP BY
          $allSalesData = collect();
          $allPurchasesData = collect();
          $allDebtPaymentsData = collect();
-         
+
          foreach ($closedCashCounts as $index => $closedCashCount) {
             $openingDate = $closedCashCount->opening_date;
             $closingDate = $closedCashCount->closing_date;
             $arqueoPeriod = $index + 1;
-            
+
             // Ventas para este arqueo
             $salesData = DB::table('sales')
                ->select(
@@ -763,9 +807,9 @@ class AdminController extends Controller
                ->where('sale_date', '>=', $openingDate)
                ->where('sale_date', '<=', $closingDate)
                ->first();
-            
+
             $allSalesData->put($arqueoPeriod, $salesData);
-            
+
             // Compras para este arqueo
             $purchasesData = DB::table('purchases')
                ->select(
@@ -776,9 +820,9 @@ class AdminController extends Controller
                ->where('purchase_date', '>=', $openingDate)
                ->where('purchase_date', '<=', $closingDate)
                ->first();
-            
+
             $allPurchasesData->put($arqueoPeriod, $purchasesData);
-            
+
             // Pagos de deudas para este arqueo
             if ($hasDebtPaymentsTable) {
                $debtPaymentsData = DB::table('debt_payments')
@@ -790,40 +834,40 @@ class AdminController extends Controller
                   ->where('created_at', '>=', $openingDate)
                   ->where('created_at', '<=', $closingDate)
                   ->first();
-               
+
                $allDebtPaymentsData->put($arqueoPeriod, $debtPaymentsData);
             }
          }
-         
+
          // Procesar cada arqueo con los datos ya obtenidos
          foreach ($closedCashCounts as $index => $closedCashCount) {
             $openingDate = $closedCashCount->opening_date;
             $closingDate = $closedCashCount->closing_date;
             $arqueoPeriod = $index + 1;
-            
+
             // Obtener datos del arqueo desde las consultas individuales
             $salesData = $allSalesData->get($arqueoPeriod);
             $purchasesData = $allPurchasesData->get($arqueoPeriod);
             $debtPaymentsData = $allDebtPaymentsData->get($arqueoPeriod);
-            
+
             $salesInPeriod = (float) ($salesData->total_sales ?? 0);
             $purchasesInPeriod = (float) ($purchasesData->total_purchases ?? 0);
             $debtPaymentsInPeriod = (float) ($debtPaymentsData->total_payments ?? 0);
             $averageCustomerSpendInPeriod = (float) ($salesData->avg_sale_price ?? 0);
-            
+
             // Calcular deudas pendientes al cierre de este arqueo
             $debtAtClosing = 0.0;
             if ($hasDebtPaymentsTable) {
                $debtAtClosing = max(0, $salesInPeriod - $debtPaymentsInPeriod);
             }
-            
+
             // Calcular balance: Ventas - Compras - Deuda por Cobrar (Ganancias reales)
             $balanceInPeriod = (float) ($salesInPeriod - $purchasesInPeriod - $debtAtClosing);
-            
+
             // Formatear fechas para mostrar en las opciones
             $openingDateFormatted = Carbon::parse($openingDate)->format('d/m/y');
             $closingDateFormatted = Carbon::parse($closingDate)->format('d/m/y');
-            
+
             // Datos para closedCashCountsData
             $closedCashCountsData[] = [
                'id' => $closedCashCount->id,
@@ -839,24 +883,26 @@ class AdminController extends Controller
                'balance' => (float) $balanceInPeriod,
                'initial_amount' => (float) $closedCashCount->initial_amount
             ];
-            
+
             // Datos para closedSalesData
             $todaySalesInPeriod = 0;
-            if (Carbon::parse($openingDate)->startOfDay() <= now()->startOfDay() && 
-                Carbon::parse($closingDate)->startOfDay() >= now()->startOfDay()) {
+            if (
+               Carbon::parse($openingDate)->startOfDay() <= now()->startOfDay() &&
+               Carbon::parse($closingDate)->startOfDay() >= now()->startOfDay()
+            ) {
                $todaySalesInPeriod = $todaySales;
             }
-            
+
             // Ventas semanales (simplificado)
             $weeklySalesInPeriod = 0;
             $startOfWeek = now()->startOfWeek();
             if (Carbon::parse($openingDate) <= $startOfWeek && Carbon::parse($closingDate) >= $startOfWeek) {
                $weeklySalesInPeriod = $salesInPeriod * 0.3; // Aproximación
             }
-            
+
             // Ganancia total teórica (simplificado)
             $totalProfitInPeriod = $salesInPeriod * 0.25; // Aproximación del 25%
-            
+
             $closedSalesData[] = [
                'id' => $closedCashCount->id,
                'today_sales' => $todaySalesInPeriod,
@@ -869,33 +915,33 @@ class AdminController extends Controller
          }
       }
 
-       // ==========================================
-       //           DATOS DE VENTAS POR ARQUEO
-       // ==========================================
-       
-       // Datos de ventas del arqueo actual
-       $currentSalesData = [
+      // ==========================================
+      //           DATOS DE VENTAS POR ARQUEO
+      // ==========================================
+
+      // Datos de ventas del arqueo actual
+      $currentSalesData = [
          'today_sales' => 0,
          'weekly_sales' => 0,
          'average_customer_spend' => 0,
          'total_profit' => 0,
          'monthly_sales' => 0
-       ];
+      ];
 
-       if ($currentCashCount) {
+      if ($currentCashCount) {
          $cashOpenDate = $currentCashCount->opening_date;
-         
+
          // Usar las estadísticas ya calculadas para evitar consultas duplicadas
          $currentSalesData['today_sales'] = $todaySales;
          $currentSalesData['weekly_sales'] = $weeklySales;
          $currentSalesData['monthly_sales'] = $monthlySales;
-         
+
          // Promedio de venta por cliente en el arqueo actual
          $currentSalesData['average_customer_spend'] = DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $cashOpenDate)
             ->avg('total_price') ?? 0;
-            
+
          // Ganancia total teórica en el arqueo actual
          $currentSalesData['total_profit'] = DB::table('sale_details as sd')
             ->select(DB::raw('SUM(sd.quantity * (p.sale_price - p.purchase_price)) as total_profit'))
@@ -904,23 +950,23 @@ class AdminController extends Controller
             ->where('s.company_id', $companyId)
             ->where('s.sale_date', '>=', $cashOpenDate)
             ->value('total_profit') ?? 0;
-       }
+      }
 
-       // Datos históricos de ventas (usando estadísticas ya calculadas)
-       $historicalSalesData = [
+      // Datos históricos de ventas (usando estadísticas ya calculadas)
+      $historicalSalesData = [
          'today_sales' => $todaySales,
          'weekly_sales' => $weeklySales,
          'average_customer_spend' => $averageCustomerSpend ?? 0,
          'total_profit' => $mostProfitableProducts->sum('total_profit'),
          'monthly_sales' => $monthlySales // Usar la variable ya calculada
-       ];
+      ];
 
-       // NOTA: $closedSalesData ya se procesó en el bucle combinado anterior
+      // NOTA: $closedSalesData ya se procesó en el bucle combinado anterior
 
-       // Mantener variables originales para compatibilidad
-       $salesSinceCashOpen = $currentCashData['sales'];
-       $purchasesSinceCashOpen = $currentCashData['purchases'];
-       $debtSinceCashOpen = $currentCashData['debt'];
+      // Mantener variables originales para compatibilidad
+      $salesSinceCashOpen = $currentCashData['sales'];
+      $purchasesSinceCashOpen = $currentCashData['purchases'];
+      $debtSinceCashOpen = $currentCashData['debt'];
 
       // Datos para el gráfico de ingresos vs egresos (últimos 7 días)
       $lastDays = collect(range(6, 0))->map(function ($days) {
@@ -947,14 +993,14 @@ class AdminController extends Controller
          GROUP BY DATE(cm.created_at), cm.type
          ORDER BY date
       ", [$companyId]);
-      
+
       foreach ($lastDays as $date) {
          $dateStr = $date; // $date ya es un string en formato 'Y-m-d'
-         
+
          // Buscar datos en los resultados
          $incomeAmount = 0;
          $expenseAmount = 0;
-         
+
          foreach ($cashMovementsStats as $stat) {
             if ($stat->date == $dateStr) {
                if ($stat->type === 'income') {
@@ -964,7 +1010,7 @@ class AdminController extends Controller
                }
             }
          }
-         
+
          $chartData['income'][] = $incomeAmount;
          $chartData['expenses'][] = $expenseAmount;
       }
@@ -973,7 +1019,7 @@ class AdminController extends Controller
       $daysInMonth = now()->daysInMonth;
       $dailySalesLabels = [];
       $dailySalesData = [];
-      
+
       // Obtener todos los datos diarios en una sola consulta
       $dailySalesStats = DB::select("
          SELECT 
@@ -987,12 +1033,12 @@ class AdminController extends Controller
          GROUP BY EXTRACT(DAY FROM s.sale_date)
          ORDER BY day
       ", [$companyId]);
-      
+
       // Crear arrays de datos para gráficos
       for ($d = 1; $d <= $daysInMonth; $d++) {
          $date = now()->copy()->startOfMonth()->addDays($d - 1);
          $dailySalesLabels[] = $date->format('d/m');
-         
+
          // Buscar datos en los resultados
          $dayData = collect($dailySalesStats)->firstWhere('day', $d);
          $dailySalesData[] = $dayData ? $dayData->total_quantity : 0;
@@ -1065,4 +1111,3 @@ class AdminController extends Controller
       ));
    }
 }
-
