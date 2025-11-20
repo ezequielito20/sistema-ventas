@@ -24,7 +24,7 @@ class CustomerController extends Controller
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
-         
+
          // Obtener la moneda de la empresa configurada
          if ($this->company && $this->company->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -33,7 +33,7 @@ class CustomerController extends Controller
                ->where('code', $this->company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -53,7 +53,7 @@ class CustomerController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       if ($lastPage <= 1) {
          // No hay paginación
          $paginator->smartLinks = [];
@@ -142,28 +142,28 @@ class CustomerController extends Controller
       try {
          // Verificar si existe la tabla debt_payments una sola vez para evitar consultas repetidas
          $hasDebtPaymentsTable = Schema::hasTable('debt_payments');
-         
+
          // Obtener el arqueo de caja actual una sola vez para evitar N+1 queries
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
             ->first();
-         
+
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
          // Consulta básica de clientes con paginación
          $query = Customer::where('company_id', $this->company->id);
-         
+
          // Aplicar búsqueda si se proporciona
          if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                $q->where('name', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+                  ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
             });
          }
-         
+
          // Aplicar filtro de morosos si se proporciona
          if ($request->has('filter') && $request->filter === 'defaulters') {
             // Obtener IDs de clientes morosos usando la lógica FIFO
@@ -182,7 +182,7 @@ class CustomerController extends Controller
                   AND debt_payments.company_id = customers.company_id
                )', [$openingDate])
                ->pluck('customers.id');
-            
+
             if ($defaulterIds->isNotEmpty()) {
                $query->whereIn('id', $defaulterIds);
             } else {
@@ -190,7 +190,7 @@ class CustomerController extends Controller
                $query->whereRaw('1 = 0');
             }
          }
-         
+
          // Aplicar filtro de deuda actual si se proporciona
          if ($request->has('filter') && $request->filter === 'current_debt') {
             // Obtener IDs de clientes con deuda del arqueo actual
@@ -205,7 +205,7 @@ class CustomerController extends Controller
                   AND sales.sale_date >= ?
                )', [$openingDate])
                ->pluck('customers.id');
-            
+
             if ($currentDebtIds->isNotEmpty()) {
                $query->whereIn('id', $currentDebtIds);
             } else {
@@ -213,10 +213,10 @@ class CustomerController extends Controller
                $query->whereRaw('1 = 0');
             }
          }
-         
+
          // Aplicar paginación manteniendo los parámetros de búsqueda
          $customers = $query->orderBy('name')->paginate(10)->withQueryString();
-         
+
          // Generar paginación inteligente
          $customers = $this->generateSmartPagination($customers, 2);
 
@@ -252,13 +252,13 @@ class CustomerController extends Controller
 
          // Calcular estadísticas de deudas para TODOS los clientes (no solo los paginados)
          $allCustomerIds = Customer::where('company_id', $this->company->id)->pluck('id')->toArray();
-         
+
          // Calcular clientes morosos totales
          $defaultersCount = 0;
          $currentDebtorsCount = 0;
          $previousCashCountDebtTotal = 0;
          $currentCashCountDebtTotal = 0;
-         
+
          if (!empty($allCustomerIds)) {
             // Consulta de ventas para todos los clientes
             $allSalesData = DB::table('sales')
@@ -299,21 +299,21 @@ class CustomerController extends Controller
                $sales = $allSalesData->get($customerId);
                $payments = $allPaymentsData->get($customerId);
                $customer = $allCustomersData->get($customerId);
-               
+
                $salesBefore = $sales ? $sales->sales_before : 0;
                $salesAfter = $sales ? $sales->sales_after : 0;
                $totalPayments = $payments ? $payments->total_payments : 0;
-               
+
                // Calcular deuda de arqueos anteriores usando lógica FIFO
                $previousDebt = max(0, $salesBefore - $totalPayments);
                $currentDebt = max(0, $salesAfter);
                $isDefaulter = $previousDebt > 0;
-               
+
                if ($isDefaulter) {
                   $defaultersCount++;
                   $previousCashCountDebtTotal += $previousDebt;
                }
-               
+
                // Para clientes con deuda actual pero no morosos
                if ($customer && $customer->total_debt > 0 && !$isDefaulter) {
                   $currentDebtorsCount++;
@@ -324,7 +324,7 @@ class CustomerController extends Controller
 
          // Calcular estadísticas de deudas con consultas SQL directas para clientes paginados
          $customerIds = $customers->pluck('id')->toArray();
-         
+
          if (empty($customerIds)) {
             $customersData = [];
          } else {
@@ -360,16 +360,16 @@ class CustomerController extends Controller
             foreach ($customers as $customer) {
                $sales = $salesData->get($customer->id);
                $payments = $paymentsData->get($customer->id);
-               
+
                $salesBefore = $sales ? $sales->sales_before : 0;
                $salesAfter = $sales ? $sales->sales_after : 0;
                $totalPayments = $payments ? $payments->total_payments : 0;
-               
+
                // Calcular deuda de arqueos anteriores usando lógica FIFO
                $previousDebt = max(0, $salesBefore - $totalPayments);
                $currentDebt = max(0, $salesAfter);
                $isDefaulter = $previousDebt > 0;
-               
+
                $customersData[$customer->id] = [
                   'isDefaulter' => $isDefaulter,
                   'previousDebt' => $previousDebt,
@@ -438,7 +438,7 @@ class CustomerController extends Controller
          // Determinar el tipo de error para mostrar un mensaje más específico
          $errorMessage = 'Error al cargar la lista de clientes';
          $errorDetails = '';
-         
+
          if (str_contains($e->getMessage(), 'Undefined function')) {
             $errorMessage = 'Error de compatibilidad con la base de datos';
             $errorDetails = 'El sistema detectó un problema de compatibilidad con las funciones de la base de datos. Esto puede ocurrir cuando se usan funciones específicas de MySQL en PostgreSQL.';
@@ -493,26 +493,26 @@ class CustomerController extends Controller
          ->where('company_id', $this->company->id)
          ->where('sale_date', '<', $openingDate)
          ->sum('total_price');
-      
+
       // Si no hay ventas anteriores, no hay deuda
       if ($salesBeforeCashCount == 0) {
          return 0;
       }
-      
+
       // Obtener todos los pagos del cliente
       $totalPayments = DB::table('debt_payments')
          ->where('customer_id', $customerId)
          ->where('company_id', $this->company->id)
          ->sum('payment_amount');
-      
+
       // Si no hay pagos, toda la deuda anterior está pendiente
       if ($totalPayments == 0) {
          return $salesBeforeCashCount;
       }
-      
+
       // Calcular deuda pendiente: Ventas anteriores - Pagos totales
       $remainingDebt = max(0, $salesBeforeCashCount - $totalPayments);
-      
+
       return $remainingDebt;
    }
 
@@ -530,7 +530,7 @@ class CustomerController extends Controller
                   'message' => 'No tienes permisos para crear clientes'
                ], 403);
             }
-            
+
             return redirect()->route('admin.customers.index')
                ->with('message', 'No tienes permisos para crear clientes')
                ->with('icons', 'error');
@@ -583,7 +583,7 @@ class CustomerController extends Controller
                   'errors' => $validator->errors()
                ], 422);
             }
-            
+
             return redirect()->back()
                ->withErrors($validator)
                ->withInput();
@@ -609,11 +609,11 @@ class CustomerController extends Controller
          // Respuesta para peticiones AJAX
          if ($request->ajax() || $request->wantsJson()) {
             $message = '¡Cliente creado exitosamente!';
-            
+
             if ($request->input('action') === 'save_and_new') {
                $message = '¡Cliente creado exitosamente! Puedes crear otro cliente.';
             }
-            
+
             return response()->json([
                'success' => true,
                'message' => $message,
@@ -624,7 +624,7 @@ class CustomerController extends Controller
 
          // Determinar la redirección basada en el botón presionado o el parámetro return_to
          $returnTo = $request->input('return_to');
-         
+
          if ($request->input('action') === 'save_and_new') {
             $redirectRoute = $returnTo ? route('admin.customers.create') . "?return_to={$returnTo}" : route('admin.customers.create');
             return redirect($redirectRoute)
@@ -682,7 +682,7 @@ class CustomerController extends Controller
                $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
                   ->whereNull('closing_date')
                   ->first();
-               
+
                $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
                // Obtener información de ventas y pagos del cliente
@@ -703,13 +703,13 @@ class CustomerController extends Controller
                $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
                $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
                $totalPayments = $customerPayments->sum('payment_amount');
-               
+
                // Calcular deuda anterior
                $previousDebt = 0;
                if ($totalSalesBefore > 0) {
                   $previousDebt = max(0, $totalSalesBefore - $totalPayments);
                }
-               
+
                // Determinar si es moroso
                $isDefaulter = $previousDebt > 0;
 
@@ -730,7 +730,7 @@ class CustomerController extends Controller
                ], 500);
             }
          }
-         
+
          // Verificar si es una petición para detalles del cliente
          if (request()->has('customer_details')) {
             try {
@@ -738,7 +738,7 @@ class CustomerController extends Controller
                $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
                   ->whereNull('closing_date')
                   ->first();
-               
+
                $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
                // Obtener información de ventas y pagos del cliente
@@ -759,16 +759,16 @@ class CustomerController extends Controller
                $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
                $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
                $totalPayments = $customerPayments->sum('payment_amount');
-               
+
                // Calcular deuda anterior
                $previousDebt = 0;
                if ($totalSalesBefore > 0) {
                   $previousDebt = max(0, $totalSalesBefore - $totalPayments);
                }
-               
+
                // Determinar si es moroso
                $isDefaulter = $previousDebt > 0;
-               
+
                // Obtener historial de ventas con información de productos
                $sales = $customer->sales()
                   ->with(['saleDetails.product'])
@@ -777,7 +777,7 @@ class CustomerController extends Controller
                   ->map(function ($sale) {
                      $uniqueProducts = $sale->saleDetails->count();
                      $totalProducts = $sale->saleDetails->sum('quantity');
-                     
+
                      return [
                         'id' => $sale->id,
                         'created_at' => $sale->sale_date,
@@ -786,7 +786,7 @@ class CustomerController extends Controller
                         'total_products' => $totalProducts
                      ];
                   });
-               
+
                return response()->json([
                   'success' => true,
                   'customer' => [
@@ -854,7 +854,7 @@ class CustomerController extends Controller
                'sales' => $salesData
             ]
          ]);
-               } catch (\Exception $e) {
+      } catch (\Exception $e) {
          return response()->json([
             'success' => false,
             'message' => 'Error al cargar los datos del cliente'
@@ -934,7 +934,7 @@ class CustomerController extends Controller
                   'message' => 'No tienes permisos para editar clientes'
                ], 403);
             }
-            
+
             return redirect()->route('admin.customers.index')
                ->with('message', 'No tienes permisos para editar clientes')
                ->with('icons', 'error');
@@ -1007,7 +1007,7 @@ class CustomerController extends Controller
                   'errors' => $validator->errors()
                ], 422);
             }
-            
+
             return redirect()->back()
                ->withErrors($validator)
                ->withInput();
@@ -1046,7 +1046,7 @@ class CustomerController extends Controller
                'errors' => $e->validator->errors()
             ], 422);
          }
-         
+
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -1090,20 +1090,20 @@ class CustomerController extends Controller
             $totalSalesAmount = $customer->sales()->sum('total_price');
             $firstSaleDate = $customer->sales()->orderBy('sale_date', 'asc')->first()->sale_date->format('d/m/Y');
             $lastSaleDate = $customer->sales()->orderBy('sale_date', 'desc')->first()->sale_date->format('d/m/Y');
-            
+
             return response()->json([
                'success' => false,
                'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene ventas asociadas.\n\n" .
-                           "📊 Detalles:\n" .
-                           "• Cliente: {$customer->name}\n" .
-                           "• Ventas asociadas: {$salesCount}\n" .
-                           "• Total de ventas: $" . number_format($totalSalesAmount, 2) . "\n" .
-                           "• Primera venta: {$firstSaleDate}\n" .
-                           "• Última venta: {$lastSaleDate}\n\n" .
-                           "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todas las ventas asociadas a este cliente antes de poder eliminarlo.\n\n" .
-                           "💡 Sugerencia:\n" .
-                           "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
+                  "📊 Detalles:\n" .
+                  "• Cliente: {$customer->name}\n" .
+                  "• Ventas asociadas: {$salesCount}\n" .
+                  "• Total de ventas: $" . number_format($totalSalesAmount, 2) . "\n" .
+                  "• Primera venta: {$firstSaleDate}\n" .
+                  "• Última venta: {$lastSaleDate}\n\n" .
+                  "🔧 Acción requerida:\n" .
+                  "Primero debes eliminar todas las ventas asociadas a este cliente antes de poder eliminarlo.\n\n" .
+                  "💡 Sugerencia:\n" .
+                  "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
                'icons' => 'warning',
                'has_sales' => true,
                'sales_count' => $salesCount,
@@ -1120,20 +1120,20 @@ class CustomerController extends Controller
             $totalPaymentsAmount = \App\Models\DebtPayment::where('customer_id', $customer->id)->sum('payment_amount');
             $firstPaymentDate = \App\Models\DebtPayment::where('customer_id', $customer->id)->orderBy('created_at', 'asc')->first()->created_at->format('d/m/Y');
             $lastPaymentDate = \App\Models\DebtPayment::where('customer_id', $customer->id)->orderBy('created_at', 'desc')->first()->created_at->format('d/m/Y');
-            
+
             return response()->json([
                'success' => false,
                'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene pagos de deuda asociados.\n\n" .
-                           "📊 Detalles:\n" .
-                           "• Cliente: {$customer->name}\n" .
-                           "• Pagos asociados: {$paymentsCount}\n" .
-                           "• Total de pagos: $" . number_format($totalPaymentsAmount, 2) . "\n" .
-                           "• Primer pago: {$firstPaymentDate}\n" .
-                           "• Último pago: {$lastPaymentDate}\n\n" .
-                           "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todos los pagos de deuda asociados a este cliente antes de poder eliminarlo.\n\n" .
-                           "💡 Sugerencia:\n" .
-                           "Ve al historial de pagos del cliente y elimina los registros de pago.",
+                  "📊 Detalles:\n" .
+                  "• Cliente: {$customer->name}\n" .
+                  "• Pagos asociados: {$paymentsCount}\n" .
+                  "• Total de pagos: $" . number_format($totalPaymentsAmount, 2) . "\n" .
+                  "• Primer pago: {$firstPaymentDate}\n" .
+                  "• Último pago: {$lastPaymentDate}\n\n" .
+                  "🔧 Acción requerida:\n" .
+                  "Primero debes eliminar todos los pagos de deuda asociados a este cliente antes de poder eliminarlo.\n\n" .
+                  "💡 Sugerencia:\n" .
+                  "Ve al historial de pagos del cliente y elimina los registros de pago.",
                'icons' => 'warning',
                'has_payments' => true,
                'payments_count' => $paymentsCount,
@@ -1160,10 +1160,10 @@ class CustomerController extends Controller
             return response()->json([
                'success' => false,
                'message' => "⚠️ No se puede eliminar el cliente '{$customer->name}' porque tiene registros asociados en el sistema.\n\n" .
-                           "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todas las ventas y pagos asociados a este cliente antes de poder eliminarlo.\n\n" .
-                           "💡 Sugerencia:\n" .
-                           "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
+                  "🔧 Acción requerida:\n" .
+                  "Primero debes eliminar todas las ventas y pagos asociados a este cliente antes de poder eliminarlo.\n\n" .
+                  "💡 Sugerencia:\n" .
+                  "Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.",
                'icons' => 'warning',
                'customer_name' => $customer->name
             ], 200);
@@ -1194,12 +1194,12 @@ class CustomerController extends Controller
 
       $company = $this->company;
       $currency = $this->currencies;
-      
+
       // Si hay filtros, generar reporte de deudas filtrado
       if ($request->has('search') || $request->has('debt_range') || $request->has('exchange_rate')) {
          return $this->debtReport($request);
       }
-      
+
       // Reporte normal de todos los clientes
       $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
       $pdf = PDF::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
@@ -1226,8 +1226,7 @@ class CustomerController extends Controller
          ]);
 
          // Buscar el cliente
-         $customer = Customer::findOrFail($id);
-;
+         $customer = Customer::findOrFail($id);;
          // Guardar el valor anterior para el log
          $previousDebt = $customer->total_debt;
 
@@ -1268,7 +1267,7 @@ class CustomerController extends Controller
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
             ->first();
-         
+
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
          // Obtener clientes con deudas pendientes
@@ -1279,17 +1278,17 @@ class CustomerController extends Controller
          // Aplicar filtros si existen
          if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                $q->where('name', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
             });
          }
 
          if ($request->has('debt_range') && $request->debt_range) {
             $debtRange = $request->debt_range;
-            switch($debtRange) {
+            switch ($debtRange) {
                case '0-50':
                   $query->whereBetween('total_debt', [0, 50]);
                   break;
@@ -1316,7 +1315,7 @@ class CustomerController extends Controller
          if ($request->filled('debt_type')) {
             $debtType = $request->debt_type;
             $customerIds = $query->pluck('id')->toArray();
-            
+
             if (!empty($customerIds)) {
                // Obtener información de ventas y pagos en consultas consolidadas
                $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIds)
@@ -1340,29 +1339,29 @@ class CustomerController extends Controller
                foreach ($customerIds as $customerId) {
                   $customerSales = $salesInfo->get($customerId, collect());
                   $customerPayments = $paymentsInfo->get($customerId, collect());
-                  
+
                   // Calcular ventas antes del arqueo actual
                   $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-                  
+
                   $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
                   $totalPayments = $customerPayments->sum('payment_amount');
-                  
+
                   // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
                   $previousDebt = 0;
                   if ($totalSalesBefore > 0) {
                      $previousDebt = max(0, $totalSalesBefore - $totalPayments);
                   }
-                  
+
                   // Determinar si es moroso
                   $hasOldSales = $salesBeforeCashCount->count() > 0;
-                  
+
                   if ($previousDebt > 0) {
                      $defaultersIds[] = $customerId;
                   } else {
                      $currentDebtorsIds[] = $customerId;
                   }
                }
-               
+
                if ($debtType === 'defaulters') {
                   // Solo clientes morosos (con deudas de arqueos anteriores)
                   $query->whereIn('id', $defaultersIds);
@@ -1375,7 +1374,7 @@ class CustomerController extends Controller
 
          // Aplicar ordenamiento según el parámetro order
          $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
-         switch($order) {
+         switch ($order) {
             case 'name_asc':
                $query->orderBy('name', 'asc');
                break;
@@ -1452,7 +1451,7 @@ class CustomerController extends Controller
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
             ->first();
-         
+
          $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
          // Obtener clientes con deudas pendientes en una sola consulta optimizada
@@ -1463,17 +1462,17 @@ class CustomerController extends Controller
          // Aplicar filtros si existen
          if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                $q->where('name', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
+                  ->orWhere('phone', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('email', 'ILIKE', "%{$searchTerm}%")
+                  ->orWhere('nit_number', 'ILIKE', "%{$searchTerm}%");
             });
          }
 
          // Aplicar ordenamiento según el parámetro order
          $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
-         switch($order) {
+         switch ($order) {
             case 'name_asc':
                $query->orderBy('name', 'asc');
                break;
@@ -1493,7 +1492,7 @@ class CustomerController extends Controller
 
          // Obtener información de ventas y pagos en consultas consolidadas
          $customerIds = $customers->pluck('id')->toArray();
-         
+
          $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIds)
             ->where('company_id', $this->company->id)
             ->select('customer_id', 'sale_date', 'total_price')
@@ -1512,30 +1511,30 @@ class CustomerController extends Controller
          // Crear un array para almacenar los datos calculados de cada cliente
          $customersData = [];
          $filteredCustomers = collect();
-         
+
          // Procesar estadísticas optimizadas y aplicar filtro de tipo de deuda
          foreach ($customers as $customer) {
             // Usar la misma función que en el método index para consistencia
             $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
             $isDefaulter = $previousDebt > 0;
-            
+
             // Almacenar datos calculados
             $customersData[$customer->id] = [
                'isDefaulter' => $isDefaulter,
                'previousDebt' => $previousDebt,
                'hasOldSales' => $previousDebt > 0
             ];
-            
+
             // Aplicar filtro por tipo de deuda
             $debtType = $request->get('debt_type', '');
             $shouldInclude = true;
-            
+
             if ($debtType === 'defaulters' && !$isDefaulter) {
                $shouldInclude = false;
             } elseif ($debtType === 'current' && $isDefaulter) {
                $shouldInclude = false;
             }
-            
+
             if ($shouldInclude) {
                $filteredCustomers->push($customer);
             }
@@ -1543,17 +1542,17 @@ class CustomerController extends Controller
 
          // Usar los clientes filtrados para las estadísticas
          $customers = $filteredCustomers;
-         
+
          // Inicializar variables de estadísticas
          $defaultersCount = 0;
          $currentDebtorsCount = 0;
          $defaultersDebt = 0;
          $currentDebt = 0;
-         
+
          // Calcular estadísticas finales con los clientes filtrados
          foreach ($customers as $customer) {
             $customerData = $customersData[$customer->id];
-            
+
             if ($customerData['isDefaulter']) {
                $defaultersCount++;
                $defaultersDebt += $customer->total_debt;
@@ -1628,7 +1627,7 @@ class CustomerController extends Controller
       // Validación manual de fecha usando la zona horaria de Venezuela
       $paymentDate = $request->payment_date;
       $today = now()->setTimezone('America/Caracas')->format('Y-m-d');
-      
+
       if ($paymentDate > $today) {
          return response()->json([
             'success' => false,
@@ -1668,7 +1667,7 @@ class CustomerController extends Controller
 
       // Verificar que la actualización se haya realizado correctamente
       $customer->refresh();
-      
+
 
 
       return response()->json([
@@ -1703,7 +1702,7 @@ class CustomerController extends Controller
          // Validación manual de fecha usando la zona horaria de Venezuela
          $paymentDate = $request->payment_date;
          $today = now()->setTimezone('America/Caracas')->format('Y-m-d');
-         
+
          if ($paymentDate > $today) {
             return response()->json([
                'success' => false,
@@ -1766,7 +1765,6 @@ class CustomerController extends Controller
                'remaining_debt' => $remainingDebt
             ]
          ]);
-
       } catch (\Illuminate\Validation\ValidationException $e) {
          return response()->json([
             'success' => false,
@@ -1791,7 +1789,7 @@ class CustomerController extends Controller
       $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
          ->whereNull('closing_date')
          ->first();
-      
+
       $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
       // Estadísticas básicas
@@ -1843,7 +1841,7 @@ class CustomerController extends Controller
       $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
          ->whereNull('closing_date')
          ->first();
-      
+
       $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
       // Verificar si tiene ventas antes del arqueo actual
@@ -1864,7 +1862,7 @@ class CustomerController extends Controller
       $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
          ->whereNull('closing_date')
          ->first();
-      
+
       $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
       return DB::table('customers')
@@ -1925,7 +1923,6 @@ class CustomerController extends Controller
                'has_debt' => $customer->total_debt > 0
             ]
          ]);
-
       } catch (\Exception $e) {
          return response()->json([
             'success' => false,
@@ -1969,43 +1966,76 @@ class CustomerController extends Controller
                DB::raw('SUM(sale_details.quantity) as total_units')
             )
             ->groupBy('sales.id', 'sales.sale_date', 'sales.total_price')
-            ->orderBy('sales.sale_date', 'desc')
+            ->orderBy('sales.sale_date', 'asc') // Ordenar por fecha ascendente para FIFO
             ->get();
 
          Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $salesWithDetails->count()]);
 
-         // Formatear datos para la tabla
-         $formattedSales = $salesWithDetails->map(function ($sale) {
+         // Obtener todos los pagos del cliente ordenados por fecha
+         $totalPayments = DB::table('debt_payments')
+            ->where('customer_id', $customer->id)
+            ->where('company_id', $this->company->id)
+            ->sum('payment_amount');
+
+         // Aplicar lógica FIFO para determinar qué ventas están pagadas
+         $remainingPayments = (float) $totalPayments;
+
+         // Formatear datos para la tabla con estado de pago
+         $formattedSales = $salesWithDetails->map(function ($sale) use (&$remainingPayments) {
             $uniqueProducts = $sale->unique_products ?? 0;
             $totalUnits = $sale->total_units ?? 0;
+            $saleTotal = (float) $sale->total_price;
 
-            Log::info('Sale details:', [
+            // Calcular cuánto de esta venta está pagado (FIFO)
+            $paidAmount = 0;
+            if ($remainingPayments > 0) {
+               $paidAmount = min($saleTotal, $remainingPayments);
+               $remainingPayments -= $paidAmount;
+            }
+
+            $remainingDebt = $saleTotal - $paidAmount;
+            $isPaid = $remainingDebt <= 0.01; // Considerar pagado si la deuda es menor a 1 centavo
+
+            Log::info('Sale payment status:', [
                'sale_id' => $sale->id,
-               'unique_products' => $uniqueProducts,
-               'total_units' => $totalUnits
+               'total' => $saleTotal,
+               'paid_amount' => $paidAmount,
+               'remaining_debt' => $remainingDebt,
+               'is_paid' => $isPaid
             ]);
 
             return [
+               'id' => $sale->id,
                'date' => Carbon::parse($sale->sale_date)->format('d/m/Y'),
                'products' => $uniqueProducts . ' productos únicos<br><small class="text-gray-500">' . $totalUnits . ' unidades totales</small>',
-               'total' => $sale->total_price
+               'total' => $sale->total_price,
+               'is_paid' => $isPaid,
+               'remaining_debt' => round($remainingDebt, 2),
+               'paid_amount' => round($paidAmount, 2)
             ];
          });
+
+         // Reordenar por fecha descendente para mostrar las más recientes primero
+         $formattedSales = $formattedSales->sortByDesc(function ($sale) {
+            return Carbon::createFromFormat('d/m/Y', $sale['date']);
+         })->values();
 
          return response()->json([
             'success' => true,
             'sales' => $formattedSales
          ]);
-
       } catch (\Exception $e) {
+         Log::error('Error getting customer sales history:', [
+            'customer_id' => $customer->id,
+            'error' => $e->getMessage()
+         ]);
+
          return response()->json([
             'success' => false,
             'message' => 'Error interno del servidor'
          ], 500);
       }
    }
-
-
 
    public function paymentHistory(Request $request)
    {
@@ -2028,8 +2058,8 @@ class CustomerController extends Controller
          $search = $request->input('customer_search');
          $query->whereHas('customer', function ($q) use ($search) {
             $q->where('name', 'ILIKE', "%{$search}%")
-              ->orWhere('email', 'ILIKE', "%{$search}%")
-              ->orWhere('phone', 'ILIKE', "%{$search}%");
+               ->orWhere('email', 'ILIKE', "%{$search}%")
+               ->orWhere('phone', 'ILIKE', "%{$search}%");
          });
       }
 
@@ -2057,13 +2087,13 @@ class CustomerController extends Controller
          $userSearch = $request->input('user_search');
          $query->whereHas('user', function ($q) use ($userSearch) {
             $q->where('name', 'ILIKE', "%{$userSearch}%")
-              ->orWhere('email', 'ILIKE', "%{$userSearch}%");
+               ->orWhere('email', 'ILIKE', "%{$userSearch}%");
          });
       }
 
       // Paginación del lado del servidor
       $payments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-      
+
       // Aplicar paginación inteligente
       $payments = $this->generateSmartPagination($payments, 2);
 
@@ -2136,34 +2166,34 @@ class CustomerController extends Controller
 
          $query = DebtPayment::where('company_id', $this->company->id)
             ->with(['customer', 'user']);
-         
+
          // Aplicar filtros
          if ($request->has('customer_search') && $request->customer_search) {
             $query->whereHas('customer', function ($q) use ($request) {
                $q->where('name', 'ilike', '%' . $request->customer_search . '%');
             });
          }
-         
+
          if ($request->has('date_from') && $request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
          }
-         
+
          if ($request->has('date_to') && $request->date_to) {
             $query->whereDate('created_at', '<=', $request->date_to);
          }
-         
+
          $payments = $query->orderBy('created_at', 'desc')->get();
-         
+
          // Crear un archivo Excel
          $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
          $sheet = $spreadsheet->getActiveSheet();
-         
+
          // Establecer el título
          $sheet->setCellValue('A1', 'HISTORIAL DE PAGOS DE DEUDAS');
          $sheet->mergeCells('A1:G1');
          $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
          $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-         
+
          // Establecer encabezados
          $sheet->setCellValue('A3', 'FECHA');
          $sheet->setCellValue('B3', 'CLIENTE');
@@ -2172,10 +2202,10 @@ class CustomerController extends Controller
          $sheet->setCellValue('E3', 'DEUDA RESTANTE');
          $sheet->setCellValue('F3', 'REGISTRADO POR');
          $sheet->setCellValue('G3', 'NOTAS');
-         
+
          $sheet->getStyle('A3:G3')->getFont()->setBold(true);
          $sheet->getStyle('A3:G3')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFCCCCCC');
-         
+
          // Llenar datos
          $row = 4;
          foreach ($payments as $payment) {
@@ -2188,18 +2218,18 @@ class CustomerController extends Controller
             $sheet->setCellValue('G' . $row, $payment->notes);
             $row++;
          }
-         
+
          // Autoajustar columnas
          foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
          }
-         
+
          // Crear el archivo Excel
          $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
          $fileName = 'historial_pagos_' . date('Y-m-d') . '.xlsx';
          $tempFile = tempnam(sys_get_temp_dir(), $fileName);
          $writer->save($tempFile);
-         
+
          return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
       } catch (\Exception $e) {
          return redirect()->route('admin.customers.payment-history')
@@ -2243,19 +2273,18 @@ class CustomerController extends Controller
             'success' => true,
             'message' => 'Pago eliminado correctamente',
             'statistics' => [
-                'totalPayments' => number_format($totalPayments, 2),
-                'paymentsCount' => $paymentsCount,
-                'averagePayment' => number_format($averagePayment, 2)
+               'totalPayments' => number_format($totalPayments, 2),
+               'paymentsCount' => $paymentsCount,
+               'averagePayment' => number_format($averagePayment, 2)
             ]
          ]);
+      } catch (\Exception $e) {
+         DB::rollBack();
 
-               } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return response()->json([
-               'success' => false,
-               'message' => 'Error al eliminar el pago: ' . $e->getMessage()
-            ], 500);
-         }
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar el pago: ' . $e->getMessage()
+         ], 500);
+      }
    }
 }

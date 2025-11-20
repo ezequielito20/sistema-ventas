@@ -196,11 +196,10 @@
 
             <!-- Ingresos Totales -->
             <x-dashboard-widget title="Ingresos Totales" value="{{ $totalRevenue }}" valueType="currency"
-                currencySymbol="{{ $currency->symbol }}"
-                icon="fas fa-money-bill-wave" trend="Total" trendIcon="fas fa-chart-bar" trendColor="text-green-300"
-                subtitle="Ingresos generados" subtitleIcon="fas fa-dollar-sign" gradientFrom="from-purple-500"
-                gradientTo="to-indigo-600" progressWidth="100%" progressGradientFrom="from-purple-400"
-                progressGradientTo="to-indigo-500" />
+                currencySymbol="{{ $currency->symbol }}" icon="fas fa-money-bill-wave" trend="Total"
+                trendIcon="fas fa-chart-bar" trendColor="text-green-300" subtitle="Ingresos generados"
+                subtitleIcon="fas fa-dollar-sign" gradientFrom="from-purple-500" gradientTo="to-indigo-600"
+                progressWidth="100%" progressGradientFrom="from-purple-400" progressGradientTo="to-indigo-500" />
 
             <!-- Clientes Morosos -->
             <x-dashboard-widget title="Clientes Morosos" value="{{ $defaultersCount }}" valueType="number"
@@ -1530,6 +1529,9 @@
                                                 <th
                                                     class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">
                                                     Total</th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-sm font-semibold text-white border-b border-blue-400">
+                                                    Estado de Pago</th>
                                             </tr>
                                         </thead>
                                         <tbody id="salesHistoryTable">

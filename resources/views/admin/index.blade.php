@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Ejecutivo')
+@section('title', 'Inicio')
 
 @section('content_header')
     <!-- Hero Section with Modern Design -->
