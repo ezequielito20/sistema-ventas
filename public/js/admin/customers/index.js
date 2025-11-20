@@ -7,7 +7,7 @@ const CONFIG = {
 // ===== FUNCIONES GLOBALES =====
 window.customersIndex = {
     // Actualizar valores Bs - Optimizado
-    updateBsValues: function(rate) {
+    updateBsValues: function (rate) {
         requestAnimationFrame(() => {
             document.querySelectorAll('.bs-debt').forEach(el => {
                 const debt = parseFloat(el.dataset.debt);
@@ -22,7 +22,7 @@ window.customersIndex = {
     },
 
     // Función para eliminar cliente
-    deleteCustomer: function(customerId) {
+    deleteCustomer: function (customerId) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Esta acción no se puede revertir",
@@ -36,7 +36,7 @@ window.customersIndex = {
             if (result.isConfirmed) {
                 // Obtener el token CSRF
                 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                
+
                 fetch(`${CONFIG.routes.delete}/${customerId}`, {
                     method: 'DELETE',
                     headers: {
@@ -45,51 +45,51 @@ window.customersIndex = {
                         'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: '¡Eliminado!',
-                            text: data.message,
-                            icon: data.icons
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        // Mostrar mensaje de error
-                        let showCancelButton = false;
-                        let cancelButtonText = '';
-                        let confirmButtonText = 'Entendido';
-                        
-                        if (data.has_sales) {
-                            showCancelButton = true;
-                            cancelButtonText = 'Ver Ventas';
-                            confirmButtonText = 'Entendido';
-                        }
-                        
-                        Swal.fire({
-                            title: data.icons === 'warning' ? 'No se puede eliminar' : 'Error',
-                            html: data.message.replace(/\n/g, '<br>'),
-                            icon: data.icons,
-                            showCancelButton: showCancelButton,
-                            cancelButtonText: cancelButtonText,
-                            confirmButtonText: confirmButtonText
-                        }).then((result) => {
-                            if (result.dismiss === Swal.DismissReason.cancel && data.has_sales) {
-                                // Redirigir a las ventas del cliente
-                                window.location.href = data.sales_url;
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: '¡Eliminado!',
+                                text: data.message,
+                                icon: data.icons
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            // Mostrar mensaje de error
+                            let showCancelButton = false;
+                            let cancelButtonText = '';
+                            let confirmButtonText = 'Entendido';
+
+                            if (data.has_sales) {
+                                showCancelButton = true;
+                                cancelButtonText = 'Ver Ventas';
+                                confirmButtonText = 'Entendido';
                             }
+
+                            Swal.fire({
+                                title: data.icons === 'warning' ? 'No se puede eliminar' : 'Error',
+                                html: data.message.replace(/\n/g, '<br>'),
+                                icon: data.icons,
+                                showCancelButton: showCancelButton,
+                                cancelButtonText: cancelButtonText,
+                                confirmButtonText: confirmButtonText
+                            }).then((result) => {
+                                if (result.dismiss === Swal.DismissReason.cancel && data.has_sales) {
+                                    // Redirigir a las ventas del cliente
+                                    window.location.href = data.sales_url;
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Ocurrió un error al eliminar el cliente',
+                            icon: 'error'
                         });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Ocurrió un error al eliminar el cliente',
-                        icon: 'error'
                     });
-                });
             }
         });
     }
@@ -100,9 +100,9 @@ window.customersIndex = {
 // Función para el hero section
 function heroSection() {
     return {
-            init() {
-        // Inicialización del hero section
-    }
+        init() {
+            // Inicialización del hero section
+        }
     }
 }
 
@@ -114,22 +114,22 @@ function filtersPanel() {
         searchTerm: '',
         searchResultsCount: 0,
         hasActiveFilters: false,
-        
+
         init() {
             setTimeout(() => {
                 // Siempre establecer 'all' como predeterminado y guardarlo
                 this.currentFilter = 'all';
                 localStorage.setItem('customerFilter', 'all');
-                
+
                 // Ejecutar el filtro 'all' para asegurar que se muestren todos los clientes
                 this.executeServerFilter('all');
-                
+
                 this.updateSearchResultsCount();
             }, 0);
         },
-        
+
         toggleFilters() { this.filtersOpen = !this.filtersOpen; },
-        
+
         setFilter(filter) {
             this.currentFilter = filter;
             // Si se selecciona 'all', siempre guardarlo como predeterminado
@@ -140,53 +140,53 @@ function filtersPanel() {
             }
             this.executeServerFilter(filter);
         },
-        
+
         performSearch() {
             clearTimeout(this._searchTimeout);
             this._searchTimeout = setTimeout(() => this.applyFilters(), 300);
         },
-        
+
         clearSearch() {
             this.searchTerm = '';
             this.applyFilters();
         },
-        
+
         applyFilters() {
             requestAnimationFrame(() => {
                 const cards = document.querySelectorAll('[data-defaulter]');
                 let visibleCount = 0;
-                
+
                 cards.forEach(card => {
                     const isDefaulter = card.dataset.defaulter === 'true';
                     let shouldShow = false;
-                    
+
                     switch (this.currentFilter) {
                         case 'all': shouldShow = true; break;
                         case 'defaulters': shouldShow = isDefaulter; break;
                         case 'current_debt': shouldShow = isDefaulter; break; // Por ahora usa la misma lógica, se maneja en el servidor
                     }
-                    
+
                     if (shouldShow && this.searchTerm) {
                         const text = card.textContent.toLowerCase();
                         shouldShow = text.includes(this.searchTerm.toLowerCase());
                     }
-                    
+
                     card.style.display = shouldShow ? '' : 'none';
                     if (shouldShow) visibleCount++;
                 });
-                
+
                 this.searchResultsCount = visibleCount;
                 this.hasActiveFilters = this.currentFilter !== 'all' || this.searchTerm.length > 0;
             });
         },
-        
+
         updateSearchResultsCount() {
             const visible = document.querySelectorAll('[data-defaulter]:not([style*="display: none"])');
             this.searchResultsCount = visible.length;
         },
-        
+
         executeServerFilter(filter) {
-            
+
             // Construir URL con parámetros de filtro
             const url = new URL(window.location.href);
             if (filter && filter !== 'all') {
@@ -194,13 +194,13 @@ function filtersPanel() {
             } else {
                 url.searchParams.delete('filter');
             }
-            
+
             // Mantener búsqueda si existe
             const searchTerm = document.querySelector('input[x-model="searchTerm"]')?.value;
             if (searchTerm) {
                 url.searchParams.set('search', searchTerm);
             }
-            
+
             // Realizar petición AJAX
             fetch(url.toString(), {
                 method: 'GET',
@@ -209,59 +209,59 @@ function filtersPanel() {
                     'Accept': 'text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al aplicar filtro');
-                }
-                return response.text();
-            })
-            .then(html => {
-                // Actualizar la tabla con los nuevos resultados
-                this.updateTableWithFilterResults(html, filter);
-            })
-            .catch(error => {
-                console.error('Error al aplicar filtro:', error);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al aplicar filtro');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Actualizar la tabla con los nuevos resultados
+                    this.updateTableWithFilterResults(html, filter);
+                })
+                .catch(error => {
+                    console.error('Error al aplicar filtro:', error);
+                });
         },
-        
+
         updateTableWithFilterResults(html, filter) {
             // Crear un elemento temporal para parsear el HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            
+
             // Extraer la nueva tabla
             const newTableBody = tempDiv.querySelector('#customersTableBody');
             const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
             const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
             const newPagination = tempDiv.querySelector('.custom-pagination');
-            
+
             // Actualizar la tabla
             const currentTableBody = document.getElementById('customersTableBody');
             if (newTableBody && currentTableBody) {
                 currentTableBody.innerHTML = newTableBody.innerHTML;
             }
-            
+
             // Actualizar las tarjetas
             const currentCardsContainer = document.getElementById('mobileCustomersContainer');
             if (newCardsContainer && currentCardsContainer) {
                 currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
             }
-            
+
             // Actualizar vista móvil
             const currentMobileContainer = document.getElementById('mobileOnlyContainer');
             if (newMobileContainer && currentMobileContainer) {
                 currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
             }
-            
+
             // Actualizar paginación
             const currentPagination = document.querySelector('.custom-pagination');
             if (newPagination && currentPagination) {
                 currentPagination.innerHTML = newPagination.innerHTML;
             }
-            
+
             // Actualizar contador de resultados
             this.updateSearchResultsCount();
-            
+
             // Actualizar URL sin recargar la página
             const url = new URL(window.location.href);
             if (filter && filter !== 'all') {
@@ -271,7 +271,7 @@ function filtersPanel() {
             }
             window.history.pushState({}, '', url.toString());
         },
-        
+
 
     };
 }
@@ -287,7 +287,7 @@ function modalExchangeRateSync() {
                 }
             });
         },
-        
+
         // Sincronizar desde el widget principal
         syncFromWidget() {
             const widgetElements = document.querySelectorAll('[x-data*="exchangeRateWidget"]');
@@ -301,7 +301,7 @@ function modalExchangeRateSync() {
                 }
             });
         },
-        
+
         // Sincronizar hacia el widget principal
         syncFromModal(value) {
             const rate = parseFloat(value);
@@ -324,7 +324,7 @@ function exchangeRateWidget() {
     return {
         exchangeRate: 134.0,
         updating: false,
-        
+
         init() {
             // Cargar el tipo de cambio guardado
             const savedRate = localStorage.getItem('exchangeRate');
@@ -333,7 +333,7 @@ function exchangeRateWidget() {
             } else {
                 this.exchangeRate = window.exchangeRate || 134.0;
             }
-            
+
             // Watcher para sincronizar automáticamente cuando cambie el valor
             this.$watch('exchangeRate', (value) => {
                 if (value > 0) {
@@ -341,23 +341,23 @@ function exchangeRateWidget() {
                 }
             });
         },
-        
+
         updateRate() {
             if (this.exchangeRate <= 0) return;
-            
+
             this.updating = true;
-            
+
             // Simular actualización
             setTimeout(() => {
                 window.currentExchangeRate = this.exchangeRate;
                 localStorage.setItem('exchangeRate', this.exchangeRate);
                 window.customersIndex.updateBsValues(this.exchangeRate);
-                
+
                 // Sincronizar con el modal
                 this.syncToModal();
-                
+
                 this.updating = false;
-                
+
                 // Mostrar notificación
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
@@ -371,14 +371,14 @@ function exchangeRateWidget() {
                 }
             }, 500);
         },
-        
+
         // Sincronizar con el modal
         syncToModal() {
             const modalInput = document.getElementById('modalExchangeRate');
             if (modalInput) {
                 modalInput.value = this.exchangeRate;
             }
-            
+
             // También actualizar valores en Bs en el modal si está abierto
             if (typeof window.modalManager !== 'undefined' && window.modalManager().debtReportModal) {
                 if (typeof window.customersIndex !== 'undefined' && window.customersIndex.updateBsValues) {
@@ -386,7 +386,7 @@ function exchangeRateWidget() {
                 }
             }
         },
-        
+
         // Sincronizar desde el modal
         syncFromModal(rate) {
             this.exchangeRate = rate;
@@ -403,53 +403,53 @@ function dataTable() {
         isSearching: false,
         isLoadingPage: false,
         _lastPageRequestId: 0,
-        
+
         init() {
             // Detectar el modo de vista inicial basado en el tamaño de pantalla
             this.updateViewMode();
-            
+
             // Escuchar cambios de tamaño de ventana
             window.addEventListener('resize', () => {
                 this.updateViewMode();
             });
-            
+
             // Watcher para búsqueda en tiempo real
             this.$watch('searchTerm', () => {
                 this.performSearch();
             });
-            
+
             // Watcher para cambio de modo de vista
             this.$watch('viewMode', () => {
                 this.updateSearchResultsCount();
             });
-            
+
             // Actualizar contador de resultados
             this.updateSearchResultsCount();
-            
+
             // Inicializar búsqueda desde URL si existe
             this.initializeSearchFromURL();
-            
+
             // Inicializar manejadores de paginación
             this.initializePaginationHandlers();
         },
-        
+
         initializeSearchFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const searchParam = urlParams.get('search');
             const filterParam = urlParams.get('filter');
-            
+
             if (searchParam) {
                 this.searchTerm = searchParam;
                 // No ejecutar búsqueda automáticamente para evitar doble búsqueda
             }
-            
+
             // Solo aplicar filtro de URL si no es la primera carga o si no hay filtro guardado
             if (filterParam && !localStorage.getItem('customerFilter')) {
                 this.currentFilter = filterParam;
                 localStorage.setItem('customerFilter', filterParam);
             }
         },
-        
+
         initializePaginationHandlers() {
             // Delegar eventos de clic para enlaces de paginación
             document.addEventListener('click', (e) => {
@@ -463,14 +463,14 @@ function dataTable() {
                 }
             });
         },
-        
+
         loadPage(url) {
             // Asignar ID de solicitud para invalidar respuestas antiguas
             const requestId = ++this._lastPageRequestId;
             this.isLoadingPage = true;
 
             this.setPaginationDisabled(true);
-            
+
             // Realizar petición AJAX para la nueva página
             fetch(url, {
                 method: 'GET',
@@ -479,56 +479,56 @@ function dataTable() {
                     'Accept': 'text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al cargar la página');
-                }
-                return response.text();
-            })
-            .then(html => {
-                // Descartar respuesta si ya existe una solicitud más nueva
-                if (requestId !== this._lastPageRequestId) return;
-                // Actualizar la tabla con los nuevos resultados
-                this.updateTableWithSearchResults(html, this.searchTerm);
-                // Scroll al inicio del contenedor principal
-                try {
-                    const container = document.querySelector('.table-container') || document.body;
-                    const topTarget = container.getBoundingClientRect ? (window.scrollY + container.getBoundingClientRect().top - 80) : 0;
-                    window.scrollTo({ top: Math.max(0, topTarget), behavior: 'smooth' });
-                } catch (_) {}
-                
-                // Actualizar URL sin recargar la página
-                window.history.pushState({}, '', url);
-                // Asegurar que la página activa quede visible centrada en el contenedor
-                setTimeout(() => {
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar la página');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Descartar respuesta si ya existe una solicitud más nueva
+                    if (requestId !== this._lastPageRequestId) return;
+                    // Actualizar la tabla con los nuevos resultados
+                    this.updateTableWithSearchResults(html, this.searchTerm);
+                    // Scroll al inicio del contenedor principal
                     try {
-                        const numbers = document.querySelector('.page-numbers');
-                        const active = numbers ? numbers.querySelector('.page-number.active') : null;
-                        if (numbers && active) {
-                            const offsetLeft = active.offsetLeft - (numbers.clientWidth / 2) + (active.clientWidth / 2);
-                            numbers.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
-                        }
-                    } catch (_) {}
-                }, 0);
-            })
-            .catch(error => {
-                console.error('Error al cargar página:', error);
-                this.showSearchError('Error al cargar la página. Intenta nuevamente.');
-            })
-            .finally(() => {
-                this.setPaginationDisabled(false);
-                this.isLoadingPage = false;
-            });
+                        const container = document.querySelector('.table-container') || document.body;
+                        const topTarget = container.getBoundingClientRect ? (window.scrollY + container.getBoundingClientRect().top - 80) : 0;
+                        window.scrollTo({ top: Math.max(0, topTarget), behavior: 'smooth' });
+                    } catch (_) { }
+
+                    // Actualizar URL sin recargar la página
+                    window.history.pushState({}, '', url);
+                    // Asegurar que la página activa quede visible centrada en el contenedor
+                    setTimeout(() => {
+                        try {
+                            const numbers = document.querySelector('.page-numbers');
+                            const active = numbers ? numbers.querySelector('.page-number.active') : null;
+                            if (numbers && active) {
+                                const offsetLeft = active.offsetLeft - (numbers.clientWidth / 2) + (active.clientWidth / 2);
+                                numbers.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+                            }
+                        } catch (_) { }
+                    }, 0);
+                })
+                .catch(error => {
+                    console.error('Error al cargar página:', error);
+                    this.showSearchError('Error al cargar la página. Intenta nuevamente.');
+                })
+                .finally(() => {
+                    this.setPaginationDisabled(false);
+                    this.isLoadingPage = false;
+                });
         },
-        
+
         updateViewMode() {
             this.viewMode = window.innerWidth >= 768 ? 'table' : 'cards';
         },
-        
+
         setViewMode(mode) {
             this.viewMode = mode;
         },
-        
+
         performSearch() {
             // Búsqueda del lado del servidor con debounce
             this.isSearching = true;
@@ -541,7 +541,7 @@ function dataTable() {
 
         executeServerSearch() {
             const searchTerm = this.searchTerm.trim();
-            
+
             // Construir URL con parámetros de búsqueda
             const url = new URL(window.location.href);
             if (searchTerm) {
@@ -549,13 +549,13 @@ function dataTable() {
             } else {
                 url.searchParams.delete('search');
             }
-            
+
             // Mantener filtro activo si existe
             const currentFilter = document.querySelector('[x-data="filtersPanel()"]')?._x_dataStack?.[0]?.currentFilter;
             if (currentFilter && currentFilter !== 'all') {
                 url.searchParams.set('filter', currentFilter);
             }
-            
+
             // Realizar petición AJAX
             fetch(url.toString(), {
                 method: 'GET',
@@ -564,64 +564,64 @@ function dataTable() {
                     'Accept': 'text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la búsqueda');
-                }
-                return response.text();
-            })
-            .then(html => {
-                // Actualizar la tabla con los nuevos resultados
-                this.updateTableWithSearchResults(html, searchTerm);
-            })
-            .catch(error => {
-                console.error('Error en búsqueda:', error);
-                this.showSearchError('Error al realizar la búsqueda');
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la búsqueda');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Actualizar la tabla con los nuevos resultados
+                    this.updateTableWithSearchResults(html, searchTerm);
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda:', error);
+                    this.showSearchError('Error al realizar la búsqueda');
+                });
         },
 
         updateTableWithSearchResults(html, searchTerm) {
             // Crear un elemento temporal para parsear el HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            
+
             // Extraer la nueva tabla
             const newTableBody = tempDiv.querySelector('#customersTableBody');
             const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
             const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
             const newPagination = tempDiv.querySelector('.custom-pagination');
-            
+
             // Actualizar la tabla
             const currentTableBody = document.getElementById('customersTableBody');
             if (newTableBody && currentTableBody) {
                 currentTableBody.innerHTML = newTableBody.innerHTML;
             }
-            
+
             // Actualizar las tarjetas
             const currentCardsContainer = document.getElementById('mobileCustomersContainer');
             if (newCardsContainer && currentCardsContainer) {
                 currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
             }
-            
+
             // Actualizar vista móvil
             const currentMobileContainer = document.getElementById('mobileOnlyContainer');
             if (newMobileContainer && currentMobileContainer) {
                 currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
             }
-            
+
             // Actualizar paginación
             const currentPagination = document.querySelector('.custom-pagination');
             if (newPagination && currentPagination) {
                 currentPagination.innerHTML = newPagination.innerHTML;
             }
-            
+
             // Actualizar contador de resultados
             this.updateSearchResultsCount();
-            
+
             // Mostrar mensaje si no hay resultados
             const totalVisible = this.getVisibleCount();
             this.showNoResultsMessage(totalVisible === 0 && searchTerm !== '');
-            
+
             // Actualizar URL sin recargar la página
             if (searchTerm) {
                 window.history.pushState({}, '', `?search=${encodeURIComponent(searchTerm)}`);
@@ -650,7 +650,7 @@ function dataTable() {
                         a.classList.remove('pointer-events-none', 'opacity-60');
                     }
                 });
-            } catch (_) {}
+            } catch (_) { }
         },
 
         showSearchError(message) {
@@ -665,23 +665,23 @@ function dataTable() {
                 timer: 3000
             });
         },
-        
+
         // Buscar en modo tabla
         searchInTable(searchTerm) {
             const table = document.getElementById('customersTable');
             if (!table) return;
-            
+
             const rows = table.querySelectorAll('tbody tr');
             let visibleCount = 0;
-            
+
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 const matches = text.includes(searchTerm);
-                
+
                 if (searchTerm === '' || matches) {
                     row.style.display = '';
                     visibleCount++;
-                    
+
                     if (searchTerm !== '') {
                         this.highlightSearchTerms(row, searchTerm);
                     } else {
@@ -692,21 +692,21 @@ function dataTable() {
                 }
             });
         },
-        
+
         // Buscar en modo tarjetas
         searchInCards(searchTerm) {
             const cardsContainer = document.getElementById('mobileCustomersContainer');
             if (!cardsContainer) return;
-            
+
             const cards = cardsContainer.querySelectorAll('.bg-white.rounded-2xl');
-            
+
             cards.forEach(card => {
                 const text = card.textContent.toLowerCase();
                 const matches = text.includes(searchTerm);
-                
+
                 if (searchTerm === '' || matches) {
                     card.style.display = '';
-                    
+
                     if (searchTerm !== '') {
                         this.highlightSearchTermsInCard(card, searchTerm);
                     } else {
@@ -717,7 +717,7 @@ function dataTable() {
                 }
             });
         },
-        
+
         // Resaltar términos de búsqueda
         highlightSearchTerms(row, searchTerm) {
             const cells = row.querySelectorAll('td');
@@ -726,13 +726,13 @@ function dataTable() {
                 this.highlightSafeElements(cell, searchTerm);
             });
         },
-        
+
         // Resaltar elementos de forma segura sin tocar botones
         highlightSafeElements(cell, searchTerm) {
             // Lista de elementos seguros para resaltar
             const safeSelectors = [
                 '.customer-name',
-                '.customer-email', 
+                '.customer-email',
                 '.id-badge',
                 '.sales-amount',
                 '.sales-count',
@@ -740,7 +740,7 @@ function dataTable() {
                 '.no-sales',
                 '.no-debt-badge'
             ];
-            
+
             safeSelectors.forEach(selector => {
                 const elements = cell.querySelectorAll(selector);
                 elements.forEach(element => {
@@ -750,21 +750,21 @@ function dataTable() {
                 });
             });
         },
-        
+
         // Resaltar un elemento específico
         highlightElement(element, searchTerm) {
             const originalText = element.getAttribute('data-original-text') || element.textContent;
             if (!element.hasAttribute('data-original-text')) {
                 element.setAttribute('data-original-text', originalText);
             }
-            
+
             // Escapar caracteres especiales en el término de búsqueda
             const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(${escapedSearchTerm})`, 'gi');
             const highlightedText = originalText.replace(regex, '<mark class="bg-yellow-200 text-yellow-800 px-1 rounded">$1</mark>');
             element.innerHTML = highlightedText;
         },
-        
+
         // Resaltar términos de búsqueda en tarjetas
         highlightSearchTermsInCard(card, searchTerm) {
             // Lista de elementos seguros para resaltar en tarjetas
@@ -773,21 +773,21 @@ function dataTable() {
                 'span', // email, teléfono, etc.
                 'p' // otros textos
             ];
-            
+
             safeSelectors.forEach(selector => {
                 const elements = card.querySelectorAll(selector);
                 elements.forEach(element => {
                     // Solo resaltar elementos que no contengan botones y no sean badges de estado
                     const hasButtons = element.querySelector('button, a');
                     const isStatusBadge = element.closest('.inline-flex');
-                    
+
                     if (!hasButtons && !isStatusBadge && element.children.length === 0) {
                         this.highlightElement(element, searchTerm);
                     }
                 });
             });
         },
-        
+
         // Remover resaltados de tarjetas
         removeHighlightsFromCard(card) {
             const highlightedElements = card.querySelectorAll('mark');
@@ -799,9 +799,9 @@ function dataTable() {
                 }
             });
         },
-        
 
-        
+
+
         // Remover resaltados
         removeHighlights(row) {
             const cells = row.querySelectorAll('td');
@@ -817,7 +817,7 @@ function dataTable() {
                 });
             });
         },
-        
+
         // Manejar teclas especiales
         handleKeydown(event) {
             if (event.key === 'Enter') {
@@ -827,23 +827,23 @@ function dataTable() {
                 this.clearSearch();
             }
         },
-        
+
         // Mostrar mensaje de no resultados
         showNoResultsMessage(show) {
             // Mostrar mensaje en la tabla
             this.showNoResultsInTable(show);
-            
+
             // Mostrar mensaje en las tarjetas
             this.showNoResultsInCards(show);
         },
-        
+
         // Mostrar mensaje de no resultados en tabla
         showNoResultsInTable(show) {
             const table = document.getElementById('customersTable');
             if (!table) return;
-            
+
             let noResultsRow = table.querySelector('.no-results-row');
-            
+
             if (show) {
                 if (!noResultsRow) {
                     const tbody = table.querySelector('tbody');
@@ -865,14 +865,14 @@ function dataTable() {
                 noResultsRow.style.display = 'none';
             }
         },
-        
+
         // Mostrar mensaje de no resultados en tarjetas
         showNoResultsInCards(show) {
             const cardsContainer = document.getElementById('mobileCustomersContainer');
             if (!cardsContainer) return;
-            
+
             let noResultsCard = cardsContainer.querySelector('.no-results-card');
-            
+
             if (show) {
                 if (!noResultsCard) {
                     noResultsCard = document.createElement('div');
@@ -893,23 +893,23 @@ function dataTable() {
                 noResultsCard.style.display = 'none';
             }
         },
-        
+
         clearSearch() {
             this.searchTerm = '';
             this.searchResultsCount = 0;
-            
+
             // Realizar búsqueda del servidor para limpiar filtros pero mantener filtro activo
             this.executeServerSearch();
         },
-        
+
         updateSearchResultsCount() {
             this.searchResultsCount = this.getVisibleCount();
         },
-        
+
         // Obtener conteo total de elementos visibles
         getVisibleCount() {
             let totalVisible = 0;
-            
+
             // Contar elementos visibles según el modo de vista activo
             if (this.viewMode === 'table') {
                 const table = document.getElementById('customersTable');
@@ -924,10 +924,10 @@ function dataTable() {
                     totalVisible = visibleCards.length;
                 }
             }
-            
+
             return totalVisible;
         },
-        
+
         applyFilters(currentFilter, searchTerm) {
             // Esta función se puede usar para filtrar la tabla si es necesario
             this.updateSearchResultsCount();
@@ -938,39 +938,39 @@ function dataTable() {
 // ===== FUNCIONES DE INICIALIZACIÓN =====
 
 // Función para inicializar el tipo de cambio
-window.initializeExchangeRate = function() {
+window.initializeExchangeRate = function () {
     const savedRate = localStorage.getItem('exchangeRate');
     const rate = savedRate ? parseFloat(savedRate) : (window.exchangeRate || CONFIG.exchangeRate.default);
-    
+
     // Actualizar el input si existe
     const exchangeRateInput = document.getElementById('exchangeRate');
     if (exchangeRateInput) {
         exchangeRateInput.value = rate;
     }
-    
+
     // Actualizar valores en Bs
     window.customersIndex.updateBsValues(rate);
-    
+
     return rate;
 }
 
 // Función para guardar el tipo de cambio
-window.saveExchangeRate = function(rate) {
+window.saveExchangeRate = function (rate) {
     window.currentExchangeRate = rate;
     localStorage.setItem(CONFIG.exchangeRate.key, rate);
     window.customersIndex.updateBsValues(rate);
 }
 
 // Función para sincronizar todos los elementos de tipo de cambio
-window.syncAllExchangeRateElements = function() {
+window.syncAllExchangeRateElements = function () {
     const rate = window.currentExchangeRate || window.initializeExchangeRate();
-    
+
     // Actualizar todos los inputs de tipo de cambio
     const exchangeRateInputs = document.querySelectorAll('input[name="exchange_rate"], #exchangeRate');
     exchangeRateInputs.forEach(input => {
         input.value = rate;
     });
-    
+
     // Actualizar valores en Bs
     window.customersIndex.updateBsValues(rate);
 }
@@ -1017,11 +1017,11 @@ function formatDateTime(date) {
 }
 
 // ===== INICIALIZACIÓN OPTIMIZADA =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     window.initializeExchangeRate();
-    
 
-    
+
+
     // Inicialización no crítica diferida
     setTimeout(() => {
         setupExchangeRateEvents();
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===== FUNCIONES DE CONFIGURACIÓN DE EVENTOS =====
 
 function setupExchangeRateEvents() {
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.matches('.update-exchange-rate')) {
             const input = document.getElementById('exchangeRate');
             if (input) {
@@ -1041,7 +1041,7 @@ function setupExchangeRateEvents() {
                     window.currentExchangeRate = rate;
                     localStorage.setItem(CONFIG.exchangeRate.key, rate);
                     window.customersIndex.updateBsValues(rate);
-                    
+
                     if (window.Swal) {
                         Swal.fire({
                             icon: 'success',
@@ -1060,7 +1060,7 @@ function setupExchangeRateEvents() {
 
 function setupOptimizedEvents() {
     // Event delegation optimizado
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         // Manejar botones de eliminación
         if (e.target.closest('[onclick*="deleteCustomer"]')) {
             e.preventDefault();
@@ -1098,7 +1098,7 @@ window.initializeExchangeRate = initializeExchangeRate;
 window.showNotification = showNotification;
 
 // Hacer la función deleteCustomer disponible globalmente
-window.deleteCustomer = function(customerId) {
+window.deleteCustomer = function (customerId) {
     if (window.customersIndex && window.customersIndex.deleteCustomer) {
         window.customersIndex.deleteCustomer(customerId);
     } else {
@@ -1107,11 +1107,11 @@ window.deleteCustomer = function(customerId) {
 };
 
 // Función de inicialización inmediata
-(function() {
+(function () {
     // Función para asegurar que deleteCustomer esté disponible
     function ensureDeleteCustomerAvailable() {
         if (typeof window.deleteCustomer === 'undefined') {
-            window.deleteCustomer = function(customerId) {
+            window.deleteCustomer = function (customerId) {
                 if (window.customersIndex && window.customersIndex.deleteCustomer) {
                     window.customersIndex.deleteCustomer(customerId);
                 } else {
@@ -1120,24 +1120,24 @@ window.deleteCustomer = function(customerId) {
             };
         }
     }
-    
+
     // Ejecutar inmediatamente
     ensureDeleteCustomerAvailable();
-    
+
     // Ejecutar cuando Alpine.js esté disponible
     if (typeof Alpine !== 'undefined') {
         Alpine.nextTick(() => {
             ensureDeleteCustomerAvailable();
         });
     }
-    
+
     // Ejecutar cuando el DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', ensureDeleteCustomerAvailable);
     } else {
         ensureDeleteCustomerAvailable();
     }
-    
+
     // Ejecutar cuando la ventana esté completamente cargada
     window.addEventListener('load', ensureDeleteCustomerAvailable);
 })();
@@ -1205,7 +1205,7 @@ class SPAPaymentHandler {
             if (!this.boundFormatPaymentAmount) {
                 this.boundFormatPaymentAmount = () => this.formatPaymentAmount();
             }
-            
+
             // Remover eventos anteriores para evitar duplicados
             paymentAmountInput.removeEventListener('input', this.boundHandlePaymentAmountInput);
             paymentAmountInput.addEventListener('input', this.boundHandlePaymentAmountInput);
@@ -1278,68 +1278,68 @@ class SPAPaymentHandler {
         const formData = this.getFormData();
         const customerName = document.getElementById('customer_name').value;
         const paymentAmount = formData.payment_amount;
-        
+
         const result = await Swal.fire({
-            title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
-                   '<div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">' +
-                   '<i class="fas fa-money-bill-wave text-white text-xl"></i>' +
-                   '</div>' +
-                   '<h2 class="text-2xl font-bold text-gray-800">¿Confirmar Pago?</h2>' +
-                   '</div>',
+            title: '<div class="flex flex-col sm:flex-row items-center justify-center sm:space-x-3 space-y-2 sm:space-y-0 mb-3 sm:mb-4">' +
+                '<div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">' +
+                '<i class="fas fa-money-bill-wave text-white text-lg sm:text-xl"></i>' +
+                '</div>' +
+                '<h2 class="text-xl sm:text-2xl font-bold text-gray-800 text-center">¿Confirmar Pago?</h2>' +
+                '</div>',
             html: `
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                    <div class="space-y-4">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-6 border border-blue-200">
+                    <div class="space-y-2 sm:space-y-4">
                         <!-- Información del Cliente -->
-                        <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-white text-sm"></i>
+                        <div class="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-white text-xs sm:text-sm"></i>
                             </div>
-                            <div>
+                            <div class="min-w-0 flex-1">
                                 <p class="text-xs text-gray-500 font-medium">CLIENTE</p>
-                                <p class="text-sm font-semibold text-gray-800">${customerName}</p>
+                                <p class="text-xs sm:text-sm font-semibold text-gray-800 truncate">${customerName}</p>
                             </div>
                         </div>
                         
                         <!-- Monto del Pago -->
-                        <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                                <i class="fas fa-dollar-sign text-white text-sm"></i>
+                        <div class="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-dollar-sign text-white text-xs sm:text-sm"></i>
                             </div>
-                            <div>
+                            <div class="min-w-0 flex-1">
                                 <p class="text-xs text-gray-500 font-medium">MONTO A PAGAR</p>
-                                <p class="text-lg font-bold text-green-600">${this.currencySymbol}${paymentAmount.toFixed(2)}</p>
+                                <p class="text-base sm:text-lg font-bold text-green-600">${this.currencySymbol}${paymentAmount.toFixed(2)}</p>
                             </div>
                         </div>
                         
                         <!-- Fecha y Hora -->
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-calendar text-white text-sm"></i>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                            <div class="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-calendar text-white text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <p class="text-xs text-gray-500 font-medium">FECHA</p>
-                                    <p class="text-sm font-semibold text-gray-800">${formData.payment_date}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-gray-800">${formData.payment_date}</p>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-clock text-white text-sm"></i>
+                            <div class="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-clock text-white text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
+                                <div class="min-w-0 flex-1">
                                     <p class="text-xs text-gray-500 font-medium">HORA</p>
-                                    <p class="text-sm font-semibold text-gray-800">${formData.payment_time}</p>
+                                    <p class="text-xs sm:text-sm font-semibold text-gray-800">${formData.payment_time}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Mensaje informativo -->
-                    <div class="mt-4 p-3 bg-blue-100 rounded-lg border border-blue-200">
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-info-circle text-blue-600"></i>
-                            <p class="text-xs text-blue-700 font-medium">Este pago se registrará inmediatamente y actualizará la deuda del cliente</p>
+                    <div class="mt-3 sm:mt-4 p-2 sm:p-3 bg-blue-100 rounded-lg border border-blue-200">
+                        <div class="flex items-start sm:items-center space-x-2">
+                            <i class="fas fa-info-circle text-blue-600 text-sm flex-shrink-0 mt-0.5 sm:mt-0"></i>
+                            <p class="text-xs text-blue-700 font-medium leading-relaxed">Este pago se registrará inmediatamente y actualizará la deuda del cliente</p>
                         </div>
                     </div>
                 </div>
@@ -1347,15 +1347,18 @@ class SPAPaymentHandler {
             showCancelButton: true,
             confirmButtonColor: '#10b981',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: '<i class="fas fa-check mr-2"></i>Sí, Registrar Pago',
-            cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancelar',
+            confirmButtonText: '<i class="fas fa-check mr-1 sm:mr-2"></i><span class="hidden xs:inline">Sí, </span>Registrar',
+            cancelButtonText: '<i class="fas fa-times mr-1 sm:mr-2"></i>Cancelar',
             customClass: {
-                popup: 'rounded-2xl shadow-2xl',
-                confirmButton: 'rounded-lg px-6 py-3 font-semibold',
-                cancelButton: 'rounded-lg px-6 py-3 font-semibold'
+                popup: 'rounded-xl sm:rounded-2xl shadow-2xl',
+                confirmButton: 'rounded-lg px-4 sm:px-6 py-2 sm:py-3 font-semibold text-sm sm:text-base',
+                cancelButton: 'rounded-lg px-4 sm:px-6 py-2 sm:py-3 font-semibold text-sm sm:text-base',
+                actions: 'gap-2 sm:gap-3 flex-col xs:flex-row w-full xs:w-auto'
             },
-            width: '500px',
-            padding: '2rem'
+            width: window.innerWidth < 640 ? '95%' : '500px',
+            padding: window.innerWidth < 640 ? '1rem' : '2rem',
+            buttonsStyling: true,
+            reverseButtons: window.innerWidth < 640
         });
 
         if (!result.isConfirmed) {
@@ -1431,7 +1434,7 @@ class SPAPaymentHandler {
     validatePaymentDate() {
         const input = document.getElementById('payment_date');
         const selectedDateStr = input.value;
-        
+
         if (!selectedDateStr) {
             this.showFieldError('payment_date', 'La fecha es requerida');
             return false;
@@ -1439,9 +1442,9 @@ class SPAPaymentHandler {
 
         // Usar formato de fecha simple para evitar problemas de zona horaria
         const today = new Date();
-        const todayStr = today.getFullYear() + '-' + 
-                         String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                         String(today.getDate()).padStart(2, '0');
+        const todayStr = today.getFullYear() + '-' +
+            String(today.getMonth() + 1).padStart(2, '0') + '-' +
+            String(today.getDate()).padStart(2, '0');
 
         if (selectedDateStr > todayStr) {
             this.showFieldError('payment_date', 'La fecha no puede ser mayor a hoy');
@@ -1468,7 +1471,7 @@ class SPAPaymentHandler {
     formatPaymentAmount() {
         const input = document.getElementById('payment_amount');
         const value = parseFloat(input.value);
-        
+
         if (!isNaN(value)) {
             input.value = value.toFixed(2);
         }
@@ -1479,9 +1482,9 @@ class SPAPaymentHandler {
         if (!input) {
             return;
         }
-        
+
         const maxDebt = parseFloat(input.getAttribute('data-max-debt') || 0);
-        
+
         input.value = maxDebt.toFixed(2);
         this.validatePaymentAmount();
         this.updateRemainingDebt();
@@ -1490,25 +1493,25 @@ class SPAPaymentHandler {
     updateRemainingDebt() {
         const paymentAmountInput = document.getElementById('payment_amount');
         const remainingDebtElement = document.getElementById('remaining_debt');
-        
+
         if (!paymentAmountInput) {
             return;
         }
-        
+
         if (!remainingDebtElement) {
             return;
         }
-        
+
         const currentDebt = parseFloat(paymentAmountInput.getAttribute('data-max-debt') || 0);
         const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
         const remainingDebt = Math.max(0, currentDebt - paymentAmount);
-        
+
         // Actualizar el elemento de deuda restante
         const remainingDebtSpan = remainingDebtElement.querySelector('span');
         if (remainingDebtSpan) {
             remainingDebtSpan.textContent = `${this.currencySymbol}${remainingDebt.toFixed(2)}`;
         }
-        
+
         // Cambiar color según si hay deuda restante
         if (remainingDebt > 0) {
             remainingDebtElement.className = 'w-full pl-12 pr-12 py-2.5 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 font-semibold text-sm flex items-center';
@@ -1520,20 +1523,20 @@ class SPAPaymentHandler {
     getFormData() {
         const form = document.getElementById('debtPaymentForm');
         const formData = new FormData(form);
-        
+
         const data = {
             payment_amount: parseFloat(formData.get('payment_amount')),
             payment_date: formData.get('payment_date'),
             payment_time: formData.get('payment_time'),
             notes: formData.get('notes') || ''
         };
-        
+
         return data;
     }
 
     async sendPaymentRequest(data) {
         const url = `/admin/customers/${this.currentCustomerId}/register-payment-ajax`;
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -1542,42 +1545,42 @@ class SPAPaymentHandler {
             },
             body: JSON.stringify(data)
         });
-        
+
         const responseData = await response.json();
-        
+
         return responseData;
     }
 
     async handlePaymentSuccess(response) {
         // Mostrar notificación de éxito mejorada
         await Swal.fire({
-            title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
-                   '<div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">' +
-                   '<i class="fas fa-check text-white text-xl"></i>' +
-                   '</div>' +
-                   '<h2 class="text-2xl font-bold text-gray-800">¡Pago Registrado!</h2>' +
-                   '</div>',
+            title: '<div class="flex flex-col sm:flex-row items-center justify-center sm:space-x-3 space-y-2 sm:space-y-0 mb-3 sm:mb-4">' +
+                '<div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">' +
+                '<i class="fas fa-check text-white text-lg sm:text-xl"></i>' +
+                '</div>' +
+                '<h2 class="text-xl sm:text-2xl font-bold text-gray-800 text-center">¡Pago Registrado!</h2>' +
+                '</div>',
             html: `
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-                    <div class="text-center space-y-4">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                            <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg sm:rounded-xl p-3 sm:p-6 border border-green-200">
+                    <div class="text-center space-y-3 sm:space-y-4">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                            <i class="fas fa-check-circle text-green-600 text-xl sm:text-2xl"></i>
                         </div>
                         
                         <div>
-                            <p class="text-lg font-semibold text-gray-800 mb-2">${response.message}</p>
-                            <p class="text-sm text-gray-600">El pago se ha registrado correctamente en el sistema</p>
+                            <p class="text-base sm:text-lg font-semibold text-gray-800 mb-2">${response.message}</p>
+                            <p class="text-xs sm:text-sm text-gray-600">El pago se ha registrado correctamente en el sistema</p>
                         </div>
                         
-                        <div class="bg-white rounded-lg p-4 border border-green-200">
-                            <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white rounded-lg p-3 sm:p-4 border border-green-200">
+                            <div class="grid grid-cols-2 gap-3 sm:gap-4 text-center">
                                 <div>
                                     <p class="text-xs text-gray-500 font-medium">MONTO PAGADO</p>
-                                    <p class="text-lg font-bold text-green-600">${this.currencySymbol}${response.payment.amount.toFixed(2)}</p>
+                                    <p class="text-base sm:text-lg font-bold text-green-600">${this.currencySymbol}${response.payment.amount.toFixed(2)}</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500 font-medium">DEUDA RESTANTE</p>
-                                    <p class="text-lg font-bold text-orange-600">${this.currencySymbol}${response.payment.remaining_debt.toFixed(2)}</p>
+                                    <p class="text-base sm:text-lg font-bold text-orange-600">${this.currencySymbol}${response.payment.remaining_debt.toFixed(2)}</p>
                                 </div>
                             </div>
                         </div>
@@ -1588,20 +1591,20 @@ class SPAPaymentHandler {
             timerProgressBar: true,
             showConfirmButton: false,
             customClass: {
-                popup: 'rounded-2xl shadow-2xl'
+                popup: 'rounded-xl sm:rounded-2xl shadow-2xl'
             },
-            width: '500px',
-            padding: '2rem'
+            width: window.innerWidth < 640 ? '95%' : '500px',
+            padding: window.innerWidth < 640 ? '1rem' : '2rem'
         });
 
         // Actualizar interfaz
         this.updateCustomerRow(response.customer);
         this.updateDashboardStats(response.stats);
         this.updateCustomerCards(response.customer);
-        
+
         // Cerrar modal
         this.closePaymentModal();
-        
+
         // Actualizar historial si está abierto
         this.updateCustomerHistory(response.customer.id);
     }
@@ -1614,11 +1617,11 @@ class SPAPaymentHandler {
             // Mostrar error general mejorado
             Swal.fire({
                 title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
-                       '<div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center">' +
-                       '<i class="fas fa-exclamation-triangle text-white text-xl"></i>' +
-                       '</div>' +
-                       '<h2 class="text-2xl font-bold text-gray-800">Error</h2>' +
-                       '</div>',
+                    '<div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center">' +
+                    '<i class="fas fa-exclamation-triangle text-white text-xl"></i>' +
+                    '</div>' +
+                    '<h2 class="text-2xl font-bold text-gray-800">Error</h2>' +
+                    '</div>',
                 html: `
                     <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
                         <div class="text-center space-y-4">
@@ -1648,11 +1651,11 @@ class SPAPaymentHandler {
     handleNetworkError(error) {
         Swal.fire({
             title: '<div class="flex items-center justify-center space-x-3 mb-4">' +
-                   '<div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-full flex items-center justify-center">' +
-                   '<i class="fas fa-wifi text-white text-xl"></i>' +
-                   '</div>' +
-                   '<h2 class="text-2xl font-bold text-gray-800">Error de Conexión</h2>' +
-                   '</div>',
+                '<div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-600 rounded-full flex items-center justify-center">' +
+                '<i class="fas fa-wifi text-white text-xl"></i>' +
+                '</div>' +
+                '<h2 class="text-2xl font-bold text-gray-800">Error de Conexión</h2>' +
+                '</div>',
             html: `
                 <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-6 border border-orange-200">
                     <div class="text-center space-y-4">
@@ -1841,7 +1844,7 @@ class SPAPaymentHandler {
     hideCustomerRow(row, customer) {
         // Verificar si hay filtros activos que requieran ocultar el cliente
         const currentFilter = this.getCurrentFilter();
-        
+
         if (currentFilter === 'defaulters' && !customer.is_defaulter) {
             row.style.display = 'none';
             this.showFilterNotification();
@@ -1851,7 +1854,7 @@ class SPAPaymentHandler {
     hideCustomerCard(card, customer) {
         // Verificar si hay filtros activos que requieran ocultar el cliente
         const currentFilter = this.getCurrentFilter();
-        
+
         if (currentFilter === 'defaulters' && !customer.is_defaulter) {
             card.style.display = 'none';
             this.showFilterNotification();
@@ -1893,7 +1896,7 @@ class SPAPaymentHandler {
         try {
             const response = await fetch(`/admin/customers/${customerId}/sales-history`);
             const data = await response.json();
-            
+
             if (data.success) {
                 this.updateSalesHistoryTable(data.sales);
             }
@@ -1953,7 +1956,7 @@ class SPAPaymentHandler {
 
     showLoadingState() {
         this.isProcessing = true;
-        
+
         // Deshabilitar botón de envío
         const submitBtn = document.querySelector('#debtPaymentForm button[type="submit"]');
         if (submitBtn) {
@@ -1972,7 +1975,7 @@ class SPAPaymentHandler {
 
     hideLoadingState() {
         this.isProcessing = false;
-        
+
         // Habilitar botón de envío
         const submitBtn = document.querySelector('#debtPaymentForm button[type="submit"]');
         if (submitBtn) {
@@ -2059,25 +2062,25 @@ class SPAPaymentHandler {
 
     openPaymentModal(customerId) {
         this.currentCustomerId = customerId;
-        
+
         // Cargar datos del cliente
         this.loadCustomerData(customerId);
-        
+
         // Abrir modal directamente
         const modal = document.getElementById('debtPaymentModal');
         if (modal) {
             // Remover cualquier atributo x-show que pueda estar interfiriendo
             modal.removeAttribute('x-show');
             modal.removeAttribute('x-cloak');
-            
+
             // Mostrar el modal con animación
             modal.style.display = 'block';
             modal.classList.remove('hidden', 'hide');
             modal.classList.add('show');
-            
+
             // Agregar clase para backdrop
             document.body.classList.add('modal-open');
-            
+
             // Vincular eventos después de que el modal esté visible
             setTimeout(() => {
                 this.bindModalEvents();
@@ -2092,21 +2095,21 @@ class SPAPaymentHandler {
             // Ocultar el modal con animación
             modal.classList.remove('show');
             modal.classList.add('hide');
-            
+
             // Después de la animación, ocultar completamente
             setTimeout(() => {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
                 modal.classList.remove('hide');
             }, 300);
-            
+
             // Remover clase de backdrop
             document.body.classList.remove('modal-open');
         }
 
         // Limpiar formulario
         this.resetForm();
-        
+
         // Limpiar errores
         this.clearAllErrors();
     }
@@ -2115,7 +2118,7 @@ class SPAPaymentHandler {
         try {
             const response = await fetch(`/admin/customers/${customerId}/payment-data`);
             const data = await response.json();
-            
+
             if (data.success) {
                 this.populateForm(data.customer);
             }
@@ -2132,14 +2135,14 @@ class SPAPaymentHandler {
         // Llenar información del cliente
         document.getElementById('customer_name').value = customer.name;
         document.getElementById('customer_phone').value = customer.phone;
-        
+
         // Actualizar estado del cliente
         const statusElement = document.getElementById('customer_status');
         if (statusElement) {
-            statusElement.className = customer.has_sales ? 
+            statusElement.className = customer.has_sales ?
                 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' :
                 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
-            statusElement.innerHTML = customer.has_sales ? 
+            statusElement.innerHTML = customer.has_sales ?
                 '<i class="fas fa-check-circle mr-1"></i>Activo' :
                 '<i class="fas fa-times-circle mr-1"></i>Inactivo';
         }
@@ -2167,12 +2170,12 @@ class SPAPaymentHandler {
 
         // Establecer fecha y hora por defecto (usar zona horaria local)
         const now = new Date();
-        const today = now.getFullYear() + '-' + 
-                     String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                     String(now.getDate()).padStart(2, '0');
-        const currentTime = String(now.getHours()).padStart(2, '0') + ':' + 
-                           String(now.getMinutes()).padStart(2, '0');
-        
+        const today = now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0');
+        const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0');
+
         document.getElementById('payment_date').value = today;
         document.getElementById('payment_time').value = currentTime;
     }
