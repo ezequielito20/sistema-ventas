@@ -1555,10 +1555,15 @@ class CustomerController extends Controller
 
             // Aplicar lógica FIFO para encontrar la primera venta con deuda pendiente
             $remainingPayments = (float) $totalPayments;
+
             foreach ($customerSales as $sale) {
                $saleTotal = (float) $sale->total_price;
 
-               if ($remainingPayments >= $saleTotal) {
+               // Usar round para evitar problemas de precisión de punto flotante
+               $remainingRounded = round($remainingPayments, 2);
+               $saleTotalRounded = round($saleTotal, 2);
+
+               if ($remainingRounded >= $saleTotalRounded) {
                   // Esta venta está completamente pagada
                   $remainingPayments -= $saleTotal;
                } else {
