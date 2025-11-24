@@ -77,6 +77,16 @@ window.modalManager = function () {
                         if (customerNameField) customerNameField.value = customerData.customer.name;
                         if (customerPhoneField) customerPhoneField.value = customerData.customer.phone || 'No disponible';
 
+                        // Llenar campo de último pago
+                        const customerLastPaymentField = document.getElementById('customer_last_payment_details');
+                        if (customerLastPaymentField) {
+                            if (customerData.customer.last_payment) {
+                                customerLastPaymentField.value = `${customerData.customer.last_payment.date} por $${customerData.customer.last_payment.amount}`;
+                            } else {
+                                customerLastPaymentField.value = 'Sin pagos registrados';
+                            }
+                        }
+
                         // Actualizar estado del cliente
                         if (customerStatusElement) {
                             if (customerData.customer.is_defaulter) {

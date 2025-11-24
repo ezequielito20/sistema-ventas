@@ -1407,7 +1407,7 @@
                                 </div>
                                 <h6 class="text-lg font-semibold text-gray-900">Información del Cliente</h6>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div class="space-y-2">
                                     <label class="text-sm font-semibold text-gray-700">Cliente</label>
                                     <div class="relative">
@@ -1424,6 +1424,16 @@
                                         </div>
                                         <input type="text" id="customer_phone_details" readonly
                                             class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm">
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700">Último Pago</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        </div>
+                                        <input type="text" id="customer_last_payment_details" readonly
+                                            class="w-full pl-10 pr-3 py-2.5 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm"
+                                            placeholder="Sin pagos registrados">
                                     </div>
                                 </div>
                             </div>

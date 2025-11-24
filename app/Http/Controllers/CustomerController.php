@@ -787,13 +787,30 @@ class CustomerController extends Controller
                      ];
                   });
 
+               // Obtener el último pago del cliente
+               $lastPayment = null;
+               if (Schema::hasTable('debt_payments')) {
+                  $lastPaymentRecord = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                     ->where('company_id', $this->company->id)
+                     ->orderBy('created_at', 'desc')
+                     ->first();
+
+                  if ($lastPaymentRecord) {
+                     $lastPayment = [
+                        'date' => $lastPaymentRecord->created_at->format('d/m/Y'),
+                        'amount' => number_format($lastPaymentRecord->payment_amount, 2)
+                     ];
+                  }
+               }
+
                return response()->json([
                   'success' => true,
                   'customer' => [
                      'id' => $customer->id,
                      'name' => $customer->name,
                      'phone' => $customer->phone,
-                     'is_defaulter' => $isDefaulter
+                     'is_defaulter' => $isDefaulter,
+                     'last_payment' => $lastPayment
                   ],
                   'sales' => $sales
                ]);
