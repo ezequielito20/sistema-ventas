@@ -1535,11 +1535,45 @@ class CustomerController extends Controller
             $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
             $isDefaulter = $previousDebt > 0;
 
+            // Calcular la fecha "Debe desde" usando lógica FIFO
+            $debtSinceDate = null;
+
+            // Obtener todas las ventas del cliente ordenadas por fecha (FIFO)
+            $customerSales = \App\Models\Sale::where('customer_id', $customer->id)
+               ->where('company_id', $this->company->id)
+               ->orderBy('sale_date', 'asc')
+               ->select('id', 'sale_date', 'total_price')
+               ->get();
+
+            // Obtener total de pagos del cliente
+            $totalPayments = 0;
+            if (Schema::hasTable('debt_payments')) {
+               $totalPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->sum('payment_amount');
+            }
+
+            // Aplicar lógica FIFO para encontrar la primera venta con deuda pendiente
+            $remainingPayments = (float) $totalPayments;
+            foreach ($customerSales as $sale) {
+               $saleTotal = (float) $sale->total_price;
+
+               if ($remainingPayments >= $saleTotal) {
+                  // Esta venta está completamente pagada
+                  $remainingPayments -= $saleTotal;
+               } else {
+                  // Esta venta tiene saldo pendiente, es la fecha "Debe desde"
+                  $debtSinceDate = $sale->sale_date;
+                  break;
+               }
+            }
+
             // Almacenar datos calculados
             $customersData[$customer->id] = [
                'isDefaulter' => $isDefaulter,
                'previousDebt' => $previousDebt,
-               'hasOldSales' => $previousDebt > 0
+               'hasOldSales' => $previousDebt > 0,
+               'debt_since_date' => $debtSinceDate
             ];
 
             // Aplicar filtro por tipo de deuda
@@ -1559,6 +1593,22 @@ class CustomerController extends Controller
 
          // Usar los clientes filtrados para las estadísticas
          $customers = $filteredCustomers;
+
+         // Aplicar ordenamiento por fecha de deuda si corresponde
+         if ($order === 'debt_date_asc') {
+            // Ordenar por fecha más antigua primero (deudas más antiguas primero)
+            $customers = $customers->sortBy(function ($customer) use ($customersData) {
+               $date = $customersData[$customer->id]['debt_since_date'];
+               return $date ? \Carbon\Carbon::parse($date)->timestamp : PHP_INT_MAX;
+            })->values();
+         } elseif ($order === 'debt_date_desc') {
+            // Ordenar por fecha más reciente primero (deudas más recientes primero)
+            $customers = $customers->sortByDesc(function ($customer) use ($customersData) {
+               $date = $customersData[$customer->id]['debt_since_date'];
+               return $date ? \Carbon\Carbon::parse($date)->timestamp : 0;
+            })->values();
+         }
+
 
          // Inicializar variables de estadísticas
          $defaultersCount = 0;
