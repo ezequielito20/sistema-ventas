@@ -1969,6 +1969,21 @@ class CustomerController extends Controller
             ->orderBy('sales.sale_date', 'asc') // Ordenar por fecha ascendente para FIFO
             ->get();
 
+         // Obtener detalles de productos para cada venta
+         $salesProductDetails = DB::table('sale_details')
+            ->join('products', 'sale_details.product_id', '=', 'products.id')
+            ->join('sales', 'sale_details.sale_id', '=', 'sales.id')
+            ->where('sales.customer_id', $customer->id)
+            ->where('sales.company_id', $this->company->id)
+            ->select(
+               'sale_details.sale_id',
+               'products.name as product_name',
+               DB::raw('SUM(sale_details.quantity) as quantity')
+            )
+            ->groupBy('sale_details.sale_id', 'products.name')
+            ->get()
+            ->groupBy('sale_id');
+
          Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $salesWithDetails->count()]);
 
          // Obtener todos los pagos del cliente ordenados por fecha
@@ -1981,7 +1996,7 @@ class CustomerController extends Controller
          $remainingPayments = (float) $totalPayments;
 
          // Formatear datos para la tabla con estado de pago
-         $formattedSales = $salesWithDetails->map(function ($sale) use (&$remainingPayments) {
+         $formattedSales = $salesWithDetails->map(function ($sale) use (&$remainingPayments, $salesProductDetails) {
             $uniqueProducts = $sale->unique_products ?? 0;
             $totalUnits = $sale->total_units ?? 0;
             $saleTotal = (float) $sale->total_price;
@@ -2004,10 +2019,26 @@ class CustomerController extends Controller
                'is_paid' => $isPaid
             ]);
 
+            // Construir el HTML de productos con detalles
+            $productsHtml = '';
+            if (isset($salesProductDetails[$sale->id])) {
+               $productsHtml .= '<div class="text-sm">';
+               $productsHtml .= '<div class="font-semibold text-gray-700 mb-1">Productos únicos: ' . $uniqueProducts . '</div>';
+
+               foreach ($salesProductDetails[$sale->id] as $product) {
+                  $productsHtml .= '<div class="text-gray-600 ml-2">• ' . htmlspecialchars($product->product_name) . ' x' . $product->quantity . '</div>';
+               }
+
+               $productsHtml .= '<div class="text-gray-500 text-xs mt-1 font-medium">' . $totalUnits . ' unidades totales</div>';
+               $productsHtml .= '</div>';
+            } else {
+               $productsHtml = $uniqueProducts . ' productos únicos<br><small class="text-gray-500">' . $totalUnits . ' unidades totales</small>';
+            }
+
             return [
                'id' => $sale->id,
                'date' => Carbon::parse($sale->sale_date)->format('d/m/Y'),
-               'products' => $uniqueProducts . ' productos únicos<br><small class="text-gray-500">' . $totalUnits . ' unidades totales</small>',
+               'products' => $productsHtml,
                'total' => $sale->total_price,
                'is_paid' => $isPaid,
                'remaining_debt' => round($remainingDebt, 2),
