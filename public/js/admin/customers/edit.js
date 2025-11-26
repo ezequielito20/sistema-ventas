@@ -49,8 +49,7 @@ function customerEditForm() {
                 this.formatPhone();
             }
 
-            // Capitalizar automáticamente el nombre
-            this.setupNameCapitalization();
+
 
             // Validar campos iniciales
             this.validateAllFields();
@@ -70,24 +69,14 @@ function customerEditForm() {
             };
         },
 
-        setupNameCapitalization() {
-            this.$watch('form.name', (value) => {
-                if (value) {
-                    let words = value.split(' ');
-                    words = words.map(word => {
-                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                    });
-                    this.form.name = words.join(' ');
-                }
-            });
-        },
+
 
         // ===== MÉTODOS DE VALIDACIÓN =====
 
         validateField(fieldName) {
             const value = this.form[fieldName];
-            
-            switch(fieldName) {
+
+            switch (fieldName) {
                 case 'name':
                     this.validateName(value);
                     break;
@@ -169,7 +158,7 @@ function customerEditForm() {
 
         getFieldClasses(fieldName) {
             const baseClasses = 'w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
-            
+
             if (this.errors[fieldName]) {
                 return baseClasses + ' border-red-300 bg-red-50';
             } else if (this.form[fieldName] && !this.errors[fieldName]) {
@@ -181,12 +170,12 @@ function customerEditForm() {
 
         formatPhone() {
             let value = this.form.phone.replace(/\D/g, '');
-            
+
             // Limitar a máximo 10 dígitos
             if (value.length > 10) {
                 value = value.substring(0, 10);
             }
-            
+
             // Solo formatear si hay suficientes dígitos para un formato completo
             if (value.length === 0) {
                 this.form.phone = '';
@@ -200,20 +189,48 @@ function customerEditForm() {
             }
         },
 
+        // Manejar la entrada del nombre con capitalización y preservación del cursor
+        handleNameInput(event) {
+            let value = event.target.value;
+            const cursorPosition = event.target.selectionStart;
+
+            if (value) {
+                let words = value.split(' ');
+                words = words.map(word => {
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                });
+                const newValue = words.join(' ');
+
+                // Solo actualizar si hay cambios para evitar renders innecesarios
+                if (newValue !== value) {
+                    this.form.name = newValue;
+
+                    // Restaurar la posición del cursor
+                    this.$nextTick(() => {
+                        event.target.setSelectionRange(cursorPosition, cursorPosition);
+                    });
+                } else {
+                    this.form.name = value;
+                }
+            } else {
+                this.form.name = value;
+            }
+        },
+
         // Método para manejar la entrada de teléfono en tiempo real
         handlePhoneInput(event) {
             let value = event.target.value;
             const cursorPosition = event.target.selectionStart;
             const oldValue = this.form.phone;
-            
+
             // Obtener solo los dígitos
             const digitsOnly = value.replace(/\D/g, '');
-            
+
             // Limitar a 10 dígitos
             if (digitsOnly.length > 10) {
                 return; // No permitir más de 10 dígitos
             }
-            
+
             // Aplicar formato según la cantidad de dígitos
             let formattedValue = '';
             if (digitsOnly.length === 0) {
@@ -225,14 +242,14 @@ function customerEditForm() {
             } else {
                 formattedValue = digitsOnly;
             }
-            
+
             // Actualizar el valor
             this.form.phone = formattedValue;
-            
+
             // Restaurar la posición del cursor después del formato
             this.$nextTick(() => {
                 let newCursorPosition;
-                
+
                 // Si se está borrando (el valor anterior es más largo), colocar al final
                 if (oldValue.length > formattedValue.length) {
                     newCursorPosition = formattedValue.length;
@@ -243,7 +260,7 @@ function customerEditForm() {
                     // Si no hay cambio en la longitud, mantener la posición actual
                     newCursorPosition = Math.min(cursorPosition, formattedValue.length);
                 }
-                
+
                 event.target.setSelectionRange(newCursorPosition, newCursorPosition);
             });
         },
@@ -253,12 +270,12 @@ function customerEditForm() {
             // Obtener solo los dígitos hasta la posición del cursor en el valor anterior
             const oldDigitsBeforeCursor = oldValue.substring(0, oldPosition).replace(/\D/g, '');
             const newDigits = newValue.replace(/\D/g, '');
-            
+
             // Si se eliminaron dígitos (borrado), colocar el cursor al final
             if (oldDigitsBeforeCursor.length > newDigits.length) {
                 return newValue.length;
             }
-            
+
             // Si se agregaron dígitos, calcular la nueva posición
             if (oldDigitsBeforeCursor.length < newDigits.length) {
                 // Contar caracteres no-dígitos antes del cursor en el valor anterior
@@ -268,11 +285,11 @@ function customerEditForm() {
                         nonDigitsBefore++;
                     }
                 }
-                
+
                 // Calcular la nueva posición basada en los dígitos
                 let newPosition = oldDigitsBeforeCursor.length;
                 let digitCount = 0;
-                
+
                 for (let i = 0; i < newValue.length; i++) {
                     if (/\d/.test(newValue[i])) {
                         if (digitCount === newPosition) {
@@ -281,11 +298,11 @@ function customerEditForm() {
                         digitCount++;
                     }
                 }
-                
+
                 // Si no se encontró la posición exacta, ir al final
                 return newValue.length;
             }
-            
+
             // Si no hay cambios en la cantidad de dígitos, mantener la posición relativa
             return Math.min(oldPosition, newValue.length);
         },
@@ -325,11 +342,11 @@ function customerEditForm() {
                         el.setAttribute('data-aria-hidden-backup', el.getAttribute('aria-hidden'));
                         el.removeAttribute('aria-hidden');
                     });
-                    
+
                     // Enfocar y seleccionar
                     debtInput.focus();
                     debtInput.select();
-                    
+
                     // Restaurar aria-hidden después de un breve delay
                     setTimeout(() => {
                         ancestors.forEach(el => {
@@ -355,14 +372,14 @@ function customerEditForm() {
         getAncestorsWithAriaHidden(element) {
             const ancestors = [];
             let current = element.parentElement;
-            
+
             while (current) {
                 if (current.hasAttribute('aria-hidden')) {
                     ancestors.push(current);
                 }
                 current = current.parentElement;
             }
-            
+
             return ancestors;
         },
 
@@ -375,7 +392,7 @@ function customerEditForm() {
         async submitForm() {
             // Validar todos los campos
             this.validateAllFields();
-            
+
             if (!this.isFormValid) {
                 this.showAlert('Por favor, complete todos los campos requeridos', 'error');
                 return;
@@ -398,13 +415,13 @@ function customerEditForm() {
         prepareFormData() {
             const formData = new FormData();
             const csrfToken = this.getCsrfToken();
-            
+
             // Verificar que tenemos el token CSRF
             if (!csrfToken) {
                 console.error('Token CSRF no encontrado');
                 throw new Error('Token CSRF no encontrado');
             }
-            
+
             formData.append('_token', csrfToken);
             formData.append('_method', 'PUT');
             formData.append('name', this.form.name);
@@ -420,7 +437,7 @@ function customerEditForm() {
             const customerId = window.customerData?.id;
             const updateUrl = `/customers/edit/${customerId}`;
             const csrfToken = this.getCsrfToken();
-            
+
             const response = await fetch(updateUrl, {
                 method: 'POST',
                 body: formData,
@@ -436,7 +453,7 @@ function customerEditForm() {
         async handleResponse(result) {
             if (result.success) {
                 this.showAlert(result.message || 'Cliente actualizado exitosamente', 'success');
-                
+
                 // Redirigir a la lista de clientes después de un breve delay
                 setTimeout(() => {
                     window.location.href = '/customers';
@@ -460,19 +477,19 @@ function customerEditForm() {
             if (metaToken) {
                 return metaToken;
             }
-            
+
             // Fallback: obtener del input hidden del formulario
             const inputToken = document.querySelector('input[name="_token"]')?.value;
             if (inputToken) {
                 return inputToken;
             }
-            
+
             // Fallback: buscar en cualquier input hidden con _token
             const anyToken = document.querySelector('input[name="_token"]')?.value;
             if (anyToken) {
                 return anyToken;
             }
-            
+
             console.error('No se pudo encontrar el token CSRF');
             return '';
         },
@@ -512,7 +529,7 @@ function customerEditForm() {
         },
 
         getAlertTitle(type) {
-            switch(type) {
+            switch (type) {
                 case 'success': return '¡Éxito!';
                 case 'error': return 'Error';
                 case 'warning': return 'Advertencia';
