@@ -510,11 +510,11 @@
 
 
                         <!-- Pedidos Online -->
-                        <a href="{{ route('admin.orders.index') }}"
+                        {{-- <a href="{{ route('admin.orders.index') }}"
                             class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                             <i class="fas fa-shopping-cart mr-3 text-lg"></i>
                             Pedidos Online
-                        </a>
+                        </a> --}}
 
                         <!-- Config empresa -->
                         <a href="{{ route('admin.company.edit') }}"
@@ -573,11 +573,11 @@
                         </a>
 
                         <!-- Proveedores -->
-                        <a href="{{ route('admin.suppliers.index') }}"
+                        {{-- <a href="{{ route('admin.suppliers.index') }}"
                             class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.suppliers.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
                             <i class="fas fa-truck mr-3 text-lg"></i>
                             Proveedores
-                        </a>
+                        </a> --}}
 
                         <!-- Compras -->
                         <a href="{{ route('admin.purchases.index') }}"
@@ -653,7 +653,7 @@
                     @auth
                         <div class="flex items-center space-x-4">
                             <!-- Notifications -->
-                            <div x-data="{ open: false }" class="relative">
+                            {{-- <div x-data="{ open: false }" class="relative">
                                 <button @click="open = !open"
                                     class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <i class="fas fa-bell text-xl"></i>
@@ -694,7 +694,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <!-- User menu -->
                             <div x-data="{ open: false }" class="relative">
