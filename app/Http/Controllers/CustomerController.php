@@ -2058,11 +2058,23 @@ class CustomerController extends Controller
 
          Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $salesWithDetails->count()]);
 
-         // Obtener todos los pagos del cliente ordenados por fecha
-         $totalPayments = DB::table('debt_payments')
-            ->where('customer_id', $customer->id)
-            ->where('company_id', $this->company->id)
-            ->sum('payment_amount');
+          // Calcular el total de ventas
+         $totalSales = $salesWithDetails->sum('total_price');
+
+         // Obtener la deuda actual del cliente
+         $currentDebt = $customer->total_debt;
+
+         // Calcular cuánto ha pagado el cliente en total
+         // Total pagado = Total de ventas - Deuda actual
+         $totalPayments = $totalSales - $currentDebt;
+
+         Log::info('Payment calculation:', [
+            'customer_id' => $customer->id,
+            'total_sales' => $totalSales,
+            'current_debt' => $currentDebt,
+            'total_payments' => $totalPayments,
+            'sales_count' => $salesWithDetails->count()
+         ]);
 
          // Aplicar lógica FIFO para determinar qué ventas están pagadas
          $remainingPayments = (float) $totalPayments;
