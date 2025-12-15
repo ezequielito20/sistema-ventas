@@ -11,23 +11,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\CashCountService;
 
 class CashCountController extends Controller
 {
    public $currencies;
    protected $company;
+   protected $cashCountService;
 
-   public function __construct()
+   public function __construct(CashCountService $cashCountService)
    {
+      $this->cashCountService = $cashCountService;
       $this->middleware(function ($request, $next) {
          // Obtener company y currency en una sola consulta
          $userCompany = DB::table('companies')
             ->select('companies.id', 'companies.name', 'companies.country', 'companies.currency')
             ->where('companies.id', Auth::user()->company_id)
             ->first();
-            
+
          $this->company = $userCompany;
-         
+
          // Obtener la moneda de la empresa configurada
          if ($userCompany && $userCompany->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -36,7 +39,7 @@ class CashCountController extends Controller
                ->where('code', $userCompany->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -56,38 +59,38 @@ class CashCountController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       $links = [];
-      
+
       // Siempre agregar la primera página
       $links[] = 1;
-      
+
       // Calcular el rango de páginas alrededor de la página actual
       $start = max(2, $currentPage - $windowSize);
       $end = min($lastPage - 1, $currentPage + $windowSize);
-      
+
       // Agregar separador si hay gap entre la primera página y el rango
       if ($start > 2) {
          $links[] = '...';
       }
-      
+
       // Agregar páginas en el rango
       for ($i = $start; $i <= $end; $i++) {
          if ($i > 1 && $i < $lastPage) {
             $links[] = $i;
          }
       }
-      
+
       // Agregar separador si hay gap entre el rango y la última página
       if ($end < $lastPage - 1) {
          $links[] = '...';
       }
-      
+
       // Siempre agregar la última página (si no es la primera)
       if ($lastPage > 1) {
          $links[] = $lastPage;
       }
-      
+
       // Agregar propiedades al paginador
       $paginator->smartLinks = $links;
       $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
@@ -96,7 +99,7 @@ class CashCountController extends Controller
       $paginator->nextPageUrl = $paginator->nextPageUrl();
       $paginator->firstPageUrl = $paginator->url(1);
       $paginator->lastPageUrl = $paginator->url($lastPage);
-      
+
       return $paginator;
    }
    public function index(Request $request)
@@ -104,7 +107,7 @@ class CashCountController extends Controller
       $currency = $this->currencies;
       $company = $this->company;
       $companyId = $this->company->id;
-      
+
       // Obtener el arqueo actual si existe
       $currentCashCount = CashCount::select('id', 'initial_amount', 'opening_date', 'closing_date')
          ->where('company_id', $companyId)
@@ -118,12 +121,12 @@ class CashCountController extends Controller
       // Búsqueda por ID de arqueo
       if ($request->filled('search')) {
          $search = $request->input('search');
-         $query->where(function($q) use ($search) {
+         $query->where(function ($q) use ($search) {
             $q->where('id', 'ILIKE', "%{$search}%")
-              ->orWhereRaw("TO_CHAR(opening_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
-              ->orWhereRaw("TO_CHAR(opening_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
-              ->orWhereRaw("TO_CHAR(closing_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
-              ->orWhereRaw("TO_CHAR(closing_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
+               ->orWhereRaw("TO_CHAR(opening_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+               ->orWhereRaw("TO_CHAR(opening_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+               ->orWhereRaw("TO_CHAR(closing_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+               ->orWhereRaw("TO_CHAR(closing_date, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
          });
       }
 
@@ -157,150 +160,29 @@ class CashCountController extends Controller
 
       // Paginación del lado del servidor
       $cashCounts = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-      
+
       // Aplicar paginación inteligente
       $cashCounts = $this->generateSmartPagination($cashCounts, 2);
 
-      // OBTENER TODAS LAS ESTADÍSTICAS EN UNA SOLA CONSULTA CONSOLIDADA
-      $today = Carbon::today();
-      
-      // Consulta consolidada para obtener todas las estadísticas necesarias
-      $allStats = DB::select("
-         WITH current_cash_count AS (
-            SELECT id, initial_amount, opening_date, closing_date
-            FROM cash_counts 
-            WHERE company_id = ? AND closing_date IS NULL
-            LIMIT 1
-         ),
-         today_movements AS (
-            SELECT 
-               COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as today_income,
-               COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as today_expenses,
-               COUNT(*) as total_movements
-            FROM cash_movements cm
-            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
-            WHERE cc.company_id = ? 
-            AND cc.closing_date IS NULL
-            AND DATE(cm.created_at) = ?
-         ),
-         current_balance_stats AS (
-            SELECT 
-               COALESCE(SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END), 0) as total_income,
-               COALESCE(SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END), 0) as total_expenses
-            FROM cash_movements cm
-            INNER JOIN current_cash_count ccc ON cm.cash_count_id = ccc.id
-         )
-         SELECT 
-            COALESCE(tm.today_income, 0) as today_income,
-            COALESCE(tm.today_expenses, 0) as today_expenses,
-            COALESCE(tm.total_movements, 0) as total_movements,
-            COALESCE(ccc.initial_amount, 0) as initial_amount,
-            COALESCE(cbs.total_income, 0) as total_income,
-            COALESCE(cbs.total_expenses, 0) as total_expenses,
-            COALESCE((ccc.initial_amount + cbs.total_income - cbs.total_expenses), 0) as current_balance
-         FROM current_cash_count ccc
-         LEFT JOIN today_movements tm ON true
-         LEFT JOIN current_balance_stats cbs ON true
-      ", [$companyId, $companyId, $today->format('Y-m-d')]);
+      // OBTENER TODAS LAS ESTADÍSTICAS MEDIANTE EL SERVICIO
+      $dashboardStats = $this->cashCountService->getDashboardStats($companyId);
 
-      $stats = $allStats[0] ?? (object)[
-         'today_income' => 0,
-         'today_expenses' => 0,
-         'total_movements' => 0,
-         'initial_amount' => 0,
-         'total_income' => 0,
-         'total_expenses' => 0,
-         'current_balance' => 0
-      ];
+      $todayIncome = $dashboardStats->today_income;
+      $todayExpenses = $dashboardStats->today_expenses;
+      $totalMovements = $dashboardStats->total_movements;
+      $currentBalance = $dashboardStats->current_balance;
 
-      $todayIncome = $stats->today_income;
-      $todayExpenses = $stats->today_expenses;
-      $totalMovements = $stats->total_movements;
-      $currentBalance = $stats->current_balance;
+      // OBTENER DATOS DEL GRÁFICO
+      $chartData = $this->cashCountService->getChartData($companyId);
 
-      // OBTENER DATOS DEL GRÁFICO OPTIMIZADO
-      $lastDays = collect(range(6, 0))->map(function ($days) {
-         return Carbon::today()->subDays($days);
-      });
-
-      $dateRange = [
-         $lastDays->first()->format('Y-m-d'),
-         $lastDays->last()->format('Y-m-d')
-      ];
-
-      // Consulta optimizada para el gráfico usando PIVOT
-      $chartDataRaw = DB::select("
-         SELECT 
-            date_series.date,
-            COALESCE(income_data.total_amount, 0) as income,
-            COALESCE(expense_data.total_amount, 0) as expenses
-         FROM (
-            SELECT generate_series(?, ?, '1 day'::interval)::date as date
-         ) date_series
-         LEFT JOIN (
-            SELECT 
-               DATE(cm.created_at) as date,
-               SUM(cm.amount) as total_amount
-            FROM cash_movements cm
-            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
-            WHERE cc.company_id = ? 
-            AND cm.type = 'income'
-            AND DATE(cm.created_at) BETWEEN ? AND ?
-            GROUP BY DATE(cm.created_at)
-         ) income_data ON date_series.date = income_data.date
-         LEFT JOIN (
-            SELECT 
-               DATE(cm.created_at) as date,
-               SUM(cm.amount) as total_amount
-            FROM cash_movements cm
-            INNER JOIN cash_counts cc ON cm.cash_count_id = cc.id
-            WHERE cc.company_id = ? 
-            AND cm.type = 'expense'
-            AND DATE(cm.created_at) BETWEEN ? AND ?
-            GROUP BY DATE(cm.created_at)
-         ) expense_data ON date_series.date = expense_data.date
-         ORDER BY date_series.date
-      ", [
-         $dateRange[0], $dateRange[1], 
-         $companyId, $dateRange[0], $dateRange[1],
-         $companyId, $dateRange[0], $dateRange[1]
-      ]);
-
-      $chartData = [
-         'labels' => $lastDays->map(fn($date) => $date->format('d/m')),
-         'income' => collect($chartDataRaw)->pluck('income')->toArray(),
-         'expenses' => collect($chartDataRaw)->pluck('expenses')->toArray()
-      ];
-
-      // CALCULAR PRODUCTOS VENDIDOS Y COMPRADOS OPTIMIZADO
+      // CALCULAR PRODUCTOS VENDIDOS Y COMPRADOS
       $openingDate = $currentCashCount->opening_date ?? now();
       $closingDate = $currentCashCount->closing_date ?? now();
-      
-      $productStats = DB::select("
-         SELECT 
-            COALESCE(sales_stats.total_products_sold, 0) as total_products_sold,
-            COALESCE(purchases_stats.total_products_purchased, 0) as total_products_purchased
-         FROM (
-            SELECT SUM(sd.quantity) as total_products_sold
-            FROM sale_details sd
-            INNER JOIN sales s ON sd.sale_id = s.id
-            WHERE s.company_id = ?
-            AND s.created_at BETWEEN ? AND ?
-         ) sales_stats
-         CROSS JOIN (
-            SELECT SUM(pd.quantity) as total_products_purchased
-            FROM purchase_details pd
-            INNER JOIN purchases p ON pd.purchase_id = p.id
-            WHERE p.company_id = ?
-            AND p.created_at BETWEEN ? AND ?
-         ) purchases_stats
-      ", [
-         $companyId, $openingDate, $closingDate,
-         $companyId, $openingDate, $closingDate
-      ]);
 
-      $totalProducts = $productStats[0]->total_products_sold ?? 0;
-      $totalPurchasedProducts = $productStats[0]->total_products_purchased ?? 0;
+      $productStats = $this->cashCountService->getProductDashboardStats($companyId, $openingDate, $closingDate);
+
+      $totalProducts = $productStats->total_products_sold;
+      $totalPurchasedProducts = $productStats->total_products_purchased;
 
       return view('admin.cash-counts.index', compact(
          'cashCounts',
@@ -327,7 +209,7 @@ class CashCountController extends Controller
          $currency = DB::table('currencies')
             ->where('country_id', $company->country)
             ->first();
-            
+
          return view('admin.cash-counts.create', compact('company', 'currency'));
       } catch (\Exception $e) {
          return redirect()->route('admin.cash-counts.index')
@@ -381,10 +263,10 @@ class CashCountController extends Controller
          // Determinar desde dónde viene la petición para redirigir apropiadamente
          $redirectTo = $request->input('redirect_to');
          $redirectRoute = 'admin.cash-counts.index'; // Ruta por defecto
-         
+
          if ($redirectTo) {
             $refererUrl = parse_url($redirectTo, PHP_URL_PATH);
-            
+
             // Detectar desde qué módulo viene la petición
             if (strpos($refererUrl, '/sales') !== false) {
                $redirectRoute = 'admin.sales.index';
@@ -526,7 +408,7 @@ class CashCountController extends Controller
       try {
          // Buscar la caja por ID
          $cashCount = CashCount::findOrFail($id);
-         
+
          // Verificar que la caja pertenezca a la compañía actual
          if ($cashCount->company_id !== $this->company->id) {
             return redirect()->route('admin.cash-counts.index')
@@ -562,7 +444,6 @@ class CashCountController extends Controller
          return redirect()->route('admin.cash-counts.index')
             ->with('message', 'Caja actualizada correctamente')
             ->with('icons', 'success');
-
       } catch (\Exception $e) {
          DB::rollBack();
          return redirect()->back()
@@ -757,15 +638,15 @@ class CashCountController extends Controller
    {
       try {
          $currency = $this->currencies;
-         
+
          // Obtener el arqueo específico
          $cashCount = CashCount::where('company_id', $this->company->id)
             ->with(['movements'])
             ->findOrFail($id);
-         
+
          // Calcular estadísticas del arqueo
          try {
-            $stats = $this->calculateCashCountStats($cashCount);
+            $stats = $this->cashCountService->calculateHistoryStats($cashCount);
          } catch (\Exception $e) {
             $stats = [
                'opening_date' => $cashCount->opening_date,
@@ -786,24 +667,24 @@ class CashCountController extends Controller
                'net_difference' => 0
             ];
          }
-         
+
          // Obtener deudas pendientes del arqueo
          try {
-            $pendingDebts = $this->getPendingDebts($cashCount);
+            $pendingDebts = $this->cashCountService->getPendingDebts($cashCount);
          } catch (\Exception $e) {
             $pendingDebts = collect([]);
          }
-         
+
          // Obtener deudas de arqueos anteriores
          try {
-            $previousDebts = $this->getPreviousDebts($cashCount);
+            $previousDebts = $this->cashCountService->getPreviousDebts($cashCount);
          } catch (\Exception $e) {
             $previousDebts = collect([]);
          }
-         
+
          // Obtener pagos de deudas anteriores en este arqueo
          try {
-            $previousDebtPayments = $this->getPreviousDebtPayments($cashCount);
+            $previousDebtPayments = $this->cashCountService->getPreviousDebtPayments($cashCount);
          } catch (\Exception $e) {
             $previousDebtPayments = collect([]);
          }
@@ -818,7 +699,6 @@ class CashCountController extends Controller
             ],
             'currency' => $currency
          ]);
-
       } catch (\Exception $e) {
          return response()->json([
             'success' => false,
@@ -843,54 +723,54 @@ class CashCountController extends Controller
 
          $totalSales = $sales->count();
          $totalSalesAmount = $sales->sum('total_price');
-         $productsSold = $sales->get()->sum(function($sale) {
+         $productsSold = $sales->get()->sum(function ($sale) {
             return $sale->saleDetails->sum('quantity');
          });
 
-      // Compras del arqueo
-      $purchases = Purchase::where('company_id', $this->company->id)
-         ->whereBetween('created_at', [$openingDate, $closingDate])
-         ->with(['details']);
+         // Compras del arqueo
+         $purchases = Purchase::where('company_id', $this->company->id)
+            ->whereBetween('created_at', [$openingDate, $closingDate])
+            ->with(['details']);
 
-      $totalPurchases = $purchases->count();
-      $totalPurchasesAmount = $purchases->sum('total_price');
-      $productsPurchased = $purchases->get()->sum(function($purchase) {
-         return $purchase->details->sum('quantity');
-      });
+         $totalPurchases = $purchases->count();
+         $totalPurchasesAmount = $purchases->sum('total_price');
+         $productsPurchased = $purchases->get()->sum(function ($purchase) {
+            return $purchase->details->sum('quantity');
+         });
 
-      // Movimientos de caja
-      $totalIncome = $cashCount->movements()->where('type', 'income')->sum('amount');
-      $totalExpense = $cashCount->movements()->where('type', 'expense')->sum('amount');
+         // Movimientos de caja
+         $totalIncome = $cashCount->movements()->where('type', 'income')->sum('amount');
+         $totalExpense = $cashCount->movements()->where('type', 'expense')->sum('amount');
 
-      // Deudas generadas en este arqueo (suma de todas las ventas)
-      $debtsGenerated = Sale::where('company_id', $this->company->id)
-         ->whereBetween('created_at', [$openingDate, $closingDate])
-         ->sum('total_price');
+         // Deudas generadas en este arqueo (suma de todas las ventas)
+         $debtsGenerated = Sale::where('company_id', $this->company->id)
+            ->whereBetween('created_at', [$openingDate, $closingDate])
+            ->sum('total_price');
 
-      // Pagos recibidos en este arqueo
-      $paymentsReceived = $totalIncome - $cashCount->initial_amount;
+         // Pagos recibidos en este arqueo
+         $paymentsReceived = $totalIncome - $cashCount->initial_amount;
 
-      // Ganancias reales (pagos - inversión)
-      $realProfit = $paymentsReceived - $totalPurchasesAmount;
+         // Ganancias reales (pagos - inversión)
+         $realProfit = $paymentsReceived - $totalPurchasesAmount;
 
-      return [
-         'opening_date' => $openingDate,
-         'closing_date' => $closingDate,
-         'initial_amount' => $cashCount->initial_amount,
-         'final_amount' => $cashCount->final_amount,
-         'total_sales' => $totalSales,
-         'total_sales_amount' => $totalSalesAmount,
-         'products_sold' => $productsSold,
-         'total_purchases' => $totalPurchases,
-         'total_purchases_amount' => $totalPurchasesAmount,
-         'products_purchased' => $productsPurchased,
-         'total_income' => $totalIncome,
-         'total_expense' => $totalExpense,
-         'debts_generated' => $debtsGenerated,
-         'payments_received' => $paymentsReceived,
-         'real_profit' => $realProfit,
-         'net_difference' => $cashCount->final_amount - $cashCount->initial_amount
-      ];
+         return [
+            'opening_date' => $openingDate,
+            'closing_date' => $closingDate,
+            'initial_amount' => $cashCount->initial_amount,
+            'final_amount' => $cashCount->final_amount,
+            'total_sales' => $totalSales,
+            'total_sales_amount' => $totalSalesAmount,
+            'products_sold' => $productsSold,
+            'total_purchases' => $totalPurchases,
+            'total_purchases_amount' => $totalPurchasesAmount,
+            'products_purchased' => $productsPurchased,
+            'total_income' => $totalIncome,
+            'total_expense' => $totalExpense,
+            'debts_generated' => $debtsGenerated,
+            'payments_received' => $paymentsReceived,
+            'real_profit' => $realProfit,
+            'net_difference' => $cashCount->final_amount - $cashCount->initial_amount
+         ];
       } catch (\Exception $e) {
          throw $e;
       }
@@ -907,11 +787,11 @@ class CashCountController extends Controller
       // Obtener clientes con deudas pendientes
       return \App\Models\Customer::where('company_id', $this->company->id)
          ->where('total_debt', '>', 0)
-         ->with(['sales' => function($query) use ($openingDate, $closingDate) {
+         ->with(['sales' => function ($query) use ($openingDate, $closingDate) {
             $query->whereBetween('created_at', [$openingDate, $closingDate]);
          }])
          ->get()
-         ->map(function($customer) {
+         ->map(function ($customer) {
             $salesInPeriod = $customer->sales;
             return [
                'id' => $customer->id,
@@ -919,10 +799,10 @@ class CashCountController extends Controller
                'customer_phone' => $customer->phone,
                'sale_date' => $salesInPeriod->first() ? $salesInPeriod->first()->created_at : now(),
                'total_amount' => $customer->total_debt,
-               'products_count' => $salesInPeriod->sum(function($sale) {
+               'products_count' => $salesInPeriod->sum(function ($sale) {
                   return $sale->saleDetails->count();
                }),
-               'total_products' => $salesInPeriod->sum(function($sale) {
+               'total_products' => $salesInPeriod->sum(function ($sale) {
                   return $sale->saleDetails->sum('quantity');
                })
             ];
@@ -939,11 +819,11 @@ class CashCountController extends Controller
       // Obtener clientes con deudas de arqueos anteriores
       return \App\Models\Customer::where('company_id', $this->company->id)
          ->where('total_debt', '>', 0)
-         ->with(['sales' => function($query) use ($openingDate) {
+         ->with(['sales' => function ($query) use ($openingDate) {
             $query->where('created_at', '<', $openingDate);
          }])
          ->get()
-         ->map(function($customer) {
+         ->map(function ($customer) {
             $previousSales = $customer->sales;
             return [
                'id' => $customer->id,
@@ -951,10 +831,10 @@ class CashCountController extends Controller
                'customer_phone' => $customer->phone,
                'sale_date' => $previousSales->first() ? $previousSales->first()->created_at : now(),
                'total_amount' => $customer->total_debt,
-               'products_count' => $previousSales->sum(function($sale) {
+               'products_count' => $previousSales->sum(function ($sale) {
                   return $sale->saleDetails->count();
                }),
-               'total_products' => $previousSales->sum(function($sale) {
+               'total_products' => $previousSales->sum(function ($sale) {
                   return $sale->saleDetails->sum('quantity');
                }),
                'days_pending' => $previousSales->first() ? $previousSales->first()->created_at->diffInDays(now()) : 0
@@ -978,7 +858,7 @@ class CashCountController extends Controller
          ->orWhere('description', 'like', '%cliente%')
          ->get();
 
-      return $incomeMovements->map(function($movement) {
+      return $incomeMovements->map(function ($movement) {
          return [
             'id' => $movement->id,
             'amount' => $movement->amount,
@@ -1019,7 +899,6 @@ class CashCountController extends Controller
             'success' => true,
             'data' => $customers
          ]);
-
       } catch (\Exception $e) {
          return response()->json([
             'success' => false,
@@ -1034,24 +913,24 @@ class CashCountController extends Controller
    public function getDetails($id)
    {
       try {
-         $cashCount = CashCount::with(['movements' => function($query) {
+         $cashCount = CashCount::with(['movements' => function ($query) {
             $query->orderBy('created_at', 'desc');
          }])
-         ->where('company_id', $this->company->id)
-         ->findOrFail($id);
+            ->where('company_id', $this->company->id)
+            ->findOrFail($id);
 
          // Calcular estadísticas
          $totalIncome = $cashCount->movements->where('type', 'income')->sum('amount');
          $totalExpenses = $cashCount->movements->where('type', 'expense')->sum('amount');
          $currentBalance = $cashCount->initial_amount + $totalIncome - $totalExpenses;
 
-         // Obtener estadísticas para pestañas
-         $customerStats = $cashCount->getCustomerStats();
-         $salesStats = $cashCount->getSalesStats();
-         $paymentsStats = $cashCount->getPaymentsStats();
-         $purchasesStats = $cashCount->getPurchasesStats();
-         $productsStats = $cashCount->getProductsStats();
-         $ordersStats = $cashCount->getOrdersStats();
+         // Obtener estadísticas para pestañas usando el servicio
+         $customerStats = $this->cashCountService->getCustomerStats($cashCount);
+         $salesStats = $this->cashCountService->getSalesStats($cashCount);
+         $paymentsStats = $this->cashCountService->getPaymentsStats($cashCount);
+         $purchasesStats = $this->cashCountService->getPurchasesStats($cashCount);
+         $productsStats = $this->cashCountService->getProductsStats($cashCount);
+         $ordersStats = $this->cashCountService->getOrdersStats($cashCount);
 
          $data = [
             'id' => $cashCount->id,
@@ -1064,7 +943,7 @@ class CashCountController extends Controller
             'total_expenses' => $totalExpenses,
             'current_balance' => $currentBalance,
             'movements_count' => $cashCount->movements->count(),
-            'movements' => $cashCount->movements->map(function($movement) {
+            'movements' => $cashCount->movements->map(function ($movement) {
                return [
                   'id' => $movement->id,
                   'type' => $movement->type,
@@ -1085,7 +964,6 @@ class CashCountController extends Controller
             'success' => true,
             'data' => $data
          ]);
-
       } catch (\Exception $e) {
          return response()->json([
             'success' => false,

@@ -67,15 +67,16 @@ class CashCount extends Model
 
    /**
     * Obtiene estadísticas de clientes para el modal
+    * @deprecated Moved to CashCountService
     */
    public function getCustomerStats()
    {
       // Obtener datos del arqueo actual
       $currentStats = $this->getCurrentCashCountStats();
-      
+
       // Obtener datos del arqueo anterior para comparación
       $previousStats = $this->getPreviousCashCountStats();
-      
+
       return [
          'current' => $currentStats,
          'previous' => $previousStats,
@@ -90,17 +91,17 @@ class CashCount extends Model
    {
       $sales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $this->opening_date)
-         ->when($this->closing_date, function($query) {
+         ->when($this->closing_date, function ($query) {
             return $query->where('sale_date', '<=', $this->closing_date);
          })
          ->with('customer')
          ->get();
-      
+
       $uniqueCustomers = $sales->pluck('customer_id')->unique()->count();
       $totalSales = $sales->sum('total_price');
       $totalDebt = $sales->sum('total_price'); // En este sistema, todas las ventas son deudas
       $averagePerCustomer = $uniqueCustomers > 0 ? $totalSales / $uniqueCustomers : 0;
-      
+
       return [
          'unique_customers' => $uniqueCustomers,
          'total_sales' => $totalSales,
@@ -116,7 +117,7 @@ class CashCount extends Model
    private function getPreviousCashCountStats()
    {
       $previousCashCount = $this->getPreviousCashCount();
-      
+
       if (!$previousCashCount) {
          return [
             'unique_customers' => 0,
@@ -125,20 +126,20 @@ class CashCount extends Model
             'average_per_customer' => 0
          ];
       }
-      
+
       $sales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $previousCashCount->opening_date)
-         ->when($previousCashCount->closing_date, function($query) use ($previousCashCount) {
+         ->when($previousCashCount->closing_date, function ($query) use ($previousCashCount) {
             return $query->where('sale_date', '<=', $previousCashCount->closing_date);
          })
          ->with('customer')
          ->get();
-      
+
       $uniqueCustomers = $sales->pluck('customer_id')->unique()->count();
       $totalSales = $sales->sum('total_price');
       $totalDebt = $sales->sum('total_price');
       $averagePerCustomer = $uniqueCustomers > 0 ? $totalSales / $uniqueCustomers : 0;
-      
+
       return [
          'unique_customers' => $uniqueCustomers,
          'total_sales' => $totalSales,
@@ -153,10 +154,10 @@ class CashCount extends Model
    private function calculateComparison($current, $previous)
    {
       $comparison = [];
-      
+
       foreach ($current as $key => $value) {
          if ($key === 'customers_data') continue; // Saltar datos detallados
-         
+
          if ($previous[$key] > 0) {
             $percentage = (($value - $previous[$key]) / $previous[$key]) * 100;
             $comparison[$key] = [
@@ -170,7 +171,7 @@ class CashCount extends Model
             ];
          }
       }
-      
+
       return $comparison;
    }
 
@@ -181,7 +182,7 @@ class CashCount extends Model
    {
       return Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $this->opening_date)
-         ->when($this->closing_date, function($query) {
+         ->when($this->closing_date, function ($query) {
             return $query->where('sale_date', '<=', $this->closing_date);
          })
          ->with('customer')
@@ -200,15 +201,16 @@ class CashCount extends Model
 
    /**
     * Obtiene estadísticas de ventas para el modal
+    * @deprecated Moved to CashCountService
     */
    public function getSalesStats()
    {
       // Obtener datos del arqueo actual
       $currentStats = $this->getCurrentSalesStats();
-      
+
       // Obtener datos del arqueo anterior para comparación
       $previousStats = $this->getPreviousSalesStats();
-      
+
       return [
          'current' => $currentStats,
          'previous' => $previousStats,
@@ -224,21 +226,21 @@ class CashCount extends Model
       // Obtener ventas basándose en las fechas del arqueo
       $sales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $this->opening_date)
-         ->when($this->closing_date, function($query) {
+         ->when($this->closing_date, function ($query) {
             return $query->where('sale_date', '<=', $this->closing_date);
          })
          ->with(['saleDetails.product', 'customer'])
          ->get();
-      
+
       // Calcular totales de ventas
       $totalSales = $sales->sum('total_price');
       $salesCount = $sales->count();
       $averagePerSale = $salesCount > 0 ? $totalSales / $salesCount : 0;
-      
+
       // Calcular totales de precios de compra y venta desde sale_details
       $totalPurchaseCost = 0;
       $totalSaleValue = 0;
-      
+
       foreach ($sales as $sale) {
          foreach ($sale->saleDetails as $detail) {
             if ($detail->product) {
@@ -247,24 +249,24 @@ class CashCount extends Model
             }
          }
       }
-      
+
       // Si no hay sale_details, usar el total_price como aproximación
       if ($totalSaleValue == 0 && $totalSales > 0) {
          $totalSaleValue = $totalSales;
          // Asumir un margen de ganancia del 30% como aproximación
          $totalPurchaseCost = $totalSales * 0.7;
       }
-      
+
       // Calcular balances
       $theoreticalBalance = $totalSaleValue - $totalPurchaseCost;
-      
+
       // Calcular balance real (considerando pagos)
       $totalPayments = $this->getTotalPaymentsInCashCount();
       // Balance Real = Balance Teórico - Deuda Restante
       // Deuda Restante = Total Ventas - Total Pagos
       $remainingDebt = $totalSaleValue - $totalPayments;
       $realBalance = $theoreticalBalance - $remainingDebt;
-      
+
       return [
          'total_sales' => $totalSales,
          'sales_count' => $salesCount,
@@ -284,7 +286,7 @@ class CashCount extends Model
    private function getPreviousSalesStats()
    {
       $previousCashCount = $this->getPreviousCashCount();
-      
+
       if (!$previousCashCount) {
          return [
             'total_sales' => 0,
@@ -294,23 +296,23 @@ class CashCount extends Model
             'real_balance' => 0
          ];
       }
-      
+
       $sales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $previousCashCount->opening_date)
-         ->when($previousCashCount->closing_date, function($query) use ($previousCashCount) {
+         ->when($previousCashCount->closing_date, function ($query) use ($previousCashCount) {
             return $query->where('sale_date', '<=', $previousCashCount->closing_date);
          })
          ->with(['saleDetails.product'])
          ->get();
-      
+
       $totalSales = $sales->sum('total_price');
       $salesCount = $sales->count();
       $averagePerSale = $salesCount > 0 ? $totalSales / $salesCount : 0;
-      
+
       // Calcular totales de precios de compra y venta
       $totalPurchaseCost = 0;
       $totalSaleValue = 0;
-      
+
       foreach ($sales as $sale) {
          foreach ($sale->saleDetails as $detail) {
             if ($detail->product) {
@@ -319,18 +321,18 @@ class CashCount extends Model
             }
          }
       }
-      
+
       // Si no hay sale_details, usar el total_price como aproximación
       if ($totalSaleValue == 0 && $totalSales > 0) {
          $totalSaleValue = $totalSales;
          $totalPurchaseCost = $totalSales * 0.7;
       }
-      
+
       $theoreticalBalance = $totalSaleValue - $totalPurchaseCost;
       $totalPayments = $previousCashCount->getTotalPaymentsInCashCount();
       $remainingDebt = $totalSaleValue - $totalPayments;
       $realBalance = $theoreticalBalance - $remainingDebt;
-      
+
       return [
          'total_sales' => $totalSales,
          'sales_count' => $salesCount,
@@ -346,10 +348,10 @@ class CashCount extends Model
    private function calculateSalesComparison($current, $previous)
    {
       $comparison = [];
-      
+
       foreach ($current as $key => $value) {
          if (in_array($key, ['sales_data', 'total_purchase_cost', 'total_sale_value', 'total_payments'])) continue;
-         
+
          if ($previous[$key] > 0) {
             $percentage = (($value - $previous[$key]) / $previous[$key]) * 100;
             $comparison[$key] = [
@@ -363,7 +365,7 @@ class CashCount extends Model
             ];
          }
       }
-      
+
       return $comparison;
    }
 
@@ -384,7 +386,7 @@ class CashCount extends Model
    {
       return Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $this->opening_date)
-         ->when($this->closing_date, function($query) {
+         ->when($this->closing_date, function ($query) {
             return $query->where('sale_date', '<=', $this->closing_date);
          })
          ->with(['customer', 'saleDetails.product'])
@@ -394,7 +396,7 @@ class CashCount extends Model
             $endDate = $this->closing_date ?: now();
             $remainingForSale = $this->calculateRemainingForSaleFIFO($sale, $endDate);
             $isPaid = $remainingForSale <= 0.00001;
-            
+
             return [
                'invoice_number' => $sale->getFormattedInvoiceNumber(),
                'sale_date' => $sale->sale_date,
@@ -457,6 +459,7 @@ class CashCount extends Model
 
    /**
     * Obtiene estadísticas de pagos para el modal
+    * @deprecated Moved to CashCountService
     */
    public function getPaymentsStats()
    {
@@ -476,7 +479,9 @@ class CashCount extends Model
    {
       $payments = DebtPayment::where('company_id', $this->company_id)
          ->where('created_at', '>=', $this->opening_date)
-         ->when($this->closing_date, function($q) { return $q->where('created_at', '<=', $this->closing_date); })
+         ->when($this->closing_date, function ($q) {
+            return $q->where('created_at', '<=', $this->closing_date);
+         })
          ->with('customer')
          ->orderBy('created_at', 'asc')
          ->get();
@@ -488,7 +493,9 @@ class CashCount extends Model
       // Deuda restante del arqueo = Ventas del periodo - Pagos del periodo
       $periodSales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $this->opening_date)
-         ->when($this->closing_date, function($q) { return $q->where('sale_date', '<=', $this->closing_date); })
+         ->when($this->closing_date, function ($q) {
+            return $q->where('sale_date', '<=', $this->closing_date);
+         })
          ->sum('total_price');
       $remainingDebt = max(0, (float) $periodSales - $totalPayments);
 
@@ -518,7 +525,9 @@ class CashCount extends Model
 
       $payments = DebtPayment::where('company_id', $this->company_id)
          ->where('created_at', '>=', $previous->opening_date)
-         ->when($previous->closing_date, function($q) use ($previous) { return $q->where('created_at', '<=', $previous->closing_date); })
+         ->when($previous->closing_date, function ($q) use ($previous) {
+            return $q->where('created_at', '<=', $previous->closing_date);
+         })
          ->get();
 
       $totalPayments = (float) $payments->sum('payment_amount');
@@ -527,7 +536,9 @@ class CashCount extends Model
 
       $periodSales = Sale::where('company_id', $this->company_id)
          ->where('sale_date', '>=', $previous->opening_date)
-         ->when($previous->closing_date, function($q) use ($previous) { return $q->where('sale_date', '<=', $previous->closing_date); })
+         ->when($previous->closing_date, function ($q) use ($previous) {
+            return $q->where('sale_date', '<=', $previous->closing_date);
+         })
          ->sum('total_price');
       $remainingDebt = max(0, (float) $periodSales - $totalPayments);
 
@@ -566,12 +577,14 @@ class CashCount extends Model
    {
       $payments = $preloadedPayments ?: DebtPayment::where('company_id', $this->company_id)
          ->where('created_at', '>=', $this->opening_date)
-         ->when($this->closing_date, function($q) { return $q->where('created_at', '<=', $this->closing_date); })
+         ->when($this->closing_date, function ($q) {
+            return $q->where('created_at', '<=', $this->closing_date);
+         })
          ->with('customer')
          ->orderBy('created_at', 'asc')
          ->get();
 
-      return $payments->map(function($p) {
+      return $payments->map(function ($p) {
          return [
             'id' => (int) $p->id,
             'customer_id' => (int) $p->customer_id,
@@ -586,6 +599,7 @@ class CashCount extends Model
 
    /**
     * Obtiene estadísticas de compras para el modal
+    * @deprecated Moved to CashCountService
     */
    public function getPurchasesStats()
    {
@@ -706,261 +720,265 @@ class CashCount extends Model
    /**
     * Detalle de compras por compra
     */
-    private function getPurchasesDetailedData()
-    {
-       // Datos por compra: fecha, productos únicos, productos totales, total compra
-       $rows = DB::table('purchases as p')
-          ->leftJoin('purchase_details as pd', 'pd.purchase_id', '=', 'p.id')
-          ->where('p.company_id', $this->company_id)
-          ->whereBetween('p.created_at', [$this->opening_date, $this->closing_date ?: now()])
-          ->groupBy('p.id', 'p.purchase_date', 'p.created_at', 'p.total_price')
-          ->select(
-             'p.id',
-             'p.purchase_date',
-             'p.created_at',
-             'p.total_price',
-             DB::raw('COUNT(DISTINCT pd.product_id) as unique_products'),
-             DB::raw('COALESCE(SUM(pd.quantity), 0) as total_products')
-          )
-          ->orderBy('p.created_at', 'desc')
-          ->get();
+   private function getPurchasesDetailedData()
+   {
+      // Datos por compra: fecha, productos únicos, productos totales, total compra
+      $rows = DB::table('purchases as p')
+         ->leftJoin('purchase_details as pd', 'pd.purchase_id', '=', 'p.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('p.created_at', [$this->opening_date, $this->closing_date ?: now()])
+         ->groupBy('p.id', 'p.purchase_date', 'p.created_at', 'p.total_price')
+         ->select(
+            'p.id',
+            'p.purchase_date',
+            'p.created_at',
+            'p.total_price',
+            DB::raw('COUNT(DISTINCT pd.product_id) as unique_products'),
+            DB::raw('COALESCE(SUM(pd.quantity), 0) as total_products')
+         )
+         ->orderBy('p.created_at', 'desc')
+         ->get();
 
-       return $rows->map(function($r) {
-          $date = $r->purchase_date ?: $r->created_at;
-          return [
-             'id' => (int) $r->id,
-             'purchase_date' => $date ? (new \Carbon\Carbon($date))->toISOString() : null,
-             'unique_products' => (int) $r->unique_products,
-             'total_products' => (int) $r->total_products,
-             'total_amount' => (float) ($r->total_price ?? 0),
-          ];
-       });
-    }
+      return $rows->map(function ($r) {
+         $date = $r->purchase_date ?: $r->created_at;
+         return [
+            'id' => (int) $r->id,
+            'purchase_date' => $date ? (new \Carbon\Carbon($date))->toISOString() : null,
+            'unique_products' => (int) $r->unique_products,
+            'total_products' => (int) $r->total_products,
+            'total_amount' => (float) ($r->total_price ?? 0),
+         ];
+      });
+   }
 
-    /**
-     * Estadísticas de productos vendidos en el periodo
-     */
-    public function getProductsStats()
-    {
-       $current = $this->getCurrentProductsStats();
-       $previous = $this->getPreviousProductsStats();
-       return [
-          'current' => $current,
-          'previous' => $previous,
-       ];
-    }
+   /**
+    * Estadísticas de productos vendidos en el periodo
+    * @deprecated Moved to CashCountService
+    */
+   public function getProductsStats()
+   {
+      $current = $this->getCurrentProductsStats();
+      $previous = $this->getPreviousProductsStats();
+      return [
+         'current' => $current,
+         'previous' => $previous,
+      ];
+   }
 
-    /**
-     * Productos vendidos durante este arqueo
-     */
-    private function getCurrentProductsStats()
-    {
-       $start = $this->opening_date;
-       $end = $this->closing_date ?: now();
+   /**
+    * Productos vendidos durante este arqueo
+    */
+   private function getCurrentProductsStats()
+   {
+      $start = $this->opening_date;
+      $end = $this->closing_date ?: now();
 
-       // Productos vendidos en el periodo: cantidades, ingresos y costos
-       $rows = DB::table('sale_details as sd')
-          ->join('sales as s', 'sd.sale_id', '=', 's.id')
-          ->join('products as p', 'sd.product_id', '=', 'p.id')
-          ->where('s.company_id', $this->company_id)
-          ->whereBetween('s.sale_date', [$start, $end])
-          ->groupBy('p.id', 'p.name', 'p.stock', 'p.purchase_price', 'p.sale_price')
-          ->select(
-             'p.id', 'p.name', 'p.stock', 'p.purchase_price', 'p.sale_price',
-             DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'),
-             DB::raw('COALESCE(SUM(sd.quantity * p.sale_price),0) as income'),
-             DB::raw('COALESCE(SUM(sd.quantity * p.purchase_price),0) as cost')
-          )
-          ->orderByDesc(DB::raw('COALESCE(SUM(sd.quantity),0)'))
-          ->get();
+      // Productos vendidos en el periodo: cantidades, ingresos y costos
+      $rows = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->where('s.company_id', $this->company_id)
+         ->whereBetween('s.sale_date', [$start, $end])
+         ->groupBy('p.id', 'p.name', 'p.stock', 'p.purchase_price', 'p.sale_price')
+         ->select(
+            'p.id',
+            'p.name',
+            'p.stock',
+            'p.purchase_price',
+            'p.sale_price',
+            DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'),
+            DB::raw('COALESCE(SUM(sd.quantity * p.sale_price),0) as income'),
+            DB::raw('COALESCE(SUM(sd.quantity * p.purchase_price),0) as cost')
+         )
+         ->orderByDesc(DB::raw('COALESCE(SUM(sd.quantity),0)'))
+         ->get();
 
-       $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
-       $uniqueProducts = (int) $rows->count();
+      $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
+      $uniqueProducts = (int) $rows->count();
 
-       // Valor de inventario (stock * purchase_price) para toda la empresa
-       $inventoryRow = DB::table('products')
-          ->where('company_id', $this->company_id)
-          ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
-          ->first();
+      // Valor de inventario (stock * purchase_price) para toda la empresa
+      $inventoryRow = DB::table('products')
+         ->where('company_id', $this->company_id)
+         ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
+         ->first();
 
-       $productsData = $rows->map(function ($r) {
-          $income = (float) $r->income;
-          $cost = (float) $r->cost;
-          $marginPct = $income > 0 ? (($income - $cost) / $income) * 100.0 : 0.0;
-          return [
-             'id' => (int) $r->id,
-             'product_name' => (string) $r->name,
-             'stock' => (int) $r->stock,
-             'quantity_sold' => (int) $r->quantity_sold,
-             'income' => $income,
-             'cost' => $cost,
-             'purchase_price' => (float) $r->purchase_price,
-             'sale_price' => (float) $r->sale_price,
-             'margin_percentage' => round($marginPct, 1),
-          ];
-       });
+      $productsData = $rows->map(function ($r) {
+         $income = (float) $r->income;
+         $cost = (float) $r->cost;
+         $marginPct = $income > 0 ? (($income - $cost) / $income) * 100.0 : 0.0;
+         return [
+            'id' => (int) $r->id,
+            'product_name' => (string) $r->name,
+            'stock' => (int) $r->stock,
+            'quantity_sold' => (int) $r->quantity_sold,
+            'income' => $income,
+            'cost' => $cost,
+            'purchase_price' => (float) $r->purchase_price,
+            'sale_price' => (float) $r->sale_price,
+            'margin_percentage' => round($marginPct, 1),
+         ];
+      });
 
-       return [
-          'total_quantity_sold' => $totalQty,
-          'unique_products_sold' => $uniqueProducts,
-          'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
-          'products_data' => $productsData,
-       ];
-    }
+      return [
+         'total_quantity_sold' => $totalQty,
+         'unique_products_sold' => $uniqueProducts,
+         'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
+         'products_data' => $productsData,
+      ];
+   }
 
-    /**
-     * Productos vendidos en el arqueo anterior (para comparación básica)
-     */
-    private function getPreviousProductsStats()
-    {
-       $previous = $this->getPreviousCashCount();
-       if (!$previous) {
-          return [
-             'total_quantity_sold' => 0,
-             'unique_products_sold' => 0,
-             'inventory_value_cost' => 0.0,
-             'products_data' => collect([]),
-          ];
-       }
+   /**
+    * Productos vendidos en el arqueo anterior (para comparación básica)
+    */
+   private function getPreviousProductsStats()
+   {
+      $previous = $this->getPreviousCashCount();
+      if (!$previous) {
+         return [
+            'total_quantity_sold' => 0,
+            'unique_products_sold' => 0,
+            'inventory_value_cost' => 0.0,
+            'products_data' => collect([]),
+         ];
+      }
 
-       $start = $previous->opening_date;
-       $end = $previous->closing_date ?: now();
+      $start = $previous->opening_date;
+      $end = $previous->closing_date ?: now();
 
-       $rows = DB::table('sale_details as sd')
-          ->join('sales as s', 'sd.sale_id', '=', 's.id')
-          ->where('s.company_id', $this->company_id)
-          ->whereBetween('s.sale_date', [$start, $end])
-          ->select(DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'))
-          ->get();
+      $rows = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->where('s.company_id', $this->company_id)
+         ->whereBetween('s.sale_date', [$start, $end])
+         ->select(DB::raw('COALESCE(SUM(sd.quantity),0) as quantity_sold'))
+         ->get();
 
-       $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
-       $uniqueProducts = (int) $rows->count();
+      $totalQty = (int) ($rows->sum('quantity_sold') ?? 0);
+      $uniqueProducts = (int) $rows->count();
 
-       $inventoryRow = DB::table('products')
-          ->where('company_id', $this->company_id)
-          ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
-          ->first();
+      $inventoryRow = DB::table('products')
+         ->where('company_id', $this->company_id)
+         ->select(DB::raw('COALESCE(SUM(stock * purchase_price),0) as inventory_value_cost'))
+         ->first();
 
-       return [
-          'total_quantity_sold' => $totalQty,
-          'unique_products_sold' => $uniqueProducts,
-          'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
-       ];
-    }
+      return [
+         'total_quantity_sold' => $totalQty,
+         'unique_products_sold' => $uniqueProducts,
+         'inventory_value_cost' => (float) ($inventoryRow->inventory_value_cost ?? 0),
+      ];
+   }
 
-     /**
-      * Estadísticas de pedidos (orders) para el modal
-      */
-     public function getOrdersStats()
-     {
-        $current = $this->getCurrentOrdersStats();
-        $previous = $this->getPreviousOrdersStats();
-        return [
-           'current' => $current,
-           'previous' => $previous,
-           'comparison' => $this->calculateOrdersComparison($current, $previous)
-        ];
-     }
+   /**
+    * Estadísticas de pedidos (orders) para el modal
+    */
+   public function getOrdersStats()
+   {
+      $current = $this->getCurrentOrdersStats();
+      $previous = $this->getPreviousOrdersStats();
+      return [
+         'current' => $current,
+         'previous' => $previous,
+         'comparison' => $this->calculateOrdersComparison($current, $previous)
+      ];
+   }
 
-     private function getCurrentOrdersStats()
-     {
-        $start = $this->opening_date;
-        $end = $this->closing_date ?: now();
+   private function getCurrentOrdersStats()
+   {
+      $start = $this->opening_date;
+      $end = $this->closing_date ?: now();
 
-        // Filtrar por compañía a través de products.company_id
-        $orders = DB::table('orders as o')
-           ->join('products as p', 'o.product_id', '=', 'p.id')
-           ->where('p.company_id', $this->company_id)
-           ->whereBetween('o.created_at', [$start, $end])
-           ->select('o.*')
-           ->orderBy('o.created_at', 'desc')
-           ->get();
+      // Filtrar por compañía a través de products.company_id
+      $orders = DB::table('orders as o')
+         ->join('products as p', 'o.product_id', '=', 'p.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('o.created_at', [$start, $end])
+         ->select('o.*')
+         ->orderBy('o.created_at', 'desc')
+         ->get();
 
-        $totalOrders = (int) $orders->count();
-        $totalValue = (float) $orders->sum('total_price');
-        $pending = (int) $orders->where('status', 'pending')->count();
-        $completed = (int) $orders->where('status', 'processed')->count();
+      $totalOrders = (int) $orders->count();
+      $totalValue = (float) $orders->sum('total_price');
+      $pending = (int) $orders->where('status', 'pending')->count();
+      $completed = (int) $orders->where('status', 'processed')->count();
 
-        return [
-           'total_orders' => $totalOrders,
-           'pending' => $pending,
-           'completed' => $completed,
-           'total_value' => $totalValue,
-           'orders_data' => $this->getOrdersDetailedData($orders)
-        ];
-     }
+      return [
+         'total_orders' => $totalOrders,
+         'pending' => $pending,
+         'completed' => $completed,
+         'total_value' => $totalValue,
+         'orders_data' => $this->getOrdersDetailedData($orders)
+      ];
+   }
 
-     private function getPreviousOrdersStats()
-     {
-        $previous = $this->getPreviousCashCount();
-        if (!$previous) {
-           return [
-              'total_orders' => 0,
-              'pending' => 0,
-              'completed' => 0,
-              'total_value' => 0.0,
-           ];
-        }
+   private function getPreviousOrdersStats()
+   {
+      $previous = $this->getPreviousCashCount();
+      if (!$previous) {
+         return [
+            'total_orders' => 0,
+            'pending' => 0,
+            'completed' => 0,
+            'total_value' => 0.0,
+         ];
+      }
 
-        $orders = DB::table('orders as o')
-           ->join('products as p', 'o.product_id', '=', 'p.id')
-           ->where('p.company_id', $this->company_id)
-           ->whereBetween('o.created_at', [$previous->opening_date, $previous->closing_date ?: now()])
-           ->select('o.*')
-           ->get();
+      $orders = DB::table('orders as o')
+         ->join('products as p', 'o.product_id', '=', 'p.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('o.created_at', [$previous->opening_date, $previous->closing_date ?: now()])
+         ->select('o.*')
+         ->get();
 
-        $totalOrders = (int) $orders->count();
-        $totalValue = (float) $orders->sum('total_price');
-        $pending = (int) $orders->where('status', 'pending')->count();
-        $completed = (int) $orders->where('status', 'processed')->count();
+      $totalOrders = (int) $orders->count();
+      $totalValue = (float) $orders->sum('total_price');
+      $pending = (int) $orders->where('status', 'pending')->count();
+      $completed = (int) $orders->where('status', 'processed')->count();
 
-        return [
-           'total_orders' => $totalOrders,
-           'pending' => $pending,
-           'completed' => $completed,
-           'total_value' => $totalValue,
-        ];
-     }
+      return [
+         'total_orders' => $totalOrders,
+         'pending' => $pending,
+         'completed' => $completed,
+         'total_value' => $totalValue,
+      ];
+   }
 
-     private function calculateOrdersComparison(array $current, array $previous)
-     {
-        $keys = ['total_orders', 'pending', 'completed', 'total_value'];
-        $out = [];
-        foreach ($keys as $k) {
-           $prev = $previous[$k] ?? 0;
-           $cur = $current[$k] ?? 0;
-           if ($prev > 0) {
-              $pct = (($cur - $prev) / $prev) * 100;
-              $out[$k] = ['percentage' => round($pct, 1), 'is_positive' => ($k === 'pending') ? $pct <= 0 : $pct >= 0];
-           } else {
-              $out[$k] = ['percentage' => $cur > 0 ? 100 : 0, 'is_positive' => ($k === 'pending') ? $cur <= 0 : $cur > 0];
-           }
-        }
-        return $out;
-     }
+   private function calculateOrdersComparison(array $current, array $previous)
+   {
+      $keys = ['total_orders', 'pending', 'completed', 'total_value'];
+      $out = [];
+      foreach ($keys as $k) {
+         $prev = $previous[$k] ?? 0;
+         $cur = $current[$k] ?? 0;
+         if ($prev > 0) {
+            $pct = (($cur - $prev) / $prev) * 100;
+            $out[$k] = ['percentage' => round($pct, 1), 'is_positive' => ($k === 'pending') ? $pct <= 0 : $pct >= 0];
+         } else {
+            $out[$k] = ['percentage' => $cur > 0 ? 100 : 0, 'is_positive' => ($k === 'pending') ? $cur <= 0 : $cur > 0];
+         }
+      }
+      return $out;
+   }
 
-     private function getOrdersDetailedData($preloaded = null)
-     {
-        $rows = $preloaded ?: DB::table('orders as o')
-           ->join('products as p', 'o.product_id', '=', 'p.id')
-           ->where('p.company_id', $this->company_id)
-           ->whereBetween('o.created_at', [$this->opening_date, $this->closing_date ?: now()])
-           ->select('o.*')
-           ->orderBy('o.created_at', 'desc')
-           ->get();
+   private function getOrdersDetailedData($preloaded = null)
+   {
+      $rows = $preloaded ?: DB::table('orders as o')
+         ->join('products as p', 'o.product_id', '=', 'p.id')
+         ->where('p.company_id', $this->company_id)
+         ->whereBetween('o.created_at', [$this->opening_date, $this->closing_date ?: now()])
+         ->select('o.*')
+         ->orderBy('o.created_at', 'desc')
+         ->get();
 
-        return $rows->map(function ($o) {
-           return [
-              'id' => (int) $o->id,
-              'order_date' => $o->created_at ? (new \Carbon\Carbon($o->created_at))->toISOString() : null,
-              'customer_name' => (string) $o->customer_name,
-              'customer_phone' => (string) $o->customer_phone,
-              'unique_products' => 1,
-              'total_products' => (int) $o->quantity,
-              'total_amount' => (float) $o->total_price,
-              'status' => (string) $o->status,
-           ];
-        });
-     }
-
+      return $rows->map(function ($o) {
+         return [
+            'id' => (int) $o->id,
+            'order_date' => $o->created_at ? (new \Carbon\Carbon($o->created_at))->toISOString() : null,
+            'customer_name' => (string) $o->customer_name,
+            'customer_phone' => (string) $o->customer_phone,
+            'unique_products' => 1,
+            'total_products' => (int) $o->quantity,
+            'total_amount' => (float) $o->total_price,
+            'status' => (string) $o->status,
+         ];
+      });
+   }
 }
