@@ -46,6 +46,11 @@ function loadProductsPage(url) {
             const cards = document.querySelector('#desktopCardsView .cards-grid');
             if (newCards && cards) cards.innerHTML = newCards.innerHTML;
 
+            // Reemplazar tarjetas móviles
+            const newMobileCards = temp.querySelector('#mobileCards');
+            const mobileCards = document.querySelector('#mobileCards');
+            if (newMobileCards && mobileCards) mobileCards.innerHTML = newMobileCards.innerHTML;
+
             // Reemplazar tabla
             const newTableBody = temp.querySelector('#productsTableBody');
             const tableBody = document.getElementById('productsTableBody');
