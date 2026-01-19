@@ -22,7 +22,7 @@ class ProductController extends Controller
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
-         
+
          // Obtener la moneda de la empresa configurada
          if ($this->company && $this->company->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -31,7 +31,7 @@ class ProductController extends Controller
                ->where('code', $this->company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -51,38 +51,38 @@ class ProductController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       $links = [];
-      
+
       // Siempre agregar la primera página
       $links[] = 1;
-      
+
       // Calcular el rango de páginas alrededor de la página actual
       $start = max(2, $currentPage - $windowSize);
       $end = min($lastPage - 1, $currentPage + $windowSize);
-      
+
       // Agregar separador si hay gap entre la primera página y el rango
       if ($start > 2) {
          $links[] = '...';
       }
-      
+
       // Agregar páginas en el rango
       for ($i = $start; $i <= $end; $i++) {
          if ($i > 1 && $i < $lastPage) {
             $links[] = $i;
          }
       }
-      
+
       // Agregar separador si hay gap entre el rango y la última página
       if ($end < $lastPage - 1) {
          $links[] = '...';
       }
-      
+
       // Siempre agregar la última página (si no es la primera)
       if ($lastPage > 1) {
          $links[] = $lastPage;
       }
-      
+
       // Agregar propiedades al paginador
       $paginator->smartLinks = $links;
       $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
@@ -91,7 +91,7 @@ class ProductController extends Controller
       $paginator->nextPageUrl = $paginator->nextPageUrl();
       $paginator->firstPageUrl = $paginator->url(1);
       $paginator->lastPageUrl = $paginator->url($lastPage);
-      
+
       return $paginator;
    }
 
@@ -108,10 +108,10 @@ class ProductController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                $q->where('name', 'ILIKE', "%{$search}%")
-                 ->orWhere('code', 'ILIKE', "%{$search}%")
-                 ->orWhereHas('category', function ($cq) use ($search) {
-                    $cq->where('name', 'ILIKE', "%{$search}%");
-                 });
+                  ->orWhere('code', 'ILIKE', "%{$search}%")
+                  ->orWhereHas('category', function ($cq) use ($search) {
+                     $cq->where('name', 'ILIKE', "%{$search}%");
+                  });
             });
          }
 
@@ -120,21 +120,22 @@ class ProductController extends Controller
             $query->where('category_id', $request->input('category_id'));
          }
 
-         // Filtro por estado de stock: low|normal|high (según umbrales simples)
+         // Filtro por estado de stock: low|normal|high (según umbrales dinámicos del producto)
          if ($request->filled('stock_status')) {
             $stock = $request->input('stock_status');
             if ($stock === 'low') {
-               $query->where('stock', '<=', 10);
+               $query->whereColumn('stock', '<=', 'min_stock');
             } elseif ($stock === 'high') {
-               $query->where('stock', '>', 50);
+               $query->whereColumn('stock', '>=', 'max_stock');
             } else { // normal
-               $query->whereBetween('stock', [11, 50]);
+               $query->whereColumn('stock', '>', 'min_stock')
+                  ->whereColumn('stock', '<', 'max_stock');
             }
          }
 
          // Paginación del lado del servidor
          $products = $query->orderBy('name')->paginate(12)->withQueryString();
-         
+
          // Aplicar paginación inteligente
          $products = $this->generateSmartPagination($products, 2);
 
@@ -146,29 +147,26 @@ class ProductController extends Controller
 
          $currency = $this->currencies;
          $company = $this->company;
-         
-         // Calcular estadísticas usando todos los productos de la empresa (no filtrados)
-         $allProducts = Product::select('id', 'stock', 'purchase_price', 'sale_price')
-            ->where('company_id', $this->company->id)
-            ->get();
 
-         $totalProducts = $allProducts->count();
-         $lowStockProducts = $allProducts->where('stock', '<=', 10)->count();
-         
-         // Valor de compra total
-         $totalPurchaseValue = $allProducts->sum(function ($product) {
-            return $product->stock * $product->purchase_price;
-         });
+         // Calcular estadísticas usando agregados de base de datos (más eficiente)
+         $stats = Product::where('company_id', $this->company->id)
+            ->selectRaw('
+               COUNT(*) as total_products,
+               SUM(CASE WHEN stock <= min_stock THEN 1 ELSE 0 END) as low_stock_products,
+               SUM(stock * purchase_price) as total_purchase_value,
+               SUM(stock * sale_price) as total_sale_value
+            ')
+            ->first();
 
-         // Valor de venta total
-         $totalSaleValue = $allProducts->sum(function ($product) {
-            return $product->stock * $product->sale_price;
-         });
+         $totalProducts = $stats->total_products;
+         $lowStockProducts = $stats->low_stock_products;
+         $totalPurchaseValue = $stats->total_purchase_value ?? 0;
+         $totalSaleValue = $stats->total_sale_value ?? 0;
 
          // Ganancia potencial y porcentaje
          $potentialProfit = $totalSaleValue - $totalPurchaseValue;
-         $profitPercentage = $totalPurchaseValue > 0 
-            ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100 
+         $profitPercentage = $totalPurchaseValue > 0
+            ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100
             : 0;
 
          // Optimización de gates - verificar permisos una sola vez
@@ -214,13 +212,13 @@ class ProductController extends Controller
             ->get();
          $currency = $this->currencies;
          $company = $this->company;
-         
+
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
          if ($referrerUrl && !str_contains($referrerUrl, 'products/create')) {
             session(['products_referrer' => $referrerUrl]);
          }
-         
+
          return view('admin.products.create', compact('categories', 'currency', 'company'));
       } catch (\Exception $e) {
 
@@ -291,10 +289,10 @@ class ProductController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('products_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', 'Producto creado exitosamente')
-                ->with('icons', 'success');
+               ->with('message', 'Producto creado exitosamente')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de productos
@@ -370,7 +368,7 @@ class ProductController extends Controller
             ->where('id', $id)
             ->where('company_id', $this->company->id)
             ->firstOrFail();
-            
+
          // Optimizar consulta de categorías con select específico
          $categories = Category::select('id', 'name', 'company_id')
             ->where('company_id', $this->company->id)
@@ -378,13 +376,13 @@ class ProductController extends Controller
             ->get();
          $currency = $this->currencies;
          $company = $this->company;
-         
+
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
          if ($referrerUrl && !str_contains($referrerUrl, 'products/edit')) {
             session(['products_referrer' => $referrerUrl]);
          }
-         
+
          return view('admin.products.edit', compact('product', 'categories', 'currency', 'company'));
       } catch (\Exception $e) {
 
@@ -464,10 +462,10 @@ class ProductController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('products_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', 'Producto actualizado exitosamente')
-                ->with('icons', 'success');
+               ->with('message', 'Producto actualizado exitosamente')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de productos
@@ -507,9 +505,9 @@ class ProductController extends Controller
             if ($product->purchase_details_count > 0) {
                $reasons[] = "tiene compras asociadas";
             }
-            
+
             $reasonText = implode(' y ', $reasons);
-            
+
             return response()->json([
                'status' => 'error',
                'message' => "No se puede eliminar el producto porque {$reasonText}",
@@ -547,18 +545,16 @@ class ProductController extends Controller
    {
       $company = $this->company;
       $currency = $this->currencies;
-      $products = Product::with(['category','supplier'])
+      $products = Product::with(['category', 'supplier'])
          ->where('products.company_id', $this->company->id)
          ->join('categories', 'products.category_id', '=', 'categories.id')
          ->orderBy('categories.name')
          ->orderBy('products.stock', 'desc')
          ->orderBy('products.name')
          ->select('products.*')
-            ->get();
+         ->get();
       $pdf = PDF::loadView('admin.products.report', compact('products', 'company', 'currency'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-productos.pdf');
    }
-
-
 }

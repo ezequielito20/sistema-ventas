@@ -50,9 +50,12 @@ class Product extends Model
    /**
     * Get the formatted purchase price.
     */
+   /**
+    * Get the formatted purchase price.
+    */
    public function getFormattedPurchasePriceAttribute()
    {
-      return '$' . number_format($this->purchase_price, 2);
+      return number_format($this->purchase_price, 2);
    }
 
    /**
@@ -60,7 +63,7 @@ class Product extends Model
     */
    public function getFormattedSalePriceAttribute()
    {
-      return '$' . number_format($this->sale_price, 2);
+      return number_format($this->sale_price, 2);
    }
 
    /**
@@ -167,7 +170,7 @@ class Product extends Model
       if (!$this->image) {
          return asset('img/no-image.svg');
       }
-      
+
       return ImageUrlService::getImageUrl($this->image);
    }
 
