@@ -452,11 +452,12 @@ class SaleController extends Controller
          // Obtener productos con solo los campos necesarios
          $products = Product::where('company_id', $companyId)
             ->where('stock', '>', 0)
-            ->select('id', 'code', 'name', 'image', 'stock', 'sale_price', 'category_id')
+            ->select('id', 'code', 'name', 'image', 'stock', 'min_stock', 'max_stock', 'sale_price', 'category_id')
             ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
             ->get()
             ->map(function ($product) {
-                // El image_url ya está disponible como accessor en el modelo
+                // Asegurar que el accessor se incluya en la serialización
+                $product->append('stock_status_label');
                 return $product;
             });
 
