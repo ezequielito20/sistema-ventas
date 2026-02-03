@@ -657,7 +657,7 @@ class AdminController extends Controller
             }
          }
 
-      
+
 
          $customersWithDebt = DB::table('customers')
             ->where('company_id', $companyId)
@@ -671,11 +671,13 @@ class AdminController extends Controller
          foreach ($customersWithDebt as $customer) {
             // 1. Calcular Deuda Vieja Inicial (Antes de abrir la caja)
             $oldSales = DB::table('sales')
+               ->where('company_id', $companyId)
                ->where('customer_id', $customer->id)
                ->where('sale_date', '<', $cashOpenDate)
-               ->sum('total_with_discount');
+               ->sum('total_price');
 
             $oldPayments = DB::table('debt_payments')
+               ->where('company_id', $companyId)
                ->where('customer_id', $customer->id)
                ->where('created_at', '<', $cashOpenDate)
                ->sum('payment_amount');
@@ -698,8 +700,18 @@ class AdminController extends Controller
             }
 
             // 3. La deuda que pertenece a ESTE período es el Total menos lo que queda de viejo
-            
-            $currentPeriodDebt = max(0, $customer->total_debt - $oldDebtRemaining);
+            $calculatedCurrentDebt = max(0, $customer->total_debt - $oldDebtRemaining);
+
+            // Obtener ventas de ESTE cliente en ESTE período para limitar la deuda nueva
+            // No se puede generar más deuda nueva que lo vendido en el período
+            $salesInCurrent = DB::table('sales')
+               ->where('company_id', $companyId)
+               ->where('customer_id', $customer->id)
+               ->where('sale_date', '>=', $cashOpenDate)
+               ->sum('total_price');
+
+            // La deuda del período no puede exceder las ventas del período
+            $currentPeriodDebt = min($calculatedCurrentDebt, $salesInCurrent);
 
             $totalCurrentPeriodDebt += $currentPeriodDebt;
             $totalOldDebtRecovered += $recovered;
@@ -716,7 +728,16 @@ class AdminController extends Controller
             ]
          ];
 
-         $currentCashData['balance'] = (float) ($currentCashData['sales'] - $currentCashData['purchases'] - $totalCurrentPeriodDebt + $totalOldDebtRecovered);
+         // Calcular balance actual basado en flujo de caja real
+         // ==========================================
+         // DATOS DEL ARQUEO ACTUAL
+         // ==========================================
+         // Balance = (Ventas en periodo) - (Compras en periodo) - (Deuda generada en periodo) + (Deuda vieja recuperada en periodo)
+         // NOTA: Las ventas ya incluyen el monto total, por lo que restamos la deuda generada para obtener solo lo que entró en efectivo real de esas ventas.
+         // Y sumamos la deuda vieja recuperada que es efectivo real que entró.
+
+         $realCashFromSales = $currentCashData['sales'] - $totalCurrentPeriodDebt;
+         $currentCashData['balance'] = (float) ($realCashFromSales - $currentCashData['purchases'] + $totalOldDebtRecovered);
       }
 
       // ==========================================
