@@ -712,26 +712,32 @@ class SaleController extends Controller
             ], 400);
          }
 
-         $product = Product::findOrFail($validated['product_id']);
+         $product = Product::where('id', $validated['product_id'])
+            ->where('company_id', $this->company->id)
+            ->firstOrFail();
+
          $totalSalesCount = 0;
+         $totalQuantitySold = 0;
 
          foreach ($validated['sales'] as $saleData) {
-            $customer = Customer::findOrFail($saleData['customer_id']);
+            $customer = Customer::where('id', $saleData['customer_id'])
+               ->where('company_id', $this->company->id)
+               ->firstOrFail();
+
             $totalPrice = $saleData['quantity'] * $saleData['price'];
 
             // Crear la venta principal
             $sale = Sale::create([
                'sale_date' => $validated['sale_date'] . ' ' . $validated['sale_time'],
                'total_price' => $totalPrice,
-               'company_id' => Auth::user()->company_id,
-               'customer_id' => $saleData['customer_id'],
+               'company_id' => $this->company->id,
+               'customer_id' => $customer->id,
                'cash_count_id' => $currentCashCount->id,
                'note' => 'Venta masiva procesada',
                'general_discount_value' => 0,
                'general_discount_type' => 'fixed',
                'subtotal_before_discount' => $totalPrice,
                'total_with_discount' => $totalPrice,
-               'already_paid' => 0,
             ]);
 
             // Crear detalle
@@ -747,10 +753,6 @@ class SaleController extends Controller
                'final_price' => $saleData['price'],
             ]);
 
-            // Actualizar stock
-            $product->stock -= $saleData['quantity'];
-            $product->save();
-
             // Actualizar deuda del cliente
             $customer->total_debt += $totalPrice;
             $customer->save();
@@ -763,8 +765,13 @@ class SaleController extends Controller
                'description' => 'Venta Masiva #' . $sale->id . ' - ' . $customer->name,
             ]);
 
+            $totalQuantitySold += $saleData['quantity'];
             $totalSalesCount++;
          }
+
+         // Actualizar stock del producto UNA SOLA VEZ al final para optimizar
+         $product->stock -= $totalQuantitySold;
+         $product->save();
 
          DB::commit();
 
