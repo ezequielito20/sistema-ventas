@@ -1,0 +1,71 @@
+/* ===== ESTILOS PARA MODAL DE VENTAS MASIVAS ===== */
+
+/* Animación para el modal */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Zona de drag and drop */
+.border-3 {
+    border-width: 3px;
+}
+
+/* Efecto hover en la zona de drag & drop */
+.border-dashed:hover {
+    border-color: #f59e0b;
+}
+
+/* Animación para el icono de carga */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.fa-cloud-upload-alt {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Estilos para inputs en el modal */
+.bulk-modal-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Responsive para el modal de ventas masivas */
+@media (max-width: 768px) {
+    .max-h-\[90vh\] {
+        max-height: 95vh;
+    }
+    
+    .max-h-\[calc\(90vh-200px\)\] {
+        max-height: calc(95vh - 150px);
+    }
+}
+
+/* Animación para productos agregados */
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Estilo para el archivo cargado */
+.file-loaded-indicator {
+    animation: slideInFromRight 0.3s ease-out;
+}

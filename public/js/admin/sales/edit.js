@@ -6,84 +6,84 @@
 
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
-    
+
     Alpine.data('saleEditSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
         loading: false,
-        
+
         // Datos del formulario
         productCode: '',
         selectedCustomerId: '',
         saleDate: '',
         saleTime: '',
         saleNote: '',
-        
+
         // Productos en la venta - Usar reactive array
         saleItems: [],
-        
+
         // Búsqueda y filtros
         codeSuggestions: [],
         productSearchTerm: '',
         searchModalOpen: false,
-        
+
         // Cache de productos
         productsCache: [],
         filteredProducts: [],
-        
+
         // Sistema de notificaciones
         notifications: [],
-        
+
         // Selects personalizados
         customerOptions: [],
-        
+
         // Descuentos
         generalDiscountValue: 0,
         generalDiscountIsPercentage: false,
-        
+
         // ===== COMPUTED PROPERTIES =====
         get totalAmount() {
             const subtotalWithIndividualDiscounts = this.saleItems.reduce((total, item) => {
                 return total + this.getItemSubtotalWithDiscount(item);
             }, 0);
-            
+
             // Aplicar descuento general
             return this.applyGeneralDiscount(subtotalWithIndividualDiscounts);
         },
-        
+
         get canProcessSale() {
-            return this.selectedCustomerId && 
-                   this.saleItems.length > 0 && 
-                   this.saleDate && 
-                   this.saleTime;
+            return this.selectedCustomerId &&
+                this.saleItems.length > 0 &&
+                this.saleDate &&
+                this.saleTime;
         },
-        
+
         get hasProducts() {
             return this.saleItems.length > 0;
         },
-        
+
         // ===== FUNCIONES DE FECHA Y HORA =====
         updateCurrentDateTime() {
             // Obtener fecha y hora actual de Caracas usando una mejor aproximación
             const now = new Date();
-            
+
             // Calcular la diferencia horaria de Caracas (UTC-4)
             const caracasOffset = -4 * 60; // -4 horas en minutos
             const utcOffset = now.getTimezoneOffset(); // Offset local en minutos
             const totalOffset = caracasOffset + utcOffset;
-            
+
             const caracasDate = new Date(now.getTime() + (totalOffset * 60 * 1000));
-            
+
             // Formatear fecha en formato YYYY-MM-DD
             const year = caracasDate.getFullYear();
             const month = String(caracasDate.getMonth() + 1).padStart(2, '0');
             const day = String(caracasDate.getDate()).padStart(2, '0');
             this.saleDate = `${year}-${month}-${day}`;
-            
+
             // Formatear hora en formato HH:MM
             const hours = String(caracasDate.getHours()).padStart(2, '0');
             const minutes = String(caracasDate.getMinutes()).padStart(2, '0');
             this.saleTime = `${hours}:${minutes}`;
-            
+
             // Mostrar notificación
             this.showAlert('Fecha y hora actualizadas a la hora de Caracas, Venezuela', 'success');
         },
@@ -101,7 +101,7 @@ document.addEventListener('alpine:init', () => {
                     this.saleNote = window.saleEditData.saleNote || '';
                     this.generalDiscountValue = parseFloat(window.saleEditData.generalDiscountValue || 0);
                     this.generalDiscountIsPercentage = window.saleEditData.generalDiscountType === 'percentage';
-                    
+
                     // Transformar los saleItems del servidor al formato del SPA
                     if (window.saleEditData.saleItems && window.saleEditData.saleItems.length > 0) {
                         this.saleItems = window.saleEditData.saleItems.map(item => ({
@@ -118,18 +118,18 @@ document.addEventListener('alpine:init', () => {
                         }));
                     }
                 }
-                
+
                 // Configurar selects personalizados
                 this.setupCustomSelects();
-                
+
                 // Inicializar el cliente seleccionado con un pequeño delay
                 setTimeout(() => {
                     this.initializeSelectedCustomer();
                 }, 100);
-                
+
                 // Configurar persistencia automática
                 this.setupAutoSave();
-                
+
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
                 this.showAlert('Error al inicializar el sistema', 'error');
@@ -188,17 +188,17 @@ document.addEventListener('alpine:init', () => {
             // Iniciar el proceso de inicialización
             tryInitialize();
         },
-        
+
         // ===== BÚSQUEDA Y AUTocompletado =====
         searchProductByCode() {
             if (!this.productCode.trim() || this.productCode.length < 2) {
                 this.codeSuggestions = [];
                 return;
             }
-            
+
             const term = this.productCode.toLowerCase().trim();
             const suggestions = this.productsCache
-                .filter(product => 
+                .filter(product =>
                     (product.code && product.code.toLowerCase().trim().includes(term)) ||
                     (product.name && product.name.toLowerCase().trim().includes(term))
                 )
@@ -208,24 +208,24 @@ document.addEventListener('alpine:init', () => {
                     name: product.name,
                     product: product
                 }));
-            
+
             this.codeSuggestions = suggestions;
         },
-        
+
         selectCodeSuggestion(suggestion) {
             this.productCode = suggestion.code;
             this.codeSuggestions = [];
             this.addProductToSale(suggestion.product);
         },
-        
+
         addProductByCode() {
             if (!this.productCode.trim()) return;
-            
+
             const searchCode = this.productCode.toLowerCase().trim();
-            const product = this.productsCache.find(p => 
+            const product = this.productsCache.find(p =>
                 p.code.toLowerCase().trim() === searchCode
             );
-            
+
             if (product) {
                 this.addProductToSale(product);
                 this.productCode = '';
@@ -234,31 +234,31 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Producto No Encontrado', `Producto '${this.productCode}' no encontrado en el inventario`, 'warning', 2000);
             }
         },
-        
+
         // ===== FILTRADO DE PRODUCTOS =====
         filterProducts() {
             let filtered = [...this.productsCache];
-            
+
             // Filtro por término de búsqueda en tiempo real
             if (this.productSearchTerm && this.productSearchTerm.trim()) {
                 const term = this.productSearchTerm.toLowerCase().trim();
-                
-                filtered = filtered.filter(product => 
+
+                filtered = filtered.filter(product =>
                     product.code.toLowerCase().includes(term) ||
                     product.name.toLowerCase().includes(term) ||
                     (product.category?.name || '').toLowerCase().includes(term)
                 );
             }
-            
+
             // Mostrar todos los productos, pero marcar los que ya están en la venta
             this.filteredProducts = filtered;
         },
-        
+
         clearSearch() {
             this.productSearchTerm = '';
             this.filterProducts();
         },
-        
+
         // ===== GESTIÓN DE PRODUCTOS EN LA VENTA =====
         addProductToSale(product) {
             // Verificar si ya está en la venta
@@ -286,36 +286,36 @@ document.addEventListener('alpine:init', () => {
                 discountValue: 0,
                 discountIsPercentage: false
             };
-            
+
             this.saleItems.push(saleItem);
-            
+
             // Forzar actualización de la vista
             this.forceViewUpdate();
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
-            
+
             // Cerrar modal si está abierto
             if (this.searchModalOpen) {
                 this.searchModalOpen = false;
             }
-            
+
             this.showToast('Producto Agregado', `"${product.name}" agregado correctamente`, 'success', 1500);
         },
-        
+
         removeItem(index) {
             this.saleItems.splice(index, 1);
-            
+
             // Forzar actualización de la vista
             this.forceViewUpdate();
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         increaseQuantity(index) {
             const item = this.saleItems[index];
-            
+
             // Para productos que ya están en la venta, el stock máximo es el stock real + cantidad actual
             // item.stock ya incluye la cantidad en venta, así que es el stock máximo disponible
             if (item.quantity < item.stock) {
@@ -329,7 +329,7 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Stock Insuficiente', `Stock insuficiente para '${item.name}'. Disponible: ${stockDisponible}`, 'warning', 2000);
             }
         },
-        
+
         decreaseQuantity(index) {
             const item = this.saleItems[index];
             if (item.quantity > 1) {
@@ -339,21 +339,21 @@ document.addEventListener('alpine:init', () => {
                 this.saveToLocalStorage();
             }
         },
-        
+
         updateItemSubtotal(index) {
             const item = this.saleItems[index];
             // El subtotal se calcula automáticamente con la computed property
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         // ===== FUNCIONES DE DESCUENTO =====
         updateItemDiscount(index) {
             const item = this.saleItems[index];
-            
+
             // Permitir escritura libre, solo validar si es un número válido
             const numericValue = parseFloat(item.discountValue);
-            
+
             // Si no es un número válido, mantener el valor como string para permitir escritura
             if (isNaN(numericValue)) {
                 // Solo validar si el valor no es un string vacío y no termina en punto
@@ -362,7 +362,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 return; // No actualizar totales si no es un número válido
             }
-            
+
             // Si es un número válido, aplicar validaciones
             if (numericValue < 0) {
                 item.discountValue = 0;
@@ -373,15 +373,15 @@ document.addEventListener('alpine:init', () => {
             } else {
                 item.discountValue = numericValue;
             }
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         toggleItemDiscountType(index) {
             const item = this.saleItems[index];
             item.discountIsPercentage = !item.discountIsPercentage;
-            
+
             // Solo validar si es un número válido
             const numericValue = parseFloat(item.discountValue);
             if (!isNaN(numericValue)) {
@@ -392,17 +392,17 @@ document.addEventListener('alpine:init', () => {
                     item.discountValue = item.price;
                 }
             }
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         getItemPriceWithDiscount(item) {
             const discountValue = parseFloat(item.discountValue);
             if (isNaN(discountValue) || discountValue <= 0) {
                 return item.price;
             }
-            
+
             if (item.discountIsPercentage) {
                 const discountAmount = item.price * (discountValue / 100);
                 return Math.max(0, item.price - discountAmount);
@@ -410,16 +410,16 @@ document.addEventListener('alpine:init', () => {
                 return Math.max(0, item.price - discountValue);
             }
         },
-        
+
         getItemSubtotalWithDiscount(item) {
             const priceWithDiscount = this.getItemPriceWithDiscount(item);
             return priceWithDiscount * item.quantity;
         },
-        
+
         updateGeneralDiscount() {
             // Permitir escritura libre, solo validar si es un número válido
             const numericValue = parseFloat(this.generalDiscountValue);
-            
+
             // Si no es un número válido, mantener el valor como string para permitir escritura
             if (isNaN(numericValue)) {
                 // Solo validar si el valor no es un string vacío y no termina en punto
@@ -428,13 +428,13 @@ document.addEventListener('alpine:init', () => {
                 }
                 return; // No actualizar totales si no es un número válido
             }
-            
+
             // Si es un número válido, aplicar validaciones
             if (numericValue < 0) {
                 this.generalDiscountValue = 0;
             } else {
                 const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-                
+
                 if (this.generalDiscountIsPercentage && numericValue > 100) {
                     this.generalDiscountValue = 100;
                 } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
@@ -443,41 +443,41 @@ document.addEventListener('alpine:init', () => {
                     this.generalDiscountValue = numericValue;
                 }
             }
-            
+
             this.saveToLocalStorage();
         },
-        
+
         toggleGeneralDiscountType() {
             this.generalDiscountIsPercentage = !this.generalDiscountIsPercentage;
-            
+
             // Solo validar si es un número válido
             const numericValue = parseFloat(this.generalDiscountValue);
             if (!isNaN(numericValue)) {
                 // Resetear el valor si es necesario
                 const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-                
+
                 if (this.generalDiscountIsPercentage && numericValue > 100) {
                     this.generalDiscountValue = 100;
                 } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
                     this.generalDiscountValue = subtotalBeforeDiscount;
                 }
             }
-            
+
             this.saveToLocalStorage();
         },
-        
+
         getSubtotalBeforeGeneralDiscount() {
             return this.saleItems.reduce((total, item) => {
                 return total + this.getItemSubtotalWithDiscount(item);
             }, 0);
         },
-        
+
         applyGeneralDiscount(subtotal) {
             const discountValue = parseFloat(this.generalDiscountValue);
             if (isNaN(discountValue) || discountValue <= 0) {
                 return subtotal;
             }
-            
+
             if (this.generalDiscountIsPercentage) {
                 const discountAmount = subtotal * (discountValue / 100);
                 return Math.max(0, subtotal - discountAmount);
@@ -485,16 +485,16 @@ document.addEventListener('alpine:init', () => {
                 return Math.max(0, subtotal - discountValue);
             }
         },
-        
+
         updateTotal() {
             // El total se calcula automáticamente con la computed property
             this.saveToLocalStorage();
         },
-        
+
         isProductInSale(productId) {
             return this.saleItems.some(item => item.id === productId);
         },
-        
+
         // ===== VALIDACIONES =====
         validateSale() {
             if (!this.selectedCustomerId) {
@@ -516,7 +516,7 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Hora Requerida', 'Debe seleccionar una hora', 'warning', 2000);
                 return false;
             }
-            
+
             // Validar stock solo al procesar la venta
             for (const item of this.saleItems) {
                 const product = this.productsCache.find(p => p.id === item.id);
@@ -524,11 +524,11 @@ document.addEventListener('alpine:init', () => {
                     this.showToast('Producto No Encontrado', `Producto "${item.name}" no encontrado en el inventario`, 'error', 2000);
                     return false;
                 }
-                
+
                 // Aplicar la fórmula: stock_disponible + cantidad_actual_en_venta >= nueva_cantidad
                 // Para productos que ya están en la venta, usar item.stock que ya incluye la cantidad en venta
                 const stockMaximo = item.stock; // item.stock ya incluye la cantidad en venta
-                
+
                 if (item.quantity > stockMaximo) {
                     // Calcular stock disponible real para el mensaje
                     const stockDisponible = product.stock;
@@ -536,14 +536,14 @@ document.addEventListener('alpine:init', () => {
                     return false;
                 }
             }
-            
+
             return true;
         },
-        
+
         // ===== PROCESAMIENTO DE VENTA =====
         async processSale() {
             if (!this.validateSale()) return;
-            
+
             // Crear HTML personalizado para la confirmación
             const saleDetailsHTML = `
                 <div class="text-left">
@@ -589,20 +589,20 @@ document.addEventListener('alpine:init', () => {
                     </div>
                 </div>
             `;
-        
+
             const confirmed = await this.showConfirmDialog(
                 '¿Confirmar Actualización?',
                 saleDetailsHTML,
                 'html'
             );
-            
+
             if (!confirmed) return;
-            
+
             this.loading = true;
-            
+
             try {
                 const formData = new FormData();
-                
+
                 // Datos básicos de la venta
                 formData.append('customer_id', this.selectedCustomerId);
                 formData.append('sale_date', this.saleDate);
@@ -610,7 +610,7 @@ document.addEventListener('alpine:init', () => {
                 formData.append('total_price', this.totalAmount);
                 formData.append('note', this.saleNote || '');
                 formData.append('_method', 'PUT');
-                
+
                 // Agregar productos con descuentos
                 this.saleItems.forEach((item, index) => {
                     formData.append(`items[${item.id}][product_id]`, item.id);
@@ -622,13 +622,13 @@ document.addEventListener('alpine:init', () => {
                     formData.append(`items[${item.id}][original_price]`, item.price);
                     formData.append(`items[${item.id}][final_price]`, this.getItemPriceWithDiscount(item));
                 });
-                
+
                 // Agregar descuento general
                 formData.append('general_discount_value', this.generalDiscountValue || 0);
                 formData.append('general_discount_type', this.generalDiscountIsPercentage ? 'percentage' : 'fixed');
                 formData.append('subtotal_before_discount', this.getSubtotalBeforeGeneralDiscount());
                 formData.append('total_with_discount', this.totalAmount);
-                
+
                 const url = window.saleEditRoutes?.update || `/sales/update/${window.saleEditData.saleId}`;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -639,23 +639,23 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: formData
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.message || 'Error al actualizar la venta');
                 }
-                
+
                 if (data.success) {
                     // Limpiar localStorage
                     this.clearLocalStorage();
-                    
+
                     // Redirigir al index con mensaje de éxito
                     window.location.href = '/sales?sale_updated=true';
                 } else {
                     throw new Error(data.message || 'Error al actualizar la venta');
                 }
-                
+
             } catch (error) {
                 console.error('❌ Error actualizando venta:', error);
                 this.showAlert('Error al actualizar la venta: ' + error.message, 'error');
@@ -663,7 +663,7 @@ document.addEventListener('alpine:init', () => {
                 this.loading = false;
             }
         },
-        
+
         cancelSale() {
             Swal.fire({
                 title: '¿Cancelar edición?',
@@ -677,11 +677,11 @@ document.addEventListener('alpine:init', () => {
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.clearLocalStorage();
-                    
+
                     // Obtener la URL de referencia para evitar bucles
                     const referrer = document.referrer;
                     const currentUrl = window.location.href;
-                    
+
                     // Verificar si la URL de referencia es válida y diferente a la actual
                     if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
                         // Usar la URL de referencia si es válida
@@ -697,35 +697,35 @@ document.addEventListener('alpine:init', () => {
         hasUnsavedChanges() {
             // Comparar el estado actual con los datos originales
             const originalData = window.saleEditData;
-            
+
             // Verificar cambios en datos básicos
             if (this.selectedCustomerId != originalData.selectedCustomerId) return true;
             if (this.saleDate != originalData.saleDate) return true;
             if (this.saleTime != originalData.saleTime) return true;
             if (this.saleNote != originalData.saleNote) return true;
-            
+
             // Verificar cambios en items
             const originalItems = originalData.saleItems || [];
             if (this.saleItems.length !== originalItems.length) return true;
-            
+
             // Verificar cada item
             for (let i = 0; i < this.saleItems.length; i++) {
                 const currentItem = this.saleItems[i];
                 const originalItem = originalItems[i];
-                
+
                 if (!originalItem) return true;
                 if (currentItem.product_id != originalItem.product_id) return true;
                 if (currentItem.quantity != originalItem.quantity) return true;
                 if (parseFloat(currentItem.price) != parseFloat(originalItem.sale_price || 0)) return true;
             }
-            
+
             return false;
         },
 
         goBack() {
             // Verificar si hay cambios sin guardar
             const hasChanges = this.hasUnsavedChanges();
-            
+
             if (hasChanges) {
                 Swal.fire({
                     title: '¿Salir sin guardar?',
@@ -739,11 +739,11 @@ document.addEventListener('alpine:init', () => {
                 }).then((result) => {
                     if (result.isConfirmed) {
                         this.clearLocalStorage();
-                        
+
                         // Obtener la URL de referencia para evitar bucles
                         const referrer = document.referrer;
                         const currentUrl = window.location.href;
-                        
+
                         // Verificar si la URL de referencia es válida y diferente a la actual
                         if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
                             // Usar la URL de referencia si es válida
@@ -758,7 +758,7 @@ document.addEventListener('alpine:init', () => {
                 // No hay cambios, redirigir directamente
                 const referrer = document.referrer;
                 const currentUrl = window.location.href;
-                
+
                 if (referrer && referrer !== currentUrl && !referrer.includes('/sales/edit')) {
                     window.location.href = referrer;
                 } else {
@@ -766,7 +766,7 @@ document.addEventListener('alpine:init', () => {
                 }
             }
         },
-        
+
         // ===== PERSISTENCIA LOCAL =====
         saveToLocalStorage() {
             try {
@@ -778,19 +778,19 @@ document.addEventListener('alpine:init', () => {
                     saleItems: this.saleItems,
                     timestamp: Date.now()
                 };
-                
+
                 localStorage.setItem('saleEditData', JSON.stringify(data));
             } catch (error) {
                 console.warn('No se pudo guardar en localStorage:', error);
             }
         },
-        
+
         loadFromLocalStorage() {
             try {
                 const saved = localStorage.getItem('saleEditData');
                 if (saved) {
                     const data = JSON.parse(saved);
-                    
+
                     // Solo cargar si los datos tienen menos de 1 hora
                     const oneHour = 60 * 60 * 1000;
                     if (Date.now() - data.timestamp < oneHour) {
@@ -798,15 +798,15 @@ document.addEventListener('alpine:init', () => {
                         this.saleDate = data.saleDate || this.saleDate;
                         this.saleTime = data.saleTime || this.saleTime;
                         this.saleNote = data.saleNote || this.saleNote;
-                        
+
                         // Actualizar saleItems de forma más directa
                         if (data.saleItems && data.saleItems.length > 0) {
                             this.saleItems = [...data.saleItems];
                         }
-                        
+
                         // Forzar actualización de la vista
                         this.forceViewUpdate();
-                        
+
                         // Mostrar notificación si se cargaron productos automáticamente
                         if (this.saleItems.length > 0) {
                             setTimeout(() => {
@@ -822,7 +822,7 @@ document.addEventListener('alpine:init', () => {
                 this.clearLocalStorage();
             }
         },
-        
+
         clearLocalStorage() {
             try {
                 localStorage.removeItem('saleEditData');
@@ -833,7 +833,7 @@ document.addEventListener('alpine:init', () => {
                 console.warn('Error limpiando localStorage:', error);
             }
         },
-        
+
         setupAutoSave() {
             // Auto-guardar cada 30 segundos
             setInterval(() => {
@@ -869,28 +869,33 @@ document.addEventListener('alpine:init', () => {
                 setTimeout(() => { this.notifications.shift(); }, duration);
             }
         },
-        
+
         // Función para obtener la URL de la imagen del producto
         getProductImageUrl(product) {
             if (!product) {
                 return '/img/no-image.svg';
             }
-            
-            // Si ya tiene image_url, usarla
+
+            // Si ya tiene image_url, usarla directamente
             if (product.image_url && product.image_url !== 'null' && product.image_url !== '') {
                 return product.image_url;
             }
-            
-            // Si tiene image, construir la URL
+
+            // Si tiene image, verificar si ya contiene 'storage/' para evitar duplicación
             if (product.image && product.image !== 'null' && product.image !== '') {
+                // Si la imagen ya contiene 'storage/', usarla directamente con '/'
+                if (product.image.includes('storage/')) {
+                    return `/${product.image}`;
+                }
+                // Si no, construir la URL completa
                 const imageUrl = `/storage/products/${product.image}`;
                 return imageUrl;
             }
-            
+
             // Fallback a imagen por defecto
             return '/img/no-image.svg';
         },
-        
+
         // Función para forzar actualización de la vista
         forceViewUpdate() {
             // Forzar re-evaluación de computed properties
@@ -899,18 +904,18 @@ document.addEventListener('alpine:init', () => {
                 this.saleItems = [...this.saleItems];
             });
         },
-        
+
         removeNotification(index) {
             this.notifications.splice(index, 1);
         },
-        
+
         removeNotificationById(id) {
             const index = this.notifications.findIndex(n => n.id === id);
             if (index > -1) {
                 this.notifications.splice(index, 1);
             }
         },
-        
+
         showAlert(message, type = 'info') {
             if (typeof Swal !== 'undefined') {
                 return Swal.fire({
@@ -933,7 +938,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
         },
-        
+
         showConfirmDialog(title, text, html = false) {
             return new Promise((resolve) => {
                 if (typeof Swal !== 'undefined') {
@@ -970,7 +975,7 @@ document.addEventListener('alpine:init', () => {
         onCustomerChange() {
             this.saveToLocalStorage();
         },
-        
+
         // Función para calcular el stock máximo disponible para un producto
         getMaxQuantityForItem(item) {
             // Para productos que ya están en la venta, el stock máximo es el stock real + cantidad actual
@@ -981,7 +986,7 @@ document.addEventListener('alpine:init', () => {
 });
 
 // Función global para agregar productos desde el modal
-window.addProductFromModal = function(code, id, name, image, stock, price, category) {
+window.addProductFromModal = function (code, id, name, image, stock, price, category) {
     const editComponent = Alpine.$data(document.getElementById('saleEditRoot'));
     if (editComponent) {
         const product = {

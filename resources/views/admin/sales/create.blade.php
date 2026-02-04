@@ -870,63 +870,280 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal de Ventas Masivas -->
+            <div x-show="bulkSalesModalOpen" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+
+                <!-- Overlay de fondo -->
+                <div class="fixed inset-0 bg-black/50 transition-opacity" @click="closeBulkSalesModal()"></div>
+
+                <!-- Contenido del modal -->
+                <div class="flex items-center justify-center min-h-screen p-2 sm:p-4">
+                    <div class="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-5xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
+                        @click.stop>
+
+                        <!-- Header del Modal -->
+                        <div
+                            class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 px-4 sm:px-6 py-4 sm:py-5 text-white relative overflow-hidden">
+                            <!-- Decoración de fondo -->
+                            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl">
+                            </div>
+                            <div
+                                class="absolute bottom-0 left-0 -mb-4 -ml-4 w-24 h-24 bg-purple-400/20 rounded-full blur-2xl">
+                            </div>
+
+                            <div class="flex items-center justify-between relative z-10">
+                                <div class="flex items-center space-x-4">
+                                    <div
+                                        class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-md shadow-inner border border-white/30">
+                                        <i class="fas fa-layer-group text-lg sm:text-xl text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl sm:text-2xl font-bold tracking-tight">Cargar Ventas Masivas</h3>
+                                        <p
+                                            class="text-indigo-100/80 text-[10px] sm:text-xs font-medium uppercase tracking-widest">
+                                            Configuración de Procesamiento por Lote</p>
+                                    </div>
+                                </div>
+                                <button type="button" @click="closeBulkSalesModal()"
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center text-white hover:bg-white/20 hover:rotate-90 transition-all duration-300">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="p-4 sm:p-8 overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-200px)]">
+                            <!-- Contenedor del Formulario -->
+                            <div class="space-y-6 sm:space-y-8">
+
+                                <!-- Sección 1: Datos de la Venta (3 campos) -->
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                                    <!-- 1. Producto -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-bold text-gray-700 mb-2 ml-1">
+                                            <i class="fas fa-box text-indigo-500 mr-1.5"></i>
+                                            Producto Base <span class="text-red-500 font-black">*</span>
+                                        </label>
+                                        <div class="relative group">
+                                            <select x-model="bulkSaleProductId"
+                                                class="w-full pl-3 pr-10 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm appearance-none cursor-pointer">
+                                                <option value="">Seleccione el producto...</option>
+                                                <template x-for="p in productsCache" :key="p.id">
+                                                    <option :value="p.id"
+                                                        x-text="`${p.code} - ${p.name} (${p.stock} disp.)`"></option>
+                                                </template>
+                                            </select>
+                                            <div
+                                                class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+                                                <i class="fas fa-chevron-down text-xs"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Fecha -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-bold text-gray-700 mb-2 ml-1">
+                                            <i class="fas fa-calendar-day text-indigo-500 mr-1.5"></i>
+                                            Fecha de Venta <span class="text-red-500 font-black">*</span>
+                                        </label>
+                                        <input type="date" x-model="bulkSaleDate"
+                                            class="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm">
+                                    </div>
+
+                                    <!-- 3. Hora -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-bold text-gray-700 mb-2 ml-1">
+                                            <i class="fas fa-clock text-indigo-500 mr-1.5"></i>
+                                            Hora de Venta <span class="text-red-500 font-black">*</span>
+                                        </label>
+                                        <input type="time" x-model="bulkSaleTime"
+                                            class="w-full px-3 sm:px-4 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm">
+                                    </div>
+                                </div>
+
+                                <!-- Sección 2: Carga de Archivo (1 campo grande) -->
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-3 ml-1">
+                                        <i class="fas fa-file-invoice text-amber-500 mr-1.5"></i>
+                                        Archivo de Transacciones <span class="text-red-500 font-black">*</span>
+                                    </label>
+
+                                    <div @drop="handleBulkFileDrop($event)" @dragover="handleBulkFileDragOver($event)"
+                                        @dragleave="handleBulkFileDragLeave($event)"
+                                        :class="isDraggingFile ?
+                                            'border-indigo-500 bg-indigo-50 scale-[1.01] ring-4 ring-indigo-500/10' :
+                                            'border-gray-200 bg-white'"
+                                        class="border-3 border-dashed rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-12 text-center transition-all duration-500 cursor-pointer hover:border-indigo-400 hover:bg-gray-50/50 group relative overflow-hidden shadow-sm"
+                                        @click="$refs.bulkFileInput.click()">
+
+                                        <input type="file" x-ref="bulkFileInput" id="bulkFileInput"
+                                            @change="handleBulkFileSelect($event)" accept=".xlsx,.xls,.csv"
+                                            class="hidden">
+
+                                        <!-- Estado: Sin archivo -->
+                                        <template x-if="!bulkSaleFileName">
+                                            <div class="space-y-5">
+                                                <div class="relative mx-auto w-24 h-24">
+                                                    <div
+                                                        class="absolute inset-0 bg-indigo-100 rounded-3xl rotate-6 group-hover:rotate-12 transition-transform duration-500">
+                                                    </div>
+                                                    <div
+                                                        class="absolute inset-0 bg-indigo-600 rounded-3xl -rotate-3 group-hover:rotate-0 transition-transform duration-500 flex items-center justify-center shadow-lg shadow-indigo-200">
+                                                        <i class="fas fa-file-excel text-4xl text-white"></i>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h4 class="text-lg sm:text-xl font-bold text-gray-800">Cargar planilla
+                                                        de ventas</h4>
+                                                    <p class="text-gray-500 mt-2 max-w-xs mx-auto text-sm leading-relaxed">
+                                                        Arrastra tu archivo <span
+                                                            class="text-indigo-600 font-bold">Excel</span> o <span
+                                                            class="text-indigo-600 font-bold">CSV</span> para procesar las
+                                                        ventas en lote.
+                                                    </p>
+                                                </div>
+                                                <div class="flex items-center justify-center space-x-3 opacity-60">
+                                                    <div
+                                                        class="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
+                                                        <i class="far fa-file-excel text-green-600 text-xs"></i>
+                                                        <span
+                                                            class="text-[10px] font-bold text-gray-600 tracking-tighter">XLSX</span>
+                                                    </div>
+                                                    <div
+                                                        class="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
+                                                        <i class="fas fa-file-csv text-blue-600 text-xs"></i>
+                                                        <span
+                                                            class="text-[10px] font-bold text-gray-600 tracking-tighter">CSV</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Estado: Con archivo -->
+                                        <template x-if="bulkSaleFileName">
+                                            <div
+                                                class="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                                                <div
+                                                    class="bg-emerald-50 border-2 border-emerald-100 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] relative group/file transition-all duration-300 hover:shadow-xl hover:shadow-emerald-100/50">
+                                                    <div
+                                                        class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-6">
+                                                        <div
+                                                            class="w-12 h-12 sm:w-16 sm:h-16 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-inner group-hover/file:scale-110 transition-transform duration-500">
+                                                            <i
+                                                                class="fas fa-file-circle-check text-2xl sm:text-3xl text-emerald-600"></i>
+                                                        </div>
+                                                        <div class="text-center sm:text-left">
+                                                            <p class="font-black text-gray-800 text-lg sm:text-xl tracking-tight break-all"
+                                                                x-text="bulkSaleFileName"></p>
+                                                            <div
+                                                                class="flex items-center justify-center sm:justify-start mt-1 text-emerald-600">
+                                                                <span class="relative flex h-2 w-2 mr-2">
+                                                                    <span
+                                                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                                    <span
+                                                                        class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                                </span>
+                                                                <span
+                                                                    class="text-xs font-bold uppercase tracking-widest">Listo
+                                                                    para procesar</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" @click.stop="removeBulkFile()"
+                                                        class="absolute -top-4 -right-4 w-10 h-10 bg-white text-red-500 rounded-2xl shadow-xl hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center border border-gray-100 group">
+                                                        <i
+                                                            class="fas fa-trash-alt group-hover:scale-110 transition-transform"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div
+                            class="bg-gray-50/80 backdrop-blur-sm px-4 sm:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-t border-gray-100">
+                            <button type="button" @click="closeBulkSalesModal()"
+                                class="order-2 sm:order-1 px-7 py-3 rounded-xl sm:rounded-2xl border-2 border-gray-200 text-gray-600 font-bold hover:bg-white hover:border-gray-300 hover:text-gray-800 transition-all duration-300 flex items-center justify-center space-x-2 active:scale-95 shadow-sm">
+                                <i class="fas fa-arrow-left text-sm opacity-50"></i>
+                                <span>Regresar</span>
+                            </button>
+
+                            <div class="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center">
+                                <button type="button" @click="processBulkSale()"
+                                    :disabled="!bulkSaleDate || !bulkSaleTime || !bulkSaleFile || !bulkSaleProductId"
+                                    class="group relative px-6 sm:px-10 py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95 disabled:opacity-40 disabled:grayscale disabled:pointer-events-none transition-all duration-300 flex items-center justify-center space-x-3">
+                                    <i
+                                        class="fas fa-play-circle text-lg opacity-80 group-hover:scale-110 transition-transform"></i>
+                                    <span>Iniciar Procesamiento</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    </div>
 
-    <!-- Script con datos iniciales -->
-    <script>
-        window.saleCreateData = {
-            products: @json($products),
-            customers: @json($customers),
-            currency: @json($currency),
-            selectedCustomerId: @json($selectedCustomerId ?? null)
-        };
+        <!-- Script con datos iniciales -->
+        <script>
+            window.saleCreateData = {
+                products: @json($products),
+                customers: @json($customers),
+                currency: @json($currency),
+                selectedCustomerId: @json($selectedCustomerId ?? null)
+            };
 
-        // Establecer fecha actual de Caracas inmediatamente
-        document.addEventListener('DOMContentLoaded', function() {
-            // Usar una aproximación más simple: obtener la fecha local y ajustar
-            const now = new Date();
+            // Establecer fecha actual de Caracas inmediatamente
+            document.addEventListener('DOMContentLoaded', function() {
+                // Usar una aproximación más simple: obtener la fecha local y ajustar
+                const now = new Date();
 
-            // Obtener la fecha en formato local (que debería ser la fecha actual)
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
+                // Obtener la fecha en formato local (que debería ser la fecha actual)
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
 
-            // Establecer valores por defecto
-            window.defaultSaleDate = `${year}-${month}-${day}`;
-            window.defaultSaleTime = `${hours}:${minutes}`;
+                // Establecer valores por defecto
+                window.defaultSaleDate = `${year}-${month}-${day}`;
+                window.defaultSaleTime = `${hours}:${minutes}`;
 
-        });
-    </script>
-@endsection
+            });
+        </script>
+    @endsection
 
-@push('css')
-    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin/sales/create.css') }}">
-@endpush
+    @push('css')
+        <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/admin/sales/create.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/admin/sales/bulk-sales-modal.css') }}">
+    @endpush
 
-@push('js')
-    <script>
-        window.saleCreateRoutes = {
-            store: "{{ route('admin.sales.store') }}",
-            index: "{{ route('admin.sales.index') }}"
-        };
-        // Guard de limpieza: si venimos de una creación exitosa, limpiar storage lo antes posible
-        (function() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('sale_created') || params.has('sale_created_form')) {
-                    localStorage.removeItem('saleCreateData');
+    @push('js')
+        <script>
+            window.saleCreateRoutes = {
+                store: "{{ route('admin.sales.store') }}",
+                index: "{{ route('admin.sales.index') }}"
+            };
+            // Guard de limpieza: si venimos de una creación exitosa, limpiar storage lo antes posible
+            (function() {
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('sale_created') || params.has('sale_created_form')) {
+                        localStorage.removeItem('saleCreateData');
+                    }
+                } catch (e) {
+                    /* noop */
                 }
-            } catch (e) {
-                /* noop */
-            }
-        })();
-    </script>
-    <script src="{{ asset('vendor/config.js') }}"></script>
-    <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
-    <script src="{{ asset('js/admin/sales/create.js') }}" defer></script>
-@endpush
+            })();
+        </script>
+        <script src="{{ asset('vendor/config.js') }}"></script>
+        <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+        <script src="{{ asset('js/admin/sales/create.js') }}" defer></script>
+    @endpush

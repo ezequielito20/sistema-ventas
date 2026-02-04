@@ -44,6 +44,14 @@ document.addEventListener('alpine:init', () => {
         generalDiscountValue: 0,
         generalDiscountIsPercentage: false,
 
+        // Ventas Masivas
+        bulkSaleProductId: '',
+        bulkSaleDate: '',
+        bulkSaleTime: '',
+        bulkSaleFile: null,
+        bulkSaleFileName: '',
+        isDraggingFile: false,
+
         // ===== COMPUTED PROPERTIES =====
         get totalAmount() {
             const subtotalWithIndividualDiscounts = this.saleItems.reduce((total, item) => {
@@ -984,16 +992,11 @@ document.addEventListener('alpine:init', () => {
                 return '/img/no-image.svg';
             }
 
-            // Si ya tiene image_url, usarla
+            // Si ya tiene image_url, usarla directamente
             if (product.image_url && product.image_url !== 'null' && product.image_url !== '') {
                 return product.image_url;
             }
 
-            // Si tiene image, construir la URL
-            if (product.image && product.image !== 'null' && product.image !== '') {
-                const imageUrl = `/storage/products/${product.image}`;
-                return imageUrl;
-            }
 
             // Fallback a imagen por defecto
             return '/img/no-image.svg';
@@ -1141,6 +1144,120 @@ document.addEventListener('alpine:init', () => {
                 this.addProductToSale(product);
                 this.showToast('Producto Agregado', `"${product.name}" agregado automáticamente`, 'success', 1500);
             }
+        },
+
+        // ===== FUNCIONES PARA VENTAS MASIVAS =====
+
+
+        handleBulkFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.bulkSaleFile = file;
+                this.bulkSaleFileName = file.name;
+            }
+        },
+
+        handleBulkFileDrop(event) {
+            event.preventDefault();
+            this.isDraggingFile = false;
+
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                // Validar tipo de archivo
+                const validTypes = [
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text/csv'
+                ];
+
+                if (validTypes.includes(file.type) || file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    this.bulkSaleFile = file;
+                    this.bulkSaleFileName = file.name;
+                    this.showToast('Archivo Cargado', `Archivo "${file.name}" cargado correctamente`, 'success', 2000);
+                } else {
+                    this.showToast('Tipo de Archivo Inválido', 'Solo se permiten archivos Excel (.xlsx, .xls) o CSV', 'error', 3000);
+                }
+            }
+        },
+
+        handleBulkFileDragOver(event) {
+            event.preventDefault();
+            this.isDraggingFile = true;
+        },
+
+        handleBulkFileDragLeave(event) {
+            event.preventDefault();
+            this.isDraggingFile = false;
+        },
+
+        removeBulkFile() {
+            this.bulkSaleFile = null;
+            this.bulkSaleFileName = '';
+            // Limpiar el input file
+            const fileInput = document.getElementById('bulkFileInput');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        },
+
+        closeBulkSalesModal() {
+            this.bulkSalesModalOpen = false;
+            // Resetear el formulario
+            this.bulkSaleProductId = '';
+            this.bulkSaleDate = '';
+            this.bulkSaleTime = '';
+            this.bulkSaleFile = null;
+            this.bulkSaleFileName = '';
+        },
+
+        async processBulkSale() {
+            // Validaciones básicas de los 4 campos
+            if (!this.bulkSaleProductId) {
+                this.showToast('Producto Requerido', 'Debe seleccionar un producto base para procesar las ventas', 'warning', 2500);
+                return;
+            }
+
+            if (!this.bulkSaleDate) {
+                this.showToast('Fecha Requerida', 'Debe seleccionar una fecha para las ventas', 'warning', 2500);
+                return;
+            }
+
+            if (!this.bulkSaleTime) {
+                this.showToast('Hora Requerida', 'Debe seleccionar una hora para las ventas', 'warning', 2500);
+                return;
+            }
+
+            if (!this.bulkSaleFile) {
+                this.showToast('Archivo Requerido', 'Debe cargar un archivo Excel o CSV con las transacciones', 'warning', 2500);
+                return;
+            }
+
+            // Confirmación Estética
+            const product = this.productsCache.find(p => p.id == this.bulkSaleProductId);
+            const confirmed = await this.showConfirmDialog(
+                '¿Confirmar Procesamiento Masivo?',
+                `Se procesarán las ventas del producto <b>${product?.name || 'seleccionado'}</b> usando el archivo <b>${this.bulkSaleFileName}</b>. ¿Desea continuar?`,
+                'html'
+            );
+
+            if (!confirmed) return;
+
+            this.loading = true;
+
+            try {
+                // Simulación de procesamiento (Aquí se enviaría al backend)
+                this.showToast('Procesando...', 'Estamos analizando y cargando sus ventas masivas', 'info', 3000);
+
+                // Temporalmente solo mostramos que estamos en desarrollo
+                setTimeout(() => {
+                    this.showAlert('Funcionalidad de procesamiento en cola. La lógica del backend se implementará próximamente.', 'info');
+                    this.loading = false;
+                }, 1500);
+
+            } catch (error) {
+                this.showToast('Error', 'Hubo un problema al procesar el archivo', 'error');
+                this.loading = false;
+            }
         }
     }));
 });
@@ -1227,6 +1344,6 @@ if (document.querySelector('[x-data*="saleCreateSPA"]')) {
 
                 }
             }
-        }
-    };
+        };
+    }
 }
