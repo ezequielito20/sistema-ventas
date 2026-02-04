@@ -51,7 +51,7 @@
                                 <h3 class="text-2xl font-bold text-white">Información de la Venta</h3>
                             </div>
                             <div>
-                                <button type="button" @click="bulkSalesModalOpen = true"
+                                <button type="button" @click="openBulkSalesModal()"
                                     class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20 hover:scale-105 transform">
                                     <i class="fas fa-file-upload mr-2"></i>
                                     Cargar Ventas Masivas
@@ -928,18 +928,93 @@
                                             <i class="fas fa-box text-indigo-500 mr-1.5"></i>
                                             Producto Base <span class="text-red-500 font-black">*</span>
                                         </label>
-                                        <div class="relative group">
-                                            <select x-model="bulkSaleProductId"
-                                                class="w-full pl-3 pr-10 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm appearance-none cursor-pointer">
-                                                <option value="">Seleccione el producto...</option>
-                                                <template x-for="p in productsCache" :key="p.id">
-                                                    <option :value="p.id"
-                                                        x-text="`${p.code} - ${p.name} (${p.stock} disp.)`"></option>
-                                                </template>
-                                            </select>
-                                            <div
-                                                class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
-                                                <i class="fas fa-chevron-down text-xs"></i>
+                                        <div class="relative" x-data="{
+                                            isOpen: false,
+                                            searchTerm: '',
+                                            get filteredProducts() {
+                                                if (!this.searchTerm) return productsCache;
+                                                return productsCache.filter(p =>
+                                                    p.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                                                    p.code.toLowerCase().includes(this.searchTerm.toLowerCase())
+                                                );
+                                            },
+                                            get selectedProductName() {
+                                                const product = productsCache.find(p => p.id == bulkSaleProductId);
+                                                return product ? `${product.code} - ${product.name}` : 'Seleccione el producto...';
+                                            },
+                                            selectProduct(id) {
+                                                bulkSaleProductId = id;
+                                                this.isOpen = false;
+                                                this.searchTerm = '';
+                                            }
+                                        }" @click.away="isOpen = false">
+
+                                            <!-- Botón Estilo Premium -->
+                                            <button type="button" @click="isOpen = !isOpen"
+                                                class="w-full px-4 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm flex items-center justify-between group">
+                                                <span class="truncate text-gray-700"
+                                                    :class="bulkSaleProductId ? 'text-gray-800' : 'text-gray-400'"
+                                                    x-text="selectedProductName"></span>
+                                                <i class="fas fa-chevron-down text-[10px] text-gray-400 group-hover:text-indigo-500 transition-colors"
+                                                    :class="isOpen && 'rotate-180'"></i>
+                                            </button>
+
+                                            <!-- Dropdown Personalizado -->
+                                            <div x-show="isOpen" x-cloak
+                                                x-transition:enter="transition ease-out duration-200"
+                                                x-transition:enter-start="opacity-0 translate-y-2"
+                                                x-transition:enter-end="opacity-1 translate-y-0"
+                                                class="absolute z-[100] mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-w-full md:min-w-[320px] left-0 md:left-auto md:right-0">
+
+                                                <!-- Buscador Interno -->
+                                                <div class="p-3 bg-gray-50 border-b border-gray-100">
+                                                    <div class="relative">
+                                                        <i
+                                                            class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                                        <input type="text" x-model="searchTerm"
+                                                            class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                            placeholder="Buscar por código o nombre...">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Lista de Productos -->
+                                                <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                                                    <template x-for="p in filteredProducts" :key="p.id">
+                                                        <button type="button" @click="selectProduct(p.id)"
+                                                            class="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center justify-between transition-colors group border-b border-gray-50 last:border-0">
+                                                            <div class="flex-1 min-w-0 mr-3">
+                                                                <p class="text-sm font-bold text-gray-800 group-hover:text-indigo-600 truncate"
+                                                                    x-text="p.name"></p>
+                                                                <div class="flex items-center space-x-2 mt-0.5">
+                                                                    <span
+                                                                        class="px-1.5 py-0.5 bg-gray-100 text-[9px] text-gray-600 rounded-md font-bold uppercase tracking-tighter"
+                                                                        x-text="p.code"></span>
+                                                                    <span class="text-[10px] text-gray-300">•</span>
+                                                                    <span
+                                                                        :class="p.stock <= 5 ? 'text-rose-500 font-bold' :
+                                                                            'text-gray-500'"
+                                                                        class="text-[10px] flex items-center">
+                                                                        <i
+                                                                            class="fas fa-cubes-stacked mr-1 opacity-50"></i>
+                                                                        <span x-text="`Stock: ${p.stock}`"></span>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex items-center">
+                                                                <i class="fas fa-check-circle text-indigo-500 text-sm transition-all duration-300 transform scale-0"
+                                                                    :class="bulkSaleProductId == p.id && 'scale-110 opacity-100'"
+                                                                    x-show="bulkSaleProductId == p.id"></i>
+                                                                <i class="fas fa-chevron-right text-gray-300 text-[10px] group-hover:translate-x-1 transition-transform"
+                                                                    x-show="bulkSaleProductId != p.id"></i>
+                                                            </div>
+                                                        </button>
+                                                    </template>
+
+                                                    <div x-show="filteredProducts.length === 0" class="p-6 text-center">
+                                                        <i class="fas fa-box-open text-gray-300 text-2xl mb-2"></i>
+                                                        <p class="text-xs text-gray-500">No se encontraron productos</p>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -965,103 +1040,173 @@
                                     </div>
                                 </div>
 
-                                <!-- Sección 2: Carga de Archivo (1 campo grande) -->
+                                <!-- Sección 2: Entrada de Datos (Textarea) -->
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-3 ml-1">
-                                        <i class="fas fa-file-invoice text-amber-500 mr-1.5"></i>
-                                        Archivo de Transacciones <span class="text-red-500 font-black">*</span>
+                                        <i class="fas fa-list-ol text-amber-500 mr-1.5"></i>
+                                        Datos de Transacciones <span class="text-red-500 font-black">*</span>
                                     </label>
 
-                                    <div @drop="handleBulkFileDrop($event)" @dragover="handleBulkFileDragOver($event)"
-                                        @dragleave="handleBulkFileDragLeave($event)"
-                                        :class="isDraggingFile ?
-                                            'border-indigo-500 bg-indigo-50 scale-[1.01] ring-4 ring-indigo-500/10' :
-                                            'border-gray-200 bg-white'"
-                                        class="border-3 border-dashed rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-12 text-center transition-all duration-500 cursor-pointer hover:border-indigo-400 hover:bg-gray-50/50 group relative overflow-hidden shadow-sm"
-                                        @click="$refs.bulkFileInput.click()">
+                                    <div class="relative group">
+                                        <textarea x-model="bulkSaleRawData"
+                                            class="w-full px-6 py-5 bg-gray-50 border-2 border-gray-200 rounded-[1.5rem] focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm min-h-[200px] placeholder:text-gray-400"
+                                            placeholder="Ingrese los datos"></textarea>
 
-                                        <input type="file" x-ref="bulkFileInput" id="bulkFileInput"
-                                            @change="handleBulkFileSelect($event)" accept=".xlsx,.xls,.csv"
-                                            class="hidden">
+                                        <!-- Botón de Análisis -->
+                                        <button type="button" @click="analyzeBulkData()"
+                                            :disabled="bulkSaleIsAnalyzing || !bulkSaleRawData.trim()"
+                                            class="absolute bottom-4 right-4 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center space-x-2">
+                                            <template x-if="!bulkSaleIsAnalyzing">
+                                                <i class="fas fa-magic"></i>
+                                            </template>
+                                            <template x-if="bulkSaleIsAnalyzing">
+                                                <i class="fas fa-circle-notch animate-spin"></i>
+                                            </template>
+                                            <span x-text="bulkSaleIsAnalyzing ? 'Analizando...' : 'Analizar Datos'"></span>
+                                        </button>
+                                    </div>
 
-                                        <!-- Estado: Sin archivo -->
-                                        <template x-if="!bulkSaleFileName">
-                                            <div class="space-y-5">
-                                                <div class="relative mx-auto w-24 h-24">
-                                                    <div
-                                                        class="absolute inset-0 bg-indigo-100 rounded-3xl rotate-6 group-hover:rotate-12 transition-transform duration-500">
-                                                    </div>
-                                                    <div
-                                                        class="absolute inset-0 bg-indigo-600 rounded-3xl -rotate-3 group-hover:rotate-0 transition-transform duration-500 flex items-center justify-center shadow-lg shadow-indigo-200">
-                                                        <i class="fas fa-file-excel text-4xl text-white"></i>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <h4 class="text-lg sm:text-xl font-bold text-gray-800">Cargar planilla
-                                                        de ventas</h4>
-                                                    <p class="text-gray-500 mt-2 max-w-xs mx-auto text-sm leading-relaxed">
-                                                        Arrastra tu archivo <span
-                                                            class="text-indigo-600 font-bold">Excel</span> o <span
-                                                            class="text-indigo-600 font-bold">CSV</span> para procesar las
-                                                        ventas en lote.
-                                                    </p>
-                                                </div>
-                                                <div class="flex items-center justify-center space-x-3 opacity-60">
-                                                    <div
-                                                        class="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
-                                                        <i class="far fa-file-excel text-green-600 text-xs"></i>
-                                                        <span
-                                                            class="text-[10px] font-bold text-gray-600 tracking-tighter">XLSX</span>
-                                                    </div>
-                                                    <div
-                                                        class="flex items-center space-x-1 px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
-                                                        <i class="fas fa-file-csv text-blue-600 text-xs"></i>
-                                                        <span
-                                                            class="text-[10px] font-bold text-gray-600 tracking-tighter">CSV</span>
-                                                    </div>
-                                                </div>
+                                    <!-- Lista de Resultados de Análisis -->
+                                    <template x-if="bulkSaleResults.length > 0">
+                                        <div class="mt-8 space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                                            <div class="flex items-center justify-between px-2">
+                                                <h4
+                                                    class="text-sm font-black text-gray-800 uppercase tracking-widest flex items-center">
+                                                    <i class="fas fa-clipboard-check text-indigo-500 mr-2"></i>
+                                                    Estado del Procesamiento
+                                                </h4>
+                                                <span class="text-[10px] font-bold text-gray-400"
+                                                    x-text="`${bulkSaleResults.filter(r => r.status === 'resolved').length} de ${bulkSaleResults.length} Listos`"></span>
                                             </div>
-                                        </template>
 
-                                        <!-- Estado: Con archivo -->
-                                        <template x-if="bulkSaleFileName">
                                             <div
-                                                class="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
-                                                <div
-                                                    class="bg-emerald-50 border-2 border-emerald-100 p-4 sm:p-8 rounded-2xl sm:rounded-[2rem] relative group/file transition-all duration-300 hover:shadow-xl hover:shadow-emerald-100/50">
-                                                    <div
-                                                        class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-6">
-                                                        <div
-                                                            class="w-12 h-12 sm:w-16 sm:h-16 bg-emerald-100 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-inner group-hover/file:scale-110 transition-transform duration-500">
-                                                            <i
-                                                                class="fas fa-file-circle-check text-2xl sm:text-3xl text-emerald-600"></i>
-                                                        </div>
-                                                        <div class="text-center sm:text-left">
-                                                            <p class="font-black text-gray-800 text-lg sm:text-xl tracking-tight break-all"
-                                                                x-text="bulkSaleFileName"></p>
-                                                            <div
-                                                                class="flex items-center justify-center sm:justify-start mt-1 text-emerald-600">
-                                                                <span class="relative flex h-2 w-2 mr-2">
+                                                class="bg-gray-50/50 rounded-[2rem] border border-gray-100 p-4 max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
+                                                <template x-for="(result, index) in bulkSaleResults"
+                                                    :key="index">
+                                                    <div :class="{
+                                                        'bg-emerald-50 border-emerald-200 shadow-sm': result
+                                                            .status === 'resolved',
+                                                        'bg-amber-50 border-amber-200': result.status === 'ambiguous',
+                                                        'bg-red-50 border-red-200': result.status === 'not_found' ||
+                                                            result.status === 'error',
+                                                        'bg-gray-100 opacity-60': result.status === 'ignored'
+                                                    }"
+                                                        class="p-4 rounded-2xl border-2 transition-all duration-300">
+                                                        <div class="flex items-center justify-between">
+                                                            <div class="flex items-center space-x-4">
+                                                                <!-- Icono de Estado -->
+                                                                <div :class="{
+                                                                    'bg-emerald-500': result.status === 'resolved',
+                                                                    'bg-amber-500': result.status === 'ambiguous',
+                                                                    'bg-red-500': result.status === 'not_found' ||
+                                                                        result.status === 'error',
+                                                                    'bg-gray-400': result.status === 'ignored'
+                                                                }"
+                                                                    class="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-sm">
+                                                                    <i class="fas"
+                                                                        :class="{
+                                                                            'fa-check text-xs': result
+                                                                                .status === 'resolved',
+                                                                            'fa-question': result
+                                                                                .status === 'ambiguous',
+                                                                            'fa-exclamation-triangle': result
+                                                                                .status === 'not_found' || result
+                                                                                .status === 'error',
+                                                                            'fa-eye-slash text-xs': result
+                                                                                .status === 'ignored'
+                                                                        }"></i>
+                                                                </div>
+
+                                                                <div>
+                                                                    <p class="text-sm font-bold text-gray-800"
+                                                                        x-text="result.originalText"></p>
+                                                                    <!-- Feedback de Selección -->
+                                                                    <template x-if="result.status === 'resolved'">
+                                                                        <p
+                                                                            class="text-[11px] text-emerald-600 font-bold mt-0.5 flex items-center">
+                                                                            <i class="fas fa-user-check mr-1.5"></i>
+                                                                            <span>Venta para: <span
+                                                                                    x-text="result.selectedCustomer.name"></span></span>
+                                                                            <template x-if="result.selectedCustomer.phone">
+                                                                                <span
+                                                                                    class="ml-2 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-black">
+                                                                                    <i
+                                                                                        class="fas fa-phone-alt mr-1 opacity-70"></i>
+                                                                                    <span
+                                                                                        x-text="result.selectedCustomer.phone"></span>
+                                                                                </span>
+                                                                            </template>
+                                                                        </p>
+                                                                    </template>
+                                                                    <template x-if="result.status === 'ambiguous'">
+                                                                        <p
+                                                                            class="text-[11px] text-amber-600 font-bold mt-0.5">
+                                                                            Se encontraron varios clientes. Por favor elija
+                                                                            uno.</p>
+                                                                    </template>
+                                                                    <template x-if="result.status === 'not_found'">
+                                                                        <p
+                                                                            class="text-[11px] text-red-600 font-bold mt-0.5">
+                                                                            Cliente no encontrado en el sistema.</p>
+                                                                    </template>
+                                                                    <template x-if="result.status === 'error'">
+                                                                        <p class="text-[11px] text-red-600 font-bold mt-0.5"
+                                                                            x-text="result.error"></p>
+                                                                    </template>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Acciones -->
+                                                            <div class="flex items-center space-x-2">
+                                                                <!-- Boton Ignorar -->
+                                                                <template
+                                                                    x-if="result.status !== 'resolved' && result.status !== 'ignored'">
+                                                                    <button @click="ignoreBulkLine(index)"
+                                                                        class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-lg text-[10px] font-black uppercase transition-colors">
+                                                                        Ignorar
+                                                                    </button>
+                                                                </template>
+                                                                <template x-if="result.status === 'ignored'">
                                                                     <span
-                                                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                                    <span
-                                                                        class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                                </span>
-                                                                <span
-                                                                    class="text-xs font-bold uppercase tracking-widest">Listo
-                                                                    para procesar</span>
+                                                                        class="text-[10px] font-black text-gray-400 uppercase">Ignorada</span>
+                                                                </template>
                                                             </div>
                                                         </div>
+
+                                                        <!-- Selector de Coincidencias Múltiples -->
+                                                        <template x-if="result.status === 'ambiguous'">
+                                                            <div
+                                                                class="mt-4 pt-3 border-t border-amber-200 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                <template x-for="c in result.matches"
+                                                                    :key="c.id">
+                                                                    <button @click="resolveBulkMatch(index, c)"
+                                                                        class="flex items-center justify-between p-2.5 bg-white border border-amber-300 rounded-xl hover:bg-amber-100 hover:border-amber-400 transition-all group">
+                                                                        <div class="text-left flex-1 min-w-0 mr-2">
+                                                                            <p class="text-[11px] font-bold text-gray-800 truncate"
+                                                                                x-text="c.name"></p>
+                                                                            <div class="flex items-center mt-0.5">
+                                                                                <i
+                                                                                    class="fas fa-phone-alt text-[9px] text-gray-400 mr-1.5 opacity-70"></i>
+                                                                                <p class="text-[9px] text-gray-500 font-bold tracking-tight"
+                                                                                    x-text="c.phone || 'Sin teléfono'"></p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <i
+                                                                            class="fas fa-plus text-[10px] text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
+                                                        </template>
                                                     </div>
-                                                    <button type="button" @click.stop="removeBulkFile()"
-                                                        class="absolute -top-4 -right-4 w-10 h-10 bg-white text-red-500 rounded-2xl shadow-xl hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center border border-gray-100 group">
-                                                        <i
-                                                            class="fas fa-trash-alt group-hover:scale-110 transition-transform"></i>
-                                                    </button>
-                                                </div>
+                                                </template>
                                             </div>
-                                        </template>
-                                    </div>
+                                        </div>
+                                    </template>
+
+                                    <p class="mt-4 ml-2 text-xs text-gray-400 italic flex items-center">
+                                        <i class="fas fa-info-circle mr-1.5 text-indigo-400"></i>
+                                        Cada línea debe tener el formato: "Nombre del Cliente Cantidad"
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -1077,7 +1222,8 @@
 
                             <div class="order-1 sm:order-2 flex flex-col sm:flex-row items-stretch sm:items-center">
                                 <button type="button" @click="processBulkSale()"
-                                    :disabled="!bulkSaleDate || !bulkSaleTime || !bulkSaleFile || !bulkSaleProductId"
+                                    :disabled="!bulkSaleDate || !bulkSaleTime || !bulkSaleProductId || bulkSaleResults.filter(r =>
+                                        r.status === 'resolved').length === 0"
                                     class="group relative px-6 sm:px-10 py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95 disabled:opacity-40 disabled:grayscale disabled:pointer-events-none transition-all duration-300 flex items-center justify-center space-x-3">
                                     <i
                                         class="fas fa-play-circle text-lg opacity-80 group-hover:scale-110 transition-transform"></i>
@@ -1129,6 +1275,7 @@
         <script>
             window.saleCreateRoutes = {
                 store: "{{ route('admin.sales.store') }}",
+                bulkStore: "{{ route('admin.sales.bulk-store') }}",
                 index: "{{ route('admin.sales.index') }}"
             };
             // Guard de limpieza: si venimos de una creación exitosa, limpiar storage lo antes posible

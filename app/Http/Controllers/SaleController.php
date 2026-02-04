@@ -27,7 +27,7 @@ class SaleController extends Controller
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
-         
+
          // Obtener la moneda de la empresa configurada
          if ($this->company && $this->company->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -36,7 +36,7 @@ class SaleController extends Controller
                ->where('code', $this->company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -56,7 +56,7 @@ class SaleController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       if ($lastPage <= 1) {
          // No hay paginación
          $paginator->smartLinks = [];
@@ -155,125 +155,125 @@ class SaleController extends Controller
       // Obtener la fecha de inicio y fin de la semana actual
       $startOfWeek = Carbon::now()->startOfWeek();
       $endOfWeek = Carbon::now()->endOfWeek();
-      
+
       // Consulta básica de ventas con paginación - OPTIMIZADA para evitar N+1
       $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id', 'note')
-                  ->where('company_id', $this->company->id)
-                  ->with([
-                      'customer:id,name,email,phone',
-                      'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
-                      'saleDetails.product:id,code,name,image,category_id',
-                      'saleDetails.product.category:id,name'
-                  ]);
-      
+         ->where('company_id', $this->company->id)
+         ->with([
+            'customer:id,name,email,phone',
+            'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
+            'saleDetails.product:id,code,name,image,category_id',
+            'saleDetails.product.category:id,name'
+         ]);
+
       // Aplicar búsqueda si se proporciona
       if ($request->has('search') && $request->search) {
          $searchTerm = $request->search;
-         $query->where(function($q) use ($searchTerm) {
+         $query->where(function ($q) use ($searchTerm) {
             // Buscar por ID de venta
             $q->where('id', 'LIKE', "%{$searchTerm}%")
-              // Buscar por monto total (convertir a texto para búsqueda)
-              ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
-              // Buscar por fecha en múltiples formatos
-              ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YYYY') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YY') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YYYY') ILIKE ?", ["%{$searchTerm}%"])
-              // Buscar por día y mes (formato dd/mm)
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM') ILIKE ?", ["%{$searchTerm}%"])
-              ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM') ILIKE ?", ["%{$searchTerm}%"])
-              // Buscar en información del cliente
-              ->orWhereHas('customer', function($customerQuery) use ($searchTerm) {
+               // Buscar por monto total (convertir a texto para búsqueda)
+               ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
+               // Buscar por fecha en múltiples formatos
+               ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YYYY') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YY') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YYYY') ILIKE ?", ["%{$searchTerm}%"])
+               // Buscar por día y mes (formato dd/mm)
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM') ILIKE ?", ["%{$searchTerm}%"])
+               ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM') ILIKE ?", ["%{$searchTerm}%"])
+               // Buscar en información del cliente
+               ->orWhereHas('customer', function ($customerQuery) use ($searchTerm) {
                   $customerQuery->whereRaw('name ILIKE ?', ["%{$searchTerm}%"])
-                               ->orWhereRaw('email ILIKE ?', ["%{$searchTerm}%"])
-                               ->orWhereRaw('phone ILIKE ?', ["%{$searchTerm}%"]);
-              })
-              // Buscar en productos de la venta
-              ->orWhereHas('saleDetails.product', function($productQuery) use ($searchTerm) {
+                     ->orWhereRaw('email ILIKE ?', ["%{$searchTerm}%"])
+                     ->orWhereRaw('phone ILIKE ?', ["%{$searchTerm}%"]);
+               })
+               // Buscar en productos de la venta
+               ->orWhereHas('saleDetails.product', function ($productQuery) use ($searchTerm) {
                   $productQuery->whereRaw('code ILIKE ?', ["%{$searchTerm}%"])
-                               ->orWhereRaw('name ILIKE ?', ["%{$searchTerm}%"])
-                               ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
-                                   $categoryQuery->whereRaw('name ILIKE ?', ["%{$searchTerm}%"]);
-                               });
-              });
+                     ->orWhereRaw('name ILIKE ?', ["%{$searchTerm}%"])
+                     ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                        $categoryQuery->whereRaw('name ILIKE ?', ["%{$searchTerm}%"]);
+                     });
+               });
          });
       }
-      
+
       // Aplicar filtro por fecha desde
       if ($request->has('dateFrom') && $request->dateFrom) {
          $query->whereDate('sale_date', '>=', $request->dateFrom);
       }
-      
+
       // Aplicar filtro por fecha hasta
       if ($request->has('dateTo') && $request->dateTo) {
          $query->whereDate('sale_date', '<=', $request->dateTo);
       }
-      
+
       // Aplicar filtro por monto mínimo
       if ($request->has('amountMin') && $request->amountMin) {
          $query->where('total_price', '>=', $request->amountMin);
       }
-      
+
       // Aplicar filtro por monto máximo
       if ($request->has('amountMax') && $request->amountMax) {
          $query->where('total_price', '<=', $request->amountMax);
       }
-      
+
       // Aplicar paginación manteniendo los parámetros de búsqueda
       $sales = $query->orderBy('sale_date', 'desc')->paginate(15)->withQueryString();
-      
+
       // OPTIMIZACIÓN: Agregar atributos calculados para evitar N+1 en la vista
       $sales->getCollection()->transform(function ($sale) {
          $sale->products_count = $sale->sale_details ? $sale->sale_details->count() : 0;
          $sale->total_quantity = $sale->sale_details ? $sale->sale_details->sum('quantity') : 0;
          return $sale;
       });
-      
+
       // Generar paginación inteligente
       $sales = $this->generateSmartPagination($sales, 2);
-      
+
       // Calcular ventas de esta semana - OPTIMIZADO con DB::table
       $salesThisWeekData = DB::table('sales')
-                          ->where('company_id', $this->company->id)
-                          ->whereBetween('sale_date', [$startOfWeek, $endOfWeek])
-                          ->select('total_price')
-                          ->get();
-      
+         ->where('company_id', $this->company->id)
+         ->whereBetween('sale_date', [$startOfWeek, $endOfWeek])
+         ->select('total_price')
+         ->get();
+
       // 1. Total de ventas en dinero esta semana
       $totalSalesAmountThisWeek = $salesThisWeekData->sum('total_price');
-      
+
       // 2. Ingresos netos (ganancias) esta semana - asumiendo un margen promedio del 35%
       $profitMargin = 0.35; // 35% de margen de ganancia
       $totalProfitThisWeek = $totalSalesAmountThisWeek * $profitMargin;
-      
+
       // 3. Cantidad de ventas esta semana
       $salesCountThisWeek = $salesThisWeekData->count();
-      
+
       // Otros cálculos existentes - OPTIMIZADOS
       $totalSales = $sales->sum(function ($sale) {
-          return $sale->saleDetails->count();
+         return $sale->saleDetails->count();
       });
-      
+
       $totalAmount = $sales->sum('total_price');
-      
+
       // OPTIMIZADO: Usar DB::table para contar ventas mensuales
       $monthlySales = DB::table('sales')
-                          ->where('company_id', $this->company->id)
-                          ->whereMonth('sale_date', Carbon::now()->month)
-                          ->count();
-      
+         ->where('company_id', $this->company->id)
+         ->whereMonth('sale_date', Carbon::now()->month)
+         ->count();
+
       $averageTicket = $sales->count() > 0 ? $totalAmount / $sales->count() : 0;
-      
+
       // OPTIMIZADO: Obtener solo los campos necesarios de la caja actual
       $currentCashCount = CashCount::select('id', 'opening_date')
-                                  ->where('company_id', $this->company->id)
-                                  ->whereNull('closing_date')
-                                  ->first();
-      
+         ->where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->first();
+
       // Calcular porcentajes dinámicos basados en ventas desde la apertura de la caja
       $salesPercentageThisWeek = 0;
       $profitPercentageThisWeek = 0;
@@ -286,14 +286,14 @@ class SaleController extends Controller
       $productsQtySinceCashOpen = 0;
       $productsQtyThisWeek = 0;
       $productsQtyToday = 0;
-      
+
       if ($currentCashCount) {
          $salesSinceCashOpenStats = DB::table('sales')
-                                  ->where('company_id', $this->company->id)
-                                  ->where('sale_date', '>=', $currentCashCount->opening_date)
-                                  ->selectRaw('COUNT(*) as count, SUM(total_price) as total')
-                                  ->first();
-         
+            ->where('company_id', $this->company->id)
+            ->where('sale_date', '>=', $currentCashCount->opening_date)
+            ->selectRaw('COUNT(*) as count, SUM(total_price) as total')
+            ->first();
+
          $totalSalesSinceCashOpen = $salesSinceCashOpenStats->total ?? 0;
          // Exponer monto total de ventas desde apertura de arqueo
          $totalSalesAmountSinceCashOpen = $totalSalesSinceCashOpen;
@@ -308,37 +308,37 @@ class SaleController extends Controller
             ->where('s.company_id', $this->company->id)
             ->where('s.sale_date', '>=', $currentCashCount->opening_date)
             ->sum('sd.quantity');
-         
+
          // Calcular porcentajes
          if ($totalSalesSinceCashOpen > 0) {
             $salesPercentageThisWeek = round(($totalSalesAmountThisWeek / $totalSalesSinceCashOpen) * 100, 1);
          }
-         
+
          if ($totalProfitSinceCashOpen > 0) {
             $profitPercentageThisWeek = round(($totalProfitThisWeek / $totalProfitSinceCashOpen) * 100, 1);
          }
-         
+
          if ($totalSalesCountSinceCashOpen > 0) {
             $salesCountPercentageThisWeek = round(($salesCountThisWeek / $totalSalesCountSinceCashOpen) * 100, 1);
          }
-         
+
          if ($averageTicketSinceCashOpen > 0) {
             $averageTicketPercentage = round((($averageTicket - $averageTicketSinceCashOpen) / $averageTicketSinceCashOpen) * 100, 1);
          }
       }
-      
+
       // Calcular ventas de hoy desde las 00:00
       $startOfToday = Carbon::today();
       $salesCountToday = DB::table('sales')
-                           ->where('company_id', $this->company->id)
-                           ->where('sale_date', '>=', $startOfToday)
-                           ->count();
+         ->where('company_id', $this->company->id)
+         ->where('sale_date', '>=', $startOfToday)
+         ->count();
 
       // Monto total de ventas de hoy desde las 00:00
       $totalSalesAmountToday = DB::table('sales')
-                           ->where('company_id', $this->company->id)
-                           ->where('sale_date', '>=', $startOfToday)
-                           ->sum('total_price');
+         ->where('company_id', $this->company->id)
+         ->where('sale_date', '>=', $startOfToday)
+         ->sum('total_price');
       // Ganancia estimada de hoy
       $totalProfitToday = $totalSalesAmountToday * $profitMargin;
 
@@ -355,87 +355,87 @@ class SaleController extends Controller
          ->where('s.company_id', $this->company->id)
          ->where('s.sale_date', '>=', $startOfToday)
          ->sum('sd.quantity');
-      
+
       $currency = $this->currencies;
       // OPTIMIZADO: Usar exists() directamente para verificar si hay caja abierta
       $cashCount = DB::table('cash_counts')
-                          ->where('company_id', $this->company->id)
-                          ->whereNull('closing_date')
-                          ->exists();
-      
+         ->where('company_id', $this->company->id)
+         ->whereNull('closing_date')
+         ->exists();
+
       // Si es una petición AJAX, devolver solo la vista parcial con los datos
       if ($request->expectsJson() || $request->hasHeader('X-Requested-With')) {
          // Preparar datos para JavaScript
          $salesData = $sales->map(function ($sale) {
-             return [
-                 'id' => $sale->id,
-                 'sale_date' => $sale->sale_date,
-                 'total_price' => $sale->total_price,
-                 'customer' => $sale->customer ? [
-                     'id' => $sale->customer->id,
-                     'name' => $sale->customer->name,
-                     'email' => $sale->customer->email,
-                     'phone' => $sale->customer->phone
-                 ] : null,
-                 'sale_details' => $sale->saleDetails->map(function ($detail) {
-                     return [
-                         'id' => $detail->id,
-                         'quantity' => $detail->quantity,
-                         'unit_price' => $detail->unit_price,
-                         'subtotal' => $detail->subtotal,
-                         'product' => $detail->product ? [
-                             'id' => $detail->product->id,
-                             'code' => $detail->product->code,
-                             'name' => $detail->product->name,
-                             'image' => $detail->product->image,
-                             'category' => $detail->product->category ? [
-                                 'id' => $detail->product->category->id,
-                                 'name' => $detail->product->category->name
-                             ] : null
-                         ] : null
-                     ];
-                 })
-             ];
+            return [
+               'id' => $sale->id,
+               'sale_date' => $sale->sale_date,
+               'total_price' => $sale->total_price,
+               'customer' => $sale->customer ? [
+                  'id' => $sale->customer->id,
+                  'name' => $sale->customer->name,
+                  'email' => $sale->customer->email,
+                  'phone' => $sale->customer->phone
+               ] : null,
+               'sale_details' => $sale->saleDetails->map(function ($detail) {
+                  return [
+                     'id' => $detail->id,
+                     'quantity' => $detail->quantity,
+                     'unit_price' => $detail->unit_price,
+                     'subtotal' => $detail->subtotal,
+                     'product' => $detail->product ? [
+                        'id' => $detail->product->id,
+                        'code' => $detail->product->code,
+                        'name' => $detail->product->name,
+                        'image' => $detail->product->image,
+                        'category' => $detail->product->category ? [
+                           'id' => $detail->product->category->id,
+                           'name' => $detail->product->category->name
+                        ] : null
+                     ] : null
+                  ];
+               })
+            ];
          });
-         
+
          return response()->json([
-             'success' => true,
-             'sales' => $salesData,
-             'pagination' => [
-                 'current_page' => $sales->currentPage(),
-                 'last_page' => $sales->lastPage(),
-                 'per_page' => $sales->perPage(),
-                 'total' => $sales->total(),
-                 'smart_links' => $sales->smartLinks ?? []
-             ]
+            'success' => true,
+            'sales' => $salesData,
+            'pagination' => [
+               'current_page' => $sales->currentPage(),
+               'last_page' => $sales->lastPage(),
+               'per_page' => $sales->perPage(),
+               'total' => $sales->total(),
+               'smart_links' => $sales->smartLinks ?? []
+            ]
          ]);
       }
-      
+
       return view('admin.sales.index', compact(
-          'sales', 
-          'totalSales', 
-          'totalAmount', 
-          'monthlySales', 
-          'averageTicket', 
-          'currency', 
-          'cashCount',
-          'totalSalesAmountThisWeek',
-          'totalProfitThisWeek',
-          'salesCountThisWeek',
-          'salesPercentageThisWeek',
-          'profitPercentageThisWeek',
-          'salesCountPercentageThisWeek',
-          'averageTicketPercentage',
-          'totalSalesAmountSinceCashOpen',
-          'totalProfitSinceCashOpen',
-          'totalSalesAmountToday',
-          'totalProfitToday',
-          'salesCountSinceCashOpen',
-          'salesCountToday',
-          'productsQtySinceCashOpen',
-          'productsQtyThisWeek',
-          'productsQtyToday',
-          'permissions'
+         'sales',
+         'totalSales',
+         'totalAmount',
+         'monthlySales',
+         'averageTicket',
+         'currency',
+         'cashCount',
+         'totalSalesAmountThisWeek',
+         'totalProfitThisWeek',
+         'salesCountThisWeek',
+         'salesPercentageThisWeek',
+         'profitPercentageThisWeek',
+         'salesCountPercentageThisWeek',
+         'averageTicketPercentage',
+         'totalSalesAmountSinceCashOpen',
+         'totalProfitSinceCashOpen',
+         'totalSalesAmountToday',
+         'totalProfitToday',
+         'salesCountSinceCashOpen',
+         'salesCountToday',
+         'productsQtySinceCashOpen',
+         'productsQtyThisWeek',
+         'productsQtyToday',
+         'permissions'
       ));
    }
 
@@ -456,14 +456,14 @@ class SaleController extends Controller
             ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
             ->get()
             ->map(function ($product) {
-                // Asegurar que el accessor se incluya en la serialización
-                $product->append('stock_status_label');
-                return $product;
+               // Asegurar que el accessor se incluya en la serialización
+               $product->append('stock_status_label');
+               return $product;
             });
 
          // Obtener clientes con solo los campos necesarios para el select
          $customers = Customer::where('company_id', $companyId)
-            ->select('id', 'name', 'total_debt')
+            ->select('id', 'name', 'total_debt', 'phone')
             ->orderBy('name', 'asc')
             ->get();
 
@@ -519,7 +519,7 @@ class SaleController extends Controller
                   'message' => 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.'
                ], 400);
             }
-            
+
             return redirect()->back()
                ->with('message', 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.')
                ->with('icons', 'error');
@@ -546,7 +546,7 @@ class SaleController extends Controller
          if ($validated['already_paid']) {
             // Obtener la deuda anterior del cliente
             $previousDebt = $customer->total_debt;
-            
+
             // Registrar el pago automático en la tabla debt_payments
             DB::table('debt_payments')->insert([
                'company_id' => Auth::user()->company_id,
@@ -611,7 +611,7 @@ class SaleController extends Controller
          // Si es una petición AJAX, devolver JSON
          if ($request->expectsJson()) {
             $action = $request->input('action') ?? $request->query('action');
-            
+
             $response = [
                'success' => true,
                'message' => '¡Venta procesada exitosamente!',
@@ -619,7 +619,7 @@ class SaleController extends Controller
                'received_action' => $action,
                'all_data' => $request->all()
             ];
-            
+
             // Determinar la URL de redirección basada en la acción
             if ($action == 'save_and_new') {
                $response['redirect_url'] = route('admin.sales.create');
@@ -628,15 +628,15 @@ class SaleController extends Controller
                $response['redirect_url'] = route('admin.sales.index');
                $response['action'] = 'save';
             }
-            
+
             return response()->json($response);
          }
 
          // Determinar la redirección basada en el botón presionado
          if ($request->input('action') == 'save_and_new') {
             return redirect()->route('admin.sales.create')
-                ->with('message', '¡Venta procesada exitosamente! Puedes crear otra venta.')
-                ->with('icons', 'success');
+               ->with('message', '¡Venta procesada exitosamente! Puedes crear otra venta.')
+               ->with('icons', 'success');
          }
 
          // Verificar si hay una URL de referencia guardada
@@ -644,17 +644,16 @@ class SaleController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('sales_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', '¡Venta registrada exitosamente!')
-                ->with('icons', 'success');
+               ->with('message', '¡Venta registrada exitosamente!')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de ventas
          return redirect()->route('admin.sales.index')
             ->with('message', '¡Venta registrada exitosamente!')
             ->with('icons', 'success');
-
       } catch (\Illuminate\Validation\ValidationException $e) {
          if ($request->expectsJson()) {
             return response()->json([
@@ -663,7 +662,7 @@ class SaleController extends Controller
                'errors' => $e->errors()
             ], 422);
          }
-         
+
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -683,6 +682,102 @@ class SaleController extends Controller
             ->withInput()
             ->with('message', 'Hubo un problema al registrar la venta: ' . $e->getMessage())
             ->with('icons', 'error');
+      }
+   }
+
+   public function bulkStore(Request $request)
+   {
+      try {
+         $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'sale_date' => 'required|date',
+            'sale_time' => 'required|date_format:H:i',
+            'sales' => 'required|array|min:1',
+            'sales.*.customer_id' => 'required|exists:customers,id',
+            'sales.*.quantity' => 'required|numeric|min:0.01',
+            'sales.*.price' => 'required|numeric|min:0',
+         ]);
+
+         DB::beginTransaction();
+
+         // Verificar si hay una caja abierta
+         $currentCashCount = CashCount::where('company_id', $this->company->id)
+            ->whereNull('closing_date')
+            ->first();
+
+         if (!$currentCashCount) {
+            return response()->json([
+               'success' => false,
+               'message' => 'No hay una caja abierta. Debe abrir una caja antes de realizar ventas.'
+            ], 400);
+         }
+
+         $product = Product::findOrFail($validated['product_id']);
+         $totalSalesCount = 0;
+
+         foreach ($validated['sales'] as $saleData) {
+            $customer = Customer::findOrFail($saleData['customer_id']);
+            $totalPrice = $saleData['quantity'] * $saleData['price'];
+
+            // Crear la venta principal
+            $sale = Sale::create([
+               'sale_date' => $validated['sale_date'] . ' ' . $validated['sale_time'],
+               'total_price' => $totalPrice,
+               'company_id' => Auth::user()->company_id,
+               'customer_id' => $saleData['customer_id'],
+               'cash_count_id' => $currentCashCount->id,
+               'note' => 'Venta masiva procesada',
+               'general_discount_value' => 0,
+               'general_discount_type' => 'fixed',
+               'subtotal_before_discount' => $totalPrice,
+               'total_with_discount' => $totalPrice,
+               'already_paid' => 0,
+            ]);
+
+            // Crear detalle
+            SaleDetail::create([
+               'sale_id' => $sale->id,
+               'product_id' => $product->id,
+               'quantity' => $saleData['quantity'],
+               'unit_price' => $saleData['price'],
+               'subtotal' => $totalPrice,
+               'discount_value' => 0,
+               'discount_type' => 'fixed',
+               'original_price' => $saleData['price'],
+               'final_price' => $saleData['price'],
+            ]);
+
+            // Actualizar stock
+            $product->stock -= $saleData['quantity'];
+            $product->save();
+
+            // Actualizar deuda del cliente
+            $customer->total_debt += $totalPrice;
+            $customer->save();
+
+            // Registrar movimiento de caja
+            CashMovement::create([
+               'cash_count_id' => $currentCashCount->id,
+               'amount' => $totalPrice,
+               'type' => CashMovement::TYPE_INCOME,
+               'description' => 'Venta Masiva #' . $sale->id . ' - ' . $customer->name,
+            ]);
+
+            $totalSalesCount++;
+         }
+
+         DB::commit();
+
+         return response()->json([
+            'success' => true,
+            'message' => "¡Se han procesado {$totalSalesCount} ventas exitosamente!",
+         ]);
+      } catch (\Exception $e) {
+         DB::rollBack();
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al procesar ventas masivas: ' . $e->getMessage()
+         ], 500);
       }
    }
 
@@ -814,13 +909,13 @@ class SaleController extends Controller
          $sale->customer_id = $validated['customer_id'];
          $sale->total_price = $validated['total_price'];
          $sale->note = $validated['note'] ?? null;
-         
+
          // Actualizar descuentos generales
          $sale->general_discount_value = $request->input('general_discount_value', 0);
          $sale->general_discount_type = $request->input('general_discount_type', 'fixed');
          $sale->subtotal_before_discount = $request->input('subtotal_before_discount', $validated['total_price']);
          $sale->total_with_discount = $request->input('total_with_discount', $validated['total_price']);
-         
+
          $sale->save();
 
          // PASO 1: Restaurar todo el stock de la venta actual al inicio
@@ -942,7 +1037,7 @@ class SaleController extends Controller
                'errors' => $e->errors()
             ], 422);
          }
-         
+
          return redirect()->back()
             ->withErrors($e->validator)
             ->withInput()
@@ -950,7 +1045,7 @@ class SaleController extends Controller
             ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
-         
+
          // Si es una petición AJAX, devolver JSON
          if ($request->expectsJson()) {
             return response()->json([
@@ -958,7 +1053,7 @@ class SaleController extends Controller
                'message' => 'Error al actualizar la venta: ' . $e->getMessage()
             ], 500);
          }
-         
+
          return redirect()->back()
             ->withInput()
             ->with('message', 'Hubo un problema al actualizar la venta: ' . $e->getMessage())
@@ -988,18 +1083,18 @@ class SaleController extends Controller
          if ($debtPayments->count() > 0) {
             $totalPaid = $debtPayments->sum('payment_amount');
             $customerName = $sale->customer->name ?? 'Cliente';
-            
+
             return response()->json([
                'error' => true,
                'message' => "⚠️ No se puede eliminar esta venta porque el cliente tiene pagos de deuda posteriores.\n\n" .
-                           "📊 Detalles:\n" .
-                           "• Cliente: {$customerName}\n" .
-                           "• Venta #{$sale->id} del " . $sale->sale_date->format('d/m/Y') . "\n" .
-                           "• Total de la venta: $" . number_format((float)$sale->total_price, 2) . "\n" .
-                           "• Pagos posteriores: $" . number_format((float)$totalPaid, 2) . "\n" .
-                           "• Cantidad de pagos posteriores: {$debtPayments->count()}\n\n" .
-                           "🔧 Acción requerida:\n" .
-                           "Primero debes eliminar todos los pagos de deuda posteriores a esta venta antes de poder eliminarla.",
+                  "📊 Detalles:\n" .
+                  "• Cliente: {$customerName}\n" .
+                  "• Venta #{$sale->id} del " . $sale->sale_date->format('d/m/Y') . "\n" .
+                  "• Total de la venta: $" . number_format((float)$sale->total_price, 2) . "\n" .
+                  "• Pagos posteriores: $" . number_format((float)$totalPaid, 2) . "\n" .
+                  "• Cantidad de pagos posteriores: {$debtPayments->count()}\n\n" .
+                  "🔧 Acción requerida:\n" .
+                  "Primero debes eliminar todos los pagos de deuda posteriores a esta venta antes de poder eliminarla.",
                'icons' => 'warning',
                'has_payments' => true,
                'payments_count' => $debtPayments->count(),
@@ -1014,7 +1109,7 @@ class SaleController extends Controller
 
          // Restaurar el stock de los productos antes de eliminar los detalles
          $saleDetails = SaleDetail::where('sale_id', $sale->id)->get();
-         
+
          foreach ($saleDetails as $detail) {
             $product = Product::find($detail->product_id);
             if ($product) {
@@ -1036,7 +1131,6 @@ class SaleController extends Controller
             'message' => '¡Venta eliminada exitosamente!',
             'icons' => 'success'
          ]);
-
       } catch (\Exception $e) {
          DB::rollBack();
 
@@ -1148,14 +1242,14 @@ class SaleController extends Controller
       try {
          // Verificar que la venta existe primero
          $sale = Sale::with('customer')->find($id);
-         
+
          if (!$sale) {
             return response()->json([
                'success' => false,
                'message' => 'Venta no encontrada'
             ], 404);
          }
-         
+
          $saleDetails = SaleDetail::with(['product.category', 'sale.customer'])
             ->where('sale_id', $id)
             ->get();
@@ -1231,7 +1325,7 @@ class SaleController extends Controller
                ->where('code', $company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$currency) {
             $currency = DB::table('currencies')

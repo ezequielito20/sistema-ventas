@@ -48,9 +48,9 @@ document.addEventListener('alpine:init', () => {
         bulkSaleProductId: '',
         bulkSaleDate: '',
         bulkSaleTime: '',
-        bulkSaleFile: null,
-        bulkSaleFileName: '',
-        isDraggingFile: false,
+        bulkSaleRawData: '',
+        bulkSaleResults: [],
+        bulkSaleIsAnalyzing: false,
 
         // ===== COMPUTED PROPERTIES =====
         get totalAmount() {
@@ -1149,55 +1149,13 @@ document.addEventListener('alpine:init', () => {
         // ===== FUNCIONES PARA VENTAS MASIVAS =====
 
 
-        handleBulkFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                this.bulkSaleFile = file;
-                this.bulkSaleFileName = file.name;
-            }
-        },
+        openBulkSalesModal() {
+            this.bulkSalesModalOpen = true;
 
-        handleBulkFileDrop(event) {
-            event.preventDefault();
-            this.isDraggingFile = false;
-
-            const file = event.dataTransfer.files[0];
-            if (file) {
-                // Validar tipo de archivo
-                const validTypes = [
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'text/csv'
-                ];
-
-                if (validTypes.includes(file.type) || file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-                    this.bulkSaleFile = file;
-                    this.bulkSaleFileName = file.name;
-                    this.showToast('Archivo Cargado', `Archivo "${file.name}" cargado correctamente`, 'success', 2000);
-                } else {
-                    this.showToast('Tipo de Archivo Inválido', 'Solo se permiten archivos Excel (.xlsx, .xls) o CSV', 'error', 3000);
-                }
-            }
-        },
-
-        handleBulkFileDragOver(event) {
-            event.preventDefault();
-            this.isDraggingFile = true;
-        },
-
-        handleBulkFileDragLeave(event) {
-            event.preventDefault();
-            this.isDraggingFile = false;
-        },
-
-        removeBulkFile() {
-            this.bulkSaleFile = null;
-            this.bulkSaleFileName = '';
-            // Limpiar el input file
-            const fileInput = document.getElementById('bulkFileInput');
-            if (fileInput) {
-                fileInput.value = '';
-            }
+            // Inicializar fecha y hora actual
+            const now = new Date();
+            this.bulkSaleDate = now.toISOString().split('T')[0];
+            this.bulkSaleTime = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
         },
 
         closeBulkSalesModal() {
@@ -1206,37 +1164,131 @@ document.addEventListener('alpine:init', () => {
             this.bulkSaleProductId = '';
             this.bulkSaleDate = '';
             this.bulkSaleTime = '';
-            this.bulkSaleFile = null;
-            this.bulkSaleFileName = '';
+            this.bulkSaleRawData = '';
+            this.bulkSaleResults = [];
+            this.bulkSaleIsAnalyzing = false;
+        },
+
+        async analyzeBulkData() {
+            if (!this.bulkSaleRawData.trim()) {
+                this.showToast('Datos Vacíos', 'Ingrese datos para analizar', 'warning');
+                return;
+            }
+
+            this.bulkSaleIsAnalyzing = true;
+            this.bulkSaleResults = [];
+
+            const lines = this.bulkSaleRawData.split('\n').map(l => l.trim()).filter(l => l !== '');
+            const allCustomers = window.saleCreateData.customers || [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const parts = line.split(/\s+/);
+
+                if (parts.length < 2) {
+                    this.bulkSaleResults.push({
+                        originalText: line,
+                        error: 'Formato inválido (falta cantidad)',
+                        status: 'error'
+                    });
+                    continue;
+                }
+
+                const quantityStr = parts.pop();
+                const quantity = parseFloat(quantityStr);
+                const clientName = parts.join(' ').toLowerCase();
+
+                if (isNaN(quantity)) {
+                    this.bulkSaleResults.push({
+                        originalText: line,
+                        error: 'Cantidad no es un número',
+                        status: 'error'
+                    });
+                    continue;
+                }
+
+                // Buscar coincidencias (búsqueda flexible)
+                const matches = allCustomers.filter(c => {
+                    const name = c.name.toLowerCase();
+                    // Coincidencia exacta o contiene el nombre buscado
+                    return name.includes(clientName) || clientName.includes(name);
+                });
+
+                let result = {
+                    originalText: line,
+                    clientName: clientName,
+                    quantity: quantity,
+                    matches: matches,
+                    selectedCustomer: null,
+                    status: 'pending'
+                };
+
+                if (matches.length === 1) {
+                    result.selectedCustomer = matches[0];
+                    result.status = 'resolved';
+                } else if (matches.length > 1) {
+                    result.status = 'ambiguous';
+                } else {
+                    result.status = 'not_found';
+                }
+
+                this.bulkSaleResults.push(result);
+            }
+
+            this.bulkSaleIsAnalyzing = false;
+            this.showToast('Análisis Completado', 'Revise los resultados abajo', 'info');
+        },
+
+        resolveBulkMatch(index, customer) {
+            this.bulkSaleResults[index].selectedCustomer = customer;
+            this.bulkSaleResults[index].status = 'resolved';
+        },
+
+        ignoreBulkLine(index) {
+            this.bulkSaleResults[index].status = 'ignored';
         },
 
         async processBulkSale() {
-            // Validaciones básicas de los 4 campos
+            // Validaciones básicas
             if (!this.bulkSaleProductId) {
-                this.showToast('Producto Requerido', 'Debe seleccionar un producto base para procesar las ventas', 'warning', 2500);
+                this.showToast('Producto Requerido', 'Debe seleccionar un producto base', 'warning', 2500);
                 return;
             }
 
             if (!this.bulkSaleDate) {
-                this.showToast('Fecha Requerida', 'Debe seleccionar una fecha para las ventas', 'warning', 2500);
+                this.showToast('Fecha Requerida', 'Debe seleccionar una fecha', 'warning', 2500);
                 return;
             }
 
             if (!this.bulkSaleTime) {
-                this.showToast('Hora Requerida', 'Debe seleccionar una hora para las ventas', 'warning', 2500);
+                this.showToast('Hora Requerida', 'Debe seleccionar una hora', 'warning', 2500);
                 return;
             }
 
-            if (!this.bulkSaleFile) {
-                this.showToast('Archivo Requerido', 'Debe cargar un archivo Excel o CSV con las transacciones', 'warning', 2500);
+            if (this.bulkSaleResults.length === 0) {
+                this.showToast('Sin Análisis', 'Debe analizar los datos antes de procesar', 'warning', 2500);
+                return;
+            }
+
+            // Filtrar y validar
+            const resolvedSales = this.bulkSaleResults.filter(r => r.status === 'resolved');
+            const pendingSales = this.bulkSaleResults.filter(r => r.status === 'ambiguous' || r.status === 'not_found' || r.status === 'error');
+
+            if (pendingSales.length > 0) {
+                this.showToast('Pendientes', `Hay ${pendingSales.length} transacciones por resolver`, 'error', 3000);
+                return;
+            }
+
+            if (resolvedSales.length === 0) {
+                this.showToast('Sin Ventas', 'No hay ventas válidas para procesar', 'warning', 2500);
                 return;
             }
 
             // Confirmación Estética
             const product = this.productsCache.find(p => p.id == this.bulkSaleProductId);
             const confirmed = await this.showConfirmDialog(
-                '¿Confirmar Procesamiento Masivo?',
-                `Se procesarán las ventas del producto <b>${product?.name || 'seleccionado'}</b> usando el archivo <b>${this.bulkSaleFileName}</b>. ¿Desea continuar?`,
+                '¿Confirmar Venta Masiva?',
+                `Se generarán <b>${resolvedSales.length}</b> ventas para <b>${product?.name}</b>. ¿Desea continuar?`,
                 'html'
             );
 
@@ -1245,17 +1297,53 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
 
             try {
-                // Simulación de procesamiento (Aquí se enviaría al backend)
-                this.showToast('Procesando...', 'Estamos analizando y cargando sus ventas masivas', 'info', 3000);
+                // Preparar payload para backend
+                const payload = {
+                    product_id: this.bulkSaleProductId,
+                    sale_date: this.bulkSaleDate,
+                    sale_time: this.bulkSaleTime,
+                    sales: resolvedSales.map(r => ({
+                        customer_id: r.selectedCustomer.id,
+                        quantity: r.quantity,
+                        price: product.price || product.sale_price || 0
+                    }))
+                };
 
-                // Temporalmente solo mostramos que estamos en desarrollo
-                setTimeout(() => {
-                    this.showAlert('Funcionalidad de procesamiento en cola. La lógica del backend se implementará próximamente.', 'info');
-                    this.loading = false;
-                }, 1500);
+                this.showToast('Procesando...', `Enviando ${resolvedSales.length} ventas`, 'info', 3000);
+
+                const url = window.saleCreateRoutes?.bulkStore || '/sales/bulk-store';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Error al procesar ventas masivas');
+                }
+
+                if (data.success) {
+                    this.showAlert(data.message || '¡Éxito! Ventas creadas correctamente.', 'success');
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+
+                    this.closeBulkSalesModal();
+                } else {
+                    throw new Error(data.message || 'Error desconocido');
+                }
 
             } catch (error) {
-                this.showToast('Error', 'Hubo un problema al procesar el archivo', 'error');
+                console.error('❌ Error en carga masiva:', error);
+                this.showToast('Error', error.message || 'Hubo un problema al procesar los datos', 'error');
                 this.loading = false;
             }
         }

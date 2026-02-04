@@ -128,13 +128,13 @@ Route::get('/admin/customers/debt-report/download', [App\Http\Controllers\Custom
 Route::get('/admin/customers/test-pdf', [App\Http\Controllers\CustomerController::class, 'testPdf'])
     ->name('admin.customers.test-pdf');
 Route::post('/admin/customers/{customer}/register-payment', [App\Http\Controllers\CustomerController::class, 'registerDebtPayment'])
-->name('admin.customers.register-payment');
+    ->name('admin.customers.register-payment');
 Route::post('/admin/customers/{customer}/register-payment-ajax', [App\Http\Controllers\CustomerController::class, 'registerDebtPaymentAjax'])
-->name('admin.customers.register-payment-ajax');
+    ->name('admin.customers.register-payment-ajax');
 Route::get('/admin/customers/{customer}/payment-data', [App\Http\Controllers\CustomerController::class, 'getCustomerPaymentData'])
-->name('admin.customers.payment-data');
+    ->name('admin.customers.payment-data');
 Route::get('/admin/customers/{customer}/sales-history', [App\Http\Controllers\CustomerController::class, 'getCustomerSalesHistory'])
-->name('admin.customers.sales-history');
+    ->name('admin.customers.sales-history');
 Route::get('/admin/customers/payment-history', [App\Http\Controllers\CustomerController::class, 'paymentHistory'])
     ->name('admin.customers.payment-history');
 Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\CustomerController::class, 'exportPaymentHistory'])
@@ -146,6 +146,7 @@ Route::delete('/admin/customers/payment-history/{payment}', [App\Http\Controller
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
 Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
 Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware(['auth', 'can:sales.create']);
+Route::post('/sales/bulk-store', [SaleController::class, 'bulkStore'])->name('admin.sales.bulk-store')->middleware(['auth', 'can:sales.create']);
 Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sales.edit')->middleware(['auth', 'can:sales.edit']);
 Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware(['auth', 'can:sales.edit']);
 Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware(['auth', 'can:sales.destroy']);
@@ -184,45 +185,45 @@ Route::put('/permissions/edit/{id}', [PermissionController::class, 'update'])->n
 Route::delete('/permissions/delete/{id}', [PermissionController::class, 'destroy'])->name('admin.permissions.destroy')->middleware(['auth', 'can:permissions.destroy']);
 Route::get('/permissions/{id}', [PermissionController::class, 'show'])->name('admin.permissions.show')->middleware(['auth', 'can:permissions.show']);
 
-    // Rutas para manejo de pagos de deuda
-    Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
-        Route::delete('/{id}', [DebtPaymentController::class, 'destroy'])->name('admin.debt-payments.destroy');
-        Route::get('/sale/{saleId}', [DebtPaymentController::class, 'getPaymentsBySale'])->name('admin.debt-payments.by-sale');
-        Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
-    });
+// Rutas para manejo de pagos de deuda
+Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
+    Route::delete('/{id}', [DebtPaymentController::class, 'destroy'])->name('admin.debt-payments.destroy');
+    Route::get('/sale/{saleId}', [DebtPaymentController::class, 'getPaymentsBySale'])->name('admin.debt-payments.by-sale');
+    Route::delete('/sale/{saleId}/all', [DebtPaymentController::class, 'deletePaymentsBySale'])->name('admin.debt-payments.delete-by-sale');
+});
 
-    // Rutas para manejo de pedidos (Admin)
-    Route::prefix('admin/orders')->middleware(['auth'])->group(function () {
-        Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders.index');
-        Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('admin.orders.show');
-        Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'process'])->name('admin.orders.process');
-        Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('admin.orders.cancel');
-    });
+// Rutas para manejo de pedidos (Admin)
+Route::prefix('admin/orders')->middleware(['auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders.index');
+    Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('admin.orders.show');
+    Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'process'])->name('admin.orders.process');
+    Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('admin.orders.cancel');
+});
 
-    // Rutas para notificaciones (Admin)
-    Route::prefix('admin/notifications')->middleware(['auth'])->group(function () {
-        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('admin.notifications.index');
-        Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
-        Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
-        Route::get('/recent', [App\Http\Controllers\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
-        Route::post('/{notification}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
-        Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
-    });
+// Rutas para notificaciones (Admin)
+Route::prefix('admin/notifications')->middleware(['auth'])->group(function () {
+    Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
+    Route::get('/recent', [App\Http\Controllers\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
+    Route::post('/{notification}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
+    Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
+});
 
-    // Rutas de Debugbar (solo cuando esté habilitada)
-    if (config('app.debug') && config('debugbar.enabled')) {
-        Route::get('_debugbar/assets/stylesheets', [
-            'as' => 'debugbar.assets.css',
-            'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css'
-        ]);
-        
-        Route::get('_debugbar/assets/javascript', [
-            'as' => 'debugbar.assets.js',
-            'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@js'
-        ]);
-        
-        Route::get('_debugbar/open', [
-            'as' => 'debugbar.open',
-            'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle'
-        ]);
-    }
+// Rutas de Debugbar (solo cuando esté habilitada)
+if (config('app.debug') && config('debugbar.enabled')) {
+    Route::get('_debugbar/assets/stylesheets', [
+        'as' => 'debugbar.assets.css',
+        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css'
+    ]);
+
+    Route::get('_debugbar/assets/javascript', [
+        'as' => 'debugbar.assets.js',
+        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@js'
+    ]);
+
+    Route::get('_debugbar/open', [
+        'as' => 'debugbar.open',
+        'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle'
+    ]);
+}
