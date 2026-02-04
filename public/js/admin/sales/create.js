@@ -7,11 +7,11 @@
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
 
-    
+
     Alpine.data('saleCreateSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
         loading: false,
-        
+
         // Datos del formulario
         productCode: '',
         selectedCustomerId: '',
@@ -19,78 +19,79 @@ document.addEventListener('alpine:init', () => {
         saleTime: '',
         alreadyPaid: '0',
         saleNote: '',
-        
+
         // Productos en la venta - Usar reactive array
         saleItems: [],
-        
+
         // Búsqueda y filtros
         codeSuggestions: [],
         productSearchTerm: '',
         searchModalOpen: false,
-        
+        bulkSalesModalOpen: false,
+
         // Cache de productos
         productsCache: [],
         filteredProducts: [],
-        
+
         // Sistema de notificaciones
         notifications: [],
-        
+
         // Selects personalizados
         customerOptions: [],
         paymentOptions: [],
-        
+
         // Descuentos
         generalDiscountValue: 0,
         generalDiscountIsPercentage: false,
-        
+
         // ===== COMPUTED PROPERTIES =====
         get totalAmount() {
             const subtotalWithIndividualDiscounts = this.saleItems.reduce((total, item) => {
                 return total + this.getItemSubtotalWithDiscount(item);
             }, 0);
-            
+
             // Aplicar descuento general
             return this.applyGeneralDiscount(subtotalWithIndividualDiscounts);
         },
-        
+
         get canProcessSale() {
             // Validar SOLO contra el estado local del componente para evitar arrastrar datos antiguos
             const customerSelected = !!this.selectedCustomerId;
-            
+
             return customerSelected &&
-                   this.saleItems.length > 0 &&
-                   this.saleDate &&
-                   this.saleTime;
+                this.saleItems.length > 0 &&
+                this.saleDate &&
+                this.saleTime;
         },
-        
+
         // Función para verificar si hay productos
         get hasProducts() {
             return this.saleItems.length > 0;
         },
-        
+
         // Watcher para saleItems
         get saleItemsWatcher() {
             // Esta función se ejecuta cada vez que saleItems cambia
             return this.saleItems.length;
         },
-        
+
         // Watcher para detectar cambios en el cliente seleccionado
         get customerWatcher() {
             // Esta función se ejecuta cada vez que cambia el cliente
             return window.saleCreateData ? window.saleCreateData.selectedCustomerId : null;
         },
-        
+
         // ===== FUNCIONES DE FECHA Y HORA =====
         setCurrentDateTime() {
             // Usar fecha y hora local (que debería ser la fecha actual)
             const now = new Date();
-            
+
             // Formatear fecha en formato YYYY-MM-DD
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             this.saleDate = `${year}-${month}-${day}`;
-            
+
             // Formatear hora en formato HH:MM
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -111,7 +112,7 @@ document.addEventListener('alpine:init', () => {
                     this.productsCache = window.saleCreateData.products || [];
                     this.filteredProducts = [...this.productsCache];
                     this.selectedCustomerId = window.saleCreateData.selectedCustomerId || '';
-                    
+
                     // Establecer fecha y hora actual de Caracas, Venezuela
                     if (window.defaultSaleDate && window.defaultSaleTime) {
                         this.saleDate = window.defaultSaleDate;
@@ -120,35 +121,35 @@ document.addEventListener('alpine:init', () => {
                         this.setCurrentDateTime();
                     }
                 }
-                
+
                 // Configurar selects personalizados
                 this.setupCustomSelects();
-                
+
                 // Cargar datos guardados localmente
                 this.loadFromLocalStorage();
-                
+
                 // Procesar parámetro customer_id de la URL (después de cargar localStorage)
                 this.processCustomerIdFromURL();
-                
+
                 // Auto-agregar producto si hay solo uno con stock > 0 y no hay productos en la venta
                 this.autoAddSingleProduct();
-                
+
                 // Configurar persistencia automática
                 this.setupAutoSave();
-                
+
                 // Sincronizar cliente seleccionado
                 this.syncSelectedCustomer();
-                
+
                 // Activar watcher para cambios en cliente
                 this.watchCustomerSelection();
-                
+
                 // Asegurar que la fecha se establezca después de la inicialización
                 this.$nextTick(() => {
                     if (!this.saleDate) {
                         this.setCurrentDateTime();
                     }
                 });
-                
+
             } catch (error) {
                 console.error('❌ Error inicializando SPA:', error);
                 this.showAlert('Error al inicializar el sistema', 'error');
@@ -176,7 +177,7 @@ document.addEventListener('alpine:init', () => {
                 if (!saleCreateComponent) {
                     return;
                 }
-                
+
                 // Obtener la instancia de Alpine.js del componente principal
                 if (saleCreateComponent && saleCreateComponent.__x && saleCreateComponent.__x.$data) {
                     const component = saleCreateComponent.__x.$data;
@@ -185,17 +186,17 @@ document.addEventListener('alpine:init', () => {
             };
 
         },
-        
+
         // Función para sincronizar el cliente seleccionado
         syncSelectedCustomer() {
             if (window.saleCreateData && window.saleCreateData.selectedCustomerId) {
                 this.selectedCustomerId = window.saleCreateData.selectedCustomerId;
-                
+
                 // Alpine.js es reactivo, no necesitamos forzar actualización
                 // La propiedad canProcessSale se actualizará automáticamente
             }
         },
-        
+
         // ===== WATCHERS =====
         // Watcher para detectar cambios en el cliente seleccionado
         watchCustomerSelection() {
@@ -207,17 +208,17 @@ document.addEventListener('alpine:init', () => {
                 }
             }, 500);
         },
-        
+
         // ===== BÚSQUEDA Y AUTocompletado =====
         searchProductByCode() {
             if (!this.productCode.trim() || this.productCode.length < 2) {
                 this.codeSuggestions = [];
                 return;
             }
-            
+
             const term = this.productCode.toLowerCase().trim();
             const suggestions = this.productsCache
-                .filter(product => 
+                .filter(product =>
                     product.code.toLowerCase().includes(term) ||
                     product.name.toLowerCase().includes(term)
                 )
@@ -227,23 +228,23 @@ document.addEventListener('alpine:init', () => {
                     name: product.name,
                     product: product
                 }));
-            
+
             this.codeSuggestions = suggestions;
         },
-        
+
         selectCodeSuggestion(suggestion) {
             this.productCode = suggestion.code;
             this.codeSuggestions = [];
             this.addProductToSale(suggestion.product);
         },
-        
+
         addProductByCode() {
             if (!this.productCode.trim()) return;
-            
-            const product = this.productsCache.find(p => 
+
+            const product = this.productsCache.find(p =>
                 p.code.toLowerCase() === this.productCode.toLowerCase().trim()
             );
-            
+
             if (product) {
                 this.addProductToSale(product);
                 this.productCode = '';
@@ -251,35 +252,35 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Producto No Encontrado', 'El código ingresado no corresponde a ningún producto', 'warning', 2000);
             }
         },
-        
+
         // ===== FILTRADO DE PRODUCTOS =====
         filterProducts() {
             let filtered = [...this.productsCache];
-            
+
             // Filtro por término de búsqueda en tiempo real
             if (this.productSearchTerm && this.productSearchTerm.trim()) {
                 const term = this.productSearchTerm.toLowerCase().trim();
-                
-                filtered = filtered.filter(product => 
+
+                filtered = filtered.filter(product =>
                     product.code.toLowerCase().includes(term) ||
                     product.name.toLowerCase().includes(term) ||
                     (product.category?.name || '').toLowerCase().includes(term)
                 );
             }
-            
+
             // Mostrar todos los productos, pero marcar los que ya están en la venta
             // Los productos ya agregados aparecerán pero estarán deshabilitados
             this.filteredProducts = filtered;
         },
-        
+
         // Función para limpiar la búsqueda
         clearSearch() {
             this.productSearchTerm = '';
             this.filterProducts();
         },
-        
 
-        
+
+
         // ===== COMPONENTE SELECT PERSONALIZADO =====
         initCustomSelect(selectId, options, selectedValue = '', placeholder = 'Seleccionar...') {
             return {
@@ -289,122 +290,122 @@ document.addEventListener('alpine:init', () => {
                 options: options,
                 searchTerm: '',
                 filteredOptions: options,
-                
-                        init() {
-            this.updateSelectedText();
-            this.filteredOptions = this.options;
-            
-            // Agregar listeners para reposicionar el dropdown
-            this.setupScrollListeners();
-        },
 
-        setupScrollListeners() {
-            // Reposicionar dropdown en scroll y resize
-            const repositionHandler = () => {
-                if (this.isOpen) {
-                    this.positionDropdown();
-                }
-            };
-            
-            window.addEventListener('scroll', repositionHandler, true);
-            window.addEventListener('resize', repositionHandler);
-            
-            // Cleanup listeners cuando el componente se destruye
-            this.$el.addEventListener('alpine:destroyed', () => {
-                window.removeEventListener('scroll', repositionHandler, true);
-                window.removeEventListener('resize', repositionHandler);
-            });
-        },
-                
-                        toggle() {
-            this.isOpen = !this.isOpen;
-            if (this.isOpen) {
-                this.searchTerm = '';
-                this.filteredOptions = this.options;
-                this.$nextTick(() => {
-                    const input = this.$refs.searchInput;
-                    if (input) input.focus();
-                    
-                    // Posicionar el dropdown correctamente
-                    this.positionDropdown();
-                });
-            }
-        },
+                init() {
+                    this.updateSelectedText();
+                    this.filteredOptions = this.options;
 
-        positionDropdown() {
-            const trigger = this.$el;
-            const dropdown = trigger.querySelector('.custom-select-dropdown');
-            
-            if (!dropdown) return;
-            
-            // Obtener la posición exacta del trigger en la ventana
-            const triggerRect = trigger.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            const viewportWidth = window.innerWidth;
-            
-            // Calcular espacio disponible debajo del trigger
-            const spaceBelow = viewportHeight - triggerRect.bottom;
-            const dropdownHeight = Math.min(200, this.filteredOptions.length * 48); // 48px por opción
-            
-            // Remover clases anteriores
-            dropdown.classList.remove('dropdown-above', 'dropdown-below');
-            
-            // Configurar ancho del dropdown
-            dropdown.style.width = `${triggerRect.width}px`;
-            dropdown.style.left = `${triggerRect.left}px`;
-            
-            // Si no hay suficiente espacio debajo, mostrar arriba
-            if (spaceBelow < dropdownHeight && triggerRect.top > dropdownHeight) {
-                dropdown.classList.add('dropdown-above');
-                dropdown.style.top = `${triggerRect.top - dropdownHeight}px`;
-            } else {
-                dropdown.classList.add('dropdown-below');
-                dropdown.style.top = `${triggerRect.bottom}px`;
-            }
-            
-            // Asegurar que no se salga del viewport horizontalmente
-            const dropdownRight = triggerRect.left + triggerRect.width;
-            if (dropdownRight > viewportWidth) {
-                dropdown.style.left = `${viewportWidth - triggerRect.width - 10}px`;
-            }
-            if (triggerRect.left < 0) {
-                dropdown.style.left = '10px';
-            }
-        },
-                
+                    // Agregar listeners para reposicionar el dropdown
+                    this.setupScrollListeners();
+                },
+
+                setupScrollListeners() {
+                    // Reposicionar dropdown en scroll y resize
+                    const repositionHandler = () => {
+                        if (this.isOpen) {
+                            this.positionDropdown();
+                        }
+                    };
+
+                    window.addEventListener('scroll', repositionHandler, true);
+                    window.addEventListener('resize', repositionHandler);
+
+                    // Cleanup listeners cuando el componente se destruye
+                    this.$el.addEventListener('alpine:destroyed', () => {
+                        window.removeEventListener('scroll', repositionHandler, true);
+                        window.removeEventListener('resize', repositionHandler);
+                    });
+                },
+
+                toggle() {
+                    this.isOpen = !this.isOpen;
+                    if (this.isOpen) {
+                        this.searchTerm = '';
+                        this.filteredOptions = this.options;
+                        this.$nextTick(() => {
+                            const input = this.$refs.searchInput;
+                            if (input) input.focus();
+
+                            // Posicionar el dropdown correctamente
+                            this.positionDropdown();
+                        });
+                    }
+                },
+
+                positionDropdown() {
+                    const trigger = this.$el;
+                    const dropdown = trigger.querySelector('.custom-select-dropdown');
+
+                    if (!dropdown) return;
+
+                    // Obtener la posición exacta del trigger en la ventana
+                    const triggerRect = trigger.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    const viewportWidth = window.innerWidth;
+
+                    // Calcular espacio disponible debajo del trigger
+                    const spaceBelow = viewportHeight - triggerRect.bottom;
+                    const dropdownHeight = Math.min(200, this.filteredOptions.length * 48); // 48px por opción
+
+                    // Remover clases anteriores
+                    dropdown.classList.remove('dropdown-above', 'dropdown-below');
+
+                    // Configurar ancho del dropdown
+                    dropdown.style.width = `${triggerRect.width}px`;
+                    dropdown.style.left = `${triggerRect.left}px`;
+
+                    // Si no hay suficiente espacio debajo, mostrar arriba
+                    if (spaceBelow < dropdownHeight && triggerRect.top > dropdownHeight) {
+                        dropdown.classList.add('dropdown-above');
+                        dropdown.style.top = `${triggerRect.top - dropdownHeight}px`;
+                    } else {
+                        dropdown.classList.add('dropdown-below');
+                        dropdown.style.top = `${triggerRect.bottom}px`;
+                    }
+
+                    // Asegurar que no se salga del viewport horizontalmente
+                    const dropdownRight = triggerRect.left + triggerRect.width;
+                    if (dropdownRight > viewportWidth) {
+                        dropdown.style.left = `${viewportWidth - triggerRect.width - 10}px`;
+                    }
+                    if (triggerRect.left < 0) {
+                        dropdown.style.left = '10px';
+                    }
+                },
+
                 select(value, text) {
                     this.selectedValue = value;
                     this.selectedText = text;
                     this.isOpen = false;
                     this.searchTerm = '';
-                    
+
                     // Trigger change event
                     this.$dispatch('select-changed', { value, text, selectId });
                 },
-                
+
                 filterOptions() {
                     if (!this.searchTerm.trim()) {
                         this.filteredOptions = this.options;
                         return;
                     }
-                    
+
                     const term = this.searchTerm.toLowerCase();
-                    this.filteredOptions = this.options.filter(option => 
+                    this.filteredOptions = this.options.filter(option =>
                         option.text.toLowerCase().includes(term) ||
                         (option.value && option.value.toString().toLowerCase().includes(term))
                     );
                 },
-                
+
                 updateSelectedText() {
                     if (!this.selectedValue) {
                         this.selectedText = placeholder;
                         return;
                     }
-                    
+
                     const option = this.options.find(opt => opt.value == this.selectedValue);
                     this.selectedText = option ? option.text : placeholder;
                 },
-                
+
                 closeOnClickOutside(event) {
                     if (!this.$el.contains(event.target)) {
                         this.isOpen = false;
@@ -441,33 +442,33 @@ document.addEventListener('alpine:init', () => {
                 discountValue: 0,
                 discountIsPercentage: false
             };
-            
+
             this.saleItems.push(saleItem);
-            
+
             // Forzar actualización de la vista
             this.forceViewUpdate();
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
-            
+
             // Cerrar modal si está abierto
             if (this.searchModalOpen) {
                 this.searchModalOpen = false;
             }
-            
+
             this.showToast('Producto Agregado', `"${product.name}" agregado correctamente`, 'success', 1500);
         },
-        
+
         removeItem(index) {
             this.saleItems.splice(index, 1);
-            
+
             // Forzar actualización de la vista
             this.forceViewUpdate();
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         increaseQuantity(index) {
             const item = this.saleItems[index];
             if (item.quantity < item.stock) {
@@ -477,7 +478,7 @@ document.addEventListener('alpine:init', () => {
                 this.saveToLocalStorage();
             }
         },
-        
+
         decreaseQuantity(index) {
             const item = this.saleItems[index];
             if (item.quantity > 1) {
@@ -487,21 +488,21 @@ document.addEventListener('alpine:init', () => {
                 this.saveToLocalStorage();
             }
         },
-        
+
         updateItemSubtotal(index) {
             const item = this.saleItems[index];
             // El subtotal se calcula automáticamente con la computed property
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         // ===== FUNCIONES DE DESCUENTO =====
         updateItemDiscount(index) {
             const item = this.saleItems[index];
-            
+
             // Permitir escritura libre, solo validar si es un número válido
             const numericValue = parseFloat(item.discountValue);
-            
+
             // Si no es un número válido, mantener el valor como string para permitir escritura
             if (isNaN(numericValue)) {
                 // Solo validar si el valor no es un string vacío y no termina en punto
@@ -510,7 +511,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 return; // No actualizar totales si no es un número válido
             }
-            
+
             // Si es un número válido, aplicar validaciones
             if (numericValue < 0) {
                 item.discountValue = 0;
@@ -521,15 +522,15 @@ document.addEventListener('alpine:init', () => {
             } else {
                 item.discountValue = numericValue;
             }
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         toggleItemDiscountType(index) {
             const item = this.saleItems[index];
             item.discountIsPercentage = !item.discountIsPercentage;
-            
+
             // Solo validar si es un número válido
             const numericValue = parseFloat(item.discountValue);
             if (!isNaN(numericValue)) {
@@ -540,17 +541,17 @@ document.addEventListener('alpine:init', () => {
                     item.discountValue = item.price;
                 }
             }
-            
+
             this.updateTotal();
             this.saveToLocalStorage();
         },
-        
+
         getItemPriceWithDiscount(item) {
             const discountValue = parseFloat(item.discountValue);
             if (isNaN(discountValue) || discountValue <= 0) {
                 return item.price;
             }
-            
+
             if (item.discountIsPercentage) {
                 const discountAmount = item.price * (discountValue / 100);
                 return Math.max(0, item.price - discountAmount);
@@ -558,16 +559,16 @@ document.addEventListener('alpine:init', () => {
                 return Math.max(0, item.price - discountValue);
             }
         },
-        
+
         getItemSubtotalWithDiscount(item) {
             const priceWithDiscount = this.getItemPriceWithDiscount(item);
             return priceWithDiscount * item.quantity;
         },
-        
+
         updateGeneralDiscount() {
             // Permitir escritura libre, solo validar si es un número válido
             const numericValue = parseFloat(this.generalDiscountValue);
-            
+
             // Si no es un número válido, mantener el valor como string para permitir escritura
             if (isNaN(numericValue)) {
                 // Solo validar si el valor no es un string vacío y no termina en punto
@@ -576,13 +577,13 @@ document.addEventListener('alpine:init', () => {
                 }
                 return; // No actualizar totales si no es un número válido
             }
-            
+
             // Si es un número válido, aplicar validaciones
             if (numericValue < 0) {
                 this.generalDiscountValue = 0;
             } else {
                 const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-                
+
                 if (this.generalDiscountIsPercentage && numericValue > 100) {
                     this.generalDiscountValue = 100;
                 } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
@@ -591,41 +592,41 @@ document.addEventListener('alpine:init', () => {
                     this.generalDiscountValue = numericValue;
                 }
             }
-            
+
             this.saveToLocalStorage();
         },
-        
+
         toggleGeneralDiscountType() {
             this.generalDiscountIsPercentage = !this.generalDiscountIsPercentage;
-            
+
             // Solo validar si es un número válido
             const numericValue = parseFloat(this.generalDiscountValue);
             if (!isNaN(numericValue)) {
                 // Resetear el valor si es necesario
                 const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-                
+
                 if (this.generalDiscountIsPercentage && numericValue > 100) {
                     this.generalDiscountValue = 100;
                 } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
                     this.generalDiscountValue = subtotalBeforeDiscount;
                 }
             }
-            
+
             this.saveToLocalStorage();
         },
-        
+
         getSubtotalBeforeGeneralDiscount() {
             return this.saleItems.reduce((total, item) => {
                 return total + this.getItemSubtotalWithDiscount(item);
             }, 0);
         },
-        
+
         applyGeneralDiscount(subtotal) {
             const discountValue = parseFloat(this.generalDiscountValue);
             if (isNaN(discountValue) || discountValue <= 0) {
                 return subtotal;
             }
-            
+
             if (this.generalDiscountIsPercentage) {
                 const discountAmount = subtotal * (discountValue / 100);
                 return Math.max(0, subtotal - discountAmount);
@@ -633,16 +634,16 @@ document.addEventListener('alpine:init', () => {
                 return Math.max(0, subtotal - discountValue);
             }
         },
-        
+
         updateTotal() {
             // El total se calcula automáticamente con la computed property
             this.saveToLocalStorage();
         },
-        
+
         isProductInSale(productId) {
             return this.saleItems.some(item => item.id === productId);
         },
-        
+
         // ===== VALIDACIONES =====
         validateSale() {
             if (!this.selectedCustomerId) {
@@ -664,7 +665,7 @@ document.addEventListener('alpine:init', () => {
                 this.showToast('Hora Requerida', 'Debe seleccionar una hora', 'warning', 2000);
                 return false;
             }
-            
+
             // Validar stock solo al procesar la venta
             for (const item of this.saleItems) {
                 const product = this.productsCache.find(p => p.id === item.id);
@@ -672,20 +673,20 @@ document.addEventListener('alpine:init', () => {
                     this.showToast('Producto No Encontrado', `Producto "${item.name}" no encontrado en el inventario`, 'error', 2000);
                     return false;
                 }
-                
+
                 if (item.quantity > product.stock) {
                     this.showToast('Stock Insuficiente', `Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error', 2000);
                     return false;
                 }
             }
-            
+
             return true;
         },
-        
+
         // ===== PROCESAMIENTO DE VENTA =====
         async processSale(action = 'save') {
             if (!this.validateSale()) return;
-            
+
             // Crear HTML personalizado para la confirmación
             const saleDetailsHTML = `
                 <div class="text-left">
@@ -731,20 +732,20 @@ document.addEventListener('alpine:init', () => {
             </div>
             </div>
         `;
-        
+
             const confirmed = await this.showConfirmDialog(
                 '¿Confirmar Venta?',
                 saleDetailsHTML,
                 'html'
             );
-            
+
             if (!confirmed) return;
-            
+
             this.loading = true;
-            
+
             try {
                 const formData = new FormData();
-                
+
                 // Datos básicos de la venta
                 formData.append('customer_id', this.selectedCustomerId);
                 formData.append('sale_date', this.saleDate);
@@ -753,7 +754,7 @@ document.addEventListener('alpine:init', () => {
                 formData.append('total_price', this.totalAmount);
                 formData.append('note', this.saleNote || '');
                 formData.append('action', action);
-                
+
                 // Agregar productos con descuentos
                 this.saleItems.forEach((item, index) => {
                     formData.append(`sale_details[${index}][product_id]`, item.id);
@@ -765,13 +766,13 @@ document.addEventListener('alpine:init', () => {
                     formData.append(`sale_details[${index}][original_price]`, item.price);
                     formData.append(`sale_details[${index}][final_price]`, this.getItemPriceWithDiscount(item));
                 });
-                
+
                 // Agregar descuento general
                 formData.append('general_discount_value', this.generalDiscountValue || 0);
                 formData.append('general_discount_type', this.generalDiscountIsPercentage ? 'percentage' : 'fixed');
                 formData.append('subtotal_before_discount', this.getSubtotalBeforeGeneralDiscount());
                 formData.append('total_with_discount', this.totalAmount);
-                
+
                 const url = (window.saleCreateRoutes?.store || '/sales/create') + '?action=' + action;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -782,13 +783,13 @@ document.addEventListener('alpine:init', () => {
                     },
                     body: formData
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
-                
+
                 if (data.success) {
                     // Redirigir inmediatamente con parámetro de éxito
                     if (action === 'save_and_new') {
@@ -802,10 +803,10 @@ document.addEventListener('alpine:init', () => {
                         const redirectUrl = data.redirect_url || (window.saleCreateRoutes && window.saleCreateRoutes.index) || '/sales/create';
                         window.location.href = redirectUrl + '?sale_created=true';
                     }
-            } else {
+                } else {
                     throw new Error(data.message || 'Error al procesar la venta');
                 }
-                
+
             } catch (error) {
                 console.error('❌ Error procesando venta:', error);
                 this.showAlert('Error al procesar la venta: ' + error.message, 'error');
@@ -813,7 +814,7 @@ document.addEventListener('alpine:init', () => {
                 this.loading = false;
             }
         },
-        
+
         cancelSale() {
             Swal.fire({
                 title: '¿Cancelar venta?',
@@ -827,11 +828,11 @@ document.addEventListener('alpine:init', () => {
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.clearLocalStorage();
-                    
+
                     // Obtener la URL de referencia para evitar bucles
                     const referrer = document.referrer;
                     const currentUrl = window.location.href;
-                    
+
                     // Verificar si la URL de referencia es válida y diferente a la actual
                     if (referrer && referrer !== currentUrl && !referrer.includes('/sales/create')) {
                         // Usar la URL de referencia si es válida
@@ -843,7 +844,7 @@ document.addEventListener('alpine:init', () => {
                 }
             });
         },
-        
+
         // ===== PERSISTENCIA LOCAL =====
         saveToLocalStorage() {
             try {
@@ -858,13 +859,13 @@ document.addEventListener('alpine:init', () => {
                     generalDiscountIsPercentage: this.generalDiscountIsPercentage,
                     timestamp: Date.now()
                 };
-                
+
                 localStorage.setItem('saleCreateData', JSON.stringify(data));
             } catch (error) {
                 console.warn('No se pudo guardar en localStorage:', error);
             }
         },
-        
+
         loadFromLocalStorage() {
             try {
                 // Si venimos de una creación exitosa o se solicita resetear el estado, limpiar storage y no restaurar
@@ -876,7 +877,7 @@ document.addEventListener('alpine:init', () => {
                 const saved = localStorage.getItem('saleCreateData');
                 if (saved) {
                     const data = JSON.parse(saved);
-                    
+
                     // Solo cargar si los datos tienen menos de 1 hora
                     const oneHour = 60 * 60 * 1000;
                     if (Date.now() - data.timestamp < oneHour) {
@@ -887,7 +888,7 @@ document.addEventListener('alpine:init', () => {
                         this.saleNote = data.saleNote || '';
                         this.generalDiscountValue = data.generalDiscountValue || 0;
                         this.generalDiscountIsPercentage = data.generalDiscountIsPercentage || false;
-                        
+
                         // Actualizar saleItems de forma más directa
                         this.saleItems.length = 0; // Limpiar array
                         if (data.saleItems && data.saleItems.length > 0) {
@@ -895,10 +896,10 @@ document.addEventListener('alpine:init', () => {
                                 this.saleItems.push(item);
                             });
                         }
-                        
+
                         // Forzar actualización de la vista
                         this.forceViewUpdate();
-                        
+
                         // Mostrar notificación si se cargaron productos automáticamente
                         if (this.saleItems.length > 0) {
                             setTimeout(() => {
@@ -927,7 +928,7 @@ document.addEventListener('alpine:init', () => {
                 }, 100);
             }
         },
-        
+
         clearLocalStorage() {
             try {
                 localStorage.removeItem('saleCreateData');
@@ -940,7 +941,7 @@ document.addEventListener('alpine:init', () => {
                 console.warn('Error limpiando localStorage:', error);
             }
         },
-        
+
         setupAutoSave() {
             // Auto-guardar cada 30 segundos
             setInterval(() => {
@@ -976,28 +977,28 @@ document.addEventListener('alpine:init', () => {
                 setTimeout(() => { this.notifications.shift(); }, duration);
             }
         },
-        
+
         // Función para obtener la URL de la imagen del producto
         getProductImageUrl(product) {
             if (!product) {
                 return '/img/no-image.svg';
             }
-            
+
             // Si ya tiene image_url, usarla
             if (product.image_url && product.image_url !== 'null' && product.image_url !== '') {
                 return product.image_url;
             }
-            
+
             // Si tiene image, construir la URL
             if (product.image && product.image !== 'null' && product.image !== '') {
                 const imageUrl = `/storage/products/${product.image}`;
                 return imageUrl;
             }
-            
+
             // Fallback a imagen por defecto
             return '/img/no-image.svg';
         },
-        
+
         // Función para forzar actualización de la vista
         forceViewUpdate() {
             // Forzar re-evaluación de computed properties
@@ -1006,18 +1007,18 @@ document.addEventListener('alpine:init', () => {
                 this.saleItems = [...this.saleItems];
             });
         },
-        
+
         removeNotification(index) {
             this.notifications.splice(index, 1);
         },
-        
+
         removeNotificationById(id) {
             const index = this.notifications.findIndex(n => n.id === id);
             if (index > -1) {
                 this.notifications.splice(index, 1);
             }
         },
-        
+
         showAlert(message, type = 'info') {
             if (typeof Swal !== 'undefined') {
                 return Swal.fire({
@@ -1040,7 +1041,7 @@ document.addEventListener('alpine:init', () => {
                 return Promise.resolve();
             }
         },
-        
+
         showConfirmDialog(title, text, html = false) {
             return new Promise((resolve) => {
                 if (typeof Swal !== 'undefined') {
@@ -1083,20 +1084,20 @@ document.addEventListener('alpine:init', () => {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const customerId = urlParams.get('customer_id');
-                
+
                 if (customerId && window.saleCreateData && window.saleCreateData.customers) {
                     // Buscar el cliente en la lista (convertir a número para comparación)
                     const customerIdNum = parseInt(customerId);
                     const customer = window.saleCreateData.customers.find(c => c.id === customerIdNum);
-                    
+
                     if (customer) {
                         // Auto-seleccionar el cliente en el componente principal
                         this.selectedCustomerId = customer.id;
-                        
+
                         // Sincronizar con el componente Alpine
                         this.syncCustomerSelection(customer);
-                        
-                        
+
+
                         // Mostrar notificación al usuario
                         this.showToast('Cliente Seleccionado', `Cliente "${customer.name}" seleccionado automáticamente`, 'success', 3000);
                     } else {
@@ -1114,12 +1115,12 @@ document.addEventListener('alpine:init', () => {
                 const customerSelectContainer = this.$el.querySelector('[x-data*="selectedCustomerName"]');
                 if (customerSelectContainer && customerSelectContainer.__x) {
                     const customerComponent = customerSelectContainer.__x;
-                    
+
                     // Actualizar las propiedades del componente Alpine
                     customerComponent.selectedCustomerName = customer.name;
                     customerComponent.selectedCustomerDebt = parseFloat(customer.total_debt || 0);
                     customerComponent.isOpen = false;
-                    
+
                     g(`✅ Componente Alpine sincronizado: ${customer.name}`);
                 }
             });
@@ -1130,10 +1131,10 @@ document.addEventListener('alpine:init', () => {
             if (!this.productsCache || this.productsCache.length === 0) {
                 return;
             }
-            
+
             // Filtrar productos con stock > 0
             const availableProducts = this.productsCache.filter(product => product.stock > 0);
-            
+
             // Si hay exactamente un producto disponible y no hay productos en la venta
             if (availableProducts.length === 1 && this.saleItems.length === 0) {
                 const product = availableProducts[0];
@@ -1149,83 +1150,83 @@ document.addEventListener('alpine:init', () => {
 // Solo definir funciones globales si estamos en la página de crear venta
 if (document.querySelector('[x-data*="saleCreateSPA"]')) {
     // Función para manejar la selección de cliente
-window.saleCreateData = window.saleCreateData || {};
-window.saleCreateData.onCustomerSelect = function(selectedValue, selectedItem) {
-    // Verificar que estamos en la página correcta
-    if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
-        return;
-    }
-    
-    // Actualizar el selectedCustomerId en el componente principal
-    if (window.Alpine && window.Alpine.store) {
-        const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
-        if (saleCreateComponent && saleCreateComponent.__x) {
-            const component = saleCreateComponent.__x;
-            component.selectedCustomerId = selectedValue;
-            component.saveToLocalStorage();
+    window.saleCreateData = window.saleCreateData || {};
+    window.saleCreateData.onCustomerSelect = function (selectedValue, selectedItem) {
+        // Verificar que estamos en la página correcta
+        if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
+            return;
         }
-    }
-};
 
-// Función para manejar la selección de pago
-window.saleCreateData.onPaymentSelect = function(selectedValue, selectedItem) {
-    // Verificar que estamos en la página correcta
-    if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
-        return;
-    }
-    
-    // Si selecciona "Sí" (pago automático), mostrar confirmación
-    if (selectedValue === '1') {
-        Swal.fire({
-            title: '¿Confirmar pago automático?',
-            text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, confirmar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Actualizar el alreadyPaid en el componente principal
-                if (window.Alpine && window.Alpine.store) {
-                    const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
-                    if (saleCreateComponent && saleCreateComponent.__x) {
-                        const component = saleCreateComponent.__x;
-                        component.alreadyPaid = selectedValue;
-                        component.saveToLocalStorage();
-                        
-                        Swal.fire({
-                            title: '¡Pago automático activado!',
-                            text: 'El pago se registrará automáticamente al crear la venta.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                }
-            } else {
-                // Si cancela, revertir la selección
-                const paymentSelect = document.querySelector('[name="payment-select"]');
-                if (paymentSelect) {
-                    paymentSelect.value = '0';
-                    // Disparar evento para actualizar el componente
-                    paymentSelect.dispatchEvent(new Event('change'));
-                }
-            }
-        });
-    } else {
-        // Si selecciona "No", actualizar directamente
+        // Actualizar el selectedCustomerId en el componente principal
         if (window.Alpine && window.Alpine.store) {
             const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
             if (saleCreateComponent && saleCreateComponent.__x) {
                 const component = saleCreateComponent.__x;
-                component.alreadyPaid = selectedValue;
+                component.selectedCustomerId = selectedValue;
                 component.saveToLocalStorage();
-                
-
             }
         }
-    }
-};
+    };
+
+    // Función para manejar la selección de pago
+    window.saleCreateData.onPaymentSelect = function (selectedValue, selectedItem) {
+        // Verificar que estamos en la página correcta
+        if (!document.querySelector('[x-data*="saleCreateSPA"]')) {
+            return;
+        }
+
+        // Si selecciona "Sí" (pago automático), mostrar confirmación
+        if (selectedValue === '1') {
+            Swal.fire({
+                title: '¿Confirmar pago automático?',
+                text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Actualizar el alreadyPaid en el componente principal
+                    if (window.Alpine && window.Alpine.store) {
+                        const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
+                        if (saleCreateComponent && saleCreateComponent.__x) {
+                            const component = saleCreateComponent.__x;
+                            component.alreadyPaid = selectedValue;
+                            component.saveToLocalStorage();
+
+                            Swal.fire({
+                                title: '¡Pago automático activado!',
+                                text: 'El pago se registrará automáticamente al crear la venta.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    }
+                } else {
+                    // Si cancela, revertir la selección
+                    const paymentSelect = document.querySelector('[name="payment-select"]');
+                    if (paymentSelect) {
+                        paymentSelect.value = '0';
+                        // Disparar evento para actualizar el componente
+                        paymentSelect.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+        } else {
+            // Si selecciona "No", actualizar directamente
+            if (window.Alpine && window.Alpine.store) {
+                const saleCreateComponent = document.querySelector('[x-data*="saleCreateSPA"]');
+                if (saleCreateComponent && saleCreateComponent.__x) {
+                    const component = saleCreateComponent.__x;
+                    component.alreadyPaid = selectedValue;
+                    component.saveToLocalStorage();
+
+
+                }
+            }
+        }
+    };
 }

@@ -43,11 +43,20 @@
                 <div class="mb-6 bg-white rounded-3xl shadow-xl border border-gray-100">
                     <!-- Header de la sección -->
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                                <i class="fas fa-info-circle text-white text-xl"></i>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                    <i class="fas fa-info-circle text-white text-xl"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-white">Información de la Venta</h3>
                             </div>
-                            <h3 class="text-2xl font-bold text-white">Información de la Venta</h3>
+                            <div>
+                                <button type="button" @click="bulkSalesModalOpen = true"
+                                    class="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 backdrop-blur-sm border border-white/20 hover:scale-105 transform">
+                                    <i class="fas fa-file-upload mr-2"></i>
+                                    Cargar Ventas Masivas
+                                </button>
+                            </div>
                         </div>
                     </div>
 
