@@ -696,6 +696,8 @@ class SaleController extends Controller
             'sales.*.customer_id' => 'required|exists:customers,id',
             'sales.*.quantity' => 'required|numeric|min:0.01',
             'sales.*.price' => 'required|numeric|min:0',
+            'sales.*.is_paid' => 'nullable|boolean',
+            'sales.*.payment_amount' => 'nullable|numeric|min:0',
          ]);
 
          DB::beginTransaction();
@@ -718,6 +720,7 @@ class SaleController extends Controller
 
          $totalSalesCount = 0;
          $totalQuantitySold = 0;
+         $automaticPaymentsCount = 0;
 
          foreach ($validated['sales'] as $saleData) {
             $customer = Customer::where('id', $saleData['customer_id'])
@@ -725,6 +728,8 @@ class SaleController extends Controller
                ->firstOrFail();
 
             $totalPrice = $saleData['quantity'] * $saleData['price'];
+            $isPaid = $saleData['is_paid'] ?? false;
+            $paymentAmount = $saleData['payment_amount'] ?? 0;
 
             // Crear la venta principal
             $sale = Sale::create([
@@ -733,14 +738,14 @@ class SaleController extends Controller
                'company_id' => $this->company->id,
                'customer_id' => $customer->id,
                'cash_count_id' => $currentCashCount->id,
-               'note' => 'Venta masiva procesada',
+               'note' => 'Venta masiva procesada' . ($isPaid ? ' (Con abono automático)' : ''),
                'general_discount_value' => 0,
                'general_discount_type' => 'fixed',
                'subtotal_before_discount' => $totalPrice,
                'total_with_discount' => $totalPrice,
             ]);
 
-            // Crear detalle
+            // Crear detalle sale_details
             SaleDetail::create([
                'sale_id' => $sale->id,
                'product_id' => $product->id,
@@ -753,9 +758,62 @@ class SaleController extends Controller
                'final_price' => $saleData['price'],
             ]);
 
-            // Actualizar deuda del cliente
-            $customer->total_debt += $totalPrice;
-            $customer->save();
+            // Lógica de Deuda y Pagos
+            if ($isPaid && $paymentAmount > 0) {
+               // Registrar el pago automático
+               $previousDebt = $customer->total_debt;
+
+               // Si el pago es TOTAL (o mayor/igual al precio de venta)
+               if ($paymentAmount >= $totalPrice) {
+                  // No aumentamos la deuda, solo registramos el pago simbólico por el monto de la venta
+
+                  DB::table('debt_payments')->insert([
+                     'company_id' => Auth::user()->company_id,
+                     'customer_id' => $customer->id,
+                     'previous_debt' => $previousDebt,
+                     'payment_amount' => $totalPrice, // El pago cubre la venta
+                     'remaining_debt' => $previousDebt, // La deuda global no cambia (se anula el efecto de la venta)
+                     'notes' => 'Pago automático (Venta Masiva #' . $sale->id . ')',
+                     'user_id' => Auth::user()->id,
+                     'created_at' => now(),
+                     'updated_at' => now(),
+                  ]);
+
+                  // NO sumamos al total_debt del cliente
+                  $automaticPaymentsCount++;
+               } else {
+                  // Pago PARCIAL
+                  // 1. Sumamos la venta completa a la deuda
+                  $oldDebt = $customer->total_debt;
+                  $customer->total_debt += $totalPrice;
+                  $customer->save();
+
+                  // 2. Registramos el abono parcial
+                  $newDebt = $customer->total_debt;
+
+                  DB::table('debt_payments')->insert([
+                     'company_id' => Auth::user()->company_id,
+                     'customer_id' => $customer->id,
+                     'previous_debt' => $newDebt,
+                     'payment_amount' => $paymentAmount,
+                     'remaining_debt' => $newDebt - $paymentAmount,
+                     'notes' => 'Abono parcial automático (Venta Masiva #' . $sale->id . ')',
+                     'user_id' => Auth::user()->id,
+                     'created_at' => now(),
+                     'updated_at' => now(),
+                  ]);
+
+                  // 3. Restamos el abono a la deuda
+                  $customer->total_debt -= $paymentAmount;
+                  $customer->save();
+
+                  $automaticPaymentsCount++;
+               }
+            } else {
+               // No hay pago, solo deuda pura
+               $customer->total_debt += $totalPrice;
+               $customer->save();
+            }
 
             // Registrar movimiento de caja
             CashMovement::create([
@@ -769,15 +827,20 @@ class SaleController extends Controller
             $totalSalesCount++;
          }
 
-         // Actualizar stock del producto UNA SOLA VEZ al final para optimizar
+         // Actualizar stock del producto UNA SOLA VEZ al final pa optimizar
          $product->stock -= $totalQuantitySold;
          $product->save();
 
          DB::commit();
 
+         $msg = "¡Se han procesado {$totalSalesCount} ventas exitosamente!";
+         if ($automaticPaymentsCount > 0) {
+            $msg .= " Se registraron {$automaticPaymentsCount} pagos automáticos.";
+         }
+
          return response()->json([
             'success' => true,
-            'message' => "¡Se han procesado {$totalSalesCount} ventas exitosamente!",
+            'message' => $msg,
          ]);
       } catch (\Exception $e) {
          DB::rollBack();

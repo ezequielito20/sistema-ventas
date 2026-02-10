@@ -928,25 +928,9 @@
                                             <i class="fas fa-box text-indigo-500 mr-1.5"></i>
                                             Producto Base <span class="text-red-500 font-black">*</span>
                                         </label>
-                                        <div class="relative" x-data="{
+                                        <div class="relative z-50" x-data="{
                                             isOpen: false,
-                                            searchTerm: '',
-                                            get filteredProducts() {
-                                                if (!this.searchTerm) return productsCache;
-                                                return productsCache.filter(p =>
-                                                    p.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                                                    p.code.toLowerCase().includes(this.searchTerm.toLowerCase())
-                                                );
-                                            },
-                                            get selectedProductName() {
-                                                const product = productsCache.find(p => p.id == bulkSaleProductId);
-                                                return product ? `${product.code} - ${product.name}` : 'Seleccione el producto...';
-                                            },
-                                            selectProduct(id) {
-                                                bulkSaleProductId = id;
-                                                this.isOpen = false;
-                                                this.searchTerm = '';
-                                            }
+                                            searchTerm: ''
                                         }" @click.away="isOpen = false">
 
                                             <!-- Botón Estilo Premium -->
@@ -954,7 +938,7 @@
                                                 class="w-full px-4 py-3 sm:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 text-gray-800 text-sm font-medium shadow-sm flex items-center justify-between group">
                                                 <span class="truncate text-gray-700"
                                                     :class="bulkSaleProductId ? 'text-gray-800' : 'text-gray-400'"
-                                                    x-text="selectedProductName"></span>
+                                                    x-text="bulkSaleProductId ? (productsCache.find(p => p.id == bulkSaleProductId)?.code + ' - ' + productsCache.find(p => p.id == bulkSaleProductId)?.name) : 'Seleccione el producto...'"></span>
                                                 <i class="fas fa-chevron-down text-[10px] text-gray-400 group-hover:text-indigo-500 transition-colors"
                                                     :class="isOpen && 'rotate-180'"></i>
                                             </button>
@@ -964,7 +948,7 @@
                                                 x-transition:enter="transition ease-out duration-200"
                                                 x-transition:enter-start="opacity-0 translate-y-2"
                                                 x-transition:enter-end="opacity-1 translate-y-0"
-                                                class="absolute z-[100] mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-w-full md:min-w-[320px] left-0 md:left-auto md:right-0">
+                                                class="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-w-full md:min-w-[320px] left-0 md:left-auto md:right-0">
 
                                                 <!-- Buscador Interno -->
                                                 <div class="p-3 bg-gray-50 border-b border-gray-100">
@@ -979,8 +963,11 @@
 
                                                 <!-- Lista de Productos -->
                                                 <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                                                    <template x-for="p in filteredProducts" :key="p.id">
-                                                        <button type="button" @click="selectProduct(p.id)"
+                                                    <template
+                                                        x-for="p in productsCache.filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase()))"
+                                                        :key="p.id">
+                                                        <button type="button"
+                                                            @click="bulkSaleProductId = p.id; isOpen = false; searchTerm = ''"
                                                             class="w-full px-4 py-3 text-left hover:bg-indigo-50 flex items-center justify-between transition-colors group border-b border-gray-50 last:border-0">
                                                             <div class="flex-1 min-w-0 mr-3">
                                                                 <p class="text-sm font-bold text-gray-800 group-hover:text-indigo-600 truncate"
@@ -1010,7 +997,8 @@
                                                         </button>
                                                     </template>
 
-                                                    <div x-show="filteredProducts.length === 0" class="p-6 text-center">
+                                                    <div x-show="productsCache.filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase())).length === 0"
+                                                        class="p-6 text-center">
                                                         <i class="fas fa-box-open text-gray-300 text-2xl mb-2"></i>
                                                         <p class="text-xs text-gray-500">No se encontraron productos</p>
                                                     </div>

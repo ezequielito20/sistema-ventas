@@ -1181,6 +1181,11 @@ document.addEventListener('alpine:init', () => {
             const lines = this.bulkSaleRawData.split('\n').map(l => l.trim()).filter(l => l !== '');
             const allCustomers = window.saleCreateData.customers || [];
 
+            // Función auxiliar para normalizar texto (quitar acentos)
+            const normalizeBox = (str) => {
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            };
+
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const parts = line.split(/\s+/);
@@ -1194,9 +1199,33 @@ document.addEventListener('alpine:init', () => {
                     continue;
                 }
 
-                const quantityStr = parts.pop();
-                const quantity = parseFloat(quantityStr);
-                const clientName = parts.join(' ').toLowerCase();
+                // Obtener la última parte que contiene la cantidad y posible info de pago
+                const quantityPart = parts.pop();
+
+                // Parsear cantidad y deuda restante
+                let quantity = 0;
+                let remainingQuantity = null;
+                let isPaid = false;
+                let isPartialPayment = false;
+
+                if (quantityPart.includes('-')) {
+                    const qParts = quantityPart.split('-');
+                    quantity = parseFloat(qParts[0]);
+                    remainingQuantity = parseFloat(qParts[1]);
+
+                    if (!isNaN(remainingQuantity)) {
+                        if (remainingQuantity === 0) {
+                            isPaid = true; // Pagó todo (0 deuda restante)
+                        } else if (remainingQuantity < quantity) {
+                            isPartialPayment = true; // Pago parcial
+                        }
+                    }
+                } else {
+                    quantity = parseFloat(quantityPart);
+                }
+
+                const clientNameRaw = parts.join(' ');
+                const clientNameNormalized = normalizeBox(clientNameRaw);
 
                 if (isNaN(quantity)) {
                     this.bulkSaleResults.push({
@@ -1207,17 +1236,20 @@ document.addEventListener('alpine:init', () => {
                     continue;
                 }
 
-                // Buscar coincidencias (búsqueda flexible)
+                // Buscar coincidencias con texto normalizado
                 const matches = allCustomers.filter(c => {
-                    const name = c.name.toLowerCase();
-                    // Coincidencia exacta o contiene el nombre buscado
-                    return name.includes(clientName) || clientName.includes(name);
+                    const dbNameNormalized = normalizeBox(c.name);
+                    // Coincidencia exacta o contiene el nombre buscado (ambos normalizados)
+                    return dbNameNormalized.includes(clientNameNormalized) || clientNameNormalized.includes(dbNameNormalized);
                 });
 
                 let result = {
                     originalText: line,
-                    clientName: clientName,
+                    clientName: clientNameRaw,
                     quantity: quantity,
+                    remainingQuantity: remainingQuantity,
+                    isPaid: isPaid,
+                    isPartialPayment: isPartialPayment,
                     matches: matches,
                     selectedCustomer: null,
                     status: 'pending'
@@ -1286,9 +1318,16 @@ document.addEventListener('alpine:init', () => {
 
             // Confirmación Estética
             const product = this.productsCache.find(p => p.id == this.bulkSaleProductId);
+
+            // Contar pagos automáticos
+            const paidSalesCount = resolvedSales.filter(r => r.isPaid || r.isPartialPayment).length;
+            const paidMessage = paidSalesCount > 0
+                ? `<br><br><span class="text-green-600 font-bold">Nota:</span> Se registrarán pagos automáticos para <b>${paidSalesCount}</b> ventas.`
+                : '';
+
             const confirmed = await this.showConfirmDialog(
                 '¿Confirmar Venta Masiva?',
-                `Se generarán <b>${resolvedSales.length}</b> ventas para <b>${product?.name}</b>. ¿Desea continuar?`,
+                `Se generarán <b>${resolvedSales.length}</b> ventas para <b>${product?.name}</b>.${paidMessage}<br>¿Desea continuar?`,
                 'html'
             );
 
@@ -1302,11 +1341,27 @@ document.addEventListener('alpine:init', () => {
                     product_id: this.bulkSaleProductId,
                     sale_date: this.bulkSaleDate,
                     sale_time: this.bulkSaleTime,
-                    sales: resolvedSales.map(r => ({
-                        customer_id: r.selectedCustomer.id,
-                        quantity: r.quantity,
-                        price: product.price || product.sale_price || 0
-                    }))
+                    sales: resolvedSales.map(r => {
+                        const price = product.price || product.sale_price || 0;
+                        let paymentAmount = 0;
+
+                        // Calcular monto a pagar si corresponde
+                        if (r.isPaid) {
+                            paymentAmount = r.quantity * price;
+                        } else if (r.isPartialPayment && r.remainingQuantity !== null) {
+                            // Pagó (Total - Restante)
+                            const paidQuantity = r.quantity - r.remainingQuantity;
+                            paymentAmount = paidQuantity * price;
+                        }
+
+                        return {
+                            customer_id: r.selectedCustomer.id,
+                            quantity: r.quantity,
+                            price: price,
+                            is_paid: r.isPaid || (r.isPartialPayment && paymentAmount > 0),
+                            payment_amount: paymentAmount
+                        };
+                    })
                 };
 
                 this.showToast('Procesando...', `Enviando ${resolvedSales.length} ventas`, 'info', 3000);
