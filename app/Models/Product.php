@@ -33,12 +33,19 @@ class Product extends Model
    ];
 
    /**
+    * The accessors to append to the model's array form.
+    *
+    * @var array
+    */
+   protected $appends = ['image_url', 'stock_status_label', 'stock_status_class'];
+
+   /**
     * The attributes that should be cast.
     *
     * @var array<string, string>
     */
    protected $casts = [
-      'entry_date' => 'date',
+      'entry_date' => 'datetime',
       'purchase_price' => 'decimal:2',
       'sale_price' => 'decimal:2',
       'stock' => 'integer',
@@ -55,7 +62,7 @@ class Product extends Model
     */
    public function getFormattedPurchasePriceAttribute()
    {
-      return number_format($this->purchase_price, 2);
+      return number_format((float)$this->purchase_price, 2);
    }
 
    /**
@@ -63,7 +70,7 @@ class Product extends Model
     */
    public function getFormattedSalePriceAttribute()
    {
-      return number_format($this->sale_price, 2);
+      return number_format((float)$this->sale_price, 2);
    }
 
    /**

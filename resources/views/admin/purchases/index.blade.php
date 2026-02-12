@@ -26,8 +26,8 @@
                     </div>
                     <div class="header-actions">
                         @if ($permissions['can_report'])
-                            <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass" target="_blank"
-                                title="Generar reporte PDF">
+                            <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass"
+                                target="_blank" title="Generar reporte PDF">
                                 <i class="fas fa-file-pdf"></i>
                                 <span>Reporte</span>
                                 <div class="btn-ripple"></div>
@@ -57,77 +57,31 @@
         <!-- Stats Dashboard -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Productos Únicos -->
-            <x-dashboard-widget 
-                title="Productos Únicos"
-                value="{{ $totalPurchases }}"
-                valueType="number"
-                icon="fas fa-boxes"
-                trend="Comprados"
-                trendIcon="fas fa-shopping-cart"
-                trendColor="text-green-300"
-                subtitle="Productos únicos comprados"
-                subtitleIcon="fas fa-box"
-                gradientFrom="from-blue-500"
-                gradientTo="to-blue-600"
-                progressWidth="100%"
-                progressGradientFrom="from-blue-400"
-                progressGradientTo="to-blue-500"
-            />
+            <x-dashboard-widget title="Productos Únicos" value="{{ $totalPurchases }}" valueType="number"
+                icon="fas fa-boxes" trend="Comprados" trendIcon="fas fa-shopping-cart" trendColor="text-green-300"
+                subtitle="Productos únicos comprados" subtitleIcon="fas fa-box" gradientFrom="from-blue-500"
+                gradientTo="to-blue-600" progressWidth="100%" progressGradientFrom="from-blue-400"
+                progressGradientTo="to-blue-500" />
 
             <!-- Total Invertido -->
-            <x-dashboard-widget 
-                title="Total Invertido"
-                value="{{ $totalAmount }}"
-                valueType="currency"
-                currencySymbol="{{ $currency->symbol }}"
-                icon="fas fa-chart-line"
-                trend="Capital"
-                trendIcon="fas fa-dollar-sign"
-                trendColor="text-green-300"
-                subtitle="Capital comprometido"
-                subtitleIcon="fas fa-chart-bar"
-                gradientFrom="from-green-500"
-                gradientTo="to-emerald-600"
-                progressWidth="100%"
-                progressGradientFrom="from-green-400"
-                progressGradientTo="to-emerald-500"
-            />
+            <x-dashboard-widget title="Total Invertido" value="{{ $totalAmount }}" valueType="currency"
+                currencySymbol="{{ $currency->symbol }}" icon="fas fa-chart-line" trend="Capital"
+                trendIcon="fas fa-dollar-sign" trendColor="text-green-300" subtitle="Capital comprometido"
+                subtitleIcon="fas fa-chart-bar" gradientFrom="from-green-500" gradientTo="to-emerald-600"
+                progressWidth="100%" progressGradientFrom="from-green-400" progressGradientTo="to-emerald-500" />
 
             <!-- Compras del Mes -->
-            <x-dashboard-widget 
-                title="Compras del Mes"
-                value="{{ $monthlyPurchases }}"
-                valueType="number"
-                icon="fas fa-calendar-check"
-                trend="Recientes"
-                trendIcon="fas fa-calendar-month"
-                trendColor="text-yellow-300"
-                subtitle="Actividad reciente"
-                subtitleIcon="fas fa-clock"
-                gradientFrom="from-yellow-500"
-                gradientTo="to-orange-500"
-                progressWidth="100%"
-                progressGradientFrom="from-yellow-400"
-                progressGradientTo="to-orange-400"
-            />
+            <x-dashboard-widget title="Compras del Mes" value="{{ $monthlyPurchases }}" valueType="number"
+                icon="fas fa-calendar-check" trend="Recientes" trendIcon="fas fa-calendar-month"
+                trendColor="text-yellow-300" subtitle="Actividad reciente" subtitleIcon="fas fa-clock"
+                gradientFrom="from-yellow-500" gradientTo="to-orange-500" progressWidth="100%"
+                progressGradientFrom="from-yellow-400" progressGradientTo="to-orange-400" />
 
             <!-- Entregas Pendientes -->
-            <x-dashboard-widget 
-                title="Entregas Pendientes"
-                value="{{ $pendingDeliveries }}"
-                valueType="number"
-                icon="fas fa-hourglass-half"
-                trend="Pendientes"
-                trendIcon="fas fa-clock"
-                trendColor="text-red-300"
-                subtitle="Por entregar"
-                subtitleIcon="fas fa-truck"
-                gradientFrom="from-red-500"
-                gradientTo="to-pink-600"
-                progressWidth="100%"
-                progressGradientFrom="from-red-400"
-                progressGradientTo="to-pink-500"
-            />
+            <x-dashboard-widget title="Entregas Pendientes" value="{{ $pendingDeliveries }}" valueType="number"
+                icon="fas fa-hourglass-half" trend="Pendientes" trendIcon="fas fa-clock" trendColor="text-red-300"
+                subtitle="Por entregar" subtitleIcon="fas fa-truck" gradientFrom="from-red-500" gradientTo="to-pink-600"
+                progressWidth="100%" progressGradientFrom="from-red-400" progressGradientTo="to-pink-500" />
         </div>
 
         <!-- Data Container -->
@@ -153,121 +107,117 @@
                             <i class="fas fa-times" aria-hidden="true"></i>
                         </button>
                     </div>
-                    
+
                     <!-- Product Filter Select -->
                     <div class="product-filter-container">
-                       
-                        <div class="relative" 
-                             x-data="{ 
-                                 isOpen: false, 
-                                 searchTerm: '', 
-                                 filteredProducts: @js($products),
-                                 selectedProductName: 'Todos los productos',
-                                 selectedProductId: '',
-                                 filterProducts() {
-                                     if (!this.searchTerm) {
-                                         this.filteredProducts = @js($products);
-                                         return;
-                                     }
-                                     const term = this.searchTerm.toLowerCase();
-                                     this.filteredProducts = @js($products).filter(product => 
-                                         product.name.toLowerCase().includes(term) || 
-                                         product.code.toLowerCase().includes(term) ||
-                                         (product.category && product.category.name.toLowerCase().includes(term))
-                                     );
-                                 },
-                                 selectProduct(product) {
-                                     if (product) {
-                                         this.selectedProductName = product.name;
-                                         this.selectedProductId = product.id;
-                                     } else {
-                                         this.selectedProductName = 'Todos los productos';
-                                         this.selectedProductId = '';
-                                     }
-                                     this.isOpen = false;
-                                     this.searchTerm = '';
-                                     this.filteredProducts = @js($products);
-                                     // Trigger filter event
-                                     window.purchasesIndex.filterByProduct(this.selectedProductId);
-                                 }
-                             }" 
-                             @click.away="isOpen = false">
-                            
+
+                        <div class="relative" x-data="{
+                            isOpen: false,
+                            searchTerm: '',
+                            filteredProducts: @js($products),
+                            selectedProductName: 'Todos los productos',
+                            selectedProductId: '',
+                            filterProducts() {
+                                if (!this.searchTerm) {
+                                    this.filteredProducts = @js($products);
+                                    return;
+                                }
+                                const term = this.searchTerm.toLowerCase();
+                                this.filteredProducts = @js($products).filter(product =>
+                                    product.name.toLowerCase().includes(term) ||
+                                    product.code.toLowerCase().includes(term) ||
+                                    (product.category && product.category.name.toLowerCase().includes(term))
+                                );
+                            },
+                            selectProduct(product) {
+                                if (product) {
+                                    this.selectedProductName = product.name;
+                                    this.selectedProductId = product.id;
+                                } else {
+                                    this.selectedProductName = 'Todos los productos';
+                                    this.selectedProductId = '';
+                                }
+                                this.isOpen = false;
+                                this.searchTerm = '';
+                                this.filteredProducts = @js($products);
+                                // Trigger filter event
+                                window.purchasesIndex.filterByProduct(this.selectedProductId);
+                            }
+                        }" @click.away="isOpen = false">
+
                             <div class="filter-input-wrapper">
                                 <div class="filter-input-icon">
                                     <i class="fas fa-box"></i>
                                 </div>
-                                
+
                                 <!-- Select Button -->
-                                <button type="button" 
-                                        @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.productSearch.focus()) }"
-                                        class="filter-input w-full text-left flex items-center justify-between">
+                                <button type="button"
+                                    @click="isOpen = !isOpen; if (isOpen) { $nextTick(() => $refs.productSearch.focus()) }"
+                                    class="filter-input w-full text-left flex items-center justify-between">
                                     <span class="block truncate" x-text="selectedProductName"></span>
-                                    <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2" 
-                                         :class="{ 'rotate-180': isOpen }" 
-                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    <svg class="h-4 w-4 text-gray-400 transition-transform duration-200 ml-2"
+                                        :class="{ 'rotate-180': isOpen }" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7"></path>
                                     </svg>
                                 </button>
                                 <div class="filter-input-border"></div>
                             </div>
 
                             <!-- Dropdown -->
-                            <div x-show="isOpen" 
-                                 x-cloak
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
-                                 style="z-index: 9999 !important;">
-                                
+                            <div x-show="isOpen" x-cloak x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute z-[9999] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+                                style="z-index: 9999 !important;">
+
                                 <!-- Search Input -->
                                 <div class="p-2 border-b border-gray-100">
-                                    <input type="text" 
-                                           x-ref="productSearch"
-                                           x-model="searchTerm" 
-                                           @input="filterProducts()"
-                                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                           placeholder="Buscar producto...">
+                                    <input type="text" x-ref="productSearch" x-model="searchTerm"
+                                        @input="filterProducts()"
+                                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Buscar producto...">
                                 </div>
-                                
+
                                 <!-- Options -->
                                 <div class="py-1">
                                     <!-- All products option -->
-                                    <button type="button" 
-                                            @click="selectProduct(null)"
-                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
-                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId === '' }">
+                                    <button type="button" @click="selectProduct(null)"
+                                        class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                        :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId === '' }">
                                         <i class="fas fa-list text-gray-400"></i>
                                         <span>Todos los productos</span>
                                     </button>
-                                    
+
                                     <!-- Product options -->
                                     <template x-for="product in filteredProducts" :key="product.id">
-                                        <button type="button" 
-                                                @click="selectProduct(product)"
-                                                class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
-                                                :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId == product.id }">
+                                        <button type="button" @click="selectProduct(product)"
+                                            class="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors duration-150"
+                                            :class="{ 'bg-blue-50 text-blue-700 font-medium': selectedProductId == product.id }">
                                             <i class="fas fa-box text-gray-400"></i>
                                             <div class="flex flex-col">
                                                 <span x-text="product.name" class="font-medium"></span>
-                                                <span x-text="product.code + ' • ' + (product.category ? product.category.name : 'Sin categoría')" class="text-xs text-gray-500"></span>
+                                                <span
+                                                    x-text="product.code + ' • ' + (product.category ? product.category.name : 'Sin categoría')"
+                                                    class="text-xs text-gray-500"></span>
                                             </div>
                                         </button>
                                     </template>
-                                    
+
                                     <!-- No results -->
-                                    <div x-show="filteredProducts.length === 0" class="px-4 py-2 text-sm text-gray-500 text-center">
+                                    <div x-show="filteredProducts.length === 0"
+                                        class="px-4 py-2 text-sm text-gray-500 text-center">
                                         No se encontraron productos
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="view-toggle" role="group" aria-label="Cambiar vista">
                         <button type="button" class="view-btn active" data-view="table" aria-label="Vista de tabla">
                             <i class="fas fa-table" aria-hidden="true"></i>
@@ -327,8 +277,9 @@
                                         </td>
                                         <td>
                                             <div class="products-info">
-                                                @foreach($purchase->details as $detail)
-                                                    <div class="product-badge" data-product-id="{{ $detail->product_id }}">
+                                                @foreach ($purchase->details as $detail)
+                                                    <div class="product-badge"
+                                                        data-product-id="{{ $detail->product_id }}">
                                                         <i class="fas fa-boxes"></i>
                                                         <span>{{ $detail->product->name ?? 'Producto' }}</span>
                                                     </div>
@@ -451,8 +402,9 @@
                                                 <div class="stat-number">{{ $purchase->details->count() }}</div>
                                                 <div class="stat-text">Productos<br>Únicos</div>
                                             </div>
-                                            @foreach($purchase->details as $detail)
-                                                <div class="product-data" data-product-id="{{ $detail->product_id }}" style="display: none;"></div>
+                                            @foreach ($purchase->details as $detail)
+                                                <div class="product-data" data-product-id="{{ $detail->product_id }}"
+                                                    style="display: none;"></div>
                                             @endforeach
                                         </div>
 
@@ -515,18 +467,19 @@
         </div>
 
         <!-- Modal para Detalles -->
-        <div class="modal-overlay" id="purchaseDetailsModal" role="dialog"
-            aria-labelledby="purchaseDetailsTitle" aria-modal="true">
+        <div class="modal-overlay" id="purchaseDetailsModal" role="dialog" aria-labelledby="purchaseDetailsTitle"
+            aria-modal="true">
             <div class="modal-container">
-                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important;">
                     <h3 class="modal-title" id="purchaseDetailsTitle" style="color: white !important;">
                         <i class="fas fa-list-alt mr-2" aria-hidden="true"></i>
                         Detalle de la Compra
                     </h3>
-                    <button type="button" class="modal-close" onclick="closePurchaseModal()" aria-label="Cerrar modal" 
-                            style="color: white !important; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 8px !important; padding: 8px 12px !important; transition: all 0.3s ease !important;"
-                            onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1.05)'"
-                            onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='scale(1)'">
+                    <button type="button" class="modal-close" onclick="closePurchaseModal()" aria-label="Cerrar modal"
+                        style="color: white !important; background: rgba(255, 255, 255, 0.1) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 8px !important; padding: 8px 12px !important; transition: all 0.3s ease !important;"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1.05)'"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='scale(1)'">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -540,6 +493,7 @@
                                     <th>Categoría</th>
                                     <th>Cantidad</th>
                                     <th>Precio Unit.</th>
+                                    <th>Descuento</th>
                                     <th>Subtotal</th>
                                 </tr>
                             </thead>
@@ -547,17 +501,31 @@
                                 <!-- Los detalles se cargarán aquí dinámicamente -->
                             </tbody>
                             <tfoot>
-                                <tr class="total-row">
-                                    <td colspan="5" class="total-label">
-                                        <div class="total-content">
-                                            <i class="fas fa-calculator"></i>
-                                            <span>Total de la Compra</span>
+                                <tr class="subtotal-row border-t border-gray-100">
+                                    <td colspan="6" class="px-4 py-2 text-right text-gray-500 font-medium">Subtotal
+                                        antes de desc. general:</td>
+                                    <td class="px-4 py-2 text-right font-semibold text-gray-700" id="modalSubtotalBefore">
+                                        0.00</td>
+                                </tr>
+                                <tr class="discount-row bg-gray-50/50">
+                                    <td colspan="6" class="px-4 py-2 text-right text-purple-600 font-medium">Descuento
+                                        General:</td>
+                                    <td class="px-4 py-2 text-right font-semibold text-purple-600"
+                                        id="modalGeneralDiscount">0.00</td>
+                                </tr>
+                                <tr class="total-row highlight bg-gradient-to-r from-purple-50 to-indigo-50">
+                                    <td colspan="6" class="total-label px-4 py-3 text-right">
+                                        <div class="total-content inline-flex items-center">
+                                            <i class="fas fa-calculator mr-2 text-indigo-600"></i>
+                                            <span class="font-bold text-gray-800">Total Final</span>
                                         </div>
                                     </td>
-                                    <td class="total-amount">
-                                        <div class="amount-display">
-                                            <span class="currency">{{ $currency->symbol }}</span>
-                                            <span class="amount" id="modalTotal">0.00</span>
+                                    <td class="total-amount px-4 py-3 text-right">
+                                        <div class="amount-display flex justify-end items-center">
+                                            <span
+                                                class="currency text-indigo-600 font-bold mr-1">{{ $currency->symbol }}</span>
+                                            <span class="amount text-2xl font-black text-indigo-700"
+                                                id="modalTotal">0.00</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -590,16 +558,18 @@
     </div>
 
     <!-- Paginación Inteligente -->
-    @if($purchases->hasPages())
+    @if ($purchases->hasPages())
         <div class="mt-8 px-6">
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <div class="custom-pagination">
                     <div class="pagination-info">
-                        <span id="paginationInfo">Mostrando {{ $purchases->firstItem() ?? 0 }}-{{ $purchases->lastItem() ?? 0 }} de {{ $purchases->total() }} compras</span>
+                        <span id="paginationInfo">Mostrando
+                            {{ $purchases->firstItem() ?? 0 }}-{{ $purchases->lastItem() ?? 0 }} de
+                            {{ $purchases->total() }} compras</span>
                     </div>
                     <div class="pagination-controls">
                         <!-- Botón Anterior -->
-                        @if($purchases->hasPrevious)
+                        @if ($purchases->hasPrevious)
                             <a href="{{ $purchases->previousPageUrl }}" class="pagination-btn">
                                 <i class="fas fa-chevron-left"></i>
                                 Anterior
@@ -610,14 +580,14 @@
                                 Anterior
                             </button>
                         @endif
-                        
+
                         <!-- Números de página inteligentes -->
                         <div class="page-numbers">
-                            @foreach($purchases->smartLinks as $link)
-                                @if($link['isSeparator'])
+                            @foreach ($purchases->smartLinks as $link)
+                                @if ($link['isSeparator'])
                                     <span class="page-separator">{{ $link['label'] }}</span>
                                 @else
-                                    @if($link['active'])
+                                    @if ($link['active'])
                                         <span class="page-number active">{{ $link['label'] }}</span>
                                     @else
                                         <a href="{{ $link['url'] }}" class="page-number">{{ $link['label'] }}</a>
@@ -625,9 +595,9 @@
                                 @endif
                             @endforeach
                         </div>
-                        
+
                         <!-- Botón Siguiente -->
-                        @if($purchases->hasNext)
+                        @if ($purchases->hasNext)
                             <a href="{{ $purchases->nextPageUrl }}" class="pagination-btn">
                                 Siguiente
                                 <i class="fas fa-chevron-right"></i>

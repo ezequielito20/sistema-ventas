@@ -24,7 +24,7 @@ class PurchaseController extends Controller
    {
       $this->middleware(function ($request, $next) {
          $this->company = Auth::user()->company;
-         
+
          // Obtener la moneda de la empresa configurada
          if ($this->company && $this->company->currency) {
             // Buscar la moneda por código en lugar de por país
@@ -33,7 +33,7 @@ class PurchaseController extends Controller
                ->where('code', $this->company->currency)
                ->first();
          }
-         
+
          // Fallback si no se encuentra la moneda configurada
          if (!$this->currencies) {
             $this->currencies = DB::table('currencies')
@@ -53,7 +53,7 @@ class PurchaseController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       if ($lastPage <= 1) {
          // No hay paginación
          $paginator->smartLinks = [];
@@ -150,10 +150,10 @@ class PurchaseController extends Controller
          // Consulta base de compras con relaciones
          $query = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
             ->with([
-               'details' => function($query) {
+               'details' => function ($query) {
                   $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
                },
-               'details.product' => function($query) {
+               'details.product' => function ($query) {
                   $query->select(['id', 'name', 'code', 'image']);
                }
             ])
@@ -162,28 +162,28 @@ class PurchaseController extends Controller
          // Búsqueda por texto: recibo de pago, fecha
          if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                $q->where('payment_receipt', 'ILIKE', "%{$search}%")
-                 ->orWhere('purchase_date', 'ILIKE', "%{$search}%")
-                 // Buscar por nombre de productos incluidos en la compra
-                 ->orWhereHas('details.product', function($q2) use ($search) {
+                  ->orWhere('purchase_date', 'ILIKE', "%{$search}%")
+                  // Buscar por nombre de productos incluidos en la compra
+                  ->orWhereHas('details.product', function ($q2) use ($search) {
                      $q2->where('name', 'ILIKE', "%{$search}%");
-                 })
-                 // Buscar por total de productos vendidos en la compra (sumatoria de quantity)
-                 ->orWhereHas('details', function($q3) use ($search) {
+                  })
+                  // Buscar por total de productos vendidos en la compra (sumatoria de quantity)
+                  ->orWhereHas('details', function ($q3) use ($search) {
                      // Solo filtrar si el search es numérico
                      if (is_numeric($search)) {
                         $q3->select(DB::raw('SUM(quantity) as total_quantity'))
                            ->groupBy('purchase_id')
                            ->havingRaw('SUM(quantity)::text ILIKE ?', ["%{$search}%"]);
                      }
-                 });
+                  });
             });
          }
 
          // Filtro por producto específico
          if ($request->filled('product_id')) {
-            $query->whereHas('details', function($q) use ($request) {
+            $query->whereHas('details', function ($q) use ($request) {
                $q->where('product_id', $request->input('product_id'));
             });
          }
@@ -218,7 +218,7 @@ class PurchaseController extends Controller
 
          // Paginación del lado del servidor
          $purchases = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-         
+
          // Generar paginación inteligente
          $purchases = $this->generateSmartPagination($purchases, 2);
 
@@ -228,17 +228,17 @@ class PurchaseController extends Controller
             ->where('purchases.company_id', $companyId)
             ->distinct('purchase_details.product_id')
             ->count('purchase_details.product_id');
-            
+
          $totalAmount = DB::table('purchases')
             ->where('company_id', $companyId)
             ->sum('total_price');
-            
+
          $monthlyPurchases = DB::table('purchases')
             ->where('company_id', $companyId)
             ->whereYear('purchase_date', now()->year)
             ->whereMonth('purchase_date', now()->month)
             ->count();
-            
+
          $pendingDeliveries = DB::table('purchases')
             ->where('company_id', $companyId)
             ->whereNull('payment_receipt')
@@ -246,7 +246,7 @@ class PurchaseController extends Controller
 
          // Obtener productos para el filtro (solo campos necesarios)
          $products = Product::select(['id', 'name', 'code', 'category_id', 'company_id'])
-            ->with(['category' => function($query) {
+            ->with(['category' => function ($query) {
                $query->select(['id', 'name']);
             }])
             ->where('company_id', $companyId)
@@ -293,13 +293,11 @@ class PurchaseController extends Controller
          $companyId = $company->id;
          $currency = $this->currencies;
          $products = Product::select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
-            ->with(['category' => function($query) {
+            ->with(['category' => function ($query) {
                $query->select(['id', 'name']);
             }])
             ->where('company_id', $companyId)
-            ->get()->each(function($product) {
-               $product->append('image_url');
-            });
+            ->get();
 
          $suppliers = Supplier::select(['id', 'company_name', 'supplier_name', 'company_id'])
             ->where('company_id', $companyId)
@@ -307,12 +305,14 @@ class PurchaseController extends Controller
 
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
-         
+
          // Solo guardar la URL si no es del mismo formulario de compra y es una URL válida
-         if ($referrerUrl && 
-             !str_contains($referrerUrl, 'purchases/create') && 
-             !str_contains($referrerUrl, 'purchases/edit') &&
-             filter_var($referrerUrl, FILTER_VALIDATE_URL)) {
+         if (
+            $referrerUrl &&
+            !str_contains($referrerUrl, 'purchases/create') &&
+            !str_contains($referrerUrl, 'purchases/edit') &&
+            filter_var($referrerUrl, FILTER_VALIDATE_URL)
+         ) {
             session(['purchases_referrer' => $referrerUrl]);
          }
 
@@ -338,15 +338,27 @@ class PurchaseController extends Controller
    public function store(Request $request)
    {
       try {
+         \Log::info('PurchaseController@store llamado', ['request_method' => $request->method()]);
          // Validación de los datos
          $validated = $request->validate([
             'purchase_date' => 'required|date',
             'purchase_time' => 'required|date_format:H:i',
             'items' => 'required|array|min:1',
             'total_price' => 'required|numeric|min:0',
+            // Descuentos generales (mismo enfoque que en ventas)
+            'general_discount_value' => 'nullable|numeric|min:0',
+            'general_discount_type' => 'nullable|in:fixed,percentage',
+            'subtotal_before_discount' => 'nullable|numeric|min:0',
+            'total_with_discount' => 'nullable|numeric|min:0',
+            // Campos mínimos por ítem
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.price' => 'required|numeric|min:0',
+            // Los campos de descuento por ítem son opcionales
+            'items.*.discount_value' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percentage',
          ]);
 
-         $payment_receipt = str_replace('-', '', $validated['purchase_date']) . count($request->items) . str_pad((int)$validated['total_price'], '0', STR_PAD_LEFT);
+         $payment_receipt = str_replace('-', '', $validated['purchase_date']) . count($request->items) . str_pad((int)$validated['total_price'], 6, '0', STR_PAD_LEFT);
          // dd($payment_receipt);
 
          DB::beginTransaction();
@@ -368,13 +380,16 @@ class PurchaseController extends Controller
             'payment_receipt' => $payment_receipt,
             'total_price' => $validated['total_price'],
             'company_id' => Auth::user()->company_id,
+            'general_discount_value' => $request->input('general_discount_value', 0),
+            'general_discount_type' => $request->input('general_discount_type', 'fixed'),
+            'subtotal_before_discount' => $request->input('subtotal_before_discount', $validated['total_price']),
+            'total_with_discount' => $request->input('total_with_discount', $validated['total_price']),
          ]);
 
          // Procesar cada producto en la compra
-         foreach ($request->items as $key => $item) {
-            // dd($key, $item);
+         foreach ($request->items as $productId => $item) {
             // Obtener el producto
-            $product = Product::where('id', $key)
+            $product = Product::where('id', $productId)
                ->where('company_id', Auth::user()->company_id)
                ->firstOrFail();
 
@@ -384,6 +399,10 @@ class PurchaseController extends Controller
                'purchase_id' => $purchase->id,
                'supplier_id' => $product->supplier_id,
                'product_id' => $product->id,
+               'discount_value' => $item['discount_value'] ?? 0,
+               'discount_type' => $item['discount_type'] ?? 'fixed',
+               'original_price' => $item['original_price'] ?? $item['price'],
+               'final_price' => $item['final_price'] ?? $item['price'],
             ]);
 
             // Actualizar el stock del producto
@@ -392,11 +411,14 @@ class PurchaseController extends Controller
          }
 
          // Registrar el movimiento en la caja
+         // IMPORTANTE: al crear el movimiento desde la relación `movements()`,
+         // Laravel asigna automáticamente el `cash_count_id` correcto ($currentCashCount->id).
+         // Antes se estaba usando el ID de la compra, lo que podía romper la FK y
+         // hacer que falle todo el registro de la compra silenciosamente.
          $currentCashCount->movements()->create([
             'type' => 'expense',
             'amount' => $validated['total_price'],
             'description' => 'Compra #' . $purchase->id,
-            'cash_count_id' => $purchase->id,
          ]);
 
 
@@ -407,8 +429,8 @@ class PurchaseController extends Controller
          if ($request->has('action') && $request->action === 'save_and_new') {
             // Redirigir al formulario de creación para hacer otra compra
             return redirect()->route('admin.purchases.create')
-                ->with('message', '¡Compra registrada exitosamente! Puede crear otra compra.')
-                ->with('icons', 'success');
+               ->with('message', '¡Compra registrada exitosamente! Puede crear otra compra.')
+               ->with('icons', 'success');
          }
 
          // Verificar si hay una URL de referencia guardada
@@ -416,10 +438,10 @@ class PurchaseController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('purchases_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', '¡Compra registrada exitosamente!')
-                ->with('icons', 'success');
+               ->with('message', '¡Compra registrada exitosamente!')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de compras
@@ -427,16 +449,25 @@ class PurchaseController extends Controller
             ->with('message', '¡Compra registrada exitosamente!')
             ->with('icons', 'success');
       } catch (\Illuminate\Validation\ValidationException $e) {
-
+         // Log detallado para depurar por qué falla la validación
+         \Log::error('Error de validación en compras (store)', [
+            'errors' => $e->errors(),
+            'request' => $request->all(),
+         ]);
 
          return redirect()->back()
             ->withInput()
             ->withErrors($e->errors())
-            ->with('message', 'Error de validación: ' . $e->getMessage())
+            ->with('message', 'Error de validación en la compra. Por favor revise los datos ingresados.')
             ->with('icons', 'error');
       } catch (\Exception $e) {
          DB::rollBack();
 
+         // Log detallado para entender por qué no se está creando la compra
+         \Log::error('Error al registrar la compra (store)', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+         ]);
 
          return redirect()->back()
             ->withInput()
@@ -456,15 +487,15 @@ class PurchaseController extends Controller
          $currency = $this->currencies;
 
          // Obtener la compra con sus detalles y productos (solo campos necesarios)
-         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id', 'general_discount_value', 'general_discount_type', 'subtotal_before_discount', 'total_with_discount'])
             ->with([
-               'details' => function($query) {
-                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
+               'details' => function ($query) {
+                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity', 'discount_value', 'discount_type', 'original_price', 'final_price']);
                },
-               'details.product' => function($query) {
+               'details.product' => function ($query) {
                   $query->select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id']);
                },
-               'details.product.category' => function($query) {
+               'details.product.category' => function ($query) {
                   $query->select(['id', 'name']);
                }
             ])
@@ -478,24 +509,24 @@ class PurchaseController extends Controller
                'code' => $detail->product->code,
                'name' => $detail->product->name,
                'quantity' => $detail->quantity,
-               'price' => $detail->product->purchase_price,
+               'price' => $detail->original_price,
                'purchase_price' => $detail->product->purchase_price,
                'supplier_id' => $detail->supplier_id,
-               'subtotal' => $detail->quantity * $detail->product->purchase_price,
+               'subtotal' => $detail->quantity * ($detail->final_price ?? $detail->original_price),
                'image_url' => $detail->product->image_url,
                'stock' => $detail->product->stock,
-               'category' => $detail->product->category
+               'category' => $detail->product->category,
+               'discountValue' => $detail->discount_value,
+               'discountIsPercentage' => $detail->discount_type === 'percentage'
             ];
          });
 
          // Obtener productos y proveedores (solo campos necesarios)
          $products = Product::select(['id', 'name', 'code', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
-            ->with(['category' => function($query) {
+            ->with(['category' => function ($query) {
                $query->select(['id', 'name']);
             }])
-            ->where('company_id', $companyId)->get()->each(function($product) {
-            $product->append('image_url');
-         });
+            ->where('company_id', $companyId)->get();
          $suppliers = Supplier::select(['id', 'company_name', 'supplier_name', 'company_id'])
             ->where('company_id', $companyId)->get();
 
@@ -533,9 +564,17 @@ class PurchaseController extends Controller
             'purchase_date' => 'required|date',
             'purchase_time' => 'nullable|date_format:H:i',
             'items' => 'required|array|min:1',
-            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
             'total_price' => 'required|numeric|min:0',
+            // Descuentos generales
+            'general_discount_value' => 'nullable|numeric|min:0',
+            'general_discount_type' => 'nullable|in:fixed,percentage',
+            'subtotal_before_discount' => 'nullable|numeric|min:0',
+            'total_with_discount' => 'nullable|numeric|min:0',
+            // Descuentos por ítem (opcionales)
+            'items.*.discount_value' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:fixed,percentage',
          ]);
 
          DB::beginTransaction();
@@ -552,7 +591,7 @@ class PurchaseController extends Controller
                return [
                   'product_id' => $detail->product_id,
                   'quantity' => $detail->quantity,
-                  'price' => $detail->product->purchase_price,
+                  'price' => $detail->original_price,
                ];
             })->toArray()
          ];
@@ -561,9 +600,14 @@ class PurchaseController extends Controller
          if (isset($validated['purchase_time'])) {
             $purchase->purchase_date = $validated['purchase_date'] . ' ' . $validated['purchase_time'];
          } else {
-         $purchase->purchase_date = $validated['purchase_date'];
+            $purchase->purchase_date = $validated['purchase_date'];
          }
          $purchase->total_price = $validated['total_price'];
+         $purchase->general_discount_value = $request->input('general_discount_value', 0);
+         $purchase->general_discount_type = $request->input('general_discount_type', 'fixed');
+         $purchase->subtotal_before_discount = $request->input('subtotal_before_discount', $validated['total_price']);
+         $purchase->total_with_discount = $request->input('total_with_discount', $validated['total_price']);
+
          $purchase->save();
 
          // Obtener los IDs de los detalles actuales
@@ -589,6 +633,10 @@ class PurchaseController extends Controller
                // Actualizar detalle existente
                $detail->update([
                   'quantity' => $item['quantity'],
+                  'discount_value' => $item['discount_value'] ?? 0,
+                  'discount_type' => $item['discount_type'] ?? 'fixed',
+                  'original_price' => $item['original_price'] ?? $item['price'],
+                  'final_price' => $item['final_price'] ?? $item['price'],
                ]);
 
                $newDetailIds[] = $detail->id;
@@ -599,6 +647,10 @@ class PurchaseController extends Controller
                   'purchase_id' => $purchase->id,
                   'supplier_id' => $product->supplier_id,
                   'product_id' => $product->id,
+                  'discount_value' => $item['discount_value'] ?? 0,
+                  'discount_type' => $item['discount_type'] ?? 'fixed',
+                  'original_price' => $item['original_price'] ?? $item['price'],
+                  'final_price' => $item['final_price'] ?? $item['price'],
                ]);
 
                // Actualizar stock sumando la nueva cantidad
@@ -633,10 +685,10 @@ class PurchaseController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('purchases_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', '¡Compra actualizada exitosamente!')
-                ->with('icons', 'success');
+               ->with('message', '¡Compra actualizada exitosamente!')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de compras
@@ -687,7 +739,7 @@ class PurchaseController extends Controller
 
          // Verificar si al revertir el stock algún producto quedaría con stock negativo
          $productsWithNegativeStock = [];
-         
+
          foreach ($purchase->details as $detail) {
             $product = $detail->product;
             $newStock = $product->stock - $detail->quantity;
@@ -701,19 +753,19 @@ class PurchaseController extends Controller
                ];
             }
          }
-         
+
          if (!empty($productsWithNegativeStock)) {
             $productList = '';
             foreach ($productsWithNegativeStock as $product) {
                $productList .= "• {$product['name']}: Stock actual {$product['current_stock']} - {$product['quantity_to_remove']} = {$product['new_stock']}\n";
             }
-            
+
             return response()->json([
                'success' => false,
                'message' => "⚠️ No se puede eliminar esta compra porque algunos productos quedarían con stock negativo.\n\n" .
-                           "📊 Productos afectados:\n" . $productList . "\n" .
-                           "🔧 Acción requerida:\n" .
-                           "Primero debes vender o ajustar el stock de estos productos antes de poder eliminar la compra.",
+                  "📊 Productos afectados:\n" . $productList . "\n" .
+                  "🔧 Acción requerida:\n" .
+                  "Primero debes vender o ajustar el stock de estos productos antes de poder eliminar la compra.",
                'icons' => 'warning',
                'has_negative_stock' => true,
                'products_affected' => $productsWithNegativeStock
@@ -729,11 +781,11 @@ class PurchaseController extends Controller
 
          // Eliminar movimientos de caja asociados a esta compra (si existen)
          $deletedMovements = CashMovement::where('description', 'Compra #' . $purchase->id)
-            ->whereHas('cashCount', function($query) {
+            ->whereHas('cashCount', function ($query) {
                $query->where('company_id', Auth::user()->company_id);
             })
             ->delete();
-            
+
 
 
          // Eliminar la compra (esto también eliminará los detalles por la relación cascade)
@@ -804,7 +856,7 @@ class PurchaseController extends Controller
    {
       try {
          $product = Product::select(['id', 'code', 'name', 'purchase_price', 'stock', 'image', 'category_id', 'company_id'])
-            ->with(['category' => function($query) {
+            ->with(['category' => function ($query) {
                $query->select(['id', 'name']);
             }])
             ->where('code', $code)
@@ -846,32 +898,35 @@ class PurchaseController extends Controller
    {
       try {
          // Optimizar consulta con select específicos y eager loading
-         $purchaseDetails = PurchaseDetail::select(['id', 'purchase_id', 'product_id', 'quantity'])
+         $purchaseDetails = PurchaseDetail::select(['id', 'purchase_id', 'product_id', 'quantity', 'discount_value', 'discount_type', 'original_price', 'final_price'])
             ->with([
-               'product' => function($query) {
+               'product' => function ($query) {
                   $query->select(['id', 'code', 'name', 'purchase_price', 'image', 'category_id', 'company_id']);
                },
-               'product.category' => function($query) {
+               'product.category' => function ($query) {
                   $query->select(['id', 'name']);
                }
             ])
             ->where('purchase_id', $id)
             ->get();
 
-         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price'])
+         $purchase = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'general_discount_value', 'general_discount_type', 'subtotal_before_discount', 'total_with_discount'])
             ->find($id);
 
          $details = $purchaseDetails->map(function ($detail) {
             return [
                'quantity' => $detail->quantity,
-               'product_price' => $detail->product->purchase_price,
+               'product_price' => $detail->original_price,
+               'final_price' => $detail->final_price,
                'product' => [
                   'code' => $detail->product->code,
                   'name' => $detail->product->name,
                   'category' => $detail->product->category->name ?? 'N/A',
                   'image_url' => $detail->product->image_url,
                ],
-               'subtotal' => $detail->quantity * $detail->product->purchase_price
+               'subtotal' => $detail->quantity * ($detail->final_price ?? $detail->original_price),
+               'discount_value' => $detail->discount_value,
+               'discount_type' => $detail->discount_type
             ];
          });
 
@@ -881,7 +936,11 @@ class PurchaseController extends Controller
                'id' => $purchase->id,
                'date' => $purchase->purchase_date->format('d/m/Y'),
                'payment_receipt' => $purchase->payment_receipt,
-               'total_price' => $purchase->total_price
+               'total_price' => $purchase->total_price,
+               'general_discount_value' => $purchase->general_discount_value,
+               'general_discount_type' => $purchase->general_discount_type,
+               'subtotal_before_discount' => $purchase->subtotal_before_discount,
+               'total_with_discount' => $purchase->total_with_discount,
             ],
             'details' => $details
          ]);
@@ -898,21 +957,21 @@ class PurchaseController extends Controller
    {
       $company = $this->company;
       $currency = $this->currencies;
-               $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
-            ->with([
-               'details' => function($query) {
-                  $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
-               },
-               'details.product' => function($query) {
-                  $query->select(['id', 'code', 'name', 'purchase_price']);
-               },
-               'details.supplier' => function($query) {
-                  $query->select(['id', 'company_name']);
-               }
-            ])
-            ->where('company_id', $company->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+      $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+         ->with([
+            'details' => function ($query) {
+               $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);
+            },
+            'details.product' => function ($query) {
+               $query->select(['id', 'code', 'name', 'purchase_price']);
+            },
+            'details.supplier' => function ($query) {
+               $query->select(['id', 'company_name']);
+            }
+         ])
+         ->where('company_id', $company->id)
+         ->orderBy('created_at', 'desc')
+         ->get();
       $pdf = PDF::loadView('admin.purchases.report', compact('purchases', 'company', 'currency'));
       return $pdf->stream('reporte-compras.pdf');
    }

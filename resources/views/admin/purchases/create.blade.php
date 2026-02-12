@@ -3,7 +3,7 @@
 @section('title', 'Nueva Compra')
 
 @push('head')
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 @endpush
 
 @section('content')
@@ -11,10 +11,9 @@
     <div class="page-background"></div>
 
     <!-- Main Container -->
-    <div class="main-container" x-data="purchaseForm()"
-        data-products-count="{{ $products->count() }}"
-        data-first-product="{{ json_encode($products->first() ? $products->first()->append('image_url') : null) }}">
-        
+    <div class="main-container" x-data="purchaseForm()" data-products-count="{{ $products->count() }}"
+        data-first-product="{{ json_encode($products->first()) }}">
+
         <!-- Floating Header -->
         <div class="floating-header">
             <div class="header-content">
@@ -46,6 +45,20 @@
                 enctype="multipart/form-data">
                 @csrf
 
+                @if ($errors->any())
+                    <div class="alert alert-danger mx-4 mt-4 rounded-xl shadow-sm border-0 bg-red-50 text-red-700">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span class="font-bold">Por favor corrija los siguientes errores:</span>
+                        </div>
+                        <ul class="list-disc list-inside text-sm">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Compact Layout -->
                 <div class="compact-layout">
                     <!-- Main Content Panel -->
@@ -70,7 +83,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="card-body">
                                 <!-- Compact Form Section -->
                                 <div class="compact-form-section">
@@ -125,7 +138,7 @@
                                                     </div>
                                                 @enderror
 
-                                                
+
                                             </div>
                                         </div>
 
@@ -200,17 +213,26 @@
                                         <table class="min-w-full divide-y divide-gray-200">
                                             <thead class="bg-gray-50">
                                                 <tr>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                         Producto</th>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                                                         Stock</th>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                         Cantidad</th>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                                         Precio Unit.</th>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                                                        Descuento</th>
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                                                         Subtotal</th>
-                                                    <th class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    <th
+                                                        class="px-2 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                         Acción</th>
                                                 </tr>
                                             </thead>
@@ -221,22 +243,25 @@
                                                             <div class="flex items-center">
                                                                 <div class="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                                                                     <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover"
-                                                                        :src="product.image_url"
-                                                                        :alt="product.name">
+                                                                        :src="product.image_url" :alt="product.name">
                                                                 </div>
                                                                 <div class="ml-2 sm:ml-4">
                                                                     <div class="text-xs sm:text-sm font-medium text-gray-900"
                                                                         x-text="product.name"></div>
-                                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block" x-text="product.code">
+                                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block"
+                                                                        x-text="product.code">
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
-                                                            <span class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full"
+                                                        <td
+                                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden sm:table-cell">
+                                                            <span
+                                                                class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full"
                                                                 :class="{
                                                                     'bg-red-100 text-red-800': product.stock < 10,
-                                                                    'bg-yellow-100 text-yellow-800': product.stock >= 10 &&
+                                                                    'bg-yellow-100 text-yellow-800': product.stock >=
+                                                                        10 &&
                                                                         product.stock < 50,
                                                                     'bg-green-100 text-green-800': product.stock >= 50
                                                                 }"
@@ -248,22 +273,45 @@
                                                                 class="w-16 sm:w-20 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-xs sm:text-sm"
                                                                 min="1" step="1">
                                                         </td>
-                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden md:table-cell">
+                                                        <td
+                                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden md:table-cell">
                                                             <div class="flex items-center">
-                                                                <span class="text-gray-500 mr-1 sm:mr-2 text-xs sm:text-sm">{{ $currency->symbol }}</span>
+                                                                <span
+                                                                    class="text-gray-500 mr-1 sm:mr-2 text-xs sm:text-sm">{{ $currency->symbol }}</span>
                                                                 <input type="number" :value="product.price"
                                                                     @input="updateProduct(index, 'price', $event.target.value)"
                                                                     class="w-20 sm:w-24 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                                                                     step="0.01">
                                                             </div>
                                                         </td>
-                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
-                                                            <span x-text="'{{ $currency->symbol }} ' + (parseFloat(product.subtotal) || 0).toFixed(2)"></span>
+                                                        <td
+                                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden lg:table-cell">
+                                                            <div class="flex items-center space-x-1">
+                                                                <input type="number" x-model="product.discountValue"
+                                                                    @input="updateItemDiscount(index)"
+                                                                    class="w-16 sm:w-20 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-right text-xs sm:text-sm"
+                                                                    min="0" step="0.01">
+                                                                <button type="button"
+                                                                    @click="toggleItemDiscountType(index)"
+                                                                    class="px-2 py-1 text-xs font-medium rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                                    :class="product.discountIsPercentage ?
+                                                                        'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' :
+                                                                        'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'"
+                                                                    x-text="product.discountIsPercentage ? '%' : '{{ $currency->symbol }}'">
+                                                                </button>
+                                                            </div>
                                                         </td>
-                                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                                                        <td
+                                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-green-600 hidden lg:table-cell">
+                                                            <span
+                                                                x-text="'{{ $currency->symbol }} ' + (parseFloat(product.subtotal) || 0).toFixed(2)"></span>
+                                                        </td>
+                                                        <td
+                                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                                                             <button @click="removeProduct(index)"
                                                                 class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-2 border border-transparent text-xs sm:text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                                                                <i class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                                                <i
+                                                                    class="fas fa-trash mr-1 sm:mr-2 text-xs sm:text-sm"></i>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -276,10 +324,11 @@
                                     <div x-show="products.length === 0" class="text-center py-12">
                                         <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-4"></i>
                                         <h5 class="text-lg font-medium text-gray-900 mb-2">No hay productos agregados</h5>
-                                        <p class="text-gray-500 mb-3">Escanee un producto o use el botón "Buscar" para agregar
+                                        <p class="text-gray-500 mb-3">Escanee un producto o use el botón "Buscar" para
+                                            agregar
                                             productos a la compra</p>
                                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 max-w-md mx-auto">
-                                            
+
                                         </div>
                                     </div>
                                 </div>
@@ -309,6 +358,28 @@
 
                                         <div class="summary-divider"></div>
 
+                                        <div class="summary-item">
+                                            <div class="summary-icon">
+                                                <i class="fas fa-tag"></i>
+                                            </div>
+                                            <div class="summary-content">
+                                                <div class="flex items-center space-x-2">
+                                                    <input type="number" x-model="generalDiscountValue"
+                                                        @input="updateGeneralDiscount()"
+                                                        class="w-24 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-right font-bold text-gray-700"
+                                                        min="0" step="0.01" placeholder="0">
+                                                    <button type="button" @click="toggleGeneralDiscountType()"
+                                                        class="px-2 py-1 text-xs font-bold rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        :class="generalDiscountIsPercentage ?
+                                                            'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200' :
+                                                            'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'"
+                                                        x-text="generalDiscountIsPercentage ? '%' : '{{ $currency->symbol }}'">
+                                                    </button>
+                                                </div>
+                                                <div class="summary-label mt-1">Descuento General</div>
+                                            </div>
+                                        </div>
+
                                         <div class="summary-item total">
                                             <div class="summary-icon">
                                                 <i class="fas fa-dollar-sign"></i>
@@ -325,7 +396,7 @@
 
                                     <!-- Actions Section -->
                                     <div class="action-buttons">
-                                        <button type="submit" class="btn-modern btn-primary" @click="submitForm()"
+                                        <button type="button" class="btn-modern btn-primary" @click="submitForm($event)"
                                             title="Guardar esta compra y volver al listado">
                                             <div class="btn-content">
                                                 <i class="fas fa-save"></i>
@@ -334,8 +405,8 @@
                                             <div class="btn-shine"></div>
                                         </button>
 
-                                        <button type="submit" class="btn-modern btn-success" name="action"
-                                            value="save_and_new" @click="submitForm()"
+                                        <button type="button" class="btn-modern btn-success" name="action"
+                                            value="save_and_new" @click="submitForm($event)"
                                             title="Guardar esta compra y crear una nueva">
                                             <div class="btn-content">
                                                 <i class="fas fa-plus-circle"></i>
@@ -392,7 +463,8 @@
                             </div>
                             <div>
                                 <h3 class="text-lg sm:text-xl font-bold">Búsqueda de Productos</h3>
-                                <p class="text-blue-100 text-sm sm:text-base">Seleccione los productos para agregar a la compra</p>
+                                <p class="text-blue-100 text-sm sm:text-base">Seleccione los productos para agregar a la
+                                    compra</p>
                             </div>
                         </div>
                         <button @click="closeModal()"
@@ -448,9 +520,11 @@
                                 @foreach ($products as $product)
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                            <span class="text-xs sm:text-sm font-mono text-gray-900">{{ $product->code }}</span>
+                                            <span
+                                                class="text-xs sm:text-sm font-mono text-gray-900">{{ $product->code }}</span>
                                         </td>
-                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                                        <td
+                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                                             <button
                                                 @click="addProductFromModal({{ $product->id }}, '{{ $product->code }}', '{{ $product->name }}', '{{ $product->image_url }}', {{ $product->stock }}, {{ $product->purchase_price }}, '{{ $product->category->name }}')"
                                                 data-product-id="{{ $product->id }}"
@@ -465,9 +539,11 @@
                                                         src="{{ $product->image_url }}" alt="{{ $product->name }}">
                                                 </div>
                                                 <div class="ml-2 sm:ml-4">
-                                                    <div class="text-xs sm:text-sm font-medium text-gray-900">{{ $product->name }}
+                                                    <div class="text-xs sm:text-sm font-medium text-gray-900">
+                                                        {{ $product->name }}
                                                     </div>
-                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block">{{ $product->code }}</div>
+                                                    <div class="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                                                        {{ $product->code }}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -486,20 +562,19 @@
                                                 {{ $product->stock }}
                                             </span>
                                         </td>
-                                        <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden md:table-cell">
+                                        <td
+                                            class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 hidden md:table-cell">
                                             <span>{{ $currency->symbol }}
                                                 {{ number_format($product->purchase_price, 2) }}</span>
                                         </td>
                                         <td class="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap hidden lg:table-cell">
                                             <span
                                                 class="inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full
-                                            @if ($product->stock_status_label === 'Bajo')
-                                                bg-red-100 text-red-800
+                                            @if ($product->stock_status_label === 'Bajo') bg-red-100 text-red-800
                                             @elseif($product->stock_status_label === 'Normal')
                                                 bg-yellow-100 text-yellow-800
                                             @else
-                                                bg-green-100 text-green-800
-                                            @endif">
+                                                bg-green-100 text-green-800 @endif">
                                                 {{ $product->stock_status_label }}
                                             </span>
                                         </td>
@@ -539,4 +614,3 @@
 @push('js')
     <script src="{{ asset('js/admin/purchases/create.js') }}" defer></script>
 @endpush
-

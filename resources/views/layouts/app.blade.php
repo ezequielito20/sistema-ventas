@@ -780,8 +780,8 @@
         @if (session('message'))
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    const message = '{{ session('message') }}';
-                    const icon = '{{ session('icons', 'info') }}';
+                    const message = @json(session('message'));
+                    const icon = @json(session('icons', 'info'));
 
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({

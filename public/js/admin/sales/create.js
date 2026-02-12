@@ -507,30 +507,37 @@ document.addEventListener('alpine:init', () => {
         // ===== FUNCIONES DE DESCUENTO =====
         updateItemDiscount(index) {
             const item = this.saleItems[index];
+            let val = item.discountValue;
 
-            // Permitir escritura libre, solo validar si es un número válido
-            const numericValue = parseFloat(item.discountValue);
-
-            // Si no es un número válido, mantener el valor como string para permitir escritura
-            if (isNaN(numericValue)) {
-                // Solo validar si el valor no es un string vacío y no termina en punto
-                if (item.discountValue !== '' && !item.discountValue.endsWith('.')) {
-                    item.discountValue = 0;
-                }
-                return; // No actualizar totales si no es un número válido
+            // Si está vacío, solo actualizar totales
+            if (val === '') {
+                this.updateTotal();
+                return;
             }
 
-            // Si es un número válido, aplicar validaciones
+            // Si termina en punto, permitir que el usuario siga escribiendo
+            if (typeof val === 'string' && val.endsWith('.')) return;
+
+            // Parsear para validaciones numéricas
+            const numericValue = parseFloat(val);
+
+            // Si no es un número válido, resetear a 0
+            if (isNaN(numericValue)) {
+                item.discountValue = 0;
+                this.updateTotal();
+                return;
+            }
+
+            // Aplicar límites si es necesario
             if (numericValue < 0) {
                 item.discountValue = 0;
             } else if (item.discountIsPercentage && numericValue > 100) {
                 item.discountValue = 100;
             } else if (!item.discountIsPercentage && numericValue > item.price) {
                 item.discountValue = item.price;
-            } else {
-                item.discountValue = numericValue;
             }
 
+            // NO re-asignamos item.discountValue = numericValue si es válido para no clavar el cursor/punto
             this.updateTotal();
             this.saveToLocalStorage();
         },
@@ -574,31 +581,30 @@ document.addEventListener('alpine:init', () => {
         },
 
         updateGeneralDiscount() {
-            // Permitir escritura libre, solo validar si es un número válido
-            const numericValue = parseFloat(this.generalDiscountValue);
+            let val = this.generalDiscountValue;
 
-            // Si no es un número válido, mantener el valor como string para permitir escritura
-            if (isNaN(numericValue)) {
-                // Solo validar si el valor no es un string vacío y no termina en punto
-                if (this.generalDiscountValue !== '' && !this.generalDiscountValue.endsWith('.')) {
-                    this.generalDiscountValue = 0;
-                }
-                return; // No actualizar totales si no es un número válido
+            if (val === '') {
+                this.saveToLocalStorage();
+                return;
             }
 
-            // Si es un número válido, aplicar validaciones
+            if (typeof val === 'string' && val.endsWith('.')) return;
+
+            const numericValue = parseFloat(val);
+
+            if (isNaN(numericValue)) {
+                this.generalDiscountValue = 0;
+                this.saveToLocalStorage();
+                return;
+            }
+
+            const subtotal = this.getSubtotalBeforeGeneralDiscount();
             if (numericValue < 0) {
                 this.generalDiscountValue = 0;
-            } else {
-                const subtotalBeforeDiscount = this.getSubtotalBeforeGeneralDiscount();
-
-                if (this.generalDiscountIsPercentage && numericValue > 100) {
-                    this.generalDiscountValue = 100;
-                } else if (!this.generalDiscountIsPercentage && numericValue > subtotalBeforeDiscount) {
-                    this.generalDiscountValue = subtotalBeforeDiscount;
-                } else {
-                    this.generalDiscountValue = numericValue;
-                }
+            } else if (this.generalDiscountIsPercentage && numericValue > 100) {
+                this.generalDiscountValue = 100;
+            } else if (!this.generalDiscountIsPercentage && numericValue > subtotal) {
+                this.generalDiscountValue = subtotal;
             }
 
             this.saveToLocalStorage();

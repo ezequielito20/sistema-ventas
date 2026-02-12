@@ -12,15 +12,20 @@ class PurchaseDetail extends Model
 
     protected $fillable = [
         'quantity',
-        'product_price',
         'purchase_id',
         'supplier_id',
-        'product_id'
+        'product_id',
+        'discount_value',
+        'discount_type',
+        'original_price',
+        'final_price'
     ];
 
     protected $casts = [
         'quantity' => 'integer',
-        'product_price' => 'decimal:2'
+        'discount_value' => 'decimal:2',
+        'original_price' => 'decimal:2',
+        'final_price' => 'decimal:2'
     ];
 
     /**

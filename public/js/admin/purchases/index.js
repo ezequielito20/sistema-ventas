@@ -9,7 +9,9 @@
     CARDS_VIEW: '#cardsView',
     PURCHASE_DETAILS_MODAL: '#purchaseDetailsModal',
     PURCHASE_DETAILS_TABLE: '#purchaseDetailsTableBody',
-    MODAL_TOTAL: '#modalTotal'
+    MODAL_TOTAL: '#modalTotal',
+    MODAL_SUBTOTAL_BEFORE: '#modalSubtotalBefore',
+    MODAL_GENERAL_DISCOUNT: '#modalGeneralDiscount'
   };
 
   // Utilidad: detectar si la vista usa paginación del servidor
@@ -33,40 +35,40 @@
         'Accept': 'text/html, application/xhtml+xml'
       }
     })
-    .then(r => {
-      if (!r.ok) throw new Error('Error al cargar');
-      return r.text();
-    })
-    .then(html => {
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
+      .then(r => {
+        if (!r.ok) throw new Error('Error al cargar');
+        return r.text();
+      })
+      .then(html => {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
 
-      // Reemplazar tabla
-      const newTableBody = temp.querySelector('#purchasesTable tbody');
-      const tableBody = document.querySelector('#purchasesTable tbody');
-      if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
+        // Reemplazar tabla
+        const newTableBody = temp.querySelector('#purchasesTable tbody');
+        const tableBody = document.querySelector('#purchasesTable tbody');
+        if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
 
-      // Reemplazar cards
-      const newCardsGrid = temp.querySelector('.cards-grid');
-      const cardsGrid = document.querySelector('.cards-grid');
-      if (newCardsGrid && cardsGrid) cardsGrid.innerHTML = newCardsGrid.innerHTML;
+        // Reemplazar cards
+        const newCardsGrid = temp.querySelector('.cards-grid');
+        const cardsGrid = document.querySelector('.cards-grid');
+        if (newCardsGrid && cardsGrid) cardsGrid.innerHTML = newCardsGrid.innerHTML;
 
-      // Reemplazar paginación
-      const newPagination = temp.querySelector('.custom-pagination');
-      const pagination = document.querySelector('.custom-pagination');
-      if (newPagination && pagination) pagination.innerHTML = newPagination.innerHTML;
+        // Reemplazar paginación
+        const newPagination = temp.querySelector('.custom-pagination');
+        const pagination = document.querySelector('.custom-pagination');
+        if (newPagination && pagination) pagination.innerHTML = newPagination.innerHTML;
 
-      // Actualizar URL sin recargar
-      window.history.pushState({}, '', url);
+        // Actualizar URL sin recargar
+        window.history.pushState({}, '', url);
 
-      // Reinicializar event listeners para nuevos elementos
-      purchaseManager.setupDetailsButtons();
-      purchaseManager.setupDeleteButtons();
-    })
-    .catch(err => console.error(err))
-    .finally(() => {
-      container.style.opacity = '';
-    });
+        // Reinicializar event listeners para nuevos elementos
+        purchaseManager.setupDetailsButtons();
+        purchaseManager.setupDeleteButtons();
+      })
+      .catch(err => console.error(err))
+      .finally(() => {
+        container.style.opacity = '';
+      });
   }
 
   // Interceptar clicks de paginación cuando servidor está activo
@@ -169,7 +171,7 @@
             suppressMultipleInstancesWarning: true,
           };
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   };
 
@@ -203,13 +205,18 @@
     closePurchaseModal() {
       if (!this.purchaseDetailsModal) return;
       this.purchaseDetailsModal.classList.remove('show');
-      
+
       setTimeout(() => {
         const tbody = utils.getElement(SELECTORS.PURCHASE_DETAILS_TABLE);
         const totalEl = utils.getElement(SELECTORS.MODAL_TOTAL);
-        
+
         if (tbody) tbody.innerHTML = '';
         if (totalEl) totalEl.textContent = '0.00';
+
+        const subtotalEl = utils.getElement(SELECTORS.MODAL_SUBTOTAL_BEFORE);
+        const discountEl = utils.getElement(SELECTORS.MODAL_GENERAL_DISCOUNT);
+        if (subtotalEl) subtotalEl.textContent = '0.00';
+        if (discountEl) discountEl.textContent = '0.00';
       }, 300);
     }
   };
@@ -361,7 +368,7 @@
         const data = await response.json();
 
         if (data.success) {
-          this.renderPurchaseDetails(data.details, tableBody);
+          this.renderPurchaseDetails(data, tableBody);
         } else {
           tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-red-600">Error al cargar los detalles</td></tr>';
           utils.showNotification('Error', data.message || 'Error al cargar los detalles', 'error');
@@ -372,15 +379,26 @@
       }
     },
 
-    renderPurchaseDetails(details, tableBody) {
-      let total = 0;
+    renderPurchaseDetails(data, tableBody) {
+      const details = data.details;
+      const purchase = data.purchase;
       tableBody.innerHTML = '';
 
       details.forEach((detail) => {
         const quantity = parseFloat(detail.quantity);
-        const price = parseFloat(detail.product_price);
-        const subtotal = quantity * price;
-        total += subtotal;
+        const originalPrice = parseFloat(detail.product_price);
+        const discountValue = parseFloat(detail.discount_value) || 0;
+        const discountType = detail.discount_type;
+        const subtotal = parseFloat(detail.subtotal);
+
+        let discountDisplay = '';
+        if (discountValue > 0) {
+          discountDisplay = discountType === 'percentage'
+            ? `${discountValue}%`
+            : utils.formatCurrency(discountValue, state.currencySymbol);
+        } else {
+          discountDisplay = '<span class="text-gray-400">-</span>';
+        }
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -390,13 +408,32 @@
           <td class="px-4 py-3 text-sm text-center">
             <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">${quantity}</span>
           </td>
-          <td class="px-4 py-3 text-sm text-right text-gray-900">${utils.formatCurrency(price, state.currencySymbol)}</td>
+          <td class="px-4 py-3 text-sm text-right text-gray-900">${utils.formatCurrency(originalPrice, state.currencySymbol)}</td>
+          <td class="px-4 py-3 text-sm text-right text-purple-600 font-medium">${discountDisplay}</td>
           <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">${utils.formatCurrency(subtotal, state.currencySymbol)}</td>`;
         tableBody.appendChild(row);
       });
 
+      // Actualizar totales en el modal
+      const subtotalEl = utils.getElement(SELECTORS.MODAL_SUBTOTAL_BEFORE);
+      const discountEl = utils.getElement(SELECTORS.MODAL_GENERAL_DISCOUNT);
       const totalEl = utils.getElement(SELECTORS.MODAL_TOTAL);
-      if (totalEl) totalEl.textContent = total.toFixed(2);
+
+      if (subtotalEl) subtotalEl.textContent = utils.numberFormat(purchase.subtotal_before_discount);
+
+      if (discountEl) {
+        let genDiscountText = '';
+        if (parseFloat(purchase.general_discount_value) > 0) {
+          genDiscountText = purchase.general_discount_type === 'percentage'
+            ? `${purchase.general_discount_value}%`
+            : utils.formatCurrency(purchase.general_discount_value, state.currencySymbol);
+        } else {
+          genDiscountText = '-';
+        }
+        discountEl.textContent = genDiscountText;
+      }
+
+      if (totalEl) totalEl.textContent = utils.numberFormat(purchase.total_with_discount || purchase.total_price);
     },
 
     confirmDelete(purchaseId) {
@@ -446,14 +483,14 @@
   // Product filter manager
   const productFilterManager = {
     selectedProductId: '',
-    
+
     init() {
       // No necesitamos setup de event listeners ya que Alpine.js maneja todo
     },
 
     filterByProduct(productId) {
       this.selectedProductId = productId;
-      
+
       if (isServerPaginationActive()) {
         const url = new URL(window.location.href);
         if (productId) url.searchParams.set('product_id', productId);
@@ -461,10 +498,10 @@
         loadPurchasesPage(url.toString());
         return;
       }
-      
+
       // Para filtros del lado del cliente, ocultar/mostrar elementos
       const rows = document.querySelectorAll('#purchasesTable tbody tr, .purchase-card-modern');
-      
+
       rows.forEach(row => {
         if (productId === '') {
           // Mostrar todas las compras
@@ -481,7 +518,7 @@
       // Buscar si la compra contiene el producto seleccionado
       const purchaseId = row.getAttribute('data-purchase-id');
       if (!purchaseId) return false;
-      
+
       // Buscar en los detalles de la compra
       const productCells = row.querySelectorAll('[data-product-id]');
       for (let cell of productCells) {
@@ -489,7 +526,7 @@
           return true;
         }
       }
-      
+
       return false;
     }
   };
@@ -539,7 +576,7 @@
 
     // Expose functions to global scope for inline handlers
     window.closePurchaseModal = () => modalManager.closePurchaseModal();
-    
+
     // Expose purchases index for Alpine.js
     window.purchasesIndex = {
       filterByProduct: (productId) => productFilterManager.filterByProduct(productId)

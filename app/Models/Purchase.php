@@ -20,7 +20,11 @@ class Purchase extends Model
       'purchase_date',
       'payment_receipt',
       'total_price',
-      'company_id'
+      'company_id',
+      'general_discount_value',
+      'general_discount_type',
+      'subtotal_before_discount',
+      'total_with_discount'
    ];
 
    /**
@@ -30,7 +34,10 @@ class Purchase extends Model
     */
    protected $casts = [
       'purchase_date' => 'datetime',
-      'total_price' => 'decimal:2'
+      'total_price' => 'decimal:2',
+      'general_discount_value' => 'decimal:2',
+      'subtotal_before_discount' => 'decimal:2',
+      'total_with_discount' => 'decimal:2'
    ];
    /**
     * Scope para filtrar compras por compañía
@@ -64,6 +71,4 @@ class Purchase extends Model
    {
       return $this->belongsTo(Company::class);
    }
-
-   
 }
