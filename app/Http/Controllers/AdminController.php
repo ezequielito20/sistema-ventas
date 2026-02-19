@@ -249,13 +249,17 @@ class AdminController extends Controller
 
       $salesMonthlyStats = DB::select("
          SELECT 
-            EXTRACT(MONTH FROM sale_date) as month,
-            EXTRACT(YEAR FROM sale_date) as year,
-            SUM(total_price) as sale_total
-         FROM sales 
-         WHERE company_id = ? 
-         AND sale_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 months')
-         GROUP BY EXTRACT(MONTH FROM sale_date), EXTRACT(YEAR FROM sale_date)
+            EXTRACT(MONTH FROM s.sale_date) as month,
+            EXTRACT(YEAR FROM s.sale_date) as year,
+            SUM(s.total_price) as sale_total,
+            SUM(sd.quantity * (p.sale_price - p.purchase_price)) as profit_total,
+            COUNT(DISTINCT s.id) as transactions_count
+         FROM sales s
+         JOIN sale_details sd ON s.id = sd.sale_id
+         JOIN products p ON sd.product_id = p.id
+         WHERE s.company_id = ? 
+         AND s.sale_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '5 months')
+         GROUP BY EXTRACT(MONTH FROM s.sale_date), EXTRACT(YEAR FROM s.sale_date)
          ORDER BY year, month
       ", [$companyId]);
 
@@ -264,6 +268,8 @@ class AdminController extends Controller
       $purchaseMonthlyData = [];
       $salesMonthlyLabels = [];
       $salesMonthlyData = [];
+      $profitMonthlyData = [];
+      $transactionsMonthlyData = [];
 
       foreach ($monthlyData as $data) {
          $purchaseMonthlyLabels[] = $data['month'];
@@ -273,12 +279,14 @@ class AdminController extends Controller
          $purchaseData = collect($monthlyStats)->firstWhere(function ($item) use ($data) {
             return $item->month == $data['month_num'] && $item->year == $data['year'];
          });
-         $purchaseMonthlyData[] = $purchaseData ? $purchaseData->purchase_total : 0;
+         $purchaseMonthlyData[] = $purchaseData ? (float)$purchaseData->purchase_total : 0;
 
          $saleData = collect($salesMonthlyStats)->firstWhere(function ($item) use ($data) {
             return $item->month == $data['month_num'] && $item->year == $data['year'];
          });
-         $salesMonthlyData[] = $saleData ? $saleData->sale_total : 0;
+         $salesMonthlyData[] = $saleData ? (float)$saleData->sale_total : 0;
+         $profitMonthlyData[] = $saleData ? (float)$saleData->profit_total : 0;
+         $transactionsMonthlyData[] = $saleData ? (int)$saleData->transactions_count : 0;
       }
 
       // Datos para gráfico de ventas por categoría
@@ -1089,6 +1097,8 @@ class AdminController extends Controller
          'purchaseMonthlyData',
          'salesMonthlyLabels',
          'salesMonthlyData',
+         'profitMonthlyData',
+         'transactionsMonthlyData',
          'salesByCategoryLabels',
          'salesByCategoryData',
          'topProducts',
