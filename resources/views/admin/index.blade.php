@@ -453,77 +453,7 @@
                 </div>
             </div>
 
-            <!-- Widget de Estadísticas de Compras -->
-            <div class="xl:col-span-1">
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden h-full">
-                    <!-- Stats Header -->
-                    <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white p-6">
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-lg rounded-2xl">
-                                <i class="fas fa-star text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold">Top Productos</h3>
-                                <p class="text-lg opacity-90">Más comprados</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Stats Content -->
-                    <div class="p-6">
-                        <div class="space-y-4">
-                            @foreach ($topProducts as $index => $product)
-                                <div
-                                    class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-300">
-                                    <!-- Rank -->
-                                    <div class="flex-shrink-0">
-                                        <div
-                                            class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm
-                                                    {{ $index < 3 ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg' : 'bg-gray-200 text-gray-600' }}">
-                                            {{ $index + 1 }}
-                                        </div>
-                                    </div>
-
-                                    <!-- Info -->
-                                    <div class="flex-1 min-w-0">
-                                        <div class="font-semibold text-gray-800 truncate">
-                                            {{ Str::limit($product->name, 20) }}</div>
-                                        <div class="flex gap-2 mt-1">
-                                            <span
-                                                class="bg-green-100 text-green-800 px-2 py-1 rounded-lg text-xs font-semibold">
-                                                {{ number_format($product->total_quantity) }} unidades
-                                            </span>
-                                            <span
-                                                class="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-xs font-semibold">
-                                                {{ $currency->symbol }}{{ number_format($product->unit_price, 2) }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Progress -->
-                                    <div class="flex-shrink-0 w-16">
-                                        <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-600 rounded-full transition-all duration-1000"
-                                                style="width: {{ min(100, ($product->total_quantity / $topProducts->first()->total_quantity) * 100) }}%">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="mt-6 text-center">
-                            <a href="{{ route('admin.products.index') }}"
-                                class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300">
-                                <i class="fas fa-eye"></i>
-                                Ver Todos los Productos
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -557,176 +487,45 @@
             :showDataSelector="false" :showStatus="false" :showLastUpdate="false" :refreshButton="true" refreshButtonText="Actualizar"
             refreshButtonIcon="fas fa-sync-alt" />
 
-        <!-- Widgets Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <!-- Ultra Simple Mini Customer Widgets Grid - Single Row Responsive -->
+        <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6 items-stretch">
             <!-- Widget de Total Clientes -->
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 h-48 cursor-pointer group">
-                <!-- Background Pattern -->
-                <div class="absolute inset-0 opacity-20">
-                    <svg class="h-full w-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                                <circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.3)" />
-                            </pattern>
-                        </defs>
-                        <rect width="100" height="100" fill="url(#dots)" />
-                    </svg>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-users text-xl"></i>
-                        </div>
-                        <div
-                            class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-sm font-semibold">
-                            <i
-                                class="fas fa-arrow-{{ $customerGrowth >= 0 ? 'up' : 'down' }} text-{{ $customerGrowth >= 0 ? 'green' : 'red' }}-300"></i>
-                            <span>{{ abs($customerGrowth) }}%</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl lg:text-4xl font-bold mb-2">{{ $totalCustomers }}</div>
-                        <div class="text-lg font-semibold mb-2 opacity-90">Total Clientes</div>
-                        <div class="flex items-center gap-2 text-sm opacity-80">
-                            <i class="fas fa-chart-line"></i>
-                            Comparado con mes anterior
-                        </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <div class="mt-4">
-                        <a href="{{ route('admin.customers.index') }}"
-                            class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30 transition-all duration-300">
-                            <i class="fas fa-list"></i>
-                            Ver Clientes
-                        </a>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                        <div class="h-full bg-purple-400 rounded-r-full transition-all duration-1000"
-                            style="width: {{ min(100, ($totalCustomers / 100) * 100) }}%"></div>
-                    </div>
-                </div>
+            <div class="widget-total-customers">
+                <x-dashboard-widget title="Total Clientes" value="{{ $totalCustomers }}" valueType="number"
+                    icon="fas fa-users" trend="{{ $customerGrowth >= 0 ? '+' : '' }}{{ $customerGrowth }}%"
+                    trendIcon="fas fa-arrow-{{ $customerGrowth >= 0 ? 'up' : 'down' }}"
+                    trendColor="{{ $customerGrowth >= 0 ? 'text-green-300' : 'text-red-300' }}"
+                    subtitle="Comparado con mes anterior" subtitleIcon="fas fa-chart-line" gradientFrom="from-indigo-500"
+                    gradientTo="to-purple-600" progressWidth="{{ min(100, ($totalCustomers / 100) * 100) }}%"
+                    progressGradientFrom="from-indigo-400" progressGradientTo="to-purple-400" />
             </div>
 
             <!-- Widget de Nuevos Clientes -->
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-xl hover:shadow-2xl transition-all duration-300 h-48 cursor-pointer group">
-                <!-- Background Pattern -->
-                <div class="absolute inset-0 opacity-20">
-                    <svg class="h-full w-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                                <circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.3)" />
-                            </pattern>
-                        </defs>
-                        <rect width="100" height="100" fill="url(#dots)" />
-                    </svg>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-user-plus text-xl"></i>
-                        </div>
-                        <div
-                            class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-sm font-semibold">
-                            <i class="fas fa-trending-up text-green-300"></i>
-                            <span>Nuevo</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl lg:text-4xl font-bold mb-2">{{ $newCustomers }}</div>
-                        <div class="text-lg font-semibold mb-2 opacity-90">Nuevos Clientes</div>
-                        <div class="flex items-center gap-2 text-sm opacity-80">
-                            <i class="fas fa-calendar-alt"></i>
-                            Registrados este mes
-                        </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <div class="mt-4">
-                        <a href="#customerActivityChart"
-                            class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30 transition-all duration-300">
-                            <i class="fas fa-chart-bar"></i>
-                            Ver Tendencia
-                        </a>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                        <div class="h-full bg-green-400 rounded-r-full transition-all duration-1000"
-                            style="width: {{ min(100, ($newCustomers / 10) * 100) }}%"></div>
-                    </div>
-                </div>
+            <div class="widget-new-customers">
+                <x-dashboard-widget title="Nuevos Clientes" value="{{ $newCustomers }}" valueType="number"
+                    icon="fas fa-user-plus" trend="Nuevos" trendIcon="fas fa-star" trendColor="text-yellow-300"
+                    subtitle="Registrados este mes" subtitleIcon="fas fa-calendar-alt" gradientFrom="from-blue-500"
+                    gradientTo="to-indigo-600" progressWidth="{{ min(100, ($newCustomers / 10) * 100) }}%"
+                    progressGradientFrom="from-blue-400" progressGradientTo="to-indigo-400" />
             </div>
 
+
+
             <!-- Widget de Actividad de Clientes -->
-            <div
-                class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-xl hover:shadow-2xl transition-all duration-300 h-48 cursor-pointer group">
-                <!-- Background Pattern -->
-                <div class="absolute inset-0 opacity-20">
-                    <svg class="h-full w-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                                <circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.3)" />
-                            </pattern>
-                        </defs>
-                        <rect width="100" height="100" fill="url(#dots)" />
-                    </svg>
-                </div>
-
-                <!-- Content -->
-                <div class="relative z-10 p-6 h-full flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-chart-pulse text-xl"></i>
-                        </div>
-                        <div
-                            class="flex items-center gap-1 bg-white/20 backdrop-blur-lg px-3 py-1 rounded-full text-sm font-semibold">
-                            <i class="fas fa-fire text-orange-300"></i>
-                            <span>Activo</span>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="flex-1 flex flex-col justify-center">
-                        <div class="text-3xl lg:text-4xl font-bold mb-2">
-                            {{ $monthlyActivity[count($monthlyActivity) - 1] ?? 0 }}</div>
-                        <div class="text-lg font-semibold mb-2 opacity-90">Actividad Mensual</div>
-                        <div class="flex items-center gap-2 text-sm opacity-80">
-                            <i class="fas fa-pulse"></i>
-                            Clientes activos este mes
-                        </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <div class="mt-4">
-                        <a href="{{ route('admin.customers.index') }}"
-                            class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-lg text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-white/30 transition-all duration-300">
-                            <i class="fas fa-eye"></i>
-                            Ver Actividad
-                        </a>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                        <div class="h-full bg-blue-400 rounded-r-full transition-all duration-1000" style="width: 75%">
-                        </div>
-                    </div>
-                </div>
+            <div class="widget-customer-activity">
+                @php
+                    // Obtenemos el último valor de actividad que no sea cero si es posible para mostrar algo real
+                    // Pero para ser fiel a la data, si el mes actual es 0, se muestra 0.
+                    $activityValues = array_filter($monthlyActivity);
+                    $lastMonthWithActivity = !empty($activityValues) ? end($activityValues) : 0;
+                    $currentActivity = end($monthlyActivity) ?: 0;
+                @endphp
+                <x-dashboard-widget title="Actividad Mensual" value="{{ $currentActivity }}" valueType="number"
+                    icon="fas fa-chart-pulse" trend="Activo" trendIcon="fas fa-fire" trendColor="text-orange-300"
+                    subtitle="Interacciones este mes" subtitleIcon="fas fa-bolt" gradientFrom="from-orange-500"
+                    gradientTo="to-pink-600" progressWidth="75%" progressGradientFrom="from-orange-400"
+                    progressGradientTo="to-pink-400" />
             </div>
         </div>
     </div>
@@ -1000,11 +799,11 @@
                         <div class="flex items-center gap-4">
                             <div
                                 class="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-lg rounded-2xl">
-                                <i class="fas fa-chart-pie text-2xl"></i>
+                                <i class="fas fa-chart-bar text-2xl"></i>
                             </div>
                             <div>
                                 <h3 class="text-2xl font-bold">Análisis de Ventas</h3>
-                                <p class="text-lg opacity-90">Distribución por categorías</p>
+                                <p class="text-lg opacity-90">Ventas por categorías</p>
                             </div>
                         </div>
 
@@ -1445,23 +1244,24 @@
         function initSalesByCategoryChart() {
             const canvas = document.getElementById('salesByCategoryChart');
             if (!canvas) return;
+            const ctx = canvas.getContext('2d');
 
-            new Chart(canvas.getContext('2d'), {
-                type: 'doughnut',
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(236, 72, 153, 0.8)'); // pink-500
+            gradient.addColorStop(1, 'rgba(147, 51, 234, 0.8)'); // purple-600
+
+            new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: @json($salesByCategoryLabels),
                     datasets: [{
+                        label: 'Ventas por Categoría',
                         data: @json($salesByCategoryData),
-                        backgroundColor: [
-                            'rgba(99, 102, 241, 0.8)',
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(16, 185, 129, 0.8)',
-                            'rgba(245, 158, 11, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(168, 85, 247, 0.8)'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        backgroundColor: gradient,
+                        borderColor: 'rgba(236, 72, 153, 1)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(147, 51, 234, 0.9)',
                     }]
                 },
                 options: {
@@ -1469,10 +1269,38 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    label += '{{ $currency->symbol }}' + context.parsed.y.toLocaleString(
+                                        'es-PE', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '{{ $currency->symbol }}' + value.toLocaleString('es-PE');
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
                             }
                         }
                     }
