@@ -1182,14 +1182,11 @@
     <script src="{{ asset('vendor/chartjs/chart.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('[Dashboard] DOMContentLoaded - Chart disponible:', typeof Chart !== 'undefined');
 
             if (typeof Chart === 'undefined') {
-                console.error('[Dashboard] Chart.js no está disponible. Intentando CDN...');
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
                 script.onload = function() {
-                    console.log('[Dashboard] Chart.js cargado desde CDN');
                     initializeCharts();
                 };
                 document.head.appendChild(script);
@@ -1200,7 +1197,6 @@
         });
 
         function initializeCharts() {
-            console.log('[Dashboard] Inicializando gráficos... Chart version:', Chart.version);
 
             try {
                 initSalesTrendsChart();
@@ -1233,7 +1229,6 @@
         function initSalesTrendsChart() {
             const canvas = document.getElementById('salesTrendsChart');
             if (!canvas) {
-                console.warn('[Dashboard] Canvas salesTrendsChart no encontrado');
                 return;
             }
 
@@ -1244,13 +1239,6 @@
             const salesData = @json($salesMonthlyData);
             const profitData = @json($profitMonthlyData);
             const transactionsData = @json($transactionsMonthlyData);
-
-            console.log('[Dashboard] Datos salesTrends:', {
-                labels,
-                salesData,
-                profitData,
-                transactionsData
-            });
 
             // Gradientes
             const gradientSales = ctx.createLinearGradient(0, 0, 0, 350);
@@ -1403,7 +1391,6 @@
                 }
             });
 
-            console.log('[Dashboard] salesTrendsChart inicializado correctamente');
         }
 
         // ============================================
@@ -1450,7 +1437,6 @@
                     }
                 }
             });
-            console.log('[Dashboard] purchaseTrendsChart inicializado');
         }
 
         // ============================================
@@ -1492,7 +1478,6 @@
                     }
                 }
             });
-            console.log('[Dashboard] salesByCategoryChart inicializado');
         }
 
         // ============================================
@@ -1547,7 +1532,6 @@
                     }
                 }
             });
-            console.log('[Dashboard] cashFlowChart inicializado');
         }
 
         // Función para mostrar notificaciones (compatible con SweetAlert2)
