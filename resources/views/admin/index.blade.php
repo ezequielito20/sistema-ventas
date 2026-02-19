@@ -831,86 +831,66 @@
 
     {{-- Gráficos de Análisis --}}
     <div class="mb-12" x-data="{
-        exportCashFlowChart() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Exportando gráfico',
-                        text: 'Preparando exportación del gráfico de flujo de caja...',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                }
-            },
-            refreshCashFlowChart() {
-                const button = event.target.closest('button');
-                const icon = button.querySelector('i');
-                icon.classList.add('animate-spin');
-                button.disabled = true;
+        cashFlowMode: 'historical',
+        historicalChartData: @js($chartData ?? []),
+        currentCashData: @js($currentCashData ?? []),
+        closedCashCounts: @js($closedCashCountsData ?? []),
+        summary: {
+            income: 0,
+            expenses: 0,
+            balance: 0
+        },
     
-                setTimeout(() => {
-                    icon.classList.remove('animate-spin');
-                    button.disabled = false;
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Gráfico actualizado',
-                            text: 'El gráfico de flujo de caja se ha actualizado correctamente',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    }
-                }, 1500);
+        init() {
+            this.updateSummary('historical');
+        },
+    
+        formatCurrency(amount) {
+            return '{{ $currency->symbol }}' + parseFloat(amount || 0).toLocaleString('es-PE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        },
+    
+        updateSummary(mode) {
+            let income = 0;
+            let expenses = 0;
+    
+            if (mode === 'historical') {
+                income = this.historicalChartData.income.reduce((a, b) => a + b, 0);
+                expenses = this.historicalChartData.expenses.reduce((a, b) => a + b, 0);
+            } else if (mode === 'current') {
+                income = this.currentCashData.total_income || 0;
+                expenses = this.currentCashData.total_expense || 0;
+            } else if (mode.startsWith('cash_')) {
+                const id = mode.replace('cash_', '');
+                const cash = this.closedCashCounts.find(c => c.id == id);
+                if (cash) {
+                    income = cash.total_income || 0;
+                    expenses = cash.total_expense || 0;
+                }
             }
+    
+            this.summary.income = income;
+            this.summary.expenses = expenses;
+            this.summary.balance = income - expenses;
+    
+            // Emitir evento para que el gráfico se actualice
+            window.dispatchEvent(new CustomEvent('cashFlowModeChanged', { detail: { mode: mode } }));
+        },
+    
+        exportCashFlowChart() {
+            showNotification('Preparando exportación...', 'info');
+        }
     }">
 
-        <!-- Gráfico de Ingresos vs Egresos -->
+        <!-- Sección de Análisis de Flujo de Caja -->
+        <x-section-header title="El Pulso del Dinero" subtitle="Tendencia de Ingresos vs Egresos por Arqueo"
+            icon="fas fa-chart-line" iconBg="from-indigo-500 to-blue-600" statusIcon="fas fa-pulse"
+            statusText="Análisis en Tiempo Real" statusColor="indigo" dataMode="cashFlowMode" :dataOptions="[]"
+            :cashCounts="$closedCashCountsData" :showDataSelector="true" :showStatus="true" :showLastUpdate="true" sectionId="cash-flow-section" />
+
         <div class="bg-gradient-to-br from-slate-800 to-gray-900 rounded-2xl shadow-xl overflow-hidden">
-            <!-- Chart Header -->
-            <div class="bg-gradient-to-r from-blue-500 to-cyan-600 text-white p-4">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <!-- Title -->
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-12 h-12 bg-white/20 backdrop-blur-lg rounded-xl">
-                            <i class="fas fa-chart-bar text-xl"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl lg:text-2xl font-bold">Análisis de Flujo de Caja</h3>
-                            <p class="text-sm opacity-90">Ingresos vs Egresos - Últimos 7 días</p>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex flex-col sm:flex-row items-center gap-4">
-                        <!-- Legend -->
-                        <div class="flex gap-4">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                                <span class="text-sm">Ingresos</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                                <span class="text-sm">Egresos</span>
-                            </div>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="flex gap-2">
-                            <button @click="exportCashFlowChart()"
-                                class="bg-white/20 backdrop-blur-lg text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all duration-300 flex items-center gap-1">
-                                <i class="fas fa-download text-xs"></i>
-                                Exportar
-                            </button>
-                            <button @click="refreshCashFlowChart()"
-                                class="bg-white/20 backdrop-blur-lg text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/30 transition-all duration-300 flex items-center gap-1">
-                                <i class="fas fa-sync-alt text-xs"></i>
-                                Actualizar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Chart Content -->
             <div class="p-4">
                 <!-- Stats Cards -->
@@ -923,9 +903,7 @@
                                 <i class="fas fa-arrow-up text-sm"></i>
                             </div>
                             <div>
-                                <div class="text-xl font-bold">
-                                    {{ $currency->symbol }}{{ number_format(array_sum($chartData['income']), 2) }}
-                                </div>
+                                <div class="text-xl font-bold" x-text="formatCurrency(summary.income)"></div>
                                 <div class="text-xs opacity-90">Total Ingresos</div>
                             </div>
                         </div>
@@ -939,9 +917,7 @@
                                 <i class="fas fa-arrow-down text-sm"></i>
                             </div>
                             <div>
-                                <div class="text-xl font-bold">
-                                    {{ $currency->symbol }}{{ number_format(array_sum($chartData['expenses']), 2) }}
-                                </div>
+                                <div class="text-xl font-bold" x-text="formatCurrency(summary.expenses)"></div>
                                 <div class="text-xs opacity-90">Total Egresos</div>
                             </div>
                         </div>
@@ -955,9 +931,7 @@
                                 <i class="fas fa-equals text-sm"></i>
                             </div>
                             <div>
-                                <div class="text-xl font-bold">
-                                    {{ $currency->symbol }}{{ number_format(array_sum($chartData['income']) - array_sum($chartData['expenses']), 2) }}
-                                </div>
+                                <div class="text-xl font-bold" x-text="formatCurrency(summary.balance)"></div>
                                 <div class="text-xs opacity-90">Balance Neto</div>
                             </div>
                         </div>
@@ -971,6 +945,15 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Listener global para el cambio de modo en Cash Flow
+        window.addEventListener('cashFlowModeChanged', function(event) {
+            if (typeof updateCashFlowChart === 'function') {
+                updateCashFlowChart(event.detail.mode);
+            }
+        });
+    </script>
 
 @stop
 
@@ -1308,32 +1291,44 @@
             });
         }
 
-        // ============================================
-        // Gráfico de Flujo de Caja
-        // ============================================
+        let cashFlowChart;
+
         function initCashFlowChart() {
             const canvas = document.getElementById('cashFlowChart');
             if (!canvas) return;
 
-            new Chart(canvas.getContext('2d'), {
+            const ctx = canvas.getContext('2d');
+            const data = @js($chartData);
+
+            cashFlowChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: @json($chartData['labels']),
+                    labels: data.labels,
                     datasets: [{
-                            label: 'Ingresos',
-                            data: @json($chartData['income']),
-                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                            borderColor: 'rgb(16, 185, 129)',
-                            borderWidth: 1,
-                            borderRadius: 4
+                            label: 'Ingresos (Ventas)',
+                            data: data.income,
+                            backgroundColor: [], // Se llena dinámicamente
+                            borderRadius: 6,
+                            order: 2
                         },
                         {
-                            label: 'Egresos',
-                            data: @json($chartData['expenses']),
-                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                            borderColor: 'rgb(239, 68, 68)',
-                            borderWidth: 1,
-                            borderRadius: 4
+                            label: 'Egresos (Costo)',
+                            data: data.expenses.map(e => -e), // Mostrar hacia abajo
+                            backgroundColor: 'rgba(244, 63, 94, 0.7)', // Rose-500
+                            borderRadius: 6,
+                            order: 2
+                        },
+                        {
+                            label: 'El Pulso (Acumulado)',
+                            data: [], // Se llena dinámicamente
+                            type: 'line',
+                            borderColor: 'rgba(99, 102, 241, 1)', // Indigo-500
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            order: 1,
+                            yAxisID: 'y'
                         }
                     ]
                 },
@@ -1342,24 +1337,127 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.parsed.y;
+                                    if (context.datasetIndex === 1) val = Math.abs(val);
+                                    return context.dataset.label + ': ' + '{{ $currency->symbol }}' +
+                                        val.toLocaleString('es-PE', {
+                                            minimumFractionDigits: 2
+                                        });
+                                }
+                            }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: 'rgba(0, 0, 0, 0.06)'
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                callback: val => '{{ $currency->symbol }}' + Math.abs(val).toLocaleString('es-PE')
                             }
                         },
                         x: {
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.6)'
                             }
                         }
                     }
                 }
             });
+
+            // Primera carga
+            updateCashFlowChart('historical');
+        }
+
+        function updateCashFlowChart(mode) {
+            if (!cashFlowChart) return;
+
+            const dailyMovements = @js($chartData['daily_movements'] ?? []);
+            const currentCash = @js($currentCashCount);
+            const closedCounts = @js($closedCashCountsData);
+
+            let filteredData = [];
+            let startDate, endDate;
+
+            if (mode === 'historical') {
+                // Total histórico: Desde el primer movimiento hasta ahora
+                filteredData = dailyMovements;
+                startDate = filteredData.length > 0 ? filteredData[0].date : null;
+                endDate = new Date().toISOString().split('T')[0];
+            } else if (mode === 'current') {
+                const openId = currentCash ? currentCash.id : null;
+                filteredData = dailyMovements.filter(m => m.cash_count_id == openId);
+            } else if (mode.startsWith('cash_')) {
+                const id = mode.replace('cash_', '');
+                filteredData = dailyMovements.filter(m => m.cash_count_id == id);
+            }
+
+            if (filteredData.length === 0) {
+                // Datos de fallback por si no hay nada
+                cashFlowChart.data.labels = ['Sin datos'];
+                cashFlowChart.data.datasets[0].data = [0];
+                cashFlowChart.data.datasets[1].data = [0];
+                cashFlowChart.data.datasets[2].data = [0];
+                cashFlowChart.update();
+                return;
+            }
+
+            // Agrupar por fecha por si hay duplicados ID/Fecha
+            const grouped = filteredData.reduce((acc, curr) => {
+                if (!acc[curr.date]) acc[curr.date] = {
+                    income: 0,
+                    expense: 0
+                };
+                acc[curr.date].income += parseFloat(curr.income);
+                acc[curr.date].expense += parseFloat(curr.expense);
+                return acc;
+            }, {});
+
+            const dates = Object.keys(grouped).sort();
+            const incomeValues = dates.map(d => grouped[d].income);
+            const expenseValues = dates.map(d => grouped[d].expense);
+
+            // Calcular Promedio de Ventas (Ingresos)
+            const sumIncome = incomeValues.reduce((a, b) => a + b, 0);
+            const avgIncome = sumIncome / incomeValues.length;
+
+            // Colores dinámicos: Azul si > Promedio, Verde si <= Promedio
+            const bgColors = incomeValues.map(v =>
+                v > avgIncome ? 'rgba(59, 130, 246, 0.8)' : 'rgba(16, 185, 129, 0.7)'
+            );
+
+            // Calcular Pulso (Acumulado Neto)
+            let accumulated = 0;
+            const pulseData = dates.map(d => {
+                accumulated += (grouped[d].income - grouped[d].expense);
+                return accumulated;
+            });
+
+            // Formatear labels (DD/MM)
+            const labels = dates.map(d => {
+                const [y, m, day] = d.split('-');
+                return `${day}/${m}`;
+            });
+
+            cashFlowChart.data.labels = labels;
+            cashFlowChart.data.datasets[0].data = incomeValues;
+            cashFlowChart.data.datasets[0].backgroundColor = bgColors;
+            cashFlowChart.data.datasets[1].data = expenseValues.map(v => -v);
+            cashFlowChart.data.datasets[2].data = pulseData;
+
+            cashFlowChart.update();
         }
 
         // Función para mostrar notificaciones (compatible con SweetAlert2)

@@ -997,51 +997,37 @@ class AdminController extends Controller
       $purchasesSinceCashOpen = $currentCashData['purchases'];
       $debtSinceCashOpen = $currentCashData['debt'];
 
-      // Datos para el gráfico de ingresos vs egresos (últimos 7 días)
-      $lastDays = collect(range(6, 0))->map(function ($days) {
-         return now()->subDays($days)->format('Y-m-d');
-      });
+      // 5. Datos para el Gráfico de Flujo de Caja (El Pulso del Dinero)
+      // Obtenemos movimientos agrupados por día y cash_count_id para ser reactivos
+      $allDailyMovements = DB::select("
+          SELECT 
+              cm.cash_count_id,
+              DATE(cm.created_at) as date,
+              SUM(CASE WHEN cm.type = 'income' THEN cm.amount ELSE 0 END) as income,
+              SUM(CASE WHEN cm.type = 'expense' THEN cm.amount ELSE 0 END) as expense
+          FROM cash_movements cm
+          JOIN cash_counts cc ON cm.cash_count_id = cc.id
+          WHERE cc.company_id = ?
+          AND cm.created_at >= CURRENT_DATE - INTERVAL '1 year' -- Limitamos a un año para no sobrecargar
+          GROUP BY cm.cash_count_id, DATE(cm.created_at)
+          ORDER BY date ASC
+      ", [$companyId]);
 
       $chartData = [
-         'labels' => $lastDays->map(fn($date) => Carbon::parse($date)->format('d/m')),
+         'daily_movements' => $allDailyMovements,
+         // Mantenemos una versión simplificada de los últimos 30 días para la carga inicial "Histórica"
+         'labels' => [],
          'income' => [],
          'expenses' => []
       ];
 
-      // Obtener todos los datos de cash_movements en una sola consulta
-      $cashMovementsStats = DB::select("
-         SELECT 
-            DATE(cm.created_at) as date,
-            cm.type,
-            SUM(cm.amount) as total_amount
-         FROM cash_movements cm
-         JOIN cash_counts cc ON cm.cash_count_id = cc.id
-         WHERE cc.company_id = ? 
-         AND cm.created_at >= CURRENT_DATE - INTERVAL '30 days'
-         AND cm.type IN ('income', 'expense')
-         GROUP BY DATE(cm.created_at), cm.type
-         ORDER BY date
-      ", [$companyId]);
-
-      foreach ($lastDays as $date) {
-         $dateStr = $date; // $date ya es un string en formato 'Y-m-d'
-
-         // Buscar datos en los resultados
-         $incomeAmount = 0;
-         $expenseAmount = 0;
-
-         foreach ($cashMovementsStats as $stat) {
-            if ($stat->date == $dateStr) {
-               if ($stat->type === 'income') {
-                  $incomeAmount = $stat->total_amount;
-               } elseif ($stat->type === 'expense') {
-                  $expenseAmount = $stat->total_amount;
-               }
-            }
-         }
-
-         $chartData['income'][] = $incomeAmount;
-         $chartData['expenses'][] = $expenseAmount;
+      // Construir el histórico de 30 días para el arranque rápido
+      $last30Days = collect(range(29, 0))->map(fn($days) => now()->subDays($days)->format('Y-m-d'));
+      foreach ($last30Days as $date) {
+         $dayData = collect($allDailyMovements)->where('date', $date);
+         $chartData['labels'][] = Carbon::parse($date)->format('d/m');
+         $chartData['income'][] = $dayData->sum('income');
+         $chartData['expenses'][] = $dayData->sum('expense');
       }
 
       // Datos para gráfico de productos vendidos por día optimizado
