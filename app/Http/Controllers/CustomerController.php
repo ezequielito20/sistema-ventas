@@ -2058,7 +2058,7 @@ class CustomerController extends Controller
 
          Log::info('Customer sales found:', ['customer_id' => $customer->id, 'sales_count' => $salesWithDetails->count()]);
 
-          // Calcular el total de ventas
+         // Calcular el total de ventas
          $totalSales = $salesWithDetails->sum('total_price');
 
          // Obtener la deuda actual del cliente
@@ -2399,6 +2399,104 @@ class CustomerController extends Controller
          return response()->json([
             'success' => false,
             'message' => 'Error al eliminar el pago: ' . $e->getMessage()
+         ], 500);
+      }
+   }
+
+   /**
+    * Obtiene alertas de clientes con deudas de más de un mes
+    */
+   public function getDebtAlerts()
+   {
+      try {
+         $companyId = $this->company->id;
+         $now = Carbon::now();
+         $oneMonthAgo = $now->copy()->subMonth()->endOfDay(); // Incluimos el día exacto de hace un mes
+
+         // Obtener clientes con deuda activa
+         $customers = Customer::where('company_id', $companyId)
+            ->where('total_debt', '>', 0)
+            ->get();
+
+         $alerts = [];
+         $fingerprintRaw = "";
+
+         foreach ($customers as $customer) {
+            // Lógica FIFO para encontrar la venta más antigua que aún no ha sido pagada
+            $totalPayments = DB::table('debt_payments')
+               ->where('customer_id', $customer->id)
+               ->where('company_id', $companyId)
+               ->sum('payment_amount');
+
+            $sales = \App\Models\Sale::where('customer_id', $customer->id)
+               ->where('company_id', $companyId)
+               ->orderBy('sale_date', 'asc')
+               ->get();
+
+            $accumulatedSales = 0;
+            $oldestUnpaidSale = null;
+
+            foreach ($sales as $sale) {
+               $accumulatedSales = round($accumulatedSales + (float)$sale->total_price, 2);
+               if ($accumulatedSales > round($totalPayments, 2)) {
+                  $oldestUnpaidSale = $sale;
+                  break;
+               }
+            }
+
+            // Si la venta más antigua sin pagar tiene más de un mes
+            if ($oldestUnpaidSale && Carbon::parse($oldestUnpaidSale->sale_date)->lte($oneMonthAgo)) {
+               $lastPayment = DB::table('debt_payments')
+                  ->where('customer_id', $customer->id)
+                  ->where('company_id', $companyId)
+                  ->orderBy('created_at', 'desc')
+                  ->first();
+
+               $lastSale = \App\Models\Sale::where('customer_id', $customer->id)
+                  ->where('company_id', $companyId)
+                  ->orderBy('sale_date', 'desc')
+                  ->first();
+
+               $oldestDate = Carbon::parse($oldestUnpaidSale->sale_date);
+
+               // Resaltar si HOY cumple exactamente el mes (aniversario mensual de la deuda)
+               $isNewlyMorose = $oldestDate->copy()->addMonth()->isSameDay($now);
+
+               $alerts[] = [
+                  'id' => $customer->id,
+                  'name' => $customer->name,
+                  'total_debt' => (float)$customer->total_debt,
+                  'last_purchase_date' => $lastSale ? Carbon::parse($lastSale->sale_date)->format('d/m/Y') : 'N/A',
+                  'last_purchase_raw' => $lastSale ? $lastSale->sale_date : null,
+                  'oldest_debt_date' => $oldestDate->format('d/m/Y'),
+                  'oldest_debt_raw' => $oldestUnpaidSale->sale_date,
+                  'last_payment_date' => $lastPayment ? Carbon::parse($lastPayment->created_at)->format('d/m/Y') : 'N/A',
+                  'last_payment_amount' => $lastPayment ? (float)$lastPayment->payment_amount : 0,
+                  'is_new' => $isNewlyMorose
+               ];
+
+               $fingerprintRaw .= $customer->id . ($isNewlyMorose ? 'H' : 'N');
+            }
+         }
+
+         // Ordenar por inicio de la deuda: de más reciente a más antigua
+         usort($alerts, function ($a, $b) {
+            $dateA = $a['oldest_debt_raw'];
+            $dateB = $b['oldest_debt_raw'];
+
+            if ($dateA == $dateB) return 0;
+            return $dateB <=> $dateA;
+         });
+
+         return response()->json([
+            'success' => true,
+            'alerts' => $alerts,
+            'fingerprint' => md5($fingerprintRaw . date('Y-m-d'))
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener alertas de deuda: ' . $e->getMessage()
          ], 500);
       }
    }

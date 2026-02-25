@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-    <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -200,12 +200,14 @@
         /* Override específico para íconos del botón - SOLUCIÓN CLAVE */
         header .sidebar-toggle-btn i,
         header .sidebar-toggle-btn .fas {
-            color: #6b7280 !important; /* text-gray-600 */
+            color: #6b7280 !important;
+            /* text-gray-600 */
         }
 
         header .sidebar-toggle-btn:hover i,
         header .sidebar-toggle-btn:hover .fas {
-            color: #111827 !important; /* hover:text-gray-900 */
+            color: #111827 !important;
+            /* hover:text-gray-900 */
         }
 
         /* Prevenir flash del sidebar antes de que Alpine.js se inicialice */
@@ -277,39 +279,39 @@
             .sidebar-container {
                 height: 100vh;
             }
-            
+
             .sidebar-navigation {
                 flex: 1;
                 min-height: 0;
                 padding-bottom: 1rem;
             }
-            
+
             .sidebar-user-info {
                 position: relative;
                 margin-top: 0;
                 border-top: 1px solid rgba(255, 255, 255, 0.2);
             }
-            
+
             /* Reducir espaciado en elementos de navegación */
-            .sidebar-navigation .space-y-1 > * + * {
+            .sidebar-navigation .space-y-1>*+* {
                 margin-top: 0.25rem;
             }
-            
+
             .sidebar-navigation .px-3 {
                 padding-left: 0.5rem;
                 padding-right: 0.5rem;
             }
-            
+
             .sidebar-navigation .py-2 {
                 padding-top: 0.375rem;
                 padding-bottom: 0.375rem;
             }
-            
+
             /* Reducir tamaño de fuente en pantallas pequeñas */
             .sidebar-navigation .text-sm {
                 font-size: 0.75rem;
             }
-            
+
             .sidebar-navigation .text-lg {
                 font-size: 1rem;
             }
@@ -317,23 +319,23 @@
 
         /* Para pantallas muy pequeñas (menos de 600px de alto) */
         @media (max-height: 600px) {
-            .sidebar-navigation .space-y-1 > * + * {
+            .sidebar-navigation .space-y-1>*+* {
                 margin-top: 0.125rem;
             }
-            
+
             .sidebar-navigation .py-2 {
                 padding-top: 0.25rem;
                 padding-bottom: 0.25rem;
             }
-            
+
             .sidebar-navigation .text-sm {
                 font-size: 0.7rem;
             }
-            
+
             .sidebar-navigation .text-lg {
                 font-size: 0.875rem;
             }
-            
+
             /* Ocultar algunos elementos menos críticos en pantallas muy pequeñas */
             .sidebar-navigation .ml-6 {
                 margin-left: 0.75rem;
@@ -345,51 +347,51 @@
             .sidebar-container {
                 height: 100vh;
             }
-            
+
             .sidebar-navigation {
                 padding-top: 0.5rem;
                 padding-bottom: 0.5rem;
             }
-            
-            .sidebar-navigation .space-y-1 > * + * {
+
+            .sidebar-navigation .space-y-1>*+* {
                 margin-top: 0.0625rem;
             }
-            
+
             .sidebar-navigation .py-2 {
                 padding-top: 0.125rem;
                 padding-bottom: 0.125rem;
             }
-            
+
             .sidebar-navigation .text-sm {
                 font-size: 0.65rem;
             }
-            
+
             .sidebar-navigation .text-lg {
                 font-size: 0.75rem;
             }
-            
+
             .sidebar-navigation .mr-3 {
                 margin-right: 0.5rem;
             }
-            
+
             .sidebar-navigation .ml-6 {
                 margin-left: 0.5rem;
             }
-            
+
             /* Reducir altura del logo en pantallas muy pequeñas */
             .sidebar-container .h-16 {
                 height: 3rem;
             }
-            
+
             /* Reducir padding del usuario */
             .sidebar-user-info {
                 padding: 0.5rem;
             }
-            
+
             .sidebar-user-info .text-sm {
                 font-size: 0.65rem;
             }
-            
+
             .sidebar-user-info .text-xs {
                 font-size: 0.55rem;
             }
@@ -401,11 +403,11 @@
                 padding-top: 0.25rem;
                 padding-bottom: 0.25rem;
             }
-            
-            .sidebar-navigation .space-y-1 > * + * {
+
+            .sidebar-navigation .space-y-1>*+* {
                 margin-top: 0.03125rem;
             }
-            
+
             .sidebar-navigation .py-2 {
                 padding-top: 0.0625rem;
                 padding-bottom: 0.0625rem;
@@ -445,19 +447,55 @@
         .space-x-3>*+* {
             margin-left: 0.75rem;
         }
-    </style>
-    </head>
 
-    <body class="bg-gray-50" x-data="appLayout()" style="opacity: 0; visibility: hidden;">
-        <script>
-            // Script que se ejecuta inmediatamente para ocultar toda la página
-            (function() {
-                // Ocultar toda la página hasta que Alpine.js esté completamente listo
-                document.body.style.opacity = '0';
-                document.body.style.visibility = 'hidden';
-                document.body.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
-            })();
-        </script>
+        /* Estilo para resaltar nuevos deudores */
+        .new-debtor-row {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            /* Rojo muy tenue */
+            border-left: 4px solid #ef4444;
+        }
+
+        .new-debtor-badge {
+            background-color: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-left: 8px;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50" x-data="appLayout()" style="opacity: 0; visibility: hidden;">
+    <script>
+        // Script que se ejecuta inmediatamente para ocultar toda la página
+        (function() {
+            // Ocultar toda la página hasta que Alpine.js esté completamente listo
+            document.body.style.opacity = '0';
+            document.body.style.visibility = 'hidden';
+            document.body.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+        })();
+    </script>
     <div class="flex h-screen">
         <!-- Sidebar para móviles (overlay) -->
         <div x-show="sidebarOpen" x-cloak x-transition:enter="transition-opacity ease-linear duration-300"
@@ -468,31 +506,30 @@
         </div>
 
         <!-- Sidebar -->
-        <div x-show="sidebarOpen" x-cloak 
-             x-transition:enter="transition ease-in-out duration-300 transform"
-             x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="-translate-x-full" 
-             @click.stop
-             class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform sidebar-container"
-             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-             style="width: 256px;">
+        <div x-show="sidebarOpen" x-cloak x-transition:enter="transition ease-in-out duration-300 transform"
+            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full" @click.stop
+            class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform sidebar-container"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" style="width: 256px;">
 
             <!-- Logo -->
             <div class="flex items-center justify-between h-16 px-6 border-b border-white/20 flex-shrink-0">
                 <a href="{{ route('admin.index') }}" class="flex items-center group">
                     <div class="flex-shrink-0">
-                        @if(Auth::check() && Auth::user()->company && Auth::user()->company->logo)
-                            <img src="{{ Auth::user()->company->logo_url }}" 
-                                 alt="Logo de {{ Auth::user()->company->name }}" 
-                                 class="w-8 h-8 object-contain rounded-lg group-hover:scale-110 transition-transform duration-200"
-                                 style="max-width: 32px; max-height: 32px;">
+                        @if (Auth::check() && Auth::user()->company && Auth::user()->company->logo)
+                            <img src="{{ Auth::user()->company->logo_url }}"
+                                alt="Logo de {{ Auth::user()->company->name }}"
+                                class="w-8 h-8 object-contain rounded-lg group-hover:scale-110 transition-transform duration-200"
+                                style="max-width: 32px; max-height: 32px;">
                         @else
-                            <i class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
+                            <i
+                                class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
                         @endif
                     </div>
                     <div class="ml-3">
-                        <h1 class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">
+                        <h1
+                            class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">
                             {{ Auth::check() && Auth::user()->company ? Auth::user()->company->name : 'Test Company' }}
                         </h1>
                     </div>
@@ -629,8 +666,8 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden main-content" 
-             :class="sidebarOpen ? 'sidebar-open' : 'sidebar-closed'">
+        <div class="flex-1 flex flex-col overflow-hidden main-content"
+            :class="sidebarOpen ? 'sidebar-open' : 'sidebar-closed'">
             <!-- Top Navigation -->
             <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -698,56 +735,56 @@
 
                             <!-- User menu -->
                             <div x-data="{ open: false }" class="relative">
-                                    <button @click="open = !open"
-                                        class="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-user text-white text-sm"></i>
-                                        </div>
-                                        <span class="hidden md:block text-sm font-medium">{{ Auth::user()->name }}</span>
-                                        <i class="fas fa-chevron-down text-xs"></i>
-                                    </button>
+                                <button @click="open = !open"
+                                    class="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-white text-sm"></i>
+                                    </div>
+                                    <span class="hidden md:block text-sm font-medium">{{ Auth::user()->name }}</span>
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </button>
 
-                                    <!-- User dropdown -->
-                                    <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-100"
-                                        x-transition:enter-start="transform opacity-0 scale-95"
-                                        x-transition:enter-end="transform opacity-100 scale-100"
-                                        x-transition:leave="transition ease-in duration-75"
-                                        x-transition:leave-start="transform opacity-100 scale-100"
-                                        x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
-                                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-                                        <div class="py-1">
-                                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                <i class="fas fa-user mr-2"></i>
-                                                Mi Perfil
-                                            </a>
-                                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                                <i class="fas fa-cog mr-2"></i>
-                                                Configuración
-                                            </a>
-                                            <div class="border-t border-gray-100"></div>
-                                            <form method="POST" action="{{ route('logout') }}">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                                                    <i class="fas fa-sign-out-alt mr-2"></i>
-                                                    Cerrar Sesión
-                                                </button>
-                                            </form>
-                                        </div>
+                                <!-- User dropdown -->
+                                <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
+                                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                    <div class="py-1">
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-user mr-2"></i>
+                                            Mi Perfil
+                                        </a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-cog mr-2"></i>
+                                            Configuración
+                                        </a>
+                                        <div class="border-t border-gray-100"></div>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit"
+                                                class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                <i class="fas fa-sign-out-alt mr-2"></i>
+                                                Cerrar Sesión
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
+                            </div>
                         </div>
                     @endauth
-                    </div>
-                </header>
+                </div>
+            </header>
 
-                <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto bg-gray-50">
-                    <div class="py-6 px-4 sm:px-6 lg:px-8">
-                        @yield('content')
-                    </div>
-                </main>
-            </div>
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                <div class="py-6 px-4 sm:px-6 lg:px-8">
+                    @yield('content')
+                </div>
+            </main>
+        </div>
 
         <!-- Scripts -->
         @vite(['resources/js/app.js'])
@@ -831,37 +868,37 @@
                     'sale_created': '¡Venta registrada correctamente!',
                     'sale_created_form': '¡Venta registrada correctamente! Puedes crear otra venta.',
                     'sale_updated': '¡Venta actualizada correctamente!',
-                    
+
                     // Clientes
                     'customer_created': '¡Cliente registrado correctamente!',
                     'customer_updated': '¡Cliente actualizado correctamente!',
-                    
+
                     // Productos
                     'product_created': '¡Producto registrado correctamente!',
                     'product_updated': '¡Producto actualizado correctamente!',
-                    
+
                     // Proveedores
                     'supplier_created': '¡Proveedor registrado correctamente!',
                     'supplier_updated': '¡Proveedor actualizado correctamente!',
-                    
+
                     // Categorías
                     'category_created': '¡Categoría registrada correctamente!',
                     'category_updated': '¡Categoría actualizada correctamente!',
-                    
+
                     // Compras
                     'purchase_created': '¡Compra registrada correctamente!',
                     'purchase_updated': '¡Compra actualizada correctamente!',
-                    
+
                     // Usuarios
                     'user_created': '¡Usuario registrado correctamente!',
                     'user_updated': '¡Usuario actualizado correctamente!',
-                    
+
                     // Roles y Permisos
                     'role_created': '¡Rol registrado correctamente!',
                     'role_updated': '¡Rol actualizado correctamente!',
                     'permission_created': '¡Permiso registrado correctamente!',
                     'permission_updated': '¡Permiso actualizado correctamente!',
-                    
+
                     // Caja
                     'cash_count_created': '¡Caja abierta correctamente!',
                     'cash_count_updated': '¡Arqueo de caja actualizado correctamente!',
@@ -881,7 +918,7 @@
                             setTimeout(() => {
                                 showNotification(notificationConfig[param], 'success');
                             }, 500);
-                            
+
                             // Limpiar el parámetro de la URL
                             newUrl.searchParams.delete(param);
                             hasNotification = true;
@@ -911,16 +948,100 @@
                             setTimeout(() => {
                                 // Marcar que Alpine.js está cargado y mostrar la página
                                 document.body.classList.add('alpine-loaded');
-                                
+
                                 // Configurar el estado inicial del sidebar
                                 this.setupSidebarState();
-                                
+
                                 // Configurar la visibilidad del botón
                                 this.setupButtonVisibility();
+
+                                // Verificar alertas de deuda
+                                this.checkDebtAlerts();
                             }, 100);
                         });
                     },
-                    
+
+                    async checkDebtAlerts() {
+                        try {
+                            const lastFingerprint = localStorage.getItem('lastDebtAlertFingerprint');
+                            const response = await fetch('/customers/debt-alerts');
+                            const data = await response.json();
+
+                            if (data.success && data.alerts.length > 0) {
+                                if (data.fingerprint !== lastFingerprint) {
+                                    this.showDebtAlertModal(data.alerts, data.fingerprint);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error checking debt alerts:', error);
+                        }
+                    },
+
+                    showDebtAlertModal(alerts, fingerprint) {
+                        let tableRows = alerts.map(alert => `
+                             <tr class="${alert.is_new ? 'new-debtor-row' : ''}">
+                                 <td style="text-align: left; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+                                     <div style="font-weight: 700; color: #1f2937; display: flex; align-items: center;">
+                                         ${alert.name}
+                                         ${alert.is_new ? '<span class="new-debtor-badge">Nuevo</span>' : ''}
+                                     </div>
+                                 </td>
+                                 <td style="text-align: left; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-weight: 600; color: #dc2626;">
+                                     $${alert.total_debt.toLocaleString('es-ES', {minimumFractionDigits: 2})}
+                                 </td>
+                                 <td style="text-align: left; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; color: #4b5563;">
+                                     <div style="font-weight: 600; color: #dc2626;">${alert.oldest_debt_date}</div>
+                                 </td>
+                                 <td style="text-align: left; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; color: #4b5563;">
+                                     ${alert.last_purchase_date}
+                                 </td>
+                                 <td style="text-align: left; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; color: #4b5563;">
+                                     <div style="font-weight: 500;">${alert.last_payment_date}</div>
+                                     <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">$${alert.last_payment_amount.toLocaleString('es-ES', {minimumFractionDigits: 2})}</div>
+                                 </td>
+                             </tr>
+                         `).join('');
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: '<div style="display: flex; align-items: center; justify-content: center; color: #dc2626; margin-bottom: 10px; font-weight: 800; font-size: 22px;"><i class="fas fa-exclamation-circle" style="margin-right: 12px;"></i> Clientes con Morosidad</div>',
+                                html: `
+                                     <div style="margin-bottom: 15px; text-align: center; color: #6b7280; font-size: 14px;">
+                                         Los siguientes clientes tienen deudas pendientes desde hace más de un mes.
+                                     </div>
+                                     <div style="max-height: 350px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0 5px;">
+                                         <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                             <thead style="background-color: #f9fafb; position: sticky; top: 0; z-index: 10;">
+                                                 <tr>
+                                                     <th style="padding: 10px 16px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb;">Cliente</th>
+                                                     <th style="padding: 10px 16px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb;">Deuda</th>
+                                                     <th style="padding: 10px 16px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb;">Deuda Desde</th>
+                                                     <th style="padding: 10px 16px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb;">Últ. Compra</th>
+                                                     <th style="padding: 10px 16px; text-align: left; font-weight: 700; color: #374151; border-bottom: 2px solid #e5e7eb;">Últ. Pago</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody>
+                                                 ${tableRows}
+                                             </tbody>
+                                         </table>
+                                     </div>
+                                 `,
+                                width: '850px',
+                                confirmButtonText: 'Aceptar y Cerrar',
+                                confirmButtonColor: '#4f46e5',
+                                allowOutsideClick: false,
+                                customClass: {
+                                    popup: 'rounded-3xl shadow-2xl',
+                                    confirmButton: 'rounded-xl px-10 py-3 font-bold text-base transition-all duration-200 hover:scale-105 active:scale-95'
+                                }
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    localStorage.setItem('lastDebtAlertFingerprint', fingerprint);
+                                }
+                            });
+                        }
+                    },
+
                     setupSidebarState() {
                         // Manejar el estado del sidebar en localStorage
                         const savedState = localStorage.getItem('sidebarOpen');
@@ -931,7 +1052,7 @@
                             // Si no hay estado guardado o estamos en móvil, mantener cerrado por defecto
                             this.sidebarOpen = false;
                         }
-                        
+
 
 
                         // Guardar el estado cuando cambie (solo en desktop)
@@ -957,7 +1078,7 @@
                             }
                         });
                     },
-                    
+
                     setupButtonVisibility() {
                         const toggleButton = document.querySelector('.sidebar-toggle-btn');
                         if (!toggleButton) return;
@@ -978,9 +1099,9 @@
                     }
                 }
             }
-                </script>
-        
+        </script>
+
         @include('debugbar-include')
-    </body>
+</body>
 
 </html>

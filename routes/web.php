@@ -116,6 +116,7 @@ Route::get('/purchases/product-by-code/{code}', [PurchaseController::class, 'get
 Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index')->middleware(['auth', 'can:customers.index']);
 Route::get('/customers/create', [CustomerController::class, 'create'])->name('admin.customers.create')->middleware(['auth', 'can:customers.create']);
 Route::post('/customers/create', [CustomerController::class, 'store'])->name('admin.customers.store')->middleware(['auth', 'can:customers.create']);
+Route::get('/customers/debt-alerts', [CustomerController::class, 'getDebtAlerts'])->name('admin.customers.debt-alerts')->middleware(['auth', 'can:customers.index']);
 Route::get('/customers/edit/{id}', [CustomerController::class, 'edit'])->name('admin.customers.edit')->middleware(['auth', 'can:customers.edit']);
 Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name('admin.customers.update')->middleware(['auth', 'can:customers.edit']);
 Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware(['auth', 'can:customers.destroy']);
