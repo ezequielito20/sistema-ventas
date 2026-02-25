@@ -7,7 +7,7 @@
 
 // Esperar a que Alpine.js esté disponible
 document.addEventListener('alpine:init', () => {
-    
+
     Alpine.data('salesSPA', () => ({
         // ===== ESTADO DEL COMPONENTE =====
         loading: false,
@@ -16,12 +16,14 @@ document.addEventListener('alpine:init', () => {
         searchSuggestions: [],
         filtersOpen: false,
         modalOpen: false,
-        
+        todaySalesModalOpen: false,
+        todaySalesDetails: [],
+
         // Datos
         allSales: [],
         filteredSales: [],
         selectedSale: null,
-        
+
         // Filtros
         filters: {
             dateFrom: '',
@@ -29,26 +31,26 @@ document.addEventListener('alpine:init', () => {
             amountMin: '',
             amountMax: ''
         },
-        
+
         // Paginación del lado del servidor
         currentPage: 1,
         itemsPerPage: 15,
-        
+
         // ===== COMPUTED PROPERTIES =====
         get paginatedSales() {
             // Para la paginación del lado del servidor, usamos directamente los datos
             return this.filteredSales;
         },
-        
+
         get totalPages() {
             return Math.ceil(this.filteredSales.length / this.itemsPerPage);
         },
-        
+
         get visiblePages() {
             const pages = [];
             const total = this.totalPages;
             const current = this.currentPage;
-            
+
             if (total <= 7) {
                 for (let i = 1; i <= total; i++) {
                     pages.push(i);
@@ -70,10 +72,10 @@ document.addEventListener('alpine:init', () => {
                     pages.push(total);
                 }
             }
-            
+
             return pages;
         },
-        
+
         get activeFiltersCount() {
             let count = 0;
             if (this.filters.dateFrom) count++;
@@ -83,15 +85,15 @@ document.addEventListener('alpine:init', () => {
             if (this.searchTerm.trim()) count++;
             return count;
         },
-        
+
         // ===== INICIALIZACIÓN =====
         async init() {
             try {
                 this.loading = true;
-                
+
                 // Hacer el componente disponible globalmente para los onclick handlers
                 window.salesSPAInstance = this;
-                
+
                 // Cargar datos iniciales desde la ventana global
                 if (window.salesData) {
                     this.allSales = window.salesData;
@@ -100,61 +102,61 @@ document.addEventListener('alpine:init', () => {
                     // Fallback: cargar desde API
                     await this.loadSales();
                 }
-                
+
                 // Renderizar contenido inicial
                 this.renderTableFromData();
                 this.renderCardsFromData();
                 this.updatePagination();
                 this.updateResultsCount();
-                
+
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
                 // En pantallas muy pequeñas, forzar vista de tarjetas
                 this.currentView = this.isMobileView() ? 'cards' : (this.isMobile() ? 'cards' : savedView);
-                
+
                 // Configurar responsive
                 this.setupResponsive();
-                
+
                 // Inicializar búsqueda desde URL si existe
                 this.initializeSearchFromURL();
-                
+
                 // Inicializar manejadores de paginación
                 this.initializePaginationHandlers();
-                
+
                 // Configurar watchers para búsqueda en tiempo real
                 this.$watch('searchTerm', (value) => {
                     this.updateSearchSuggestions();
                 });
-                
+
                 // Configurar watchers para filtros en tiempo real
                 this.$watch('filters.dateFrom', () => {
                     this.filterSales();
                 });
-                
+
                 this.$watch('filters.dateTo', () => {
                     this.filterSales();
                 });
-                
+
                 this.$watch('filters.amountMin', () => {
                     this.filterSales();
                 });
-                
+
                 this.$watch('filters.amountMax', () => {
                     this.filterSales();
                 });
-                
+
                 this.loading = false;
             } catch (error) {
                 this.showAlert('Error al cargar los datos', 'error');
                 this.loading = false;
             }
         },
-        
+
         async loadSales() {
             try {
                 const response = await fetch('/api/sales');
                 if (!response.ok) throw new Error('Error al cargar ventas');
-                
+
                 const data = await response.json();
                 this.allSales = data.sales || [];
                 this.filteredSales = [...this.allSales];
@@ -163,7 +165,7 @@ document.addEventListener('alpine:init', () => {
                 throw error;
             }
         },
-        
+
         // ===== FUNCIONES DE FILTRADO Y BÚSQUEDA =====
         filterSales() {
             // Búsqueda en tiempo real con debounce
@@ -172,10 +174,10 @@ document.addEventListener('alpine:init', () => {
                 this.executeServerSearch();
             }, 300);
         },
-        
+
         executeServerSearch() {
             const searchTerm = this.searchTerm.trim();
-            
+
             // Construir URL con parámetros de búsqueda
             const url = new URL(window.location.href);
             if (searchTerm) {
@@ -183,33 +185,33 @@ document.addEventListener('alpine:init', () => {
             } else {
                 url.searchParams.delete('search');
             }
-            
+
             // Agregar filtros de fecha
             if (this.filters.dateFrom) {
                 url.searchParams.set('dateFrom', this.filters.dateFrom);
             } else {
                 url.searchParams.delete('dateFrom');
             }
-            
+
             if (this.filters.dateTo) {
                 url.searchParams.set('dateTo', this.filters.dateTo);
             } else {
                 url.searchParams.delete('dateTo');
             }
-            
+
             // Agregar filtros de monto
             if (this.filters.amountMin) {
                 url.searchParams.set('amountMin', this.filters.amountMin);
             } else {
                 url.searchParams.delete('amountMin');
             }
-            
+
             if (this.filters.amountMax) {
                 url.searchParams.set('amountMax', this.filters.amountMax);
             } else {
                 url.searchParams.delete('amountMax');
             }
-            
+
             // Realizar petición AJAX
             fetch(url.toString(), {
                 method: 'GET',
@@ -218,60 +220,60 @@ document.addEventListener('alpine:init', () => {
                     'Accept': 'application/json, text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error en la búsqueda');
-                }
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json();
-                } else {
-                    return response.text();
-                }
-            })
-            .then(data => {
-                if (typeof data === 'object' && data.success) {
-                    // Respuesta JSON del servidor
-                    this.updateTableWithJsonData(data, searchTerm);
-                } else {
-                    // Respuesta HTML (fallback)
-                    this.updateTableWithSearchResults(data, searchTerm);
-                }
-            })
-            .catch(error => {
-                console.error('Error en búsqueda:', error);
-                this.showSearchError('Error al realizar la búsqueda');
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la búsqueda');
+                    }
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    if (typeof data === 'object' && data.success) {
+                        // Respuesta JSON del servidor
+                        this.updateTableWithJsonData(data, searchTerm);
+                    } else {
+                        // Respuesta HTML (fallback)
+                        this.updateTableWithSearchResults(data, searchTerm);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda:', error);
+                    this.showSearchError('Error al realizar la búsqueda');
+                });
         },
 
         updateTableWithSearchResults(html, searchTerm) {
             // Crear un elemento temporal para parsear el HTML
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
-            
+
             // Extraer la nueva tabla
             const newTableBody = tempDiv.querySelector('tbody');
             const newCardsContainer = tempDiv.querySelector('.modern-cards-grid');
             const newPagination = tempDiv.querySelector('.pagination-container');
-            
+
             // Actualizar la tabla
             const currentTableBody = document.querySelector('.modern-table tbody');
             if (newTableBody && currentTableBody) {
                 currentTableBody.innerHTML = newTableBody.innerHTML;
             }
-            
+
             // Actualizar las tarjetas
             const currentCardsContainer = document.querySelector('.modern-cards-grid');
             if (newCardsContainer && currentCardsContainer) {
                 currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
             }
-            
+
             // Actualizar paginación
             const currentPagination = document.querySelector('.pagination-container');
             if (newPagination && currentPagination) {
                 currentPagination.innerHTML = newPagination.innerHTML;
             }
-            
+
             // Actualizar datos locales si están disponibles
             const scriptTag = tempDiv.querySelector('script');
             if (scriptTag) {
@@ -287,10 +289,10 @@ document.addEventListener('alpine:init', () => {
                     console.error('Error parsing sales data:', e);
                 }
             }
-            
+
             // Actualizar contador de resultados
             this.updateResultsCount();
-            
+
             // Actualizar URL sin recargar la página
             if (searchTerm || this.activeFiltersCount > 0) {
                 const url = new URL(window.location.href);
@@ -303,7 +305,7 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-       
+
 
         showSearchError(message) {
             // Mostrar error de búsqueda
@@ -317,16 +319,16 @@ document.addEventListener('alpine:init', () => {
                 timer: 3000
             });
         },
-        
+
         updateSearchSuggestions() {
             if (!this.searchTerm.trim() || this.searchTerm.length < 2) {
                 this.searchSuggestions = [];
                 return;
             }
-            
+
             const term = this.searchTerm.toLowerCase();
             const suggestions = [];
-            
+
             // Sugerencias de clientes
             const customers = [...new Set(this.allSales.map(sale => sale.customer?.name).filter(Boolean))];
             customers.forEach(customer => {
@@ -339,7 +341,7 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             // Sugerencias de IDs de venta
             const saleIds = this.allSales.map(sale => sale.id.toString());
             saleIds.forEach(id => {
@@ -352,19 +354,19 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             // Sugerencias de fechas (evitar duplicados)
             const dateMap = new Map();
             this.allSales.forEach(sale => {
                 const date = new Date(sale.sale_date);
                 const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-                
+
                 if (!dateMap.has(dateKey)) {
                     const day = date.getDate().toString().padStart(2, '0');
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const year = date.getFullYear().toString();
                     const yearShort = year.slice(-2);
-                    
+
                     dateMap.set(dateKey, {
                         full: date.toLocaleDateString('es-ES'),
                         day: day,
@@ -380,7 +382,7 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             // Sugerencias de productos
             const productMap = new Map();
             this.allSales.forEach(sale => {
@@ -397,7 +399,7 @@ document.addEventListener('alpine:init', () => {
                     }
                 });
             });
-            
+
             const products = Array.from(productMap.values());
             products.forEach(product => {
                 // Buscar por código de producto
@@ -428,7 +430,7 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             // Sugerencias de montos
             const amounts = [...new Set(this.allSales.map(sale => sale.total_price).filter(Boolean))];
             amounts.forEach(amount => {
@@ -442,7 +444,7 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             // Sugerencias de teléfonos de clientes
             const phones = [...new Set(this.allSales.map(sale => sale.customer?.phone).filter(Boolean))];
             phones.forEach(phone => {
@@ -455,9 +457,9 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             const dates = Array.from(dateMap.values());
-            
+
             dates.forEach(date => {
                 // Buscar por fecha completa
                 if (date.full.toLowerCase().includes(term) && suggestions.length < 8) {
@@ -550,10 +552,10 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
-            
+
             this.searchSuggestions = suggestions;
         },
-        
+
         selectSuggestion(suggestion) {
             this.searchTerm = suggestion.value;
             this.searchSuggestions = [];
@@ -567,7 +569,7 @@ document.addEventListener('alpine:init', () => {
             // Ejecutar búsqueda inmediatamente al limpiar
             this.executeServerSearch();
         },
-        
+
         clearFilters() {
             this.searchTerm = '';
             this.filters = {
@@ -580,42 +582,42 @@ document.addEventListener('alpine:init', () => {
             // Ejecutar búsqueda inmediatamente al limpiar filtros
             this.executeServerSearch();
         },
-        
+
         updateResultsCount() {
             // Actualizar el contador de resultados mostrados
             const tableRows = document.querySelectorAll('.modern-table tbody tr');
             const cardItems = document.querySelectorAll('.modern-cards-grid .sale-card');
             const count = Math.max(tableRows.length, cardItems.length);
-            
+
             // Actualizar algún elemento que muestre el contador si existe
             const counterElement = document.querySelector('.results-counter');
             if (counterElement) {
                 counterElement.textContent = `${count} ventas encontradas`;
             }
         },
-        
+
         updateTableWithJsonData(data, searchTerm) {
             // Actualizar datos locales
             this.allSales = data.sales || [];
             this.filteredSales = [...this.allSales];
-            
+
             // Actualizar página actual desde la paginación
             if (data.pagination) {
                 this.currentPage = data.pagination.current_page || 1;
             }
-            
+
             // Actualizar la tabla con los nuevos datos
             this.renderTableFromData();
-            
+
             // Actualizar las tarjetas
             this.renderCardsFromData();
-            
+
             // Actualizar paginación
             this.updatePagination(data.pagination);
-            
+
             // Actualizar contador de resultados
             this.updateResultsCount();
-            
+
             // Actualizar URL sin recargar la página
             if (searchTerm || this.activeFiltersCount > 0) {
                 const url = new URL(window.location.href);
@@ -627,18 +629,18 @@ document.addEventListener('alpine:init', () => {
                 window.history.pushState({}, '', window.location.pathname);
             }
         },
-        
+
         renderTableFromData() {
             const tableBody = document.getElementById('salesTableBody');
             if (!tableBody) return;
-            
+
             tableBody.innerHTML = this.filteredSales.map((sale, index) => {
                 const rowNumber = (this.currentPage - 1) * this.itemsPerPage + index + 1;
                 const formattedDate = this.formatDate(sale.sale_date);
                 const formattedTime = this.formatTime(sale.sale_date);
                 const totalQuantity = this.getTotalQuantity(sale.sale_details);
                 const formattedCurrency = this.formatCurrency(sale.total_price);
-                
+
                 return `
                     <tr class="table-row">
                         <td>
@@ -707,18 +709,18 @@ document.addEventListener('alpine:init', () => {
                 `;
             }).join('');
         },
-        
+
         renderCardsFromData() {
             const cardsContainer = document.getElementById('salesCardsGrid');
             if (!cardsContainer) return;
-            
+
             cardsContainer.innerHTML = this.filteredSales.map((sale, index) => {
                 const rowNumber = (this.currentPage - 1) * this.itemsPerPage + index + 1;
                 const formattedDate = this.formatDate(sale.sale_date);
                 const formattedTime = this.formatTime(sale.sale_date);
                 const totalQuantity = this.getTotalQuantity(sale.sale_details);
                 const formattedCurrency = this.formatCurrency(sale.total_price);
-                
+
                 return `
                     <div class="modern-sale-card">
                         <div class="sale-card-header">
@@ -804,11 +806,11 @@ document.addEventListener('alpine:init', () => {
                 `;
             }).join('');
         },
-        
+
         updatePagination(pagination) {
             const paginationContainer = document.getElementById('salesPagination');
             if (!paginationContainer) return;
-            
+
             // Si no hay paginación, mostrar información básica
             if (!pagination) {
                 paginationContainer.innerHTML = `
@@ -818,22 +820,22 @@ document.addEventListener('alpine:init', () => {
                 `;
                 return;
             }
-            
+
             // Generar enlaces de paginación
             const links = [];
-            
+
             // Información de paginación
             const startItem = (pagination.current_page - 1) * pagination.per_page + 1;
             const endItem = Math.min(pagination.current_page * pagination.per_page, pagination.total);
-            
+
             links.push(`
                 <div class="pagination-info">
                     <span>Mostrando ${startItem}-${endItem} de ${pagination.total} ventas</span>
                 </div>
             `);
-            
+
             links.push('<div class="pagination-controls">');
-            
+
             if (pagination.current_page > 1) {
                 links.push(`<button onclick="window.salesSPAInstance.loadPage(${pagination.current_page - 1})" class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
@@ -845,7 +847,7 @@ document.addEventListener('alpine:init', () => {
                     <span>Anterior</span>
                 </button>`);
             }
-            
+
             // Números de página inteligentes
             links.push('<div class="page-numbers">');
             if (pagination.smart_links) {
@@ -859,7 +861,7 @@ document.addEventListener('alpine:init', () => {
                 });
             }
             links.push('</div>');
-            
+
             if (pagination.current_page < pagination.last_page) {
                 links.push(`<button onclick="window.salesSPAInstance.loadPage(${pagination.current_page + 1})" class="pagination-btn">
                     <span>Siguiente</span>
@@ -871,22 +873,22 @@ document.addEventListener('alpine:init', () => {
                     <i class="fas fa-chevron-right"></i>
                 </button>`);
             }
-            
+
             links.push('</div>'); // Cerrar pagination-controls
-            
+
             paginationContainer.innerHTML = links.join('');
         },
-        
+
         // ===== FUNCIONES DE VISTA =====
         changeView(viewType) {
             this.currentView = viewType;
             localStorage.setItem('salesViewPreference', viewType);
         },
-        
+
         toggleFilters() {
             this.filtersOpen = !this.filtersOpen;
         },
-        
+
         // ===== FUNCIONES DE PAGINACIÓN =====
         initializeSearchFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -895,28 +897,28 @@ document.addEventListener('alpine:init', () => {
             const dateToParam = urlParams.get('dateTo');
             const amountMinParam = urlParams.get('amountMin');
             const amountMaxParam = urlParams.get('amountMax');
-            
+
             if (searchParam) {
                 this.searchTerm = searchParam;
             }
-            
+
             if (dateFromParam) {
                 this.filters.dateFrom = dateFromParam;
             }
-            
+
             if (dateToParam) {
                 this.filters.dateTo = dateToParam;
             }
-            
+
             if (amountMinParam) {
                 this.filters.amountMin = amountMinParam;
             }
-            
+
             if (amountMaxParam) {
                 this.filters.amountMax = amountMaxParam;
             }
         },
-        
+
         initializePaginationHandlers() {
             // Delegar eventos de clic para enlaces de paginación
             document.addEventListener('click', (e) => {
@@ -929,15 +931,15 @@ document.addEventListener('alpine:init', () => {
                 }
             });
         },
-        
+
         loadPage(pageNumber) {
             // Actualizar la página actual
             this.currentPage = pageNumber;
-            
+
             // Construir la URL con los parámetros actuales
             const url = new URL(window.location.href);
             url.searchParams.set('page', pageNumber);
-            
+
             // Mantener los filtros y búsqueda actuales
             if (this.searchTerm) {
                 url.searchParams.set('search', this.searchTerm);
@@ -954,7 +956,7 @@ document.addEventListener('alpine:init', () => {
             if (this.filters.amountMax) {
                 url.searchParams.set('amountMax', this.filters.amountMax);
             }
-            
+
             // Realizar petición AJAX para la nueva página
             fetch(url.toString(), {
                 method: 'GET',
@@ -963,47 +965,47 @@ document.addEventListener('alpine:init', () => {
                     'Accept': 'application/json, text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al cargar la página');
-                }
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json();
-                } else {
-                    return response.text();
-                }
-            })
-            .then(data => {
-                if (typeof data === 'object' && data.success) {
-                    // Respuesta JSON del servidor
-                    this.updateTableWithJsonData(data, this.searchTerm);
-                } else {
-                    // Respuesta HTML (fallback)
-                    this.updateTableWithSearchResults(data, this.searchTerm);
-                }
-                
-                // Actualizar URL sin recargar la página
-                window.history.pushState({}, '', url.toString());
-            })
-            .catch(error => {
-                console.error('Error al cargar página:', error);
-                this.showSearchError('Error al cargar la página');
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar la página');
+                    }
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    if (typeof data === 'object' && data.success) {
+                        // Respuesta JSON del servidor
+                        this.updateTableWithJsonData(data, this.searchTerm);
+                    } else {
+                        // Respuesta HTML (fallback)
+                        this.updateTableWithSearchResults(data, this.searchTerm);
+                    }
+
+                    // Actualizar URL sin recargar la página
+                    window.history.pushState({}, '', url.toString());
+                })
+                .catch(error => {
+                    console.error('Error al cargar página:', error);
+                    this.showSearchError('Error al cargar la página');
+                });
         },
-        
+
         // ===== FUNCIONES DE MODAL =====
         async showSaleDetails(saleId) {
             try {
                 this.loading = true;
-                
+
                 // Buscar la venta en los datos locales
                 const sale = this.allSales.find(s => s.id == saleId);
-                
+
                 if (!sale) {
                     throw new Error('Venta no encontrada');
                 }
-                
+
                 // Usar los datos locales en lugar de hacer llamada a API
                 this.selectedSale = {
                     ...sale,
@@ -1011,9 +1013,9 @@ document.addEventListener('alpine:init', () => {
                     sale_date: sale.sale_date,
                     sale_time: this.formatTime(sale.sale_date)
                 };
-                
+
                 this.modalOpen = true;
-                
+
                 // Mover modal al body para asegurar cobertura completa
                 this.$nextTick(() => {
                     const overlay = this.$refs?.salesModal;
@@ -1021,31 +1023,31 @@ document.addEventListener('alpine:init', () => {
                         document.body.appendChild(overlay);
                     }
                 });
-                
+
                 // Verificar que el modal esté en el DOM después de un pequeño delay
                 setTimeout(() => {
                     const modal = document.querySelector('.modal-overlay');
                 }, 100);
-                
+
                 // Bloquear scroll del body
                 document.body.style.overflow = 'hidden';
                 document.body.style.paddingRight = '0px';
-                
+
             } catch (error) {
                 this.showAlert('Error al cargar los detalles de la venta: ' + error.message, 'error');
             } finally {
                 this.loading = false;
             }
         },
-        
+
         closeModal() {
             this.modalOpen = false;
             this.selectedSale = null;
-            
+
             // Restaurar scroll del body
             document.body.style.overflow = '';
             document.body.style.paddingRight = '';
-            
+
             // Devolver modal a su contenedor original si es necesario
             const overlay = this.$refs?.salesModal;
             const root = document.getElementById('salesRoot');
@@ -1053,10 +1055,10 @@ document.addEventListener('alpine:init', () => {
                 root.appendChild(overlay);
             }
         },
-        
+
         // ===== ACCIONES DE VENTA =====
         editSale(saleId) {
-                            window.location.href = `/sales/edit/${saleId}`;
+            window.location.href = `/sales/edit/${saleId}`;
         },
 
         async deleteSale(saleId) {
@@ -1087,7 +1089,7 @@ document.addEventListener('alpine:init', () => {
                     this.showAlert(data.message, 'error');
                 } else {
                     this.showAlert(data.message || 'Venta eliminada correctamente', 'success');
-                    
+
                     // Remover la venta de los datos locales
                     this.allSales = this.allSales.filter(sale => sale.id !== saleId);
                     this.filteredSales = this.filteredSales.filter(sale => sale.id !== saleId);
@@ -1097,19 +1099,46 @@ document.addEventListener('alpine:init', () => {
                 this.showAlert('Error al eliminar la venta', 'error');
             }
         },
-        
+
+        async showTodaySalesModal() {
+            try {
+                this.loading = true;
+                const response = await fetch('/sales/today-details', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Error al cargar detalles de hoy');
+
+                const data = await response.json();
+                if (data.success) {
+                    this.todaySalesDetails = data.data;
+                    this.todaySalesModalOpen = true;
+                } else {
+                    this.showAlert(data.message || 'Error al cargar detalles', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                this.showAlert('No se pudieron cargar los detalles de hoy', 'error');
+            } finally {
+                this.loading = false;
+            }
+        },
+
         printSale(saleId) {
             if (saleId) {
                 window.open(`/sales/print/${saleId}`, '_blank');
             }
         },
-        
+
         // ===== FUNCIONES AUXILIARES =====
         formatCurrency(amount) {
             const symbol = window.currencySymbol || '$';
             return `${symbol} ${parseFloat(amount || 0).toFixed(2)}`;
         },
-        
+
         formatDate(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString);
@@ -1119,7 +1148,7 @@ document.addEventListener('alpine:init', () => {
                 year: 'numeric'
             });
         },
-        
+
         formatTime(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString);
@@ -1128,7 +1157,7 @@ document.addEventListener('alpine:init', () => {
                 minute: '2-digit'
             });
         },
-        
+
         // Función helper para detectar si el término de búsqueda es una fecha
         isDateSearch(term) {
             // Patrones de fecha comunes
@@ -1142,28 +1171,28 @@ document.addEventListener('alpine:init', () => {
                 /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$/i,
                 /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)$/i
             ];
-            
+
             return datePatterns.some(pattern => pattern.test(term));
         },
-        
+
         getTotalQuantity(saleDetails) {
             if (!saleDetails || !Array.isArray(saleDetails)) return 0;
             return saleDetails.reduce((total, detail) => total + (detail.quantity || 0), 0);
         },
-        
+
         isMobile() {
             return window.innerWidth <= 768;
         },
-        
+
         isMobileView() {
             return window.innerWidth <= 450;
         },
-        
+
         setupResponsive() {
             const handleResize = () => {
                 const isMobile = this.isMobile();
                 const isMobileView = this.isMobileView();
-                
+
                 // Forzar vista de tarjetas en pantallas muy pequeñas
                 if (isMobileView && this.currentView === 'table') {
                     this.changeView('cards');
@@ -1171,11 +1200,11 @@ document.addEventListener('alpine:init', () => {
                     this.changeView('cards');
                 }
             };
-            
+
             window.addEventListener('resize', handleResize);
             handleResize(); // Ejecutar inmediatamente
         },
-        
+
         // ===== FUNCIONES DE UI =====
         showAlert(message, type = 'info') {
             if (typeof Swal !== 'undefined') {
@@ -1217,7 +1246,7 @@ document.addEventListener('alpine:init', () => {
 });
 
 // Funciones globales para compatibilidad (mantener las existentes si es necesario)
-window.showSaleDetails = function(saleId) {
+window.showSaleDetails = function (saleId) {
     // Buscar la instancia de Alpine.js y ejecutar la función
     const salesComponent = Alpine.$data(document.getElementById('salesRoot'));
     if (salesComponent && salesComponent.showSaleDetails) {
@@ -1225,17 +1254,17 @@ window.showSaleDetails = function(saleId) {
     }
 };
 
-window.editSale = function(saleId) {
+window.editSale = function (saleId) {
     window.location.href = `/sales/edit/${saleId}`;
 };
 
-window.deleteSale = function(saleId) {
+window.deleteSale = function (saleId) {
     const salesComponent = Alpine.$data(document.getElementById('salesRoot'));
     if (salesComponent && salesComponent.deleteSale) {
         salesComponent.deleteSale(saleId);
     }
 };
 
-window.printSale = function(saleId) {
+window.printSale = function (saleId) {
     window.open(`/sales/print/${saleId}`, '_blank');
 };

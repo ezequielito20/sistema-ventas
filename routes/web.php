@@ -153,6 +153,7 @@ Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('a
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware(['auth', 'can:sales.details']);
 Route::get('/sales/product-details/{code}', [SaleController::class, 'getProductDetails'])->name('admin.sales.product-details')->middleware(['auth', 'can:sales.product-details']);
 Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductByCode'])->name('admin.sales.product-by-code')->middleware(['auth', 'can:sales.product-by-code']);
+Route::get('/sales/today-details', [SaleController::class, 'getTodaySales'])->name('admin.sales.today-details')->middleware(['auth', 'can:sales.index']);
 Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware(['auth', 'can:sales.print']);
 
 // Cash Counts

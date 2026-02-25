@@ -1438,4 +1438,51 @@ class SaleController extends Controller
       $pdf = PDF::loadView('admin.sales.report', compact('sales', 'company', 'currency'));
       return $pdf->stream('reporte-ventas.pdf');
    }
+
+   /**
+    * Obtiene los detalles de las ventas del día de hoy para el widget del dashboard
+    */
+   public function getTodaySales()
+   {
+      try {
+         $companyId = $this->company->id;
+         $startOfToday = Carbon::today();
+
+         $sales = Sale::where('company_id', $companyId)
+            ->where('sale_date', '>=', $startOfToday)
+            ->with(['customer:id,name,total_debt', 'saleDetails.product:id,name'])
+            ->orderBy('sale_date', 'desc')
+            ->get();
+
+         $details = [];
+         foreach ($sales as $sale) {
+            foreach ($sale->saleDetails as $detail) {
+               $details[] = [
+                  'customer_name' => $sale->customer->name ?? 'Consumidor Final',
+                  'product_name' => $detail->product->name ?? 'N/A',
+                  'quantity' => $detail->quantity,
+                  'sale_total' => (float)$sale->total_price,
+                  'customer_debt' => (float)($sale->customer->total_debt ?? 0),
+                  'sale_id' => $sale->id,
+                  'time' => Carbon::parse($sale->sale_date)->format('H:i')
+               ];
+            }
+         }
+
+         // Ordenar por deuda actual (mayor a menor)
+         usort($details, function ($a, $b) {
+            return $b['customer_debt'] <=> $a['customer_debt'];
+         });
+
+         return response()->json([
+            'success' => true,
+            'data' => $details
+         ]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener detalles: ' . $e->getMessage()
+         ], 500);
+      }
+   }
 }
