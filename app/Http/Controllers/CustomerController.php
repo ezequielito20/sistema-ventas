@@ -2419,7 +2419,7 @@ class CustomerController extends Controller
             ->get();
 
          $alerts = [];
-         $fingerprintRaw = "";
+         $currentIds = [];
 
          foreach ($customers as $customer) {
             // Lógica FIFO para encontrar la venta más antigua que aún no ha sido pagada
@@ -2475,7 +2475,7 @@ class CustomerController extends Controller
                   'is_new' => $isNewlyMorose
                ];
 
-               $fingerprintRaw .= $customer->id . ($isNewlyMorose ? 'H' : 'N');
+               $currentIds[] = $customer->id;
             }
          }
 
@@ -2488,15 +2488,49 @@ class CustomerController extends Controller
             return $dateB <=> $dateA;
          });
 
+         // Lógica de visualización basada en base de datos
+         $storedIdsJson = $this->company->last_debt_alert_fingerprint;
+         $storedIds = $storedIdsJson ? json_decode($storedIdsJson, true) : [];
+         if (!is_array($storedIds)) $storedIds = [];
+
+         // Determinar si hay algún cliente NUEVO en la lista (que no estaba en la última vez que se aceptó)
+         $newOverdueIds = array_diff($currentIds, $storedIds);
+         $shouldShow = count($newOverdueIds) > 0;
+
          return response()->json([
             'success' => true,
             'alerts' => $alerts,
-            'fingerprint' => md5($fingerprintRaw . date('Y-m-d'))
+            'should_show' => $shouldShow,
+            'fingerprint' => json_encode(array_values($currentIds))
          ]);
       } catch (\Exception $e) {
          return response()->json([
             'success' => false,
             'message' => 'Error al obtener alertas de deuda: ' . $e->getMessage()
+         ], 500);
+      }
+   }
+
+   /**
+    * Marca las alertas actuales como aceptadas en la base de datos
+    */
+   public function acceptDebtAlerts(Request $request)
+   {
+      try {
+         $fingerprint = $request->input('fingerprint');
+         if (!$fingerprint) {
+            return response()->json(['success' => false, 'message' => 'Sin huella digital'], 400);
+         }
+
+         $company = $this->company;
+         $company->last_debt_alert_fingerprint = $fingerprint;
+         $company->save();
+
+         return response()->json(['success' => true]);
+      } catch (\Exception $e) {
+         return response()->json([
+            'success' => false,
+            'message' => 'Error al aceptar alertas: ' . $e->getMessage()
          ], 500);
       }
    }

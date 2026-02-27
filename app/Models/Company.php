@@ -31,7 +31,8 @@ class Company extends Model
       'postal_code',
       'logo',
       'nit',
-      'ig'
+      'ig',
+      'last_debt_alert_fingerprint'
    ];
 
    protected $casts = [
@@ -78,7 +79,7 @@ class Company extends Model
       if (!$this->logo) {
          return asset('assets/img/logotipo.jpg'); // Default logo
       }
-      
+
       $imageUrlService = new ImageUrlService();
       return $imageUrlService->getImageUrl($this->logo);
    }

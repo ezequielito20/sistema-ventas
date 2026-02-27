@@ -963,14 +963,11 @@
 
                     async checkDebtAlerts() {
                         try {
-                            const lastFingerprint = localStorage.getItem('lastDebtAlertFingerprint');
                             const response = await fetch('/customers/debt-alerts');
                             const data = await response.json();
 
-                            if (data.success && data.alerts.length > 0) {
-                                if (data.fingerprint !== lastFingerprint) {
-                                    this.showDebtAlertModal(data.alerts, data.fingerprint);
-                                }
+                            if (data.success && data.alerts.length > 0 && data.should_show) {
+                                this.showDebtAlertModal(data.alerts, data.fingerprint);
                             }
                         } catch (error) {
                             console.error('Error checking debt alerts:', error);
@@ -1034,9 +1031,23 @@
                                     popup: 'rounded-3xl shadow-2xl',
                                     confirmButton: 'rounded-xl px-10 py-3 font-bold text-base transition-all duration-200 hover:scale-105 active:scale-95'
                                 }
-                            }).then((result) => {
+                            }).then(async (result) => {
                                 if (result.isConfirmed) {
-                                    localStorage.setItem('lastDebtAlertFingerprint', fingerprint);
+                                    try {
+                                        await fetch('/customers/debt-alerts/accept', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN': document.querySelector(
+                                                    'meta[name="csrf-token"]').getAttribute('content')
+                                            },
+                                            body: JSON.stringify({
+                                                fingerprint: fingerprint
+                                            })
+                                        });
+                                    } catch (error) {
+                                        console.error('Error accepting debt alerts:', error);
+                                    }
                                 }
                             });
                         }
