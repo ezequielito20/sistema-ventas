@@ -17,6 +17,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DebtPaymentController;
+use App\Http\Controllers\ExchangeRateController;
 
 // Ruta pública para pedidos de clientes
 // Ruta pública para pedidos de clientes, muestra la vista 'public.order-system'
@@ -143,6 +144,12 @@ Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\Cust
     ->name('admin.customers.payment-history.export');
 Route::delete('/admin/customers/payment-history/{payment}', [App\Http\Controllers\CustomerController::class, 'deletePayment'])
     ->name('admin.customers.payment.delete');
+
+// Tasa de Cambio BCV
+Route::get('/admin/exchange-rate/current', [ExchangeRateController::class, 'current'])
+    ->name('admin.exchange-rate.current')->middleware(['auth']);
+Route::post('/admin/exchange-rate/update', [ExchangeRateController::class, 'forceUpdate'])
+    ->name('admin.exchange-rate.update')->middleware(['auth']);
 
 // Sales
 Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);

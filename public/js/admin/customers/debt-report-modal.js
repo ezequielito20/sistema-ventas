@@ -21,18 +21,18 @@ const DEBT_REPORT_MODAL_CONFIG = {
 function initializeDebtReportModal() {
     // Inicializar tipo de cambio
     initializeExchangeRate();
-    
+
     // Inicializar filtros
     initializeFilters();
-    
+
     // Inicializar eventos
     initializeEvents();
-    
+
     // Cargar filtros guardados (ahora reinicia a valores por defecto)
     loadSavedFilters();
-    
+
     // Reiniciar filtros cuando se recarga la página
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function () {
         localStorage.removeItem('debtReportFilters');
     });
 }
@@ -43,20 +43,17 @@ function initializeDebtReportModal() {
 function initializeExchangeRate() {
     const exchangeRateInput = document.getElementById('modalExchangeRate');
     const updateButton = document.getElementById('updateModalExchangeRate');
-    
+
     if (exchangeRateInput) {
-        // Cargar valor guardado o usar el valor por defecto
-        const savedRate = localStorage.getItem(DEBT_REPORT_MODAL_CONFIG.exchangeRate.localStorageKey);
-        if (savedRate) {
-            exchangeRateInput.value = savedRate;
-        }
-        
-        // Actualizar valores en Bs cuando cambie el tipo de cambio
-        exchangeRateInput.addEventListener('input', function() {
-            updateBsValues(parseFloat(this.value) || DEBT_REPORT_MODAL_CONFIG.exchangeRate.default);
-        });
+        // Cargar desde window.exchangeRate (BD) como fuente de verdad
+        const rate = window.exchangeRate || DEBT_REPORT_MODAL_CONFIG.exchangeRate.default;
+        exchangeRateInput.value = rate;
+        exchangeRateInput.readOnly = true;
+
+        // Actualizar valores en Bs con la tasa inicial
+        updateBsValues(parseFloat(rate));
     }
-    
+
     if (updateButton) {
         updateButton.addEventListener('click', updateExchangeRate);
     }
@@ -66,19 +63,19 @@ function initializeExchangeRate() {
 async function updateExchangeRate() {
     const exchangeRateInput = document.getElementById('modalExchangeRate');
     const updateButton = document.getElementById('updateModalExchangeRate');
-    
+
     if (!exchangeRateInput || !updateButton) return;
-    
+
     const newRate = parseFloat(exchangeRateInput.value);
     if (isNaN(newRate) || newRate <= 0) {
         showNotification('Por favor, ingrese un tipo de cambio válido', 'error');
         return;
     }
-    
+
     // Mostrar estado de carga
     updateButton.disabled = true;
     updateButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Actualizando...';
-    
+
     try {
         const response = await fetch(DEBT_REPORT_MODAL_CONFIG.routes.updateExchangeRate, {
             method: 'POST',
@@ -89,16 +86,16 @@ async function updateExchangeRate() {
             },
             body: JSON.stringify({ exchange_rate: newRate })
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             // Guardar en localStorage
             localStorage.setItem(DEBT_REPORT_MODAL_CONFIG.exchangeRate.localStorageKey, newRate.toString());
-            
+
             // Actualizar valores en Bs
             updateBsValues(newRate);
-            
+
             showNotification('Tipo de cambio actualizado exitosamente', 'success');
         } else {
             showNotification(data.message || 'Error al actualizar el tipo de cambio', 'error');
@@ -122,7 +119,7 @@ function updateBsValues(exchangeRate) {
         const bsValue = debt * exchangeRate;
         element.textContent = `Bs. ${bsValue.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     });
-    
+
     // Actualizar valores individuales en la tabla
     const bsDebtElements = document.querySelectorAll('.bs-debt');
     bsDebtElements.forEach(element => {
@@ -140,19 +137,19 @@ function initializeFilters() {
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
-    
+
     if (searchFilter) {
         searchFilter.addEventListener('input', debounce(applyFilters, 300));
     }
-    
+
     if (orderFilter) {
         orderFilter.addEventListener('change', applyFilters);
     }
-    
+
     if (debtTypeFilter) {
         debtTypeFilter.addEventListener('change', applyFilters);
     }
-    
+
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);
     }
@@ -163,19 +160,19 @@ function applyFilters() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
-    
+
     if (!searchFilter || !orderFilter || !debtTypeFilter) return;
-    
+
     // Obtener valores de los filtros
     const filters = {
         search: searchFilter.value.toLowerCase(),
         order: orderFilter.value,
         debtType: debtTypeFilter.value
     };
-    
+
     // Guardar filtros
     saveFilters(filters);
-    
+
     // Aplicar filtros a la tabla
     filterTable(filters);
 }
@@ -184,28 +181,28 @@ function applyFilters() {
 function filterTable(filters) {
     const tableBody = document.querySelector('.table tbody');
     if (!tableBody) return;
-    
+
     const rows = tableBody.querySelectorAll('tr');
-    
+
     rows.forEach(row => {
         let showRow = true;
-        
+
         // Filtro de búsqueda
         if (filters.search) {
             const customerName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
             const customerPhone = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
-            
+
             if (!customerName.includes(filters.search) && !customerPhone.includes(filters.search)) {
                 showRow = false;
             }
         }
-        
+
         // Filtro de tipo de deuda
         if (filters.debtType) {
             const badge = row.querySelector('.badge');
             if (badge) {
                 const isDefaulter = badge.classList.contains('moroso');
-                
+
                 if (filters.debtType === 'defaulters' && !isDefaulter) {
                     showRow = false;
                 } else if (filters.debtType === 'current' && isDefaulter) {
@@ -213,11 +210,11 @@ function filterTable(filters) {
                 }
             }
         }
-        
+
         // Mostrar/ocultar fila
         row.style.display = showRow ? '' : 'none';
     });
-    
+
     // Aplicar ordenamiento
     sortTable(filters.order);
 }
@@ -226,9 +223,9 @@ function filterTable(filters) {
 function sortTable(orderBy) {
     const tableBody = document.querySelector('.table tbody');
     if (!tableBody) return;
-    
+
     const rows = Array.from(tableBody.querySelectorAll('tr'));
-    
+
     rows.sort((a, b) => {
         switch (orderBy) {
             case 'debt_desc':
@@ -243,7 +240,7 @@ function sortTable(orderBy) {
                 return 0;
         }
     });
-    
+
     // Reordenar filas en la tabla
     rows.forEach(row => {
         tableBody.appendChild(row);
@@ -254,7 +251,7 @@ function sortTable(orderBy) {
 function getDebtValue(row) {
     const debtCell = row.querySelector('td:nth-child(4)');
     if (!debtCell) return 0;
-    
+
     const debtText = debtCell.textContent.replace(/[^0-9.-]/g, '');
     return parseFloat(debtText) || 0;
 }
@@ -263,7 +260,7 @@ function getDebtValue(row) {
 function getCustomerName(row) {
     const nameCell = row.querySelector('td:nth-child(2)');
     if (!nameCell) return '';
-    
+
     return nameCell.textContent.trim();
 }
 
@@ -271,7 +268,7 @@ function getCustomerName(row) {
 function clearAllFilters() {
     // Usar la función de reinicio para limpiar filtros
     resetFiltersToDefault();
-    
+
     showNotification('Filtros limpiados', 'success');
 }
 
@@ -293,15 +290,15 @@ function resetFiltersToDefault() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
-    
+
     // Establecer valores por defecto
     if (searchFilter) searchFilter.value = '';
     if (orderFilter) orderFilter.value = 'debt_desc';
     if (debtTypeFilter) debtTypeFilter.value = '';
-    
+
     // Limpiar filtros guardados en localStorage
     localStorage.removeItem('debtReportFilters');
-    
+
     // Aplicar filtros (mostrar todos los resultados)
     applyFilters();
 }
@@ -315,11 +312,11 @@ function initializeEvents() {
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener('click', downloadPdf);
     }
-    
+
     // Evento para cerrar modal
     const closeButtons = document.querySelectorAll('[onclick*="closeModal"]');
     closeButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', function (e) {
             e.preventDefault();
             closeModal('debtReportModal');
         });
@@ -330,14 +327,14 @@ function initializeEvents() {
 function downloadPdf() {
     const downloadPdfBtn = document.getElementById('downloadPdfBtn');
     if (!downloadPdfBtn) return;
-    
+
     // Mostrar estado de carga
     downloadPdfBtn.disabled = true;
     downloadPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Generando...';
-    
+
     // Obtener filtros actuales
     const filters = getCurrentFilters();
-    
+
     // Construir URL con filtros
     const url = new URL(DEBT_REPORT_MODAL_CONFIG.routes.pdf, window.location.origin);
     Object.keys(filters).forEach(key => {
@@ -345,10 +342,10 @@ function downloadPdf() {
             url.searchParams.append(key, filters[key]);
         }
     });
-    
+
     // Descargar PDF
     window.open(url.toString(), '_blank');
-    
+
     // Restaurar botón después de un breve delay
     setTimeout(() => {
         downloadPdfBtn.disabled = false;
@@ -361,7 +358,7 @@ function getCurrentFilters() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
-    
+
     return {
         search: searchFilter?.value || '',
         order: orderFilter?.value || 'debt_desc',
@@ -373,9 +370,9 @@ function getCurrentFilters() {
 
 // Función para obtener el token CSRF
 function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-           document.querySelector('input[name="_token"]')?.value || 
-           '';
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+        document.querySelector('input[name="_token"]')?.value ||
+        '';
 }
 
 // Función para mostrar notificaciones

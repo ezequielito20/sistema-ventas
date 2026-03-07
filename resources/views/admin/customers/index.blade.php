@@ -61,7 +61,9 @@
         // Pasar datos críticos a JavaScript
         window.totalCustomers = {{ $totalCustomers ?? 0 }};
         window.exchangeRate = {{ $exchangeRate ?? 134 }};
+        window.exchangeRateUpdatedAt = '{{ $exchangeRateUpdatedAt ?? '' }}';
         window.csrfToken = '{{ csrf_token() }}';
+        window.exchangeRateUpdateUrl = '{{ route('admin.exchange-rate.update') }}';
     </script>
     <!-- SweetAlert2 -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
@@ -259,29 +261,53 @@
                 <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                        <!-- Tipo de Cambio -->
+                        <!-- Tipo de Cambio BCV (automático) -->
                         <div x-data="exchangeRateWidget()">
+                            <!-- Etiqueta de tasa actual -->
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-robot mr-1 text-xs"></i>Tasa actual (BCV)
+                                </span>
+                                <span class="text-xs text-gray-400" x-text="updatedAt ? 'Actualizado: ' + updatedAt : ''"
+                                    x-show="updatedAt"></span>
+                            </div>
 
-
-                            <!-- Input y Botón en línea -->
+                            <!-- Input readonly + Botón de actualización manual -->
                             <div class="flex items-center justify-start space-x-3">
                                 <div class="flex items-center space-x-2">
                                     <span class="text-sm font-medium text-gray-600">1 USD =</span>
-                                    <input type="number" x-model="exchangeRate" step="0.01" min="0"
-                                        @if (!$permissions['can_edit']) readonly @endif @keyup.enter="updateRate()"
-                                        @input="syncToModal()"
-                                        class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-semibold text-gray-900 text-sm"
-                                        placeholder="0.00">
+                                    <input type="number" x-model="exchangeRate" readonly
+                                        class="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-center font-bold text-gray-900 text-sm cursor-not-allowed select-none"
+                                        placeholder="Cargando...">
                                     <span class="text-sm font-medium text-gray-600">VES</span>
                                 </div>
 
-                                @if ($permissions['can_edit'])
-                                    <button @click="updateRate()" :disabled="updating"
-                                        class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Actualizar tipo de cambio">
-                                        <i class="fas fa-sync-alt text-sm" :class="{ 'animate-spin': updating }"></i>
-                                    </button>
-                                @endif
+                                <!-- Botón de actualización manual desde API BCV -->
+                                <button @click="forceUpdateFromApi()" :disabled="updating"
+                                    class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Actualizar tasa desde BCV ahora">
+                                    <i class="fas fa-sync-alt text-sm" :class="{ 'animate-spin': updating }"></i>
+                                </button>
+                            </div>
+
+                            <!-- Calculadora de conversión USD → Bs -->
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500 font-medium whitespace-nowrap">Calcular:</span>
+                                    <div class="relative">
+                                        <span
+                                            class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">$</span>
+                                        <input type="number" x-model="usdAmount" @input="calcBs()" min="0"
+                                            step="0.01" placeholder="USD"
+                                            class="w-24 pl-5 pr-2 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-green-400 text-sm text-gray-800 font-medium">
+                                    </div>
+                                    <span class="text-gray-400 text-xs">=</span>
+                                    <div
+                                        class="px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg min-w-[90px] text-center">
+                                        <span class="text-sm font-bold text-green-700" x-text="bsResult || '— Bs'"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

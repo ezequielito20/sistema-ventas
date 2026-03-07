@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\DebtPayment;
+use App\Models\ExchangeRate;
 
 class CustomerController extends Controller
 {
@@ -379,8 +380,10 @@ class CustomerController extends Controller
             }
          }
 
-         // Obtener el tipo de cambio desde localStorage o usar valor por defecto
-         $exchangeRate = 134.0; // Valor por defecto
+         // Obtener el tipo de cambio desde la base de datos (registro global)
+         $exchangeRateRecord = ExchangeRate::currentRecord();
+         $exchangeRate = $exchangeRateRecord ? (float) $exchangeRateRecord->rate : 134.0;
+         $exchangeRateUpdatedAt = $exchangeRateRecord ? $exchangeRateRecord->updated_at->format('d/m/Y H:i') : null;
 
          // Optimizar: Verificar permisos una sola vez para evitar múltiples verificaciones
          $permissions = [
@@ -410,6 +413,7 @@ class CustomerController extends Controller
                'currency',
                'company',
                'exchangeRate',
+               'exchangeRateUpdatedAt',
                'permissions'
             ));
          }
@@ -430,6 +434,7 @@ class CustomerController extends Controller
             'currency',
             'company',
             'exchangeRate',
+            'exchangeRateUpdatedAt',
             'permissions'
          ));
       } catch (\Exception $e) {

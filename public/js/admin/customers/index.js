@@ -323,73 +323,120 @@ function modalExchangeRateSync() {
 function exchangeRateWidget() {
     return {
         exchangeRate: 134.0,
+        updatedAt: '',
         updating: false,
+        usdAmount: '',
+        bsResult: '',
 
         init() {
-            // Cargar el tipo de cambio guardado
-            const savedRate = localStorage.getItem('exchangeRate');
-            if (savedRate) {
-                this.exchangeRate = parseFloat(savedRate);
-            } else {
-                this.exchangeRate = window.exchangeRate || 134.0;
-            }
+            // Cargar la tasa desde el servidor (pasada por PHP al cargar la página)
+            this.exchangeRate = window.exchangeRate || 134.0;
+            this.updatedAt = window.exchangeRateUpdatedAt || '';
 
-            // Watcher para sincronizar automáticamente cuando cambie el valor
+            // Sincronizar con el modal al iniciar
+            this.$nextTick(() => this.syncToModal());
+
+            // Watcher: cuando cambie la tasa, recalcular Bs y sincronizar modal
             this.$watch('exchangeRate', (value) => {
                 if (value > 0) {
                     this.syncToModal();
+                    this.calcBs();
+                    window.customersIndex.updateBsValues(value);
                 }
             });
         },
 
-        updateRate() {
-            if (this.exchangeRate <= 0) return;
+        // Calcula la conversión USD → Bs en tiempo real
+        calcBs() {
+            const usd = parseFloat(this.usdAmount);
+            if (!isNaN(usd) && usd >= 0 && this.exchangeRate > 0) {
+                const bs = usd * this.exchangeRate;
+                this.bsResult = 'Bs. ' + bs.toLocaleString('es-VE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } else {
+                this.bsResult = '';
+            }
+        },
 
+        // Actualización manual forzada: llama al endpoint que consulta ve.dolarapi.com
+        async forceUpdateFromApi() {
+            if (this.updating) return;
             this.updating = true;
 
-            // Simular actualización
-            setTimeout(() => {
-                window.currentExchangeRate = this.exchangeRate;
-                localStorage.setItem('exchangeRate', this.exchangeRate);
-                window.customersIndex.updateBsValues(this.exchangeRate);
+            try {
+                const response = await fetch(window.exchangeRateUpdateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': window.csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
 
-                // Sincronizar con el modal
-                this.syncToModal();
+                const data = await response.json();
 
-                this.updating = false;
+                if (data.success) {
+                    this.exchangeRate = parseFloat(data.rate);
+                    this.updatedAt = data.updated_at || '';
+                    this.syncToModal();
+                    this.calcBs();
+                    window.customersIndex.updateBsValues(this.exchangeRate);
 
-                // Mostrar notificación
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: `Tasa BCV actualizada: ${data.rate} Bs/USD`,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'No se pudo actualizar',
+                            text: data.message || 'Verifique la conexión e intente nuevamente.',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 4000
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error al actualizar tasa:', error);
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
-                        icon: 'success',
-                        title: 'Tipo de cambio actualizado',
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'No se pudo comunicar con el servidor.',
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
                         timer: 3000
                     });
                 }
-            }, 500);
+            } finally {
+                this.updating = false;
+            }
         },
 
-        // Sincronizar con el modal
+        // Sincronizar con el input del modal de reporte de deudas
         syncToModal() {
             const modalInput = document.getElementById('modalExchangeRate');
             if (modalInput) {
                 modalInput.value = this.exchangeRate;
             }
-
-            // También actualizar valores en Bs en el modal si está abierto
-            if (typeof window.modalManager !== 'undefined' && window.modalManager().debtReportModal) {
-                if (typeof window.customersIndex !== 'undefined' && window.customersIndex.updateBsValues) {
-                    window.customersIndex.updateBsValues(this.exchangeRate);
-                }
-            }
         },
 
-        // Sincronizar desde el modal
+        // Sincronizar desde el modal (mantiene compatibilidad)
         syncFromModal(rate) {
-            this.exchangeRate = rate;
+            this.exchangeRate = parseFloat(rate);
         }
     }
 }
