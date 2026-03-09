@@ -1224,7 +1224,7 @@ class CustomerController extends Controller
 
       // Reporte normal de todos los clientes
       $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
-      $pdf = PDF::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
+      $pdf = Pdf::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
       return $pdf->stream('reporte-clientes.pdf');
    }
 
@@ -1417,10 +1417,10 @@ class CustomerController extends Controller
          $company = $this->company;
          $currency = $this->currencies;
          $totalDebt = $customers->sum('total_debt');
-         $exchangeRate = $request->get('exchange_rate', 1);
+         $exchangeRate = $request->get('exchange_rate', ExchangeRate::current());
 
          // Generar PDF
-         $pdf = PDF::loadView('admin.customers.reports.debt-report', compact(
+         $pdf = Pdf::loadView('admin.customers.reports.debt-report', compact(
             'customers',
             'company',
             'currency',
@@ -1642,7 +1642,7 @@ class CustomerController extends Controller
          $company = $this->company;
          $currency = $this->currencies;
          $totalDebt = $customers->sum('total_debt');
-         $exchangeRate = request('exchange_rate', 1);
+         $exchangeRate = request('exchange_rate', ExchangeRate::current());
 
          // Verificar si es una petición AJAX
          if (request()->ajax() || request()->has('ajax')) {
@@ -2501,6 +2501,12 @@ class CustomerController extends Controller
          // Determinar si hay algún cliente NUEVO en la lista (que no estaba en la última vez que se aceptó)
          $newOverdueIds = array_diff($currentIds, $storedIds);
          $shouldShow = count($newOverdueIds) > 0;
+
+         // En desarrollo local desactivamos la alerta por defecto para no molestar el flujo de trabajo,
+         // ya que en local a veces la persistencia puede fallar por configuraciones de DB o sesión.
+         if (app()->environment('local')) {
+            $shouldShow = false;
+         }
 
          return response()->json([
             'success' => true,

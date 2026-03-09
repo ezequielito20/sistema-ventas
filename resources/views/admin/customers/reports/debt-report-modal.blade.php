@@ -46,7 +46,7 @@
                     <span class="text-sm font-semibold text-gray-900">1 USD</span>
                     <input type="number" id="modalExchangeRate"
                         class="w-20 px-2 py-1 text-center border border-gray-300 rounded-lg text-sm font-semibold"
-                        step="0.01" min="0.01" value="{{ $exchangeRate ?? 134 }}">
+                        step="0.01" min="0.01" value="{{ $exchangeRate }}">
                 </div>
                 <div class="flex items-center space-x-2">
                     <button
@@ -185,7 +185,7 @@
             <button
                 class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors duration-200 modal-bs-debt"
                 data-debt="{{ $totalDebt }}">
-                Bs. {{ number_format($totalDebt * ($exchangeRate ?? 134), 2) }}
+                Bs. {{ number_format($totalDebt * ($exchangeRate ?? 1), 2) }}
             </button>
         </div>
     </div>
@@ -272,7 +272,7 @@
                                 {{ number_format($customer->total_debt, 2) }}</td>
                             <td class="px-4 py-3 text-sm font-semibold text-gray-900 border-b border-gray-100 bs-debt"
                                 data-debt="{{ $customer->total_debt }}">
-                                Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 134), 2) }}
+                                Bs. {{ number_format($customer->total_debt * ($exchangeRate ?? 1), 2) }}
                             </td>
                         </tr>
                     @endforeach
@@ -298,7 +298,7 @@
     <script>
         // Pasar datos de PHP a JavaScript
         window.debtReportModalData = {
-            exchangeRate: {{ $exchangeRate ?? 134 }},
+            exchangeRate: {{ $exchangeRate ?? 1 }},
             totalDebt: {{ $totalDebt }},
             defaultersCount: {{ $defaultersCount }},
             defaultersDebt: {{ $defaultersDebt }},

@@ -967,6 +967,12 @@
                             const data = await response.json();
 
                             if (data.success && data.alerts.length > 0 && data.should_show) {
+                                // Comprobar contra localStorage como respaldo adicional
+                                const lastAcceptedFingerprint = localStorage.getItem('debt_alert_accepted_fingerprint');
+                                if (lastAcceptedFingerprint === data.fingerprint) {
+                                    return;
+                                }
+
                                 this.showDebtAlertModal(data.alerts, data.fingerprint);
                             }
                         } catch (error) {
@@ -1033,6 +1039,9 @@
                                 }
                             }).then(async (result) => {
                                 if (result.isConfirmed) {
+                                    // Guardar localmente para evitar que reaparezca si la persistencia en DB falla localmente
+                                    localStorage.setItem('debt_alert_accepted_fingerprint', fingerprint);
+
                                     try {
                                         await fetch('/customers/debt-alerts/accept', {
                                             method: 'POST',
