@@ -27,7 +27,7 @@
 @endpush
 
 @section('content')
-    <div x-data="paymentHistory()" class="space-y-6">
+    <div x-data="paymentHistory({ searchTerm: '{{ request('customer_search') }}' })" class="space-y-6">
         <!-- Hero Section -->
         <div
             class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl shadow-lg">
@@ -69,7 +69,8 @@
                             <i class="fas fa-money-bill-wave text-white text-xl"></i>
                         </div>
                         <div class="text-right">
-                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($totalPayments, 2) }}</h3>
+                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }}
+                                {{ number_format($totalPayments, 2) }}</h3>
                             <p class="text-blue-100 text-sm">Total Pagos</p>
                         </div>
                     </div>
@@ -99,7 +100,8 @@
                             <i class="fas fa-calculator text-white text-xl"></i>
                         </div>
                         <div class="text-right">
-                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }} {{ number_format($averagePayment, 2) }}</h3>
+                            <h3 class="text-2xl font-bold text-white">{{ $currency->symbol }}
+                                {{ number_format($averagePayment, 2) }}</h3>
                             <p class="text-yellow-100 text-sm">Pago Promedio</p>
                         </div>
                     </div>
@@ -137,39 +139,22 @@
                             <p class="text-gray-600">Filtre los pagos por cliente y fechas</p>
                         </div>
                     </div>
-                    <button @click="showFilters = !showFilters" 
-                            class="inline-flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all duration-200 border border-gray-200">
+                    <button @click="showFilters = !showFilters"
+                        class="inline-flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all duration-200 border border-gray-200">
                         <i class="fas" :class="showFilters ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                         <span x-text="showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'"></span>
                     </button>
                 </div>
             </div>
 
-            <div x-show="showFilters" x-transition:enter="transition ease-out duration-300" 
-                 x-transition:enter-start="opacity-0 transform -translate-y-2" 
-                 x-transition:enter-end="opacity-100 transform translate-y-0" 
-                 x-transition:leave="transition ease-in duration-200" 
-                 x-transition:leave-start="opacity-100 transform translate-y-0" 
-                 x-transition:leave-end="opacity-0 transform -translate-y-2" 
-                 class="p-6 border-t border-gray-100">
+            <div x-show="showFilters" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform -translate-y-2"
+                x-transition:enter-end="opacity-100 transform translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform translate-y-0"
+                x-transition:leave-end="opacity-0 transform -translate-y-2" class="p-6 border-t border-gray-100">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Cliente -->
-                    <div class="space-y-2">
-                        <label for="customer_search"
-                            class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                            <i class="fas fa-search text-blue-500"></i>
-                            <span>Buscar Cliente</span>
-                        </label>
-                        <div class="relative">
-                            <input type="text" id="customer_search" 
-                               value="{{ request('customer_search') }}"
-                               autocomplete="off"
-                               placeholder="Buscar por nombre del cliente..."
-                               class="w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Fecha Desde -->
                     <div class="space-y-2">
@@ -177,9 +162,8 @@
                             <i class="fas fa-calendar-alt text-blue-500"></i>
                             <span>Fecha desde</span>
                         </label>
-                        <input type="date" id="date_from" 
-                               value="{{ request('date_from') }}"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="date" id="date_from" value="{{ request('date_from') }}"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
 
                     <!-- Fecha Hasta -->
@@ -188,9 +172,8 @@
                             <i class="fas fa-calendar-check text-blue-500"></i>
                             <span>Fecha hasta</span>
                         </label>
-                        <input type="date" id="date_to" 
-                               value="{{ request('date_to') }}"
-                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="date" id="date_to" value="{{ request('date_to') }}"
+                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
 
                     <!-- Botón Reiniciar -->
@@ -220,6 +203,27 @@
                             <p class="text-gray-600">Registro detallado de todos los pagos realizados</p>
                         </div>
                     </div>
+
+                    <!-- Barra de Búsqueda Fluida -->
+                    <div class="flex-1 max-w-md mx-6 hidden md:block">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                
+                            </div>
+                            <input type="text" x-model="searchTerm" id="customer_search_header"
+                                placeholder="Buscar por cliente, email o teléfono..."
+                                class="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm">
+                            <!-- Spinner de carga -->
+                            <div x-show="isSearching" class="absolute inset-y-0 right-10 flex items-center">
+                                <i class="fas fa-circle-notch fa-spin text-blue-500"></i>
+                            </div>
+                            <!-- Botón de limpiar -->
+                            <button x-show="searchTerm.length > 0" @click="clearSearch()"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500 transition-colors duration-200">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="flex items-center space-x-2">
                         <span class="text-sm text-gray-600 hidden md:inline">Vista:</span>
                         <button @click="viewMode = 'table'"
@@ -238,6 +242,24 @@
                         <div class="md:hidden flex items-center space-x-2">
                             <i class="fas fa-th-large text-blue-600"></i>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Buscador para Móvil -->
+                <div class="mt-4 px-6 pb-4 md:hidden">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400 text-xs"></i>
+                        </div>
+                        <input type="text" x-model="searchTerm" placeholder="Buscar cliente..."
+                            class="w-full pl-10 pr-10 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <div x-show="isSearching" class="absolute inset-y-0 right-8 flex items-center">
+                            <i class="fas fa-circle-notch fa-spin text-blue-500 text-xs"></i>
+                        </div>
+                        <button x-show="searchTerm.length > 0" @click="clearSearch()"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -259,7 +281,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @foreach($payments as $payment)
+                        @foreach ($payments as $payment)
                             <tr class="hover:bg-gray-50 transition-colors duration-200">
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
@@ -319,6 +341,20 @@
                                 </td>
                             </tr>
                         @endforeach
+                        @if ($payments->isEmpty())
+                            <tr>
+                                <td colspan="8" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center space-y-3">
+                                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-search text-gray-400 text-2xl"></i>
+                                        </div>
+                                        <div class="text-gray-500 font-medium">No se encontraron pagos registrados</div>
+                                        <p class="text-gray-400 text-sm">Intenta con otros términos de búsqueda o filtros
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
@@ -326,7 +362,7 @@
             <!-- Vista de Tarjetas (Responsive) -->
             <div x-show="viewMode === 'cards' || window.innerWidth < 768" x-cloak class="p-3 sm:p-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                    @foreach($payments as $payment)
+                    @foreach ($payments as $payment)
                         <div
                             class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                             <!-- Header de la tarjeta -->
@@ -380,12 +416,14 @@
                                     <div class="bg-red-50 rounded-md p-2">
                                         <label class="text-xs font-medium text-red-600 uppercase tracking-wide">Deuda
                                             Anterior</label>
-                                        <p class="text-sm font-bold text-red-700">{{ $currency->symbol }} {{ number_format($payment->previous_debt, 2) }}</p>
+                                        <p class="text-sm font-bold text-red-700">{{ $currency->symbol }}
+                                            {{ number_format($payment->previous_debt, 2) }}</p>
                                     </div>
                                     <div class="bg-yellow-50 rounded-md p-2">
                                         <label class="text-xs font-medium text-yellow-600 uppercase tracking-wide">Deuda
                                             Restante</label>
-                                        <p class="text-sm font-bold text-yellow-700">{{ $currency->symbol }} {{ number_format($payment->remaining_debt, 2) }}</p>
+                                        <p class="text-sm font-bold text-yellow-700">{{ $currency->symbol }}
+                                            {{ number_format($payment->remaining_debt, 2) }}</p>
                                     </div>
                                 </div>
 
@@ -428,16 +466,28 @@
                         </div>
                     @endforeach
                 </div>
+                @if ($payments->isEmpty())
+                    <div class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-search text-gray-400 text-2xl"></i>
+                            </div>
+                            <div class="text-gray-500 font-medium">No se encontraron pagos registrados</div>
+                            <p class="text-gray-400 text-sm">Intenta con otros términos de búsqueda o filtros</p>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Paginación inteligente -->
-            @if($payments->hasPages())
+            @if ($payments->hasPages())
                 <div class="pagination-container">
                     <div class="pagination-info">
-                        <span>Mostrando {{ $payments->firstItem() ?? 0 }}-{{ $payments->lastItem() ?? 0 }} de {{ $payments->total() }} pagos</span>
+                        <span>Mostrando {{ $payments->firstItem() ?? 0 }}-{{ $payments->lastItem() ?? 0 }} de
+                            {{ $payments->total() }} pagos</span>
                     </div>
                     <div class="pagination-controls">
-                        @if($payments->hasPrevious)
+                        @if ($payments->hasPrevious)
                             <a href="{{ $payments->previousPageUrl }}" class="pagination-btn">
                                 <i class="fas fa-chevron-left"></i>
                                 <span>Anterior</span>
@@ -450,11 +500,11 @@
                         @endif
 
                         <div class="page-numbers">
-                            @foreach($payments->smartLinks as $link)
-                                @if($link['isSeparator'])
+                            @foreach ($payments->smartLinks as $link)
+                                @if ($link['isSeparator'])
                                     <span class="page-separator">{{ $link['label'] }}</span>
                                 @else
-                                    @if($link['active'])
+                                    @if ($link['active'])
                                         <span class="page-number active">{{ $link['label'] }}</span>
                                     @else
                                         <a href="{{ $link['url'] }}" class="page-number">{{ $link['label'] }}</a>
@@ -463,7 +513,7 @@
                             @endforeach
                         </div>
 
-                        @if($payments->hasNext)
+                        @if ($payments->hasNext)
                             <a href="{{ $payments->nextPageUrl }}" class="pagination-btn">
                                 <span>Siguiente</span>
                                 <i class="fas fa-chevron-right"></i>

@@ -2217,44 +2217,56 @@ class CustomerController extends Controller
       // Aplicar paginación inteligente
       $payments = $this->generateSmartPagination($payments, 2);
 
-      // Estadísticas usando consultas directas para eficiencia
-      $totalPayments = DebtPayment::where('company_id', $companyId)->sum('payment_amount');
-      $paymentsCount = DebtPayment::where('company_id', $companyId)->count();
-      $averagePayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0;
-      $totalRemainingDebt = Customer::where('company_id', $companyId)->sum('total_debt');
-
-      // Datos para gráficos
-      $weekdayData = DebtPayment::where('company_id', $companyId)
-         ->selectRaw('EXTRACT(DOW FROM created_at) as day_of_week, SUM(payment_amount) as total')
-         ->groupBy('day_of_week')
-         ->orderBy('day_of_week')
-         ->get()
-         ->pluck('total', 'day_of_week')
-         ->toArray();
-
-      $weekdayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      // Variables por defecto para estadísticas y gráficos
+      $totalPayments = 0;
+      $paymentsCount = 0;
+      $averagePayment = 0;
+      $totalRemainingDebt = 0;
+      $weekdayLabels = [];
       $weekdayDataArray = [];
-
-      // PostgreSQL DOW: 0=Domingo, 1=Lunes, ..., 6=Sábado
-      for ($i = 0; $i <= 6; $i++) {
-         $weekdayDataArray[] = $weekdayData[$i] ?? 0;
-      }
-
-      // Datos mensuales - Compatible con PostgreSQL
-      $monthlyData = DebtPayment::where('company_id', $companyId)
-         ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
-         ->selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(payment_amount) as total')
-         ->groupBy('month')
-         ->orderBy('month')
-         ->get()
-         ->pluck('total', 'month')
-         ->toArray();
-
-      $monthlyLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      $monthlyLabels = [];
       $monthlyDataArray = [];
 
-      for ($i = 1; $i <= 12; $i++) {
-         $monthlyDataArray[] = $monthlyData[$i] ?? 0;
+      // Solo calcular estadísticas y gráficos si no es una petición AJAX
+      // Esto optimiza drásticamente el rendimiento de las búsquedas y paginación "fluidas"
+      if (!$request->ajax()) {
+         // Estadísticas usando consultas directas para eficiencia
+         $totalPayments = DebtPayment::where('company_id', $companyId)->sum('payment_amount');
+         $paymentsCount = DebtPayment::where('company_id', $companyId)->count();
+         $averagePayment = $paymentsCount > 0 ? $totalPayments / $paymentsCount : 0;
+         $totalRemainingDebt = Customer::where('company_id', $companyId)->sum('total_debt');
+
+         // Datos para gráficos
+         $weekdayData = DebtPayment::where('company_id', $companyId)
+            ->selectRaw('EXTRACT(DOW FROM created_at) as day_of_week, SUM(payment_amount) as total')
+            ->groupBy('day_of_week')
+            ->orderBy('day_of_week')
+            ->get()
+            ->pluck('total', 'day_of_week')
+            ->toArray();
+
+         $weekdayLabels = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+         // PostgreSQL DOW: 0=Domingo, 1=Lunes, ..., 6=Sábado
+         for ($i = 0; $i <= 6; $i++) {
+            $weekdayDataArray[] = $weekdayData[$i] ?? 0;
+         }
+
+         // Datos mensuales - Compatible con PostgreSQL
+         $monthlyData = DebtPayment::where('company_id', $companyId)
+            ->whereRaw('EXTRACT(YEAR FROM created_at) = ?', [date('Y')])
+            ->selectRaw('EXTRACT(MONTH FROM created_at) as month, SUM(payment_amount) as total')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->pluck('total', 'month')
+            ->toArray();
+
+         $monthlyLabels = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+         for ($i = 1; $i <= 12; $i++) {
+            $monthlyDataArray[] = $monthlyData[$i] ?? 0;
+         }
       }
 
       return view('admin.customers.payment-history', [

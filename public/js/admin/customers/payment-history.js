@@ -20,16 +20,19 @@ const PAYMENT_HISTORY_CONFIG = {
 };
 
 // ===== FUNCIÓN PRINCIPAL DE ALPINE.JS =====
-function paymentHistory() {
+function paymentHistory(initialData = {}) {
     return {
         viewMode: window.innerWidth >= 1024 ? 'table' : 'cards',
         showFilters: false,
         isDeleting: false,
+        isSearching: false,
+        searchTerm: initialData.searchTerm || '',
+        _searchTimeout: null,
 
         init() {
             // Detectar el modo de vista inicial basado en el tamaño de pantalla
             this.updateViewMode();
-            
+
             // Escuchar cambios de tamaño de ventana
             window.addEventListener('resize', () => {
                 this.updateViewMode();
@@ -37,9 +40,14 @@ function paymentHistory() {
 
             // Inicializar búsqueda del servidor
             this.initializeServerSearch();
-            
+
             // Inicializar paginación inteligente
             this.initializeSmartPagination();
+
+            // Watcher para búsqueda fluida
+            this.$watch('searchTerm', (value) => {
+                this.performSearch();
+            });
         },
 
         // ===== MÉTODOS DE INICIALIZACIÓN =====
@@ -67,29 +75,18 @@ function paymentHistory() {
 
         // Detectar si la paginación del servidor está activa
         isServerPaginationActive() {
-            const paginator = document.querySelector('.pagination-container .page-numbers a');
-            return !!paginator; // existen enlaces → servidor
+            const paginator = document.querySelector('.pagination-container .page-numbers a') ||
+                document.querySelector('.pagination-container a');
+            return !!paginator;
         },
 
         // ===== MÉTODOS DE BÚSQUEDA DEL SERVIDOR =====
 
         initializeServerSearch() {
-            // Configurar búsqueda por cliente
-            const customerSearch = document.getElementById('customer_search');
-            if (customerSearch) {
-                let timeout;
-                customerSearch.addEventListener('input', (e) => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        this.executeServerSearch();
-                    }, 300);
-                });
-            }
-
-            // Configurar filtros de fecha
+            // Configurar filtros de fecha (estos permanecen como listeners tradicionales o Alpine)
             const dateFrom = document.getElementById('date_from');
             const dateTo = document.getElementById('date_to');
-            
+
             if (dateFrom) {
                 dateFrom.addEventListener('change', () => this.executeServerSearch());
             }
@@ -98,33 +95,47 @@ function paymentHistory() {
             }
         },
 
+        performSearch() {
+            this.isSearching = true;
+            clearTimeout(this._searchTimeout);
+            this._searchTimeout = setTimeout(() => {
+                this.executeServerSearch();
+            }, 300);
+        },
+
+        clearSearch() {
+            this.searchTerm = '';
+        },
+
         executeServerSearch() {
             const url = new URL(window.location.href);
-            
+
             // Obtener valores de los filtros
-            const customerSearch = document.getElementById('customer_search')?.value || '';
             const dateFrom = document.getElementById('date_from')?.value || '';
             const dateTo = document.getElementById('date_to')?.value || '';
-            
+
             // Actualizar parámetros de URL
-            if (customerSearch.trim()) {
-                url.searchParams.set('customer_search', customerSearch.trim());
+            if (this.searchTerm.trim()) {
+                url.searchParams.set('customer_search', this.searchTerm.trim());
             } else {
                 url.searchParams.delete('customer_search');
             }
-            
+
             if (dateFrom) {
                 url.searchParams.set('date_from', dateFrom);
             } else {
                 url.searchParams.delete('date_from');
             }
-            
+
             if (dateTo) {
                 url.searchParams.set('date_to', dateTo);
             } else {
                 url.searchParams.delete('date_to');
             }
-            
+
+            // Siempre volver a la página 1 al buscar
+            url.searchParams.delete('page');
+
             // Cargar página con filtros
             this.loadPaymentHistoryPage(url.toString());
         },
@@ -132,7 +143,7 @@ function paymentHistory() {
         loadPaymentHistoryPage(url) {
             // Mostrar indicador de carga
             this.showLoadingIndicator();
-            
+
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -140,92 +151,74 @@ function paymentHistory() {
                     'Accept': 'text/html, application/xhtml+xml'
                 }
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Error al cargar');
-                return response.text();
-            })
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Actualizar tabla
-                const newTableBody = doc.querySelector('tbody');
-                const currentTableBody = document.querySelector('tbody');
-                if (newTableBody && currentTableBody) {
-                    currentTableBody.innerHTML = newTableBody.innerHTML;
-                }
-                
-                // Actualizar tarjetas
-                const newCardsGrid = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
-                const currentCardsGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
-                if (newCardsGrid && currentCardsGrid) {
-                    currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
-                }
-                
-                // Actualizar paginación inteligente
-                const newPaginationContainer = doc.querySelector('.pagination-container');
-                const currentPaginationContainer = document.querySelector('.pagination-container');
-                if (newPaginationContainer && currentPaginationContainer) {
-                    currentPaginationContainer.innerHTML = newPaginationContainer.innerHTML;
-                }
-                
-                // Actualizar estadísticas
-                this.updateStatistics(doc);
-                
-                // Actualizar URL sin recargar
-                window.history.pushState({}, '', url);
-                
-                // Reinicializar event listeners
-                this.initializeEventListeners();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                this.showAlert('Error al cargar los resultados', 'error');
-            })
-            .finally(() => {
-                this.hideLoadingIndicator();
-            });
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar');
+                    return response.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // Actualizar tabla (tbody)
+                    const newTableBody = doc.querySelector('tbody');
+                    const currentTableBody = document.querySelector('tbody');
+                    if (newTableBody && currentTableBody) {
+                        currentTableBody.innerHTML = newTableBody.innerHTML;
+                    }
+
+                    // Actualizar tarjetas (contenedor de grid)
+                    // Buscamos el div que contiene las tarjetas por su clase de grid
+                    const newCardsGrid = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                    const currentCardsGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                    if (newCardsGrid && currentCardsGrid) {
+                        currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
+                    }
+
+                    // Actualizar paginación inteligente
+                    const newPagination = doc.querySelector('.pagination-container');
+                    const currentPagination = document.querySelector('.pagination-container');
+                    if (newPagination && currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    }
+
+                    // Actualizar URL sin recargar
+                    window.history.pushState({}, '', url);
+
+                    // Reinicializar event listeners si es necesario
+                    this.initializeEventListeners();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.showAlert('Error al cargar los resultados', 'error');
+                })
+                .finally(() => {
+                    this.hideLoadingIndicator();
+                    this.isSearching = false;
+                });
         },
 
         showLoadingIndicator() {
-            const searchInput = document.getElementById('customer_search');
-            if (searchInput) {
-                searchInput.classList.add('search-loading');
-                searchInput.disabled = true;
-            }
+            // La UI de Alpine se encargará de esto mayormente a través de isSearching
         },
 
         hideLoadingIndicator() {
-            const searchInput = document.getElementById('customer_search');
-            if (searchInput) {
-                searchInput.classList.remove('search-loading');
-                searchInput.disabled = false;
-            }
-        },
-
-        updateStatistics(doc) {
-            // Actualizar estadísticas si es necesario
-            // Los gráficos se mantienen igual ya que son datos globales
+            // La UI de Alpine se encargará de esto mayormente a través de isSearching
         },
 
         initializeEventListeners() {
-            // Reinicializar event listeners para elementos dinámicos
-            // Esto se llama después de cargar contenido via AJAX
-            
-            // Reinicializar paginación inteligente
+            // Reinicializar paginación si se perdieron los handlers
             this.initializeSmartPagination();
         },
 
         resetFilters() {
             // Limpiar campos de filtro
-            const customerSearch = document.getElementById('customer_search');
+            this.searchTerm = '';
             const dateFrom = document.getElementById('date_from');
             const dateTo = document.getElementById('date_to');
-            
-            if (customerSearch) customerSearch.value = '';
+
             if (dateFrom) dateFrom.value = '';
             if (dateTo) dateTo.value = '';
-            
+
             // Ejecutar búsqueda sin filtros
             this.executeServerSearch();
         },
@@ -258,7 +251,7 @@ function paymentHistory() {
 
                     if (response.ok) {
                         this.showAlert('¡Pago eliminado exitosamente!', 'success');
-                        
+
                         // Recargar la página para actualizar datos
                         setTimeout(() => {
                             window.location.reload();
@@ -278,9 +271,9 @@ function paymentHistory() {
         // ===== MÉTODOS DE UTILIDAD =====
 
         getCsrfToken() {
-            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-                   document.querySelector('input[name="_token"]')?.value || 
-                   '';
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                document.querySelector('input[name="_token"]')?.value ||
+                '';
         },
 
         getCurrencySymbol() {
@@ -322,7 +315,7 @@ function paymentHistory() {
         },
 
         getAlertTitle(type) {
-            switch(type) {
+            switch (type) {
                 case 'success': return '¡Éxito!';
                 case 'error': return 'Error';
                 case 'warning': return 'Advertencia';
@@ -400,7 +393,7 @@ function initializeCharts() {
                         borderColor: PAYMENT_HISTORY_CONFIG.charts.colors.tooltipBorder,
                         borderWidth: 1,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return currencySymbol + ' ' + context.raw.toFixed(2);
                             }
                         }
@@ -418,7 +411,7 @@ function initializeCharts() {
                             color: 'rgba(0, 0, 0, 0.1)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return currencySymbol + ' ' + value.toFixed(2);
                             }
                         }
@@ -463,7 +456,7 @@ function initializeCharts() {
                         borderColor: PAYMENT_HISTORY_CONFIG.charts.colors.tooltipBorder,
                         borderWidth: 1,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return currencySymbol + ' ' + context.raw.toFixed(2);
                             }
                         }
@@ -481,7 +474,7 @@ function initializeCharts() {
                             color: 'rgba(0, 0, 0, 0.1)'
                         },
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return currencySymbol + ' ' + value.toFixed(2);
                             }
                         }
@@ -500,7 +493,7 @@ function initializeChartsOnce() {
     if (chartsInitialized) {
         return;
     }
-    
+
     if (typeof Chart !== 'undefined') {
         initializeCharts();
         chartsInitialized = true;
@@ -595,13 +588,13 @@ document.addEventListener('click', (e) => {
 window.addEventListener('beforeunload', cleanupCharts);
 
 // Inicializar gráficos cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Esperar un poco más para asegurar que Chart.js esté cargado
     setTimeout(initializeChartsOnce, 100);
 });
 
 // También intentar inicializar cuando la ventana esté completamente cargada
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
     if (typeof Chart === 'undefined') {
         setTimeout(initializeChartsOnce, 200);
     } else {
@@ -632,7 +625,7 @@ async function deletePayment(paymentId, customerName, paymentAmount) {
 
             if (response.ok) {
                 showAlert('¡Pago eliminado exitosamente!', 'success');
-                
+
                 // Recargar la página para actualizar datos
                 setTimeout(() => {
                     window.location.reload();
@@ -648,9 +641,9 @@ async function deletePayment(paymentId, customerName, paymentAmount) {
 }
 
 function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-           document.querySelector('input[name="_token"]')?.value || 
-           '';
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+        document.querySelector('input[name="_token"]')?.value ||
+        '';
 }
 
 function getCurrencySymbol() {
@@ -692,7 +685,7 @@ function showAlert(message, type = 'info') {
 }
 
 function getAlertTitle(type) {
-    switch(type) {
+    switch (type) {
         case 'success': return '¡Éxito!';
         case 'error': return 'Error';
         case 'warning': return 'Advertencia';
