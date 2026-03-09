@@ -329,21 +329,39 @@ function exchangeRateWidget() {
         bsResult: '',
 
         init() {
-            // Cargar la tasa desde el servidor (pasada por PHP al cargar la página)
+            // Fuente Única de Verdad: window.exchangeRate (BD)
             this.exchangeRate = window.exchangeRate || 134.0;
             this.updatedAt = window.exchangeRateUpdatedAt || '';
 
-            // Sincronizar con el modal al iniciar
-            this.$nextTick(() => this.syncToModal());
+            // Escuchar actualizaciones desde el modal vía evento CustomEvent
+            window.addEventListener('sync-rate', (e) => {
+                this.exchangeRate = parseFloat(e.detail.rate);
+                if (e.detail.updatedAt) this.updatedAt = e.detail.updatedAt;
+            });
 
-            // Watcher: cuando cambie la tasa, recalcular Bs y sincronizar modal
+            // Sincronización continua: Cuando el modal de reporte se abra, inyectar el valor del widget
+            // Buscamos el store 'modal' o variable global si la tienes
+            this.$nextTick(() => {
+                this.$watch('debtReportModal', (isOpened) => {
+                    if (isOpened) {
+                        setTimeout(() => this.syncToModal(), 400); // Pequeño delay por la carga AJAX
+                    }
+                });
+            });
+
+            // Watcher para cambios en tiempo real
             this.$watch('exchangeRate', (value) => {
                 if (value > 0) {
                     this.syncToModal();
                     this.calcBs();
-                    window.customersIndex.updateBsValues(value);
+                    if (window.customersIndex && window.customersIndex.updateBsValues) {
+                        window.customersIndex.updateBsValues(value);
+                    }
                 }
             });
+
+            // Forzar una sincronización inicial
+            setTimeout(() => this.syncToModal(), 500);
         },
 
         // Calcula la conversión USD → Bs en tiempo real
@@ -426,11 +444,17 @@ function exchangeRateWidget() {
             }
         },
 
-        // Sincronizar con el input del modal de reporte de deudas
+        // Sincronizar SIEMPRE desde la tabla principal hacia el modal
         syncToModal() {
             const modalInput = document.getElementById('modalExchangeRate');
             if (modalInput) {
                 modalInput.value = this.exchangeRate;
+                modalInput.readOnly = true; // Forzamos bloqueo en el modal también
+
+                // Actualizar precios en el modal
+                if (typeof window.updateBsValues === 'function') {
+                    window.updateBsValues(this.exchangeRate);
+                }
             }
         },
 

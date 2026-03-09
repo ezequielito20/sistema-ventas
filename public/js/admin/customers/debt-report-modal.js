@@ -41,18 +41,8 @@ function initializeDebtReportModal() {
 
 // Función para inicializar el tipo de cambio
 function initializeExchangeRate() {
-    const exchangeRateInput = document.getElementById('modalExchangeRate');
     const updateButton = document.getElementById('updateModalExchangeRate');
 
-    if (exchangeRateInput) {
-        // Cargar desde window.exchangeRate (BD) como fuente de verdad
-        const rate = window.exchangeRate || DEBT_REPORT_MODAL_CONFIG.exchangeRate.default;
-        exchangeRateInput.value = rate;
-        exchangeRateInput.readOnly = true;
-
-        // Actualizar valores en Bs con la tasa inicial
-        updateBsValues(parseFloat(rate));
-    }
 
     if (updateButton) {
         updateButton.addEventListener('click', updateExchangeRate);
@@ -90,11 +80,19 @@ async function updateExchangeRate() {
         const data = await response.json();
 
         if (response.ok) {
-            // Guardar en localStorage
+            // Guardar en localStorage (opcional, ahora preferimos el widget como fuente)
             localStorage.setItem(DEBT_REPORT_MODAL_CONFIG.exchangeRate.localStorageKey, newRate.toString());
 
-            // Actualizar valores en Bs
+            // Actualizar precios en el modal
             updateBsValues(newRate);
+
+            // Sincronizar con el widget de la página principal disparando un evento global
+            window.dispatchEvent(new CustomEvent('sync-rate', {
+                detail: {
+                    rate: newRate,
+                    updatedAt: data.updated_at
+                }
+            }));
 
             showNotification('Tipo de cambio actualizado exitosamente', 'success');
         } else {
