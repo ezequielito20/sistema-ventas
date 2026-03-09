@@ -18,6 +18,8 @@
     'actionButtonIcon' => 'fas fa-eye',
     'valueType' => 'currency',
     'currencySymbol' => '$',
+    'showBsEquivalent' => false,
+    'exchangeRate' => 1,
 ])
 
 <div
@@ -53,9 +55,16 @@
             <div class="text-base sm:text-lg font-bold opacity-90 mb-1">{{ $title }}</div>
 
             <!-- Value -->
-            <div class="text-lg sm:text-xl lg:text-2xl font-black transition-all duration-300 mb-2">
+            <div class="text-lg sm:text-xl lg:text-2xl font-black transition-all duration-300 mb-1">
                 @if ($valueType === 'currency')
-                    <span class="widget-value">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
+                    <span class="widget-value tracking-tight">{{ $currencySymbol }}{{ number_format($value, 2) }}</span>
+                    @if ($showBsEquivalent)
+                        <div class="text-[10px] sm:text-xs opacity-95 mt-0.5 font-bold text-white/95">
+                            <span class="bs-debt" data-debt="{{ $value }}">
+                                Bs. {{ number_format($value * $exchangeRate, 2) }}
+                            </span>
+                        </div>
+                    @endif
                 @else
                     <span class="widget-value">{{ $value }}</span>
                 @endif

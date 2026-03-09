@@ -196,7 +196,6 @@
                 progressWidth="{{ $totalCustomers > 0 ? ($newCustomers / $totalCustomers) * 100 : 0 }}%"
                 progressGradientFrom="from-yellow-400" progressGradientTo="to-orange-400" />
 
-            <!-- Ingresos Totales -->
             <x-dashboard-widget title="Ingresos Totales" value="{{ $totalRevenue }}" valueType="currency"
                 currencySymbol="{{ $currency->symbol }}" icon="fas fa-money-bill-wave" trend="Total"
                 trendIcon="fas fa-chart-bar" trendColor="text-green-300" subtitle="Ingresos generados"
@@ -1113,6 +1112,13 @@
                                                 <div class="sales-amount">{{ $currency->symbol }}
                                                     {{ number_format(($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0), 2) }}
                                                 </div>
+                                                <div class="mt-0.5">
+                                                    <span class="text-[10px] font-medium text-indigo-600 bs-debt"
+                                                        data-debt="{{ ($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0) }}">
+                                                        Bs.
+                                                        {{ number_format((($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0)) * ($exchangeRate ?? 1), 2) }}
+                                                    </span>
+                                                </div>
                                                 <div class="sales-count">Con ventas</div>
                                             @else
                                                 <span class="no-sales">Sin ventas</span>
@@ -1288,7 +1294,7 @@
                                             <span>Total Compras</span>
                                         </div>
                                         @if ($hasSales)
-                                            <div>
+                                            <div class="flex flex-col">
                                                 <p class="text-sm font-semibold text-gray-900">{{ $currency->symbol }}
                                                     {{ number_format(($customerSales['previousDebt'] ?? 0) + ($customerSales['currentDebt'] ?? 0), 2) }}
                                                 </p>
@@ -1323,6 +1329,15 @@
                                                             <i class="fas fa-exclamation-triangle"></i>
                                                         </span>
                                                     @endif
+                                                </div>
+                                                <div class="mt-0.5">
+                                                    <p class="text-xs font-medium text-gray-500">
+                                                        <span class="bs-debt text-indigo-600 font-semibold"
+                                                            data-debt="{{ $customer->total_debt }}">
+                                                            Bs.
+                                                            {{ number_format($customer->total_debt * ($exchangeRate ?? 1), 2) }}
+                                                        </span>
+                                                    </p>
                                                 </div>
                                             </div>
                                         @else
