@@ -25,7 +25,7 @@ use App\Http\Controllers\ExchangeRateController;
 //     return view('public.order-system');
 // })->name('public.orders');
 
-Auth::routes();
+Auth::routes(['register' => false]);
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
