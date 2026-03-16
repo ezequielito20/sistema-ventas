@@ -660,11 +660,18 @@ window.modalManager = function () {
                 </div>
             `;
 
-            // Obtener el tipo de cambio actual
-            const exchangeRate = document.getElementById('exchangeRate')?.value || 134;
+            // Obtener el tipo de cambio actual desde el widget de Alpine.js (fuente de verdad)
+            let currentExchangeRate = 134;
+            const widgetElement = document.querySelector('[x-data*="exchangeRateWidget"]');
 
-            // Cargar el reporte mediante fetch
-            const url = '/admin/customers/debt-report';
+            if (widgetElement && widgetElement._x_dataStack && widgetElement._x_dataStack[0]) {
+                currentExchangeRate = widgetElement._x_dataStack[0].exchangeRate;
+            } else if (window.exchangeRate) {
+                currentExchangeRate = window.exchangeRate;
+            }
+
+            // Cargar el reporte mediante fetch incluyendo la tasa actual
+            const url = `/admin/customers/debt-report?exchange_rate=${currentExchangeRate}&ajax=1`;
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -700,14 +707,10 @@ window.modalManager = function () {
                         // Reiniciar filtros a valores por defecto
                         this.resetDebtReportFilters();
 
-                        // Sincronizar con el valor guardado después de un breve delay
-                        setTimeout(() => {
-                            const savedRate = localStorage.getItem('exchangeRate');
-                            if (savedRate) {
-                                const rate = parseFloat(savedRate);
-                                this.syncAllExchangeRateElements(rate);
-                            }
-                        }, 200);
+                        // Comunicar la tasa actual al contenido del modal recién cargado
+                        if (typeof this.updateModalBsValues === 'function') {
+                            this.updateModalBsValues(currentExchangeRate);
+                        }
                     }
                 })
                 .catch(error => {
@@ -730,18 +733,16 @@ window.modalManager = function () {
         },
 
         initializeDebtReportEvents() {
-            // Obtener el tipo de cambio actual usando la función centralizada
+            // Obtener el tipo de cambio actual desde el widget de Alpine.js (fuente de verdad en la página)
             let currentRate;
-            if (typeof initializeExchangeRate === 'function') {
+            const widgetElement = document.querySelector('[x-data*="exchangeRateWidget"]');
+
+            if (widgetElement && widgetElement._x_dataStack && widgetElement._x_dataStack[0]) {
+                currentRate = widgetElement._x_dataStack[0].exchangeRate;
+            } else if (typeof initializeExchangeRate === 'function') {
                 currentRate = initializeExchangeRate();
             } else {
-                // Fallback: cargar desde localStorage directamente
-                const savedRate = localStorage.getItem('exchangeRate');
-                if (savedRate) {
-                    currentRate = parseFloat(savedRate);
-                } else {
-                    currentRate = document.getElementById('exchangeRate')?.value || 134;
-                }
+                currentRate = window.exchangeRate || 134;
             }
 
             // Establecer el valor inicial en el modal
@@ -918,32 +919,51 @@ window.modalManager = function () {
             const searchFilter = document.getElementById('searchFilter');
             const orderFilter = document.getElementById('orderFilter');
             const debtTypeFilter = document.getElementById('debtTypeFilter');
+            const dateFromFilter = document.getElementById('dateFromFilter');
+            const dateToFilter = document.getElementById('dateToFilter');
             const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
+            // Sistema de filtrado con debounce para evitar múltiples peticiones
+            let filterTimeout;
+            const debouncedApply = () => {
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(() => {
+                    this.applyFilters();
+                }, 400);
+            };
+
             if (searchFilter) {
-                let searchTimeout;
                 searchFilter.addEventListener('input', (e) => {
                     this.saveFilter('search', e.target.value);
-
-                    // Debounce para evitar demasiadas peticiones
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        this.applyFilters();
-                    }, 500); // Esperar 500ms después de que el usuario deje de escribir
+                    debouncedApply();
                 });
             }
 
             if (orderFilter) {
                 orderFilter.addEventListener('change', (e) => {
                     this.saveFilter('order', e.target.value);
-                    this.applyFilters();
+                    debouncedApply();
                 });
             }
 
             if (debtTypeFilter) {
                 debtTypeFilter.addEventListener('change', (e) => {
                     this.saveFilter('debtType', e.target.value);
-                    this.applyFilters();
+                    debouncedApply();
+                });
+            }
+
+            if (dateFromFilter) {
+                dateFromFilter.addEventListener('change', (e) => {
+                    this.saveFilter('dateFrom', e.target.value);
+                    debouncedApply();
+                });
+            }
+
+            if (dateToFilter) {
+                dateToFilter.addEventListener('change', (e) => {
+                    this.saveFilter('dateTo', e.target.value);
+                    debouncedApply();
                 });
             }
 
@@ -974,18 +994,14 @@ window.modalManager = function () {
             const searchFilter = document.getElementById('searchFilter');
             const orderFilter = document.getElementById('orderFilter');
             const debtTypeFilter = document.getElementById('debtTypeFilter');
+            const dateFromFilter = document.getElementById('dateFromFilter');
+            const dateToFilter = document.getElementById('dateToFilter');
 
-            if (searchFilter && filters.search) {
-                searchFilter.value = filters.search;
-            }
-
-            if (orderFilter && filters.order) {
-                orderFilter.value = filters.order;
-            }
-
-            if (debtTypeFilter && filters.debtType) {
-                debtTypeFilter.value = filters.debtType;
-            }
+            if (searchFilter && filters.search) searchFilter.value = filters.search;
+            if (orderFilter && filters.order) orderFilter.value = filters.order;
+            if (debtTypeFilter && filters.debtType) debtTypeFilter.value = filters.debtType;
+            if (dateFromFilter && filters.dateFrom) dateFromFilter.value = filters.dateFrom;
+            if (dateToFilter && filters.dateTo) dateToFilter.value = filters.dateTo;
         },
 
         clearAllFilters() {
@@ -996,10 +1012,14 @@ window.modalManager = function () {
             const searchFilter = document.getElementById('searchFilter');
             const orderFilter = document.getElementById('orderFilter');
             const debtTypeFilter = document.getElementById('debtTypeFilter');
+            const dateFromFilter = document.getElementById('dateFromFilter');
+            const dateToFilter = document.getElementById('dateToFilter');
 
             if (searchFilter) searchFilter.value = '';
             if (orderFilter) orderFilter.value = 'debt_desc';
             if (debtTypeFilter) debtTypeFilter.value = '';
+            if (dateFromFilter) dateFromFilter.value = '';
+            if (dateToFilter) dateToFilter.value = '';
 
             // Recargar datos sin filtros
             this.applyFilters();
@@ -1010,6 +1030,8 @@ window.modalManager = function () {
             const searchTerm = document.getElementById('searchFilter')?.value || '';
             const orderBy = document.getElementById('orderFilter')?.value || 'debt_desc';
             const debtType = document.getElementById('debtTypeFilter')?.value || '';
+            const dateFrom = document.getElementById('dateFromFilter')?.value || '';
+            const dateTo = document.getElementById('dateToFilter')?.value || '';
             const exchangeRate = document.getElementById('modalExchangeRate')?.value || 134;
 
             // Mostrar loading
@@ -1023,6 +1045,8 @@ window.modalManager = function () {
             if (searchTerm) url.searchParams.set('search', searchTerm);
             if (orderBy) url.searchParams.set('order', orderBy);
             if (debtType) url.searchParams.set('debt_type', debtType);
+            if (dateFrom) url.searchParams.set('date_from', dateFrom);
+            if (dateTo) url.searchParams.set('date_to', dateTo);
 
             // Hacer petición AJAX
             fetch(url, {
@@ -1039,15 +1063,28 @@ window.modalManager = function () {
                     return response.text();
                 })
                 .then(html => {
-                    // Actualizar contenido del modal
-                    const modalContent = document.querySelector('#debtReportModal .modal-content');
-                    if (modalContent) {
-                        modalContent.innerHTML = html;
+                    // Crear un DOM temporal para extraer solo las partes necesarias
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
 
-                        // Reinicializar eventos después de actualizar contenido
-                        this.initializeDebtReportEvents();
-                        this.initializeModalFilters();
+                    // Actualizar Resumen de Estadísticas
+                    const newStats = doc.getElementById('debtReportStats');
+                    const currentStats = document.getElementById('debtReportStats');
+                    if (newStats && currentStats) {
+                        currentStats.innerHTML = newStats.innerHTML;
                     }
+
+                    // Actualizar Tabla de Clientes
+                    const newTable = doc.getElementById('debtReportTable');
+                    const currentTable = document.getElementById('debtReportTable');
+                    if (newTable && currentTable) {
+                        currentTable.innerHTML = newTable.innerHTML;
+                    }
+
+                    // Actualizar valores en Bs de las nuevas estadísticas y tabla
+                    this.updateModalBsValues(exchangeRate);
+
+                    // Ocultar loading (ya está implícito al reemplazar el contenido de la tabla)
                 })
                 .catch(error => {
                     // Error al aplicar filtros
@@ -1093,12 +1130,16 @@ window.modalManager = function () {
             const searchTerm = document.getElementById('searchFilter')?.value || '';
             const orderBy = document.getElementById('orderFilter')?.value || 'debt_desc';
             const debtType = document.getElementById('debtTypeFilter')?.value || '';
+            const dateFrom = document.getElementById('dateFromFilter')?.value || '';
+            const dateTo = document.getElementById('dateToFilter')?.value || '';
             const exchangeRate = document.getElementById('modalExchangeRate')?.value || 134;
 
             return {
                 search: searchTerm,
                 order: orderBy,
                 debt_type: debtType,
+                date_from: dateFrom,
+                date_to: dateTo,
                 exchange_rate: exchangeRate
             };
         },
@@ -1107,8 +1148,8 @@ window.modalManager = function () {
             // Obtener filtros actuales
             const filters = this.getCurrentFilters();
 
-            // Construir URL con filtros
-            const url = new URL('/admin/customers/debt-report', window.location.origin);
+            // Construir URL con filtros para la descarga
+            const url = new URL('/admin/customers/debt-report/download', window.location.origin);
 
             // Agregar parámetros de filtros
             Object.keys(filters).forEach(key => {

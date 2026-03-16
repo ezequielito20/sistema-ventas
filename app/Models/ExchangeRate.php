@@ -14,19 +14,19 @@ class ExchangeRate extends Model
     ];
 
     /**
-     * Obtiene la tasa de cambio actual (único registro global).
+     * Obtiene la tasa de cambio actual (último registro).
      */
     public static function current(): float
     {
-        $record = static::first();
+        $record = static::orderBy('id', 'desc')->first();
         return $record ? (float) $record->rate : 134.0;
     }
 
     /**
-     * Obtiene el registro completo actual.
+     * Obtiene el registro completo actual (el más reciente).
      */
     public static function currentRecord(): ?self
     {
-        return static::first();
+        return static::orderBy('id', 'desc')->first();
     }
 }

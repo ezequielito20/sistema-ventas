@@ -1218,7 +1218,7 @@ class CustomerController extends Controller
       $currency = $this->currencies;
 
       // Si hay filtros, generar reporte de deudas filtrado
-      if ($request->has('search') || $request->has('debt_range') || $request->has('exchange_rate')) {
+      if ($request->has('search') || $request->has('debt_range') || $request->has('exchange_rate') || $request->has('date_from') || $request->has('date_to')) {
          return $this->debtReport($request);
       }
 
@@ -1333,86 +1333,118 @@ class CustomerController extends Controller
             $query->where('total_debt', '<=', floatval($request->debt_max));
          }
 
-         // Filtrar por tipo de deuda (morosos vs deuda actual) - optimizado
-         if ($request->filled('debt_type')) {
-            $debtType = $request->debt_type;
-            $customerIds = $query->pluck('id')->toArray();
+         // Obtener información de ventas y pagos en consultas consolidadas para el cálculo FIFO
+         $customerIdsArr = $query->pluck('id')->toArray();
+         $openingDate = $currentCashCount ? $currentCashCount->opening_date : now();
 
-            if (!empty($customerIds)) {
-               // Obtener información de ventas y pagos en consultas consolidadas
-               $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIds)
-                  ->where('company_id', $this->company->id)
-                  ->select('customer_id', 'sale_date', 'total_price')
-                  ->get()
-                  ->groupBy('customer_id');
+         $salesInfo = \App\Models\Sale::whereIn('customer_id', $customerIdsArr)
+            ->where('company_id', $this->company->id)
+            ->select('customer_id', 'sale_date', 'total_price')
+            ->orderBy('sale_date', 'asc')
+            ->get()
+            ->groupBy('customer_id');
 
-               $paymentsInfo = [];
-               if (Schema::hasTable('debt_payments')) {
-                  $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIds)
-                     ->where('company_id', $this->company->id)
-                     ->select('customer_id', 'payment_amount', 'created_at')
-                     ->get()
-                     ->groupBy('customer_id');
-               }
-
-               $defaultersIds = [];
-               $currentDebtorsIds = [];
-
-               foreach ($customerIds as $customerId) {
-                  $customerSales = $salesInfo->get($customerId, collect());
-                  $customerPayments = $paymentsInfo->get($customerId, collect());
-
-                  // Calcular ventas antes del arqueo actual
-                  $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
-
-                  $totalSalesBefore = $salesBeforeCashCount->sum('total_price');
-                  $totalPayments = $customerPayments->sum('payment_amount');
-
-                  // CORRECCIÓN: Calcular deuda anterior considerando TODOS los pagos
-                  $previousDebt = 0;
-                  if ($totalSalesBefore > 0) {
-                     $previousDebt = max(0, $totalSalesBefore - $totalPayments);
-                  }
-
-                  // Determinar si es moroso
-                  $hasOldSales = $salesBeforeCashCount->count() > 0;
-
-                  if ($previousDebt > 0) {
-                     $defaultersIds[] = $customerId;
-                  } else {
-                     $currentDebtorsIds[] = $customerId;
-                  }
-               }
-
-               if ($debtType === 'defaulters') {
-                  // Solo clientes morosos (con deudas de arqueos anteriores)
-                  $query->whereIn('id', $defaultersIds);
-               } elseif ($debtType === 'current') {
-                  // Solo clientes con deuda del arqueo actual
-                  $query->whereIn('id', $currentDebtorsIds);
-               }
-            }
-         }
-
-         // Aplicar ordenamiento según el parámetro order
-         $order = $request->get('order', 'debt_desc'); // Por defecto ordenar por deuda descendente
-         switch ($order) {
-            case 'name_asc':
-               $query->orderBy('name', 'asc');
-               break;
-            case 'name_desc':
-               $query->orderBy('name', 'desc');
-               break;
-            case 'debt_asc':
-               $query->orderBy('total_debt', 'asc');
-               break;
-            case 'debt_desc':
-            default:
-               $query->orderBy('total_debt', 'desc');
-               break;
+         $paymentsInfo = [];
+         if (Schema::hasTable('debt_payments')) {
+            $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIdsArr)
+               ->where('company_id', $this->company->id)
+               ->select('customer_id', 'payment_amount', 'created_at')
+               ->get()
+               ->groupBy('customer_id');
          }
 
          $customers = $query->get();
+         $filteredCustomers = collect();
+         $customersData = [];
+         $debtType = $request->get('debt_type', '');
+         $dateFrom = $request->get('date_from', '');
+         $dateTo = $request->get('date_to', '');
+
+         foreach ($customers as $customer) {
+            $customerSales = $salesInfo->get($customer->id, collect());
+            $customerPayments = $paymentsInfo->get($customer->id, collect());
+
+            $totalPayments = $customerPayments->sum('payment_amount');
+            $salesBefore = $customerSales->where('sale_date', '<', $openingDate);
+            $totalSalesBefore = $salesBefore->sum('total_price');
+            $previousDebt = max(0, $totalSalesBefore - $totalPayments);
+            $isDefaulter = $previousDebt > 0;
+
+            // Cálculo FIFO para "Debe desde"
+            $debtSinceDate = null;
+            $remainingPayments = (float) $totalPayments;
+
+            foreach ($customerSales->sortBy('sale_date') as $sale) {
+               $saleTotal = (float) $sale->total_price;
+               if (round($remainingPayments, 2) >= round($saleTotal, 2)) {
+                  $remainingPayments -= $saleTotal;
+               } else {
+                  $debtSinceDate = $sale->sale_date;
+                  break;
+               }
+            }
+
+            $customersData[$customer->id] = ['debt_since_date' => $debtSinceDate];
+
+            // Aplicar Filtros
+            $shouldInclude = true;
+            if ($debtType === 'defaulters' && !$isDefaulter) {
+               $shouldInclude = false;
+            } elseif ($debtType === 'current' && $isDefaulter) {
+               $shouldInclude = false;
+            }
+
+            // Normalizar fechas para comparación
+            if ($shouldInclude && ($dateFrom || $dateTo)) {
+               if (!$debtSinceDate) {
+                  $shouldInclude = false;
+               } else {
+                  $debtDate = \Carbon\Carbon::parse($debtSinceDate)->startOfDay();
+
+                  if ($dateFrom) {
+                     $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+                     if ($debtDate->lt($from)) {
+                        $shouldInclude = false;
+                     }
+                  }
+
+                  if ($shouldInclude && $dateTo) {
+                     $to = \Carbon\Carbon::parse($dateTo)->startOfDay();
+                     if ($debtDate->gt($to)) {
+                        $shouldInclude = false;
+                     }
+                  }
+               }
+            }
+
+            if ($shouldInclude) {
+               $filteredCustomers->push($customer);
+            }
+         }
+
+         $customers = $filteredCustomers;
+
+         // Aplicar ordenamiento final sobre la colección filtrada
+         $order = $request->get('order', 'debt_desc');
+         if ($order === 'debt_date_asc') {
+            $customers = $customers->sortBy(function ($customer) use ($customersData) {
+               $date = $customersData[$customer->id]['debt_since_date'];
+               return $date ? \Carbon\Carbon::parse($date)->timestamp : PHP_INT_MAX;
+            })->values();
+         } elseif ($order === 'debt_date_desc') {
+            $customers = $customers->sortByDesc(function ($customer) use ($customersData) {
+               $date = $customersData[$customer->id]['debt_since_date'];
+               return $date ? \Carbon\Carbon::parse($date)->timestamp : 0;
+            })->values();
+         } elseif ($order === 'debt_asc') {
+            $customers = $customers->sortBy('total_debt')->values();
+         } elseif ($order === 'name_asc') {
+            $customers = $customers->sortBy('name')->values();
+         } elseif ($order === 'name_desc') {
+            $customers = $customers->sortByDesc('name')->values();
+         } else { // debt_desc es el default
+            $customers = $customers->sortByDesc('total_debt')->values();
+         }
 
          $company = $this->company;
          $currency = $this->currencies;
@@ -1537,42 +1569,31 @@ class CustomerController extends Controller
          // Procesar estadísticas optimizadas y aplicar filtro de tipo de deuda
          foreach ($customers as $customer) {
             // Usar la misma función que en el método index para consistencia
-            $previousDebt = $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
+            $previousDebt = (float) $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
             $isDefaulter = $previousDebt > 0;
 
-            // Calcular la fecha "Debe desde" usando lógica FIFO
-            $debtSinceDate = null;
+            // Obtener todas las ventas del cliente ordenadas por fecha (FIFO) desde la colección pre-cargada
+            $customerSales = isset($salesInfo[$customer->id])
+               ? $salesInfo[$customer->id]->sortBy('sale_date')
+               : collect();
 
-            // Obtener todas las ventas del cliente ordenadas por fecha (FIFO)
-            $customerSales = \App\Models\Sale::where('customer_id', $customer->id)
-               ->where('company_id', $this->company->id)
-               ->orderBy('sale_date', 'asc')
-               ->select('id', 'sale_date', 'total_price')
-               ->get();
-
-            // Obtener total de pagos del cliente
+            // Obtener total de pagos del cliente desde la colección pre-cargada
             $totalPayments = 0;
-            if (Schema::hasTable('debt_payments')) {
-               $totalPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
-                  ->where('company_id', $this->company->id)
-                  ->sum('payment_amount');
+            if (isset($paymentsInfo[$customer->id])) {
+               $totalPayments = $paymentsInfo[$customer->id]->sum('payment_amount');
             }
 
             // Aplicar lógica FIFO para encontrar la primera venta con deuda pendiente
+            $debtSinceDate = null;
             $remainingPayments = (float) $totalPayments;
 
             foreach ($customerSales as $sale) {
                $saleTotal = (float) $sale->total_price;
 
                // Usar round para evitar problemas de precisión de punto flotante
-               $remainingRounded = round($remainingPayments, 2);
-               $saleTotalRounded = round($saleTotal, 2);
-
-               if ($remainingRounded >= $saleTotalRounded) {
-                  // Esta venta está completamente pagada
+               if (round($remainingPayments, 2) >= round($saleTotal, 2)) {
                   $remainingPayments -= $saleTotal;
                } else {
-                  // Esta venta tiene saldo pendiente, es la fecha "Debe desde"
                   $debtSinceDate = $sale->sale_date;
                   break;
                }
@@ -1583,17 +1604,42 @@ class CustomerController extends Controller
                'isDefaulter' => $isDefaulter,
                'previousDebt' => $previousDebt,
                'hasOldSales' => $previousDebt > 0,
-               'debt_since_date' => $debtSinceDate
+               'debt_since_date' => $debtSinceDate ? \Carbon\Carbon::parse($debtSinceDate)->format('Y-m-d H:i:s') : null
             ];
 
-            // Aplicar filtro por tipo de deuda
+            // Aplicar filtros de tipo y fecha
             $debtType = $request->get('debt_type', '');
+            $dateFrom = $request->get('date_from', '');
+            $dateTo = $request->get('date_to', '');
             $shouldInclude = true;
 
             if ($debtType === 'defaulters' && !$isDefaulter) {
                $shouldInclude = false;
             } elseif ($debtType === 'current' && $isDefaulter) {
                $shouldInclude = false;
+            }
+
+            // Normalizar fechas para comparación
+            if ($shouldInclude && ($dateFrom || $dateTo)) {
+               if (!$debtSinceDate) {
+                  $shouldInclude = false;
+               } else {
+                  $debtDate = \Carbon\Carbon::parse($debtSinceDate)->startOfDay();
+
+                  if ($dateFrom) {
+                     $from = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+                     if ($debtDate->lt($from)) {
+                        $shouldInclude = false;
+                     }
+                  }
+
+                  if ($shouldInclude && $dateTo) {
+                     $to = \Carbon\Carbon::parse($dateTo)->startOfDay();
+                     if ($debtDate->gt($to)) {
+                        $shouldInclude = false;
+                     }
+                  }
+               }
             }
 
             if ($shouldInclude) {
@@ -1604,19 +1650,25 @@ class CustomerController extends Controller
          // Usar los clientes filtrados para las estadísticas
          $customers = $filteredCustomers;
 
-         // Aplicar ordenamiento por fecha de deuda si corresponde
+         // Aplicar ordenamiento final sobre la colección filtrada
          if ($order === 'debt_date_asc') {
-            // Ordenar por fecha más antigua primero (deudas más antiguas primero)
             $customers = $customers->sortBy(function ($customer) use ($customersData) {
                $date = $customersData[$customer->id]['debt_since_date'];
                return $date ? \Carbon\Carbon::parse($date)->timestamp : PHP_INT_MAX;
             })->values();
          } elseif ($order === 'debt_date_desc') {
-            // Ordenar por fecha más reciente primero (deudas más recientes primero)
             $customers = $customers->sortByDesc(function ($customer) use ($customersData) {
                $date = $customersData[$customer->id]['debt_since_date'];
                return $date ? \Carbon\Carbon::parse($date)->timestamp : 0;
             })->values();
+         } elseif ($order === 'debt_asc') {
+            $customers = $customers->sortBy('total_debt')->values();
+         } elseif ($order === 'name_asc') {
+            $customers = $customers->sortBy('name')->values();
+         } elseif ($order === 'name_desc') {
+            $customers = $customers->sortByDesc('name')->values();
+         } else { // debt_desc es el default
+            $customers = $customers->sortByDesc('total_debt')->values();
          }
 
 

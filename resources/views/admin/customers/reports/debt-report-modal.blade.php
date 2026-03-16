@@ -66,63 +66,79 @@
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div
-        class="bg-gradient-to-br from-orange-50/90 via-amber-50/75 to-yellow-50/90 rounded-xl shadow-sm border border-orange-200/60 p-4 mb-6 backdrop-blur-sm">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Búsqueda -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-700 flex items-center">
-                    <i class="fas fa-search mr-1"></i>Buscar cliente
+    <!-- Filtros Profesionales con Flexbox para máxima compatibilidad de fila única -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 transition-all duration-300">
+        <div class="flex flex-wrap gap-3 items-end">
+            <!-- Búsqueda (Un poco más ancho) -->
+            <div class="flex-[1.5] min-w-[200px] space-y-1">
+                <label class="text-xs font-semibold text-gray-600 flex items-center ml-1">
+                    <i class="fas fa-search mr-1.5 text-blue-500"></i>Buscar
                 </label>
                 <input type="text" id="searchFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nombre, teléfono, email...">
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Cliente...">
             </div>
 
-            <!-- Ordenar por -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-700 flex items-center">
-                    <i class="fas fa-sort mr-1"></i>Ordenar por
+            <!-- Orden -->
+            <div class="flex-1 min-w-[150px] space-y-1">
+                <label class="text-xs font-semibold text-gray-600 flex items-center ml-1">
+                    <i class="fas fa-sort-amount-down mr-1.5 text-blue-500"></i>Vistas
                 </label>
                 <select id="orderFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="debt_desc" selected>Deuda (Mayor a menor)</option>
-                    <option value="debt_asc">Deuda (Menor a mayor)</option>
-                    <option value="debt_date_asc">Debe desde (Más antigua)</option>
-                    <option value="debt_date_desc">Debe desde (Más reciente)</option>
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                    <option value="debt_desc" selected>Deuda Mayor</option>
+                    <option value="debt_asc">Deuda Menor</option>
+                    <option value="debt_date_asc">Más antiguos</option>
+                    <option value="debt_date_desc">Más recientes</option>
                     <option value="name_asc">Nombre (A-Z)</option>
                     <option value="name_desc">Nombre (Z-A)</option>
                 </select>
             </div>
 
-            <!-- Tipo de deuda -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-700 flex items-center">
-                    <i class="fas fa-user-clock mr-1"></i>Tipo de deuda
+            <!-- Tipo -->
+            <div class="flex-1 min-w-[130px] space-y-1">
+                <label class="text-xs font-semibold text-gray-600 flex items-center ml-1">
+                    <i class="fas fa-filter mr-1.5 text-blue-500"></i>Estado
                 </label>
                 <select id="debtTypeFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Todos los clientes</option>
-                    <option value="defaulters">Solo morosos</option>
-                    <option value="current">Solo deuda actual</option>
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                    <option value="">Todos</option>
+                    <option value="defaulters">Morosos</option>
+                    <option value="current">Al día</option>
                 </select>
             </div>
 
-            <!-- Limpiar -->
-            <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-700">&nbsp;</label>
+            <!-- Desde -->
+            <div class="flex-1 min-w-[140px] space-y-1">
+                <label class="text-xs font-semibold text-gray-600 flex items-center ml-1">
+                    <i class="fas fa-calendar mr-1.5 text-orange-500"></i>Desde
+                </label>
+                <input type="date" id="dateFromFilter"
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
+            </div>
+
+            <!-- Hasta -->
+            <div class="flex-1 min-w-[140px] space-y-1">
+                <label class="text-xs font-semibold text-gray-600 flex items-center ml-1">
+                    <i class="fas fa-calendar mr-1.5 text-indigo-500"></i>Hasta
+                </label>
+                <input type="date" id="dateToFilter"
+                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200">
+            </div>
+
+            <!-- Botón Limpiar -->
+            <div class="min-w-[100px]">
                 <button type="button" id="clearFiltersBtn"
-                    class="w-full px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-200"
-                    title="Limpiar filtros">
-                    <i class="fas fa-broom mr-1"></i>Limpiar
+                    class="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center group active:scale-95 border border-gray-200">
+                    <i class="fas fa-trash-alt lg:mr-0 xl:mr-2 group-hover:text-red-500 transition-colors"></i>
+                    <span class="sm:inline lg:hidden xl:inline">Limpiar</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Resumen de Estadísticas -->
-    <div
+    <div id="debtReportStats"
         class="bg-gradient-to-br from-purple-50/95 via-pink-50/80 to-rose-50/95 rounded-xl shadow-sm border border-purple-200/70 p-6 mb-6 backdrop-blur-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <!-- Total Clientes -->
@@ -191,7 +207,7 @@
     </div>
 
     <!-- Tabla de Clientes -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div id="debtReportTable" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">

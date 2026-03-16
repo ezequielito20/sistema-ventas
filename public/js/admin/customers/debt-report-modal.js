@@ -1,7 +1,7 @@
 // ===== CONFIGURACIÓN GLOBAL =====
 const DEBT_REPORT_MODAL_CONFIG = {
     routes: {
-        pdf: '/admin/customers/report',
+        pdf: '/admin/customers/debt-report/download',
         updateExchangeRate: '/admin/exchange-rate/update'
     },
     exchangeRate: {
@@ -11,7 +11,9 @@ const DEBT_REPORT_MODAL_CONFIG = {
     filters: {
         search: '',
         order: 'debt_desc',
-        debtType: ''
+        debt_type: '',
+        date_from: '',
+        date_to: ''
     }
 };
 
@@ -134,10 +136,12 @@ function initializeFilters() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    const dateToFilter = document.getElementById('dateToFilter');
     const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
     if (searchFilter) {
-        searchFilter.addEventListener('input', debounce(applyFilters, 300));
+        searchFilter.addEventListener('input', debounce(applyFilters, 400));
     }
 
     if (orderFilter) {
@@ -148,102 +152,100 @@ function initializeFilters() {
         debtTypeFilter.addEventListener('change', applyFilters);
     }
 
+    if (dateFromFilter) {
+        dateFromFilter.addEventListener('change', applyFilters);
+    }
+
+    if (dateToFilter) {
+        dateToFilter.addEventListener('change', applyFilters);
+    }
+
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', clearAllFilters);
     }
 }
 
-// Función para aplicar filtros
-function applyFilters() {
-    const searchFilter = document.getElementById('searchFilter');
-    const orderFilter = document.getElementById('orderFilter');
-    const debtTypeFilter = document.getElementById('debtTypeFilter');
+// Función para aplicar filtros (Ahora es Server-Side para actualizar estadísticas)
+async function applyFilters() {
+    const filters = getCurrentFilters();
 
-    if (!searchFilter || !orderFilter || !debtTypeFilter) return;
-
-    // Obtener valores de los filtros
-    const filters = {
-        search: searchFilter.value.toLowerCase(),
-        order: orderFilter.value,
-        debtType: debtTypeFilter.value
-    };
-
-    // Guardar filtros
+    // Guardar filtros en memoria local
     saveFilters(filters);
 
-    // Aplicar filtros a la tabla
-    filterTable(filters);
-}
+    // Obtener contenedor de la tabla y stats
+    const modalBody = document.querySelector('#debtReportModal .p-6.max-h-\\[80vh\\]');
+    if (!modalBody) {
+        console.error('No se encontró el cuerpo del modal con el selector #debtReportModal .p-6.max-h-\\[80vh\\]');
+        return;
+    }
 
-// Función para filtrar la tabla
-function filterTable(filters) {
-    const tableBody = document.querySelector('.table tbody');
-    if (!tableBody) return;
+    // Obtener tasa de cambio actual para no perderla
+    const exchangeRateInput = document.getElementById('modalExchangeRate');
+    const exchangeRate = exchangeRateInput ? exchangeRateInput.value : (window.debtReportModalData?.exchangeRate || 134);
 
-    const rows = tableBody.querySelectorAll('tr');
+    // Mostrar un sutil indicador de carga sobre la tabla
+    const tableContainer = modalBody.querySelector('.bg-white.rounded-xl.shadow-sm');
+    if (tableContainer) {
+        tableContainer.style.opacity = '0.5';
+        tableContainer.style.pointerEvents = 'none';
+    }
 
-    rows.forEach(row => {
-        let showRow = true;
+    try {
+        // Construir URL con filtros
+        const url = new URL('/admin/customers/debt-report', window.location.origin);
+        url.searchParams.set('ajax', '1');
+        url.searchParams.set('exchange_rate', exchangeRate);
 
-        // Filtro de búsqueda
-        if (filters.search) {
-            const customerName = row.querySelector('td:nth-child(2)')?.textContent?.toLowerCase() || '';
-            const customerPhone = row.querySelector('td:nth-child(3)')?.textContent?.toLowerCase() || '';
+        if (filters.search) url.searchParams.set('search', filters.search);
+        if (filters.order) url.searchParams.set('order', filters.order);
+        if (filters.debt_type) url.searchParams.set('debt_type', filters.debt_type);
+        if (filters.date_from) url.searchParams.set('date_from', filters.date_from);
+        if (filters.date_to) url.searchParams.set('date_to', filters.date_to);
 
-            if (!customerName.includes(filters.search) && !customerPhone.includes(filters.search)) {
-                showRow = false;
+        const response = await fetch(url.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
             }
-        }
+        });
 
-        // Filtro de tipo de deuda
-        if (filters.debtType) {
-            const badge = row.querySelector('.badge');
-            if (badge) {
-                const isDefaulter = badge.classList.contains('moroso');
+        if (response.ok) {
+            const html = await response.text();
 
-                if (filters.debtType === 'defaulters' && !isDefaulter) {
-                    showRow = false;
-                } else if (filters.debtType === 'current' && isDefaulter) {
-                    showRow = false;
+            // Extraer el contenido del body del modal
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newStats = doc.getElementById('debtReportStats');
+            const newTable = doc.getElementById('debtReportTable');
+
+            if (newStats && newTable) {
+                const currentStats = document.getElementById('debtReportStats');
+                const currentTable = document.getElementById('debtReportTable');
+
+                if (currentStats) currentStats.innerHTML = newStats.innerHTML;
+                if (currentTable) {
+                    currentTable.innerHTML = newTable.innerHTML;
+                    currentTable.style.opacity = '1';
+                    currentTable.style.pointerEvents = 'auto';
                 }
+
+                // Re-inicializar valores Bs con la tasa actual
+                updateBsValues(parseFloat(exchangeRate));
             }
         }
-
-        // Mostrar/ocultar fila
-        row.style.display = showRow ? '' : 'none';
-    });
-
-    // Aplicar ordenamiento
-    sortTable(filters.order);
-}
-
-// Función para ordenar la tabla
-function sortTable(orderBy) {
-    const tableBody = document.querySelector('.table tbody');
-    if (!tableBody) return;
-
-    const rows = Array.from(tableBody.querySelectorAll('tr'));
-
-    rows.sort((a, b) => {
-        switch (orderBy) {
-            case 'debt_desc':
-                return getDebtValue(b) - getDebtValue(a);
-            case 'debt_asc':
-                return getDebtValue(a) - getDebtValue(b);
-            case 'name_asc':
-                return getCustomerName(a).localeCompare(getCustomerName(b));
-            case 'name_desc':
-                return getCustomerName(b).localeCompare(getCustomerName(a));
-            default:
-                return 0;
+    } catch (error) {
+        console.error('Error filtrando:', error);
+        if (tableContainer) {
+            tableContainer.style.opacity = '1';
+            tableContainer.style.pointerEvents = 'auto';
         }
-    });
-
-    // Reordenar filas en la tabla
-    rows.forEach(row => {
-        tableBody.appendChild(row);
-    });
+    }
 }
+
+// Las funciones filterTable y sortTable ahora se manejan en el servidor
+function filterTable(filters) { }
+function sortTable(orderBy) { }
 
 // Función auxiliar para obtener el valor de deuda
 function getDebtValue(row) {
@@ -288,11 +290,15 @@ function resetFiltersToDefault() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    const dateToFilter = document.getElementById('dateToFilter');
 
     // Establecer valores por defecto
     if (searchFilter) searchFilter.value = '';
     if (orderFilter) orderFilter.value = 'debt_desc';
     if (debtTypeFilter) debtTypeFilter.value = '';
+    if (dateFromFilter) dateFromFilter.value = '';
+    if (dateToFilter) dateToFilter.value = '';
 
     // Limpiar filtros guardados en localStorage
     localStorage.removeItem('debtReportFilters');
@@ -356,11 +362,15 @@ function getCurrentFilters() {
     const searchFilter = document.getElementById('searchFilter');
     const orderFilter = document.getElementById('orderFilter');
     const debtTypeFilter = document.getElementById('debtTypeFilter');
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    const dateToFilter = document.getElementById('dateToFilter');
 
     return {
         search: searchFilter?.value || '',
         order: orderFilter?.value || 'debt_desc',
-        debtType: debtTypeFilter?.value || ''
+        debt_type: debtTypeFilter?.value || '',
+        date_from: dateFromFilter?.value || '',
+        date_to: dateToFilter?.value || ''
     };
 }
 
