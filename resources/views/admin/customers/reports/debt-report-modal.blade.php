@@ -17,7 +17,7 @@
 </div>
 
 <!-- Body del Modal -->
-<div class="p-6 max-h-[80vh] overflow-y-auto">
+<div class="p-6 max-h-[80vh] overflow-y-auto" x-data="{ showFilters: false }">
     <!-- Información de la Empresa y Tipo de Cambio -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Información de la Empresa -->
@@ -49,17 +49,23 @@
                         step="0.01" min="0.01" value="{{ $exchangeRate }}">
                 </div>
                 <div class="flex items-center space-x-2">
+                    <!-- Botón Filtros: Tamaño Original y Mejor Visibilidad -->
+                    <button type="button" @click="showFilters = !showFilters"
+                        class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center shadow-sm active:scale-95"
+                        :class="showFilters ? 'bg-indigo-800 ring-2 ring-indigo-300' : ''">
+                        <i class="fas fa-filter mr-1.5"></i>
+                        <span class="hidden md:inline">Filtros</span>
+                    </button>
+
                     <button
                         class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors duration-200"
                         id="updateModalExchangeRate" title="Actualizar tipo de cambio">
                         <i class="fas fa-sync-alt mr-1"></i>
-                        <span class="hidden md:inline">Actualizar</span>
                     </button>
                     <button type="button" id="downloadPdfBtn"
                         class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors duration-200"
                         title="Ver PDF de deudores">
                         <i class="fas fa-file-pdf mr-1"></i>
-                        <span class="hidden md:inline">PDF</span>
                     </button>
                 </div>
             </div>
@@ -67,7 +73,12 @@
     </div>
 
     <!-- Filtros Profesionales con Flexbox para máxima compatibilidad de fila única -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 transition-all duration-300">
+    <div x-show="showFilters" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-4"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 transition-all duration-300"
+        style="display: none;">
         <div class="flex flex-wrap gap-3 items-end">
             <!-- Búsqueda (Un poco más ancho) -->
             <div class="flex-[1.5] min-w-[200px] space-y-1">
