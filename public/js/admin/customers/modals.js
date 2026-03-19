@@ -101,12 +101,12 @@ window.modalManager = function () {
                         // Usar datos de ventas del endpoint correcto
                         if (salesData.success) {
                             window.customerSalesData = salesData.sales || [];
+                            // Cargar historial de ventas (usando el HTML del servidor si está disponible)
+                            this.loadSalesHistory(salesData.html);
                         } else {
                             window.customerSalesData = [];
+                            this.loadSalesHistory();
                         }
-
-                        // Cargar historial de ventas
-                        this.loadSalesHistory();
 
                         // Inicializar filtros
                         this.initializeCustomerDetailsFilters();
@@ -196,70 +196,55 @@ window.modalManager = function () {
                 });
         },
 
-        loadSalesHistory() {
-            if (!window.customerSalesData) return;
-
+        loadSalesHistory(serverHtml = null) {
             const tableBody = document.getElementById('salesHistoryTable');
             const salesCountElement = document.getElementById('salesCount');
 
-            if (tableBody && salesCountElement) {
-                if (window.customerSalesData.length === 0) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="px-4 py-12 text-center">
-                                <div class="flex flex-col items-center space-y-3">
-                                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-info-circle text-2xl text-gray-400"></i>
-                                    </div>
-                                    <p class="text-gray-500">No hay ventas registradas</p>
+            if (!tableBody || !salesCountElement) return;
+
+            // Priorizar el HTML renderizado por el servidor si se proporciona
+            if (serverHtml) {
+                tableBody.innerHTML = serverHtml;
+                salesCountElement.textContent = window.customerSalesData ? window.customerSalesData.length : '0';
+                return;
+            }
+
+            if (!window.customerSalesData || window.customerSalesData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-4 py-12 text-center text-gray-400">
+                             <div class="flex flex-col items-center space-y-3">
+                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-info-circle text-2xl"></i>
                                 </div>
-                            </td>
+                                <p>No hay ventas registradas</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                salesCountElement.textContent = '0';
+            } else {
+                const rows = window.customerSalesData.map(sale => {
+                    const isPaid = sale.is_paid || false;
+                    const remainingDebt = sale.remaining_debt || 0;
+                    const currencySymbol = typeof this.currencySymbol !== 'undefined' ? this.currencySymbol : '$';
+
+                    const statusBadge = isPaid
+                        ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-100"><i class="fas fa-check-circle mr-1"></i>Pagado</span>`
+                        : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 border border-red-100"><i class="fas fa-clock mr-1"></i>$${remainingDebt.toFixed(2)}</span>`;
+
+                    return `
+                        <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors">
+                            <td class="px-4 py-3 text-sm text-gray-900 font-medium">${sale.date}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600 products-cell">${sale.products}</td>
+                            <td class="px-4 py-3 text-sm text-right font-bold text-gray-900">${currencySymbol} ${parseFloat(sale.total).toFixed(2)}</td>
+                            <td class="px-4 py-3 text-center">${statusBadge}</td>
                         </tr>
                     `;
-                    salesCountElement.textContent = '0';
-                } else {
-                    const rows = window.customerSalesData.map(sale => {
-                        // Usar directamente los datos del backend
-                        const date = sale.date || 'Fecha no disponible';
-                        const products = sale.products || 'Sin productos';
-                        const total = sale.total || 0;
-                        const isPaid = sale.is_paid || false;
-                        const remainingDebt = sale.remaining_debt || 0;
+                }).join('');
 
-                        // Crear badge de estado de pago
-                        const statusBadge = isPaid
-                            ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                Pagado
-                               </span>`
-                            : `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-                                <i class="fas fa-exclamation-circle mr-1"></i>
-                                Pendiente: $${remainingDebt.toFixed(2)}
-                               </span>`;
-
-                        const rowHtml = `
-                            <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
-                                    ${date}
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-600 border-b border-gray-100 products-cell">
-                                    ${products}
-                                </td>
-                                <td class="px-4 py-3 text-sm font-semibold text-green-600 border-b border-gray-100">
-                                    $ ${parseFloat(total).toFixed(2)}
-                                </td>
-                                <td class="px-4 py-3 text-sm border-b border-gray-100">
-                                    ${statusBadge}
-                                </td>
-                            </tr>
-                        `;
-
-                        return rowHtml;
-                    }).join('');
-
-                    tableBody.innerHTML = rows;
-                    salesCountElement.textContent = window.customerSalesData.length;
-                }
+                tableBody.innerHTML = rows;
+                salesCountElement.textContent = window.customerSalesData.length;
             }
         },
 

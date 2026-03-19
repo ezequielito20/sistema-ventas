@@ -652,38 +652,10 @@ function dataTable() {
         },
 
         updateTableWithSearchResults(html, searchTerm) {
-            // Crear un elemento temporal para parsear el HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            // Extraer la nueva tabla
-            const newTableBody = tempDiv.querySelector('#customersTableBody');
-            const newCardsContainer = tempDiv.querySelector('#mobileCustomersContainer');
-            const newMobileContainer = tempDiv.querySelector('#mobileOnlyContainer');
-            const newPagination = tempDiv.querySelector('.custom-pagination');
-
-            // Actualizar la tabla
-            const currentTableBody = document.getElementById('customersTableBody');
-            if (newTableBody && currentTableBody) {
-                currentTableBody.innerHTML = newTableBody.innerHTML;
-            }
-
-            // Actualizar las tarjetas
-            const currentCardsContainer = document.getElementById('mobileCustomersContainer');
-            if (newCardsContainer && currentCardsContainer) {
-                currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
-            }
-
-            // Actualizar vista móvil
-            const currentMobileContainer = document.getElementById('mobileOnlyContainer');
-            if (newMobileContainer && currentMobileContainer) {
-                currentMobileContainer.innerHTML = newMobileContainer.innerHTML;
-            }
-
-            // Actualizar paginación
-            const currentPagination = document.querySelector('.custom-pagination');
-            if (newPagination && currentPagination) {
-                currentPagination.innerHTML = newPagination.innerHTML;
+            // Actualizar el contenedor dinámico de resultados
+            const container = document.getElementById('customers-list-container');
+            if (container) {
+                container.innerHTML = html;
             }
 
             // Actualizar contador de resultados
@@ -694,11 +666,8 @@ function dataTable() {
             this.showNoResultsMessage(totalVisible === 0 && searchTerm !== '');
 
             // Actualizar URL sin recargar la página
-            if (searchTerm) {
-                window.history.pushState({}, '', `?search=${encodeURIComponent(searchTerm)}`);
-            } else {
-                window.history.pushState({}, '', window.location.pathname);
-            }
+            const url = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : window.location.pathname;
+            window.history.pushState({}, '', url);
         },
 
 
@@ -1969,48 +1938,17 @@ class SPAPaymentHandler {
             const data = await response.json();
 
             if (data.success) {
-                this.updateSalesHistoryTable(data.sales);
+                const tbody = document.getElementById('salesHistoryTable');
+                if (tbody) {
+                    tbody.innerHTML = data.html;
+                }
+                const salesCount = document.getElementById('salesCount');
+                if (salesCount) {
+                    salesCount.textContent = data.count || 0;
+                }
             }
         } catch (error) {
-            // Error loading customer history
-        }
-    }
-
-    updateSalesHistoryTable(sales) {
-        const tbody = document.getElementById('salesHistoryTable');
-        if (!tbody) return;
-
-        if (sales.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="px-4 py-12 text-center">
-                        <div class="flex flex-col items-center space-y-3">
-                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-info-circle text-2xl text-gray-400"></i>
-                            </div>
-                            <p class="text-gray-500">No hay ventas registradas</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        } else {
-            tbody.innerHTML = sales.map(sale => {
-                // Asegurar que el HTML se procese correctamente
-                const productsHtml = sale.products || 'Sin productos';
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900">${sale.date}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600 products-cell">${productsHtml}</td>
-                        <td class="px-4 py-3 text-sm font-semibold text-green-600">${this.currencySymbol} ${parseFloat(sale.total).toFixed(2)}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Actualizar contador
-        const salesCount = document.getElementById('salesCount');
-        if (salesCount) {
-            salesCount.textContent = sales.length;
+            console.error('Error loading customer history:', error);
         }
     }
 

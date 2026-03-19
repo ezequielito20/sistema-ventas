@@ -9,7 +9,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -141,9 +140,6 @@ class CustomerController extends Controller
    public function index(Request $request)
    {
       try {
-         // Verificar si existe la tabla debt_payments una sola vez para evitar consultas repetidas
-         $hasDebtPaymentsTable = Schema::hasTable('debt_payments');
-
          // Obtener el arqueo de caja actual una sola vez para evitar N+1 queries
          $currentCashCount = \App\Models\CashCount::where('company_id', $this->company->id)
             ->whereNull('closing_date')
@@ -251,77 +247,48 @@ class CustomerController extends Controller
             ->where('company_id', $this->company->id)
             ->sum('total_price');
 
-         // Calcular estadísticas de deudas para TODOS los clientes (no solo los paginados)
-         $allCustomerIds = Customer::where('company_id', $this->company->id)->pluck('id')->toArray();
-
-         // Calcular clientes morosos totales
-         $defaultersCount = 0;
-         $currentDebtorsCount = 0;
-         $previousCashCountDebtTotal = 0;
-         $currentCashCountDebtTotal = 0;
-
-         if (!empty($allCustomerIds)) {
-            // Consulta de ventas para todos los clientes
-            $allSalesData = DB::table('sales')
-               ->whereIn('customer_id', $allCustomerIds)
-               ->where('company_id', $this->company->id)
-               ->selectRaw('
-                  customer_id,
-                  SUM(CASE WHEN sale_date < ? THEN total_price ELSE 0 END) as sales_before,
-                  SUM(CASE WHEN sale_date >= ? THEN total_price ELSE 0 END) as sales_after,
-                  COUNT(CASE WHEN sale_date < ? THEN 1 END) as sales_before_count
-               ', [$openingDate, $openingDate, $openingDate])
-               ->groupBy('customer_id')
-               ->get()
-               ->keyBy('customer_id');
-
-            // Consulta de pagos para todos los clientes
-            $allPaymentsData = [];
-            if ($hasDebtPaymentsTable) {
-               $allPaymentsData = DB::table('debt_payments')
-                  ->whereIn('customer_id', $allCustomerIds)
+         // Calcular estadísticas de deudas para TODOS los clientes mediante una única consulta SQL avanzada optimizada
+         $globalStats = DB::table('customers as c')
+            ->leftJoinSub(
+               DB::table('sales')
+                  ->where('company_id', $this->company->id)
+                  ->selectRaw(
+                     'customer_id, 
+                     SUM(CASE WHEN sale_date < ? THEN total_price ELSE 0 END) as sales_before,
+                     SUM(CASE WHEN sale_date >= ? THEN total_price ELSE 0 END) as sales_after',
+                     [$openingDate, $openingDate]
+                  )
+                  ->groupBy('customer_id'),
+               's',
+               'c.id',
+               '=',
+               's.customer_id'
+            )
+            ->leftJoinSub(
+               DB::table('debt_payments')
                   ->where('company_id', $this->company->id)
                   ->selectRaw('customer_id, SUM(payment_amount) as total_payments')
-                  ->groupBy('customer_id')
-                  ->get()
-                  ->keyBy('customer_id');
-            }
+                  ->groupBy('customer_id'),
+               'p',
+               'c.id',
+               '=',
+               'p.customer_id'
+            )
+            ->where('c.company_id', $this->company->id)
+            ->selectRaw('
+               COUNT(CASE WHEN (COALESCE(s.sales_before, 0) - COALESCE(p.total_payments, 0)) > 0 THEN 1 END) as defaulters_count,
+               SUM(CASE WHEN (COALESCE(s.sales_before, 0) - COALESCE(p.total_payments, 0)) > 0 
+                  THEN (COALESCE(s.sales_before, 0) - COALESCE(p.total_payments, 0)) ELSE 0 END) as previous_total_debt,
+               COUNT(CASE WHEN c.total_debt > 0 AND (COALESCE(s.sales_before, 0) - COALESCE(p.total_payments, 0)) <= 0 THEN 1 END) as current_debtors_count,
+               SUM(CASE WHEN c.total_debt > 0 AND (COALESCE(s.sales_before, 0) - COALESCE(p.total_payments, 0)) <= 0 
+                  THEN COALESCE(s.sales_after, 0) ELSE 0 END) as current_total_debt
+            ')
+            ->first();
 
-            // Obtener datos de clientes en una sola consulta para evitar N+1
-            $allCustomersData = DB::table('customers')
-               ->whereIn('id', $allCustomerIds)
-               ->where('company_id', $this->company->id)
-               ->select('id', 'total_debt')
-               ->get()
-               ->keyBy('id');
-
-            // Calcular estadísticas para todos los clientes
-            foreach ($allCustomerIds as $customerId) {
-               $sales = $allSalesData->get($customerId);
-               $payments = $allPaymentsData->get($customerId);
-               $customer = $allCustomersData->get($customerId);
-
-               $salesBefore = $sales ? $sales->sales_before : 0;
-               $salesAfter = $sales ? $sales->sales_after : 0;
-               $totalPayments = $payments ? $payments->total_payments : 0;
-
-               // Calcular deuda de arqueos anteriores usando lógica FIFO
-               $previousDebt = max(0, $salesBefore - $totalPayments);
-               $currentDebt = max(0, $salesAfter);
-               $isDefaulter = $previousDebt > 0;
-
-               if ($isDefaulter) {
-                  $defaultersCount++;
-                  $previousCashCountDebtTotal += $previousDebt;
-               }
-
-               // Para clientes con deuda actual pero no morosos
-               if ($customer && $customer->total_debt > 0 && !$isDefaulter) {
-                  $currentDebtorsCount++;
-                  $currentCashCountDebtTotal += $currentDebt;
-               }
-            }
-         }
+         $defaultersCount = $globalStats->defaulters_count ?? 0;
+         $previousCashCountDebtTotal = $globalStats->previous_total_debt ?? 0;
+         $currentDebtorsCount = $globalStats->current_debtors_count ?? 0;
+         $currentCashCountDebtTotal = $globalStats->current_total_debt ?? 0;
 
          // Calcular estadísticas de deudas con consultas SQL directas para clientes paginados
          $customerIds = $customers->pluck('id')->toArray();
@@ -344,16 +311,13 @@ class CustomerController extends Controller
                ->keyBy('customer_id');
 
             // Consulta de pagos optimizada para clientes paginados
-            $paymentsData = [];
-            if ($hasDebtPaymentsTable) {
-               $paymentsData = DB::table('debt_payments')
-                  ->whereIn('customer_id', $customerIds)
-                  ->where('company_id', $this->company->id)
-                  ->selectRaw('customer_id, SUM(payment_amount) as total_payments')
-                  ->groupBy('customer_id')
-                  ->get()
-                  ->keyBy('customer_id');
-            }
+            $paymentsData = DB::table('debt_payments')
+               ->whereIn('customer_id', $customerIds)
+               ->where('company_id', $this->company->id)
+               ->selectRaw('customer_id, SUM(payment_amount) as total_payments')
+               ->groupBy('customer_id')
+               ->get()
+               ->keyBy('customer_id');
 
             // Calcular datos para clientes paginados (solo para mostrar en la tabla)
             $customersData = [];
@@ -395,25 +359,12 @@ class CustomerController extends Controller
             'can_create_sales' => Gate::allows('sales.create'),
          ];
 
-         // Si es una petición AJAX, devolver solo el contenido necesario
-         if ($request->ajax() || $request->wantsJson()) {
-            return view('admin.customers.index', compact(
+         if ($request->ajax()) {
+            return view('admin.customers.partials.list', compact(
                'customers',
                'customersData',
-               'totalCustomers',
-               'activeCustomers',
-               'newCustomers',
-               'customerGrowth',
-               'totalRevenue',
-               'totalDebt',
-               'defaultersCount',
-               'currentDebtorsCount',
-               'previousCashCountDebtTotal',
-               'currentCashCountDebtTotal',
                'currency',
-               'company',
                'exchangeRate',
-               'exchangeRateUpdatedAt',
                'permissions'
             ));
          }
@@ -696,13 +647,10 @@ class CustomerController extends Controller
                   ->select('sale_date', 'total_price')
                   ->get();
 
-               $customerPayments = [];
-               if (Schema::hasTable('debt_payments')) {
-                  $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
-                     ->where('company_id', $this->company->id)
-                     ->select('payment_amount')
-                     ->get();
-               }
+               $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->select('payment_amount')
+                  ->get();
 
                // Calcular ventas antes del arqueo actual
                $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
@@ -752,13 +700,10 @@ class CustomerController extends Controller
                   ->select('sale_date', 'total_price')
                   ->get();
 
-               $customerPayments = [];
-               if (Schema::hasTable('debt_payments')) {
-                  $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
-                     ->where('company_id', $this->company->id)
-                     ->select('payment_amount')
-                     ->get();
-               }
+               $customerPayments = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->select('payment_amount')
+                  ->get();
 
                // Calcular ventas antes del arqueo actual
                $salesBeforeCashCount = $customerSales->where('sale_date', '<', $openingDate);
@@ -792,20 +737,17 @@ class CustomerController extends Controller
                      ];
                   });
 
-               // Obtener el último pago del cliente
                $lastPayment = null;
-               if (Schema::hasTable('debt_payments')) {
-                  $lastPaymentRecord = \App\Models\DebtPayment::where('customer_id', $customer->id)
-                     ->where('company_id', $this->company->id)
-                     ->orderBy('created_at', 'desc')
-                     ->first();
+               $lastPaymentRecord = \App\Models\DebtPayment::where('customer_id', $customer->id)
+                  ->where('company_id', $this->company->id)
+                  ->orderBy('created_at', 'desc')
+                  ->first();
 
-                  if ($lastPaymentRecord) {
-                     $lastPayment = [
-                        'date' => $lastPaymentRecord->created_at->format('d/m/Y'),
-                        'amount' => number_format($lastPaymentRecord->payment_amount, 2)
-                     ];
-                  }
+               if ($lastPaymentRecord) {
+                  $lastPayment = [
+                     'date' => $lastPaymentRecord->created_at->format('d/m/Y'),
+                     'amount' => number_format($lastPaymentRecord->payment_amount, 2)
+                  ];
                }
 
                return response()->json([
@@ -1344,14 +1286,11 @@ class CustomerController extends Controller
             ->get()
             ->groupBy('customer_id');
 
-         $paymentsInfo = [];
-         if (Schema::hasTable('debt_payments')) {
-            $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIdsArr)
-               ->where('company_id', $this->company->id)
-               ->select('customer_id', 'payment_amount', 'created_at')
-               ->get()
-               ->groupBy('customer_id');
-         }
+         $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIdsArr)
+            ->where('company_id', $this->company->id)
+            ->select('customer_id', 'payment_amount', 'created_at')
+            ->get()
+            ->groupBy('customer_id');
 
          $customers = $query->get();
          $filteredCustomers = collect();
@@ -1553,14 +1492,11 @@ class CustomerController extends Controller
             ->get()
             ->groupBy('customer_id');
 
-         $paymentsInfo = [];
-         if (Schema::hasTable('debt_payments')) {
-            $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIds)
-               ->where('company_id', $this->company->id)
-               ->select('customer_id', 'payment_amount', 'created_at')
-               ->get()
-               ->groupBy('customer_id');
-         }
+         $paymentsInfo = \App\Models\DebtPayment::whereIn('customer_id', $customerIds)
+            ->where('company_id', $this->company->id)
+            ->select('customer_id', 'payment_amount', 'created_at')
+            ->get()
+            ->groupBy('customer_id');
 
          // Crear un array para almacenar los datos calculados de cada cliente
          $customersData = [];
@@ -2194,7 +2130,12 @@ class CustomerController extends Controller
 
          return response()->json([
             'success' => true,
-            'sales' => $formattedSales
+            'html' => view('admin.customers.partials.sales-history', [
+               'sales' => $formattedSales,
+               'currencySymbol' => $this->currencies ? $this->currencies->symbol : '$'
+            ])->render(),
+            'sales' => $formattedSales,
+            'count' => $formattedSales->count()
          ]);
       } catch (\Exception $e) {
          Log::error('Error getting customer sales history:', [
@@ -2487,26 +2428,46 @@ class CustomerController extends Controller
             ->where('total_debt', '>', 0)
             ->get();
 
+         if ($customers->isEmpty()) {
+            return response()->json([
+               'success' => true,
+               'alerts' => [],
+               'should_show' => false,
+               'fingerprint' => json_encode([])
+            ]);
+         }
+
+         $customerIds = $customers->pluck('id')->toArray();
+
+         // OPTIMIZACIÓN: Obtener todos los pagos y ventas en consultas masivas iniciales para evitar N+1
+         $allPayments = DB::table('debt_payments')
+            ->whereIn('customer_id', $customerIds)
+            ->where('company_id', $companyId)
+            ->select('customer_id', 'payment_amount', 'created_at')
+            ->get()
+            ->groupBy('customer_id');
+
+         $allSales = \App\Models\Sale::whereIn('customer_id', $customerIds)
+            ->where('company_id', $companyId)
+            ->orderBy('sale_date', 'asc')
+            ->get()
+            ->groupBy('customer_id');
+
          $alerts = [];
          $currentIds = [];
 
          foreach ($customers as $customer) {
-            // Lógica FIFO para encontrar la venta más antigua que aún no ha sido pagada
-            $totalPayments = DB::table('debt_payments')
-               ->where('customer_id', $customer->id)
-               ->where('company_id', $companyId)
-               ->sum('payment_amount');
+            $customerPayments = $allPayments->get($customer->id, collect());
+            $totalPayments = $customerPayments->sum('payment_amount');
+            $sales = $allSales->get($customer->id, collect());
 
-            $sales = \App\Models\Sale::where('customer_id', $customer->id)
-               ->where('company_id', $companyId)
-               ->orderBy('sale_date', 'asc')
-               ->get();
-
+            // Lógica FIFO para encontrar la venta más antigua que aún no ha sido pagada (en memoria)
             $accumulatedSales = 0;
             $oldestUnpaidSale = null;
 
             foreach ($sales as $sale) {
-               $accumulatedSales = round($accumulatedSales + (float)$sale->total_price, 2);
+               $totalPrice = (float)$sale->total_price;
+               $accumulatedSales = round($accumulatedSales + $totalPrice, 2);
                if ($accumulatedSales > round($totalPayments, 2)) {
                   $oldestUnpaidSale = $sale;
                   break;
@@ -2515,21 +2476,12 @@ class CustomerController extends Controller
 
             // Si la venta más antigua sin pagar tiene más de un mes
             if ($oldestUnpaidSale && Carbon::parse($oldestUnpaidSale->sale_date)->lte($oneMonthAgo)) {
-               $lastPayment = DB::table('debt_payments')
-                  ->where('customer_id', $customer->id)
-                  ->where('company_id', $companyId)
-                  ->orderBy('created_at', 'desc')
-                  ->first();
-
-               $lastSale = \App\Models\Sale::where('customer_id', $customer->id)
-                  ->where('company_id', $companyId)
-                  ->orderBy('sale_date', 'desc')
-                  ->first();
-
                $oldestDate = Carbon::parse($oldestUnpaidSale->sale_date);
-
-               // Resaltar si HOY cumple exactamente el mes (aniversario mensual de la deuda)
                $isNewlyMorose = $oldestDate->copy()->addMonth()->isSameDay($now);
+
+               // Obtener último pago y última venta desde las colecciones ya cargadas
+               $lastPayment = $customerPayments->sortByDesc('created_at')->first();
+               $lastSale = $sales->sortByDesc('sale_date')->first();
 
                $alerts[] = [
                   'id' => $customer->id,
