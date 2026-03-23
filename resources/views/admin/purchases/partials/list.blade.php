@@ -390,7 +390,6 @@
             </div>
         </div>
     </div>
+    {{-- Paginación inteligente --}}
+    @include('partials.smart-pagination', ['items' => $purchases, 'label' => 'compras'])
 </div>
-
-{{-- Paginación inteligente --}}
-@include('partials.smart-pagination', ['items' => $purchases, 'label' => 'compras'])
