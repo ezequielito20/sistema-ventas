@@ -22,17 +22,17 @@
 
   // Cargar una URL y reemplazar secciones (tabla/tarjetas + paginación) sin recargar
   function loadPurchasesPage(url) {
-    const container = document.querySelector('.data-container');
-    if (!container) return;
+    const listContainer = document.querySelector('#purchases-list-container');
+    if (!listContainer) return;
 
     // Indicador simple de carga
-    container.style.opacity = '0.6';
+    listContainer.style.opacity = '0.6';
 
     fetch(url, {
       method: 'GET',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'text/html, application/xhtml+xml'
+        'Accept': 'text/html'
       }
     })
       .then(r => {
@@ -40,34 +40,22 @@
         return r.text();
       })
       .then(html => {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-
-        // Reemplazar tabla
-        const newTableBody = temp.querySelector('#purchasesTable tbody');
-        const tableBody = document.querySelector('#purchasesTable tbody');
-        if (newTableBody && tableBody) tableBody.innerHTML = newTableBody.innerHTML;
-
-        // Reemplazar cards
-        const newCardsGrid = temp.querySelector('.cards-grid');
-        const cardsGrid = document.querySelector('.cards-grid');
-        if (newCardsGrid && cardsGrid) cardsGrid.innerHTML = newCardsGrid.innerHTML;
-
-        // Reemplazar paginación
-        const newPagination = temp.querySelector('.custom-pagination');
-        const pagination = document.querySelector('.custom-pagination');
-        if (newPagination && pagination) pagination.innerHTML = newPagination.innerHTML;
+        listContainer.innerHTML = html;
 
         // Actualizar URL sin recargar
         window.history.pushState({}, '', url);
 
-        // Reinicializar event listeners para nuevos elementos
-        purchaseManager.setupDetailsButtons();
-        purchaseManager.setupDeleteButtons();
+        // Reinicializar event listeners y vistas
+        viewManager.init(); // Re-vincula botones de cambio de vista
+        searchManager.init(); // Re-vincula búsqueda local si aplica
+        purchaseManager.init(); // Re-vincula ver detalles y eliminar
+
+        // Aplicar la vista actual
+        viewManager.switchView(state.currentView);
       })
       .catch(err => console.error(err))
       .finally(() => {
-        container.style.opacity = '';
+        listContainer.style.opacity = '';
       });
   }
 

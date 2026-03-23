@@ -103,16 +103,15 @@ document.addEventListener('alpine:init', () => {
                     await this.loadSales();
                 }
 
-                // Renderizar contenido inicial
-                this.renderTableFromData();
-                this.renderCardsFromData();
-                this.updatePagination();
+                // El servidor ya renderizó el HTML inicial via el parcial Blade.
+                // Solo aplicamos la vista y actualizamos el contador.
                 this.updateResultsCount();
 
                 // Restaurar vista guardada
                 const savedView = localStorage.getItem('salesViewPreference') || 'table';
                 // En pantallas muy pequeñas, forzar vista de tarjetas
                 this.currentView = this.isMobileView() ? 'cards' : (this.isMobile() ? 'cards' : savedView);
+                this.applyViewToContainer();
 
                 // Configurar responsive
                 this.setupResponsive();
@@ -217,28 +216,17 @@ document.addEventListener('alpine:init', () => {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json, text/html, application/xhtml+xml'
+                    'Accept': 'text/html, application/xhtml+xml'
                 }
             })
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Error en la búsqueda');
                     }
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        return response.text();
-                    }
+                    return response.text();
                 })
-                .then(data => {
-                    if (typeof data === 'object' && data.success) {
-                        // Respuesta JSON del servidor
-                        this.updateTableWithJsonData(data, searchTerm);
-                    } else {
-                        // Respuesta HTML (fallback)
-                        this.updateTableWithSearchResults(data, searchTerm);
-                    }
+                .then(html => {
+                    this.updateTableWithSearchResults(html, searchTerm);
                 })
                 .catch(error => {
                     console.error('Error en búsqueda:', error);
@@ -247,62 +235,39 @@ document.addEventListener('alpine:init', () => {
         },
 
         updateTableWithSearchResults(html, searchTerm) {
-            // Crear un elemento temporal para parsear el HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            // Extraer la nueva tabla
-            const newTableBody = tempDiv.querySelector('tbody');
-            const newCardsContainer = tempDiv.querySelector('.modern-cards-grid');
-            const newPagination = tempDiv.querySelector('.pagination-container');
-
-            // Actualizar la tabla
-            const currentTableBody = document.querySelector('.modern-table tbody');
-            if (newTableBody && currentTableBody) {
-                currentTableBody.innerHTML = newTableBody.innerHTML;
-            }
-
-            // Actualizar las tarjetas
-            const currentCardsContainer = document.querySelector('.modern-cards-grid');
-            if (newCardsContainer && currentCardsContainer) {
-                currentCardsContainer.innerHTML = newCardsContainer.innerHTML;
-            }
-
-            // Actualizar paginación
-            const currentPagination = document.querySelector('.pagination-container');
-            if (newPagination && currentPagination) {
-                currentPagination.innerHTML = newPagination.innerHTML;
-            }
-
-            // Actualizar datos locales si están disponibles
-            const scriptTag = tempDiv.querySelector('script');
-            if (scriptTag) {
-                try {
-                    const scriptContent = scriptTag.textContent;
-                    const match = scriptContent.match(/window\.salesData\s*=\s*(\[.*?\]);/s);
-                    if (match) {
-                        const newSalesData = JSON.parse(match[1]);
-                        this.allSales = newSalesData;
-                        this.filteredSales = [...newSalesData];
-                    }
-                } catch (e) {
-                    console.error('Error parsing sales data:', e);
-                }
+            // Actualizar el contenedor dinámico de resultados
+            const container = document.getElementById('sales-list-container');
+            if (container) {
+                container.innerHTML = html;
+                // Aplicar visibilidad tabla/tarjetas al nuevo HTML inyectado
+                this.applyViewToContainer();
             }
 
             // Actualizar contador de resultados
             this.updateResultsCount();
 
             // Actualizar URL sin recargar la página
-            if (searchTerm || this.activeFiltersCount > 0) {
-                const url = new URL(window.location.href);
-                if (searchTerm) {
-                    url.searchParams.set('search', searchTerm);
-                }
-                window.history.pushState({}, '', url.toString());
+            const url = new URL(window.location.href);
+            if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
             } else {
-                window.history.pushState({}, '', window.location.pathname);
+                url.searchParams.delete('search');
             }
+
+            // Si hay filtros activos, también actualizar URL
+            if (this.filters.dateFrom) url.searchParams.set('dateFrom', this.filters.dateFrom);
+            if (this.filters.dateTo) url.searchParams.set('dateTo', this.filters.dateTo);
+            if (this.filters.amountMin) url.searchParams.set('amountMin', this.filters.amountMin);
+            if (this.filters.amountMax) url.searchParams.set('amountMax', this.filters.amountMax);
+
+            window.history.pushState({}, '', url.toString());
+        },
+
+        applyViewToContainer() {
+            const tableView = document.querySelector('#sales-list-container .table-view');
+            const cardsView = document.querySelector('#sales-list-container .cards-view');
+            if (tableView) tableView.style.display = this.currentView === 'table' ? '' : 'none';
+            if (cardsView) cardsView.style.display = this.currentView === 'cards' ? '' : 'none';
         },
 
 
@@ -585,11 +550,10 @@ document.addEventListener('alpine:init', () => {
 
         updateResultsCount() {
             // Actualizar el contador de resultados mostrados
-            const tableRows = document.querySelectorAll('.modern-table tbody tr');
+            const tableRows = document.querySelectorAll('.modern-table tbody tr:not(.px-6)'); // Evitar fila de "no hay resultados"
             const cardItems = document.querySelectorAll('.modern-cards-grid .sale-card');
             const count = Math.max(tableRows.length, cardItems.length);
 
-            // Actualizar algún elemento que muestre el contador si existe
             const counterElement = document.querySelector('.results-counter');
             if (counterElement) {
                 counterElement.textContent = `${count} ventas encontradas`;
@@ -883,6 +847,7 @@ document.addEventListener('alpine:init', () => {
         changeView(viewType) {
             this.currentView = viewType;
             localStorage.setItem('salesViewPreference', viewType);
+            this.applyViewToContainer();
         },
 
         toggleFilters() {
@@ -922,76 +887,69 @@ document.addEventListener('alpine:init', () => {
         initializePaginationHandlers() {
             // Delegar eventos de clic para enlaces de paginación
             document.addEventListener('click', (e) => {
-                if (e.target.closest('.pagination-btn') || e.target.closest('.page-number')) {
+                const paginationLink = e.target.closest('.custom-pagination a');
+                if (paginationLink) {
                     e.preventDefault();
-                    const link = e.target.closest('a');
-                    if (link) {
-                        this.loadPage(link.href);
-                    }
+                    if (this.loading) return;
+                    this.loadPage(paginationLink.href);
                 }
             });
         },
 
-        loadPage(pageNumber) {
-            // Actualizar la página actual
-            this.currentPage = pageNumber;
+        async loadPage(pageOrUrl) {
+            if (this.loading) return;
+            this.loading = true;
 
-            // Construir la URL con los parámetros actuales
-            const url = new URL(window.location.href);
-            url.searchParams.set('page', pageNumber);
-
-            // Mantener los filtros y búsqueda actuales
-            if (this.searchTerm) {
-                url.searchParams.set('search', this.searchTerm);
-            }
-            if (this.filters.dateFrom) {
-                url.searchParams.set('dateFrom', this.filters.dateFrom);
-            }
-            if (this.filters.dateTo) {
-                url.searchParams.set('dateTo', this.filters.dateTo);
-            }
-            if (this.filters.amountMin) {
-                url.searchParams.set('amountMin', this.filters.amountMin);
-            }
-            if (this.filters.amountMax) {
-                url.searchParams.set('amountMax', this.filters.amountMax);
-            }
-
-            // Realizar petición AJAX para la nueva página
-            fetch(url.toString(), {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json, text/html, application/xhtml+xml'
+            try {
+                // Determinar la URL correcta
+                let url;
+                if (typeof pageOrUrl === 'string' && (pageOrUrl.startsWith('http') || pageOrUrl.includes('?'))) {
+                    url = new URL(pageOrUrl);
+                } else {
+                    url = new URL(window.location.href);
+                    url.searchParams.set('page', pageOrUrl);
                 }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al cargar la página');
-                    }
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json();
-                    } else {
-                        return response.text();
-                    }
-                })
-                .then(data => {
-                    if (typeof data === 'object' && data.success) {
-                        // Respuesta JSON del servidor
-                        this.updateTableWithJsonData(data, this.searchTerm);
-                    } else {
-                        // Respuesta HTML (fallback)
-                        this.updateTableWithSearchResults(data, this.searchTerm);
-                    }
 
-                    // Actualizar URL sin recargar la página
-                    window.history.pushState({}, '', url.toString());
-                })
-                .catch(error => {
-                    console.error('Error al cargar página:', error);
-                    this.showSearchError('Error al cargar la página');
+                const response = await fetch(url.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'text/html, application/xhtml+xml'
+                    }
                 });
+
+                if (!response.ok) throw new Error('Error al cargar la página');
+
+                const html = await response.text();
+                this.updateTableWithSearchResults(html, this.searchTerm);
+
+                // Desplazarse al inicio de la tabla
+                const container = document.getElementById('sales-list-container');
+                if (container) {
+                    const topTarget = window.scrollY + container.getBoundingClientRect().top - 80;
+                    window.scrollTo({ top: Math.max(0, topTarget), behavior: 'smooth' });
+                }
+
+                // Actualizar URL sin recargar la página
+                window.history.pushState({}, '', url.toString());
+
+                // Asegurar que la página activa quede visible centrada en el contenedor
+                setTimeout(() => {
+                    try {
+                        const numbers = document.querySelector('.page-numbers');
+                        const active = numbers ? numbers.querySelector('.page-number.active') : null;
+                        if (numbers && active) {
+                            const offsetLeft = active.offsetLeft - (numbers.clientWidth / 2) + (active.clientWidth / 2);
+                            numbers.scrollTo({ left: Math.max(0, offsetLeft), behavior: 'smooth' });
+                        }
+                    } catch (_) { }
+                }, 0);
+
+            } catch (error) {
+                console.error('Error cargando página:', error);
+                this.showSearchError('No se pudo cargar la página solicitada');
+            } finally {
+                this.loading = false;
+            }
         },
 
         // ===== FUNCIONES DE MODAL =====

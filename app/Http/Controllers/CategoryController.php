@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Company;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -10,9 +9,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Traits\SmartPaginationTrait;
 
 class CategoryController extends Controller
 {
+   use SmartPaginationTrait;
    public $currencies;
    protected $company;
 
@@ -28,62 +29,13 @@ class CategoryController extends Controller
       });
    }
 
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
-      
-      $links = [];
-      
-      // Siempre agregar la primera página
-      $links[] = 1;
-      
-      // Calcular el rango de páginas alrededor de la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-      
-      // Agregar separador si hay gap entre la primera página y el rango
-      if ($start > 2) {
-         $links[] = '...';
-      }
-      
-      // Agregar páginas en el rango
-      for ($i = $start; $i <= $end; $i++) {
-         if ($i > 1 && $i < $lastPage) {
-            $links[] = $i;
-         }
-      }
-      
-      // Agregar separador si hay gap entre el rango y la última página
-      if ($end < $lastPage - 1) {
-         $links[] = '...';
-      }
-      
-      // Siempre agregar la última página (si no es la primera)
-      if ($lastPage > 1) {
-         $links[] = $lastPage;
-      }
-      
-      // Agregar propiedades al paginador
-      $paginator->smartLinks = $links;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-      
-      return $paginator;
-   }
+
 
    public function index(Request $request)
    {
       try {
          $company = $this->company;
-         
+
          // Consulta base de categorías con conteo de productos
          $query = Category::withCount('products')
             ->where('company_id', $company->id);
@@ -91,9 +43,9 @@ class CategoryController extends Controller
          // Búsqueda por texto: nombre, descripción
          if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                $q->where('name', 'ILIKE', "%{$search}%")
-                 ->orWhere('description', 'ILIKE', "%{$search}%");
+                  ->orWhere('description', 'ILIKE', "%{$search}%");
             });
          }
 
@@ -127,7 +79,7 @@ class CategoryController extends Controller
 
          // Paginación del lado del servidor
          $categories = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
-         
+
          // Aplicar paginación inteligente
          $categories = $this->generateSmartPagination($categories, 2);
 
@@ -173,13 +125,13 @@ class CategoryController extends Controller
    {
       try {
          $company = $this->company;
-         
+
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
          if ($referrerUrl && !str_contains($referrerUrl, 'categories/create')) {
             session(['categories_referrer' => $referrerUrl]);
          }
-         
+
          return view('admin.categories.create', compact('company'));
       } catch (\Exception $e) {
          return redirect()->route('admin.categories.index')
@@ -238,10 +190,10 @@ class CategoryController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('categories_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', 'Categoría creada exitosamente')
-                ->with('icons', 'success');
+               ->with('message', 'Categoría creada exitosamente')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de categorías
@@ -266,13 +218,13 @@ class CategoryController extends Controller
    {
       $company = $this->company;
       $category = Category::where('id', $id)->where('company_id', $company->id)->first();
-      
+
       // Capturar la URL de referencia para redirección posterior
       $referrerUrl = $request->header('referer');
       if ($referrerUrl && !str_contains($referrerUrl, 'categories/edit')) {
          session(['categories_referrer' => $referrerUrl]);
       }
-      
+
       return view('admin.categories.edit', compact('category', 'company'));
    }
 
@@ -328,10 +280,10 @@ class CategoryController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('categories_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', 'Categoría actualizada exitosamente')
-                ->with('icons', 'success');
+               ->with('message', 'Categoría actualizada exitosamente')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de categorías
@@ -409,10 +361,10 @@ class CategoryController extends Controller
    {
       $company = $this->company;
       $categories = Category::withCount('products')->where('company_id', $company->id)
-      ->orderBy('products_count', 'desc')
-      ->orderBy('name', 'asc')
-      ->get();
-      $pdf = PDF::loadView('admin.categories.report', compact('categories', 'company'));
+         ->orderBy('products_count', 'desc')
+         ->orderBy('name', 'asc')
+         ->get();
+      $pdf = Pdf::loadView('admin.categories.report', compact('categories', 'company'));
       return $pdf->stream('reporte-categorias.pdf');
    }
 }

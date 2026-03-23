@@ -6,15 +6,16 @@ use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\Purchase;
 use App\Models\CashCount;
-use App\Models\CashMovement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\CashCountService;
+use App\Traits\SmartPaginationTrait;
 
 class CashCountController extends Controller
 {
+   use SmartPaginationTrait;
    public $currencies;
    protected $company;
    protected $cashCountService;
@@ -52,56 +53,7 @@ class CashCountController extends Controller
       });
    }
 
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
 
-      $links = [];
-
-      // Siempre agregar la primera página
-      $links[] = 1;
-
-      // Calcular el rango de páginas alrededor de la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-
-      // Agregar separador si hay gap entre la primera página y el rango
-      if ($start > 2) {
-         $links[] = '...';
-      }
-
-      // Agregar páginas en el rango
-      for ($i = $start; $i <= $end; $i++) {
-         if ($i > 1 && $i < $lastPage) {
-            $links[] = $i;
-         }
-      }
-
-      // Agregar separador si hay gap entre el rango y la última página
-      if ($end < $lastPage - 1) {
-         $links[] = '...';
-      }
-
-      // Siempre agregar la última página (si no es la primera)
-      if ($lastPage > 1) {
-         $links[] = $lastPage;
-      }
-
-      // Agregar propiedades al paginador
-      $paginator->smartLinks = $links;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-
-      return $paginator;
-   }
    public function index(Request $request)
    {
       $currency = $this->currencies;
@@ -627,7 +579,7 @@ class CashCountController extends Controller
       $company = $this->company;
       $currency = $this->currencies;
       $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
-      $pdf = PDF::loadView('admin.cash-counts.report', compact('cashCounts', 'company', 'currency'));
+      $pdf = Pdf::loadView('admin.cash-counts.report', compact('cashCounts', 'company', 'currency'));
       return $pdf->stream('reporte-caja.pdf');
    }
 
@@ -788,7 +740,9 @@ class CashCountController extends Controller
       return \App\Models\Customer::where('company_id', $this->company->id)
          ->where('total_debt', '>', 0)
          ->with(['sales' => function ($query) use ($openingDate, $closingDate) {
-            $query->whereBetween('created_at', [$openingDate, $closingDate]);
+            $query->whereBetween('created_at', [$openingDate, $closingDate])
+               ->withCount('saleDetails')
+               ->withSum('saleDetails as total_quantity', 'quantity');
          }])
          ->get()
          ->map(function ($customer) {
@@ -799,12 +753,8 @@ class CashCountController extends Controller
                'customer_phone' => $customer->phone,
                'sale_date' => $salesInPeriod->first() ? $salesInPeriod->first()->created_at : now(),
                'total_amount' => $customer->total_debt,
-               'products_count' => $salesInPeriod->sum(function ($sale) {
-                  return $sale->saleDetails->count();
-               }),
-               'total_products' => $salesInPeriod->sum(function ($sale) {
-                  return $sale->saleDetails->sum('quantity');
-               })
+               'products_count' => (int) $salesInPeriod->sum('sale_details_count'),
+               'total_products' => (float) $salesInPeriod->sum('total_quantity')
             ];
          });
    }
@@ -820,7 +770,9 @@ class CashCountController extends Controller
       return \App\Models\Customer::where('company_id', $this->company->id)
          ->where('total_debt', '>', 0)
          ->with(['sales' => function ($query) use ($openingDate) {
-            $query->where('created_at', '<', $openingDate);
+            $query->where('created_at', '<', $openingDate)
+               ->withCount('saleDetails')
+               ->withSum('saleDetails as total_quantity', 'quantity');
          }])
          ->get()
          ->map(function ($customer) {
@@ -831,12 +783,8 @@ class CashCountController extends Controller
                'customer_phone' => $customer->phone,
                'sale_date' => $previousSales->first() ? $previousSales->first()->created_at : now(),
                'total_amount' => $customer->total_debt,
-               'products_count' => $previousSales->sum(function ($sale) {
-                  return $sale->saleDetails->count();
-               }),
-               'total_products' => $previousSales->sum(function ($sale) {
-                  return $sale->saleDetails->sum('quantity');
-               }),
+               'products_count' => (int) $previousSales->sum('sale_details_count'),
+               'total_products' => (float) $previousSales->sum('total_quantity'),
                'days_pending' => $previousSales->first() ? $previousSales->first()->created_at->diffInDays(now()) : 0
             ];
          });

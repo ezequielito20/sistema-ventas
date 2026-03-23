@@ -17,8 +17,11 @@ use Illuminate\Support\Facades\Gate;
 
 use Carbon\Carbon;
 
+use App\Traits\SmartPaginationTrait;
+
 class SaleController extends Controller
 {
+   use SmartPaginationTrait;
 
    public $currencies;
    protected $company;
@@ -49,96 +52,7 @@ class SaleController extends Controller
       });
    }
 
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
 
-      if ($lastPage <= 1) {
-         // No hay paginación
-         $paginator->smartLinks = [];
-         $paginator->hasPrevious = false;
-         $paginator->hasNext = false;
-         $paginator->previousPageUrl = null;
-         $paginator->nextPageUrl = null;
-         $paginator->firstPageUrl = null;
-         $paginator->lastPageUrl = null;
-         return $paginator;
-      }
-
-      $smartLinks = [];
-
-      // Siempre mostrar primera página
-      $smartLinks[] = [
-         'page' => 1,
-         'url' => $paginator->url(1),
-         'label' => 1,
-         'active' => $currentPage == 1,
-         'isSeparator' => false,
-      ];
-
-      // Calcular rango de ventana centrado en la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-
-      // Separador izquierdo si hay hueco entre 1 y el inicio de la ventana
-      if ($start > 2) {
-         $smartLinks[] = [
-            'page' => '...',
-            'url' => null,
-            'label' => '...',
-            'active' => false,
-            'isSeparator' => true,
-         ];
-      }
-
-      // Páginas de la ventana
-      for ($i = $start; $i <= $end; $i++) {
-         $smartLinks[] = [
-            'page' => $i,
-            'url' => $paginator->url($i),
-            'label' => $i,
-            'active' => $i == $currentPage,
-            'isSeparator' => false,
-         ];
-      }
-
-      // Separador derecho si hay hueco entre el final de la ventana y la última página
-      if ($end < $lastPage - 1) {
-         $smartLinks[] = [
-            'page' => '...',
-            'url' => null,
-            'label' => '...',
-            'active' => false,
-            'isSeparator' => true,
-         ];
-      }
-
-      // Siempre mostrar última página (si hay más de una)
-      if ($lastPage > 1) {
-         $smartLinks[] = [
-            'page' => $lastPage,
-            'url' => $paginator->url($lastPage),
-            'label' => $lastPage,
-            'active' => $currentPage == $lastPage,
-            'isSeparator' => false,
-         ];
-      }
-
-      // Info adicional de navegación
-      $paginator->smartLinks = $smartLinks;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-
-      return $paginator;
-   }
 
    public function index(Request $request)
    {
@@ -363,54 +277,16 @@ class SaleController extends Controller
          ->whereNull('closing_date')
          ->exists();
 
-      // Si es una petición AJAX, devolver solo la vista parcial con los datos
-      if ($request->expectsJson() || $request->hasHeader('X-Requested-With')) {
-         // Preparar datos para JavaScript
-         $salesData = $sales->map(function ($sale) {
-            return [
-               'id' => $sale->id,
-               'sale_date' => $sale->sale_date,
-               'total_price' => $sale->total_price,
-               'customer' => $sale->customer ? [
-                  'id' => $sale->customer->id,
-                  'name' => $sale->customer->name,
-                  'email' => $sale->customer->email,
-                  'phone' => $sale->customer->phone
-               ] : null,
-               'sale_details' => $sale->saleDetails->map(function ($detail) {
-                  return [
-                     'id' => $detail->id,
-                     'quantity' => $detail->quantity,
-                     'unit_price' => $detail->unit_price,
-                     'subtotal' => $detail->subtotal,
-                     'product' => $detail->product ? [
-                        'id' => $detail->product->id,
-                        'code' => $detail->product->code,
-                        'name' => $detail->product->name,
-                        'image' => $detail->product->image,
-                        'category' => $detail->product->category ? [
-                           'id' => $detail->product->category->id,
-                           'name' => $detail->product->category->name
-                        ] : null
-                     ] : null
-                  ];
-               })
-            ];
-         });
-
-         return response()->json([
-            'success' => true,
-            'sales' => $salesData,
-            'pagination' => [
-               'current_page' => $sales->currentPage(),
-               'last_page' => $sales->lastPage(),
-               'per_page' => $sales->perPage(),
-               'total' => $sales->total(),
-               'smart_links' => $sales->smartLinks ?? []
-            ]
-         ]);
+      // Si es una petición AJAX, retornar solo el parcial de la lista
+      if ($request->ajax()) {
+         return view('admin.sales.partials.list', compact(
+            'sales',
+            'currency',
+            'permissions'
+         ));
       }
 
+      // Retornar la vista principal completa para una carga inicial
       return view('admin.sales.index', compact(
          'sales',
          'totalSales',
@@ -454,12 +330,7 @@ class SaleController extends Controller
             ->where('stock', '>', 0)
             ->select('id', 'code', 'name', 'image', 'stock', 'min_stock', 'max_stock', 'sale_price', 'category_id')
             ->with(['category:id,name']) // Solo cargar la categoría con campos necesarios
-            ->get()
-            ->map(function ($product) {
-               // Asegurar que el accessor se incluya en la serialización
-               $product->append('stock_status_label');
-               return $product;
-            });
+            ->get();
 
          // Obtener clientes con solo los campos necesarios para el select
          $customers = Customer::where('company_id', $companyId)
@@ -1405,7 +1276,7 @@ class SaleController extends Controller
          }
 
          // Generar el PDF
-         $pdf = PDF::loadView('admin.sales.print', compact(
+         $pdf = Pdf::loadView('admin.sales.print', compact(
             'sale',
             'saleDetails',
             'company',
@@ -1435,7 +1306,7 @@ class SaleController extends Controller
       $company = $this->company;
       $currency = $this->currencies;
       $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
-      $pdf = PDF::loadView('admin.sales.report', compact('sales', 'company', 'currency'));
+      $pdf = Pdf::loadView('admin.sales.report', compact('sales', 'company', 'currency'));
       return $pdf->stream('reporte-ventas.pdf');
    }
 

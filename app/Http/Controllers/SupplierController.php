@@ -10,11 +10,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use App\Http\Requests\StoreSupplierRequest;
-use App\Http\Requests\UpdateSupplierRequest;
+use App\Traits\SmartPaginationTrait;
 
 class SupplierController extends Controller
 {
+   use SmartPaginationTrait;
    public $currencies;
    protected $company;
 
@@ -30,56 +30,7 @@ class SupplierController extends Controller
       });
    }
 
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
-      
-      $links = [];
-      
-      // Siempre agregar la primera página
-      $links[] = 1;
-      
-      // Calcular el rango de páginas alrededor de la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-      
-      // Agregar separador si hay gap entre la primera página y el rango
-      if ($start > 2) {
-         $links[] = '...';
-      }
-      
-      // Agregar páginas en el rango
-      for ($i = $start; $i <= $end; $i++) {
-         if ($i > 1 && $i < $lastPage) {
-            $links[] = $i;
-         }
-      }
-      
-      // Agregar separador si hay gap entre el rango y la última página
-      if ($end < $lastPage - 1) {
-         $links[] = '...';
-      }
-      
-      // Siempre agregar la última página (si no es la primera)
-      if ($lastPage > 1) {
-         $links[] = $lastPage;
-      }
-      
-      // Agregar propiedades al paginador
-      $paginator->smartLinks = $links;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-      
-      return $paginator;
-   }
+
 
    public function index(Request $request)
    {
@@ -94,13 +45,13 @@ class SupplierController extends Controller
          // Búsqueda por nombre de empresa, contacto, email o teléfono
          if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                $q->where('company_name', 'ILIKE', "%{$search}%")
-                 ->orWhere('supplier_name', 'ILIKE', "%{$search}%")
-                 ->orWhere('company_email', 'ILIKE', "%{$search}%")
-                 ->orWhere('company_phone', 'ILIKE', "%{$search}%")
-                 ->orWhere('supplier_phone', 'ILIKE', "%{$search}%")
-                 ->orWhere('company_address', 'ILIKE', "%{$search}%");
+                  ->orWhere('supplier_name', 'ILIKE', "%{$search}%")
+                  ->orWhere('company_email', 'ILIKE', "%{$search}%")
+                  ->orWhere('company_phone', 'ILIKE', "%{$search}%")
+                  ->orWhere('supplier_phone', 'ILIKE', "%{$search}%")
+                  ->orWhere('company_address', 'ILIKE', "%{$search}%");
             });
          }
 
@@ -130,7 +81,7 @@ class SupplierController extends Controller
 
          // Paginación del lado del servidor
          $suppliers = $query->orderBy('company_name', 'asc')->paginate(12)->withQueryString();
-         
+
          // Aplicar paginación inteligente
          $suppliers = $this->generateSmartPagination($suppliers, 2);
 
@@ -179,13 +130,13 @@ class SupplierController extends Controller
    {
       try {
          $company = $this->company;
-         
+
          // Capturar la URL de referencia para redirección posterior
          $referrerUrl = $request->header('referer');
          if ($referrerUrl && !str_contains($referrerUrl, 'suppliers/create')) {
             session(['suppliers_referrer' => $referrerUrl]);
          }
-         
+
          return view('admin.suppliers.create', compact('company'));
       } catch (\Exception $e) {
          return redirect()->route('admin.suppliers.index')
@@ -264,10 +215,10 @@ class SupplierController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('suppliers_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', '¡Proveedor creado exitosamente!')
-                ->with('icons', 'success');
+               ->with('message', '¡Proveedor creado exitosamente!')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de proveedores
@@ -463,10 +414,10 @@ class SupplierController extends Controller
          if ($referrerUrl) {
             // Limpiar la session
             session()->forget('suppliers_referrer');
-            
+
             return redirect($referrerUrl)
-                ->with('message', '¡Proveedor actualizado exitosamente!')
-                ->with('icons', 'success');
+               ->with('message', '¡Proveedor actualizado exitosamente!')
+               ->with('icons', 'success');
          }
 
          // Fallback: redirigir a la lista de proveedores
@@ -551,7 +502,7 @@ class SupplierController extends Controller
    {
       $company = Company::find(Auth::user()->company_id);
       $suppliers = Supplier::withCount('products')->where('company_id', $company->id)->orderBy('company_name', 'asc')->get();
-      $pdf = PDF::loadView('admin.suppliers.report', compact('suppliers', 'company'))
+      $pdf = Pdf::loadView('admin.suppliers.report', compact('suppliers', 'company'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-proveedores.pdf');
    }

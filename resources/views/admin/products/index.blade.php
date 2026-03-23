@@ -474,73 +474,11 @@
                             @endforeach
                         </div>
 
-                        @if ($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de
-                                        {{ $products->total() }} productos</span>
-                                </div>
-                                <div class="pagination-controls">
-                                    @if ($products->hasPrevious)
-                                        <a href="{{ $products->previousPageUrl }}" class="pagination-btn">
-                                            <i class="fas fa-chevron-left"></i>
-                                            <span>Anterior</span>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn" disabled>
-                                            <i class="fas fa-chevron-left"></i>
-                                            <span>Anterior</span>
-                                        </button>
-                                    @endif
-
-                                    <div class="page-numbers">
-                                        @foreach ($products->smartLinks as $link)
-                                            @if ($link === '...')
-                                                <span class="page-separator">...</span>
-                                            @else
-                                                @if ($link == $products->currentPage())
-                                                    <span class="page-number active">{{ $link }}</span>
-                                                @else
-                                                    <a href="{{ $products->url($link) }}"
-                                                        class="page-number">{{ $link }}</a>
-                                                @endif
-                                            @endif
-                                        @endforeach
-                                    </div>
-
-                                    @if ($products->hasNext)
-                                        <a href="{{ $products->nextPageUrl }}" class="pagination-btn">
-                                            <span>Siguiente</span>
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn" disabled>
-                                            <span>Siguiente</span>
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        @else
-                            {{-- Paginación cliente (fallback) --}}
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span id="cardsPaginationInfo">Mostrando 1-{{ min(12, $products->count()) }} de
-                                        {{ $products->count() }} productos</span>
-                                </div>
-                                <div class="pagination-controls">
-                                    <button id="cardsPrevPage" class="pagination-btn" disabled>
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </button>
-                                    <div id="cardsPageNumbers" class="page-numbers"></div>
-                                    <button id="cardsNextPage" class="pagination-btn">
-                                        Siguiente
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endif
+                        {{-- Paginación Inteligente --}}
+                        @include('partials.smart-pagination', [
+                            'items' => $products,
+                            'label' => 'productos',
+                        ])
                     </div>
 
                     {{-- Vista de tabla (solo desktop) --}}
@@ -670,73 +608,11 @@
                             </table>
                         </div>
 
-                        @if ($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de
-                                        {{ $products->total() }} productos</span>
-                                </div>
-                                <div class="pagination-controls">
-                                    @if ($products->hasPrevious)
-                                        <a href="{{ $products->previousPageUrl }}" class="pagination-btn">
-                                            <i class="fas fa-chevron-left"></i>
-                                            <span>Anterior</span>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn" disabled>
-                                            <i class="fas fa-chevron-left"></i>
-                                            <span>Anterior</span>
-                                        </button>
-                                    @endif
-
-                                    <div class="page-numbers">
-                                        @foreach ($products->smartLinks as $link)
-                                            @if ($link === '...')
-                                                <span class="page-separator">...</span>
-                                            @else
-                                                @if ($link == $products->currentPage())
-                                                    <span class="page-number active">{{ $link }}</span>
-                                                @else
-                                                    <a href="{{ $products->url($link) }}"
-                                                        class="page-number">{{ $link }}</a>
-                                                @endif
-                                            @endif
-                                        @endforeach
-                                    </div>
-
-                                    @if ($products->hasNext)
-                                        <a href="{{ $products->nextPageUrl }}" class="pagination-btn">
-                                            <span>Siguiente</span>
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn" disabled>
-                                            <span>Siguiente</span>
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        @else
-                            {{-- Paginación personalizada (fallback) --}}
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span id="paginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de
-                                        {{ $products->count() }} productos</span>
-                                </div>
-                                <div class="pagination-controls">
-                                    <button id="prevPage" class="pagination-btn" disabled>
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </button>
-                                    <div id="pageNumbers" class="page-numbers"></div>
-                                    <button id="nextPage" class="pagination-btn">
-                                        Siguiente
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endif
+                        {{-- Paginación Inteligente --}}
+                        @include('partials.smart-pagination', [
+                            'items' => $products,
+                            'label' => 'productos',
+                        ])
                     </div>
 
                     {{-- Vista móvil (siempre tarjetas) --}}
@@ -807,70 +683,11 @@
                             @endforeach
                         </div>
 
-                        @if ($products instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $products->hasPages())
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span>Mostrando {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} de
-                                        {{ $products->total() }} productos</span>
-                                </div>
-                                <div class="pagination-controls">
-                                    @if ($products->hasPrevious)
-                                        <a href="{{ $products->previousPageUrl }}" class="pagination-btn icon-only"
-                                            title="Anterior">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn icon-only" disabled title="Anterior">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                    @endif
-
-                                    <div class="page-numbers">
-                                        @foreach ($products->smartLinks as $link)
-                                            @if ($link === '...')
-                                                <span class="page-separator">...</span>
-                                            @else
-                                                @if ($link == $products->currentPage())
-                                                    <span class="page-number active">{{ $link }}</span>
-                                                @else
-                                                    <a href="{{ $products->url($link) }}"
-                                                        class="page-number">{{ $link }}</a>
-                                                @endif
-                                            @endif
-                                        @endforeach
-                                    </div>
-
-                                    @if ($products->hasNext)
-                                        <a href="{{ $products->nextPageUrl }}" class="pagination-btn icon-only"
-                                            title="Siguiente">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    @else
-                                        <button class="pagination-btn icon-only" disabled title="Siguiente">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                        @else
-                            {{-- Paginación personalizada (fallback) --}}
-                            <div class="pagination-container">
-                                <div class="pagination-info">
-                                    <span id="mobilePaginationInfo">Mostrando 1-{{ min(10, $products->count()) }} de
-                                        {{ $products->count() }} productos</span>
-                                </div>
-                                <div class="pagination-controls mobile-controls">
-                                    <button id="mobilePrevPage" class="pagination-btn icon-only" disabled
-                                        title="Anterior">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <div id="mobilePageNumbers" class="page-numbers"></div>
-                                    <button id="mobileNextPage" class="pagination-btn icon-only" title="Siguiente">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        @endif
+                        {{-- Paginación Inteligente --}}
+                        @include('partials.smart-pagination', [
+                            'items' => $products,
+                            'label' => 'productos',
+                        ])
                     </div>
                 </div>
             </div>

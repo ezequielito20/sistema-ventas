@@ -6,15 +6,17 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+use App\Traits\SmartPaginationTrait;
+
 class ProductController extends Controller
 {
+   use SmartPaginationTrait;
    public $currencies;
    protected $company;
 
@@ -44,56 +46,7 @@ class ProductController extends Controller
       });
    }
 
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
 
-      $links = [];
-
-      // Siempre agregar la primera página
-      $links[] = 1;
-
-      // Calcular el rango de páginas alrededor de la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-
-      // Agregar separador si hay gap entre la primera página y el rango
-      if ($start > 2) {
-         $links[] = '...';
-      }
-
-      // Agregar páginas en el rango
-      for ($i = $start; $i <= $end; $i++) {
-         if ($i > 1 && $i < $lastPage) {
-            $links[] = $i;
-         }
-      }
-
-      // Agregar separador si hay gap entre el rango y la última página
-      if ($end < $lastPage - 1) {
-         $links[] = '...';
-      }
-
-      // Siempre agregar la última página (si no es la primera)
-      if ($lastPage > 1) {
-         $links[] = $lastPage;
-      }
-
-      // Agregar propiedades al paginador
-      $paginator->smartLinks = $links;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-
-      return $paginator;
-   }
 
    public function index(Request $request)
    {
@@ -339,8 +292,8 @@ class ProductController extends Controller
                'stock' => $product->stock,
                'min_stock' => $product->min_stock,
                'max_stock' => $product->max_stock,
-               'purchase_price' => number_format($product->purchase_price, 2),
-               'sale_price' => number_format($product->sale_price, 2),
+               'purchase_price' => number_format((float) $product->purchase_price, 2),
+               'sale_price' => number_format((float) $product->sale_price, 2),
                'entry_date' => $product->entry_date->format('d/m/Y'),
                'entry_days_ago' => $product->entry_date->diffForHumans(),
                'category' => $product->category->name,
@@ -553,7 +506,7 @@ class ProductController extends Controller
          ->orderBy('products.name')
          ->select('products.*')
          ->get();
-      $pdf = PDF::loadView('admin.products.report', compact('products', 'company', 'currency'))
+      $pdf = Pdf::loadView('admin.products.report', compact('products', 'company', 'currency'))
          ->setPaper('a4', 'landscape');
       return $pdf->stream('reporte-productos.pdf');
    }

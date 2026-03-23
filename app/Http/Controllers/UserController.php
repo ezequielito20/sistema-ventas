@@ -13,65 +13,19 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+use App\Traits\SmartPaginationTrait;
+
 class UserController extends Controller
 {
-   
-   /**
-    * Genera paginación inteligente con ventana dinámica
-    */
-   private function generateSmartPagination($paginator, $windowSize = 2)
-   {
-      $currentPage = $paginator->currentPage();
-      $lastPage = $paginator->lastPage();
-      
-      $links = [];
-      
-      // Siempre agregar la primera página
-      $links[] = 1;
-      
-      // Calcular el rango de páginas alrededor de la página actual
-      $start = max(2, $currentPage - $windowSize);
-      $end = min($lastPage - 1, $currentPage + $windowSize);
-      
-      // Agregar separador si hay gap entre la primera página y el rango
-      if ($start > 2) {
-         $links[] = '...';
-      }
-      
-      // Agregar páginas en el rango
-      for ($i = $start; $i <= $end; $i++) {
-         if ($i > 1 && $i < $lastPage) {
-            $links[] = $i;
-         }
-      }
-      
-      // Agregar separador si hay gap entre el rango y la última página
-      if ($end < $lastPage - 1) {
-         $links[] = '...';
-      }
-      
-      // Siempre agregar la última página (si no es la primera)
-      if ($lastPage > 1) {
-         $links[] = $lastPage;
-      }
-      
-      // Agregar propiedades al paginador
-      $paginator->smartLinks = $links;
-      $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
-      $paginator->hasNext = $paginator->nextPageUrl() !== null;
-      $paginator->previousPageUrl = $paginator->previousPageUrl();
-      $paginator->nextPageUrl = $paginator->nextPageUrl();
-      $paginator->firstPageUrl = $paginator->url(1);
-      $paginator->lastPageUrl = $paginator->url($lastPage);
-      
-      return $paginator;
-   }
+   use SmartPaginationTrait;
+
+
 
    public function index(Request $request)
    {
       try {
          $company = Auth::user()->company;
-         
+
          // Consulta base de usuarios con relaciones
          $query = User::with(['company', 'roles'])
             ->where('company_id', $company->id);
@@ -79,9 +33,9 @@ class UserController extends Controller
          // Búsqueda por texto: nombre, email
          if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                $q->where('name', 'ILIKE', "%{$search}%")
-                 ->orWhere('email', 'ILIKE', "%{$search}%");
+                  ->orWhere('email', 'ILIKE', "%{$search}%");
             });
          }
 
@@ -98,7 +52,7 @@ class UserController extends Controller
          // Filtro por rol
          if ($request->filled('role_id')) {
             $roleId = $request->input('role_id');
-            $query->whereHas('roles', function($q) use ($roleId) {
+            $query->whereHas('roles', function ($q) use ($roleId) {
                $q->where('roles.id', $roleId);
             });
          }
@@ -114,7 +68,7 @@ class UserController extends Controller
 
          // Paginación del lado del servidor
          $users = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
-         
+
          // Aplicar paginación inteligente
          $users = $this->generateSmartPagination($users, 2);
 
@@ -126,7 +80,7 @@ class UserController extends Controller
             'users.edit' => Gate::allows('users.edit'),
             'users.destroy' => Gate::allows('users.destroy'),
          ];
-         
+
          return view('admin.users.index', compact('users', 'company', 'permissions'));
       } catch (\Exception $e) {
          return redirect()->back()
@@ -284,7 +238,7 @@ class UserController extends Controller
             ->with(['roles:id,name'])
             ->where('company_id', Auth::user()->company_id)
             ->findOrFail($id);
-         
+
          $company = Auth::user()->company;
 
          // Obtener empresas disponibles
@@ -446,7 +400,7 @@ class UserController extends Controller
          ->where('company_id', $company->id)
          ->orderBy('name', 'asc')
          ->get();
-      $pdf = PDF::loadView('admin.users.report', compact('users', 'company'));
+      $pdf = Pdf::loadView('admin.users.report', compact('users', 'company'));
       return $pdf->stream('reporte-usuarios.pdf');
    }
 }
