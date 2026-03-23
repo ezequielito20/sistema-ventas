@@ -74,25 +74,22 @@ class PurchaseController extends Controller
             ])
             ->where('company_id', $companyId);
 
-         // Búsqueda por texto: recibo de pago, fecha
+         // Búsqueda por texto: recibo de pago, fecha, producto, monto total
          if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                $q->where('payment_receipt', 'ILIKE', "%{$search}%")
-                  ->orWhere('purchase_date', 'ILIKE', "%{$search}%")
-                  // Buscar por nombre de productos incluidos en la compra
-                  ->orWhereHas('details.product', function ($q2) use ($search) {
-                     $q2->where('name', 'ILIKE', "%{$search}%");
-                  })
-                  // Buscar por total de productos vendidos en la compra (sumatoria de quantity)
-                  ->orWhereHas('details', function ($q3) use ($search) {
-                     // Solo filtrar si el search es numérico
-                     if (is_numeric($search)) {
-                        $q3->select(DB::raw('SUM(quantity) as total_quantity'))
-                           ->groupBy('purchase_id')
-                           ->havingRaw('SUM(quantity)::text ILIKE ?', ["%{$search}%"]);
-                     }
-                  });
+                  ->orWhereRaw('purchase_date::text ILIKE ?', ["%{$search}%"]);
+
+               // Buscar por monto total si es numérico
+               if (is_numeric($search)) {
+                  $q->orWhereRaw('total_price::text ILIKE ?', ["%{$search}%"]);
+               }
+
+               // Buscar por nombre de productos incluidos en la compra
+               $q->orWhereHas('details.product', function ($q2) use ($search) {
+                  $q2->where('name', 'ILIKE', "%{$search}%");
+               });
             });
          }
 

@@ -68,28 +68,7 @@
     }
   });
 
-  // Interceptar búsqueda para servidor
-  document.addEventListener('DOMContentLoaded', () => {
-    const search = document.getElementById('purchasesSearch');
-    if (search) {
-      let t;
-      search.addEventListener('input', function () {
-        clearTimeout(t);
-        t = setTimeout(() => {
-          if (isServerPaginationActive()) {
-            const url = new URL(window.location.href);
-            if (this.value.trim()) url.searchParams.set('search', this.value.trim());
-            else url.searchParams.delete('search');
-            loadPurchasesPage(url.toString());
-          } else {
-            // Fallback: filtrado cliente existente
-            state.searchTerm = this.value.toLowerCase();
-            searchManager.applySearch();
-          }
-        }, 300);
-      });
-    }
-  });
+  // Interceptar búsqueda para servidor removido - ahora manejado por searchManager
 
   // Utility functions
   const utils = {
@@ -261,16 +240,24 @@
     },
 
     setupSearchEvents() {
-      if (this.searchInput && !isServerPaginationActive()) {
-        const debouncedSearch = utils.debounce((value) => {
+      if (!this.searchInput) return;
+
+      const debouncedSearch = utils.debounce((value) => {
+        if (isServerPaginationActive()) {
+          const url = new URL(window.location.href);
+          if (value.trim()) url.searchParams.set('search', value.trim());
+          else url.searchParams.delete('search');
+          url.searchParams.set('page', 1); // Reset to page 1
+          loadPurchasesPage(url.toString());
+        } else {
           state.searchTerm = value.toLowerCase();
           this.applySearch();
-        }, 300);
+        }
+      }, 300);
 
-        this.searchInput.addEventListener('input', (e) => {
-          debouncedSearch(e.target.value);
-        });
-      }
+      this.searchInput.addEventListener('input', (e) => {
+        debouncedSearch(e.target.value);
+      });
 
       if (this.clearSearchBtn) {
         this.clearSearchBtn.addEventListener('click', () => {
