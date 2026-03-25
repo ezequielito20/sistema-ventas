@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
@@ -359,7 +360,7 @@ class CategoryController extends Controller
 
    public function report()
    {
-      $company = $this->company;
+      $company = Company::find($this->company->id);
       $categories = Category::withCount('products')->where('company_id', $company->id)
          ->orderBy('products_count', 'desc')
          ->orderBy('name', 'asc')

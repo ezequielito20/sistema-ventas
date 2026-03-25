@@ -394,8 +394,8 @@ class UserController extends Controller
 
    public function report()
    {
-      $company = Company::select('id', 'name')->find(Auth::user()->company_id);
-      $users = User::select('id', 'name', 'email', 'company_id', 'email_verified_at', 'last_login')
+      $company = Company::find(Auth::user()->company_id);
+      $users = User::select('id', 'name', 'email', 'company_id', 'email_verified_at', 'created_at')
          ->with(['roles:id,name'])
          ->where('company_id', $company->id)
          ->orderBy('name', 'asc')

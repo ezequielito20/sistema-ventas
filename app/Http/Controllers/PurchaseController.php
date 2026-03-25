@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\Company;
 use App\Models\Supplier;
 use App\Models\CashCount;
 use App\Models\CashMovement;
@@ -876,9 +877,9 @@ class PurchaseController extends Controller
 
    public function report()
    {
-      $company = $this->company;
+      $company = Company::find($this->company->id);
       $currency = $this->currencies;
-      $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id'])
+      $purchases = Purchase::select(['id', 'purchase_date', 'payment_receipt', 'total_price', 'company_id', 'created_at'])
          ->with([
             'details' => function ($query) {
                $query->select(['id', 'purchase_id', 'product_id', 'supplier_id', 'quantity']);

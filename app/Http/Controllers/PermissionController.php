@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
@@ -34,38 +33,38 @@ class PermissionController extends Controller
    {
       $currentPage = $paginator->currentPage();
       $lastPage = $paginator->lastPage();
-      
+
       $links = [];
-      
+
       // Siempre agregar la primera página
       $links[] = 1;
-      
+
       // Calcular el rango de páginas alrededor de la página actual
       $start = max(2, $currentPage - $windowSize);
       $end = min($lastPage - 1, $currentPage + $windowSize);
-      
+
       // Agregar separador si hay gap entre la primera página y el rango
       if ($start > 2) {
          $links[] = '...';
       }
-      
+
       // Agregar páginas en el rango
       for ($i = $start; $i <= $end; $i++) {
          if ($i > 1 && $i < $lastPage) {
             $links[] = $i;
          }
       }
-      
+
       // Agregar separador si hay gap entre el rango y la última página
       if ($end < $lastPage - 1) {
          $links[] = '...';
       }
-      
+
       // Siempre agregar la última página (si no es la primera)
       if ($lastPage > 1) {
          $links[] = $lastPage;
       }
-      
+
       // Agregar propiedades al paginador
       $paginator->smartLinks = $links;
       $paginator->hasPrevious = $paginator->previousPageUrl() !== null;
@@ -74,7 +73,7 @@ class PermissionController extends Controller
       $paginator->nextPageUrl = $paginator->nextPageUrl();
       $paginator->firstPageUrl = $paginator->url(1);
       $paginator->lastPageUrl = $paginator->url($lastPage);
-      
+
       return $paginator;
    }
 
@@ -82,7 +81,7 @@ class PermissionController extends Controller
    {
       try {
          $company = $this->company;
-         
+
          // Optimización de gates - verificar permisos una sola vez
          $permissions = [
             'can_report' => Gate::allows('permissions.report'),
@@ -91,21 +90,21 @@ class PermissionController extends Controller
             'can_show' => Gate::allows('permissions.show'),
             'can_destroy' => Gate::allows('permissions.destroy'),
          ];
-         
+
          // Si es una petición AJAX para búsqueda, devolver JSON
          if ($request->ajax() && $request->has('search')) {
             return $this->searchPermissions($request);
          }
-         
+
          // Consulta base de permisos con relaciones
          $query = Permission::with(['roles']);
 
          // Búsqueda por texto: nombre del permiso o guard
          if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                $q->where('name', 'ILIKE', "%{$search}%")
-                 ->orWhere('guard_name', 'ILIKE', "%{$search}%");
+                  ->orWhere('guard_name', 'ILIKE', "%{$search}%");
             });
          }
 
@@ -128,13 +127,13 @@ class PermissionController extends Controller
 
          // Filtro por cantidad de roles asignados
          if ($request->filled('roles_min')) {
-            $query->whereHas('roles', function($q) use ($request) {
+            $query->whereHas('roles', function ($q) use ($request) {
                $q->havingRaw('COUNT(*) >= ?', [$request->input('roles_min')]);
             });
          }
 
          if ($request->filled('roles_max')) {
-            $query->whereHas('roles', function($q) use ($request) {
+            $query->whereHas('roles', function ($q) use ($request) {
                $q->havingRaw('COUNT(*) <= ?', [$request->input('roles_max')]);
             });
          }
@@ -160,24 +159,24 @@ class PermissionController extends Controller
 
          // Paginación del lado del servidor
          $permissionsList = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
-         
+
          // Aplicar paginación inteligente
          $permissionsList = $this->generateSmartPagination($permissionsList, 2);
 
          // Optimización: Obtener estadísticas con consultas optimizadas
          $totalPermissions = Permission::count();
-         
+
          // Obtener conteo de permisos activos (con roles o usuarios)
          $activePermissions = Permission::whereHas('roles')
             ->orWhereHas('users')
             ->count();
-         
+
          // Obtener conteo de roles únicos que tienen permisos
          $rolesCount = DB::table('roles')
             ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
             ->distinct('roles.id')
             ->count('roles.id');
-         
+
          // Permisos sin usar
          $unusedPermissions = Permission::whereDoesntHave('roles')
             ->whereDoesntHave('users')
@@ -243,16 +242,32 @@ class PermissionController extends Controller
             'regex:/^[a-z]+\.[a-z]+$/',
             function ($attribute, $value, $fail) {
                $module = explode('.', $value)[0];
-               
+
                // Lista de módulos válidos (tablas existentes en el sistema)
                $validModules = [
-                  'users', 'categories', 'suppliers', 'products', 'customers', 
-                  'purchases', 'sales', 'cash_counts', 'cash_movements', 
-                  'debt_payments', 'companies', 'roles', 'permissions',
-                  'orders', 'notifications', 'countries', 'states', 'cities', 
-                  'municipalities', 'parishes', 'currencies'
+                  'users',
+                  'categories',
+                  'suppliers',
+                  'products',
+                  'customers',
+                  'purchases',
+                  'sales',
+                  'cash_counts',
+                  'cash_movements',
+                  'debt_payments',
+                  'companies',
+                  'roles',
+                  'permissions',
+                  'orders',
+                  'notifications',
+                  'countries',
+                  'states',
+                  'cities',
+                  'municipalities',
+                  'parishes',
+                  'currencies'
                ];
-               
+
                if (!in_array($module, $validModules)) {
                   $fail(__($this->messages['name.table_exists'], ['module' => $module]));
                }
@@ -318,7 +333,7 @@ class PermissionController extends Controller
    {
       try {
          $permission = Permission::with(['roles'])->findOrFail($id);
-         
+
          // Optimización: Obtener conteo de usuarios en una sola consulta
          $usersCount = DB::table('users')
             ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
@@ -388,16 +403,32 @@ class PermissionController extends Controller
                'regex:/^[a-z]+\.[a-z]+$/',
                function ($attribute, $value, $fail) {
                   $module = explode('.', $value)[0];
-                  
+
                   // Lista de módulos válidos (tablas existentes en el sistema)
                   $validModules = [
-                     'users', 'categories', 'suppliers', 'products', 'customers', 
-                     'purchases', 'sales', 'cash_counts', 'cash_movements', 
-                     'debt_payments', 'companies', 'roles', 'permissions',
-                     'orders', 'notifications', 'countries', 'states', 'cities', 
-                     'municipalities', 'parishes', 'currencies'
+                     'users',
+                     'categories',
+                     'suppliers',
+                     'products',
+                     'customers',
+                     'purchases',
+                     'sales',
+                     'cash_counts',
+                     'cash_movements',
+                     'debt_payments',
+                     'companies',
+                     'roles',
+                     'permissions',
+                     'orders',
+                     'notifications',
+                     'countries',
+                     'states',
+                     'cities',
+                     'municipalities',
+                     'parishes',
+                     'currencies'
                   ];
-                  
+
                   if (!in_array($module, $validModules)) {
                      $fail('El módulo "' . $module . '" no es válido. Módulos válidos: users, categories, suppliers, products, customers, purchases, sales, cash_counts, cash_movements, debt_payments, companies, roles, permissions, orders, notifications.');
                   }
@@ -484,18 +515,18 @@ class PermissionController extends Controller
    {
       try {
          $searchTerm = $request->get('search', '');
-         
+
          // Construir query base
          $query = Permission::with(['roles']);
-         
+
          // Aplicar filtros de búsqueda
          if (!empty($searchTerm)) {
-            $query->where(function($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
                $q->where('name', 'ILIKE', "%{$searchTerm}%")
-                 ->orWhere('guard_name', 'ILIKE', "%{$searchTerm}%");
+                  ->orWhere('guard_name', 'ILIKE', "%{$searchTerm}%");
             });
          }
-         
+
          // Obtener todos los resultados (sin paginación para búsqueda completa)
          $permissionsList = $query->orderBy('name', 'asc')->get();
 
@@ -535,7 +566,6 @@ class PermissionController extends Controller
                'search_term' => $searchTerm
             ]
          ]);
-
       } catch (\Exception $e) {
          return response()->json([
             'status' => 'error',
@@ -546,6 +576,52 @@ class PermissionController extends Controller
 
    public function report()
    {
-      //
+      try {
+         $company = $this->company;
+
+         // Obtener todos los permisos con roles
+         $permissions = Permission::with(['roles'])->orderBy('name', 'asc')->get();
+
+         // Optimización: Obtener conteo de usuarios por permiso en una sola consulta
+         $usersCountByPermission = DB::table('permissions')
+            ->leftJoin('role_has_permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+            ->leftJoin('roles', 'role_has_permissions.role_id', '=', 'roles.id')
+            ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->leftJoin('users', 'model_has_roles.model_id', '=', 'users.id')
+            ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->select('permissions.id', DB::raw('COUNT(DISTINCT users.id) as users_count'))
+            ->groupBy('permissions.id')
+            ->pluck('users_count', 'permissions.id')
+            ->toArray();
+
+         // Asignar conteos de usuarios a los permisos
+         $permissions->transform(function ($permission) use ($usersCountByPermission) {
+            $permission->users_count = $usersCountByPermission[$permission->id] ?? 0;
+            return $permission;
+         });
+
+         // Obtener conteo de roles únicos que tienen permisos
+         $rolesCount = DB::table('roles')
+            ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+            ->distinct('roles.id')
+            ->count('roles.id');
+
+         // Conteo total de usuarios
+         $usersCount = DB::table('users')->count();
+
+         // Generar el PDF
+         $pdf = Pdf::loadView('admin.permissions.report_pdf', compact(
+            'permissions',
+            'company',
+            'rolesCount',
+            'usersCount'
+         ));
+
+         return $pdf->stream('reporte-permisos.pdf');
+      } catch (\Exception $e) {
+         return redirect()->route('admin.permissions.index')
+            ->with('message', 'Error al generar el reporte: ' . $e->getMessage())
+            ->with('icons', 'error');
+      }
    }
 }

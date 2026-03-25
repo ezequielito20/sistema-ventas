@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Customer;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -1073,7 +1074,7 @@ class CustomerController extends Controller
             ->with('icons', 'error');
       }
 
-      $company = $this->company;
+      $company = Company::find($this->company->id);
       $currency = $this->currencies;
 
       // Si hay filtros, generar reporte de deudas filtrado

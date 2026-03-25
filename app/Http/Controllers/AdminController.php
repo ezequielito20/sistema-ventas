@@ -676,20 +676,33 @@ class AdminController extends Controller
          $totalCurrentPeriodDebt = 0;
          $totalOldDebtRecovered = 0; // Dinero que entró pagando deudas viejas
 
+         // Optimizacion: Pre-fetch de agregados de ventas y pagos para evitar N+1
+         $customerIds = $customersWithDebt->pluck('id');
+         $salesAggregates = DB::table('sales')
+            ->select('customer_id')
+            ->selectRaw("SUM(CASE WHEN sale_date < ? THEN total_price ELSE 0 END) as old_sales", [$cashOpenDate])
+            ->selectRaw("SUM(CASE WHEN sale_date >= ? THEN total_price ELSE 0 END) as sales_in_period", [$cashOpenDate])
+            ->where('company_id', $companyId)
+            ->whereIn('customer_id', $customerIds)
+            ->groupBy('customer_id')
+            ->get()->keyBy('customer_id');
+
+         $paymentAggregates = DB::table('debt_payments')
+            ->select('customer_id')
+            ->selectRaw("SUM(CASE WHEN created_at < ? THEN payment_amount ELSE 0 END) as old_payments", [$cashOpenDate])
+            ->selectRaw("SUM(CASE WHEN created_at >= ? THEN payment_amount ELSE 0 END) as payments_in_period", [$cashOpenDate])
+            ->where('company_id', $companyId)
+            ->whereIn('customer_id', $customerIds)
+            ->groupBy('customer_id')
+            ->get()->keyBy('customer_id');
+
          foreach ($customersWithDebt as $customer) {
+            $salesAgg = $salesAggregates->get($customer->id);
+            $payAgg = $paymentAggregates->get($customer->id);
+
             // 1. Calcular Deuda Vieja Inicial (Antes de abrir la caja)
-            $oldSales = DB::table('sales')
-               ->where('company_id', $companyId)
-               ->where('customer_id', $customer->id)
-               ->where('sale_date', '<', $cashOpenDate)
-               ->sum('total_price');
-
-            $oldPayments = DB::table('debt_payments')
-               ->where('company_id', $companyId)
-               ->where('customer_id', $customer->id)
-               ->where('created_at', '<', $cashOpenDate)
-               ->sum('payment_amount');
-
+            $oldSales = (float) ($salesAgg->old_sales ?? 0);
+            $oldPayments = (float) ($payAgg->old_payments ?? 0);
             $oldDebtInitial = max(0, $oldSales - $oldPayments);
 
             // 2. Calcular cuánto de esa deuda vieja se pagó en este período
@@ -697,11 +710,7 @@ class AdminController extends Controller
             $oldDebtRemaining = 0;
 
             if ($oldDebtInitial > 0) {
-               $paymentsInPeriod = DB::table('debt_payments')
-                  ->where('customer_id', $customer->id)
-                  ->where('created_at', '>=', $cashOpenDate)
-                  ->sum('payment_amount');
-
+               $paymentsInPeriod = (float) ($payAgg->payments_in_period ?? 0);
                // Si hubo pagos, primero cubren la deuda vieja (FIFO)
                $recovered = min($oldDebtInitial, $paymentsInPeriod);
                $oldDebtRemaining = max(0, $oldDebtInitial - $recovered);
@@ -711,12 +720,7 @@ class AdminController extends Controller
             $calculatedCurrentDebt = max(0, $customer->total_debt - $oldDebtRemaining);
 
             // Obtener ventas de ESTE cliente en ESTE período para limitar la deuda nueva
-            // No se puede generar más deuda nueva que lo vendido en el período
-            $salesInCurrent = DB::table('sales')
-               ->where('company_id', $companyId)
-               ->where('customer_id', $customer->id)
-               ->where('sale_date', '>=', $cashOpenDate)
-               ->sum('total_price');
+            $salesInCurrent = (float) ($salesAgg->sales_in_period ?? 0);
 
             // La deuda del período no puede exceder las ventas del período
             $currentPeriodDebt = min($calculatedCurrentDebt, $salesInCurrent);
@@ -814,70 +818,43 @@ class AdminController extends Controller
       $closedSalesData = [];
 
       if ($closedCashCounts->isNotEmpty()) {
-         // Obtener todos los datos de arqueos cerrados usando UNION ALL para evitar problemas de GROUP BY
-         $allSalesData = collect();
-         $allPurchasesData = collect();
-         $allDebtPaymentsData = collect();
+         // Optimizacion: Pre-fetch de datos para arqueos cerrados en lote
+         $closedIds = $closedCashCounts->pluck('id');
+         $allSalesDataRaw = DB::table('cash_counts as cc')
+            ->join('sales as s', function ($join) {
+               $join->on('s.company_id', '=', 'cc.company_id')
+                  ->whereRaw('s.sale_date BETWEEN cc.opening_date AND cc.closing_date');
+            })->whereIn('cc.id', $closedIds)
+            ->select('cc.id', DB::raw('SUM(s.total_price) as total_sales'), DB::raw('COUNT(*) as sales_count'), DB::raw('AVG(s.total_price) as avg_sale_price'))
+            ->groupBy('cc.id')->get()->keyBy('id');
 
-         foreach ($closedCashCounts as $index => $closedCashCount) {
-            $openingDate = $closedCashCount->opening_date;
-            $closingDate = $closedCashCount->closing_date;
-            $arqueoPeriod = $index + 1;
+         $allPurchasesDataRaw = DB::table('cash_counts as cc')
+            ->join('purchases as p', function ($join) {
+               $join->on('p.company_id', '=', 'cc.company_id')
+                  ->whereRaw('p.purchase_date BETWEEN cc.opening_date AND cc.closing_date');
+            })->whereIn('cc.id', $closedIds)
+            ->select('cc.id', DB::raw('SUM(p.total_price) as total_purchases'))
+            ->groupBy('cc.id')->get()->keyBy('id');
 
-            // Ventas para este arqueo
-            $salesData = DB::table('sales')
-               ->select(
-                  DB::raw("{$arqueoPeriod} as arqueo_period"),
-                  DB::raw('SUM(total_price) as total_sales'),
-                  DB::raw('COUNT(*) as sales_count'),
-                  DB::raw('AVG(total_price) as avg_sale_price')
-               )
-               ->where('company_id', $companyId)
-               ->where('sale_date', '>=', $openingDate)
-               ->where('sale_date', '<=', $closingDate)
-               ->first();
-
-            $allSalesData->put($arqueoPeriod, $salesData);
-
-            // Compras para este arqueo
-            $purchasesData = DB::table('purchases')
-               ->select(
-                  DB::raw("{$arqueoPeriod} as arqueo_period"),
-                  DB::raw('SUM(total_price) as total_purchases')
-               )
-               ->where('company_id', $companyId)
-               ->where('purchase_date', '>=', $openingDate)
-               ->where('purchase_date', '<=', $closingDate)
-               ->first();
-
-            $allPurchasesData->put($arqueoPeriod, $purchasesData);
-
-            // Pagos de deudas para este arqueo
-            if ($hasDebtPaymentsTable) {
-               $debtPaymentsData = DB::table('debt_payments')
-                  ->select(
-                     DB::raw("{$arqueoPeriod} as arqueo_period"),
-                     DB::raw('SUM(payment_amount) as total_payments')
-                  )
-                  ->where('company_id', $companyId)
-                  ->where('created_at', '>=', $openingDate)
-                  ->where('created_at', '<=', $closingDate)
-                  ->first();
-
-               $allDebtPaymentsData->put($arqueoPeriod, $debtPaymentsData);
-            }
+         $allDebtPaymentsDataRaw = collect();
+         if ($hasDebtPaymentsTable) {
+            $allDebtPaymentsDataRaw = DB::table('cash_counts as cc')
+               ->join('debt_payments as dp', function ($join) {
+                  $join->on('dp.company_id', '=', 'cc.company_id')
+                     ->whereRaw('dp.created_at BETWEEN cc.opening_date AND cc.closing_date');
+               })->whereIn('cc.id', $closedIds)
+               ->select('cc.id', DB::raw('SUM(dp.payment_amount) as total_payments'))
+               ->groupBy('cc.id')->get()->keyBy('id');
          }
 
-         // Procesar cada arqueo con los datos ya obtenidos
          foreach ($closedCashCounts as $index => $closedCashCount) {
             $openingDate = $closedCashCount->opening_date;
             $closingDate = $closedCashCount->closing_date;
             $arqueoPeriod = $index + 1;
 
-            // Obtener datos del arqueo desde las consultas individuales
-            $salesData = $allSalesData->get($arqueoPeriod);
-            $purchasesData = $allPurchasesData->get($arqueoPeriod);
-            $debtPaymentsData = $allDebtPaymentsData->get($arqueoPeriod);
+            $salesData = $allSalesDataRaw->get($closedCashCount->id) ?? (object)['total_sales' => 0, 'sales_count' => 0, 'avg_sale_price' => 0];
+            $purchasesData = $allPurchasesDataRaw->get($closedCashCount->id) ?? (object)['total_purchases' => 0];
+            $debtPaymentsData = $allDebtPaymentsDataRaw->get($closedCashCount->id) ?? (object)['total_payments' => 0];
 
             $salesInPeriod = (float) ($salesData->total_sales ?? 0);
             $purchasesInPeriod = (float) ($purchasesData->total_purchases ?? 0);

@@ -1303,7 +1303,7 @@ class SaleController extends Controller
 
    public function report()
    {
-      $company = $this->company;
+      $company = Company::find($this->company->id);
       $currency = $this->currencies;
       $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
       $pdf = Pdf::loadView('admin.sales.report', compact('sales', 'company', 'currency'));

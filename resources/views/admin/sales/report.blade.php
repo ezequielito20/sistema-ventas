@@ -6,23 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Ventas</title>
     <style>
+        @page {
+            margin: 1cm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10px;
+            color: #334155;
             margin: 0;
-            padding: 15px;
+            padding: 0;
         }
 
-        .header-container {
+        .header-wrapper {
             width: 100%;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 10px;
             margin-bottom: 20px;
-            position: relative;
         }
 
-        .company-section {
+        .company-col {
+            float: left;
+            width: 35%;
+        }
+
+        .title-col {
             float: left;
             width: 30%;
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        .date-col {
+            float: right;
+            width: 35%;
+            text-align: right;
+            color: #64748b;
+            padding-top: 10px;
         }
 
         .logo {
@@ -31,54 +51,104 @@
             margin-bottom: 5px;
         }
 
+        .company-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #6366f1;
+            display: block;
+        }
+
         .report-title {
-            text-align: center;
-            width: 40%;
-            float: left;
-        }
-
-        .report-title h1 {
             font-size: 18px;
-            margin: 10px 0;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+            margin: 0;
         }
 
-        .date-section {
-            float: right;
-            width: 30%;
-            text-align: right;
-            font-size: 12px;
-        }
-
-        .sales-table {
+        .stats-grid {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 10px 0;
-            font-size: 11px;
-            border: 1px solid #000000;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            width: 30%;
+            display: inline-block;
+            margin-right: 3%;
+            border-top: 3px solid #6366f1;
+        }
+
+        .stat-box.last {
+            margin-right: 0;
+        }
+
+        .stat-val {
+            font-size: 18px;
+            font-weight: bold;
+            color: #6366f1;
+            display: block;
+        }
+
+        .stat-lbl {
+            font-size: 8px;
+            color: #4338ca;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
             border-radius: 8px;
             overflow: hidden;
         }
 
-        .sales-table th {
-            background: #f8f9fa;
-            padding: 8px;
+        .data-table th {
+            background: #6366f1;
+            color: white;
+            padding: 10px 8px;
             text-align: left;
-            border: 1px solid #000000;
+            font-size: 9px;
+            text-transform: uppercase;
         }
 
-        .sales-table td {
-            border: 1px solid #000000;
-            padding: 8px;
+        .data-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ede9fe;
+            vertical-align: middle;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #fbfbfe;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .bg-indigo {
+            background: #6366f1;
         }
 
         .footer {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #dee2e6;
-            font-size: 10px;
+            position: fixed;
+            bottom: -10px;
+            width: 100%;
             text-align: center;
-            color: #474a4d;
+            color: #94a3b8;
+            font-size: 8px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 8px;
         }
 
         .clearfix::after {
@@ -87,75 +157,90 @@
             display: table;
         }
 
-        .total-section {
-            margin-top: 20px;
+        .text-right {
             text-align: right;
-            font-weight: bold;
+        }
+
+        .text-center {
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <!-- Header -->
-    <div class="header-container clearfix">
-        <div class="company-section">
+    <div class="header-wrapper clearfix">
+        <div class="company-col">
             @if ($company->logo)
                 <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo" class="logo">
             @endif
-            <div class="company-info">
-                <strong>{{ $company->name }}</strong><br>
-                {{ $company->address }}<br>
-                Tel: {{ $company->phone }}
-            </div>
+            <span class="company-name">{{ $company->name }}</span>
+            <span style="font-size: 9px;">{{ $company->address }} | Tel: {{ $company->phone }}</span>
         </div>
-
-        <div class="report-title">
-            <h1>REPORTE DE VENTAS</h1>
+        <div class="title-col">
+            <h1 class="report-title">Ventas</h1>
+            <span style="font-size: 9px; color: #64748b;">Análisis de Actividad Comercial</span>
         </div>
-
-        <div class="date-section">
-            <strong>Fecha de emisión:</strong><br>
-            {{ now()->format('d/m/Y H:i') }}
+        <div class="date-col">
+            <strong>Emisión:</strong> {{ now()->format('d/m/Y') }}<br>
+            <strong>Hora:</strong> {{ now()->format('H:i:s') }}
         </div>
     </div>
 
-    <!-- Tabla de ventas -->
-    <table class="sales-table">
+    <div class="stats-grid clearfix">
+        <div class="stat-box">
+            <span class="stat-val">{{ $sales->count() }}</span>
+            <span class="stat-lbl">Ventas Realizadas</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-val">{{ $currency->symbol }} {{ number_format($sales->sum('total_price'), 2) }}</span>
+            <span class="stat-lbl">Ingresos Totales</span>
+        </div>
+        <div class="stat-box last">
+            <span class="stat-val">
+                @php
+                    $avg = $sales->count() > 0 ? $sales->sum('total_price') / $sales->count() : 0;
+                @endphp
+                {{ $currency->symbol }} {{ number_format($avg, 2) }}
+            </span>
+            <span class="stat-lbl">Ticket Promedio</span>
+        </div>
+    </div>
+
+    <table class="data-table">
         <thead>
-            <tr style="text-align: center">
-                <th style="width: 5%">#</th>
-                <th style="width: 20%">Fecha</th>
-                <th style="width: 35%">Cliente</th>
-                <th style="width: 20%">Total</th>
-                <th style="width: 20%">Fecha Registro</th>
+            <tr>
+                <th width="5%" class="text-center">#</th>
+                <th width="15%">Fecha Venta</th>
+                <th width="35%">Cliente</th>
+                <th width="20%" class="text-center">Comprobante</th>
+                <th width="25%" class="text-right">Total Facturado</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($sales as $sale)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</td>
-                    <td>{{ $sale->customer->name }}</td>
-                    <td style="text-align: right">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
+                    <td class="text-center" style="color: #94a3b8;">{{ $loop->iteration }}</td>
+                    <td style="font-weight: bold;">{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}</td>
+                    <td>
+                        <div style="font-weight: bold; color: #1e293b;">
+                            {{ $sale->customer->name ?: 'Consumidor Final' }}</div>
+                        <div style="font-size: 8px; color: #64748b;">CI/NIT: {{ $sale->customer->nit_number ?: 'N/A' }}
+                        </div>
                     </td>
-                    <td>{{ $sale->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="text-center"><span
+                            class="badge bg-indigo">{{ $sale->payment_receipt ?: 'VNT-' . $sale->id }}</span></td>
+                    <td class="text-right" style="font-weight: bold; color: #4f46e5;">
+                        {{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}
+                    </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <!-- Sección de totales -->
-    <div class="total-section">
-        <p>
-            <strong>Total en Ventas:</strong>
-            {{ $currency->symbol }} {{ number_format($sales->sum('total_price'), 2) }}
-        </p>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <p>{{ $company->name }} - Sistema de Gestión</p>
-        <small>Este documento es un reporte generado el {{ now()->format('d/m/Y H:i') }}</small>
+    <div class="footer clearfix">
+        <div style="float: left;">{{ $company->name }} - Sistema de Gestión | Generado por: {{ Auth::user()->name }}
+        </div>
+        <div style="float: right;">Página 1 de 1</div>
     </div>
 </body>
 
