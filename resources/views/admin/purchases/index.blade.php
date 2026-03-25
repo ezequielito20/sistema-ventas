@@ -8,54 +8,78 @@
 
     <!-- Main Container -->
     <div class="main-container" id="purchasesRoot" data-currency-symbol="{{ $currency->symbol }}">
-        <!-- Page Header with System Gradient -->
-        <div class="system-gradient-header">
-            <div class="page-header">
-                <div class="header-content">
-                    <div class="header-left">
-                        <div class="header-icon-wrapper">
-                            <div class="header-icon">
-                                <i class="fas fa-shopping-cart"></i>
+        <!-- Hero Section de Compras -->
+        <div
+            class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl shadow-lg mb-6 group">
+            <!-- Patrón de Fondo Decorativo -->
+            <div class="absolute inset-0 bg-black bg-opacity-10">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
+                <div
+                    class="absolute top-0 left-0 w-48 h-48 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob">
+                </div>
+                <div
+                    class="absolute top-0 right-0 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000">
+                </div>
+                <div
+                    class="absolute -bottom-4 left-16 w-48 h-48 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000">
+                </div>
+            </div>
+
+            <div class="relative px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex-1 lg:pr-6">
+                        <div class="flex items-center mb-2 sm:mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 shadow-inner"
+                                    style="background-color: rgba(255, 255, 255, 0.2) !important;">
+                                    <i class="fas fa-shopping-bag text-lg sm:text-2xl text-white"></i>
+                                </div>
                             </div>
-                            <div class="icon-glow"></div>
-                        </div>
-                        <div class="header-text">
-                            <h1 class="header-title">Gestión de Compras</h1>
-                            <p class="header-subtitle">Administra y controla todas las compras del sistema</p>
+                            <div class="ml-3">
+                                <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
+                                    Gestión de Compras
+                                </h1>
+                                <p class="text-blue-100 text-xs sm:text-base opacity-90 hidden sm:block">
+                                    Administra y controla todas las adquisiciones y suministros
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <div class="header-actions">
+
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 lg:mt-0">
                         @if ($permissions['can_report'])
-                            <a href="{{ route('admin.purchases.report') }}" class="btn-glass btn-secondary-glass"
-                                target="_blank" title="Generar reporte PDF">
-                                <i class="fas fa-file-pdf"></i>
-                                <span>Reporte</span>
-                                <div class="btn-ripple"></div>
+                            <a href="{{ route('admin.purchases.report') }}"
+                                class="inline-flex items-center justify-center px-3 py-2 sm:px-5 sm:py-2.5 bg-white bg-opacity-10 hover:bg-opacity-20 text-white font-semibold rounded-lg transition-all duration-200 border border-white border-opacity-20 backdrop-blur-sm group/btn"
+                                target="_blank">
+                                <i
+                                    class="fas fa-file-pdf text-sm sm:text-base mr-1 sm:mr-2 group-hover/btn:scale-110 transition-transform"></i>
+                                <span class="text-xs sm:text-sm">Reporte</span>
                             </a>
                         @endif
+
                         @if ($cashCount)
                             @if ($permissions['can_create'])
-                                <a href="{{ route('admin.purchases.create') }}" class="btn-glass btn-primary-glass"
-                                    title="Crear nueva compra">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Nueva Compra</span>
-                                    <div class="btn-ripple"></div>
+                                <a href="{{ route('admin.purchases.create') }}"
+                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md transform hover:-translate-y-0.5 active:translate-y-0">
+                                    <i class="fas fa-plus text-sm sm:text-base mr-1.5"></i>
+                                    <span class="text-xs sm:text-sm uppercase tracking-wider">Nueva Compra</span>
                                 </a>
                             @endif
                         @else
-                            <a href="{{ route('admin.cash-counts.create') }}" class="btn-glass btn-danger-glass"
-                                title="Abrir caja para realizar compras">
-                                <i class="fas fa-cash-register"></i>
-                                <span>Abrir Caja</span>
-                                <div class="btn-ripple"></div>
-                            </a>
+                            @if ($permissions['can_create'])
+                                <a href="{{ route('admin.cash-counts.create') }}"
+                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all duration-200 shadow-md transform hover:-translate-y-0.5 active:translate-y-0">
+                                    <i class="fas fa-cash-register text-sm sm:text-base mr-1.5"></i>
+                                    <span class="text-xs sm:text-sm uppercase tracking-wider">Abrir Caja</span>
+                                </a>
+                            @endif
                         @endif
                     </div>
                 </div>
             </div>
         </div>
         <!-- Stats Dashboard -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Productos Únicos -->
             <x-dashboard-widget title="Productos Únicos" value="{{ $totalPurchases }}" valueType="number"
                 icon="fas fa-boxes" trend="Comprados" trendIcon="fas fa-shopping-cart" trendColor="text-green-300"
