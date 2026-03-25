@@ -17,7 +17,8 @@
                 labels: {!! json_encode($chartData['labels']) !!},
                 income: {!! json_encode($chartData['income']) !!},
                 expenses: {!! json_encode($chartData['expenses']) !!}
-            }
+            },
+            appInitialized: false
         };
     </script>
     <script src="{{ asset('js/admin/cash-counts/index.js') }}" defer></script>
@@ -54,39 +55,41 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6 lg:mt-0 hero-buttons">
-                        @if ($currentCashCount)
-                            @can('cash-counts.store-movement')
-                                <a href="{{ route('admin.cash-counts.create-movement') }}"
-                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-blue-500 bg-opacity-90 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
-                                    <i class="fas fa-money-bill-wave mr-1 sm:mr-2"></i>
-                                    <span class="text-xs sm:text-sm">Nuevo Movimiento</span>
-                                </a>
-                            @endcan
-                            @can('cash-counts.close')
-                                <button type="button" onclick="cashCountsIndex.closeCashCount({{ $currentCashCount->id }})"
-                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-[120px] sm:min-w-[140px]">
-                                    <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
-                                    <span class="text-xs sm:text-sm">Cerrar Caja</span>
-                                </button>
-                            @endcan
-                        @else
-                            @can('cash-counts.report')
-                                <a href="{{ route('admin.cash-counts.report') }}"
-                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]"
-                                    target="_blank">
-                                    <i class="fas fa-file-pdf mr-1 sm:mr-2"></i>
-                                    <span class="text-xs sm:text-sm">Reporte</span>
-                                </a>
-                            @endcan
-                            @can('cash-counts.create')
-                                <a href="{{ route('admin.cash-counts.create') }}"
-                                    class="inline-flex items-center justify-center px-4 sm:px-6 py-3 bg-green-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-[120px] sm:min-w-[140px]">
-                                    <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
-                                    <span class="text-xs sm:text-sm">Abrir Caja</span>
-                                </a>
-                            @endcan
-                        @endif
+                    <div class="mt-3 lg:mt-0 hero-buttons">
+                        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
+                            @if ($currentCashCount)
+                                @can('cash-counts.store-movement')
+                                    <a href="{{ route('admin.cash-counts.create-movement') }}"
+                                        class="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 bg-blue-500 bg-opacity-90 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-0 sm:min-w-[140px]">
+                                        <i class="fas fa-money-bill-wave mr-1 sm:mr-2"></i>
+                                        <span class="text-[10px] sm:text-sm">Movimiento</span>
+                                    </a>
+                                @endcan
+                                @can('cash-counts.close')
+                                    <button type="button" onclick="cashCountsIndex.closeCashCount({{ $currentCashCount->id }})"
+                                        class="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-red-300 border-opacity-30 min-w-0 sm:min-w-[140px]">
+                                        <i class="fas fa-lock mr-1 sm:mr-2"></i>
+                                        <span class="text-[10px] sm:text-sm">Cerrar</span>
+                                    </button>
+                                @endcan
+                            @else
+                                @can('cash-counts.report')
+                                    <a href="{{ route('admin.cash-counts.report') }}"
+                                        class="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 bg-red-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-0 sm:min-w-[140px]"
+                                        target="_blank">
+                                        <i class="fas fa-file-pdf mr-1 sm:mr-2"></i>
+                                        <span class="text-[10px] sm:text-sm">Reporte</span>
+                                    </a>
+                                @endcan
+                                @can('cash-counts.create')
+                                    <a href="{{ route('admin.cash-counts.create') }}"
+                                        class="inline-flex items-center justify-center px-2 py-2 sm:px-6 sm:py-3 bg-green-500 bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-30 min-w-0 sm:min-w-[140px]">
+                                        <i class="fas fa-cash-register mr-1 sm:mr-2"></i>
+                                        <span class="text-[10px] sm:text-sm">Abrir Caja</span>
+                                    </a>
+                                @endcan
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -95,17 +98,18 @@
         <!-- Estado Actual de Caja -->
         @if ($currentCashCount)
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-6 border-b border-gray-200">
-                    <div class="flex items-center space-x-4">
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-4 sm:px-6 sm:py-6 border-b border-gray-200">
+                    <div class="flex items-center space-x-3 sm:space-x-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-cash-register text-white text-xl"></i>
+                            class="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                            <i class="fas fa-cash-register text-white text-sm sm:text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="text-2xl font-bold text-gray-900">Caja Actual</h2>
-                            <p class="text-gray-600">Abierta desde:
-                                {{ \Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m/Y H:i') }} | Monto
-                                Inicial: {{ $currency->symbol }} {{ number_format($currentCashCount->initial_amount, 2) }}
+                            <h2 class="text-base sm:text-2xl font-bold text-gray-900">Caja Actual</h2>
+                            <p class="text-[10px] sm:text-base text-gray-600">Desde:
+                                {{ \Carbon\Carbon::parse($currentCashCount->opening_date)->format('d/m/Y H:i') }} |
+                                Iniciado con:
+                                {{ $currency->symbol }} {{ number_format($currentCashCount->initial_amount, 2) }}
                             </p>
                         </div>
                     </div>
@@ -114,7 +118,7 @@
         @endif
 
         <!-- Estadísticas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Balance Actual -->
             <x-dashboard-widget title="Balance Actual" value="{{ $currentBalance }}" valueType="currency"
                 currencySymbol="{{ $currency->symbol }}" icon="fas fa-wallet" trend="Disponible"
@@ -752,7 +756,7 @@
                                     </div>
 
                                     <!-- 4 Widgets de Clientes con datos reales -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                         <!-- Widget 1: Total Clientes -->
                                         <div
                                             class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
@@ -990,7 +994,7 @@
                                     </div>
 
                                     <!-- 4 Widgets de Ventas con datos reales -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                         <!-- Widget 1: Ventas Totales -->
                                         <div
                                             class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
@@ -1233,7 +1237,7 @@
                                     </div>
 
                                     <!-- 4 Widgets de Pagos con datos reales -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                         <!-- Total Pagos Recibidos -->
                                         <div
                                             class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
@@ -1478,7 +1482,7 @@
                                     </div>
 
                                     <!-- 4 Widgets de Compras con datos reales -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                         <!-- Compras Totales -->
                                         <div
                                             class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
@@ -1911,7 +1915,7 @@
                                     </div>
 
                                     <!-- 4 Widgets reales -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                                         <!-- Total Pedidos -->
                                         <div
                                             class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg">
@@ -2099,7 +2103,8 @@
                                                             <td
                                                                 class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                                 <span class="text-green-600 font-medium"
-                                                                    x-text="formatCurrency(row.total_amount)"></span></td>
+                                                                    x-text="formatCurrency(row.total_amount)"></span>
+                                                            </td>
                                                             <td
                                                                 class="px-3 sm:px-4 md:px-6 py-2 sm:py-4 whitespace-nowrap">
                                                                 <span

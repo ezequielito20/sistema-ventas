@@ -66,60 +66,60 @@ function loadCashCountsPage(url) {
             'Accept': 'text/html, application/xhtml+xml'
         }
     })
-    .then(r => {
-        if (!r.ok) throw new Error('Error al cargar');
-        return r.text();
-    })
-    .then(html => {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
+        .then(r => {
+            if (!r.ok) throw new Error('Error al cargar');
+            return r.text();
+        })
+        .then(html => {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
 
-        // Reemplazar tabla
-        const newTableBody = temp.querySelector('.modern-table tbody');
-        const tableBody = document.querySelector('.modern-table tbody');
-        if (newTableBody && tableBody) {
-            tableBody.innerHTML = newTableBody.innerHTML;
-        }
+            // Reemplazar tabla
+            const newTableBody = temp.querySelector('.modern-table tbody');
+            const tableBody = document.querySelector('.modern-table tbody');
+            if (newTableBody && tableBody) {
+                tableBody.innerHTML = newTableBody.innerHTML;
+            }
 
-        // Reemplazar tarjetas
-        const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
-        const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
-        if (newCardsGrid && cardsGrid) {
-            cardsGrid.innerHTML = newCardsGrid.innerHTML;
-        }
+            // Reemplazar tarjetas
+            const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+            const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+            if (newCardsGrid && cardsGrid) {
+                cardsGrid.innerHTML = newCardsGrid.innerHTML;
+            }
 
-        // Reemplazar contenedores de paginación
-        const newPaginationContainers = temp.querySelectorAll('.pagination-container');
-        const paginationContainers = document.querySelectorAll('.pagination-container');
-        if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
-            newPaginationContainers.forEach((newContainer, index) => {
-                if (paginationContainers[index]) {
-                    paginationContainers[index].innerHTML = newContainer.innerHTML;
-                }
-            });
-        }
+            // Reemplazar contenedores de paginación
+            const newPaginationContainers = temp.querySelectorAll('.pagination-container');
+            const paginationContainers = document.querySelectorAll('.pagination-container');
+            if (newPaginationContainers.length > 0 && paginationContainers.length > 0) {
+                newPaginationContainers.forEach((newContainer, index) => {
+                    if (paginationContainers[index]) {
+                        paginationContainers[index].innerHTML = newContainer.innerHTML;
+                    }
+                });
+            }
 
-        // Actualizar URL sin recargar
-        window.history.pushState({}, '', url);
+            // Actualizar URL sin recargar
+            window.history.pushState({}, '', url);
 
-        // Reinicializar event listeners
-        initializeEventListeners();
-    })
-    .catch(err => {
-        console.error('Error al cargar página:', err);
-        // Mostrar error al usuario
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Error',
-                text: 'Error al cargar los resultados de búsqueda',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    })
-    .finally(() => {
-        container.style.opacity = '';
-    });
+            // Reinicializar event listeners
+            initializeEventListeners();
+        })
+        .catch(err => {
+            console.error('Error al cargar página:', err);
+            // Mostrar error al usuario
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al cargar los resultados de búsqueda',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .finally(() => {
+            container.style.opacity = '';
+        });
 }
 
 // Interceptar clicks de paginación cuando servidor está activo
@@ -164,67 +164,67 @@ function loadCashCountsPage(url) {
             'Accept': 'text/html, application/xhtml+xml'
         }
     })
-    .then(r => {
-        if (!r.ok) throw new Error('Error al cargar');
-        return r.text();
-    })
-    .then(html => {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
+        .then(r => {
+            if (!r.ok) throw new Error('Error al cargar');
+            return r.text();
+        })
+        .then(html => {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
 
-        // Reemplazar tabla
-        const newTableBody = temp.querySelector('.modern-table tbody');
-        const tableBody = document.querySelector('.modern-table tbody');
-        if (newTableBody && tableBody) {
-            tableBody.innerHTML = newTableBody.innerHTML;
-        }
+            // Reemplazar tabla
+            const newTableBody = temp.querySelector('.modern-table tbody');
+            const tableBody = document.querySelector('.modern-table tbody');
+            if (newTableBody && tableBody) {
+                tableBody.innerHTML = newTableBody.innerHTML;
+            }
 
-        // Reemplazar tarjetas
-        const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
-        const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
-        if (newCardsGrid && cardsGrid) {
-            cardsGrid.innerHTML = newCardsGrid.innerHTML;
-        }
+            // Reemplazar tarjetas
+            const newCardsGrid = temp.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+            const cardsGrid = document.querySelector('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3');
+            if (newCardsGrid && cardsGrid) {
+                cardsGrid.innerHTML = newCardsGrid.innerHTML;
+            }
 
-        // Reemplazar información de paginación
-        const newPaginationInfo = temp.querySelector('.text-sm.text-gray-700');
-        const paginationInfo = document.querySelector('.text-sm.text-gray-700');
-        if (newPaginationInfo && paginationInfo) {
-            paginationInfo.innerHTML = newPaginationInfo.innerHTML;
-        }
+            // Reemplazar información de paginación
+            const newPaginationInfo = temp.querySelector('.text-sm.text-gray-700');
+            const paginationInfo = document.querySelector('.text-sm.text-gray-700');
+            if (newPaginationInfo && paginationInfo) {
+                paginationInfo.innerHTML = newPaginationInfo.innerHTML;
+            }
 
-        // Reemplazar enlaces de paginación si existen
-        const newPagination = temp.querySelector('.pagination');
-        const pagination = document.querySelector('.pagination');
-        if (newPagination && pagination) {
-            pagination.innerHTML = newPagination.innerHTML;
-        }
+            // Reemplazar enlaces de paginación si existen
+            const newPagination = temp.querySelector('.pagination');
+            const pagination = document.querySelector('.pagination');
+            if (newPagination && pagination) {
+                pagination.innerHTML = newPagination.innerHTML;
+            }
 
-        // Actualizar URL sin recargar
-        window.history.pushState({}, '', url);
+            // Actualizar URL sin recargar
+            window.history.pushState({}, '', url);
 
-        // Reinicializar event listeners para nuevos elementos
-        initializeEventListeners();
-    })
-    .catch(err => {
-        console.error('Error al cargar página:', err);
-        // Mostrar error al usuario
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Error',
-                text: 'Error al cargar los resultados de búsqueda',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    })
-    .finally(() => {
-        // Ocultar indicador de carga
-        if (searchInput) {
-            searchInput.classList.remove('search-loading');
-            searchInput.disabled = false;
-        }
-    });
+            // Reinicializar event listeners para nuevos elementos
+            initializeEventListeners();
+        })
+        .catch(err => {
+            console.error('Error al cargar página:', err);
+            // Mostrar error al usuario
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al cargar los resultados de búsqueda',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        })
+        .finally(() => {
+            // Ocultar indicador de carga
+            if (searchInput) {
+                searchInput.classList.remove('search-loading');
+                searchInput.disabled = false;
+            }
+        });
 }
 
 // Interceptar clicks de paginación cuando servidor está activo
@@ -262,7 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // También intentar después de que Alpine.js esté listo
 document.addEventListener('alpine:init', () => {
-    setTimeout(initializeApp, 100);
+    // Si ya inicializamos por DOMContentLoaded, no lo hacemos de nuevo inmediatamente
+    if (!window.appInitialized) {
+        setTimeout(initializeApp, 100);
+    }
 });
 
 // ===== FUNCIONES GLOBALES =====
@@ -300,17 +303,17 @@ function submitCloseCashCount(cashCountId) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = `/cash-counts/close/${cashCountId}`;
-    
+
     const csrfToken = document.createElement('input');
     csrfToken.type = 'hidden';
     csrfToken.name = '_token';
     csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+
     const methodField = document.createElement('input');
     methodField.type = 'hidden';
     methodField.name = '_method';
     methodField.value = 'PUT';
-    
+
     form.appendChild(csrfToken);
     form.appendChild(methodField);
     document.body.appendChild(form);
@@ -356,7 +359,7 @@ async function submitDeleteCashCount(cashCountId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -412,21 +415,21 @@ async function submitDeleteCashCount(cashCountId) {
 /**
  * Abrir modal de detalles del arqueo de caja
  */
-window.openCashCountModal = function(cashCountId) {
+window.openCashCountModal = function (cashCountId) {
     const modalInstance = window.cashCountModalInstance || cashCountModalInstance;
     if (modalInstance) {
         modalInstance.isOpen = true;
         modalInstance.cashCountData = null;
-        
+
         // Asegurar que la configuración de moneda esté actualizada
         if (window.cashCountsData && window.cashCountsData.currencySymbol) {
             CASH_COUNTS_CONFIG.currencySymbol = window.cashCountsData.currencySymbol;
             modalInstance.currencySymbol = window.cashCountsData.currencySymbol;
         }
-        
+
         // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
-        
+
         // Cargar datos del arqueo de forma asíncrona
         modalInstance.loadCashCountData(cashCountId);
     } else {
@@ -438,7 +441,7 @@ window.openCashCountModal = function(cashCountId) {
 /**
  * Función de prueba para el modal
  */
-window.testModal = function() {
+window.testModal = function () {
     const modalInstance = window.cashCountModalInstance || cashCountModalInstance;
     if (modalInstance) {
         modalInstance.isOpen = true;
@@ -478,10 +481,10 @@ window.testModal = function() {
                 }
             ]
         };
-        
+
         // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
-        
+
         showNotification('Modal de prueba cargado exitosamente', 'success');
     } else {
         showNotification('Error: Modal no disponible', 'error');
@@ -522,9 +525,9 @@ function formatDate(dateString) {
             month: '2-digit',
             year: 'numeric'
         });
-            } catch (error) {
-            return 'N/A';
-        }
+    } catch (error) {
+        return 'N/A';
+    }
 }
 
 /**
@@ -546,9 +549,9 @@ function formatDateTime(dateString) {
             hour: '2-digit',
             minute: '2-digit'
         });
-            } catch (error) {
-            return 'N/A';
-        }
+    } catch (error) {
+        return 'N/A';
+    }
 }
 
 /**
@@ -583,6 +586,11 @@ function initializeCharts() {
     // Gráfico de Movimientos
     const movementsCtx = document.getElementById('cashMovementsChart');
     if (movementsCtx && window.cashCountsData?.chartData) {
+        // Destruir instancia previa si existe
+        if (charts.movements instanceof Chart) {
+            charts.movements.destroy();
+        }
+
         charts.movements = new Chart(movementsCtx.getContext('2d'), {
             type: 'line',
             data: {
@@ -650,6 +658,11 @@ function initializeCharts() {
     // Gráfico de Distribución
     const distributionCtx = document.getElementById('movementsDistributionChart');
     if (distributionCtx && window.cashCountsData?.todayIncome !== undefined && window.cashCountsData?.todayExpenses !== undefined) {
+        // Destruir instancia previa si existe
+        if (charts.distribution instanceof Chart) {
+            charts.distribution.destroy();
+        }
+
         charts.distribution = new Chart(distributionCtx.getContext('2d'), {
             type: 'doughnut',
             data: {
@@ -689,7 +702,7 @@ function initializeCharts() {
 /**
  * Función Alpine.js para el dataTable
  */
-window.dataTable = function() {
+window.dataTable = function () {
     return {
         viewMode: window.innerWidth >= 768 ? 'table' : 'cards', // Default: table en desktop, cards en móvil
 
@@ -708,10 +721,10 @@ window.dataTable = function() {
 /**
  * Función Alpine.js para el modal de arqueos de caja
  */
-window.cashCountModal = function() {
+window.cashCountModal = function () {
     return {
         isOpen: false,
-        
+
         cashCountData: null,
         activeTab: 'clientes', // Pestaña activa por defecto
         currencySymbol: CASH_COUNTS_CONFIG.currencySymbol,
@@ -728,7 +741,7 @@ window.cashCountModal = function() {
                 window.cashCountModalInstance = this;
             }
             cashCountModalInstance = this;
-            
+
             // Asegurar que la configuración de moneda esté actualizada
             if (window.cashCountsData && window.cashCountsData.currencySymbol) {
                 this.currencySymbol = window.cashCountsData.currencySymbol;
@@ -742,7 +755,7 @@ window.cashCountModal = function() {
             // Reset paginación productos al cerrar
             this.productsPage = 1;
             this.ordersPage = 1;
-            
+
             // Restaurar scroll del body
             document.body.style.overflow = 'auto';
         },
@@ -763,7 +776,7 @@ window.cashCountModal = function() {
                 }
 
                 const data = await response.json();
-                
+
                 if (data.success && data.data) {
                     this.cashCountData = data.data;
                     // Asegurar que la configuración de moneda esté actualizada
@@ -811,12 +824,15 @@ window.cashCountModal = function() {
  * Inicializar la aplicación cuando el DOM esté listo
  */
 function initializeApp() {
+    if (window.appInitialized) return;
+    window.appInitialized = true;
+
     // Inicializar gráficos
     initializeCharts();
-    
+
     // Inicializar event listeners
     initializeEventListeners();
-    
+
     // Inicializar búsqueda del servidor
     initializeSearchListener();
 }

@@ -1297,10 +1297,15 @@
             const canvas = document.getElementById('cashFlowChart');
             if (!canvas) return;
 
+            // Destruir instancia previa si existe
+            if (window.cashFlowChart instanceof Chart) {
+                window.cashFlowChart.destroy();
+            }
+
             const ctx = canvas.getContext('2d');
             const data = @js($chartData);
 
-            cashFlowChart = new Chart(ctx, {
+            window.cashFlowChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: data.labels,
