@@ -27,8 +27,8 @@
 
             <div class="relative px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                    <div class="flex-1 lg:pr-6">
-                        <div class="flex items-center mb-2 sm:mb-3">
+                    <div class="flex-1 lg:flex-shrink-0">
+                        <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 shadow-inner"
                                     style="background-color: rgba(255, 255, 255, 0.2) !important;">
@@ -36,23 +36,21 @@
                                 </div>
                             </div>
                             <div class="ml-3">
-                                <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
+                                <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight whitespace-nowrap">
                                     Gestión de Compras
                                 </h1>
-                                <p class="text-blue-100 text-xs sm:text-base opacity-90 hidden sm:block">
-                                    Administra y controla todas las adquisiciones y suministros
-                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 lg:mt-0">
+                    <div
+                        class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3 mt-4 lg:mt-0 lg:flex-shrink-0 lg:justify-end">
                         @if ($permissions['can_report'])
                             <a href="{{ route('admin.purchases.report') }}"
-                                class="inline-flex items-center justify-center px-3 py-2 sm:px-5 sm:py-2.5 bg-white bg-opacity-10 hover:bg-opacity-20 text-white font-semibold rounded-lg transition-all duration-200 border border-white border-opacity-20 backdrop-blur-sm group/btn"
+                                class="inline-flex items-center justify-center px-4 py-2.5 bg-white bg-opacity-10 hover:bg-opacity-20 text-white font-semibold rounded-xl transition-all duration-200 border border-white border-opacity-20 backdrop-blur-sm group/btn text-center"
                                 target="_blank">
                                 <i
-                                    class="fas fa-file-pdf text-sm sm:text-base mr-1 sm:mr-2 group-hover/btn:scale-110 transition-transform"></i>
+                                    class="fas fa-file-pdf text-base mr-2 group-hover/btn:scale-110 transition-transform"></i>
                                 <span class="text-xs sm:text-sm">Reporte</span>
                             </a>
                         @endif
@@ -60,17 +58,17 @@
                         @if ($cashCount)
                             @if ($permissions['can_create'])
                                 <a href="{{ route('admin.purchases.create') }}"
-                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md transform hover:-translate-y-0.5 active:translate-y-0">
-                                    <i class="fas fa-plus text-sm sm:text-base mr-1.5"></i>
-                                    <span class="text-xs sm:text-sm uppercase tracking-wider">Nueva Compra</span>
+                                    class="inline-flex items-center justify-center px-4 py-2.5 bg-white text-indigo-600 font-bold rounded-xl hover:bg-opacity-90 transition-all duration-200 shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 text-center">
+                                    <i class="fas fa-plus text-base mr-2"></i>
+                                    <span class="text-xs sm:text-sm tracking-wide">Compra</span>
                                 </a>
                             @endif
                         @else
                             @if ($permissions['can_create'])
                                 <a href="{{ route('admin.cash-counts.create') }}"
-                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all duration-200 shadow-md transform hover:-translate-y-0.5 active:translate-y-0">
-                                    <i class="fas fa-cash-register text-sm sm:text-base mr-1.5"></i>
-                                    <span class="text-xs sm:text-sm uppercase tracking-wider">Abrir Caja</span>
+                                    class="inline-flex items-center justify-center px-4 py-2.5 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-all duration-200 shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 text-center">
+                                    <i class="fas fa-cash-register text-base mr-2"></i>
+                                    <span class="text-xs sm:text-sm tracking-wide">Caja</span>
                                 </a>
                             @endif
                         @endif
