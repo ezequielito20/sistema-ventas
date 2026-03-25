@@ -12,38 +12,78 @@
     <div class="space-y-6" id="salesRoot" data-currency-symbol="{{ $currency->symbol }}" x-data="salesSPA()"
         x-init="init()">
 
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Gestión de Ventas</h1>
+        <!-- Hero Section de Ventas -->
+        <div
+            class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 rounded-xl shadow-lg mb-6 group">
+            <!-- Patrón de Fondo Decorativo -->
+            <div class="absolute inset-0 bg-black bg-opacity-10">
+                <div class="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
+                <div
+                    class="absolute top-0 left-0 w-48 h-48 bg-white rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob">
+                </div>
+                <div
+                    class="absolute top-0 right-0 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000">
+                </div>
+                <div
+                    class="absolute -bottom-4 left-16 w-48 h-48 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-4000">
+                </div>
             </div>
-            <div class="flex items-center space-x-3">
-                @if ($permissions['can_report'])
-                    <a href="{{ route('admin.sales.report') }}" class="btn-outline" target="_blank">
-                        <i class="fas fa-file-pdf mr-2"></i>
-                        Reporte
-                    </a>
-                @endif
-                @if ($cashCount)
-                    @if ($permissions['can_create'])
-                        <a href="{{ route('admin.sales.create') }}" class="btn-primary">
-                            <i class="fas fa-plus-circle mr-2"></i>
-                            Nueva Venta
-                        </a>
-                    @endif
-                @else
-                    @if ($permissions['can_create'])
-                        <a href="{{ route('admin.cash-counts.create') }}" class="btn-danger">
-                            <i class="fas fa-cash-register mr-2"></i>
-                            Abrir Caja
-                        </a>
-                    @endif
-                @endif
+
+            <div class="relative px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex-1 lg:pr-6">
+                        <div class="flex items-center mb-2 sm:mb-3">
+                            <div class="flex-shrink-0">
+                                <div
+                                    class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 shadow-inner">
+                                    <i class="fas fa-shopping-bag text-lg sm:text-2xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
+                                    Gestión de Ventas
+                                </h1>
+                                <p class="text-blue-100 text-xs sm:text-base opacity-90 hidden sm:block">
+                                    Monitorea y administra tus transacciones en tiempo real
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 lg:mt-0">
+                        @if ($permissions['can_report'])
+                            <a href="{{ route('admin.sales.report') }}"
+                                class="inline-flex items-center justify-center px-3 py-2 sm:px-5 sm:py-2.5 bg-white bg-opacity-10 hover:bg-opacity-20 text-white font-semibold rounded-lg transition-all duration-200 border border-white border-opacity-20 backdrop-blur-sm group/btn"
+                                target="_blank">
+                                <i class="fas fa-file-pdf text-sm sm:text-base mr-1 sm:mr-2"></i>
+                                <span class="text-xs sm:text-sm">Reporte</span>
+                            </a>
+                        @endif
+
+                        @if ($cashCount)
+                            @if ($permissions['can_create'])
+                                <a href="{{ route('admin.sales.create') }}"
+                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md">
+                                    <i class="fas fa-plus text-sm sm:text-base mr-1.5"></i>
+                                    <span class="text-xs sm:text-sm">Nueva Venta</span>
+                                </a>
+                            @endif
+                        @else
+                            @if ($permissions['can_create'])
+                                <a href="{{ route('admin.cash-counts.create') }}"
+                                    class="inline-flex items-center justify-center px-4 py-2 sm:px-6 sm:py-2.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all duration-200 shadow-md">
+                                    <i class="fas fa-cash-register text-sm sm:text-base mr-1.5"></i>
+                                    <span class="text-xs sm:text-sm">Abrir Caja</span>
+                                </a>
+                            @endif
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
         {{-- Dashboard de Estadísticas Moderno --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Ventas Esta Semana (muestra montos de arqueo/semana/hoy) -->
             <x-dashboard-widget title="Total en Ventas" value="{{ $totalSalesAmountSinceCashOpen ?? 0 }}"
                 valueType="currency" currencySymbol="{{ $currency->symbol }}" icon="fas fa-shopping-bag"
