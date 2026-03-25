@@ -94,19 +94,19 @@
                 </div>
             </div>
 
-            <div class="relative px-4 py-4 sm:px-6 lg:px-8">
+            <div class="relative px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                     <!-- Hero Content -->
                     <div class="flex-1 lg:pr-6">
-                        <div class="flex items-center mb-2">
+                        <div class="flex items-center mb-1 sm:mb-2">
                             <div class="flex-shrink-0">
                                 <div
-                                    class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-users text-2xl text-white"></i>
+                                    class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-users text-xl sm:text-2xl text-white"></i>
                                 </div>
                             </div>
                             <div class="ml-3">
-                                <h1 class="text-2xl sm:text-3xl font-bold text-white">
+                                <h1 class="text-xl sm:text-3xl font-bold text-white leading-tight">
                                     Gestión de Clientes
                                 </h1>
                             </div>
@@ -114,61 +114,41 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="mt-4 lg:mt-0 lg:flex-shrink-0">
-                        <div class="flex flex-wrap gap-2 justify-center lg:justify-end">
+                    <div class="mt-3 lg:mt-0 lg:flex-shrink-0">
+                        <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 justify-center lg:justify-end">
                             @if ($permissions['can_report'])
                                 <button @click="openDebtReport()"
-                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 transition-all duration-200"
                                     title="Reporte de Deudas">
-                                    <i class="fas fa-file-invoice-dollar text-base mr-1.5 text-blue-200"></i>
-                                    <span class="hidden sm:inline text-sm">Deudas</span>
-                                    <!-- Tooltip -->
-                                    <div
-                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                        Reporte de Deudas
-                                    </div>
+                                    <i class="fas fa-file-invoice-dollar text-sm sm:text-base mr-1 text-blue-200"></i>
+                                    <span class="text-xs sm:text-sm">Deudas</span>
                                 </button>
                             @endif
 
                             @if ($permissions['can_report'])
                                 <a href="{{ route('admin.customers.report') }}" target="_blank"
-                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 transition-all duration-200"
                                     title="Reporte PDF">
-                                    <i class="fas fa-file-pdf text-base mr-1.5 text-red-200"></i>
-                                    <span class="hidden sm:inline text-sm">PDF</span>
-                                    <!-- Tooltip -->
-                                    <div
-                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                        Reporte PDF
-                                    </div>
+                                    <i class="fas fa-file-pdf text-sm sm:text-base mr-1 text-red-200"></i>
+                                    <span class="text-xs sm:text-sm">PDF</span>
                                 </a>
                             @endif
 
                             @if ($permissions['can_report'])
                                 <a href="{{ route('admin.customers.payment-history') }}"
-                                    class="group relative inline-flex items-center px-3 py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5"
+                                    class="group relative inline-flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 transition-all duration-200"
                                     title="Historial de Pagos">
-                                    <i class="fas fa-history text-base mr-1.5 text-yellow-200"></i>
-                                    <span class="hidden sm:inline text-sm">Historial</span>
-                                    <!-- Tooltip -->
-                                    <div
-                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                        Historial de Pagos
-                                    </div>
+                                    <i class="fas fa-history text-sm sm:text-base mr-1 text-yellow-200"></i>
+                                    <span class="text-xs sm:text-sm">Historial</span>
                                 </a>
                             @endif
 
                             @if ($permissions['can_create'])
                                 <a href="{{ route('admin.customers.create') }}"
-                                    class="group relative inline-flex items-center px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-md"
+                                    class="group relative inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md col-span-2 sm:col-auto"
                                     title="Nuevo Cliente">
-                                    <i class="fas fa-plus text-base mr-1.5"></i>
-                                    <span class="hidden sm:inline text-sm">Nuevo Cliente</span>
-                                    <!-- Tooltip -->
-                                    <div
-                                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                        Crear Nuevo Cliente
-                                    </div>
+                                    <i class="fas fa-plus text-sm sm:text-base mr-1.5"></i>
+                                    <span class="text-xs sm:text-sm">Nuevo Cliente</span>
                                 </a>
                             @endif
                         </div>
@@ -177,8 +157,8 @@
             </div>
         </div>
 
-        <!-- Stats Widgets Compactos -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <!-- Stats Widgets Compresos -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
             <!-- Total de Clientes -->
             <x-dashboard-widget title="Total de Clientes" value="{{ $totalCustomers }}" valueType="number"
                 icon="fas fa-users" trend="{{ $customerGrowth > 0 ? '+' . $customerGrowth : $customerGrowth }}%"

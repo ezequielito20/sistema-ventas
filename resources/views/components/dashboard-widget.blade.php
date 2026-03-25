@@ -152,19 +152,29 @@
     /* Para pantallas menores a 640px */
     @media (max-width: 639px) {
         .widget-responsive {
-            min-height: 128px;
-            /* h-32 */
+            min-height: 110px;
+            /* Ligeramente más compacto */
+        }
+
+        .widget-responsive .p-3 {
+            padding: 0.5rem 0.75rem !important;
+            /* Más compacto en móvil */
         }
 
         .widget-responsive .widget-value {
-            font-size: 0.875rem;
-            /* text-sm */
-            line-height: 1.25rem;
+            font-size: 1.125rem;
+            /* text-lg: El valor debe ser prominente */
+            line-height: 1.5rem;
+        }
+
+        .widget-responsive .text-base {
+            font-size: 0.8125rem;
+            /* Título un poco más pequeño */
         }
 
         .widget-responsive .widget-subtitle {
-            font-size: 0.625rem;
-            /* text-xs más pequeño */
+            font-size: 0.7rem;
+            max-width: 100%;
         }
     }
 
