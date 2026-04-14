@@ -439,12 +439,30 @@ class SaleController extends Controller
             $customer->save();
          }
 
-         // Obtener todos los productos necesarios en una sola consulta
-         $productIds = collect($request->sale_details)->pluck('product_id')->unique();
-         $products = Product::whereIn('id', $productIds)
-            ->select('id', 'stock')
+         // Validar y bloquear stock por producto para evitar sobreventa concurrente
+         $requestedQuantities = collect($validated['sale_details'])
+            ->groupBy('product_id')
+            ->map(fn($items) => $items->sum('quantity'));
+
+         $productIds = $requestedQuantities->keys()->all();
+         $products = Product::where('company_id', $this->company->id)
+            ->whereIn('id', $productIds)
+            ->lockForUpdate()
+            ->select('id', 'name', 'stock')
             ->get()
             ->keyBy('id');
+
+         foreach ($requestedQuantities as $productId => $requestedQty) {
+            $product = $products->get((int) $productId);
+
+            if (!$product) {
+               throw new \Exception("Producto no encontrado o no pertenece a esta empresa (ID: {$productId}).");
+            }
+
+            if ((float) $requestedQty > (float) $product->stock) {
+               throw new \Exception("Stock insuficiente para {$product->name}. Disponible: {$product->stock}, solicitado: {$requestedQty}.");
+            }
+         }
 
          // Procesar cada producto en la venta
          foreach ($request->sale_details as $item) {
@@ -587,11 +605,16 @@ class SaleController extends Controller
 
          $product = Product::where('id', $validated['product_id'])
             ->where('company_id', $this->company->id)
+            ->lockForUpdate()
             ->firstOrFail();
 
          $totalSalesCount = 0;
-         $totalQuantitySold = 0;
+         $totalQuantitySold = collect($validated['sales'])->sum('quantity');
          $automaticPaymentsCount = 0;
+
+         if ((float) $totalQuantitySold > (float) $product->stock) {
+            throw new \Exception("Stock insuficiente para {$product->name}. Disponible: {$product->stock}, solicitado: {$totalQuantitySold}.");
+         }
 
          foreach ($validated['sales'] as $saleData) {
             $customer = Customer::where('id', $saleData['customer_id'])
@@ -694,7 +717,6 @@ class SaleController extends Controller
                'description' => 'Venta Masiva #' . $sale->id . ' - ' . $customer->name,
             ]);
 
-            $totalQuantitySold += $saleData['quantity'];
             $totalSalesCount++;
          }
 
@@ -712,6 +734,10 @@ class SaleController extends Controller
          return response()->json([
             'success' => true,
             'message' => $msg,
+            'updated_product' => [
+               'id' => $product->id,
+               'stock' => $product->stock,
+            ],
          ]);
       } catch (\Exception $e) {
          DB::rollBack();

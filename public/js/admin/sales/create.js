@@ -1286,6 +1286,42 @@ document.addEventListener('alpine:init', () => {
             this.bulkSaleResults[index].status = 'ignored';
         },
 
+        updateCachedProductStock(productId, newStock) {
+            const normalizedProductId = Number(productId);
+            const normalizedStock = Number(newStock);
+
+            this.productsCache = this.productsCache.map(product => {
+                if (Number(product.id) !== normalizedProductId) {
+                    return product;
+                }
+
+                return {
+                    ...product,
+                    stock: normalizedStock,
+                    stock_status_label: normalizedStock <= 0
+                        ? 'Sin stock'
+                        : (normalizedStock <= 5 ? 'Bajo' : 'Normal')
+                };
+            });
+
+            // Sincronizar también los items ya agregados a la venta actual
+            this.saleItems = this.saleItems.map(item => {
+                if (Number(item.id) !== normalizedProductId) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    stock: normalizedStock,
+                    quantity: Math.min(item.quantity, Math.max(normalizedStock, 0))
+                };
+            });
+
+            this.filterProducts();
+            this.updateTotal();
+            this.saveToLocalStorage();
+        },
+
         async processBulkSale() {
             // Validaciones básicas
             if (!this.bulkSaleProductId) {
@@ -1393,11 +1429,12 @@ document.addEventListener('alpine:init', () => {
                 if (data.success) {
                     this.showAlert(data.message || '¡Éxito! Ventas creadas correctamente.', 'success');
 
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                    if (data.updated_product?.id !== undefined && data.updated_product?.stock !== undefined) {
+                        this.updateCachedProductStock(data.updated_product.id, data.updated_product.stock);
+                    }
 
                     this.closeBulkSalesModal();
+                    this.loading = false;
                 } else {
                     throw new Error(data.message || 'Error desconocido');
                 }

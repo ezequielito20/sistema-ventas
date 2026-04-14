@@ -1254,9 +1254,14 @@
     @endsection
 
     @push('css')
+        @php
+            $salesCreateCssVersion = @filemtime(public_path('css/admin/sales/create.css')) ?: time();
+            $bulkSalesModalCssVersion = @filemtime(public_path('css/admin/sales/bulk-sales-modal.css')) ?: time();
+            $salesCreateJsVersion = @filemtime(public_path('js/admin/sales/create.js')) ?: time();
+        @endphp
         <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/admin/sales/create.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/admin/sales/bulk-sales-modal.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/admin/sales/create.css') }}?v={{ $salesCreateCssVersion }}">
+        <link rel="stylesheet" href="{{ asset('css/admin/sales/bulk-sales-modal.css') }}?v={{ $bulkSalesModalCssVersion }}">
     @endpush
 
     @push('js')
@@ -1280,5 +1285,5 @@
         </script>
         <script src="{{ asset('vendor/config.js') }}"></script>
         <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
-        <script src="{{ asset('js/admin/sales/create.js') }}" defer></script>
+        <script src="{{ asset('js/admin/sales/create.js') }}?v={{ $salesCreateJsVersion }}" defer></script>
     @endpush

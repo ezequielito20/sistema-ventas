@@ -115,7 +115,7 @@
 
                     <!-- Action Buttons -->
                     <div class="mt-3 lg:mt-0 lg:flex-shrink-0">
-                        <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 justify-center lg:justify-end">
+                        <div class="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 justify-center lg:justify-end">
                             @if ($permissions['can_report'])
                                 <button @click="openDebtReport()"
                                     class="group relative inline-flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-white/20 backdrop-blur-sm text-white font-medium rounded-lg hover:bg-white/30 transition-all duration-200"
@@ -145,7 +145,7 @@
 
                             @if ($permissions['can_create'])
                                 <a href="{{ route('admin.customers.create') }}"
-                                    class="group relative inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md col-span-2 sm:col-auto"
+                                    class="group relative inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-md col-span-3 sm:col-auto"
                                     title="Nuevo Cliente">
                                     <i class="fas fa-plus text-sm sm:text-base mr-1.5"></i>
                                     <span class="text-xs sm:text-sm">Nuevo Cliente</span>
