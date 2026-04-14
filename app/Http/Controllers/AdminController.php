@@ -939,10 +939,18 @@ class AdminController extends Controller
 
          // Usar las estadísticas ya calculadas para evitar consultas duplicadas
          $currentSalesData['today_sales'] = $todaySales;
-         $currentSalesData['weekly_sales'] = $weeklySales;
          $currentSalesData['monthly_sales'] = $monthlySales;
 
-         // Promedio de venta por cliente en el arqueo actual
+         // Ventas de la semana coherente con el arqueo: desde el inicio de semana o desde la apertura (el más reciente)
+         $weekStart = now()->copy()->startOfWeek();
+         $cashOpen = Carbon::parse($cashOpenDate);
+         $effectiveWeekStart = $weekStart->greaterThan($cashOpen) ? $weekStart : $cashOpen;
+         $currentSalesData['weekly_sales'] = (float) DB::table('sales')
+            ->where('company_id', $companyId)
+            ->where('sale_date', '>=', $effectiveWeekStart)
+            ->sum('total_price');
+
+         // Ticket promedio (promedio de total por venta) en el arqueo actual
          $currentSalesData['average_customer_spend'] = DB::table('sales')
             ->where('company_id', $companyId)
             ->where('sale_date', '>=', $cashOpenDate)
@@ -958,12 +966,28 @@ class AdminController extends Controller
             ->value('total_profit') ?? 0;
       }
 
+      // Valores iniciales de los widgets de análisis (evita parpadeo y alinea con modo "Arqueo actual")
+      $salesAnalysisWidgetsInitial = [
+         'weekly_sales' => (float) $weeklySales,
+         'average_customer_spend' => (float) ($averageCustomerSpend ?? 0),
+         'total_profit' => (float) $totalProfit,
+         'monthly_sales' => (float) $monthlySales,
+      ];
+      if ($currentCashCount) {
+         $salesAnalysisWidgetsInitial = [
+            'weekly_sales' => (float) $currentSalesData['weekly_sales'],
+            'average_customer_spend' => (float) $currentSalesData['average_customer_spend'],
+            'total_profit' => (float) $currentSalesData['total_profit'],
+            'monthly_sales' => (float) $currentSalesData['monthly_sales'],
+         ];
+      }
+
       // Datos históricos de ventas (usando estadísticas ya calculadas)
       $historicalSalesData = [
          'today_sales' => $todaySales,
          'weekly_sales' => $weeklySales,
          'average_customer_spend' => $averageCustomerSpend ?? 0,
-         'total_profit' => $mostProfitableProducts->sum('total_profit'),
+         'total_profit' => (float) $totalProfit,
          'monthly_sales' => $monthlySales // Usar la variable ya calculada
       ];
 
@@ -1101,7 +1125,8 @@ class AdminController extends Controller
          // DATOS DE VENTAS POR ARQUEO
          'currentSalesData',
          'historicalSalesData',
-         'closedSalesData'
+         'closedSalesData',
+         'salesAnalysisWidgetsInitial'
       ));
    }
 }
