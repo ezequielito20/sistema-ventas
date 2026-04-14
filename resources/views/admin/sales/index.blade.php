@@ -100,7 +100,7 @@
             <x-dashboard-widget title="Ganancias Totales" value="{{ $totalProfitSinceCashOpen ?? 0 }}" valueType="currency"
                 currencySymbol="{{ $currency->symbol }}" icon="fas fa-chart-line"
                 trend="{{ $profitPercentageThisWeek > 0 ? '+' . $profitPercentageThisWeek : $profitPercentageThisWeek }}%"
-                trendIcon="{{ $profitPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($salesPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
+                trendIcon="{{ $profitPercentageThisWeek > 0 ? 'fas fa-arrow-up' : ($profitPercentageThisWeek < 0 ? 'fas fa-arrow-down' : 'fas fa-minus') }}"
                 trendColor="{{ $profitPercentageThisWeek > 0 ? 'text-green-300' : ($profitPercentageThisWeek < 0 ? 'text-red-300' : 'text-gray-300') }}"
                 :subtitle="'Arqueo Actual | Semana: ' .
                     number_format($totalProfitThisWeek ?? 0, 2) .

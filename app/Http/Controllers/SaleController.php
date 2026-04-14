@@ -67,8 +67,9 @@ class SaleController extends Controller
       ];
 
       // Obtener la fecha de inicio y fin de la semana actual
-      $startOfWeek = Carbon::now()->startOfWeek();
-      $endOfWeek = Carbon::now()->endOfWeek();
+      $startOfWeek = Carbon::now()->copy()->startOfWeek();
+      $endOfWeek = Carbon::now()->copy()->endOfWeek();
+      $companyId = (int) $this->company->id;
 
       // Consulta básica de ventas con paginación - OPTIMIZADA para evitar N+1
       $query = Sale::select('id', 'sale_date', 'total_price', 'customer_id', 'company_id', 'note')
@@ -160,9 +161,10 @@ class SaleController extends Controller
       // 1. Total de ventas en dinero esta semana
       $totalSalesAmountThisWeek = $salesThisWeekData->sum('total_price');
 
-      // 2. Ingresos netos (ganancias) esta semana - asumiendo un margen promedio del 35%
-      $profitMargin = 0.35; // 35% de margen de ganancia
-      $totalProfitThisWeek = $totalSalesAmountThisWeek * $profitMargin;
+      // 2. Ganancia neta (cobros reales − costo de mercancía vendida), misma ventana que la semana
+      $cogsThisWeek = $this->sumMerchandiseCostForCompanySalesBetween($companyId, $startOfWeek, $endOfWeek);
+      $collectedThisWeek = $this->sumDebtPaymentsCollectedBetween($companyId, $startOfWeek, $endOfWeek);
+      $totalProfitThisWeek = $collectedThisWeek - $cogsThisWeek;
 
       // 3. Cantidad de ventas esta semana
       $salesCountThisWeek = $salesThisWeekData->count();
@@ -201,6 +203,9 @@ class SaleController extends Controller
       $productsQtyThisWeek = 0;
       $productsQtyToday = 0;
 
+      $totalSalesAmountSinceCashOpen = 0;
+      $totalProfitSinceCashOpen = 0;
+
       if ($currentCashCount) {
          $salesSinceCashOpenStats = DB::table('sales')
             ->where('company_id', $this->company->id)
@@ -211,7 +216,10 @@ class SaleController extends Controller
          $totalSalesSinceCashOpen = $salesSinceCashOpenStats->total ?? 0;
          // Exponer monto total de ventas desde apertura de arqueo
          $totalSalesAmountSinceCashOpen = $totalSalesSinceCashOpen;
-         $totalProfitSinceCashOpen = $totalSalesSinceCashOpen * $profitMargin;
+         // Ganancia neta: cobros registrados en debt_payments − costo de lo vendido en el arqueo
+         $cogsSinceCashOpen = $this->sumMerchandiseCostForCompanySalesFrom($companyId, $currentCashCount->opening_date);
+         $collectedSinceCashOpen = $this->sumDebtPaymentsCollectedSince($companyId, $currentCashCount->opening_date);
+         $totalProfitSinceCashOpen = $collectedSinceCashOpen - $cogsSinceCashOpen;
          $totalSalesCountSinceCashOpen = $salesSinceCashOpenStats->count ?? 0;
          $averageTicketSinceCashOpen = $totalSalesCountSinceCashOpen > 0 ? $totalSalesSinceCashOpen / $totalSalesCountSinceCashOpen : 0;
          $salesCountSinceCashOpen = $totalSalesCountSinceCashOpen;
@@ -228,7 +236,7 @@ class SaleController extends Controller
             $salesPercentageThisWeek = round(($totalSalesAmountThisWeek / $totalSalesSinceCashOpen) * 100, 1);
          }
 
-         if ($totalProfitSinceCashOpen > 0) {
+         if (abs($totalProfitSinceCashOpen) > 0.00001) {
             $profitPercentageThisWeek = round(($totalProfitThisWeek / $totalProfitSinceCashOpen) * 100, 1);
          }
 
@@ -253,8 +261,11 @@ class SaleController extends Controller
          ->where('company_id', $this->company->id)
          ->where('sale_date', '>=', $startOfToday)
          ->sum('total_price');
-      // Ganancia estimada de hoy
-      $totalProfitToday = $totalSalesAmountToday * $profitMargin;
+      // Ganancia neta del día: cobros de hoy − costo mercancía de ventas de hoy
+      $endOfToday = Carbon::today()->copy()->endOfDay();
+      $cogsToday = $this->sumMerchandiseCostForCompanySalesBetween($companyId, $startOfToday, $endOfToday);
+      $collectedToday = $this->sumDebtPaymentsCollectedOnDate($companyId, Carbon::today());
+      $totalProfitToday = $collectedToday - $cogsToday;
 
       // Cantidad total de productos vendidos esta semana
       $productsQtyThisWeek = DB::table('sale_details as sd')
@@ -1381,5 +1392,75 @@ class SaleController extends Controller
             'message' => 'Error al obtener detalles: ' . $e->getMessage()
          ], 500);
       }
+   }
+
+   /**
+    * Costo de mercancía vendida (COGS) según precio de compra actual del producto.
+    */
+   protected function sumMerchandiseCostForCompanySalesBetween(int $companyId, Carbon $from, Carbon $to): float
+   {
+      $sum = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->where('s.company_id', $companyId)
+         ->where('s.sale_date', '>=', $from)
+         ->where('s.sale_date', '<=', $to)
+         ->sum(DB::raw('sd.quantity * COALESCE(p.purchase_price, 0)'));
+
+      return (float) $sum;
+   }
+
+   /**
+    * COGS de ventas desde una fecha/hora (p. ej. apertura de arqueo).
+    */
+   protected function sumMerchandiseCostForCompanySalesFrom(int $companyId, $fromDateTime): float
+   {
+      $sum = DB::table('sale_details as sd')
+         ->join('sales as s', 'sd.sale_id', '=', 's.id')
+         ->join('products as p', 'sd.product_id', '=', 'p.id')
+         ->where('s.company_id', $companyId)
+         ->where('s.sale_date', '>=', $fromDateTime)
+         ->sum(DB::raw('sd.quantity * COALESCE(p.purchase_price, 0)'));
+
+      return (float) $sum;
+   }
+
+   /**
+    * Cobros registrados (abonos) en un rango de fechas.
+    */
+   protected function sumDebtPaymentsCollectedBetween(int $companyId, Carbon $from, Carbon $to): float
+   {
+      $sum = DB::table('debt_payments')
+         ->where('company_id', $companyId)
+         ->whereBetween('created_at', [$from, $to])
+         ->sum('payment_amount');
+
+      return (float) $sum;
+   }
+
+   /**
+    * Cobros desde fecha/hora (p. ej. apertura de arqueo).
+    */
+   protected function sumDebtPaymentsCollectedSince(int $companyId, $fromDateTime): float
+   {
+      $sum = DB::table('debt_payments')
+         ->where('company_id', $companyId)
+         ->where('created_at', '>=', $fromDateTime)
+         ->sum('payment_amount');
+
+      return (float) $sum;
+   }
+
+   /**
+    * Cobros registrados en un día calendario concreto.
+    */
+   protected function sumDebtPaymentsCollectedOnDate(int $companyId, Carbon $day): float
+   {
+      $sum = DB::table('debt_payments')
+         ->where('company_id', $companyId)
+         ->whereDate('created_at', $day->toDateString())
+         ->sum('payment_amount');
+
+      return (float) $sum;
    }
 }
