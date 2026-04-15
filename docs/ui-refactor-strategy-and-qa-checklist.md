@@ -88,6 +88,7 @@ Reference preview routes:
 
 - `admin.ui.notifications.preview`
 - `admin.ui.design-system.preview`
+- `admin.ui.charts.preview`
 
 ### Phase 2 - Simple CRUD modules
 
