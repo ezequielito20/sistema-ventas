@@ -124,6 +124,104 @@
     }
 }
 
+@layer components {
+    .ui-toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1080;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: min(92vw, 24rem);
+        pointer-events: none;
+    }
+
+    .ui-toast {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.75rem;
+        align-items: flex-start;
+        border-radius: 0.875rem;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+        padding: 0.85rem 0.9rem;
+        transform: translateX(22px);
+        opacity: 0;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+        pointer-events: auto;
+    }
+
+    .ui-toast.is-visible {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .ui-toast.is-leaving {
+        transform: translateX(24px);
+        opacity: 0;
+    }
+
+    .ui-toast__icon {
+        padding-top: 0.1rem;
+        font-size: 1.125rem;
+    }
+
+    .ui-toast__title {
+        margin: 0;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+    }
+
+    .ui-toast__message {
+        margin: 0.12rem 0 0;
+        font-size: 0.8rem;
+        line-height: 1.35;
+        opacity: 0.95;
+    }
+
+    .ui-toast__close {
+        border: 0;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.86);
+        cursor: pointer;
+        border-radius: 9999px;
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.78rem;
+    }
+
+    .ui-toast__close:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+
+    .ui-swal-popup {
+        border-radius: 1rem !important;
+        box-shadow: 0 24px 60px rgba(17, 24, 39, 0.25) !important;
+        padding: 1.4rem 1.2rem 1.1rem !important;
+    }
+
+    .ui-swal-title {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+    }
+
+    .ui-swal-confirm {
+        border-radius: 0.65rem !important;
+        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+        border: 0 !important;
+        padding: 0.65rem 1rem !important;
+    }
+
+    .ui-swal-cancel {
+        border-radius: 0.65rem !important;
+        padding: 0.65rem 1rem !important;
+    }
+}
+
 @layer utilities {
     .text-shadow {
         text-shadow: 0 2px 4px rgba(0,0,0,0.1);

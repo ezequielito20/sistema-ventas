@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import { notifications } from './ui/notifications';
 
 // Inicializar Alpine.js solo si no está ya inicializado
 if (!window.Alpine) {
@@ -15,47 +16,25 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.appHelpers = {
     // Mostrar notificación toast
     showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
-        
-        const colors = {
-            success: 'bg-green-500 text-white',
-            error: 'bg-red-500 text-white',
-            warning: 'bg-yellow-500 text-white',
-            info: 'bg-blue-500 text-white'
-        };
-        
-        toast.className += ` ${colors[type]}`;
-        toast.innerHTML = `
-            <div class="flex items-center">
-                <span class="mr-2">
-                    ${type === 'success' ? '✓' : type === 'error' ? '✕' : type === 'warning' ? '⚠' : 'ℹ'}
-                </span>
-                <span>${message}</span>
-            </div>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Animar entrada
-        setTimeout(() => {
-            toast.classList.remove('translate-x-full');
-        }, 100);
-        
-        // Animar salida
-        setTimeout(() => {
-            toast.classList.add('translate-x-full');
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 3000);
+        notifications.showToast(message, {
+            type,
+            title: type === 'success' ? 'Exito' : undefined,
+        });
     },
     
     // Confirmar acción
     confirmAction(message, callback) {
-        if (confirm(message)) {
-            callback();
-        }
+        notifications.confirmDialog({
+            title: 'Confirmar accion',
+            text: message,
+            type: 'warning',
+            confirmText: 'Si, continuar',
+            cancelText: 'Cancelar',
+        }).then((confirmed) => {
+            if (confirmed && typeof callback === 'function') {
+                callback();
+            }
+        });
     },
     
     // Formatear moneda
@@ -75,3 +54,6 @@ window.appHelpers = {
         }).format(new Date(date));
     }
 };
+
+// Exponer API moderna global para migrar modulos progresivamente.
+window.uiNotifications = notifications;
