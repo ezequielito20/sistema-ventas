@@ -55,6 +55,24 @@ Examples:
 - Shared UI components.
 - Unified alerts/confirm wrapper.
 
+## Official Breakpoint Policy
+
+Use only these viewport breakpoints for all new and refactored UI code:
+
+- `xs`: 400px (phone baseline for this project)
+- `sm`: 640px
+- `md`: 768px
+- `lg`: 1024px
+- `xl`: 1280px
+- `2xl`: 1536px
+
+Rules:
+
+1. Avoid ad-hoc media queries (`320px`, `387px`, `440px`, etc.) unless strictly required by a hard blocker.
+2. Any exception must be documented in the module commit notes with reason and removal plan.
+3. Prefer component-level responsive behavior over many page-specific overrides.
+4. Keep mobile-first order in CSS/Tailwind usage.
+
 ### Phase 2 - Simple CRUD modules
 
 - roles, permissions, categories, suppliers, companies.

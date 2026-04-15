@@ -11,6 +11,14 @@ export default {
         './vendor/livewire/livewire/dist/**/*.blade.php',
     ],
     theme: {
+        screens: {
+            xs: '400px',
+            sm: '640px',
+            md: '768px',
+            lg: '1024px',
+            xl: '1280px',
+            '2xl': '1536px',
+        },
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
