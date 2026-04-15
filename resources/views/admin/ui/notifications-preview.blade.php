@@ -8,7 +8,7 @@
             <div class="card-header">
                 <h1 class="card-title">Preview de Alertas y Notificaciones</h1>
                 <p class="card-subtitle">
-                    Esta pagina permite aprobar el estilo moderno antes de migrar todos los modulos.
+                    Esta pagina permite aprobar el estilo futurista antes de migrar todos los modulos.
                 </p>
             </div>
 
@@ -28,6 +28,24 @@
                 <button type="button" class="btn-primary" data-toast-type="info">
                     <i class="fas fa-info-circle mr-2"></i>
                     Toast Informacion
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Toasts Rich Data (futurista)</h2>
+                <p class="card-subtitle">Notificaciones con informacion distribuida para escenarios reales.</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <button id="preview-toast-rich-success" type="button" class="btn-success">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Deploy Exitoso (rich)
+                </button>
+                <button id="preview-toast-rich-critical" type="button" class="btn-danger">
+                    <i class="fas fa-radiation mr-2"></i>
+                    Incidencia Critica (rich)
                 </button>
             </div>
         </div>
@@ -54,6 +72,10 @@
                 <button id="preview-alert-error" type="button" class="btn-danger">
                     <i class="fas fa-triangle-exclamation mr-2"></i>
                     Alerta Error
+                </button>
+                <button id="preview-alert-rich" type="button" class="btn-primary">
+                    <i class="fas fa-wave-square mr-2"></i>
+                    Alerta Rich Data
                 </button>
             </div>
         </div>
@@ -131,7 +153,76 @@
                     title: 'Error de sincronizacion',
                     text: 'No fue posible sincronizar los datos. Verifica la conexion.',
                     type: 'error',
+                    subtitle: 'Se detecto timeout en el nodo principal.',
+                    highlight: 'Sugencia: reintentar en 30 segundos o cambiar a nodo backup.',
+                    metrics: [{
+                            label: 'Nodos afectados',
+                            value: '03'
+                        },
+                        {
+                            label: 'Latencia promedio',
+                            value: '2.7s'
+                        }
+                    ],
+                    items: [
+                        'El servicio de notificaciones queda degradado temporalmente.',
+                        'No se pierden transacciones ya confirmadas.',
+                        'Se activo monitoreo reforzado automaticamente.',
+                    ],
                     confirmText: 'Entendido',
+                });
+            });
+
+            document.getElementById('preview-toast-rich-success')?.addEventListener('click', () => {
+                window.uiNotifications.showToast('Nueva version aplicada en produccion.', {
+                    type: 'success',
+                    title: 'Deploy completado',
+                    subtitle: 'Sin downtime y con rollback disponible.',
+                    metadata: ['v2.3.0', 'latencia -18%', '99.99% healthy'],
+                    timeout: 5200,
+                });
+            });
+
+            document.getElementById('preview-toast-rich-critical')?.addEventListener('click', () => {
+                window.uiNotifications.showToast('Anomalia detectada en modulo de pagos.', {
+                    type: 'critical',
+                    title: 'Evento critico',
+                    subtitle: 'Se aplico proteccion preventiva para evitar impactos.',
+                    metadata: ['INC-2048', 'nodo us-east-1', 'escalado activo'],
+                    timeout: 6000,
+                });
+            });
+
+            document.getElementById('preview-alert-rich')?.addEventListener('click', async () => {
+                await window.uiNotifications.alertDialog({
+                    title: 'Resumen de corte diario',
+                    text: 'El sistema consolido operaciones y detecto oportunidades de mejora.',
+                    subtitle: 'Datos clave para toma de decisiones.',
+                    type: 'info',
+                    highlight: 'Margen neto diario por encima del objetivo en +6.4%.',
+                    metrics: [{
+                            label: 'Ventas cerradas',
+                            value: '142'
+                        },
+                        {
+                            label: 'Ticket promedio',
+                            value: '$38.20'
+                        },
+                        {
+                            label: 'Conversion',
+                            value: '17.4%'
+                        },
+                        {
+                            label: 'Satisfaccion',
+                            value: '4.8/5'
+                        }
+                    ],
+                    items: [
+                        'Los productos de mayor rotacion aumentaron 12%.',
+                        'Las devoluciones bajaron un 8% respecto al promedio semanal.',
+                        'Se recomienda reforzar stock en categoria premium.',
+                    ],
+                    confirmText: 'Cerrar panel',
                 });
             });
         });

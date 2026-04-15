@@ -138,18 +138,33 @@
     }
 
     .ui-toast {
+        position: relative;
+        overflow: hidden;
         display: grid;
         grid-template-columns: auto 1fr auto;
         gap: 0.75rem;
         align-items: flex-start;
-        border-radius: 0.875rem;
+        border-radius: 1rem;
         color: #fff;
-        box-shadow: var(--shadow-lg);
-        padding: 0.85rem 0.9rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(15, 23, 42, 0.82);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 16px 42px rgba(2, 6, 23, 0.45);
+        padding: 0.9rem 0.95rem 0.95rem;
         transform: translateX(22px);
         opacity: 0;
         transition: transform 0.2s ease, opacity 0.2s ease;
         pointer-events: auto;
+    }
+
+    .ui-toast__glow {
+        position: absolute;
+        inset: -30% auto auto -10%;
+        width: 60%;
+        height: 85%;
+        border-radius: 9999px;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.28), transparent 70%);
+        pointer-events: none;
     }
 
     .ui-toast.is-visible {
@@ -163,8 +178,10 @@
     }
 
     .ui-toast__icon {
-        padding-top: 0.1rem;
-        font-size: 1.125rem;
+        padding-top: 0.15rem;
+        font-size: 1.05rem;
+        color: var(--ui-toast-accent, #22d3ee);
+        text-shadow: 0 0 16px color-mix(in srgb, var(--ui-toast-accent, #22d3ee), transparent 45%);
     }
 
     .ui-toast__title {
@@ -179,6 +196,31 @@
         font-size: 0.8rem;
         line-height: 1.35;
         opacity: 0.95;
+    }
+
+    .ui-toast__subtitle {
+        margin: 0.22rem 0 0;
+        font-size: 0.74rem;
+        line-height: 1.3;
+        opacity: 0.82;
+    }
+
+    .ui-toast__meta {
+        margin-top: 0.42rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .ui-toast__chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        padding: 0.08rem 0.45rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.01em;
     }
 
     .ui-toast__close {
@@ -197,28 +239,237 @@
         color: #fff;
     }
 
+    .ui-toast__progress {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        transform-origin: left center;
+        background: linear-gradient(90deg, color-mix(in srgb, var(--ui-toast-accent, #22d3ee), #fff 15%), transparent);
+        animation-name: ui-toast-progress;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    .ui-toast--success {
+        --ui-toast-accent: #34d399;
+    }
+
+    .ui-toast--error {
+        --ui-toast-accent: #fb7185;
+    }
+
+    .ui-toast--warning {
+        --ui-toast-accent: #fbbf24;
+    }
+
+    .ui-toast--info {
+        --ui-toast-accent: #22d3ee;
+    }
+
+    .ui-toast--critical {
+        --ui-toast-accent: #f43f5e;
+    }
+
     .ui-swal-popup {
-        border-radius: 1rem !important;
-        box-shadow: 0 24px 60px rgba(17, 24, 39, 0.25) !important;
-        padding: 1.4rem 1.2rem 1.1rem !important;
+        border-radius: 1.15rem !important;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.45) !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        background: linear-gradient(160deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.93)) !important;
+        padding: 1rem 1rem 0.9rem !important;
+        color: #e5e7eb !important;
+    }
+
+    .ui-swal-html {
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .ui-swal-title {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
-        color: #111827 !important;
+        color: #f8fafc !important;
     }
 
     .ui-swal-confirm {
         border-radius: 0.65rem !important;
-        background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+        background: linear-gradient(135deg, #06b6d4 0%, #4f46e5 100%) !important;
         border: 0 !important;
-        padding: 0.65rem 1rem !important;
+        padding: 0.62rem 1rem !important;
+        box-shadow: 0 12px 22px rgba(59, 130, 246, 0.32) !important;
     }
 
     .ui-swal-cancel {
         border-radius: 0.65rem !important;
-        padding: 0.65rem 1rem !important;
+        padding: 0.62rem 1rem !important;
+        border: 1px solid rgba(148, 163, 184, 0.3) !important;
+        background: rgba(30, 41, 59, 0.82) !important;
+        color: #e2e8f0 !important;
+    }
+
+    .ui-rich-dialog {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        border-radius: 0.95rem;
+        background: linear-gradient(150deg, rgba(15, 23, 42, 0.92), rgba(17, 24, 39, 0.88));
+        padding: 0.95rem 0.95rem 0.7rem;
+        text-align: left;
+    }
+
+    .ui-rich-dialog__orb {
+        position: absolute;
+        top: -2rem;
+        right: -2rem;
+        width: 7rem;
+        height: 7rem;
+        border-radius: 9999px;
+        background: radial-gradient(circle at center, color-mix(in srgb, var(--ui-dialog-accent, #22d3ee), #fff 20%), transparent 68%);
+        opacity: 0.38;
+        pointer-events: none;
+    }
+
+    .ui-rich-dialog__header {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.72rem;
+    }
+
+    .ui-rich-dialog__icon {
+        width: 2.15rem;
+        height: 2.15rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.72rem;
+        color: var(--ui-dialog-accent, #22d3ee);
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid color-mix(in srgb, var(--ui-dialog-accent, #22d3ee), transparent 68%);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--ui-dialog-accent, #22d3ee), transparent 74%);
+    }
+
+    .ui-rich-dialog__title {
+        margin: 0.1rem 0 0;
+        font-size: 1.03rem;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .ui-rich-dialog__subtitle {
+        margin: 0.2rem 0 0;
+        font-size: 0.76rem;
+        color: #cbd5e1;
+    }
+
+    .ui-rich-dialog__text {
+        margin: 0.8rem 0 0;
+        font-size: 0.84rem;
+        line-height: 1.4;
+        color: #e2e8f0;
+    }
+
+    .ui-rich-dialog__highlight {
+        margin-top: 0.62rem;
+        border-radius: 0.72rem;
+        border: 1px solid color-mix(in srgb, var(--ui-dialog-accent, #22d3ee), transparent 70%);
+        background: color-mix(in srgb, var(--ui-dialog-accent, #22d3ee), transparent 90%);
+        padding: 0.45rem 0.6rem;
+        font-size: 0.78rem;
+        color: #f8fafc;
+    }
+
+    .ui-rich-dialog__metrics {
+        margin-top: 0.68rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .ui-rich-dialog__metric {
+        border-radius: 0.72rem;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(2, 6, 23, 0.35);
+        padding: 0.42rem 0.52rem;
+    }
+
+    .ui-rich-dialog__metric-label {
+        display: block;
+        font-size: 0.69rem;
+        color: #94a3b8;
+    }
+
+    .ui-rich-dialog__metric-value {
+        display: block;
+        margin-top: 0.1rem;
+        font-size: 0.83rem;
+        color: #f8fafc;
+    }
+
+    .ui-rich-dialog__list {
+        margin: 0.72rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.4rem;
+    }
+
+    .ui-rich-dialog__list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.45rem;
+        font-size: 0.77rem;
+        color: #cbd5e1;
+    }
+
+    .ui-rich-dialog__list i {
+        margin-top: 0.3rem;
+        font-size: 0.36rem;
+        color: var(--ui-dialog-accent, #22d3ee);
+    }
+
+    .ui-rich-dialog--success {
+        --ui-dialog-accent: #34d399;
+    }
+
+    .ui-rich-dialog--error {
+        --ui-dialog-accent: #fb7185;
+    }
+
+    .ui-rich-dialog--warning {
+        --ui-dialog-accent: #fbbf24;
+    }
+
+    .ui-rich-dialog--info {
+        --ui-dialog-accent: #22d3ee;
+    }
+
+    .ui-rich-dialog--critical {
+        --ui-dialog-accent: #f43f5e;
+    }
+
+    @media (max-width: 640px) {
+        .ui-toast-container {
+            top: 0.7rem;
+            right: 0.7rem;
+            left: 0.7rem;
+            width: auto;
+        }
+
+        .ui-rich-dialog__metrics {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @keyframes ui-toast-progress {
+        from {
+            transform: scaleX(1);
+        }
+
+        to {
+            transform: scaleX(0);
+        }
     }
 }
 
