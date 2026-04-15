@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+// Shared design tokens baseline
+@import "ui-tokens";
+
 // Componentes personalizados
 @layer components {
     .btn-primary {
