@@ -1060,7 +1060,7 @@ class AdminController extends Controller
          $dailySalesData[] = $dayData ? $dayData->total_quantity : 0;
       }
 
-      return view('admin.index', compact(
+      return view('admin.v2.index', compact(
          'currency',
          'company',
          'usersCount',

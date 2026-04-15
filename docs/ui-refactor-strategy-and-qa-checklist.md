@@ -23,6 +23,7 @@ This document defines:
    - validation performed,
    - rollback notes.
 5. Move module by module with explicit approval before starting the next step.
+6. Do not modify legacy Blade views. Create parallel v2 views and switch route/controller target only after v2 validation.
 
 ## Branch and Commit Workflow
 
