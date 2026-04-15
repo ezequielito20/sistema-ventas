@@ -32,10 +32,12 @@ These choices apply to **new v2 screens** and **progressive refactors**. Legacy 
 | Layer | Choice | Notes |
 | --- | --- | --- |
 | CSS framework | **Tailwind CSS** (via Vite) | No Bootstrap; no utility CDN for CSS. |
-| Interactivity | **Livewire 3** | Full-page or nested components per module so tables and actions update without full reloads (SPA-like UX). |
-| JS baseline | **Alpine.js** (bundled with Livewire 3) | Prefer `wire:` / Livewire actions over custom DOM scripts. |
+| Server-driven UI | **Livewire 3** | Full-page or nested components per module so tables and actions update without full reloads (SPA-like UX). |
+| Client-side UI state | **Alpine.js** | Initialized from `resources/js/app.js` (`Alpine.start()`). Use for toggles, modals, dropdowns, and local UI that does not need a round-trip. |
 | Charts / canvas | **Chart.js** via **npm + Vite** | Exposed as `window.Chart` from `resources/js/app.js` for legacy inline initializers until migrated. |
 | Assets | **Vite** | `resources/sass/app.scss`, `resources/js/app.js`; additional modules under `resources/js/` (e.g. `ui/`). |
+
+**Livewire and Alpine together:** Prefer **`wire:`** actions and Livewire state for anything that must stay in sync with the server (lists, forms, permissions). Use **`x-data` / `x-show` / `@click`** (and related directives) for purely presentational behavior. If Alpine and Livewire both touch the same DOM subtree, use Livewire’s **`wire:ignore`** on the Alpine-controlled node so morphing does not wipe client state.
 
 **Do not:** load Bootstrap, jQuery, or Chart.js from a CDN in layouts or Blade. **Do:** keep Blade free of large inline `<style>` / `<script>` blocks; move styles to `resources/sass/` and scripts to `resources/js/` in focused files.
 
