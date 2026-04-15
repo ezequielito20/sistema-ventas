@@ -34,6 +34,9 @@ Route::get('/', [AdminController::class, 'index'])->name('admin.index')->middlew
 Route::view('/ui/notifications-preview', 'admin.ui.notifications-preview')
     ->name('admin.ui.notifications.preview')
     ->middleware('auth');
+Route::view('/ui/design-system-preview', 'admin.ui.design-system-preview')
+    ->name('admin.ui.design-system.preview')
+    ->middleware('auth');
 
 Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
 Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
