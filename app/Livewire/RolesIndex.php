@@ -1,0 +1,362 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\Role;
+use App\Models\User;
+use App\Support\PermissionFriendlyNames;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Spatie\Permission\Models\Permission;
+
+class RolesIndex extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+
+    public string $role_type = '';
+
+    public ?string $users_min = null;
+
+    public ?string $users_max = null;
+
+    public ?string $permissions_min = null;
+
+    public ?string $permissions_max = null;
+
+    public ?string $date_from = null;
+
+    public ?string $date_to = null;
+
+    public bool $showAdvancedFilters = false;
+
+    public bool $showDetailModal = false;
+
+    /** @var array<string, mixed>|null */
+    public ?array $detailRole = null;
+
+    public bool $showPermissionsModal = false;
+
+    public ?int $permissionsRoleId = null;
+
+    public string $permissionsRoleName = '';
+
+    /** @var array<int> */
+    public array $selectedPermissionIds = [];
+
+    public string $permissionSearch = '';
+
+    public ?string $toastMessage = null;
+
+    public string $toastType = 'success';
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'role_type' => ['except' => ''],
+    ];
+
+    public function mount(): void
+    {
+        Gate::authorize('roles.index');
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingRoleType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingUsersMin(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingUsersMax(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPermissionsMin(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPermissionsMax(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function clearToast(): void
+    {
+        $this->toastMessage = null;
+    }
+
+    protected function toast(string $message, string $type = 'success'): void
+    {
+        $this->toastMessage = $message;
+        $this->toastType = $type;
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        Gate::authorize('roles.show');
+
+        $role = Role::query()
+            ->with(['permissions', 'users'])
+            ->where('company_id', Auth::user()->company_id)
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $this->detailRole = [
+            'id' => $role->id,
+            'name' => $role->name,
+            'created_at' => $role->created_at->format('d/m/Y H:i'),
+            'updated_at' => $role->updated_at->format('d/m/Y H:i'),
+            'users_count' => $role->users->count(),
+            'permissions_count' => $role->permissions->count(),
+            'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin'], true),
+        ];
+
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailRole = null;
+    }
+
+    public function openPermissionsModal(int $id): void
+    {
+        Gate::authorize('roles.permissions');
+
+        $role = Role::query()
+            ->where('company_id', Auth::user()->company_id)
+            ->where('id', $id)
+            ->with('permissions')
+            ->firstOrFail();
+
+        $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+        if (in_array($role->name, $systemRoles, true)) {
+            $this->toast('No se pueden modificar los permisos de roles del sistema ('.$role->name.').', 'error');
+
+            return;
+        }
+
+        $this->permissionsRoleId = $role->id;
+        $this->permissionsRoleName = $role->name;
+        $this->selectedPermissionIds = $role->permissions->pluck('id')->map(fn ($pid) => (int) $pid)->values()->all();
+        $this->permissionSearch = '';
+        $this->showPermissionsModal = true;
+    }
+
+    public function closePermissionsModal(): void
+    {
+        $this->showPermissionsModal = false;
+        $this->permissionsRoleId = null;
+        $this->permissionsRoleName = '';
+        $this->selectedPermissionIds = [];
+        $this->permissionSearch = '';
+    }
+
+    public function savePermissions(): void
+    {
+        Gate::authorize('roles.assign.permissions');
+
+        if ($this->permissionsRoleId === null) {
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $role = Role::query()
+                ->where('company_id', Auth::user()->company_id)
+                ->where('id', $this->permissionsRoleId)
+                ->firstOrFail();
+
+            $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+            if (in_array($role->name, $systemRoles, true)) {
+                throw new \Exception('No se pueden modificar los permisos de roles del sistema ('.$role->name.')');
+            }
+
+            $ids = array_map('intval', $this->selectedPermissionIds);
+            $valid = [];
+            if ($ids !== []) {
+                $valid = Permission::query()->whereIn('id', $ids)->pluck('id')->map(fn ($v) => (int) $v)->all();
+            }
+
+            $role->syncPermissions($valid);
+
+            DB::commit();
+
+            $this->closePermissionsModal();
+            $this->toast('Permisos actualizados correctamente.', 'success');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->toast($e->getMessage(), 'error');
+        }
+    }
+
+    public function toggleModulePermissions(string $module): void
+    {
+        $grouped = PermissionFriendlyNames::grouped();
+        $group = $grouped->get($module);
+        if (! $group) {
+            return;
+        }
+
+        $ids = $group->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $allOn = $ids !== [] && count(array_intersect($ids, $this->selectedPermissionIds)) === count($ids);
+
+        if ($allOn) {
+            $this->selectedPermissionIds = array_values(array_diff($this->selectedPermissionIds, $ids));
+        } else {
+            $this->selectedPermissionIds = array_values(array_unique(array_merge($this->selectedPermissionIds, $ids)));
+        }
+    }
+
+    public function selectAllPermissions(bool $select): void
+    {
+        if ($select) {
+            $this->selectedPermissionIds = Permission::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        } else {
+            $this->selectedPermissionIds = [];
+        }
+    }
+
+    public function deleteRole(int $id): void
+    {
+        Gate::authorize('roles.destroy');
+
+        try {
+            $role = Role::query()
+                ->where('company_id', Auth::user()->company_id)
+                ->where('id', $id)
+                ->first();
+
+            if (! $role) {
+                $this->toast('Rol no encontrado.', 'error');
+
+                return;
+            }
+
+            $systemRoles = ['admin', 'user', 'superadmin'];
+            if (in_array($role->name, $systemRoles, true)) {
+                $this->toast('No se pueden eliminar roles del sistema ('.$role->name.').', 'error');
+
+                return;
+            }
+
+            $usersCount = $role->users()->count();
+            if ($usersCount > 0) {
+                $this->toast('No se puede eliminar un rol que tiene '.$usersCount.' usuario(s) asignado(s).', 'error');
+
+                return;
+            }
+
+            $name = $role->name;
+            $role->delete();
+
+            $this->toast('Rol "'.$name.'" eliminado correctamente.', 'success');
+            $this->resetPage();
+        } catch (\Exception $e) {
+            $this->toast('Error al eliminar el rol: '.$e->getMessage(), 'error');
+        }
+    }
+
+    protected function rolesQuery()
+    {
+        $companyId = Auth::user()->company_id;
+
+        $query = Role::query()
+            ->select(['id', 'name', 'created_at', 'updated_at', 'company_id'])
+            ->withCount(['users', 'permissions'])
+            ->byCompany($companyId);
+
+        if ($this->search !== '') {
+            $query->where('name', 'ILIKE', '%'.$this->search.'%');
+        }
+
+        if ($this->role_type === 'system') {
+            $query->whereIn('name', ['admin', 'user', 'superadmin']);
+        } elseif ($this->role_type === 'custom') {
+            $query->whereNotIn('name', ['admin', 'user', 'superadmin']);
+        }
+
+        if ($this->users_min !== null && $this->users_min !== '') {
+            $query->having('users_count', '>=', (int) $this->users_min);
+        }
+
+        if ($this->users_max !== null && $this->users_max !== '') {
+            $query->having('users_count', '<=', (int) $this->users_max);
+        }
+
+        if ($this->permissions_min !== null && $this->permissions_min !== '') {
+            $query->having('permissions_count', '>=', (int) $this->permissions_min);
+        }
+
+        if ($this->permissions_max !== null && $this->permissions_max !== '') {
+            $query->having('permissions_count', '<=', (int) $this->permissions_max);
+        }
+
+        if ($this->date_from) {
+            $query->whereDate('created_at', '>=', $this->date_from);
+        }
+
+        if ($this->date_to) {
+            $query->whereDate('created_at', '<=', $this->date_to);
+        }
+
+        return $query->orderBy('name');
+    }
+
+    public function render(): View
+    {
+        $companyId = Auth::user()->company_id;
+
+        $roles = $this->rolesQuery()->paginate(10);
+
+        $stats = [
+            'roles_total' => Role::query()->byCompany($companyId)->count(),
+            'users_company' => User::query()->where('company_id', $companyId)->count(),
+            'permissions_total' => Permission::query()->count(),
+            'system_roles' => Role::query()->byCompany($companyId)->whereIn('name', ['admin', 'user', 'superadmin'])->count(),
+        ];
+
+        $permFlags = [
+            'can_report' => Gate::allows('roles.report'),
+            'can_create' => Gate::allows('roles.create'),
+            'can_edit' => Gate::allows('roles.edit'),
+            'can_show' => Gate::allows('roles.show'),
+            'can_destroy' => Gate::allows('roles.destroy'),
+            'can_assign_permissions' => Gate::allows('roles.permissions'),
+        ];
+
+        return view('livewire.roles-index', [
+            'roles' => $roles,
+            'stats' => $stats,
+            'permFlags' => $permFlags,
+            'permissionsGrouped' => PermissionFriendlyNames::grouped(),
+        ]);
+    }
+}
