@@ -189,22 +189,19 @@
             }
         }
 
-        .sidebar-toggle-btn:hover {
-            background-color: #f3f4f6;
+        .app-topbar .sidebar-toggle-btn:hover {
+            background-color: rgba(30, 41, 59, 0.9);
             transform: scale(1.05);
         }
 
-        /* Override específico para íconos del botón - SOLUCIÓN CLAVE */
-        header .sidebar-toggle-btn i,
-        header .sidebar-toggle-btn .fas {
-            color: #6b7280 !important;
-            /* text-gray-600 */
+        .app-topbar .sidebar-toggle-btn i,
+        .app-topbar .sidebar-toggle-btn .fas {
+            color: #94a3b8 !important;
         }
 
-        header .sidebar-toggle-btn:hover i,
-        header .sidebar-toggle-btn:hover .fas {
-            color: #111827 !important;
-            /* hover:text-gray-900 */
+        .app-topbar .sidebar-toggle-btn:hover i,
+        .app-topbar .sidebar-toggle-btn:hover .fas {
+            color: #f8fafc !important;
         }
 
         /* Prevenir flash del sidebar antes de que Alpine.js se inicialice */
@@ -483,7 +480,7 @@
     </style>
 </head>
 
-<body class="bg-gray-50" x-data="appLayout()" style="opacity: 0; visibility: hidden;">
+<body class="app-shell" x-data="appLayout()" style="opacity: 0; visibility: hidden;">
     <script>
         // Script que se ejecuta inmediatamente para ocultar toda la página
         (function() {
@@ -499,7 +496,7 @@
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0" @click="sidebarOpen = false"
-            class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden">
+            class="app-mobile-overlay fixed inset-0 z-40 lg:hidden">
         </div>
 
         <!-- Sidebar -->
@@ -507,11 +504,11 @@
             x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
             x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
             x-transition:leave-end="-translate-x-full" @click.stop
-            class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 transform sidebar-container"
+            class="app-sidebar fixed inset-y-0 left-0 z-50 w-64 transform sidebar-container"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" style="width: 256px;">
 
             <!-- Logo -->
-            <div class="flex items-center justify-between h-16 px-6 border-b border-white/20 flex-shrink-0">
+            <div class="app-sidebar-brand flex h-16 flex-shrink-0 items-center justify-between px-6">
                 <a href="{{ route('admin.index') }}" class="flex items-center group">
                     <div class="flex-shrink-0">
                         @if (Auth::check() && Auth::user()->company && Auth::user()->company->logo)
@@ -521,18 +518,18 @@
                                 style="max-width: 32px; max-height: 32px;">
                         @else
                             <i
-                                class="fas fa-store text-white text-2xl group-hover:scale-110 transition-transform duration-200"></i>
+                                class="fas fa-store text-2xl text-cyan-200 transition-transform duration-200 group-hover:scale-110"></i>
                         @endif
                     </div>
                     <div class="ml-3">
                         <h1
-                            class="text-white text-lg font-semibold group-hover:text-purple-200 transition-colors duration-200">
+                            class="text-lg font-semibold text-slate-100 transition-colors duration-200 group-hover:text-cyan-200">
                             {{ Auth::check() && Auth::user()->company ? Auth::user()->company->name : 'Test Company' }}
                         </h1>
                     </div>
                 </a>
                 <button @click="sidebarOpen = false"
-                    class="lg:hidden text-white hover:text-purple-200 transition-colors duration-200">
+                    class="text-slate-200 transition-colors duration-200 hover:text-cyan-200 lg:hidden">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -545,24 +542,25 @@
 
                         <!-- Pedidos Online -->
                         {{-- <a href="{{ route('admin.orders.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
                             <i class="fas fa-shopping-cart mr-3 text-lg"></i>
                             Pedidos Online
                         </a> --}}
 
                         <!-- Config empresa -->
                         <a href="{{ route('admin.company.edit') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.company.edit') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.company.edit') ? 'is-active' : '' }}">
                             <i class="fas fa-cog mr-3 text-lg"></i>
                             Config empresa
                         </a>
 
                         <!-- Roles y Permisos -->
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="group w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg text-white/90 hover:bg-white/10 hover:text-white transition-all duration-200">
+                        <div
+                            x-data="{ open: {{ request()->routeIs('admin.roles.*') || request()->routeIs('admin.permissions.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open" type="button"
+                                class="app-sidebar-parent-btn group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200">
                                 <div class="flex items-center">
-                                    <i class="fas fa-users-cog mr-3 text-lg"></i>
+                                    <i class="fas fa-users-cog mr-3 text-lg text-slate-400"></i>
                                     Roles y Permisos
                                 </div>
                                 <i class="fas fa-chevron-down text-xs transition-transform duration-200"
@@ -575,11 +573,11 @@
                                 x-transition:leave-start="transform opacity-100 scale-100"
                                 x-transition:leave-end="transform opacity-0 scale-95" class="ml-6 mt-1 space-y-1">
                                 <a href="{{ route('admin.roles.index') }}"
-                                    class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.roles.*') ? 'is-active' : '' }}">
                                     Lista de Roles
                                 </a>
                                 <a href="{{ route('admin.permissions.index') }}"
-                                    class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
+                                    class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('admin.permissions.*') ? 'is-active' : '' }}">
                                     Permisos
                                 </a>
                             </div>
@@ -587,56 +585,56 @@
 
                         <!-- Usuarios -->
                         <a href="{{ route('admin.users.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.users.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.users.*') ? 'is-active' : '' }}">
                             <i class="fas fa-users mr-3 text-lg"></i>
                             Usuarios
                         </a>
 
                         <!-- Categorías -->
                         <a href="{{ route('admin.categories.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.categories.*') ? 'is-active' : '' }}">
                             <i class="fas fa-tags mr-3 text-lg"></i>
                             Categorías
                         </a>
 
                         <!-- Productos -->
                         <a href="{{ route('admin.products.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.products.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.products.*') ? 'is-active' : '' }}">
                             <i class="fas fa-box mr-3 text-lg"></i>
                             Productos
                         </a>
 
                         <!-- Proveedores -->
                         {{-- <a href="{{ route('admin.suppliers.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.suppliers.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.suppliers.*') ? 'is-active' : '' }}">
                             <i class="fas fa-truck mr-3 text-lg"></i>
                             Proveedores
                         </a> --}}
 
                         <!-- Compras -->
                         <a href="{{ route('admin.purchases.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.purchases.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.purchases.*') ? 'is-active' : '' }}">
                             <i class="fas fa-shopping-bag mr-3 text-lg"></i>
                             Compras
                         </a>
 
                         <!-- Ventas -->
                         <a href="{{ route('admin.sales.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.sales.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.sales.*') ? 'is-active' : '' }}">
                             <i class="fas fa-chart-line mr-3 text-lg"></i>
                             Ventas
                         </a>
 
                         <!-- Clientes -->
                         <a href="{{ route('admin.customers.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.customers.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.customers.*') ? 'is-active' : '' }}">
                             <i class="fas fa-user-friends mr-3 text-lg"></i>
                             Clientes
                         </a>
 
                         <!-- Arqueo de Caja -->
                         <a href="{{ route('admin.cash-counts.index') }}"
-                            class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.cash-counts.*') ? 'bg-white/20 text-white shadow-lg' : 'text-white/90 hover:bg-white/10 hover:text-white' }}">
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.cash-counts.*') ? 'is-active' : '' }}">
                             <i class="fas fa-cash-register mr-3 text-lg"></i>
                             Arqueo de Caja
                         </a>
@@ -646,16 +644,16 @@
 
             <!-- User Info -->
             @auth
-                <div class="sidebar-user-info p-4 border-t border-white/20">
+                <div class="app-sidebar-footer sidebar-user-info p-4">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-white text-sm"></i>
+                            <div class="app-sidebar-avatar flex h-8 w-8 items-center justify-center rounded-full">
+                                <i class="fas fa-user text-sm text-slate-200"></i>
                             </div>
                         </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-white">{{ Auth::user()->name }}</p>
-                            <p class="text-xs text-white/70">{{ Auth::user()->email }}</p>
+                        <div class="ml-3 min-w-0">
+                            <p class="truncate text-sm font-medium text-slate-100">{{ Auth::user()->name }}</p>
+                            <p class="truncate text-xs text-slate-400">{{ Auth::user()->email }}</p>
                         </div>
                     </div>
                 </div>
@@ -666,17 +664,17 @@
         <div class="flex-1 flex flex-col overflow-hidden main-content"
             :class="sidebarOpen ? 'sidebar-open' : 'sidebar-closed'">
             <!-- Top Navigation -->
-            <header class="bg-white shadow-sm border-b border-gray-200">
-                <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            <header class="app-topbar">
+                <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                     <!-- Mobile menu button -->
-                    <button @click="sidebarOpen = true"
-                        class="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                    <button @click="sidebarOpen = true" type="button"
+                        class="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500/50 lg:hidden">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
 
                     <!-- Desktop sidebar toggle button -->
-                    <button @click="sidebarOpen = !sidebarOpen"
-                        class="sidebar-toggle-btn p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-all duration-200"
+                    <button @click="sidebarOpen = !sidebarOpen" type="button"
+                        class="sidebar-toggle-btn rounded-md p-2 text-slate-400 transition-all duration-200 hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500/50"
                         style="display: flex;">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
@@ -732,13 +730,13 @@
 
                             <!-- User menu -->
                             <div x-data="{ open: false }" class="relative">
-                                <button @click="open = !open"
-                                    class="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-user text-white text-sm"></i>
+                                <button @click="open = !open" type="button"
+                                    class="flex items-center space-x-2 rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cyan-600 to-indigo-600">
+                                        <i class="fas fa-user text-sm text-white"></i>
                                     </div>
-                                    <span class="hidden md:block text-sm font-medium">{{ Auth::user()->name }}</span>
-                                    <i class="fas fa-chevron-down text-xs"></i>
+                                    <span class="hidden text-sm font-medium md:block">{{ Auth::user()->name }}</span>
+                                    <i class="fas fa-chevron-down text-xs text-slate-500"></i>
                                 </button>
 
                                 <!-- User dropdown -->
@@ -748,21 +746,21 @@
                                     x-transition:leave="transition ease-in duration-75"
                                     x-transition:leave-start="transform opacity-100 scale-100"
                                     x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
-                                    class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                                    class="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-slate-600/80 bg-slate-900 py-1 shadow-xl shadow-black/40 ring-1 ring-black/20">
                                     <div class="py-1">
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-user mr-2"></i>
+                                        <a href="#" class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+                                            <i class="fas fa-user mr-2 text-slate-400"></i>
                                             Mi Perfil
                                         </a>
-                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fas fa-cog mr-2"></i>
+                                        <a href="#" class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+                                            <i class="fas fa-cog mr-2 text-slate-400"></i>
                                             Configuración
                                         </a>
-                                        <div class="border-t border-gray-100"></div>
+                                        <div class="border-t border-slate-700/80"></div>
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf
                                             <button type="submit"
-                                                class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                                class="block w-full px-4 py-2 text-left text-sm text-rose-300 hover:bg-slate-800">
                                                 <i class="fas fa-sign-out-alt mr-2"></i>
                                                 Cerrar Sesión
                                             </button>
@@ -776,8 +774,8 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto bg-gray-50">
-                <div class="py-6 px-4 sm:px-6 lg:px-8">
+            <main class="app-main flex-1 overflow-y-auto">
+                <div class="px-4 py-6 sm:px-6 lg:px-8">
                     @yield('content')
                 </div>
             </main>
