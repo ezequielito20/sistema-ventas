@@ -1,0 +1,36 @@
+---
+description: UI admin v2 — widgets, botones y módulos Livewire (sistema-ventas)
+globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**/*.php
+---
+
+# Admin UI v2 (este proyecto)
+
+## Stack acordado
+- Tailwind + Livewire + Alpine; tokens en `resources/sass/_ui-tokens.scss` y diseño en `resources/sass/app.scss`.
+- Vistas nuevas en paralelo (`admin/v2/`, `livewire/`); sin tocar Blades legacy salvo acuerdo explícito.
+
+## KPI / widgets de resumen
+- Usar **siempre** el componente `x-ui.stat-card` para tarjetas de métricas (no duplicar markup de `ui-widget` a mano).
+- Grid de estadísticas:
+  - **Móvil:** `grid-cols-2` (dos tarjetas por fila).
+  - **Desktop ancho:** `lg:grid-cols-4` (o el número de columnas que tenga el módulo).
+- Variantes de color alineadas a `ui-widget--info|success|warning|danger|neutral` (misma paleta que el design system).
+
+## Densidad
+- Las tarjetas de métricas llevan **`ui-widget--dense`** (vía `stat-card` ya incluido) para altura compacta; no inflar padding en módulos sueltos.
+
+## Botones de cabecera (acciones principales)
+- En **md+** aumentar cómodamente tamaño: clases responsive tipo `md:py-2.5 md:px-5 md:text-[0.95rem]` sobre `ui-btn`, sin romper móvil.
+
+## Botones de acción en tablas (icon-only)
+- Usar **`ui-icon-action`** + variante semántica (misma familia de color que widgets):
+  - `ui-icon-action--info` — ver / detalle
+  - `ui-icon-action--warning` — permisos / clave
+  - `ui-icon-action--primary` — editar
+  - `ui-icon-action--danger` — eliminar
+- Contenedor **`ui-icon-action-row`** con `flex flex-nowrap` (en tablas, alinear con el `th`: suele ser `justify-start` + celda `text-left`).
+- Tablas con columna solo de iconos: **`ui-table--nowrap-actions`** en `<table>` (ver `docs/ui-admin-v2-reusable-patterns.md`).
+- Tamaño base cómodo; en **md y lg** el SCSS aumenta ligeramente el hit-area (ver `.ui-icon-action`).
+
+## Commits
+- Cambios de diseño UI: commitear cuando el usuario lo apruebe explícitamente.

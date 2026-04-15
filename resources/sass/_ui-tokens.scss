@@ -59,6 +59,13 @@
     --shadow-md: 0 4px 6px -1px rgba(17, 24, 39, 0.1), 0 2px 4px -2px rgba(17, 24, 39, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(17, 24, 39, 0.1), 0 4px 6px -4px rgba(17, 24, 39, 0.1);
 
+    /* Acentos para acciones de fila (alineados a ui-widget --info/success/warning/danger) */
+    --ui-action-info-rgb: 34, 211, 238;
+    --ui-action-success-rgb: 52, 211, 153;
+    --ui-action-warning-rgb: 251, 191, 36;
+    --ui-action-danger-rgb: 251, 113, 133;
+    --ui-action-primary-rgb: 99, 102, 241;
+
     /* Layering */
     --z-dropdown: 1000;
     --z-sticky: 1020;

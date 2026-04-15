@@ -99,7 +99,7 @@ All new or refactored UI in the system must reuse the same visual primitives:
 - Buttons: `ui-btn` + variant (`ui-btn-primary`, `ui-btn-success`, `ui-btn-warning`, `ui-btn-danger`, `ui-btn-ghost`)
 - Panels/containers: `ui-panel`, `ui-panel__header`, `ui-panel__body`
 - KPI widgets: `ui-widget`, `ui-widget__label`, `ui-widget__value`, `ui-widget__meta`
-- Tables: `ui-table-wrap`, `ui-table`
+- Tables: `ui-table-wrap`, `ui-table` (patrones de columnas numéricas, acciones e iconos: ver **`docs/ui-admin-v2-reusable-patterns.md`**)
 - Badges/status: `ui-badge` + variant (`ui-badge-success`, `ui-badge-warning`, `ui-badge-danger`)
 - Pagination: `ui-pagination`, `ui-page-link`, `ui-page-link is-active`
 

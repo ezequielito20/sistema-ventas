@@ -18,12 +18,21 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($permFlags['can_report'])
-                    <a href="{{ route('admin.roles.report') }}" target="_blank" rel="noopener" class="ui-btn ui-btn-ghost text-sm">
+                    <a
+                        href="{{ route('admin.roles.report') }}"
+                        target="_blank"
+                        rel="noopener"
+                        class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
+                    >
                         <i class="fas fa-file-pdf"></i> Reporte PDF
                     </a>
                 @endif
                 @if ($permFlags['can_create'])
-                    <a href="{{ route('admin.roles.create') }}" class="ui-btn ui-btn-primary text-sm" wire:navigate>
+                    <a
+                        href="{{ route('admin.roles.create') }}"
+                        class="ui-btn ui-btn-primary text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
+                        wire:navigate
+                    >
                         <i class="fas fa-plus"></i> Nuevo rol
                     </a>
                 @endif
@@ -31,49 +40,51 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="ui-widget ui-widget--info">
-            <div class="ui-widget__top">
-                <span class="ui-widget__icon"><i class="fas fa-user-shield"></i></span>
-                <span class="ui-widget__trend">Total</span>
-            </div>
-            <p class="ui-widget__label">Roles</p>
-            <p class="ui-widget__value">{{ number_format($stats['roles_total']) }}</p>
-            <p class="ui-widget__meta">En tu empresa</p>
-        </div>
-        <div class="ui-widget ui-widget--success">
-            <div class="ui-widget__top">
-                <span class="ui-widget__icon"><i class="fas fa-users"></i></span>
-                <span class="ui-widget__trend">Empresa</span>
-            </div>
-            <p class="ui-widget__label">Usuarios</p>
-            <p class="ui-widget__value">{{ number_format($stats['users_company']) }}</p>
-            <p class="ui-widget__meta">Cuentas registradas</p>
-        </div>
-        <div class="ui-widget ui-widget--warning">
-            <div class="ui-widget__top">
-                <span class="ui-widget__icon"><i class="fas fa-key"></i></span>
-                <span class="ui-widget__trend">Catálogo</span>
-            </div>
-            <p class="ui-widget__label">Permisos</p>
-            <p class="ui-widget__value">{{ number_format($stats['permissions_total']) }}</p>
-            <p class="ui-widget__meta">Disponibles en el sistema</p>
-        </div>
-        <div class="ui-widget ui-widget--danger">
-            <div class="ui-widget__top">
-                <span class="ui-widget__icon"><i class="fas fa-shield-alt"></i></span>
-                <span class="ui-widget__trend">Base</span>
-            </div>
-            <p class="ui-widget__label">Roles de sistema</p>
-            <p class="ui-widget__value">{{ number_format($stats['system_roles']) }}</p>
-            <p class="ui-widget__meta">admin / user / superadmin</p>
-        </div>
+    <div class="grid grid-cols-2 gap-2 xs:gap-3 lg:grid-cols-4">
+        <x-ui.stat-card
+            variant="info"
+            icon="fas fa-user-shield"
+            trend="Total"
+            label="Roles"
+            :value="number_format($stats['roles_total'])"
+            meta="En tu empresa"
+        />
+        <x-ui.stat-card
+            variant="success"
+            icon="fas fa-users"
+            trend="Empresa"
+            label="Usuarios"
+            :value="number_format($stats['users_company'])"
+            meta="Cuentas registradas"
+        />
+        <x-ui.stat-card
+            variant="warning"
+            icon="fas fa-key"
+            trend="Catálogo"
+            label="Permisos"
+            :value="number_format($stats['permissions_total'])"
+            meta="Disponibles en el sistema"
+        />
+        <x-ui.stat-card
+            variant="danger"
+            icon="fas fa-shield-alt"
+            trend="Base"
+            label="Roles de sistema"
+            :value="number_format($stats['system_roles'])"
+            meta="admin / user / superadmin"
+        />
     </div>
 
     <div class="ui-panel">
         <div class="ui-panel__body space-y-4">
-            <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div class="w-full max-w-md">
+            {{--
+              Misma fila desde xs (400px): grid 1fr + ancho fijo tipo + botón.
+              Por debajo de xs: una columna (todo apilado). Antes usaba sm:640px y parecía "alargado" en columna única.
+            --}}
+            <div
+                class="grid grid-cols-1 gap-4 xs:grid-cols-[minmax(0,1fr)_minmax(10.5rem,13rem)_auto] xs:items-end xs:gap-x-4 xs:gap-y-0"
+            >
+                <div class="min-w-0">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
                     <div class="relative">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
@@ -87,7 +98,7 @@
                         />
                     </div>
                 </div>
-                <div class="w-full max-w-xs">
+                <div class="min-w-0 w-full xs:w-auto">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Tipo</label>
                     <select
                         wire:model.live="role_type"
@@ -98,14 +109,17 @@
                         <option value="custom">Personalizado</option>
                     </select>
                 </div>
-                <button
-                    type="button"
-                    wire:click="$toggle('showAdvancedFilters')"
-                    class="ui-btn ui-btn-ghost text-sm"
-                >
-                    <i class="fas fa-sliders-h"></i>
-                    Filtros avanzados
-                </button>
+                <div class="flex w-full xs:w-auto xs:justify-start">
+                    <button
+                        type="button"
+                        wire:click="$toggle('showAdvancedFilters')"
+                        class="ui-btn ui-btn-ghost w-full justify-center text-sm xs:w-auto xs:whitespace-nowrap"
+                        @if ($showAdvancedFilters) aria-expanded="true" @else aria-expanded="false" @endif
+                    >
+                        <i class="fas fa-sliders-h"></i>
+                        Filtros avanzados
+                    </button>
+                </div>
             </div>
 
             @if ($showAdvancedFilters)
@@ -152,14 +166,14 @@
             @else
                 <div class="hidden md:block">
                     <div class="ui-table-wrap border-0 rounded-none">
-                        <table class="ui-table">
+                        <table class="ui-table ui-table--nowrap-actions">
                             <thead>
                                 <tr>
                                     <th>Rol</th>
                                     <th>Tipo</th>
-                                    <th>Usuarios</th>
-                                    <th>Permisos</th>
-                                    <th class="text-right">Acciones</th>
+                                    <th class="text-center">Usuarios</th>
+                                    <th class="text-center">Permisos</th>
+                                    <th class="text-left">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -176,22 +190,37 @@
                                                 <span class="ui-badge ui-badge-success">Personalizado</span>
                                             @endif
                                         </td>
-                                        <td>{{ $role->users_count }}</td>
-                                        <td>{{ $role->permissions_count }}</td>
-                                        <td class="text-right">
-                                            <div class="flex flex-wrap justify-end gap-1">
+                                        <td class="text-center tabular-nums">{{ $role->users_count }}</td>
+                                        <td class="text-center tabular-nums">{{ $role->permissions_count }}</td>
+                                        <td class="text-left">
+                                            <div class="ui-icon-action-row flex flex-nowrap items-center justify-start gap-1.5 md:gap-2">
                                                 @if ($permFlags['can_show'])
-                                                    <button type="button" wire:click="openDetailModal({{ $role->id }})" class="ui-btn ui-btn-ghost px-2 py-1 text-xs">
+                                                    <button
+                                                        type="button"
+                                                        wire:click="openDetailModal({{ $role->id }})"
+                                                        class="ui-icon-action ui-icon-action--info"
+                                                        title="Ver detalle"
+                                                    >
                                                         <i class="fas fa-eye"></i>
                                                     </button>
                                                 @endif
                                                 @if ($permFlags['can_assign_permissions'])
-                                                    <button type="button" wire:click="openPermissionsModal({{ $role->id }})" class="ui-btn ui-btn-ghost px-2 py-1 text-xs" title="Permisos">
+                                                    <button
+                                                        type="button"
+                                                        wire:click="openPermissionsModal({{ $role->id }})"
+                                                        class="ui-icon-action ui-icon-action--warning"
+                                                        title="Permisos"
+                                                    >
                                                         <i class="fas fa-key"></i>
                                                     </button>
                                                 @endif
                                                 @if ($permFlags['can_edit'])
-                                                    <a href="{{ route('admin.roles.edit', $role->id) }}" class="ui-btn ui-btn-ghost px-2 py-1 text-xs" wire:navigate>
+                                                    <a
+                                                        href="{{ route('admin.roles.edit', $role->id) }}"
+                                                        class="ui-icon-action ui-icon-action--primary"
+                                                        title="Editar"
+                                                        wire:navigate
+                                                    >
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 @endif
@@ -200,7 +229,8 @@
                                                         type="button"
                                                         wire:click="deleteRole({{ $role->id }})"
                                                         wire:confirm="¿Eliminar este rol? No debe tener usuarios asignados."
-                                                        class="ui-btn ui-btn-ghost px-2 py-1 text-xs text-rose-300 hover:text-rose-100"
+                                                        class="ui-icon-action ui-icon-action--danger"
+                                                        title="Eliminar"
                                                     >
                                                         <i class="fas fa-trash"></i>
                                                     </button>
@@ -234,24 +264,46 @@
                                 <span><i class="fas fa-users mr-1"></i>{{ $role->users_count }} usuarios</span>
                                 <span><i class="fas fa-key mr-1"></i>{{ $role->permissions_count }} permisos</span>
                             </div>
-                            <div class="mt-3 flex flex-wrap gap-2">
+                            <div class="ui-icon-action-row mt-3 flex flex-wrap items-center justify-start gap-2">
                                 @if ($permFlags['can_show'])
-                                    <button type="button" wire:click="openDetailModal({{ $role->id }})" class="ui-btn ui-btn-ghost flex-1 justify-center text-xs">Ver</button>
+                                    <button
+                                        type="button"
+                                        wire:click="openDetailModal({{ $role->id }})"
+                                        class="ui-icon-action ui-icon-action--info"
+                                        title="Ver"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                 @endif
                                 @if ($permFlags['can_assign_permissions'])
-                                    <button type="button" wire:click="openPermissionsModal({{ $role->id }})" class="ui-btn ui-btn-ghost flex-1 justify-center text-xs">Permisos</button>
+                                    <button
+                                        type="button"
+                                        wire:click="openPermissionsModal({{ $role->id }})"
+                                        class="ui-icon-action ui-icon-action--warning"
+                                        title="Permisos"
+                                    >
+                                        <i class="fas fa-key"></i>
+                                    </button>
                                 @endif
                                 @if ($permFlags['can_edit'])
-                                    <a href="{{ route('admin.roles.edit', $role->id) }}" class="ui-btn ui-btn-ghost flex-1 justify-center text-xs" wire:navigate>Editar</a>
+                                    <a
+                                        href="{{ route('admin.roles.edit', $role->id) }}"
+                                        class="ui-icon-action ui-icon-action--primary"
+                                        title="Editar"
+                                        wire:navigate
+                                    >
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 @endif
                                 @if ($permFlags['can_destroy'])
                                     <button
                                         type="button"
                                         wire:click="deleteRole({{ $role->id }})"
                                         wire:confirm="¿Eliminar este rol?"
-                                        class="ui-btn ui-btn-danger flex-1 justify-center text-xs"
+                                        class="ui-icon-action ui-icon-action--danger"
+                                        title="Eliminar"
                                     >
-                                        Eliminar
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 @endif
                             </div>
