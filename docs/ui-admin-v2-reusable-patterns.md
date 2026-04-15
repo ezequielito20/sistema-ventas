@@ -1,6 +1,15 @@
 # Admin UI v2 — Patrones reutilizables (metodología y componentes)
 
-Este documento resume lo aplicado en el módulo **Roles** (listado Livewire v2) para replicarlo en otros módulos sin redescubrir reglas ni CSS.
+Este documento resume lo aplicado en el módulo **Roles** (listado admin v2) para replicarlo en otros módulos sin redescubrir reglas ni CSS.
+
+## Orden y distribución en pantalla (convención)
+
+1. **`ui-panel`** superior: título (`ui-panel__title`), subtítulo corto y orientado al usuario (`ui-panel__subtitle`), acciones a la derecha (`ui-btn` PDF / Nuevo, etc.).
+2. **KPI:** grid `grid-cols-2 gap-2 xs:gap-3 lg:grid-cols-4` + `<x-ui.stat-card>` (una tarjeta por métrica).
+3. **`ui-panel`** de filtros (si aplica): solo lo necesario; **misma fila** para campos relacionados.
+4. **`ui-panel`** de listado: título “Listado” + subtítulo con totales/paginación; cuerpo con tabla y, si aplica, cards móviles debajo del breakpoint de tabla.
+
+**Texto visible:** subtítulos y labels en lenguaje de negocio; **no** incluir nombres de stack (“Livewire”, versiones) en copy de UI.
 
 ## Metodología
 
@@ -28,6 +37,12 @@ Este documento resume lo aplicado en el módulo **Roles** (listado Livewire v2) 
 | Botones principales (PDF, Nuevo, etc.) | `ui-btn`, `ui-btn-primary`, `ui-btn-ghost` + `md:py-2.5 md:px-5 md:text-[0.95rem]` en **md+** | |
 | Tabla de datos | `ui-table-wrap` > `ui-table` | Opcional: clase modificadora (ver abajo). |
 | Badges | `ui-badge`, `ui-badge-success`, `ui-badge-warning`, … | |
+
+## Fila de filtros (búsqueda + selects)
+
+- Poner **todos los controles en una sola fila** mientras quepa: usar **`flex flex-row flex-nowrap items-end gap-3 sm:gap-4`**, campo principal con **`flex-1 min-w-0 basis-0`**, campos angostos (select) con **ancho fijo** (`w-36 sm:w-44` o similar) y **`shrink-0`**.
+- **Evitar** `grid` con **`grid-cols-[…]`** arbitrarios como patrón principal: en algunos builds puede no reflejarse y los campos se apilan; **flex** es más predecible.
+- Mantener filtros al mínimo necesario (en Roles solo búsqueda + tipo; sin secciones colapsables salvo requisito explícito).
 
 ## Tablas de listado
 
@@ -69,7 +84,10 @@ Convenciones v2 resumidas en **`.cursor/rules/ui-admin-v2.mdc`** (widgets, tabla
 
 ## Checklist rápido al copiar a otro módulo
 
+- [ ] Orden de bloques: panel cabecera → KPI → filtros → listado (tabla + móvil si aplica).
+- [ ] Subtítulos legibles para el usuario final (sin mencionar stack en pantalla).
 - [ ] KPI con `x-ui.stat-card` y grid `grid-cols-2 lg:grid-cols-*`.
+- [ ] Filtros: **flex** `flex-nowrap`, campo principal `flex-1`, selects con ancho fijo.
 - [ ] Tabla: `ui-table--nowrap-actions` si la última columna es solo iconos.
 - [ ] Columnas numéricas: `text-center` en `th` y `td` (alineación resuelta en SCSS).
 - [ ] Acciones: variantes `ui-icon-action--*` y fila `flex-nowrap`.

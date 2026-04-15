@@ -22,6 +22,12 @@ globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**
 ## Botones de cabecera (acciones principales)
 - En **md+** aumentar cómodamente tamaño: clases responsive tipo `md:py-2.5 md:px-5 md:text-[0.95rem]` sobre `ui-btn`, sin romper móvil.
 
+## Copy en pantalla
+- Subtítulos y textos de UI en lenguaje de negocio; **no** mostrar nombres de stack ni versiones (p. ej. “Livewire v2”) en `ui-panel__subtitle`.
+
+## Fila de filtros
+- Una sola fila cuando quepa: **`flex flex-row flex-nowrap items-end`**, búsqueda **`flex-1 min-w-0 basis-0`**, selects con **ancho fijo** (`w-36 sm:w-44`, `shrink-0`). Preferir flex frente a `grid` con columnas arbitrarias (mejor compatibilidad con el CSS generado).
+
 ## Botones de acción en tablas (icon-only)
 - Usar **`ui-icon-action`** + variante semántica (misma familia de color que widgets):
   - `ui-icon-action--info` — ver / detalle

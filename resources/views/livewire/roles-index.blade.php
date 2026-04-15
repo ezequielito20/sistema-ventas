@@ -14,7 +14,7 @@
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="ui-panel__title">Roles</h1>
-                <p class="ui-panel__subtitle">Listado, filtros y permisos en tiempo real (Livewire v2).</p>
+                <p class="ui-panel__subtitle">Listado y permisos en tiempo real.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($permFlags['can_report'])
@@ -77,14 +77,9 @@
 
     <div class="ui-panel">
         <div class="ui-panel__body space-y-4">
-            {{--
-              Misma fila desde xs (400px): grid 1fr + ancho fijo tipo + botón.
-              Por debajo de xs: una columna (todo apilado). Antes usaba sm:640px y parecía "alargado" en columna única.
-            --}}
-            <div
-                class="grid grid-cols-1 gap-4 xs:grid-cols-[minmax(0,1fr)_minmax(10.5rem,13rem)_auto] xs:items-end xs:gap-x-4 xs:gap-y-0"
-            >
-                <div class="min-w-0">
+            {{-- flex + nowrap: una sola fila (sin depender de grid arbitrario en el CSS compilado) --}}
+            <div class="flex w-full min-w-0 flex-row flex-nowrap items-end gap-3 sm:gap-4">
+                <div class="min-w-0 flex-1 basis-0">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
                     <div class="relative">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
@@ -98,7 +93,7 @@
                         />
                     </div>
                 </div>
-                <div class="min-w-0 w-full xs:w-auto">
+                <div class="w-36 shrink-0 sm:w-44">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Tipo</label>
                     <select
                         wire:model.live="role_type"
@@ -109,47 +104,7 @@
                         <option value="custom">Personalizado</option>
                     </select>
                 </div>
-                <div class="flex w-full xs:w-auto xs:justify-start">
-                    <button
-                        type="button"
-                        wire:click="$toggle('showAdvancedFilters')"
-                        class="ui-btn ui-btn-ghost w-full justify-center text-sm xs:w-auto xs:whitespace-nowrap"
-                        @if ($showAdvancedFilters) aria-expanded="true" @else aria-expanded="false" @endif
-                    >
-                        <i class="fas fa-sliders-h"></i>
-                        Filtros avanzados
-                    </button>
-                </div>
             </div>
-
-            @if ($showAdvancedFilters)
-                <div class="grid grid-cols-1 gap-3 border-t border-slate-700/60 pt-4 md:grid-cols-2 xl:grid-cols-4" wire:key="advanced-filters">
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Usuarios (min)</label>
-                        <input type="number" min="0" wire:model.live="users_min" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Usuarios (max)</label>
-                        <input type="number" min="0" wire:model.live="users_max" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Permisos (min)</label>
-                        <input type="number" min="0" wire:model.live="permissions_min" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Permisos (max)</label>
-                        <input type="number" min="0" wire:model.live="permissions_max" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Creado desde</label>
-                        <input type="date" wire:model.live="date_from" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-xs text-slate-400">Creado hasta</label>
-                        <input type="date" wire:model.live="date_to" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-slate-100" />
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 

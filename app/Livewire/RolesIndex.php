@@ -21,20 +21,6 @@ class RolesIndex extends Component
 
     public string $role_type = '';
 
-    public ?string $users_min = null;
-
-    public ?string $users_max = null;
-
-    public ?string $permissions_min = null;
-
-    public ?string $permissions_max = null;
-
-    public ?string $date_from = null;
-
-    public ?string $date_to = null;
-
-    public bool $showAdvancedFilters = false;
-
     public bool $showDetailModal = false;
 
     /** @var array<string, mixed>|null */
@@ -71,36 +57,6 @@ class RolesIndex extends Component
     }
 
     public function updatingRoleType(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingUsersMin(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingUsersMax(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingPermissionsMin(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingPermissionsMax(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingDateFrom(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingDateTo(): void
     {
         $this->resetPage();
     }
@@ -301,30 +257,6 @@ class RolesIndex extends Component
             $query->whereIn('name', ['admin', 'user', 'superadmin']);
         } elseif ($this->role_type === 'custom') {
             $query->whereNotIn('name', ['admin', 'user', 'superadmin']);
-        }
-
-        if ($this->users_min !== null && $this->users_min !== '') {
-            $query->having('users_count', '>=', (int) $this->users_min);
-        }
-
-        if ($this->users_max !== null && $this->users_max !== '') {
-            $query->having('users_count', '<=', (int) $this->users_max);
-        }
-
-        if ($this->permissions_min !== null && $this->permissions_min !== '') {
-            $query->having('permissions_count', '>=', (int) $this->permissions_min);
-        }
-
-        if ($this->permissions_max !== null && $this->permissions_max !== '') {
-            $query->having('permissions_count', '<=', (int) $this->permissions_max);
-        }
-
-        if ($this->date_from) {
-            $query->whereDate('created_at', '>=', $this->date_from);
-        }
-
-        if ($this->date_to) {
-            $query->whereDate('created_at', '<=', $this->date_to);
         }
 
         return $query->orderBy('name');
