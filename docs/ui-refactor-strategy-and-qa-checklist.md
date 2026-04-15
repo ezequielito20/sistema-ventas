@@ -25,6 +25,22 @@ This document defines:
 5. Move module by module with explicit approval before starting the next step.
 6. Do not modify legacy Blade views. Create parallel v2 views and switch route/controller target only after v2 validation.
 
+## Approved Technology Stack (UI v2)
+
+These choices apply to **new v2 screens** and **progressive refactors**. Legacy pages may still contain old patterns until migrated.
+
+| Layer | Choice | Notes |
+| --- | --- | --- |
+| CSS framework | **Tailwind CSS** (via Vite) | No Bootstrap; no utility CDN for CSS. |
+| Interactivity | **Livewire 3** | Full-page or nested components per module so tables and actions update without full reloads (SPA-like UX). |
+| JS baseline | **Alpine.js** (bundled with Livewire 3) | Prefer `wire:` / Livewire actions over custom DOM scripts. |
+| Charts / canvas | **Chart.js** via **npm + Vite** | Exposed as `window.Chart` from `resources/js/app.js` for legacy inline initializers until migrated. |
+| Assets | **Vite** | `resources/sass/app.scss`, `resources/js/app.js`; additional modules under `resources/js/` (e.g. `ui/`). |
+
+**Do not:** load Bootstrap, jQuery, or Chart.js from a CDN in layouts or Blade. **Do:** keep Blade free of large inline `<style>` / `<script>` blocks; move styles to `resources/sass/` and scripts to `resources/js/` in focused files.
+
+**Legacy impact:** any screen that still relied on Bootstrap’s JavaScript (e.g. `data-bs-dismiss`, `.modal` show/hide) will need a **v2 + Livewire/Alpine** replacement; styling-only classes may remain until those pages are migrated.
+
 ## Branch and Commit Workflow
 
 ### Suggested branch format

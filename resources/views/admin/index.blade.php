@@ -964,20 +964,12 @@
 @endpush
 
 @push('js')
-    <script src="{{ asset('vendor/chartjs/chart.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
             if (typeof Chart === 'undefined') {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
-                script.onload = function() {
-                    initializeCharts();
-                };
-                document.head.appendChild(script);
+                console.error('[Dashboard] Chart.js no esta cargado. Asegura @vite resources/js/app.js en el layout.');
                 return;
             }
-
             initializeCharts();
         });
 

@@ -1,5 +1,8 @@
 import Alpine from 'alpinejs';
+import Chart from 'chart.js/auto';
 import { notifications } from './ui/notifications';
+
+window.Chart = Chart;
 
 // Inicializar Alpine.js solo si no está ya inicializado
 if (!window.Alpine) {
