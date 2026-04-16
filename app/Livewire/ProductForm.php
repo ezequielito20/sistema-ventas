@@ -113,7 +113,7 @@ class ProductForm extends Component
             'code' => $codeRule,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'stock' => 'required|integer|min:0',
             'min_stock' => 'required|integer|min:0',
             'max_stock' => 'required|integer|gt:min_stock',

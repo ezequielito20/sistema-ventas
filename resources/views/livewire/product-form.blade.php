@@ -132,32 +132,78 @@
                 </div>
 
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
-                    <h3 class="mb-4 text-sm font-semibold text-slate-200">Imagen</h3>
-                    <label for="image" class="{{ $labelBase }}">Archivo (opcional en edición si ya hay imagen)</label>
-                    <input
-                        id="image"
-                        type="file"
-                        accept="image/*"
-                        wire:model="image"
-                        class="block w-full cursor-pointer rounded-lg border border-dashed border-slate-600 bg-slate-950/40 px-3 py-3 text-sm text-slate-300 file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-slate-700 file:px-4 file:py-2 file:text-sm file:font-medium file:text-slate-100 hover:file:bg-slate-600 @error('image') border-rose-500/80 @enderror"
-                    >
-                    <div wire:loading wire:target="image" class="mt-2 text-xs text-slate-400">
-                        <i class="fas fa-spinner fa-spin"></i> Procesando imagen…
+                    <h3 class="mb-1 text-sm font-semibold text-slate-200">Imagen</h3>
+                    <p class="mb-4 text-xs text-slate-500">
+                        Opcional en edición si ya hay imagen. Tras elegir archivo, se sube un temporal y aquí verás la vista previa.
+                    </p>
+                    {{--
+                        Vista previa: resources/js/app.js (delegación en document). wire:ignore evita que Livewire pise el <img>.
+                    --}}
+                    <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-start sm:gap-6 md:gap-7">
+                        <div class="min-w-0 w-full max-w-md space-y-3 sm:w-auto sm:max-w-[17rem]">
+                            <span class="{{ $labelBase }}">Archivo</span>
+                            <div class="flex flex-col gap-2">
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <input
+                                        id="product-form-image-input"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                        wire:model="image"
+                                        class="sr-only"
+                                    >
+                                    <label
+                                        for="product-form-image-input"
+                                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40 @error('image') border-rose-500/70 @enderror"
+                                    >
+                                        <i class="fas fa-folder-open text-slate-400"></i>
+                                        <span>Seleccionar imagen</span>
+                                    </label>
+                                    <div wire:loading wire:target="image" class="inline-flex items-center gap-2 text-xs text-cyan-300/90">
+                                        <i class="fas fa-circle-notch fa-spin"></i>
+                                        Subiendo temporal…
+                                    </div>
+                                </div>
+                                @if ($image)
+                                    <p class="truncate text-xs text-slate-400" title="{{ $image->getClientOriginalName() }}">
+                                        <i class="fas fa-paperclip mr-1 text-slate-500"></i>{{ $image->getClientOriginalName() }}
+                                    </p>
+                                @endif
+                                <p class="text-xs text-slate-500">Formatos: JPG, PNG, GIF o WebP · máximo 2&nbsp;MB.</p>
+                            </div>
+                            @error('image')
+                                <p class="text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mx-auto flex w-full max-w-[13rem] shrink-0 flex-col items-center gap-2 sm:mx-0">
+                            <p class="w-full text-left text-[0.65rem] font-medium uppercase tracking-wide text-slate-500 sm:text-center">
+                                Vista previa
+                            </p>
+                            <div
+                                wire:ignore
+                                id="product-form-preview-root"
+                                data-existing-url="{{ $existingImageUrl ?? '' }}"
+                                class="relative h-48 w-full max-w-[13rem] overflow-hidden rounded-xl border border-slate-600 bg-slate-900/80 shadow-inner ring-1 ring-white/5"
+                            >
+                                <img
+                                    id="product-form-preview-img"
+                                    @if ($existingImageUrl) src="{{ $existingImageUrl }}" @endif
+                                    alt=""
+                                    class="absolute inset-0 h-full w-full object-cover {{ $existingImageUrl ? '' : 'hidden' }}"
+                                >
+                                <div
+                                    id="product-form-preview-empty"
+                                    class="{{ $existingImageUrl ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-slate-500"
+                                >
+                                    <div class="rounded-full bg-slate-800/80 p-3 text-cyan-500/90">
+                                        <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                                    </div>
+                                    <span class="text-xs font-medium text-slate-400">Selecciona una imagen</span>
+                                    <span class="text-[0.65rem] leading-snug text-slate-600">JPG, PNG, GIF o WebP · hasta 2&nbsp;MB</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    @if ($image)
-                        <div class="mt-4 flex items-center gap-4 rounded-lg border border-slate-700/60 bg-slate-950/50 p-3">
-                            <img src="{{ $image->temporaryUrl() }}" alt="" class="h-16 w-16 shrink-0 rounded-lg border border-slate-600 object-cover">
-                            <p class="text-xs leading-relaxed text-slate-400">Vista previa del archivo seleccionado.</p>
-                        </div>
-                    @elseif ($existingImageUrl)
-                        <div class="mt-4 flex items-center gap-4 rounded-lg border border-slate-700/60 bg-slate-950/50 p-3">
-                            <img src="{{ $existingImageUrl }}" alt="" class="h-16 w-16 shrink-0 rounded-lg border border-slate-600 object-cover">
-                            <p class="text-xs leading-relaxed text-slate-400">Si no subes otra imagen, se conserva la actual.</p>
-                        </div>
-                    @endif
-                    @error('image')
-                        <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
-                    @enderror
                 </div>
 
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
