@@ -71,6 +71,13 @@ class RolesIndex extends Component
         $this->resetPage();
     }
 
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->role_type = '';
+        $this->resetPage();
+    }
+
     public function updatingPage(): void
     {
         $this->selectedRoleIds = [];

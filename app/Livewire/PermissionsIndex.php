@@ -66,6 +66,14 @@ class PermissionsIndex extends Component
         $this->resetPage();
     }
 
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->module = '';
+        $this->guard = '';
+        $this->resetPage();
+    }
+
     public function updatingPage(): void
     {
         $this->selectedPermissionIds = [];
@@ -327,9 +335,20 @@ class PermissionsIndex extends Component
 
         if ($this->search !== '') {
             $s = $this->search;
-            $query->where(function ($q) use ($s) {
+            $matchingFriendlyNames = collect(PermissionFriendlyNames::labelMap())
+                ->filter(fn ($label, $permissionName) => str_contains(mb_strtolower($label), mb_strtolower($s))
+                    || str_contains(mb_strtolower($permissionName), mb_strtolower($s)))
+                ->keys()
+                ->values()
+                ->all();
+
+            $query->where(function ($q) use ($s, $matchingFriendlyNames) {
                 $q->where('name', 'ILIKE', '%'.$s.'%')
                     ->orWhere('guard_name', 'ILIKE', '%'.$s.'%');
+
+                if ($matchingFriendlyNames !== []) {
+                    $q->orWhereIn('name', $matchingFriendlyNames);
+                }
             });
         }
 

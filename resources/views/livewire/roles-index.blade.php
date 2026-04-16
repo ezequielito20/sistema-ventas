@@ -64,11 +64,25 @@
         />
     </div>
 
-    <div class="ui-panel">
-        <div class="ui-panel__body space-y-4">
-            {{-- flex + nowrap: una sola fila (sin depender de grid arbitrario en el CSS compilado) --}}
-            <div class="flex w-full min-w-0 flex-row flex-nowrap items-end gap-3 sm:gap-4">
-                <div class="min-w-0 flex-1 basis-0">
+    <div class="ui-panel" x-data="{ showFilters: false }">
+        <div class="ui-panel__header flex items-center justify-between gap-3">
+            <div>
+                <h2 class="ui-panel__title">Filtros</h2>
+                <p class="ui-panel__subtitle">Búsqueda y segmentación del listado.</p>
+            </div>
+            <button
+                type="button"
+                class="ui-btn ui-btn-ghost text-sm"
+                @click="showFilters = !showFilters"
+                :aria-expanded="showFilters"
+            >
+                <i class="fas" :class="showFilters ? 'fa-sliders-h' : 'fa-filter'"></i>
+                <span x-text="showFilters ? 'Ocultar filtros' : 'Filtros avanzados'"></span>
+            </button>
+        </div>
+        <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[minmax(0,1fr)_11rem_auto]">
+                <div class="min-w-0">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
                     <div class="relative">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
@@ -82,7 +96,7 @@
                         />
                     </div>
                 </div>
-                <div class="w-36 shrink-0 sm:w-44">
+                <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Tipo</label>
                     <select
                         wire:model.live="role_type"
@@ -92,6 +106,15 @@
                         <option value="system">Sistema</option>
                         <option value="custom">Personalizado</option>
                     </select>
+                </div>
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <button
+                        type="button"
+                        wire:click="clearFilters"
+                        class="ui-btn ui-btn-ghost w-full text-sm lg:w-auto"
+                    >
+                        <i class="fas fa-eraser"></i> Limpiar filtros
+                    </button>
                 </div>
             </div>
         </div>
