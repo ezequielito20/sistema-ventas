@@ -19,7 +19,7 @@
 
     <div class="ui-panel">
         <div class="ui-panel__body">
-            <form wire:submit="save" class="space-y-6">
+            <form wire:submit="saveAndBack" class="space-y-6">
                 <div>
                     <label for="role-name" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
                         Nombre del rol <span class="text-rose-400">*</span>
@@ -44,12 +44,30 @@
                 </div>
 
                 <div class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-700/60 pt-6">
+                    @unless ($isEdit)
+                        <button
+                            type="button"
+                            wire:click="saveAndCreateAnother"
+                            class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
+                            wire:loading.attr="disabled"
+                        >
+                            <span wire:loading.remove wire:target="saveAndCreateAnother">
+                                <i class="fas fa-plus-circle"></i>
+                                Crear y crear otro
+                            </span>
+                            <span wire:loading wire:target="saveAndCreateAnother" class="inline-flex items-center gap-2">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Guardando…
+                            </span>
+                        </button>
+                    @endunless
+
                     <button type="submit" class="ui-btn ui-btn-primary text-sm md:py-2.5 md:px-5 md:text-[0.95rem]" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="save">
+                        <span wire:loading.remove wire:target="saveAndBack">
                             <i class="fas fa-save"></i>
                             {{ $isEdit ? 'Guardar cambios' : 'Crear rol' }}
                         </span>
-                        <span wire:loading wire:target="save" class="inline-flex items-center gap-2">
+                        <span wire:loading wire:target="saveAndBack" class="inline-flex items-center gap-2">
                             <i class="fas fa-spinner fa-spin"></i>
                             Guardando…
                         </span>

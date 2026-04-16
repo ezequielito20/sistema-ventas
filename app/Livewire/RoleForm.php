@@ -83,7 +83,17 @@ class RoleForm extends Component
         ];
     }
 
-    public function save(RoleService $roleService)
+    public function saveAndBack(RoleService $roleService)
+    {
+        return $this->persist($roleService, false);
+    }
+
+    public function saveAndCreateAnother(RoleService $roleService)
+    {
+        return $this->persist($roleService, true);
+    }
+
+    protected function persist(RoleService $roleService, bool $createAnother)
     {
         if ($this->roleId !== null) {
             Gate::authorize('roles.edit');
@@ -97,7 +107,12 @@ class RoleForm extends Component
             if ($this->roleId === null) {
                 $roleService->createRole(Auth::user()->company_id, $validated['name']);
 
-                session()->flash('message', 'Rol creado exitosamente');
+                session()->flash(
+                    'message',
+                    $createAnother
+                        ? 'Rol creado exitosamente. Puedes registrar otro desde este formulario.'
+                        : 'Rol creado exitosamente'
+                );
                 session()->flash('icons', 'success');
             } else {
                 $role = Role::query()
@@ -109,6 +124,10 @@ class RoleForm extends Component
 
                 session()->flash('message', 'Rol actualizado exitosamente');
                 session()->flash('icons', 'success');
+            }
+
+            if ($this->roleId === null && $createAnother) {
+                return $this->redirect(route('admin.roles.create'));
             }
 
             return $this->redirect(route('admin.roles.index'));

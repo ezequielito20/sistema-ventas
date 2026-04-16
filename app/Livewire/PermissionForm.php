@@ -52,7 +52,17 @@ class PermissionForm extends Component
         return app(PermissionService::class)->validationMessages();
     }
 
-    public function save(PermissionService $permissionService)
+    public function saveAndBack(PermissionService $permissionService)
+    {
+        return $this->persist($permissionService, false);
+    }
+
+    public function saveAndCreateAnother(PermissionService $permissionService)
+    {
+        return $this->persist($permissionService, true);
+    }
+
+    protected function persist(PermissionService $permissionService, bool $createAnother)
     {
         if ($this->permissionId !== null) {
             Gate::authorize('permissions.edit');
@@ -66,7 +76,12 @@ class PermissionForm extends Component
             if ($this->permissionId === null) {
                 $permissionService->createPermission($validated['name']);
 
-                session()->flash('message', 'Permiso creado correctamente');
+                session()->flash(
+                    'message',
+                    $createAnother
+                        ? 'Permiso creado correctamente. Puedes registrar otro desde este formulario.'
+                        : 'Permiso creado correctamente'
+                );
                 session()->flash('icons', 'success');
             } else {
                 $permission = Permission::query()->where('id', $this->permissionId)->firstOrFail();
@@ -74,6 +89,10 @@ class PermissionForm extends Component
 
                 session()->flash('message', 'Permiso actualizado correctamente');
                 session()->flash('icons', 'success');
+            }
+
+            if ($this->permissionId === null && $createAnother) {
+                return $this->redirect(route('admin.permissions.create'));
             }
 
             return $this->redirect(route('admin.permissions.index'));
