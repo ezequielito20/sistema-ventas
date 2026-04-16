@@ -81,7 +81,7 @@
             </button>
         </div>
         <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,1fr)_9rem_9rem_9rem_5rem_5rem_auto]">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end 2xl:grid-cols-[minmax(0,1.35fr)_10rem_9rem_9rem_6.5rem_6.5rem_auto]">
                 <div class="min-w-0">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
                     <div class="relative">
@@ -143,11 +143,11 @@
                         class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                     />
                 </div>
-                <div class="sm:col-span-2 xl:col-span-1">
+                <div class="sm:col-span-2 2xl:col-span-1">
                     <button
                         type="button"
                         wire:click="clearFilters"
-                        class="ui-btn ui-btn-ghost w-full text-sm xl:w-auto"
+                        class="ui-btn ui-btn-ghost w-full text-sm 2xl:w-auto"
                     >
                         <i class="fas fa-eraser"></i> Limpiar filtros
                     </button>
@@ -264,14 +264,14 @@
                                         <td class="hidden text-sm text-slate-400 xl:table-cell">
                                             {{ $category->created_at->format('d/m/Y H:i') }}
                                         </td>
-                                        <td>
-                                            <div class="flex flex-wrap items-center gap-1">
+                                        <td class="text-left">
+                                            <div class="ui-icon-action-row flex flex-nowrap items-center justify-start gap-1.5 md:gap-2">
                                                 @if ($permFlags['can_show'])
                                                     <button
                                                         type="button"
                                                         wire:click="openDetailModal({{ $category->id }})"
-                                                        class="ui-btn ui-btn-ghost px-2 py-1 text-xs"
-                                                        title="Ver"
+                                                        class="ui-icon-action ui-icon-action--info"
+                                                        title="Ver detalle"
                                                     >
                                                         <i class="fas fa-eye"></i>
                                                     </button>
@@ -279,7 +279,7 @@
                                                 @if ($permFlags['can_edit'])
                                                     <a
                                                         href="{{ route('admin.categories.edit', $category->id) }}"
-                                                        class="ui-btn ui-btn-ghost px-2 py-1 text-xs"
+                                                        class="ui-icon-action ui-icon-action--primary"
                                                         wire:navigate
                                                         title="Editar"
                                                     >
@@ -290,10 +290,10 @@
                                                     <button
                                                         type="button"
                                                         wire:click="openDeleteModal({{ $category->id }})"
-                                                        class="ui-btn ui-btn-ghost px-2 py-1 text-xs text-rose-300 hover:text-rose-100"
+                                                        class="ui-icon-action ui-icon-action--danger"
                                                         title="Eliminar"
                                                     >
-                                                        <i class="fas fa-trash-alt"></i>
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 @endif
                                             </div>
@@ -331,20 +331,20 @@
                                     />
                                 @endif
                             </div>
-                            <div class="mt-3 flex flex-wrap gap-2">
+                            <div class="ui-icon-action-row mt-3 flex flex-wrap items-center justify-start gap-2">
                                 @if ($permFlags['can_show'])
-                                    <button type="button" wire:click="openDetailModal({{ $category->id }})" class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none">
-                                        <i class="fas fa-eye"></i> Ver
+                                    <button type="button" wire:click="openDetailModal({{ $category->id }})" class="ui-icon-action ui-icon-action--info" title="Ver">
+                                        <i class="fas fa-eye"></i>
                                     </button>
                                 @endif
                                 @if ($permFlags['can_edit'])
-                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none" wire:navigate>
-                                        <i class="fas fa-edit"></i> Editar
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="ui-icon-action ui-icon-action--primary" wire:navigate title="Editar">
+                                        <i class="fas fa-edit"></i>
                                     </a>
                                 @endif
                                 @if ($permFlags['can_destroy'])
-                                    <button type="button" wire:click="openDeleteModal({{ $category->id }})" class="ui-btn ui-btn-ghost flex-1 text-xs text-rose-300 sm:flex-none">
-                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    <button type="button" wire:click="openDeleteModal({{ $category->id }})" class="ui-icon-action ui-icon-action--danger" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 @endif
                             </div>
