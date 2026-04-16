@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
@@ -139,6 +140,81 @@ class PermissionService
         }
 
         $permission->delete();
+    }
+
+    /**
+     * @return array{can_delete: bool, reason: ?string}
+     */
+    public function deletionGuard(Permission $permission): array
+    {
+        $rolesCount = $permission->roles()->count();
+        if ($rolesCount > 0) {
+            return [
+                'can_delete' => false,
+                'reason' => 'Está asignado a '.$rolesCount.' rol(es)',
+            ];
+        }
+
+        $usersCount = $permission->users()->count();
+        if ($usersCount > 0) {
+            return [
+                'can_delete' => false,
+                'reason' => 'Está asignado a '.$usersCount.' usuario(s)',
+            ];
+        }
+
+        return [
+            'can_delete' => true,
+            'reason' => null,
+        ];
+    }
+
+    /**
+     * @return array{id:int,name:string,deleted:bool,reason:?string}
+     */
+    public function deletePermissionWithResult(Permission $permission): array
+    {
+        $guard = $this->deletionGuard($permission);
+
+        if (! $guard['can_delete']) {
+            return [
+                'id' => $permission->id,
+                'name' => $permission->name,
+                'deleted' => false,
+                'reason' => $guard['reason'],
+            ];
+        }
+
+        $permission->delete();
+
+        return [
+            'id' => $permission->id,
+            'name' => $permission->name,
+            'deleted' => true,
+            'reason' => null,
+        ];
+    }
+
+    /**
+     * @param  array<int>  $permissionIds
+     * @return array<int, array{id:int,name:string,deleted:bool,reason:?string}>
+     */
+    public function bulkDeletePermissions(array $permissionIds): array
+    {
+        /** @var Collection<int, Permission> $permissions */
+        $permissions = Permission::query()
+            ->whereIn('id', array_map('intval', $permissionIds))
+            ->orderBy('name')
+            ->get();
+
+        $results = [];
+
+        /** @var Permission $permission */
+        foreach ($permissions as $permission) {
+            $results[] = $this->deletePermissionWithResult($permission);
+        }
+
+        return $results;
     }
 
     /**

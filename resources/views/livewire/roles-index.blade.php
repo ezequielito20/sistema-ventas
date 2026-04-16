@@ -99,20 +99,76 @@
 
     <div class="ui-panel overflow-hidden">
         <div class="ui-panel__header">
-            <div>
-                <h2 class="ui-panel__title">Listado</h2>
-                <p class="ui-panel__subtitle">{{ $roles->total() }} resultado(s) · Página {{ $roles->currentPage() }} de {{ $roles->lastPage() }}</p>
+            <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="ui-panel__title">Listado</h2>
+                    <p class="ui-panel__subtitle">{{ $roles->total() }} resultado(s) · Página {{ $roles->currentPage() }} de {{ $roles->lastPage() }}</p>
+                </div>
+                @if ($permFlags['can_destroy'] && ! $roles->isEmpty())
+                    <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                        <button
+                            type="button"
+                            wire:click="toggleSelectionMode"
+                            class="ui-btn {{ $selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost' }} text-sm"
+                        >
+                            <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
+                            {{ $selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
         <div class="ui-panel__body p-0">
             @if ($roles->isEmpty())
                 <p class="px-4 py-10 text-center text-sm text-slate-400">No hay roles que coincidan con los filtros.</p>
             @else
+                @if ($selectionMode)
+                    <div class="flex flex-col gap-3 border-b border-slate-700/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-white">
+                                {{ count($selectedRoleIds) }} rol(es) seleccionado(s)
+                            </p>
+                            <p class="text-xs text-slate-400">
+                                La selección aplica a la página actual. Los roles asignados a usuarios o protegidos no se eliminarán.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                wire:click="toggleSelectAllCurrentPage"
+                                class="ui-btn ui-btn-ghost text-sm"
+                            >
+                                <i class="fas {{ $allCurrentPageSelected ? 'fa-square-minus' : 'fa-square-check' }}"></i>
+                                {{ $allCurrentPageSelected ? 'Limpiar página' : 'Seleccionar página' }}
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="openBulkDeleteModal"
+                                class="ui-btn ui-btn-danger text-sm"
+                                @disabled(count($selectedRoleIds) === 0)
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                                Eliminar seleccionados
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="hidden md:block">
                     <div class="ui-table-wrap border-0 rounded-none">
                         <table class="ui-table ui-table--nowrap-actions">
                             <thead>
                                 <tr>
+                                    @if ($selectionMode)
+                                        <th class="w-12 text-center">
+                                            <input
+                                                type="checkbox"
+                                                @checked($allCurrentPageSelected)
+                                                wire:click="toggleSelectAllCurrentPage"
+                                                class="rounded border-slate-500 bg-slate-900"
+                                            />
+                                        </th>
+                                    @endif
                                     <th>Rol</th>
                                     <th>Tipo</th>
                                     <th class="text-center">Usuarios</th>
@@ -126,6 +182,17 @@
                                         $isSys = in_array($role->name, ['admin', 'user', 'superadmin'], true);
                                     @endphp
                                     <tr wire:key="role-row-{{ $role->id }}">
+                                        @if ($selectionMode)
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    value="{{ $role->id }}"
+                                                    @checked(in_array($role->id, $selectedRoleIds, true))
+                                                    wire:click="toggleRoleSelection({{ $role->id }})"
+                                                    class="rounded border-slate-500 bg-slate-900"
+                                                />
+                                            </td>
+                                        @endif
                                         <td class="font-medium text-white">{{ $role->name }}</td>
                                         <td>
                                             @if ($isSys)
@@ -193,6 +260,20 @@
                             $isSys = in_array($role->name, ['admin', 'user', 'superadmin'], true);
                         @endphp
                         <div class="rounded-xl border border-slate-600/50 bg-slate-950/40 p-4" wire:key="role-card-{{ $role->id }}">
+                            @if ($selectionMode)
+                                <div class="mb-3 flex items-center justify-end">
+                                    <label class="inline-flex items-center gap-2 text-xs text-slate-300">
+                                        <input
+                                            type="checkbox"
+                                            value="{{ $role->id }}"
+                                            @checked(in_array($role->id, $selectedRoleIds, true))
+                                            wire:click="toggleRoleSelection({{ $role->id }})"
+                                            class="rounded border-slate-500 bg-slate-900"
+                                        />
+                                        Seleccionar
+                                    </label>
+                                </div>
+                            @endif
                             <div class="flex items-start justify-between gap-2">
                                 <div>
                                     <p class="font-semibold text-white">{{ $role->name }}</p>
@@ -415,6 +496,41 @@
                     <button type="button" wire:click="confirmDeleteRole" class="ui-btn ui-btn-danger text-sm">
                         <i class="fas fa-trash-alt mr-1.5"></i>
                         Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showBulkDeleteModal)
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            wire:click.self="closeBulkDeleteModal"
+            x-data
+            x-on:keydown.escape.window="$wire.closeBulkDeleteModal()"
+            aria-modal="true"
+            role="dialog"
+        >
+            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200">
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-semibold text-white">¿Eliminar roles seleccionados?</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                Se intentará eliminar <span class="font-medium text-white">{{ count($selectedRoleIds) }} rol(es)</span>.
+                                Los roles asignados a usuarios o protegidos por el sistema no podrán eliminarse.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                    <button type="button" wire:click="closeBulkDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="confirmBulkDelete" class="ui-btn ui-btn-danger text-sm">
+                        <i class="fas fa-trash-alt mr-1.5"></i>
+                        Sí, eliminar seleccionados
                     </button>
                 </div>
             </div>

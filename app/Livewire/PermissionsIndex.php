@@ -33,6 +33,13 @@ class PermissionsIndex extends Component
 
     public string $deleteTargetName = '';
 
+    public bool $selectionMode = false;
+
+    /** @var array<int> */
+    public array $selectedPermissionIds = [];
+
+    public bool $showBulkDeleteModal = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'module' => ['except' => ''],
@@ -57,6 +64,11 @@ class PermissionsIndex extends Component
     public function updatingGuard(): void
     {
         $this->resetPage();
+    }
+
+    public function updatingPage(): void
+    {
+        $this->selectedPermissionIds = [];
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -148,6 +160,69 @@ class PermissionsIndex extends Component
         $this->deleteTargetName = '';
     }
 
+    public function toggleSelectionMode(): void
+    {
+        $this->selectionMode = ! $this->selectionMode;
+
+        if (! $this->selectionMode) {
+            $this->selectedPermissionIds = [];
+            $this->closeBulkDeleteModal();
+        }
+    }
+
+    public function togglePermissionSelection(int $id): void
+    {
+        if (! $this->selectionMode) {
+            return;
+        }
+
+        if (in_array($id, $this->selectedPermissionIds, true)) {
+            $this->selectedPermissionIds = array_values(array_diff($this->selectedPermissionIds, [$id]));
+        } else {
+            $this->selectedPermissionIds[] = $id;
+            $this->selectedPermissionIds = array_values(array_unique(array_map('intval', $this->selectedPermissionIds)));
+        }
+    }
+
+    public function toggleSelectAllCurrentPage(): void
+    {
+        if (! $this->selectionMode) {
+            return;
+        }
+
+        $pageIds = $this->permissionsQuery()
+            ->paginate(10)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $allSelected = $pageIds !== [] && count(array_intersect($pageIds, $this->selectedPermissionIds)) === count($pageIds);
+
+        if ($allSelected) {
+            $this->selectedPermissionIds = array_values(array_diff($this->selectedPermissionIds, $pageIds));
+        } else {
+            $this->selectedPermissionIds = array_values(array_unique(array_merge($this->selectedPermissionIds, $pageIds)));
+        }
+    }
+
+    public function openBulkDeleteModal(): void
+    {
+        Gate::authorize('permissions.destroy');
+
+        if ($this->selectedPermissionIds === []) {
+            $this->toast('Selecciona al menos un permiso para continuar.', 'warning');
+
+            return;
+        }
+
+        $this->showBulkDeleteModal = true;
+    }
+
+    public function closeBulkDeleteModal(): void
+    {
+        $this->showBulkDeleteModal = false;
+    }
+
     public function confirmDeletePermission(): void
     {
         if ($this->deleteTargetId === null) {
@@ -173,15 +248,76 @@ class PermissionsIndex extends Component
                 return;
             }
 
-            $name = $permission->name;
-            $permissionService->deletePermission($permission);
+            $guard = $permissionService->deletionGuard($permission);
+            if (! $guard['can_delete']) {
+                $this->toast('No se pudo eliminar el permiso "'.$permission->name.'": '.$guard['reason'].'.', 'error');
 
-            $this->toast('Permiso "'.$name.'" eliminado correctamente.', 'success');
+                return;
+            }
+
+            $result = $permissionService->deletePermissionWithResult($permission);
+
+            $this->selectedPermissionIds = array_values(array_diff($this->selectedPermissionIds, [$id]));
+            $this->toast('Permiso "'.$result['name'].'" eliminado correctamente.', 'success');
             $this->resetPage();
         } catch (\RuntimeException $e) {
             $this->toast($e->getMessage(), 'error');
         } catch (\Throwable $e) {
             $this->toast('Error al eliminar el permiso: '.$e->getMessage(), 'error');
+        }
+    }
+
+    public function confirmBulkDelete(): void
+    {
+        Gate::authorize('permissions.destroy');
+
+        if ($this->selectedPermissionIds === []) {
+            $this->closeBulkDeleteModal();
+
+            return;
+        }
+
+        try {
+            $results = app(PermissionService::class)->bulkDeletePermissions($this->selectedPermissionIds);
+
+            $deleted = array_values(array_filter($results, fn ($result) => $result['deleted'] === true));
+            $blocked = array_values(array_filter($results, fn ($result) => $result['deleted'] === false));
+
+            $messages = [];
+
+            if ($deleted !== []) {
+                $messages[] = count($deleted).' permiso(s) eliminado(s)';
+            }
+
+            if ($blocked !== []) {
+                $blockedSummary = collect($blocked)
+                    ->take(4)
+                    ->map(fn ($result) => $result['name'].': '.$result['reason'])
+                    ->implode(' | ');
+
+                if (count($blocked) > 4) {
+                    $blockedSummary .= ' | y '.(count($blocked) - 4).' más';
+                }
+
+                $messages[] = 'No eliminados: '.$blockedSummary;
+            }
+
+            if ($messages === []) {
+                $messages[] = 'No hubo cambios en los permisos seleccionados.';
+            }
+
+            $this->closeBulkDeleteModal();
+            $this->selectedPermissionIds = [];
+            $this->selectionMode = false;
+            $this->resetPage();
+
+            $this->toast(
+                implode('. ', $messages).'.',
+                $blocked !== [] ? 'warning' : 'success'
+            );
+        } catch (\Throwable $e) {
+            $this->closeBulkDeleteModal();
+            $this->toast('Error al eliminar los permisos seleccionados: '.$e->getMessage(), 'error');
         }
     }
 
@@ -214,6 +350,9 @@ class PermissionsIndex extends Component
         $userCounts = $permissionService->usersCountByPermissionMap();
 
         $permissions = $this->permissionsQuery()->paginate(10);
+        $currentPagePermissionIds = $permissions->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $allCurrentPageSelected = $currentPagePermissionIds !== []
+            && count(array_intersect($currentPagePermissionIds, $this->selectedPermissionIds)) === count($currentPagePermissionIds);
 
         $permissions->getCollection()->transform(function ($permission) use ($userCounts) {
             $permission->users_count = $userCounts[$permission->id] ?? 0;
@@ -235,6 +374,8 @@ class PermissionsIndex extends Component
             'stats' => $stats,
             'permFlags' => $permFlags,
             'moduleOptions' => $permissionService->validModules(),
+            'currentPagePermissionIds' => $currentPagePermissionIds,
+            'allCurrentPageSelected' => $allCurrentPageSelected,
         ]);
     }
 }

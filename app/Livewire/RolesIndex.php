@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\RoleService;
 use App\Support\PermissionFriendlyNames;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,13 @@ class RolesIndex extends Component
 
     public string $deleteTargetName = '';
 
+    public bool $selectionMode = false;
+
+    /** @var array<int> */
+    public array $selectedRoleIds = [];
+
+    public bool $showBulkDeleteModal = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'role_type' => ['except' => ''],
@@ -61,6 +69,11 @@ class RolesIndex extends Component
     public function updatingRoleType(): void
     {
         $this->resetPage();
+    }
+
+    public function updatingPage(): void
+    {
+        $this->selectedRoleIds = [];
     }
 
     /**
@@ -241,6 +254,69 @@ class RolesIndex extends Component
         $this->showDeleteModal = true;
     }
 
+    public function toggleSelectionMode(): void
+    {
+        $this->selectionMode = ! $this->selectionMode;
+
+        if (! $this->selectionMode) {
+            $this->selectedRoleIds = [];
+            $this->closeBulkDeleteModal();
+        }
+    }
+
+    public function toggleRoleSelection(int $id): void
+    {
+        if (! $this->selectionMode) {
+            return;
+        }
+
+        if (in_array($id, $this->selectedRoleIds, true)) {
+            $this->selectedRoleIds = array_values(array_diff($this->selectedRoleIds, [$id]));
+        } else {
+            $this->selectedRoleIds[] = $id;
+            $this->selectedRoleIds = array_values(array_unique(array_map('intval', $this->selectedRoleIds)));
+        }
+    }
+
+    public function toggleSelectAllCurrentPage(): void
+    {
+        if (! $this->selectionMode) {
+            return;
+        }
+
+        $pageIds = $this->rolesQuery()
+            ->paginate(10)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $allSelected = $pageIds !== [] && count(array_intersect($pageIds, $this->selectedRoleIds)) === count($pageIds);
+
+        if ($allSelected) {
+            $this->selectedRoleIds = array_values(array_diff($this->selectedRoleIds, $pageIds));
+        } else {
+            $this->selectedRoleIds = array_values(array_unique(array_merge($this->selectedRoleIds, $pageIds)));
+        }
+    }
+
+    public function openBulkDeleteModal(): void
+    {
+        Gate::authorize('roles.destroy');
+
+        if ($this->selectedRoleIds === []) {
+            $this->toast('Selecciona al menos un rol para continuar.', 'warning');
+
+            return;
+        }
+
+        $this->showBulkDeleteModal = true;
+    }
+
+    public function closeBulkDeleteModal(): void
+    {
+        $this->showBulkDeleteModal = false;
+    }
+
     public function closeDeleteModal(): void
     {
         $this->showDeleteModal = false;
@@ -275,27 +351,75 @@ class RolesIndex extends Component
                 return;
             }
 
-            $systemRoles = ['admin', 'user', 'superadmin'];
-            if (in_array($role->name, $systemRoles, true)) {
-                $this->toast('No se pueden eliminar roles del sistema ('.$role->name.').', 'error');
+            $roleService = app(RoleService::class);
+            $guard = $roleService->deletionGuard($role);
+            if (! $guard['can_delete']) {
+                $this->toast('No se pudo eliminar el rol "'.$role->name.'": '.$guard['reason'].'.', 'error');
 
                 return;
             }
 
-            $usersCount = $role->users()->count();
-            if ($usersCount > 0) {
-                $this->toast('No se puede eliminar un rol que tiene '.$usersCount.' usuario(s) asignado(s).', 'error');
+            $result = $roleService->deleteRole($role);
 
-                return;
-            }
-
-            $name = $role->name;
-            $role->delete();
-
-            $this->toast('Rol "'.$name.'" eliminado correctamente.', 'success');
+            $this->selectedRoleIds = array_values(array_diff($this->selectedRoleIds, [$id]));
+            $this->toast('Rol "'.$result['name'].'" eliminado correctamente.', 'success');
             $this->resetPage();
         } catch (\Exception $e) {
             $this->toast('Error al eliminar el rol: '.$e->getMessage(), 'error');
+        }
+    }
+
+    public function confirmBulkDelete(): void
+    {
+        Gate::authorize('roles.destroy');
+
+        if ($this->selectedRoleIds === []) {
+            $this->closeBulkDeleteModal();
+
+            return;
+        }
+
+        try {
+            $results = app(RoleService::class)->bulkDeleteRoles(Auth::user()->company_id, $this->selectedRoleIds);
+
+            $deleted = array_values(array_filter($results, fn ($result) => $result['deleted'] === true));
+            $blocked = array_values(array_filter($results, fn ($result) => $result['deleted'] === false));
+
+            $messages = [];
+
+            if ($deleted !== []) {
+                $messages[] = count($deleted).' rol(es) eliminado(s)';
+            }
+
+            if ($blocked !== []) {
+                $blockedSummary = collect($blocked)
+                    ->take(4)
+                    ->map(fn ($result) => $result['name'].': '.$result['reason'])
+                    ->implode(' | ');
+
+                if (count($blocked) > 4) {
+                    $blockedSummary .= ' | y '.(count($blocked) - 4).' más';
+                }
+
+                $messages[] = 'No eliminados: '.$blockedSummary;
+            }
+
+            if ($messages === []) {
+                $messages[] = 'No hubo cambios en los roles seleccionados.';
+            }
+
+            $this->closeBulkDeleteModal();
+            $this->selectedRoleIds = [];
+            $this->selectionMode = false;
+            $this->resetPage();
+
+            $this->toast(
+                implode('. ', $messages).'.',
+                $blocked !== [] ? 'warning' : 'success'
+            );
+        } catch (\Throwable $e) {
+            $this->closeBulkDeleteModal();
+            $this->toast('Error al eliminar los roles seleccionados: '.$e->getMessage(), 'error');
         }
     }
 
@@ -326,6 +450,9 @@ class RolesIndex extends Component
         $companyId = Auth::user()->company_id;
 
         $roles = $this->rolesQuery()->paginate(10);
+        $currentPageRoleIds = $roles->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $allCurrentPageSelected = $currentPageRoleIds !== []
+            && count(array_intersect($currentPageRoleIds, $this->selectedRoleIds)) === count($currentPageRoleIds);
 
         $stats = [
             'roles_total' => Role::query()->byCompany($companyId)->count(),
@@ -348,6 +475,8 @@ class RolesIndex extends Component
             'stats' => $stats,
             'permFlags' => $permFlags,
             'permissionsGrouped' => PermissionFriendlyNames::grouped(),
+            'currentPageRoleIds' => $currentPageRoleIds,
+            'allCurrentPageSelected' => $allCurrentPageSelected,
         ]);
     }
 }
