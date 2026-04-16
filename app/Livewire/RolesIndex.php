@@ -51,9 +51,12 @@ class RolesIndex extends Component
 
     public bool $showBulkDeleteModal = false;
 
+    public int $perPage = 10;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'role_type' => ['except' => ''],
+        'perPage' => ['except' => 10],
     ];
 
     public function mount(): void
@@ -71,6 +74,11 @@ class RolesIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
         $this->search = '';
@@ -81,6 +89,17 @@ class RolesIndex extends Component
     public function updatingPage(): void
     {
         $this->selectedRoleIds = [];
+    }
+
+    public function setPerPage(int $value): void
+    {
+        $allowed = [10, 25, 50, 100];
+        if (! in_array($value, $allowed, true)) {
+            $value = 10;
+        }
+
+        $this->perPage = $value;
+        $this->resetPage();
     }
 
     /**
@@ -292,7 +311,7 @@ class RolesIndex extends Component
         }
 
         $pageIds = $this->rolesQuery()
-            ->paginate(10)
+            ->paginate($this->perPage)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -456,7 +475,7 @@ class RolesIndex extends Component
     {
         $companyId = Auth::user()->company_id;
 
-        $roles = $this->rolesQuery()->paginate(10);
+        $roles = $this->rolesQuery()->paginate($this->perPage);
         $currentPageRoleIds = $roles->pluck('id')->map(fn ($id) => (int) $id)->all();
         $allCurrentPageSelected = $currentPageRoleIds !== []
             && count(array_intersect($currentPageRoleIds, $this->selectedRoleIds)) === count($currentPageRoleIds);

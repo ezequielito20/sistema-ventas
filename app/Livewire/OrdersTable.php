@@ -26,11 +26,14 @@ class OrdersTable extends Component
     public $showProcessModal = false;
     public $saleDate = '';
 
+    public int $perPage = 10;
+
     protected $queryString = [
         'status' => ['except' => ''],
         'search' => ['except' => ''],
         'sortField' => ['except' => 'created_at'],
         'sortDirection' => ['except' => 'desc'],
+        'perPage' => ['except' => 10],
     ];
 
     public function mount()
@@ -45,6 +48,11 @@ class OrdersTable extends Component
     }
 
     public function updatingStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
     {
         $this->resetPage();
     }
@@ -210,7 +218,7 @@ class OrdersTable extends Component
             })
             ->orderBy($this->sortField, $this->sortDirection);
 
-        $orders = $query->paginate(15);
+        $orders = $query->paginate($this->perPage);
 
         return view('livewire.orders-table', [
             'orders' => $orders

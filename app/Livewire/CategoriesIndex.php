@@ -45,6 +45,8 @@ class CategoriesIndex extends Component
 
     public bool $showBulkDeleteModal = false;
 
+    public int $perPage = 10;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'hasProducts' => ['except' => ''],
@@ -52,6 +54,7 @@ class CategoriesIndex extends Component
         'dateTo' => ['except' => ''],
         'productsMin' => ['except' => ''],
         'productsMax' => ['except' => ''],
+        'perPage' => ['except' => 10],
     ];
 
     public function mount(): void
@@ -89,6 +92,11 @@ class CategoriesIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
         $this->search = '';
@@ -103,6 +111,17 @@ class CategoriesIndex extends Component
     public function updatingPage(): void
     {
         $this->selectedCategoryIds = [];
+    }
+
+    public function setPerPage(int $value): void
+    {
+        $allowed = [10, 25, 50, 100];
+        if (! in_array($value, $allowed, true)) {
+            $value = 10;
+        }
+
+        $this->perPage = $value;
+        $this->resetPage();
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -218,7 +237,7 @@ class CategoriesIndex extends Component
         }
 
         $pageIds = $this->categoriesQuery()
-            ->paginate(10)
+            ->paginate($this->perPage)
             ->pluck('id')
             ->map(fn ($cid) => (int) $cid)
             ->all();
@@ -397,7 +416,7 @@ class CategoriesIndex extends Component
         $companyId = (int) Auth::user()->company_id;
         $stats = $categoryService->statistics($companyId);
 
-        $categories = $this->categoriesQuery()->paginate(10);
+        $categories = $this->categoriesQuery()->paginate($this->perPage);
         $currentPageCategoryIds = $categories->pluck('id')->map(fn ($cid) => (int) $cid)->all();
         $allCurrentPageSelected = $currentPageCategoryIds !== []
             && count(array_intersect($currentPageCategoryIds, $this->selectedCategoryIds)) === count($currentPageCategoryIds);

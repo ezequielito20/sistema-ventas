@@ -42,12 +42,15 @@ class UsersIndex extends Component
 
     public bool $showBulkDeleteModal = false;
 
+    public int $perPage = 10;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'verificationStatus' => ['except' => ''],
         'roleId' => ['except' => ''],
         'dateFrom' => ['except' => ''],
         'dateTo' => ['except' => ''],
+        'perPage' => ['except' => 10],
     ];
 
     public function mount(): void
@@ -80,6 +83,11 @@ class UsersIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public function clearFilters(): void
     {
         $this->search = '';
@@ -93,6 +101,17 @@ class UsersIndex extends Component
     public function updatingPage(): void
     {
         $this->selectedUserIds = [];
+    }
+
+    public function setPerPage(int $value): void
+    {
+        $allowed = [10, 25, 50, 100];
+        if (! in_array($value, $allowed, true)) {
+            $value = 10;
+        }
+
+        $this->perPage = $value;
+        $this->resetPage();
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -210,7 +229,7 @@ class UsersIndex extends Component
         }
 
         $pageIds = $this->usersQuery()
-            ->paginate(10)
+            ->paginate($this->perPage)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -387,7 +406,7 @@ class UsersIndex extends Component
     public function render(UserService $userService): View
     {
         $companyId = (int) Auth::user()->company_id;
-        $users = $this->usersQuery()->paginate(10);
+        $users = $this->usersQuery()->paginate($this->perPage);
         $currentPageUserIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
         $allCurrentPageSelected = $currentPageUserIds !== []
             && count(array_intersect($currentPageUserIds, $this->selectedUserIds)) === count($currentPageUserIds);

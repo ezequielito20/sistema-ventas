@@ -23,6 +23,8 @@ class SalesTable extends Component
     public $selectedRows = [];
     public $selectAll = false;
 
+    public int $perPage = 10;
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -50,6 +52,11 @@ class SalesTable extends Component
     public function updatedSelectedRows()
     {
         $this->selectAll = false;
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
     }
 
     public function deleteSelected()
@@ -93,7 +100,7 @@ class SalesTable extends Component
 
     public function render()
     {
-        $sales = $this->getSales()->paginate(10);
+        $sales = $this->getSales()->paginate($this->perPage);
         
         return view('livewire.sales-table', [
             'sales' => $sales

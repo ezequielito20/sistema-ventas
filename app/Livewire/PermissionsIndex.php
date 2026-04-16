@@ -41,10 +41,13 @@ class PermissionsIndex extends Component
 
     public bool $showBulkDeleteModal = false;
 
+    public int $perPage = 10;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'module' => ['except' => ''],
         'guard' => ['except' => ''],
+        'perPage' => ['except' => 10],
     ];
 
     public function mount(): void
@@ -78,6 +81,11 @@ class PermissionsIndex extends Component
     public function updatingPage(): void
     {
         $this->selectedPermissionIds = [];
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -212,7 +220,7 @@ class PermissionsIndex extends Component
         }
 
         $pageIds = $this->permissionsQuery()
-            ->paginate(10)
+            ->paginate($this->perPage)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -224,6 +232,17 @@ class PermissionsIndex extends Component
         } else {
             $this->selectedPermissionIds = array_values(array_unique(array_merge($this->selectedPermissionIds, $pageIds)));
         }
+    }
+
+    public function setPerPage(int $value): void
+    {
+        $allowed = [10, 25, 50, 100];
+        if (! in_array($value, $allowed, true)) {
+            $value = 10;
+        }
+
+        $this->perPage = $value;
+        $this->resetPage();
     }
 
     public function openBulkDeleteModal(): void
@@ -386,7 +405,7 @@ class PermissionsIndex extends Component
         $stats = $permissionService->statistics($companyId);
         $userCounts = $permissionService->usersCountByPermissionMap($companyId);
 
-        $permissions = $this->permissionsQuery()->paginate(10);
+        $permissions = $this->permissionsQuery()->paginate($this->perPage);
         $currentPagePermissionIds = $permissions->pluck('id')->map(fn ($id) => (int) $id)->all();
         $allCurrentPageSelected = $currentPagePermissionIds !== []
             && count(array_intersect($currentPagePermissionIds, $this->selectedPermissionIds)) === count($currentPagePermissionIds);

@@ -28,20 +28,42 @@
     class="ui-pagination-bar flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     wire:key="pagination-{{ $paginator->getPageName() }}-{{ $paginator->currentPage() }}"
 >
-    <p class="text-sm leading-5 text-slate-400">
-        @if ($paginator->firstItem())
-            Mostrando
-            <span class="font-medium text-slate-200">{{ $paginator->firstItem() }}</span>
-            a
-            <span class="font-medium text-slate-200">{{ $paginator->lastItem() }}</span>
-            de
-            <span class="font-medium text-slate-200">{{ $paginator->total() }}</span>
-            resultados
-        @else
-            <span class="font-medium text-slate-200">{{ $paginator->count() }}</span>
-            resultado(s)
-        @endif
-    </p>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <p class="text-sm leading-5 text-slate-400">
+            @if ($paginator->firstItem())
+                Mostrando
+                <span class="font-medium text-slate-200">{{ $paginator->firstItem() }}</span>
+                a
+                <span class="font-medium text-slate-200">{{ $paginator->lastItem() }}</span>
+                de
+                <span class="font-medium text-slate-200">{{ $paginator->total() }}</span>
+                resultados
+            @else
+                <span class="font-medium text-slate-200">{{ $paginator->count() }}</span>
+                resultado(s)
+            @endif
+        </p>
+
+        <div class="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-400">
+            <span>Registros por página:</span>
+            <select
+                class="rounded-lg border border-slate-600 bg-slate-950/60 py-1.5 pl-2 pr-7 text-xs sm:text-[0.8rem] text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                wire:model.live="perPage"
+            >
+                @php
+                    $options = [10, 25, 50, 100];
+                    $currentPerPage = $paginator->perPage();
+                    if (! in_array($currentPerPage, $options, true)) {
+                        $options[] = $currentPerPage;
+                    }
+                    sort($options);
+                @endphp
+                @foreach ($options as $option)
+                    <option value="{{ $option }}" @selected($option === $currentPerPage)>{{ $option }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
 
     {{-- Móvil: anterior / siguiente --}}
     <div class="flex justify-between gap-2 sm:hidden">
