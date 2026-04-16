@@ -81,7 +81,7 @@
             </button>
         </div>
         <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end 2xl:grid-cols-[minmax(0,1.35fr)_10rem_9rem_9rem_6.5rem_6.5rem_auto]">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,0.95fr))_auto] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1.05fr)_repeat(2,minmax(0,0.92fr))_repeat(2,minmax(0,0.72fr))_auto]">
                 <div class="min-w-0">
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
                     <div class="relative">
@@ -143,7 +143,7 @@
                         class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                     />
                 </div>
-                <div class="sm:col-span-2 2xl:col-span-1">
+                <div class="sm:col-span-2 xl:col-span-1 xl:col-start-5 xl:row-start-1 2xl:col-start-7 2xl:row-start-1">
                     <button
                         type="button"
                         wire:click="clearFilters"

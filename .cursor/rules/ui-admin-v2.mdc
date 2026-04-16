@@ -26,7 +26,13 @@ globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**
 - Subtítulos y textos de UI en lenguaje de negocio; **no** mostrar nombres de stack ni versiones (p. ej. “Livewire v2”) en `ui-panel__subtitle`.
 
 ## Fila de filtros
-- Una sola fila cuando quepa: **`flex flex-row flex-nowrap items-end`**, búsqueda **`flex-1 min-w-0 basis-0`**, selects con **ancho fijo** (`w-36 sm:w-44`, `shrink-0`). Preferir flex frente a `grid` con columnas arbitrarias (mejor compatibilidad con el CSS generado).
+- Patrón por defecto para filtros de módulos admin: resolverlo en la Blade con utilidades Tailwind responsive, no con clases SCSS custom para el layout.
+- Objetivo visual:
+  - Desktop muy ancho: todos los filtros en una fila + botón `Limpiar`.
+  - Ancho intermedio: primera fila con **4 filtros + `Limpiar`**, segunda fila con los filtros restantes.
+  - Tablet y móvil: filas de **2 filtros por fila**; en móvil angosto se permite **1 por fila**.
+- Si un módulo necesita una distribución exacta por cantidad de filtros, usar `grid-cols-[...]`, `col-start`, `row-start` y `col-span` directamente en el contenedor y en el botón de limpiar.
+- Mantener búsqueda con mayor ancho relativo que selects o rangos numéricos/fechas.
 
 ## Botones de acción en tablas (icon-only)
 - Usar **`ui-icon-action`** + variante semántica (misma familia de color que widgets):
