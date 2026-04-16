@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Controllers\ProductController;
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -65,5 +66,81 @@ class ProductService
 
             throw $e;
         }
+    }
+
+    /**
+     * Elimina un producto si no tiene líneas de venta ni de compra (misma regla que {@see ProductController::destroy}).
+     *
+     * @return array{id:int,name:string,deleted:bool,reason:?string}
+     */
+    public function deleteProductWithResult(Product $product): array
+    {
+        if (! array_key_exists('sale_details_count', $product->getAttributes())) {
+            $product->loadCount(['saleDetails', 'purchaseDetails']);
+        }
+
+        if ($product->sale_details_count > 0 || $product->purchase_details_count > 0) {
+            $reasons = [];
+            if ($product->sale_details_count > 0) {
+                $reasons[] = 'tiene ventas asociadas';
+            }
+            if ($product->purchase_details_count > 0) {
+                $reasons[] = 'tiene compras asociadas';
+            }
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'deleted' => false,
+                'reason' => implode(' y ', $reasons),
+            ];
+        }
+
+        try {
+            DB::beginTransaction();
+
+            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            }
+
+            $product->delete();
+
+            DB::commit();
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'deleted' => true,
+                'reason' => null,
+            ];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            throw $e;
+        }
+    }
+
+    /**
+     * @param  array<int|string>  $productIds
+     * @return array<int, array{id:int,name:string,deleted:bool,reason:?string}>
+     */
+    public function bulkDeleteProducts(int $companyId, array $productIds): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $productIds)));
+
+        $products = Product::query()
+            ->where('company_id', $companyId)
+            ->whereIn('id', $ids)
+            ->withCount(['saleDetails', 'purchaseDetails'])
+            ->orderBy('name')
+            ->get();
+
+        $results = [];
+
+        foreach ($products as $product) {
+            $results[] = $this->deleteProductWithResult($product);
+        }
+
+        return $results;
     }
 }

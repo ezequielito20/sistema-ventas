@@ -175,8 +175,8 @@
                             @enderror
                         </div>
 
-                        <div class="mx-auto flex w-full max-w-[13rem] shrink-0 flex-col items-center gap-2 sm:mx-0">
-                            <p class="w-full text-left text-[0.65rem] font-medium uppercase tracking-wide text-slate-500 sm:text-center">
+                        <div class="flex w-full max-w-[13rem] shrink-0 flex-col gap-2 self-start sm:w-[13rem]">
+                            <p class="text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">
                                 Vista previa
                             </p>
                             <div
@@ -265,7 +265,7 @@
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    wire:model.blur="purchase_price"
+                                    wire:model.live.debounce.300ms="purchase_price"
                                     class="{{ $inputBase }} pl-9 tabular-nums @error('purchase_price') border-rose-500/80 @enderror"
                                 >
                             </div>
@@ -283,7 +283,7 @@
                                     type="number"
                                     min="0"
                                     step="0.01"
-                                    wire:model.blur="sale_price"
+                                    wire:model.live.debounce.300ms="sale_price"
                                     class="{{ $inputBase }} pl-9 tabular-nums @error('sale_price') border-rose-500/80 @enderror"
                                 >
                             </div>
@@ -291,6 +291,29 @@
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
+
+                    @php
+                        $profitMargin = $this->profitMarginPercent();
+                    @endphp
+                    <div class="mt-4 flex flex-col gap-1 rounded-lg border border-slate-600/70 bg-slate-950/50 px-4 py-3 ring-1 ring-white/[0.03] sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                        <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Ganancia sobre compra</span>
+                        @if ($profitMargin === null)
+                            <p class="text-sm text-slate-500">
+                                Indica un <span class="text-slate-400">precio de compra</span> mayor que 0 para ver el porcentaje.
+                            </p>
+                        @else
+                            <p class="flex flex-wrap items-baseline gap-2 text-sm text-slate-200">
+                                <span
+                                    class="text-lg font-semibold tabular-nums {{ $profitMargin >= 0 ? 'text-emerald-400' : 'text-amber-400' }}"
+                                >
+                                    {{ number_format($profitMargin, 2, ',', '.') }}&nbsp;%
+                                </span>
+                                <span class="text-xs text-slate-500">
+                                    ({{ $currency->symbol }}&nbsp;{{ number_format($this->profitAbsoluteAmount(), 2, ',', '.') }} de diferencia)
+                                </span>
+                            </p>
+                        @endif
                     </div>
                 </div>
 

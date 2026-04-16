@@ -84,6 +84,45 @@ class ProductForm extends Component
         }
     }
 
+    /**
+     * Margen sobre el costo de compra: (precio venta − precio compra) / precio compra × 100.
+     * Null si el precio de compra no permite calcular (≤ 0).
+     */
+    public function profitMarginPercent(): ?float
+    {
+        $purchase = $this->parsePrice($this->purchase_price);
+        $sale = $this->parsePrice($this->sale_price);
+
+        if ($purchase <= 0.0) {
+            return null;
+        }
+
+        return (($sale - $purchase) / $purchase) * 100.0;
+    }
+
+    /** Diferencia venta − compra (moneda), para mostrar junto al margen %. */
+    public function profitAbsoluteAmount(): float
+    {
+        return round(
+            $this->parsePrice($this->sale_price) - $this->parsePrice($this->purchase_price),
+            2
+        );
+    }
+
+    protected function parsePrice(mixed $value): float
+    {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $normalized = str_replace(',', '.', (string) $value);
+
+        return is_numeric($normalized) ? (float) $normalized : 0.0;
+    }
+
     protected function captureProductsReferrer(): void
     {
         $referrerUrl = request()->header('referer');

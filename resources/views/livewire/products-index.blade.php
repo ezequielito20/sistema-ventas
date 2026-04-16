@@ -207,13 +207,25 @@
 
         <div class="ui-panel overflow-hidden">
             <div class="ui-panel__header">
-                <div class="flex w-full flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 class="ui-panel__title">Listado</h2>
                         <p class="ui-panel__subtitle">
                             {{ $products->total() }} resultado(s) · Página {{ $products->currentPage() }} de {{ $products->lastPage() }}
                         </p>
                     </div>
+                    @if ($permissions['products.destroy'] && ! $products->isEmpty())
+                        <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                            <button
+                                type="button"
+                                wire:click="toggleSelectionMode"
+                                class="ui-btn {{ $selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost' }} text-sm"
+                            >
+                                <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
+                                {{ $selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </div>
             @if ($products->isEmpty())
@@ -221,11 +233,47 @@
                     <p class="py-10 text-center text-sm text-slate-400">No hay productos para los filtros seleccionados.</p>
                 </div>
             @else
+                @if ($selectionMode)
+                    <div class="flex flex-col gap-3 border-b border-slate-700/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-white">{{ count($selectedProductIds) }} producto(s) seleccionado(s)</p>
+                            <p class="text-xs text-slate-400">
+                                La selección aplica a la página actual. No se eliminan productos con ventas o compras asociadas.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" wire:click="toggleSelectAllCurrentPage" class="ui-btn ui-btn-ghost text-sm">
+                                <i class="fas {{ $allCurrentPageSelected ? 'fa-square-minus' : 'fa-square-check' }}"></i>
+                                {{ $allCurrentPageSelected ? 'Limpiar página' : 'Seleccionar página' }}
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="openBulkDeleteModal"
+                                class="ui-btn ui-btn-danger text-sm"
+                                @disabled(count($selectedProductIds) === 0)
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                                Eliminar seleccionados
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="ui-panel__body hidden p-0 md:block" wire:loading.class.delay="opacity-60">
                     <div class="ui-table-wrap border-0 rounded-none">
                         <table class="ui-table ui-table--nowrap-actions">
                             <thead>
                                 <tr>
+                                    @if ($selectionMode)
+                                        <th class="w-12 text-center">
+                                            <input
+                                                type="checkbox"
+                                                @checked($allCurrentPageSelected)
+                                                wire:click="toggleSelectAllCurrentPage"
+                                                class="rounded border-slate-500 bg-slate-900"
+                                            />
+                                        </th>
+                                    @endif
                                     <th>Producto</th>
                                     <th>Categoría</th>
                                     <th class="text-right">Stock</th>
@@ -237,6 +285,17 @@
                             <tbody>
                                 @foreach ($products as $product)
                                     <tr wire:key="product-row-{{ $product->id }}">
+                                        @if ($selectionMode)
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    value="{{ $product->id }}"
+                                                    @checked(in_array($product->id, $selectedProductIds, true))
+                                                    wire:click="toggleProductSelection({{ $product->id }})"
+                                                    class="rounded border-slate-500 bg-slate-900"
+                                                />
+                                            </td>
+                                        @endif
                                         <td>
                                             <div class="flex min-w-0 items-center gap-3">
                                                 <img
@@ -309,7 +368,16 @@
                 <div class="space-y-3 p-4 md:hidden">
                     @foreach ($products as $product)
                         <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4" wire:key="product-card-{{ $product->id }}">
-                            <div class="flex gap-3">
+                            <div class="flex items-start justify-between gap-3">
+                                @if ($selectionMode)
+                                    <input
+                                        type="checkbox"
+                                        @checked(in_array($product->id, $selectedProductIds, true))
+                                        wire:click="toggleProductSelection({{ $product->id }})"
+                                        class="mt-1 shrink-0 rounded border-slate-500 bg-slate-900"
+                                    />
+                                @endif
+                            <div class="flex min-w-0 flex-1 gap-3">
                                 <img
                                     src="{{ $product->image_url }}"
                                     alt=""
@@ -332,6 +400,7 @@
                                 >
                                     {{ $product->stock }}
                                 </span>
+                            </div>
                             </div>
                             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
                                 <div class="rounded-lg bg-slate-900/60 p-2">
@@ -381,6 +450,41 @@
         <div>
             <x-ui.pagination :paginator="$products" scroll-into-view=".ui-panel.overflow-hidden" />
         </div>
+
+        @if ($showBulkDeleteModal)
+            <div
+                class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+                wire:click.self="closeBulkDeleteModal"
+                x-data
+                x-on:keydown.escape.window="$wire.closeBulkDeleteModal()"
+                aria-modal="true"
+                role="dialog"
+            >
+                <div class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75)]">
+                    <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                        <div class="flex items-start gap-3">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200">
+                                <i class="fas fa-trash-alt text-lg"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-base font-semibold text-white">¿Eliminar productos seleccionados?</h3>
+                                <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                    Se intentará eliminar <span class="font-medium text-white">{{ count($selectedProductIds) }} producto(s)</span>.
+                                    Los que tengan ventas o compras asociadas no se eliminarán y se indicará el motivo.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                        <button type="button" wire:click="closeBulkDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                        <button type="button" wire:click="confirmBulkDelete" class="ui-btn ui-btn-danger text-sm">
+                            <i class="fas fa-trash-alt mr-1.5"></i>
+                            Sí, eliminar seleccionados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div
             x-show="detailOpen"
