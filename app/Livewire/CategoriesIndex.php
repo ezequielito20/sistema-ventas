@@ -386,10 +386,12 @@ class CategoriesIndex extends Component
             });
         }
 
+        // Filtros por cantidad de productos: usar whereHas/has en lugar de having sobre el alias
+        // products_count (withCount), porque PostgreSQL no permite ese alias en HAVING.
         if ($this->hasProducts === 'yes') {
-            $query->having('products_count', '>', 0);
+            $query->whereHas('products');
         } elseif ($this->hasProducts === 'no') {
-            $query->having('products_count', '=', 0);
+            $query->whereDoesntHave('products');
         }
 
         if ($this->dateFrom !== '') {
@@ -401,11 +403,19 @@ class CategoriesIndex extends Component
         }
 
         if ($this->productsMin !== '' && is_numeric($this->productsMin)) {
-            $query->having('products_count', '>=', (int) $this->productsMin);
+            $min = (int) $this->productsMin;
+            if ($min > 0) {
+                $query->has('products', '>=', $min);
+            }
         }
 
         if ($this->productsMax !== '' && is_numeric($this->productsMax)) {
-            $query->having('products_count', '<=', (int) $this->productsMax);
+            $max = (int) $this->productsMax;
+            if ($max === 0) {
+                $query->whereDoesntHave('products');
+            } else {
+                $query->has('products', '<=', $max);
+            }
         }
 
         return $query->orderBy('name');

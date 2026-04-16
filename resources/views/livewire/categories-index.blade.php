@@ -39,20 +39,20 @@
             meta="Registradas"
         />
         <x-ui.stat-card
-            variant="warning"
-            icon="fas fa-calendar-week"
-            trend="7 días"
-            label="Esta semana"
-            :value="number_format($stats['weekly'])"
-            meta="Nuevas"
-        />
-        <x-ui.stat-card
             variant="success"
             icon="fas fa-box"
             trend="Uso"
             label="Con productos"
             :value="number_format($stats['with_products'])"
             meta="En uso"
+        />
+        <x-ui.stat-card
+            variant="warning"
+            icon="fas fa-calendar-week"
+            trend="7 días"
+            label="Esta semana"
+            :value="number_format($stats['weekly'])"
+            meta="Nuevas"
         />
         <x-ui.stat-card
             variant="danger"

@@ -14,6 +14,7 @@ globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**
 - Grid de estadísticas:
   - **Móvil:** `grid-cols-2` (dos tarjetas por fila).
   - **Desktop ancho:** `lg:grid-cols-4` (o el número de columnas que tenga el módulo).
+- **Orden de variantes estándar (como Roles y Permisos):** en listados con cuatro KPI, usar en este orden **`info` → `success` → `warning` → `danger`**. Reservar `neutral` solo si hace falta un quinto bloque o caso especial.
 - Variantes de color alineadas a `ui-widget--info|success|warning|danger|neutral` (misma paleta que el design system).
 
 ## Densidad
@@ -25,14 +26,18 @@ globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**
 ## Copy en pantalla
 - Subtítulos y textos de UI en lenguaje de negocio; **no** mostrar nombres de stack ni versiones (p. ej. “Livewire v2”) en `ui-panel__subtitle`.
 
-## Fila de filtros
-- Patrón por defecto para filtros de módulos admin: resolverlo en la Blade con utilidades Tailwind responsive, no con clases SCSS custom para el layout.
-- Objetivo visual:
-  - Desktop muy ancho: todos los filtros en una fila + botón `Limpiar`.
-  - Ancho intermedio: primera fila con **4 filtros + `Limpiar`**, segunda fila con los filtros restantes.
-  - Tablet y móvil: filas de **2 filtros por fila**; en móvil angosto se permite **1 por fila**.
-- Si un módulo necesita una distribución exacta por cantidad de filtros, usar `grid-cols-[...]`, `col-start`, `row-start` y `col-span` directamente en el contenedor y en el botón de limpiar.
-- Mantener búsqueda con mayor ancho relativo que selects o rangos numéricos/fechas.
+## Fila de filtros (patrón estándar)
+- Resolver el layout solo con **Tailwind** en Blade (sin SCSS propio para la grilla).
+- **Orden en el DOM:** siempre `Buscar` → demás campos en orden lógico → **`Limpiar filtros` al final**. No poner el submit oculto como hijo directo de un `display:grid` (rompe columnas); si hace falta, dentro del bloque de búsqueda.
+- **Formularios con 4 huecos** (buscar + 2 selects + limpiar), referencia canónica: `resources/views/admin/v2/products/index.blade.php`:
+  - Contenedor: `grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_auto] 2xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1.05fr)_minmax(0,0.92fr)_auto]`
+  - **No** usar `col-start` / `row-start` en el botón Limpiar salvo listados con **más** filtros (ej. Categorías con 6+ campos), donde sí aplica el patrón de `categories-index` con `xl:col-start-5` / `2xl:col-start-7`.
+- Comportamiento responsive esperado:
+  - **`lg+`:** una sola fila: buscar + filtros + limpiar.
+  - **`sm`–`md`:** dos columnas; orden natural del DOM (ej. fila 1 buscar|categoría, fila 2 stock|limpiar cuando hay 4 ítems).
+  - **`< sm`:** una columna, todo apilado.
+- Tras cambiar clases arbitrarias de Tailwind, **recompilar assets** (`npm run build` o `npm run dev`) para que existan en el CSS generado.
+- Mantener el campo de búsqueda con **más ancho relativo** que selects o fechas (primer track `minmax` más grande).
 
 ## Botones de acción en tablas (icon-only)
 - Usar **`ui-icon-action`** + variante semántica (misma familia de color que widgets):

@@ -3,511 +3,360 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Category;
+use App\Services\ProductService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Barryvdh\DomPDF\Facade\Pdf;
-
-use App\Traits\SmartPaginationTrait;
 
 class ProductController extends Controller
 {
-   use SmartPaginationTrait;
-   public $currencies;
-   protected $company;
+    public $currencies;
 
-   public function __construct()
-   {
-      $this->middleware(function ($request, $next) {
-         $this->company = Auth::user()->company;
+    protected $company;
 
-         // Obtener la moneda de la empresa configurada
-         if ($this->company && $this->company->currency) {
-            // Buscar la moneda por código en lugar de por país
-            $this->currencies = DB::table('currencies')
-               ->select('id', 'name', 'code', 'symbol', 'country_id')
-               ->where('code', $this->company->currency)
-               ->first();
-         }
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $this->company = Auth::user()->company;
 
-         // Fallback si no se encuentra la moneda configurada
-         if (!$this->currencies) {
-            $this->currencies = DB::table('currencies')
-               ->select('id', 'name', 'code', 'symbol', 'country_id')
-               ->where('country_id', $this->company->country)
-               ->first();
-         }
-
-         return $next($request);
-      });
-   }
-
-
-
-   public function index(Request $request)
-   {
-      try {
-         // Optimizar consulta de productos con eager loading y select específico
-         $query = Product::select('id', 'name', 'code', 'description', 'stock', 'purchase_price', 'sale_price', 'image', 'category_id', 'company_id', 'created_at', 'updated_at')
-            ->with(['category:id,name'])
-            ->where('company_id', $this->company->id);
-
-         // Búsqueda por texto: nombre, código, categoría
-         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-               $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('code', 'ILIKE', "%{$search}%")
-                  ->orWhereHas('category', function ($cq) use ($search) {
-                     $cq->where('name', 'ILIKE', "%{$search}%");
-                  });
-            });
-         }
-
-         // Filtro por categoría
-         if ($request->filled('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
-         }
-
-         // Filtro por estado de stock: low|normal|high (según umbrales dinámicos del producto)
-         if ($request->filled('stock_status')) {
-            $stock = $request->input('stock_status');
-            if ($stock === 'low') {
-               $query->whereColumn('stock', '<=', 'min_stock');
-            } elseif ($stock === 'high') {
-               $query->whereColumn('stock', '>=', 'max_stock');
-            } else { // normal
-               $query->whereColumn('stock', '>', 'min_stock')
-                  ->whereColumn('stock', '<', 'max_stock');
-            }
-         }
-
-         // Paginación del lado del servidor
-         $products = $query->orderBy('name')->paginate(12)->withQueryString();
-
-         // Aplicar paginación inteligente
-         $products = $this->generateSmartPagination($products, 2);
-
-         // Optimizar consulta de categorías con select específico
-         $categories = Category::select('id', 'name', 'company_id')
-            ->where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->get();
-
-         $currency = $this->currencies;
-         $company = $this->company;
-
-         // Calcular estadísticas usando agregados de base de datos (más eficiente)
-         $stats = Product::where('company_id', $this->company->id)
-            ->selectRaw('
-               COUNT(*) as total_products,
-               SUM(CASE WHEN stock <= min_stock THEN 1 ELSE 0 END) as low_stock_products,
-               SUM(stock * purchase_price) as total_purchase_value,
-               SUM(stock * sale_price) as total_sale_value
-            ')
-            ->first();
-
-         $totalProducts = $stats->total_products;
-         $lowStockProducts = $stats->low_stock_products;
-         $totalPurchaseValue = $stats->total_purchase_value ?? 0;
-         $totalSaleValue = $stats->total_sale_value ?? 0;
-
-         // Ganancia potencial y porcentaje
-         $potentialProfit = $totalSaleValue - $totalPurchaseValue;
-         $profitPercentage = $totalPurchaseValue > 0
-            ? (($totalSaleValue - $totalPurchaseValue) / $totalPurchaseValue) * 100
-            : 0;
-
-         // Optimización de gates - verificar permisos una sola vez
-         $permissions = [
-            'products.report' => Gate::allows('products.report'),
-            'products.create' => Gate::allows('products.create'),
-            'products.show' => Gate::allows('products.show'),
-            'products.edit' => Gate::allows('products.edit'),
-            'products.destroy' => Gate::allows('products.destroy')
-         ];
-
-         return view('admin.products.index', compact(
-            'products',
-            'categories',
-            'totalProducts',
-            'lowStockProducts',
-            'totalPurchaseValue',
-            'totalSaleValue',
-            'potentialProfit',
-            'profitPercentage',
-            'currency',
-            'company',
-            'permissions'
-         ));
-      } catch (\Exception $e) {
-
-         return redirect()->back()
-            ->with('message', 'Error al cargar los productos: ' . $e->getMessage())
-            ->with('icons', 'error');
-      }
-   }
-
-   /**
-    * Show the form for creating a new resource.
-    */
-   public function create(Request $request)
-   {
-      try {
-         // Optimizar consulta de categorías con select específico
-         $categories = Category::select('id', 'name', 'company_id')
-            ->where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->get();
-         $currency = $this->currencies;
-         $company = $this->company;
-
-         // Capturar la URL de referencia para redirección posterior
-         $referrerUrl = $request->header('referer');
-         if ($referrerUrl && !str_contains($referrerUrl, 'products/create')) {
-            session(['products_referrer' => $referrerUrl]);
-         }
-
-         return view('admin.products.create', compact('categories', 'currency', 'company'));
-      } catch (\Exception $e) {
-
-         return redirect()->back()
-            ->with('message', 'Error al cargar el formulario')
-            ->with('icons', 'error');
-      }
-   }
-
-   /**
-    * Store a newly created resource in storage.
-    */
-   public function store(Request $request)
-   {
-      // Validación
-      $validator = Validator::make($request->all(), [
-         'code' => 'required|string|max:50|unique:products',
-         'name' => 'required|string|max:255',
-         'description' => 'nullable|string',
-         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-         'stock' => 'required|integer|min:0',
-         'min_stock' => 'required|integer|min:0',
-         'max_stock' => 'required|integer|gt:min_stock',
-         'purchase_price' => 'required|numeric|min:0',
-         'sale_price' => 'required|numeric|min:0|gt:purchase_price',
-         'entry_date' => 'required|date|before_or_equal:today',
-         'category_id' => 'required|exists:categories,id'
-      ], [
-         'code.required' => 'El código es obligatorio',
-         'code.unique' => 'Este código ya está en uso',
-         'name.required' => 'El nombre es obligatorio',
-         'stock.min' => 'El stock no puede ser negativo',
-         'min_stock.min' => 'El stock mínimo no puede ser negativo',
-         'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
-         'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
-         'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
-         'category_id.required' => 'La categoría es obligatoria',
-         'category_id.exists' => 'La categoría seleccionada no existe'
-      ]);
-
-      if ($validator->fails()) {
-         return redirect()->back()
-            ->withErrors($validator)
-            ->withInput()
-            ->with('message', 'Error de validación')
-            ->with('icons', 'error');
-      }
-
-      try {
-         DB::beginTransaction();
-
-         $data = $validator->validated();
-         $data['company_id'] = Auth::user()->company_id;
-
-         // Procesar imagen si existe
-         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
-         }
-
-         // Crear producto
-         $product = Product::create($data);
-
-         DB::commit();
-
-         // Verificar si hay una URL de referencia guardada
-         $referrerUrl = session('products_referrer');
-         if ($referrerUrl) {
-            // Limpiar la session
-            session()->forget('products_referrer');
-
-            return redirect($referrerUrl)
-               ->with('message', 'Producto creado exitosamente')
-               ->with('icons', 'success');
-         }
-
-         // Fallback: redirigir a la lista de productos
-         return redirect()->route('admin.products.index')
-            ->with('message', 'Producto creado exitosamente')
-            ->with('icons', 'success');
-      } catch (\Exception $e) {
-         DB::rollBack();
-
-
-         // Eliminar imagen si se subió
-         if (isset($path)) {
-            Storage::disk('public')->delete($path);
-         }
-
-         return redirect()->back()
-            ->with('message', 'Error al crear el producto: ' . $e->getMessage())
-            ->with('icons', 'error')
-            ->withInput();
-      }
-   }
-
-   /**
-    * Display the specified resource.
-    */
-   public function show($id)
-   {
-      try {
-         // Optimizar consulta con select específico y eager loading
-         $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'created_at', 'updated_at')
-            ->with(['category:id,name'])
-            ->where('id', $id)
-            ->where('company_id', $this->company->id)
-            ->firstOrFail();
-
-         return response()->json([
-            'status' => 'success',
-            'product' => [
-               'id' => $product->id,
-               'code' => $product->code,
-               'name' => $product->name,
-               'description' => $product->description ?? 'Sin descripción',
-               'image' => $product->image_url,
-               'stock' => $product->stock,
-               'min_stock' => $product->min_stock,
-               'max_stock' => $product->max_stock,
-               'purchase_price' => number_format((float) $product->purchase_price, 2),
-               'sale_price' => number_format((float) $product->sale_price, 2),
-               'entry_date' => $product->entry_date->format('d/m/Y'),
-               'entry_days_ago' => $product->entry_date->diffForHumans(),
-               'category' => $product->category->name,
-               'created_at' => $product->created_at->format('d/m/Y H:i'),
-               'updated_at' => $product->updated_at->format('d/m/Y H:i')
-            ]
-         ]);
-      } catch (\Exception $e) {
-
-         return response()->json([
-            'icons' => 'error',
-            'message' => 'Error al obtener los datos del producto'
-         ], 500);
-      }
-   }
-
-   /**
-    * Show the form for editing the specified resource.
-    */
-   public function edit(Request $request, $id)
-   {
-      try {
-         // Optimizar consulta de producto con select específico
-         $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id', 'created_at', 'updated_at')
-            ->where('id', $id)
-            ->where('company_id', $this->company->id)
-            ->firstOrFail();
-
-         // Optimizar consulta de categorías con select específico
-         $categories = Category::select('id', 'name', 'company_id')
-            ->where('company_id', $this->company->id)
-            ->orderBy('name')
-            ->get();
-         $currency = $this->currencies;
-         $company = $this->company;
-
-         // Capturar la URL de referencia para redirección posterior
-         $referrerUrl = $request->header('referer');
-         if ($referrerUrl && !str_contains($referrerUrl, 'products/edit')) {
-            session(['products_referrer' => $referrerUrl]);
-         }
-
-         return view('admin.products.edit', compact('product', 'categories', 'currency', 'company'));
-      } catch (\Exception $e) {
-
-         return redirect()->back()
-            ->with('message', 'Error al cargar el formulario de edición')
-            ->with('icons', 'error');
-      }
-   }
-
-   /**
-    * Update the specified resource in storage.
-    */
-   public function update(Request $request, $id)
-   {
-      // Optimizar consulta de producto con select específico
-      $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id')
-         ->where('id', $id)
-         ->where('company_id', $this->company->id)
-         ->firstOrFail();
-
-      // Validación
-      $validator = Validator::make($request->all(), [
-         'code' => 'required|string|max:50|unique:products,code,' . $product->id,
-         'name' => 'required|string|max:255',
-         'description' => 'nullable|string',
-         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-         'stock' => 'required|integer|min:0',
-         'min_stock' => 'required|integer|min:0',
-         'max_stock' => 'required|integer|gt:min_stock',
-         'purchase_price' => 'required|numeric|min:0',
-         'sale_price' => 'required|numeric|min:0|gt:purchase_price',
-         'entry_date' => 'required|date|before_or_equal:today',
-         'category_id' => 'required|exists:categories,id'
-      ], [
-         'code.required' => 'El código es obligatorio',
-         'code.unique' => 'Este código ya está en uso',
-         'name.required' => 'El nombre es obligatorio',
-         'stock.min' => 'El stock no puede ser negativo',
-         'min_stock.min' => 'El stock mínimo no puede ser negativo',
-         'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
-         'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
-         'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
-         'category_id.required' => 'La categoría es obligatoria',
-         'category_id.exists' => 'La categoría seleccionada no existe'
-      ]);
-
-      if ($validator->fails()) {
-         return redirect()->back()
-            ->withErrors($validator)
-            ->withInput()
-            ->with('message', 'Error de validación')
-            ->with('icons', 'error');
-      }
-
-      try {
-         DB::beginTransaction();
-
-         $data = $validator->validated();
-
-         // Procesar nueva imagen si existe
-         if ($request->hasFile('image')) {
-            // Eliminar imagen anterior si existe
-            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-               Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            // Obtener la moneda de la empresa configurada
+            if ($this->company && $this->company->currency) {
+                // Buscar la moneda por código en lugar de por país
+                $this->currencies = DB::table('currencies')
+                    ->select('id', 'name', 'code', 'symbol', 'country_id')
+                    ->where('code', $this->company->currency)
+                    ->first();
             }
 
-            $path = $request->file('image')->store('products', 'public');
-            $data['image'] = 'storage/' . $path;
-         }
-
-         $product->update($data);
-
-         DB::commit();
-
-         // Verificar si hay una URL de referencia guardada
-         $referrerUrl = session('products_referrer');
-         if ($referrerUrl) {
-            // Limpiar la session
-            session()->forget('products_referrer');
-
-            return redirect($referrerUrl)
-               ->with('message', 'Producto actualizado exitosamente')
-               ->with('icons', 'success');
-         }
-
-         // Fallback: redirigir a la lista de productos
-         return redirect()->route('admin.products.index')
-            ->with('message', 'Producto actualizado exitosamente')
-            ->with('icons', 'success');
-      } catch (\Exception $e) {
-         DB::rollBack();
-
-
-         // Eliminar nueva imagen si se subió
-         if (isset($path)) {
-            Storage::disk('public')->delete($path);
-         }
-
-         return redirect()->back()
-            ->with('message', 'Error al actualizar el producto: ' . $e->getMessage())
-            ->with('icons', 'error')
-            ->withInput();
-      }
-   }
-
-   /**
-    * Remove the specified resource from storage.
-    */
-   public function destroy($id)
-   {
-      try {
-         $product = Product::withCount(['saleDetails', 'purchaseDetails'])->findOrFail($id);
-
-         // Verificar si el producto tiene ventas o compras asociadas
-         if ($product->sale_details_count > 0 || $product->purchase_details_count > 0) {
-            $reasons = [];
-            if ($product->sale_details_count > 0) {
-               $reasons[] = "tiene ventas asociadas";
-            }
-            if ($product->purchase_details_count > 0) {
-               $reasons[] = "tiene compras asociadas";
+            // Fallback si no se encuentra la moneda configurada
+            if (! $this->currencies) {
+                $this->currencies = DB::table('currencies')
+                    ->select('id', 'name', 'code', 'symbol', 'country_id')
+                    ->where('country_id', $this->company->country)
+                    ->first();
             }
 
-            $reasonText = implode(' y ', $reasons);
+            return $next($request);
+        });
+    }
+
+    public function index()
+    {
+        Gate::authorize('products.index');
+
+        return view('admin.v2.products.index');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        try {
+            return view('admin.v2.products.create');
+        } catch (\Exception $e) {
+
+            return redirect()->back()
+                ->with('message', 'Error al cargar el formulario')
+                ->with('icons', 'error');
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request, ProductService $productService)
+    {
+        // Validación (formularios clásicos en admin/products)
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|max:50|unique:products',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'max_stock' => 'required|integer|gt:min_stock',
+            'purchase_price' => 'required|numeric|min:0',
+            'sale_price' => 'required|numeric|min:0|gt:purchase_price',
+            'entry_date' => 'required|date|before_or_equal:today',
+            'category_id' => 'required|exists:categories,id',
+        ], [
+            'code.required' => 'El código es obligatorio',
+            'code.unique' => 'Este código ya está en uso',
+            'name.required' => 'El nombre es obligatorio',
+            'stock.min' => 'El stock no puede ser negativo',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo',
+            'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
+            'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
+            'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
+            'category_id.required' => 'La categoría es obligatoria',
+            'category_id.exists' => 'La categoría seleccionada no existe',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('message', 'Error de validación')
+                ->with('icons', 'error');
+        }
+
+        try {
+            $data = $validator->validated();
+            $image = $data['image'] ?? null;
+            unset($data['image']);
+
+            $productService->create($data, (int) Auth::user()->company_id, $image);
+
+            // Verificar si hay una URL de referencia guardada
+            $referrerUrl = session('products_referrer');
+            if ($referrerUrl) {
+                // Limpiar la session
+                session()->forget('products_referrer');
+
+                return redirect($referrerUrl)
+                    ->with('message', 'Producto creado exitosamente')
+                    ->with('icons', 'success');
+            }
+
+            // Fallback: redirigir a la lista de productos
+            return redirect()->route('admin.products.index')
+                ->with('message', 'Producto creado exitosamente')
+                ->with('icons', 'success');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('message', 'Error al crear el producto: '.$e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        try {
+            // Optimizar consulta con select específico y eager loading
+            $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'created_at', 'updated_at')
+                ->with(['category:id,name'])
+                ->where('id', $id)
+                ->where('company_id', $this->company->id)
+                ->firstOrFail();
 
             return response()->json([
-               'status' => 'error',
-               'message' => "No se puede eliminar el producto porque {$reasonText}",
-               'sales_count' => $product->sale_details_count,
-               'purchases_count' => $product->purchase_details_count
-            ], 200);
-         }
+                'status' => 'success',
+                'product' => [
+                    'id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'description' => $product->description ?? 'Sin descripción',
+                    'image' => $product->image_url,
+                    'stock' => $product->stock,
+                    'min_stock' => $product->min_stock,
+                    'max_stock' => $product->max_stock,
+                    'purchase_price' => number_format((float) $product->purchase_price, 2),
+                    'sale_price' => number_format((float) $product->sale_price, 2),
+                    'entry_date' => $product->entry_date->format('d/m/Y'),
+                    'entry_days_ago' => $product->entry_date->diffForHumans(),
+                    'category' => $product->category->name,
+                    'created_at' => $product->created_at->format('d/m/Y H:i'),
+                    'updated_at' => $product->updated_at->format('d/m/Y H:i'),
+                ],
+            ]);
+        } catch (\Exception $e) {
 
-         DB::beginTransaction();
+            return response()->json([
+                'icons' => 'error',
+                'message' => 'Error al obtener los datos del producto',
+            ], 500);
+        }
+    }
 
-         // Eliminar imagen si existe
-         if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
-         }
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        try {
+            $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id', 'created_at', 'updated_at')
+                ->where('id', $id)
+                ->where('company_id', $this->company->id)
+                ->firstOrFail();
 
-         $product->delete();
+            return view('admin.v2.products.edit', compact('product'));
+        } catch (\Exception $e) {
 
-         DB::commit();
+            return redirect()->route('admin.products.index')
+                ->with('message', 'Error al cargar el formulario de edición')
+                ->with('icons', 'error');
+        }
+    }
 
-         return response()->json([
-            'status' => 'success',
-            'message' => 'Producto eliminado exitosamente'
-         ]);
-      } catch (\Exception $e) {
-         DB::rollBack();
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id, ProductService $productService)
+    {
+        // Optimizar consulta de producto con select específico
+        $product = Product::select('id', 'code', 'name', 'description', 'image', 'stock', 'min_stock', 'max_stock', 'purchase_price', 'sale_price', 'entry_date', 'category_id', 'company_id')
+            ->where('id', $id)
+            ->where('company_id', $this->company->id)
+            ->firstOrFail();
 
-         return response()->json([
-            'status' => 'error',
-            'message' => 'Error al eliminar el producto'
-         ], 500);
-      }
-   }
+        // Validación
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|max:50|unique:products,code,'.$product->id,
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'stock' => 'required|integer|min:0',
+            'min_stock' => 'required|integer|min:0',
+            'max_stock' => 'required|integer|gt:min_stock',
+            'purchase_price' => 'required|numeric|min:0',
+            'sale_price' => 'required|numeric|min:0|gt:purchase_price',
+            'entry_date' => 'required|date|before_or_equal:today',
+            'category_id' => 'required|exists:categories,id',
+        ], [
+            'code.required' => 'El código es obligatorio',
+            'code.unique' => 'Este código ya está en uso',
+            'name.required' => 'El nombre es obligatorio',
+            'stock.min' => 'El stock no puede ser negativo',
+            'min_stock.min' => 'El stock mínimo no puede ser negativo',
+            'max_stock.gt' => 'El stock máximo debe ser mayor que el stock mínimo',
+            'purchase_price.min' => 'El precio de compra debe ser mayor a 0',
+            'sale_price.gt' => 'El precio de venta debe ser mayor al precio de compra',
+            'category_id.required' => 'La categoría es obligatoria',
+            'category_id.exists' => 'La categoría seleccionada no existe',
+        ]);
 
-   public function report()
-   {
-      $company = $this->company;
-      $currency = $this->currencies;
-      $products = Product::with(['category', 'supplier'])
-         ->where('products.company_id', $this->company->id)
-         ->join('categories', 'products.category_id', '=', 'categories.id')
-         ->orderBy('categories.name')
-         ->orderBy('products.stock', 'desc')
-         ->orderBy('products.name')
-         ->select('products.*')
-         ->get();
-      $pdf = Pdf::loadView('admin.products.report', compact('products', 'company', 'currency'))
-         ->setPaper('a4', 'landscape');
-      return $pdf->stream('reporte-productos.pdf');
-   }
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('message', 'Error de validación')
+                ->with('icons', 'error');
+        }
+
+        try {
+            $data = $validator->validated();
+            $image = $data['image'] ?? null;
+            unset($data['image']);
+
+            $productService->update($product, $data, $image);
+
+            // Verificar si hay una URL de referencia guardada
+            $referrerUrl = session('products_referrer');
+            if ($referrerUrl) {
+                // Limpiar la session
+                session()->forget('products_referrer');
+
+                return redirect($referrerUrl)
+                    ->with('message', 'Producto actualizado exitosamente')
+                    ->with('icons', 'success');
+            }
+
+            // Fallback: redirigir a la lista de productos
+            return redirect()->route('admin.products.index')
+                ->with('message', 'Producto actualizado exitosamente')
+                ->with('icons', 'success');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('message', 'Error al actualizar el producto: '.$e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        try {
+            $product = Product::withCount(['saleDetails', 'purchaseDetails'])->findOrFail($id);
+
+            // Verificar si el producto tiene ventas o compras asociadas
+            if ($product->sale_details_count > 0 || $product->purchase_details_count > 0) {
+                $reasons = [];
+                if ($product->sale_details_count > 0) {
+                    $reasons[] = 'tiene ventas asociadas';
+                }
+                if ($product->purchase_details_count > 0) {
+                    $reasons[] = 'tiene compras asociadas';
+                }
+
+                $reasonText = implode(' y ', $reasons);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "No se puede eliminar el producto porque {$reasonText}",
+                    'sales_count' => $product->sale_details_count,
+                    'purchases_count' => $product->purchase_details_count,
+                ], 200);
+            }
+
+            DB::beginTransaction();
+
+            // Eliminar imagen si existe
+            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            }
+
+            $product->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Producto eliminado exitosamente',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar el producto',
+            ], 500);
+        }
+    }
+
+    public function report(Request $request)
+    {
+        Gate::authorize('products.report');
+
+        $company = $this->company;
+        $currency = $this->currencies;
+
+        $products = Product::query()
+            ->with(['category', 'supplier'])
+            ->where('products.company_id', $this->company->id)
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->orderBy('categories.name')
+            ->orderByDesc('products.stock')
+            ->orderBy('products.name')
+            ->select('products.*')
+            ->get();
+
+        $emittedAt = now();
+        $filename = 'reporte-productos-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+        $pdf = Pdf::loadView('pdf.products.report', compact('products', 'company', 'currency', 'emittedAt'))
+            ->setPaper('letter', 'portrait')
+            ->setOption('enable_php', true)
+            ->addInfo([
+                'Title' => 'Inventario de productos',
+                'Author' => $company->name ?? config('app.name'),
+            ]);
+
+        if ($request->boolean('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
+    }
 }
