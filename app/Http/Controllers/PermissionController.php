@@ -175,7 +175,7 @@ class PermissionController extends Controller
         }
     }
 
-    public function report()
+    public function report(Request $request)
     {
         try {
             $company = $this->company;
@@ -206,14 +206,28 @@ class PermissionController extends Controller
 
             $usersCount = DB::table('users')->count();
 
-            $pdf = Pdf::loadView('admin.permissions.report_pdf', compact(
+            $emittedAt = now();
+            $filename = 'reporte-permisos-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+            $pdf = Pdf::loadView('pdf.permissions.report', compact(
                 'permissions',
                 'company',
                 'rolesCount',
-                'usersCount'
-            ));
+                'usersCount',
+                'emittedAt'
+            ))
+                ->setPaper('letter', 'portrait')
+                ->setOption('enable_php', true)
+                ->addInfo([
+                    'Title' => 'Informe de permisos',
+                    'Author' => $company->name ?? config('app.name'),
+                ]);
 
-            return $pdf->stream('reporte-permisos.pdf');
+            if ($request->boolean('download')) {
+                return $pdf->download($filename);
+            }
+
+            return $pdf->stream($filename);
         } catch (\Exception $e) {
             return redirect()->route('admin.permissions.index')
                 ->with('message', 'Error al generar el reporte: '.$e->getMessage())

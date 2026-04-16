@@ -13,7 +13,7 @@
                         rel="noopener"
                         class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
                     >
-                        <i class="fas fa-file-pdf"></i> Reporte PDF
+                        <i class="fas fa-file-pdf"></i> Ver PDF
                     </a>
                 @endif
                 @if ($permFlags['can_create'])
