@@ -34,20 +34,7 @@ class UserController extends Controller
     public function create()
     {
         try {
-            $company = Auth::user()->company;
-
-            // Obtener las empresas disponibles
-            $companies = Company::select('id', 'name')
-                ->where('id', Auth::user()->company_id)
-                ->orderBy('name')
-                ->get();
-
-            // Obtener los roles disponibles de la empresa usando select específico
-            $roles = Role::select('id', 'name')
-                ->byCompany(Auth::user()->company_id)
-                ->get();
-
-            return view('admin.users.create', compact('companies', 'roles', 'company'));
+            return view('admin.v2.users.create');
         } catch (\Exception $e) {
             return redirect()->route('admin.users.index')
                 ->with('message', 'Error al cargar el formulario de creación: '.$e->getMessage())
@@ -170,26 +157,12 @@ class UserController extends Controller
     public function edit(string $id)
     {
         try {
-            // Obtener usuario con sus roles usando select específico
             $user = User::select('id', 'name', 'email', 'company_id')
                 ->with(['roles:id,name'])
                 ->where('company_id', Auth::user()->company_id)
                 ->findOrFail($id);
 
-            $company = Auth::user()->company;
-
-            // Obtener empresas disponibles
-            $companies = Company::select('id', 'name')
-                ->where('id', Auth::user()->company_id)
-                ->orderBy('name')
-                ->get();
-
-            // Obtener roles disponibles de la empresa usando select específico
-            $roles = Role::select('id', 'name')
-                ->byCompany(Auth::user()->company_id)
-                ->get();
-
-            return view('admin.users.edit', compact('user', 'companies', 'roles', 'company'));
+            return view('admin.v2.users.edit', compact('user'));
         } catch (\Exception $e) {
             return redirect()->route('admin.users.index')
                 ->with('message', 'Error al cargar el usuario: '.$e->getMessage())

@@ -179,7 +179,7 @@ class RoleController extends Controller
             }
 
             // Verificar si es un rol del sistema
-            $systemRoles = ['admin', 'user', 'superadmin'];
+            $systemRoles = ['admin', 'user', 'superadmin', 'administrator', 'root', 'administrador'];
             if (in_array($role->name, $systemRoles)) {
                 return response()->json([
                     'status' => 'error',
@@ -256,7 +256,7 @@ class RoleController extends Controller
                     'updated_at' => $role->updated_at->format('d/m/Y H:i'),
                     'users_count' => $role->users->count(),
                     'permissions_count' => $role->permissions->count(),
-                    'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin']),
+                    'is_system_role' => in_array($role->name, ['admin', 'user', 'superadmin', 'administrator', 'root', 'administrador']),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -353,7 +353,7 @@ class RoleController extends Controller
                 'role_info' => [
                     'id' => $role->id,
                     'name' => $role->name,
-                    'is_system_role' => in_array($role->name, ['admin', 'superadmin', 'administrator', 'root']),
+                    'is_system_role' => in_array($role->name, ['admin', 'superadmin', 'administrator', 'root', 'administrador']),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -400,7 +400,7 @@ class RoleController extends Controller
             }
 
             // Verificar si es un rol del sistema
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
             if (in_array($role->name, $systemRoles)) {
                 throw new \Exception('No se pueden modificar los permisos de roles del sistema ('.$role->name.')');
             }

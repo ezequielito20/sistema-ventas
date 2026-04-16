@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Services\PermissionService;
 use App\Support\PermissionFriendlyNames;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
@@ -120,20 +121,32 @@ class PermissionsIndex extends Component
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
             ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->where('users.company_id', Auth::user()->company_id)
             ->where('role_has_permissions.permission_id', $id)
             ->distinct('users.id')
             ->count('users.id');
+
+        $rolesCount = $permission->roles()
+            ->where('company_id', Auth::user()->company_id)
+            ->count();
+
+        $roleNames = $permission->roles()
+            ->where('company_id', Auth::user()->company_id)
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
 
         $this->detailPermission = [
             'id' => $permission->id,
             'name' => $permission->name,
             'label' => PermissionFriendlyNames::label($permission->name),
             'guard_name' => $permission->guard_name,
-            'roles_count' => $permission->roles->count(),
+            'roles_count' => $rolesCount,
             'users_count' => $usersCount,
             'created_at' => $permission->created_at->format('d/m/Y H:i'),
             'updated_at' => $permission->updated_at->format('d/m/Y H:i'),
-            'roles' => $permission->roles->pluck('name')->values()->all(),
+            'roles' => $roleNames,
         ];
 
         $this->showDetailModal = true;
@@ -331,7 +344,11 @@ class PermissionsIndex extends Component
 
     protected function permissionsQuery()
     {
-        $query = Permission::query()->withCount('roles');
+        $query = Permission::query()->withCount([
+            'roles as roles_count' => function ($roleQuery) {
+                $roleQuery->where('company_id', Auth::user()->company_id);
+            },
+        ]);
 
         if ($this->search !== '') {
             $s = $this->search;
@@ -365,8 +382,9 @@ class PermissionsIndex extends Component
 
     public function render(PermissionService $permissionService): View
     {
-        $stats = $permissionService->statistics();
-        $userCounts = $permissionService->usersCountByPermissionMap();
+        $companyId = (int) Auth::user()->company_id;
+        $stats = $permissionService->statistics($companyId);
+        $userCounts = $permissionService->usersCountByPermissionMap($companyId);
 
         $permissions = $this->permissionsQuery()->paginate(10);
         $currentPagePermissionIds = $permissions->pluck('id')->map(fn ($id) => (int) $id)->all();
@@ -382,7 +400,6 @@ class PermissionsIndex extends Component
 
         $permFlags = [
             'can_report' => Gate::allows('permissions.report'),
-            'can_create' => Gate::allows('permissions.create'),
             'can_edit' => Gate::allows('permissions.edit'),
             'can_show' => Gate::allows('permissions.show'),
             'can_destroy' => Gate::allows('permissions.destroy'),

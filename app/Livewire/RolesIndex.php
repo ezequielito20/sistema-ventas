@@ -152,7 +152,7 @@ class RolesIndex extends Component
             ->with('permissions')
             ->firstOrFail();
 
-        $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+        $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
         if (in_array($role->name, $systemRoles, true)) {
             $this->toast('No se pueden modificar los permisos de roles del sistema ('.$role->name.').', 'error');
 
@@ -191,7 +191,7 @@ class RolesIndex extends Component
                 ->where('id', $this->permissionsRoleId)
                 ->firstOrFail();
 
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
+            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'administrador'];
             if (in_array($role->name, $systemRoles, true)) {
                 throw new \Exception('No se pueden modificar los permisos de roles del sistema ('.$role->name.')');
             }

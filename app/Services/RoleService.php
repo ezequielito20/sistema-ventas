@@ -14,7 +14,7 @@ class RoleService
     /**
      * @var array<int, string>
      */
-    private array $systemRoles = ['admin', 'user', 'superadmin', 'administrator', 'root'];
+    private array $systemRoles = ['admin', 'user', 'superadmin', 'administrator', 'root', 'administrador'];
 
     /**
      * @throws \RuntimeException Mismos mensajes que el flujo legacy al fallar reglas de negocio
@@ -26,6 +26,15 @@ class RoleService
 
             if (in_array($roleName, $this->systemRoles, true)) {
                 throw new \RuntimeException('No se pueden crear roles del sistema');
+            }
+
+            $exists = Role::query()
+                ->where('company_id', $companyId)
+                ->whereRaw('LOWER(name) = ?', [$roleName])
+                ->exists();
+
+            if ($exists) {
+                throw new \RuntimeException('Este nombre de rol ya existe en la empresa actual');
             }
 
             return Role::create([
@@ -52,6 +61,16 @@ class RoleService
 
             if (in_array($role->name, $this->systemRoles, true) && $role->name !== $roleName) {
                 throw new \RuntimeException('No se pueden modificar roles del sistema');
+            }
+
+            $exists = Role::query()
+                ->where('company_id', $role->company_id)
+                ->where('id', '!=', $role->id)
+                ->whereRaw('LOWER(name) = ?', [$roleName])
+                ->exists();
+
+            if ($exists) {
+                throw new \RuntimeException('Este nombre de rol ya existe en la empresa actual');
             }
 
             $role->update([

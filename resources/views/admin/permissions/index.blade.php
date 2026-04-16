@@ -24,12 +24,6 @@
                         <span>Reporte</span>
                     </a>
                 @endif
-                @if($permissions['can_create'])
-                    <a href="{{ route('admin.permissions.create') }}" class="btn-primary">
-                        <i class="fas fa-plus-circle mr-2"></i>
-                        <span>Nuevo Permiso</span>
-                    </a>
-                @endif
             </div>
         </div>
 

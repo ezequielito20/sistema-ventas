@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserService
 {
@@ -38,6 +41,142 @@ class UserService
             ->orderBy('name')
             ->pluck('name', 'id')
             ->all();
+    }
+
+    /**
+     * @return array<int, array{id:int,name:string}>
+     */
+    public function availableRoles(int $companyId): array
+    {
+        return Role::query()
+            ->select(['id', 'name'])
+            ->byCompany($companyId)
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Role $role) => [
+                'id' => $role->id,
+                'name' => $role->name,
+            ])
+            ->all();
+    }
+
+    public function companySummary(int $companyId): ?Company
+    {
+        return Company::query()
+            ->select(['id', 'name'])
+            ->find($companyId);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rulesForCreate(int $companyId): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            ],
+            'password_confirmation' => ['required', 'same:password'],
+            'roleId' => [
+                'required',
+                Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rulesForUpdate(User $user, int $companyId, bool $changingPassword): array
+    {
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'roleId' => [
+                'required',
+                Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
+            ],
+        ];
+
+        if ($changingPassword) {
+            $rules['password'] = [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            ];
+            $rules['password_confirmation'] = ['required', 'same:password'];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function validationMessages(): array
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.max' => 'El nombre no puede exceder los 255 caracteres.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula y un número.',
+            'password_confirmation.required' => 'Debes confirmar la contraseña.',
+            'password_confirmation.same' => 'Las contraseñas no coinciden.',
+            'roleId.required' => 'El rol es obligatorio.',
+            'roleId.exists' => 'El rol seleccionado no es válido para tu empresa.',
+        ];
+    }
+
+    public function createUser(int $companyId, array $validated): User
+    {
+        $role = Role::query()
+            ->where('company_id', $companyId)
+            ->findOrFail((int) $validated['roleId']);
+
+        $user = User::create([
+            'name' => trim((string) $validated['name']),
+            'email' => strtolower((string) $validated['email']),
+            'password' => Hash::make((string) $validated['password']),
+            'company_id' => $companyId,
+            'email_verified_at' => now(),
+        ]);
+
+        $user->assignRole($role);
+
+        return $user;
+    }
+
+    public function updateUser(User $user, int $companyId, array $validated): void
+    {
+        if ($user->company_id !== $companyId) {
+            throw new \RuntimeException('No tiene permisos para editar este usuario.');
+        }
+
+        $role = Role::query()
+            ->where('company_id', $companyId)
+            ->findOrFail((int) $validated['roleId']);
+
+        $payload = [
+            'name' => trim((string) $validated['name']),
+            'email' => strtolower((string) $validated['email']),
+        ];
+
+        if (! empty($validated['password'])) {
+            $payload['password'] = Hash::make((string) $validated['password']);
+        }
+
+        $user->update($payload);
+        $user->syncRoles([$role]);
     }
 
     /**

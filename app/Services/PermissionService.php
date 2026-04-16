@@ -220,24 +220,33 @@ class PermissionService
     /**
      * @return array{total: int, active: int, roles_with_permissions: int, unused: int}
      */
-    public function statistics(): array
+    public function statistics(int $companyId): array
     {
         $total = Permission::query()->count();
 
         $active = Permission::query()
-            ->where(function ($q) {
-                $q->whereHas('roles')->orWhereHas('users');
+            ->where(function ($q) use ($companyId) {
+                $q->whereHas('roles', function ($roleQuery) use ($companyId) {
+                    $roleQuery->where('company_id', $companyId);
+                })->orWhereHas('users', function ($userQuery) use ($companyId) {
+                    $userQuery->where('company_id', $companyId);
+                });
             })
             ->count();
 
         $rolesWithPermissions = DB::table('roles')
             ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+            ->where('roles.company_id', $companyId)
             ->distinct('roles.id')
             ->count('roles.id');
 
         $unused = Permission::query()
-            ->whereDoesntHave('roles')
-            ->whereDoesntHave('users')
+            ->whereDoesntHave('roles', function ($roleQuery) use ($companyId) {
+                $roleQuery->where('company_id', $companyId);
+            })
+            ->whereDoesntHave('users', function ($userQuery) use ($companyId) {
+                $userQuery->where('company_id', $companyId);
+            })
             ->count();
 
         return [
@@ -253,7 +262,7 @@ class PermissionService
      *
      * @return array<int, int> permission_id => users_count
      */
-    public function usersCountByPermissionMap(): array
+    public function usersCountByPermissionMap(int $companyId): array
     {
         return DB::table('permissions')
             ->leftJoin('role_has_permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
@@ -261,6 +270,7 @@ class PermissionService
             ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->leftJoin('users', 'model_has_roles.model_id', '=', 'users.id')
             ->where('model_has_roles.model_type', 'App\\Models\\User')
+            ->where('users.company_id', $companyId)
             ->select('permissions.id', DB::raw('COUNT(DISTINCT users.id) as users_count'))
             ->groupBy('permissions.id')
             ->pluck('users_count', 'permissions.id')

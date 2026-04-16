@@ -3,7 +3,7 @@
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="ui-panel__title">Permisos</h1>
-                <p class="ui-panel__subtitle">Catálogo global y asignación a roles.</p>
+                <p class="ui-panel__subtitle">Catálogo base del sistema y asignación por empresa.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($permFlags['can_report'])
@@ -14,15 +14,6 @@
                         class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
                     >
                         <i class="fas fa-file-pdf"></i> Ver PDF
-                    </a>
-                @endif
-                @if ($permFlags['can_create'])
-                    <a
-                        href="{{ route('admin.permissions.create') }}"
-                        class="ui-btn ui-btn-primary text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
-                        wire:navigate
-                    >
-                        <i class="fas fa-plus"></i> Nuevo permiso
                     </a>
                 @endif
             </div>

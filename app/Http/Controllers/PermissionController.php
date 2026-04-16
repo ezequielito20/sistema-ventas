@@ -41,36 +41,16 @@ class PermissionController extends Controller
 
     public function create()
     {
-        try {
-            return view('admin.v2.permissions.create');
-        } catch (\Exception $e) {
-            return redirect()->route('admin.permissions.index')
-                ->with('message', 'Error al cargar el formulario de creación')
-                ->with('icons', 'error');
-        }
+        return redirect()->route('admin.permissions.index')
+            ->with('message', 'Los permisos no se crean desde la interfaz. Deben definirse en el código base del sistema.')
+            ->with('icons', 'info');
     }
 
-    public function store(Request $request, PermissionService $permissionService)
+    public function store()
     {
-        try {
-            $validated = $request->validate(
-                $permissionService->rulesForCreate(),
-                $permissionService->validationMessages()
-            );
-
-            $permissionService->createPermission($validated['name']);
-
-            return redirect()->route('admin.permissions.index')
-                ->with('message', 'Permiso creado correctamente')
-                ->with('icons', 'success');
-        } catch (ValidationException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('message', 'Error al crear el permiso: '.$e->getMessage())
-                ->with('icons', 'error')
-                ->withInput();
-        }
+        return redirect()->route('admin.permissions.index')
+            ->with('message', 'La creación de permisos desde la interfaz está deshabilitada. Registra los permisos desde el código base.')
+            ->with('icons', 'warning');
     }
 
     public function show(string $id)
@@ -83,19 +63,26 @@ class PermissionController extends Controller
                 ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
                 ->where('model_has_roles.model_type', 'App\\Models\\User')
+                ->where('users.company_id', Auth::user()->company_id)
                 ->where('role_has_permissions.permission_id', $id)
                 ->distinct('users.id')
                 ->count('users.id');
+
+            $roles = $permission->roles()
+                ->where('company_id', Auth::user()->company_id)
+                ->orderBy('name')
+                ->pluck('name')
+                ->toArray();
 
             $permissionData = [
                 'id' => $permission->id,
                 'name' => $permission->name,
                 'guard_name' => $permission->guard_name,
-                'roles_count' => $permission->roles->count(),
+                'roles_count' => count($roles),
                 'users_count' => $usersCount,
                 'created_at' => $permission->created_at->format('d/m/Y H:i'),
                 'updated_at' => $permission->updated_at->format('d/m/Y H:i'),
-                'roles' => $permission->roles->pluck('name')->toArray(),
+                'roles' => $roles,
                 'users' => [],
             ];
 
@@ -180,7 +167,10 @@ class PermissionController extends Controller
         try {
             $company = $this->company;
 
-            $permissions = Permission::with(['roles'])->orderBy('name', 'asc')->get();
+            $companyId = Auth::user()->company_id;
+            $permissions = Permission::with(['roles' => function ($query) use ($companyId) {
+                $query->where('company_id', $companyId);
+            }])->orderBy('name', 'asc')->get();
 
             $usersCountByPermission = DB::table('permissions')
                 ->leftJoin('role_has_permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
@@ -188,6 +178,7 @@ class PermissionController extends Controller
                 ->leftJoin('model_has_roles', 'roles.id', '=', 'model_has_roles.role_id')
                 ->leftJoin('users', 'model_has_roles.model_id', '=', 'users.id')
                 ->where('model_has_roles.model_type', 'App\\Models\\User')
+                ->where('users.company_id', $companyId)
                 ->select('permissions.id', DB::raw('COUNT(DISTINCT users.id) as users_count'))
                 ->groupBy('permissions.id')
                 ->pluck('users_count', 'permissions.id')
@@ -201,10 +192,11 @@ class PermissionController extends Controller
 
             $rolesCount = DB::table('roles')
                 ->join('role_has_permissions', 'roles.id', '=', 'role_has_permissions.role_id')
+                ->where('roles.company_id', $companyId)
                 ->distinct('roles.id')
                 ->count('roles.id');
 
-            $usersCount = DB::table('users')->count();
+            $usersCount = DB::table('users')->where('company_id', $companyId)->count();
 
             $emittedAt = now();
             $filename = 'reporte-permisos-'.$emittedAt->format('Y-m-d_His').'.pdf';
