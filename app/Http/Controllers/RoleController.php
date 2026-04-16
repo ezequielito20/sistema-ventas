@@ -274,16 +274,31 @@ class RoleController extends Controller
         }
     }
 
-    public function report()
+    public function report(Request $request)
     {
         $company = Company::find(Auth::user()->company_id);
-        $roles = Role::with('permissions')
+        $roles = Role::with(['permissions', 'users'])
             ->byCompany($company->id)
             ->orderBy('name', 'asc')
             ->get();
-        $pdf = PDF::loadView('admin.roles.report', compact('roles', 'company'));
 
-        return $pdf->stream('reporte-roles.pdf');
+        $emittedAt = now();
+
+        $filename = 'reporte-roles-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+        $pdf = Pdf::loadView('pdf.roles.report', compact('roles', 'company', 'emittedAt'))
+            ->setPaper('letter', 'portrait')
+            ->setOption('enable_php', true)
+            ->addInfo([
+                'Title' => 'Informe de roles',
+                'Author' => $company->name ?? config('app.name'),
+            ]);
+
+        if ($request->boolean('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
     }
 
     /**

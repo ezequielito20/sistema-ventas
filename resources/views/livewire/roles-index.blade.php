@@ -13,7 +13,13 @@
                         rel="noopener"
                         class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
                     >
-                        <i class="fas fa-file-pdf"></i> Reporte PDF
+                        <i class="fas fa-file-pdf"></i> Ver PDF
+                    </a>
+                    <a
+                        href="{{ route('admin.roles.report', ['download' => true]) }}"
+                        class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
+                    >
+                        <i class="fas fa-download"></i> Descargar PDF
                     </a>
                 @endif
                 @if ($permFlags['can_create'])
