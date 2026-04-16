@@ -37,9 +37,11 @@ class RolesIndex extends Component
 
     public string $permissionSearch = '';
 
-    public ?string $toastMessage = null;
+    public bool $showDeleteModal = false;
 
-    public string $toastType = 'success';
+    public ?int $deleteTargetId = null;
+
+    public string $deleteTargetName = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -61,15 +63,34 @@ class RolesIndex extends Component
         $this->resetPage();
     }
 
-    public function clearToast(): void
-    {
-        $this->toastMessage = null;
-    }
-
+    /**
+     * Muestra toast global (ui-toast) tras el render; no depende del DOM del componente.
+     */
     protected function toast(string $message, string $type = 'success'): void
     {
-        $this->toastMessage = $message;
-        $this->toastType = $type;
+        $titles = [
+            'success' => 'Listo',
+            'error' => 'Atención',
+            'warning' => 'Atención',
+            'info' => 'Información',
+        ];
+        $uiType = in_array($type, ['success', 'error', 'warning', 'info'], true) ? $type : 'info';
+        $title = $titles[$uiType] ?? $titles['info'];
+        $timeout = $uiType === 'error' ? 7200 : 4800;
+
+        $options = json_encode([
+            'type' => $uiType,
+            'title' => $title,
+            'timeout' => $timeout,
+            'theme' => 'futuristic',
+        ], JSON_THROW_ON_ERROR);
+
+        $msg = json_encode($message, JSON_THROW_ON_ERROR);
+
+        $this->js(
+            'if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}'
+        );
     }
 
     public function openDetailModal(int $id): void
@@ -198,6 +219,44 @@ class RolesIndex extends Component
         } else {
             $this->selectedPermissionIds = [];
         }
+    }
+
+    public function openDeleteModal(int $id): void
+    {
+        Gate::authorize('roles.destroy');
+
+        $role = Role::query()
+            ->where('company_id', Auth::user()->company_id)
+            ->where('id', $id)
+            ->first();
+
+        if (! $role) {
+            $this->toast('Rol no encontrado.', 'error');
+
+            return;
+        }
+
+        $this->deleteTargetId = $id;
+        $this->deleteTargetName = $role->name;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deleteTargetId = null;
+        $this->deleteTargetName = '';
+    }
+
+    public function confirmDeleteRole(): void
+    {
+        if ($this->deleteTargetId === null) {
+            return;
+        }
+
+        $id = $this->deleteTargetId;
+        $this->closeDeleteModal();
+        $this->deleteRole($id);
     }
 
     public function deleteRole(int $id): void

@@ -6,8 +6,9 @@ const TITLES = {
     critical: "Alerta critica",
 };
 
+/** Iconos compatibles con Font Awesome Free 5/6 del vendor del proyecto */
 const ICONS = {
-    success: "sparkles",
+    success: "check-circle",
     error: "triangle-exclamation",
     warning: "shield-exclamation",
     info: "satellite-dish",

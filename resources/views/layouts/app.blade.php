@@ -805,21 +805,29 @@
 
         @stack('js')
 
-        <!-- Manejo de notificaciones de sesión -->
+        <!-- Manejo de notificaciones de sesión (toasts tema oscuro / ui-toast) -->
         @if (session('message'))
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const message = @json(session('message'));
                     const icon = @json(session('icons', 'info'));
+                    const type = icon === 'error' ? 'error' : icon === 'success' ? 'success' : 'info';
+                    const titles = { success: 'Listo', error: 'Atención', info: 'Información' };
 
-                    if (typeof Swal !== 'undefined') {
+                    if (window.uiNotifications && typeof window.uiNotifications.showToast === 'function') {
+                        window.uiNotifications.showToast(message, {
+                            type: type,
+                            title: titles[type] || titles.info,
+                            timeout: type === 'error' ? 7200 : 4800,
+                            theme: 'futuristic'
+                        });
+                    } else if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            title: icon === 'success' ? '¡Éxito!' : icon === 'error' ? 'Error' : 'Información',
+                            title: titles[type] || titles.info,
                             text: message,
                             icon: icon,
                             confirmButtonText: 'Entendido',
-                            timer: icon === 'success' ? 3000 : undefined,
-                            timerProgressBar: icon === 'success'
+                            customClass: { popup: 'ui-swal-popup' }
                         });
                     } else {
                         alert(message);
@@ -833,21 +841,23 @@
             document.addEventListener('DOMContentLoaded', function() {
                 // Función para mostrar notificaciones
                 function showNotification(message, type = 'success') {
-                    if (typeof Swal !== 'undefined') {
+                    const toastType = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+                    const titles = { success: 'Listo', error: 'Atención', info: 'Información' };
+
+                    if (window.uiNotifications && typeof window.uiNotifications.showToast === 'function') {
+                        window.uiNotifications.showToast(message, {
+                            type: toastType,
+                            title: titles[toastType] || titles.info,
+                            timeout: toastType === 'error' ? 7200 : 4800,
+                            theme: 'futuristic'
+                        });
+                    } else if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            title: type === 'success' ? '¡Éxito!' : type === 'error' ? 'Error' : 'Información',
+                            title: titles[toastType] || titles.info,
                             text: message,
                             icon: type,
                             confirmButtonText: 'Aceptar',
-                            confirmButtonColor: type === 'success' ? '#10b981' : '#667eea',
-                            timer: type === 'success' ? 2000 : undefined,
-                            timerProgressBar: type === 'success',
-                            showConfirmButton: type !== 'success',
-                            customClass: {
-                                popup: 'rounded-xl shadow-2xl',
-                                title: 'text-xl font-bold text-gray-800',
-                                confirmButton: 'rounded-lg px-6 py-3 font-medium'
-                            }
+                            customClass: { popup: 'ui-swal-popup' }
                         });
                     } else {
                         alert(message);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Role;
+use App\Services\RoleService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,17 +46,14 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $company = $this->company;
-
-        return view('admin.roles.create', compact('company'));
+        return view('admin.v2.roles.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, RoleService $roleService)
     {
-        // Validación básica del request
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -65,56 +63,28 @@ class RoleController extends Controller
                     return $query->where('guard_name', 'web')
                         ->where('company_id', $this->company->id);
                 }),
-                // Asegura que el nombre solo contenga letras, números, espacios y guiones
                 'regex:/^[a-zA-Z0-9\s-]+$/',
             ],
         ], [
-          'name.required' => 'El nombre del rol es obligatorio',
-          'name.string' => 'El nombre debe ser una cadena de texto',
-          'name.max' => 'El nombre no puede exceder los 255 caracteres',
-          'name.unique' => 'Este nombre de rol ya existe',
-          'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
-      ]);
+            'name.required' => 'El nombre del rol es obligatorio',
+            'name.string' => 'El nombre debe ser una cadena de texto',
+            'name.max' => 'El nombre no puede exceder los 255 caracteres',
+            'name.unique' => 'Este nombre de rol ya existe',
+            'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
+        ]);
 
         try {
-            DB::beginTransaction();
+            $roleService->createRole($this->company->id, $validated['name']);
 
-            // Limpieza y formateo del nombre
-            $roleName = trim(strtolower($validated['name']));
-
-            // Verificación adicional de roles del sistema
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root'];
-            if (in_array($roleName, $systemRoles)) {
-                throw new \Exception('No se pueden crear roles del sistema');
-            }
-
-            // Crear el rol
-            $role = Role::create([
-                'name' => $roleName,
-                'guard_name' => 'web',
-                'company_id' => $this->company->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::commit();
-
-            // Registro exitoso
             return redirect()->route('admin.roles.index')
                 ->with('message', 'Rol creado exitosamente')
                 ->with('icons', 'success');
+        } catch (\RuntimeException $e) {
+            return redirect()->back()
+                ->with('message', $e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            // Si es un error específico de roles del sistema
-            if ($e->getMessage() === 'No se pueden crear roles del sistema') {
-                return redirect()->back()
-                    ->with('message', 'No se pueden crear roles del sistema')
-                    ->with('icons', 'error')
-                    ->withInput();
-            }
-
-            // Para otros errores
             return redirect()->back()
                 ->with('message', 'Error al crear el rol: '.$e->getMessage())
                 ->with('icons', 'error')
@@ -127,24 +97,22 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        $company = $this->company;
         $role = Role::where('id', $id)
-            ->where('company_id', $company->id)
+            ->where('company_id', $this->company->id)
             ->firstOrFail();
 
-        return view('admin.roles.edit', compact('role', 'company'));
+        return view('admin.v2.roles.edit', compact('role'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, RoleService $roleService)
     {
         $role = Role::where('id', $id)
             ->where('company_id', $this->company->id)
             ->firstOrFail();
 
-        // Validación mejorada del request
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -154,57 +122,28 @@ class RoleController extends Controller
                     return $query->where('guard_name', 'web')
                         ->where('company_id', $this->company->id);
                 }),
-                // Asegura que el nombre solo contenga letras, números, espacios y guiones
                 'regex:/^[a-zA-Z0-9\s-]+$/',
             ],
         ], [
-          'name.required' => 'El nombre del rol es obligatorio',
-          'name.string' => 'El nombre debe ser una cadena de texto',
-          'name.max' => 'El nombre no puede exceder los 255 caracteres',
-          'name.unique' => 'Este nombre de rol ya existe',
-          'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
-      ]);
+            'name.required' => 'El nombre del rol es obligatorio',
+            'name.string' => 'El nombre debe ser una cadena de texto',
+            'name.max' => 'El nombre no puede exceder los 255 caracteres',
+            'name.unique' => 'Este nombre de rol ya existe',
+            'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
+        ]);
 
         try {
-            DB::beginTransaction();
-
-            // Limpieza y formateo del nombre
-            $roleName = trim(strtolower($validated['name']));
-
-            // Verificación adicional de roles del sistema
-            $systemRoles = ['admin', 'superadmin', 'administrator', 'root', 'user'];
-            if (in_array($roleName, $systemRoles) && ! in_array($role->name, $systemRoles)) {
-                throw new \Exception('No se puede cambiar a un nombre de rol del sistema');
-            }
-
-            // Verificar si es un rol del sistema que intenta ser modificado
-            if (in_array($role->name, $systemRoles) && $role->name !== $roleName) {
-                throw new \Exception('No se pueden modificar roles del sistema');
-            }
-
-            // Actualizar el rol
-            $role->update([
-                'name' => $roleName,
-                'updated_at' => now(),
-            ]);
-
-            DB::commit();
+            $roleService->updateRole($role, $validated['name']);
 
             return redirect()->route('admin.roles.index')
                 ->with('message', 'Rol actualizado exitosamente')
                 ->with('icons', 'success');
+        } catch (\RuntimeException $e) {
+            return redirect()->back()
+                ->with('message', $e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            // Si es un error específico de roles del sistema
-            if (str_contains($e->getMessage(), 'roles del sistema')) {
-                return redirect()->back()
-                    ->with('message', $e->getMessage())
-                    ->with('icons', 'error')
-                    ->withInput();
-            }
-
-            // Para otros errores
             return redirect()->back()
                 ->with('message', 'Error al actualizar el rol: '.$e->getMessage())
                 ->with('icons', 'error')

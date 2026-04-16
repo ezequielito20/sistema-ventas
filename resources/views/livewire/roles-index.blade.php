@@ -1,15 +1,4 @@
 <div class="space-y-6" wire:key="roles-index-root">
-    @if ($toastMessage)
-        <div
-            class="fixed right-4 top-4 z-[60] max-w-sm rounded-xl border bg-slate-900 px-4 py-3 text-sm text-slate-100 shadow-xl {{ $toastType === 'error' ? 'border-red-500/40' : 'border-emerald-500/30' }}"
-            role="status"
-            x-data
-            x-init="setTimeout(() => $wire.clearToast(), 4200)"
-        >
-            <span class="{{ $toastType === 'error' ? 'text-red-300' : 'text-emerald-300' }}">{{ $toastMessage }}</span>
-        </div>
-    @endif
-
     <div class="ui-panel">
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -182,8 +171,7 @@
                                                 @if ($permFlags['can_destroy'])
                                                     <button
                                                         type="button"
-                                                        wire:click="deleteRole({{ $role->id }})"
-                                                        wire:confirm="¿Eliminar este rol? No debe tener usuarios asignados."
+                                                        wire:click="openDeleteModal({{ $role->id }})"
                                                         class="ui-icon-action ui-icon-action--danger"
                                                         title="Eliminar"
                                                     >
@@ -253,8 +241,7 @@
                                 @if ($permFlags['can_destroy'])
                                     <button
                                         type="button"
-                                        wire:click="deleteRole({{ $role->id }})"
-                                        wire:confirm="¿Eliminar este rol?"
+                                        wire:click="openDeleteModal({{ $role->id }})"
                                         class="ui-icon-action ui-icon-action--danger"
                                         title="Eliminar"
                                     >
@@ -388,6 +375,46 @@
                     <button type="button" wire:click="closePermissionsModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
                     <button type="button" wire:click="savePermissions" class="ui-btn ui-btn-warning text-sm">
                         <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showDeleteModal && $deleteTargetId)
+        {{-- Capa de atención: oscurece todo el sistema; el panel es opaco (sin “cristal” sobre la tabla) --}}
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            wire:click.self="closeDeleteModal"
+            x-data
+            x-on:keydown.escape.window="$wire.closeDeleteModal()"
+            aria-modal="true"
+            role="dialog"
+        >
+            <div
+                class="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                wire:key="delete-modal-{{ $deleteTargetId }}"
+            >
+                <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200"
+                        >
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-semibold text-white">¿Eliminar este rol?</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                Se eliminará <span class="font-medium text-white">“{{ $deleteTargetName }}”</span>. Solo puede hacerse si no tiene usuarios asignados.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                    <button type="button" wire:click="closeDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="confirmDeleteRole" class="ui-btn ui-btn-danger text-sm">
+                        <i class="fas fa-trash-alt mr-1.5"></i>
+                        Sí, eliminar
                     </button>
                 </div>
             </div>
