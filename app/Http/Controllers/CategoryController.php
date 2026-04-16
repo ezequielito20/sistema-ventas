@@ -4,368 +4,251 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Company;
-use Illuminate\Http\Request;
+use App\Services\CategoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
-use App\Traits\SmartPaginationTrait;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-   use SmartPaginationTrait;
-   public $currencies;
-   protected $company;
+    public $currencies;
 
-   public function __construct()
-   {
-      $this->middleware(function ($request, $next) {
-         $this->company = Auth::user()->company;
-         $this->currencies = DB::table('currencies')
-            ->where('country_id', $this->company->country)
-            ->first();
+    protected $company;
 
-         return $next($request);
-      });
-   }
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $this->company = Auth::user()->company;
+            $this->currencies = DB::table('currencies')
+                ->where('country_id', $this->company->country)
+                ->first();
 
+            return $next($request);
+        });
+    }
 
+    public function index(Request $request)
+    {
+        try {
+            return view('admin.v2.categories.index');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('message', 'Error al cargar las categorías')
+                ->with('icons', 'error');
+        }
+    }
 
-   public function index(Request $request)
-   {
-      try {
-         $company = $this->company;
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(Request $request)
+    {
+        try {
+            $company = $this->company;
 
-         // Consulta base de categorías con conteo de productos
-         $query = Category::withCount('products')
-            ->where('company_id', $company->id);
-
-         // Búsqueda por texto: nombre, descripción
-         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-               $q->where('name', 'ILIKE', "%{$search}%")
-                  ->orWhere('description', 'ILIKE', "%{$search}%");
-            });
-         }
-
-         // Filtro por categorías con productos
-         if ($request->filled('has_products')) {
-            $hasProducts = $request->input('has_products');
-            if ($hasProducts === 'yes') {
-               $query->having('products_count', '>', 0);
-            } elseif ($hasProducts === 'no') {
-               $query->having('products_count', '=', 0);
+            // Capturar la URL de referencia para redirección posterior
+            $referrerUrl = $request->header('referer');
+            if ($referrerUrl && ! str_contains($referrerUrl, 'categories/create')) {
+                session(['categories_referrer' => $referrerUrl]);
             }
-         }
 
-         // Filtro por fecha de creación
-         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->input('date_from'));
-         }
+            return view('admin.v2.categories.create', compact('company'));
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.index')
+                ->with('message', 'Error al cargar el formulario de creación')
+                ->with('icons', 'error');
+        }
+    }
 
-         if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->input('date_to'));
-         }
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request, CategoryService $categoryService)
+    {
+        $validated = $request->validate(
+            $categoryService->rulesForCreate(Auth::user()->company_id),
+            $categoryService->validationMessages()
+        );
 
-         // Filtro por cantidad de productos
-         if ($request->filled('products_min')) {
-            $query->having('products_count', '>=', $request->input('products_min'));
-         }
+        try {
+            DB::beginTransaction();
 
-         if ($request->filled('products_max')) {
-            $query->having('products_count', '<=', $request->input('products_max'));
-         }
+            $categoryService->createCategory((int) Auth::user()->company_id, $validated);
 
-         // Paginación del lado del servidor
-         $categories = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
+            DB::commit();
 
-         // Aplicar paginación inteligente
-         $categories = $this->generateSmartPagination($categories, 2);
+            // Verificar si hay una URL de referencia guardada
+            $referrerUrl = session('categories_referrer');
+            if ($referrerUrl) {
+                // Limpiar la session
+                session()->forget('categories_referrer');
 
-         // Calcular estadísticas para el dashboard
-         $totalCategories = Category::where('company_id', $company->id)->count();
-         $activeCategories = $totalCategories; // Todas las categorías están activas
-         $weeklyCategories = Category::where('company_id', $company->id)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
-         $categoriesWithProducts = Category::where('company_id', $company->id)
-            ->whereHas('products')
-            ->count();
+                return redirect($referrerUrl)
+                    ->with('message', 'Categoría creada exitosamente')
+                    ->with('icons', 'success');
+            }
 
-         // Optimización de gates - verificar permisos una sola vez
-         $permissions = [
-            'categories.report' => Gate::allows('categories.report'),
-            'categories.create' => Gate::allows('categories.create'),
-            'categories.show' => Gate::allows('categories.show'),
-            'categories.edit' => Gate::allows('categories.edit'),
-            'categories.destroy' => Gate::allows('categories.destroy'),
-         ];
+            // Fallback: redirigir a la lista de categorías
+            return redirect()->route('admin.categories.index')
+                ->with('message', 'Categoría creada exitosamente')
+                ->with('icons', 'success');
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-         return view('admin.categories.index', compact(
-            'categories',
-            'totalCategories',
-            'activeCategories',
-            'weeklyCategories',
-            'categoriesWithProducts',
-            'company',
-            'permissions'
-         ));
-      } catch (\Exception $e) {
-         return redirect()->back()
-            ->with('message', 'Error al cargar las categorías')
-            ->with('icons', 'error');
-      }
-   }
+            return redirect()->back()
+                ->with('message', 'Error al crear la categoría: '.$e->getMessage())
+                ->with('icons', 'error')
+                ->withInput();
+        }
+    }
 
-   /**
-    * Show the form for creating a new resource.
-    */
-   public function create(Request $request)
-   {
-      try {
-         $company = $this->company;
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Request $request, $id)
+    {
+        $company = $this->company;
+        $category = Category::where('id', $id)->where('company_id', $company->id)->firstOrFail();
 
-         // Capturar la URL de referencia para redirección posterior
-         $referrerUrl = $request->header('referer');
-         if ($referrerUrl && !str_contains($referrerUrl, 'categories/create')) {
+        // Capturar la URL de referencia para redirección posterior
+        $referrerUrl = $request->header('referer');
+        if ($referrerUrl && ! str_contains($referrerUrl, 'categories/edit')) {
             session(['categories_referrer' => $referrerUrl]);
-         }
+        }
 
-         return view('admin.categories.create', compact('company'));
-      } catch (\Exception $e) {
-         return redirect()->route('admin.categories.index')
-            ->with('message', 'Error al cargar el formulario de creación')
-            ->with('icons', 'error');
-      }
-   }
+        return view('admin.v2.categories.edit', compact('category', 'company'));
+    }
 
-   /**
-    * Store a newly created resource in storage.
-    */
-   public function store(Request $request)
-   {
-      // Validación del request
-      $validated = $request->validate([
-         'name' => [
-            'required',
-            'string',
-            'max:255',
-            'unique:categories,name',
-            // Asegura que el nombre solo contenga letras, números, espacios y guiones
-            'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s-]+$/',
-         ],
-         'description' => [
-            'nullable',
-            'string',
-            'max:255'
-         ]
-      ], [
-         'name.required' => 'El nombre de la categoría es obligatorio',
-         'name.string' => 'El nombre debe ser una cadena de texto',
-         'name.max' => 'El nombre no puede exceder los 255 caracteres',
-         'name.unique' => 'Ya existe una categoría con este nombre',
-         'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
-         'description.string' => 'La descripción debe ser una cadena de texto',
-         'description.max' => 'La descripción no puede exceder los 255 caracteres',
-      ]);
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id, CategoryService $categoryService)
+    {
+        $category = Category::where('id', $id)
+            ->where('company_id', Auth::user()->company_id)
+            ->firstOrFail();
 
-      try {
-         DB::beginTransaction();
+        $validated = $request->validate(
+            $categoryService->rulesForUpdate($category, (int) Auth::user()->company_id),
+            $categoryService->validationMessages()
+        );
 
-         // Limpieza y formateo del nombre
-         $categoryName = trim($validated['name']);
+        try {
+            DB::beginTransaction();
 
-         // Crear la categoría
-         $category = Category::create([
-            'name' => $categoryName,
-            'description' => $validated['description'] ?? null,
-            'company_id' => Auth::user()->company_id,
-         ]);
+            $categoryService->updateCategory($category, (int) Auth::user()->company_id, $validated);
 
-         DB::commit();
+            DB::commit();
 
-         // Verificar si hay una URL de referencia guardada
-         $referrerUrl = session('categories_referrer');
-         if ($referrerUrl) {
-            // Limpiar la session
-            session()->forget('categories_referrer');
+            // Verificar si hay una URL de referencia guardada
+            $referrerUrl = session('categories_referrer');
+            if ($referrerUrl) {
+                // Limpiar la session
+                session()->forget('categories_referrer');
 
-            return redirect($referrerUrl)
-               ->with('message', 'Categoría creada exitosamente')
-               ->with('icons', 'success');
-         }
+                return redirect($referrerUrl)
+                    ->with('message', 'Categoría actualizada exitosamente')
+                    ->with('icons', 'success');
+            }
 
-         // Fallback: redirigir a la lista de categorías
-         return redirect()->route('admin.categories.index')
-            ->with('message', 'Categoría creada exitosamente')
-            ->with('icons', 'success');
-      } catch (\Exception $e) {
-         DB::rollBack();
+            // Fallback: redirigir a la lista de categorías
+            return redirect()->route('admin.categories.index')
+                ->with('message', 'Categoría actualizada exitosamente')
+                ->with('icons', 'success');
+        } catch (\Exception $e) {
+            DB::rollBack();
 
+            return redirect()->back()
+                ->with('message', 'Error al actualizar la categoría')
+                ->with('icons', 'error')
+                ->withInput();
+        }
+    }
 
-         return redirect()->back()
-            ->with('message', 'Error al crear la categoría: ' . $e->getMessage())
-            ->with('icons', 'error')
-            ->withInput();
-      }
-   }
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        try {
+            $category = Category::withCount('products')
+                ->where('company_id', Auth::user()->company_id)
+                ->findOrFail($id);
 
-   /**
-    * Show the form for editing the specified resource.
-    */
-   public function edit(Request $request, $id)
-   {
-      $company = $this->company;
-      $category = Category::where('id', $id)->where('company_id', $company->id)->first();
+            // Verificar si la categoría tiene productos asociados
+            if ($category->products_count > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No se puede eliminar la categoría porque tiene productos asociados',
+                    'products_count' => $category->products_count,
+                ], 200);
+            }
 
-      // Capturar la URL de referencia para redirección posterior
-      $referrerUrl = $request->header('referer');
-      if ($referrerUrl && !str_contains($referrerUrl, 'categories/edit')) {
-         session(['categories_referrer' => $referrerUrl]);
-      }
+            $category->delete();
 
-      return view('admin.categories.edit', compact('category', 'company'));
-   }
-
-   /**
-    * Update the specified resource in storage.
-    */
-   public function update(Request $request, $id)
-   {
-      $category = Category::findOrFail($id);
-
-      // Validación del request
-      $validated = $request->validate([
-         'name' => [
-            'required',
-            'string',
-            'max:255',
-            Rule::unique('categories')->ignore($category->id)->where(function ($query) {
-               return $query->where('company_id', Auth::user()->company_id);
-            }),
-            'regex:/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s-]+$/',
-         ],
-         'description' => [
-            'nullable',
-            'string',
-            'max:255'
-         ]
-      ], [
-         'name.required' => 'El nombre de la categoría es obligatorio',
-         'name.string' => 'El nombre debe ser una cadena de texto',
-         'name.max' => 'El nombre no puede exceder los 255 caracteres',
-         'name.unique' => 'Ya existe una categoría con este nombre en tu empresa',
-         'name.regex' => 'El nombre solo puede contener letras, números, espacios y guiones',
-         'description.string' => 'La descripción debe ser una cadena de texto',
-         'description.max' => 'La descripción no puede exceder los 255 caracteres',
-      ]);
-
-      try {
-         DB::beginTransaction();
-
-         $categoryName = trim($validated['name']);
-
-         // Actualizar la categoría
-         $category->update([
-            'name' => $categoryName,
-            'description' => $validated['description'] ?? null,
-
-         ]);
-
-         DB::commit();
-
-         // Verificar si hay una URL de referencia guardada
-         $referrerUrl = session('categories_referrer');
-         if ($referrerUrl) {
-            // Limpiar la session
-            session()->forget('categories_referrer');
-
-            return redirect($referrerUrl)
-               ->with('message', 'Categoría actualizada exitosamente')
-               ->with('icons', 'success');
-         }
-
-         // Fallback: redirigir a la lista de categorías
-         return redirect()->route('admin.categories.index')
-            ->with('message', 'Categoría actualizada exitosamente')
-            ->with('icons', 'success');
-      } catch (\Exception $e) {
-         DB::rollBack();
-
-
-         return redirect()->back()
-            ->with('message', 'Error al actualizar la categoría')
-            ->with('icons', 'error')
-            ->withInput();
-      }
-   }
-
-   /**
-    * Remove the specified resource from storage.
-    */
-   public function destroy($id)
-   {
-      try {
-         $category = Category::withCount('products')->findOrFail($id);
-
-         // Verificar si la categoría tiene productos asociados
-         if ($category->products_count > 0) {
             return response()->json([
-               'status' => 'error',
-               'message' => 'No se puede eliminar la categoría porque tiene productos asociados',
-               'products_count' => $category->products_count
-            ], 200);
-         }
+                'status' => 'success',
+                'message' => 'Categoría eliminada exitosamente',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar la categoría',
+            ], 500);
+        }
+    }
 
-         $category->delete();
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        try {
+            $category = Category::where('company_id', Auth::user()->company_id)->findOrFail($id);
 
-         return response()->json([
-            'status' => 'success',
-            'message' => 'Categoría eliminada exitosamente'
-         ]);
-      } catch (\Exception $e) {
-         return response()->json([
-            'status' => 'error',
-            'message' => 'Error al eliminar la categoría'
-         ], 500);
-      }
-   }
+            return response()->json([
+                'status' => 'success',
+                'category' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'description' => $category->formattedDescription,
+                    'created_at' => $category->created_at->format('d/m/Y H:i'),
+                    'updated_at' => $category->updated_at->format('d/m/Y H:i'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener los datos de la categoría',
+            ], 500);
+        }
+    }
 
-   /**
-    * Display the specified resource.
-    */
-   public function show($id)
-   {
-      try {
-         $category = Category::findOrFail($id);
-         return response()->json([
-            'status' => 'success',
-            'category' => [
-               'id' => $category->id,
-               'name' => $category->name,
-               'description' => $category->formattedDescription,
-               'created_at' => $category->created_at->format('d/m/Y H:i'),
-               'updated_at' => $category->updated_at->format('d/m/Y H:i')
-            ]
-         ]);
-      } catch (\Exception $e) {
-         return response()->json([
-            'status' => 'error',
-            'message' => 'Error al obtener los datos de la categoría'
-         ], 500);
-      }
-   }
+    public function report(Request $request)
+    {
+        $company = Company::find(Auth::user()->company_id);
+        $categories = Category::withCount('products')
+            ->where('company_id', $company->id)
+            ->orderByDesc('products_count')
+            ->orderBy('name', 'asc')
+            ->get();
 
-   public function report()
-   {
-      $company = Company::find($this->company->id);
-      $categories = Category::withCount('products')->where('company_id', $company->id)
-         ->orderBy('products_count', 'desc')
-         ->orderBy('name', 'asc')
-         ->get();
-      $pdf = Pdf::loadView('admin.categories.report', compact('categories', 'company'));
-      return $pdf->stream('reporte-categorias.pdf');
-   }
+        $emittedAt = now();
+        $filename = 'reporte-categorias-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+        $pdf = Pdf::loadView('pdf.categories.report', compact('categories', 'company', 'emittedAt'))
+            ->setPaper('letter', 'portrait')
+            ->setOption('enable_php', true)
+            ->addInfo([
+                'Title' => 'Informe de categorías',
+                'Author' => $company->name ?? config('app.name'),
+            ]);
+
+        if ($request->boolean('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
+    }
 }
