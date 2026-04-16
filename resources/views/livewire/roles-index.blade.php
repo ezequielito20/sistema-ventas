@@ -256,7 +256,7 @@
 
             @if ($roles->hasPages())
                 <div class="border-t border-slate-700/50 px-4 py-3">
-                    {{ $roles->onEachSide(1)->links('vendor.pagination.tailwind') }}
+                    <x-ui.pagination :paginator="$roles->onEachSide(1)" />
                 </div>
             @endif
         </div>

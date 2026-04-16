@@ -1,23 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\CashCountController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\DashboardController;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DebtPaymentController;
 use App\Http\Controllers\ExchangeRateController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UserController;
+use Barryvdh\Debugbar\Controllers\AssetController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // Ruta pública para pedidos de clientes
 // Ruta pública para pedidos de clientes, muestra la vista 'public.order-system'
@@ -53,7 +54,6 @@ Route::post('/create-company', [CompanyController::class, 'store'])->name('admin
 
 Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
-
 
 // Rutas para reportes
 Route::get('/users/report', [UserController::class, 'report'])->name('admin.users.report')->middleware(['auth', 'can:users.report']);
@@ -136,25 +136,25 @@ Route::put('/customers/edit/{id}', [CustomerController::class, 'update'])->name(
 Route::delete('/customers/delete/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy')->middleware(['auth', 'can:customers.destroy']);
 Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('admin.customers.show')->middleware(['auth', 'can:customers.show']);
 Route::post('/admin/customers/{customer}/update-debt', [CustomerController::class, 'updateDebt'])->name('admin.customers.update-debt');
-Route::get('/admin/customers/debt-report', [App\Http\Controllers\CustomerController::class, 'debtReportModal'])
+Route::get('/admin/customers/debt-report', [CustomerController::class, 'debtReportModal'])
     ->name('admin.customers.debt-report');
-Route::get('/admin/customers/debt-report/download', [App\Http\Controllers\CustomerController::class, 'debtReport'])
+Route::get('/admin/customers/debt-report/download', [CustomerController::class, 'debtReport'])
     ->name('admin.customers.debt-report.download');
-Route::get('/admin/customers/test-pdf', [App\Http\Controllers\CustomerController::class, 'testPdf'])
+Route::get('/admin/customers/test-pdf', [CustomerController::class, 'testPdf'])
     ->name('admin.customers.test-pdf');
-Route::post('/admin/customers/{customer}/register-payment', [App\Http\Controllers\CustomerController::class, 'registerDebtPayment'])
+Route::post('/admin/customers/{customer}/register-payment', [CustomerController::class, 'registerDebtPayment'])
     ->name('admin.customers.register-payment');
-Route::post('/admin/customers/{customer}/register-payment-ajax', [App\Http\Controllers\CustomerController::class, 'registerDebtPaymentAjax'])
+Route::post('/admin/customers/{customer}/register-payment-ajax', [CustomerController::class, 'registerDebtPaymentAjax'])
     ->name('admin.customers.register-payment-ajax');
-Route::get('/admin/customers/{customer}/payment-data', [App\Http\Controllers\CustomerController::class, 'getCustomerPaymentData'])
+Route::get('/admin/customers/{customer}/payment-data', [CustomerController::class, 'getCustomerPaymentData'])
     ->name('admin.customers.payment-data');
-Route::get('/admin/customers/{customer}/sales-history', [App\Http\Controllers\CustomerController::class, 'getCustomerSalesHistory'])
+Route::get('/admin/customers/{customer}/sales-history', [CustomerController::class, 'getCustomerSalesHistory'])
     ->name('admin.customers.sales-history');
-Route::get('/admin/customers/payment-history', [App\Http\Controllers\CustomerController::class, 'paymentHistory'])
+Route::get('/admin/customers/payment-history', [CustomerController::class, 'paymentHistory'])
     ->name('admin.customers.payment-history');
-Route::get('/admin/customers/payment-history/export', [App\Http\Controllers\CustomerController::class, 'exportPaymentHistory'])
+Route::get('/admin/customers/payment-history/export', [CustomerController::class, 'exportPaymentHistory'])
     ->name('admin.customers.payment-history.export');
-Route::delete('/admin/customers/payment-history/{payment}', [App\Http\Controllers\CustomerController::class, 'deletePayment'])
+Route::delete('/admin/customers/payment-history/{payment}', [CustomerController::class, 'deletePayment'])
     ->name('admin.customers.payment.delete');
 
 // Tasa de Cambio BCV
@@ -197,7 +197,6 @@ Route::get('/cash-counts/{id}/sales', [CashCountController::class, 'getSales'])-
 Route::get('/cash-counts/{id}/purchases', [CashCountController::class, 'getPurchases'])->name('admin.cash-counts.purchases')->middleware(['auth', 'can:cash-counts.show']);
 Route::get('/cash-counts/{id}/products', [CashCountController::class, 'getProducts'])->name('admin.cash-counts.products')->middleware(['auth', 'can:cash-counts.show']);
 
-
 // Permissions
 Route::get('/permissions', [PermissionController::class, 'index'])->name('admin.permissions.index')->middleware(['auth', 'can:permissions.index']);
 Route::get('/permissions/create', [PermissionController::class, 'create'])->name('admin.permissions.create')->middleware(['auth', 'can:permissions.create']);
@@ -216,36 +215,40 @@ Route::prefix('admin/debt-payments')->middleware(['auth'])->group(function () {
 
 // Rutas para manejo de pedidos (Admin)
 Route::prefix('admin/orders')->middleware(['auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders.index');
-    Route::get('/{order}', [App\Http\Controllers\OrderController::class, 'show'])->name('admin.orders.show');
-    Route::post('/{order}/process', [App\Http\Controllers\OrderController::class, 'process'])->name('admin.orders.process');
-    Route::post('/{order}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('admin.orders.cancel');
+    Route::get('/', [OrderController::class, 'index'])->name('admin.orders.index');
+    Route::get('/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+    Route::post('/{order}/process', [OrderController::class, 'process'])->name('admin.orders.process');
+    Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->name('admin.orders.cancel');
 });
 
 // Rutas para notificaciones (Admin)
 Route::prefix('admin/notifications')->middleware(['auth'])->group(function () {
-    Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('admin.notifications.index');
-    Route::post('/{notification}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
-    Route::get('/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
-    Route::get('/recent', [App\Http\Controllers\NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
-    Route::post('/{notification}/mark-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
-    Route::post('/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
+    Route::get('/', [NotificationController::class, 'index'])->name('admin.notifications.index');
+    Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+    Route::get('/unread-count', [NotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
+    Route::get('/recent', [NotificationController::class, 'getRecentNotifications'])->name('admin.notifications.recent');
+    Route::post('/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
+    Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-read');
 });
 
-// Rutas de Debugbar (solo cuando esté habilitada)
-if (config('app.debug') && config('debugbar.enabled')) {
+// Rutas de Debugbar (solo si el paquete está instalado; compatible con Laravel 13 sin barryvdh/laravel-debugbar)
+if (
+    class_exists(AssetController::class)
+    && config('app.debug')
+    && config('debugbar.enabled')
+) {
     Route::get('_debugbar/assets/stylesheets', [
         'as' => 'debugbar.assets.css',
-        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css'
+        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@css',
     ]);
 
     Route::get('_debugbar/assets/javascript', [
         'as' => 'debugbar.assets.js',
-        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@js'
+        'uses' => '\Barryvdh\Debugbar\Controllers\AssetController@js',
     ]);
 
     Route::get('_debugbar/open', [
         'as' => 'debugbar.open',
-        'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle'
+        'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle',
     ]);
 }

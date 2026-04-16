@@ -277,7 +277,7 @@
     <!-- Paginación -->
     @if($sales->hasPages())
         <div class="px-6 py-4 border-t border-gray-200">
-            {{ $sales->links() }}
+            <x-ui.pagination :paginator="$sales->onEachSide(1)" />
         </div>
     @endif
 

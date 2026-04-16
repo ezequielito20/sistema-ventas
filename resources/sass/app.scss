@@ -1005,6 +1005,58 @@
         color: #f8fafc;
         box-shadow: 0 8px 16px rgba(59, 130, 246, 0.22);
     }
+
+    button.ui-page-link {
+        cursor: pointer;
+        font: inherit;
+        appearance: none;
+    }
+
+    .ui-page-link[disabled],
+    span.ui-page-link[aria-disabled='true'] {
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .ui-pagination--segmented {
+        gap: 0;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(15, 23, 42, 0.72);
+        box-shadow: 0 4px 14px rgba(2, 6, 23, 0.35);
+    }
+
+    .ui-pagination--segmented .ui-page-link {
+        min-width: 2.35rem;
+        height: 2.35rem;
+        border-radius: 0;
+        border: 0;
+        border-right: 1px solid rgba(148, 163, 184, 0.22);
+        margin: 0;
+    }
+
+    .ui-pagination--segmented .ui-page-link:last-child {
+        border-right: 0;
+    }
+
+    .ui-pagination--segmented .ui-page-link--edge {
+        min-width: 2.5rem;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .ui-pagination--segmented .ui-page-link--ellipsis {
+        min-width: 2.1rem;
+        cursor: default;
+        border-right: 1px solid rgba(148, 163, 184, 0.22);
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .ui-pagination--segmented .ui-page-link:hover:not(.is-active):not([aria-disabled='true']) {
+        transform: none;
+        background: rgba(148, 163, 184, 0.1);
+    }
 }
 
 @layer utilities {
