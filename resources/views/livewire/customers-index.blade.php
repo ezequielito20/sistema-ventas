@@ -18,7 +18,7 @@
                     <button
                         type="button"
                         class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
-                        @click="openDebtReport()"
+                        @click="openDebtReportV2()"
                     >
                         <i class="fas fa-file-invoice-dollar"></i> Deudas
                     </button>
@@ -617,6 +617,7 @@
     @endif
 
     @include('admin.v2.customers.partials.customer-details-modal', ['currency' => $currency])
+    @include('admin.v2.customers.partials.debt-report-modal', ['currency' => $currency])
     @include('admin.customers.partials.index-modals', ['currency' => $currency])
 </div>
 
