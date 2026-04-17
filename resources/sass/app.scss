@@ -1415,6 +1415,38 @@
             color: #fb923c !important;
         }
 
+        #v2DebtReportPagination .text-gray-600 {
+            color: #94a3b8 !important;
+        }
+
+        #v2DebtReportPagination .text-gray-900 {
+            color: #e2e8f0 !important;
+        }
+
+        #v2DebtReportPagination a[data-page] {
+            border-color: rgba(71, 85, 105, 0.7) !important;
+            background: rgba(15, 23, 42, 0.75) !important;
+            color: #cbd5e1 !important;
+        }
+
+        #v2DebtReportPagination a[data-page]:hover {
+            border-color: rgba(6, 182, 212, 0.55) !important;
+            background: rgba(8, 47, 73, 0.55) !important;
+            color: #e2e8f0 !important;
+        }
+
+        #v2DebtReportPagination span.border-gray-200.bg-gray-100 {
+            border-color: rgba(71, 85, 105, 0.6) !important;
+            background: rgba(15, 23, 42, 0.45) !important;
+            color: #64748b !important;
+        }
+
+        #v2DebtReportPagination span.border-indigo-200.bg-indigo-600 {
+            border-color: rgba(56, 189, 248, 0.55) !important;
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.95), rgba(30, 64, 175, 0.92)) !important;
+            color: #f8fafc !important;
+        }
+
         @media (max-width: 640px) {
             #v2DebtReportTable table,
             .debt-report-modal-v2__table {

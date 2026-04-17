@@ -7,6 +7,7 @@ window.modalManagerV2 = function () {
         showCustomerModalV2: false,
         debtReportModalV2: false,
         v2FiltersOpen: false,
+        v2DebtReportPage: 1,
         customerSalesDataV2: [],
 
         openCustomerDetailsModal(customerId) {
@@ -207,6 +208,7 @@ window.modalManagerV2 = function () {
         openDebtReportV2() {
             this.debtReportModalV2 = true;
             this.v2FiltersOpen = false;
+            this.v2DebtReportPage = 1;
             document.body.style.overflow = 'hidden';
             this.setDebtReportTimestampV2();
             this.bindDebtRateSyncEventsV2();
@@ -221,6 +223,7 @@ window.modalManagerV2 = function () {
         closeDebtReportV2() {
             this.debtReportModalV2 = false;
             this.v2FiltersOpen = false;
+            this.v2DebtReportPage = 1;
             this.resetDebtReportFiltersV2(false);
             document.body.style.overflow = 'auto';
         },
@@ -255,6 +258,7 @@ window.modalManagerV2 = function () {
             if (filters.debt_type) url.searchParams.set('debt_type', filters.debt_type);
             if (filters.date_from) url.searchParams.set('date_from', filters.date_from);
             if (filters.date_to) url.searchParams.set('date_to', filters.date_to);
+            url.searchParams.set('page', String(filters.page || this.v2DebtReportPage || 1));
 
             return url;
         },
@@ -267,6 +271,7 @@ window.modalManagerV2 = function () {
                 date_from: document.getElementById('v2DateFromFilter')?.value || '',
                 date_to: document.getElementById('v2DateToFilter')?.value || '',
                 exchange_rate: parseFloat(document.getElementById('v2ModalExchangeRate')?.value || this.resolveCurrentExchangeRateV2()),
+                page: this.v2DebtReportPage || 1,
             };
         },
 
@@ -500,13 +505,19 @@ window.modalManagerV2 = function () {
             const activeFilters = filters || this.getDebtReportFiltersV2();
             const statsRoot = document.getElementById('v2DebtReportStats');
             const tableRoot = document.getElementById('v2DebtReportTable');
+            const paginationRoot = document.getElementById('v2DebtReportPagination');
             const companyName = document.getElementById('v2DebtCompanyName');
+
+            this.v2DebtReportPage = parseInt(activeFilters.page || this.v2DebtReportPage || 1, 10);
 
             if (statsRoot) {
                 statsRoot.innerHTML = '<div class="py-8 text-center text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando resumen...</div>';
             }
             if (tableRoot) {
                 tableRoot.innerHTML = '<div class="py-10 text-center text-slate-400"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando tabla...</div>';
+            }
+            if (paginationRoot) {
+                paginationRoot.innerHTML = '';
             }
 
             try {
@@ -524,10 +535,12 @@ window.modalManagerV2 = function () {
 
                 const incomingStats = doc.getElementById('debtReportStats');
                 const incomingTable = doc.getElementById('debtReportTable');
+                const incomingPagination = doc.getElementById('debtReportPagination');
                 const incomingCompanyName = doc.querySelector('h6.font-semibold.text-gray-900');
 
                 if (statsRoot && incomingStats) statsRoot.innerHTML = incomingStats.innerHTML;
                 if (tableRoot && incomingTable) tableRoot.innerHTML = incomingTable.innerHTML;
+                if (paginationRoot) paginationRoot.innerHTML = incomingPagination ? incomingPagination.innerHTML : '';
                 if (companyName && incomingCompanyName) companyName.textContent = incomingCompanyName.textContent?.trim() || 'Empresa';
 
                 this.applyDebtReportStylesV2();
@@ -566,7 +579,10 @@ window.modalManagerV2 = function () {
             let timer;
             const applyDebounced = () => {
                 clearTimeout(timer);
-                timer = setTimeout(() => this.loadDebtReportV2(this.getDebtReportFiltersV2()), 320);
+                timer = setTimeout(() => {
+                    this.v2DebtReportPage = 1;
+                    this.loadDebtReportV2(this.getDebtReportFiltersV2());
+                }, 320);
             };
 
             [search, order, debtType, dateFrom, dateTo].forEach((el) => {
@@ -603,6 +619,7 @@ window.modalManagerV2 = function () {
 
                     this.syncExchangeRateAcrossWidgetsV2(freshRate);
                     this.updateModalBsValuesV2(freshRate);
+                    this.v2DebtReportPage = 1;
                     this.loadDebtReportV2(this.getDebtReportFiltersV2());
 
                     if (window.uiNotifications && typeof window.uiNotifications.showToast === 'function') {
@@ -631,6 +648,19 @@ window.modalManagerV2 = function () {
                 }
             });
             bindOnce(pdfBtn, 'click', () => this.downloadDebtReportPdfV2());
+
+            const paginationRoot = document.getElementById('v2DebtReportPagination');
+            if (paginationRoot) {
+                paginationRoot.querySelectorAll('a[data-page]').forEach((link) => {
+                    bindOnce(link, 'click', (event) => {
+                        event.preventDefault();
+                        const targetPage = parseInt(link.dataset.page || '1', 10);
+                        if (Number.isNaN(targetPage) || targetPage < 1) return;
+                        this.v2DebtReportPage = targetPage;
+                        this.loadDebtReportV2(this.getDebtReportFiltersV2());
+                    });
+                });
+            }
         },
 
         resetDebtReportFiltersV2(reload = true) {
@@ -645,6 +675,8 @@ window.modalManagerV2 = function () {
                 const el = document.getElementById(id);
                 if (el) el.value = value;
             });
+
+            this.v2DebtReportPage = 1;
 
             if (reload) {
                 this.loadDebtReportV2(this.getDebtReportFiltersV2());

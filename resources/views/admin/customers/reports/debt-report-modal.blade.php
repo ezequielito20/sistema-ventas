@@ -264,7 +264,8 @@
                 <tbody>
                     @foreach ($customers as $index => $customer)
                         <tr class="hover:bg-gray-50 transition-colors duration-200">
-                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">{{ $index + 1 }}
+                            <td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-100">
+                                {{ ($customers->firstItem() ?? 0) + $index }}
                             </td>
                             <td class="px-4 py-3 border-b border-gray-100">
                                 <div class="flex items-center space-x-2">
@@ -307,6 +308,60 @@
             </table>
         </div>
     </div>
+
+    @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator && $customers->hasPages())
+        <div id="debtReportPagination" class="mt-4 px-2 pb-1 sm:px-0">
+            <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                <p class="text-xs text-slate-400 sm:text-sm">
+                    Mostrando
+                    <span class="font-semibold text-slate-100">{{ $customers->firstItem() }}</span>
+                    a
+                    <span class="font-semibold text-slate-100">{{ $customers->lastItem() }}</span>
+                    de
+                    <span class="font-semibold text-slate-100">{{ $customers->total() }}</span>
+                    resultados
+                </p>
+
+                <div class="flex items-center gap-2 min-w-0">
+                    @if ($customers->onFirstPage())
+                        <span class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-600/60 bg-slate-800/55 px-3 text-sm text-slate-500">
+                            <i class="fas fa-chevron-left text-[0.68rem]"></i>
+                        </span>
+                    @else
+                        <a href="{{ $customers->previousPageUrl() }}" data-page="{{ $customers->currentPage() - 1 }}" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-600 bg-slate-900/70 px-3 text-sm text-slate-200 transition hover:border-cyan-500/55 hover:bg-cyan-500/10 hover:text-cyan-100">
+                            <i class="fas fa-chevron-left text-[0.68rem]"></i>
+                        </a>
+                    @endif
+
+                    <div class="min-w-0 flex-1 overflow-x-auto">
+                        <div class="inline-flex min-w-max items-center gap-1.5 pr-1">
+                            @if (isset($customers->smartLinks) && is_array($customers->smartLinks))
+                                @foreach ($customers->smartLinks as $link)
+                                    @if ($link['isSeparator'])
+                                        <span class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg px-2 text-sm text-slate-500">…</span>
+                                    @elseif ($link['active'])
+                                        <span class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-cyan-400/55 bg-gradient-to-br from-cyan-500 to-blue-600 px-3 text-sm font-semibold text-white shadow-[0_0_16px_rgba(34,211,238,0.28)]">{{ $link['label'] }}</span>
+                                    @else
+                                        <a href="{{ $link['url'] }}" data-page="{{ $link['page'] }}" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-600 bg-slate-900/70 px-3 text-sm text-slate-200 transition hover:border-cyan-500/55 hover:bg-cyan-500/10 hover:text-cyan-100">{{ $link['label'] }}</a>
+                                    @endif
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($customers->hasMorePages())
+                        <a href="{{ $customers->nextPageUrl() }}" data-page="{{ $customers->currentPage() + 1 }}" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-600 bg-slate-900/70 px-3 text-sm text-slate-200 transition hover:border-cyan-500/55 hover:bg-cyan-500/10 hover:text-cyan-100">
+                            <i class="fas fa-chevron-right text-[0.68rem]"></i>
+                        </a>
+                    @else
+                        <span class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg border border-slate-600/60 bg-slate-800/55 px-3 text-sm text-slate-500">
+                            <i class="fas fa-chevron-right text-[0.68rem]"></i>
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Footer del Modal -->

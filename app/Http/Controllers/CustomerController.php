@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -1142,7 +1143,7 @@ class CustomerController extends Controller
                 }
             }
 
-            // Usar los clientes filtrados para las estadísticas
+            // Usar los clientes filtrados para las estadísticas y listado
             $customers = $filteredCustomers;
 
             // Aplicar ordenamiento final sobre la colección filtrada
@@ -1168,6 +1169,24 @@ class CustomerController extends Controller
                 $customers = $customers->sortByDesc('total_debt')->values();
             }
 
+            // Paginación del listado (sin afectar estadísticas globales)
+            $perPage = max(1, (int) $request->get('per_page', 10));
+            $currentPage = max(1, (int) $request->get('page', 1));
+            $totalCustomersFiltered = $customers->count();
+
+            $customers = new LengthAwarePaginator(
+                $customers->forPage($currentPage, $perPage)->values(),
+                $totalCustomersFiltered,
+                $perPage,
+                $currentPage,
+                [
+                    'path' => url('/admin/customers/debt-report'),
+                    'query' => $request->query(),
+                ]
+            );
+
+            $customers = $this->generateSmartPagination($customers, 2);
+
             // Inicializar variables de estadísticas
             $defaultersCount = 0;
             $currentDebtorsCount = 0;
@@ -1189,7 +1208,7 @@ class CustomerController extends Controller
 
             $company = $this->company;
             $currency = $this->currencies;
-            $totalDebt = $customers->sum('total_debt');
+            $totalDebt = $filteredCustomers->sum('total_debt');
             $exchangeRate = request('exchange_rate', ExchangeRate::current());
 
             // Verificar si es una petición AJAX

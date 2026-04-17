@@ -141,6 +141,8 @@
                         <i class="fas fa-spinner fa-spin mr-2"></i> Cargando tabla...
                     </div>
                 </section>
+
+                <section id="v2DebtReportPagination" class="mt-3"></section>
             </div>
 
             <div class="flex justify-end border-t border-slate-700 bg-slate-900/95 px-4 py-3 sm:px-6">
