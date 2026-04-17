@@ -5,7 +5,7 @@
 <div
     class="customers-index-v2 space-y-6"
     wire:key="customers-index-root"
-    x-data="modalManager()"
+    x-data="modalManagerV2()"
 >
     <div class="ui-panel">
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -413,7 +413,7 @@
                                                         type="button"
                                                         class="ui-icon-action ui-icon-action--info"
                                                         title="Ver detalles"
-                                                        @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})"
+                                                        @click="openCustomerDetailsModal({{ $customer->id }})"
                                                     >
                                                         <i class="fas fa-eye"></i>
                                                     </button>
@@ -531,7 +531,7 @@
                                     <button
                                         type="button"
                                         class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none sm:text-sm"
-                                        @click="openModal('showCustomerModal'); loadCustomerDetails({{ $customer->id }})"
+                                        @click="openCustomerDetailsModal({{ $customer->id }})"
                                     >
                                         <i class="fas fa-eye"></i> Ver
                                     </button>
@@ -616,6 +616,7 @@
         </div>
     @endif
 
+    @include('admin.v2.customers.partials.customer-details-modal', ['currency' => $currency])
     @include('admin.customers.partials.index-modals', ['currency' => $currency])
 </div>
 
@@ -656,5 +657,6 @@
         <script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
         <script src="{{ asset('js/admin/customers/index.js') }}" defer></script>
         <script src="{{ asset('js/admin/customers/modals.js') }}" defer></script>
+        <script src="{{ asset('js/admin/customers/modals-v2.js') }}" defer></script>
     @endpush
 @endonce
