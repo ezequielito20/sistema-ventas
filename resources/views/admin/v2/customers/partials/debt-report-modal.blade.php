@@ -1,7 +1,8 @@
 <div
     x-show="debtReportModalV2"
     x-cloak
-    class="fixed inset-0 z-[75] overflow-y-auto debt-report-modal-v2"
+    class="fixed inset-0 z-[75] debt-report-modal-v2"
+    style="overflow: hidden;"
     x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
@@ -11,9 +12,13 @@
 >
     <div class="fixed inset-0 bg-[#020617]/90 backdrop-blur-sm" @click="closeDebtReportV2()"></div>
 
-    <div class="flex min-h-screen items-center justify-center overflow-y-auto p-1.5 sm:p-4">
+    <div
+        class="flex h-full items-center justify-center p-3 sm:p-4"
+        style="padding-top: max(1rem, env(safe-area-inset-top)); padding-bottom: max(1rem, env(safe-area-inset-bottom));"
+    >
         <div
-            class="relative my-0 flex h-[calc(100dvh-0.75rem)] w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-slate-600/80 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
+            class="relative my-0 flex w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-slate-600/80 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75)] sm:rounded-2xl"
+            style="height: min(940px, calc(100dvh - 2rem));"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
