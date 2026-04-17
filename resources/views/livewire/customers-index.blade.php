@@ -388,7 +388,7 @@
                                                         type="button"
                                                         class="ui-icon-action ui-icon-action--success"
                                                         title="Registrar pago"
-                                                        onclick="spaPaymentHandler.openPaymentModal({{ $customer->id }})"
+                                                        onclick="spaPaymentHandlerV2.openPaymentModal({{ $customer->id }})"
                                                     >
                                                         <i class="fas fa-dollar-sign"></i>
                                                     </button>
@@ -545,7 +545,7 @@
                                     <button
                                         type="button"
                                         class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none sm:text-sm"
-                                        onclick="spaPaymentHandler.openPaymentModal({{ $customer->id }})"
+                                        onclick="spaPaymentHandlerV2.openPaymentModal({{ $customer->id }})"
                                     >
                                         <i class="fas fa-dollar-sign"></i> Pago
                                     </button>
@@ -618,6 +618,7 @@
 
     @include('admin.v2.customers.partials.customer-details-modal', ['currency' => $currency])
     @include('admin.v2.customers.partials.debt-report-modal', ['currency' => $currency])
+    @include('admin.v2.customers.partials.debt-payment-modal', ['currency' => $currency])
     @include('admin.customers.partials.index-modals', ['currency' => $currency])
 </div>
 

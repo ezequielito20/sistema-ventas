@@ -146,10 +146,10 @@ window.modalManager = function () {
                             const statusElement = document.getElementById('customer_status');
                             if (statusElement) {
                                 if (data.is_defaulter) {
-                                    statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                                    statusElement.className = 'ui-badge ui-badge-danger';
                                     statusElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
                                 } else {
-                                    statusElement.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                                    statusElement.className = 'ui-badge ui-badge-success';
                                     statusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
                                 }
                             }

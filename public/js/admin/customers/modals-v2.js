@@ -695,3 +695,222 @@ window.modalManagerV2 = function () {
         },
     };
 };
+
+class SPAPaymentHandlerV2 {
+    constructor() {
+        this.currentCustomerId = null;
+        this.processing = false;
+        this.currentDebt = 0;
+        this.bindCoreEvents();
+    }
+
+    bindCoreEvents() {
+        const form = document.getElementById('debtPaymentFormV2');
+        const amount = document.getElementById('v2_payment_amount');
+        const maxBtn = document.getElementById('v2_max_payment_btn');
+
+        if (form && !form.dataset.boundV2Payment) {
+            form.dataset.boundV2Payment = '1';
+            form.addEventListener('submit', (event) => this.handleSubmit(event));
+        }
+
+        if (amount && !amount.dataset.boundV2Payment) {
+            amount.dataset.boundV2Payment = '1';
+            amount.addEventListener('input', () => this.updateRemainingDebt());
+        }
+
+        if (maxBtn && !maxBtn.dataset.boundV2Payment) {
+            maxBtn.dataset.boundV2Payment = '1';
+            maxBtn.addEventListener('click', () => this.setMaxPayment());
+        }
+    }
+
+    async openPaymentModal(customerId) {
+        this.bindCoreEvents();
+        this.currentCustomerId = customerId;
+
+        const modal = document.getElementById('debtPaymentModalV2');
+        if (!modal) return;
+
+        this.resetForm();
+        modal.style.display = 'block';
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        const today = new Date();
+        const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const nowTime = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+
+        const dateInput = document.getElementById('v2_payment_date');
+        const timeInput = document.getElementById('v2_payment_time');
+        if (dateInput) dateInput.value = todayDate;
+        if (timeInput) timeInput.value = nowTime;
+
+        await this.loadCustomerPaymentData(customerId);
+    }
+
+    closePaymentModal() {
+        const modal = document.getElementById('debtPaymentModalV2');
+        if (!modal) return;
+
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        this.resetForm();
+    }
+
+    resetForm() {
+        const form = document.getElementById('debtPaymentFormV2');
+        if (form) form.reset();
+
+        this.currentDebt = 0;
+        this.renderDebtValues(0, 0);
+        const customerStatus = document.getElementById('v2_customer_status');
+        if (customerStatus) customerStatus.innerHTML = '';
+    }
+
+    async loadCustomerPaymentData(customerId) {
+        try {
+            const response = await fetch(`/admin/customers/${customerId}/payment-data`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+            });
+            const data = await response.json();
+            if (!data.success) return;
+
+            const customer = data.customer || {};
+            this.currentDebt = parseFloat(customer.total_debt || 0);
+
+            const nameInput = document.getElementById('v2_customer_name');
+            const phoneInput = document.getElementById('v2_customer_phone');
+            const statusEl = document.getElementById('v2_customer_status');
+            const amountInput = document.getElementById('v2_payment_amount');
+
+            if (nameInput) nameInput.value = customer.name || 'No disponible';
+            if (phoneInput) phoneInput.value = customer.phone || 'No disponible';
+            if (amountInput) amountInput.setAttribute('data-max-debt', String(this.currentDebt));
+
+            if (statusEl) {
+                if (customer.is_defaulter) {
+                    statusEl.className = 'ui-badge ui-badge-danger';
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Moroso';
+                } else {
+                    statusEl.className = 'ui-badge ui-badge-success';
+                    statusEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Actual';
+                }
+            }
+
+            this.renderDebtValues(this.currentDebt, this.currentDebt);
+        } catch (error) {
+            // silent fallback to preserve current UX behavior
+        }
+    }
+
+    setMaxPayment() {
+        const amountInput = document.getElementById('v2_payment_amount');
+        if (!amountInput) return;
+        amountInput.value = this.currentDebt > 0 ? this.currentDebt.toFixed(2) : '';
+        this.updateRemainingDebt();
+    }
+
+    updateRemainingDebt() {
+        const amountInput = document.getElementById('v2_payment_amount');
+        const amount = parseFloat(amountInput?.value || 0);
+        const safeAmount = Number.isFinite(amount) ? amount : 0;
+        const remaining = Math.max(this.currentDebt - safeAmount, 0);
+        this.renderDebtValues(this.currentDebt, remaining);
+    }
+
+    renderDebtValues(currentDebt, remainingDebt) {
+        const currentEl = document.getElementById('v2_current_debt');
+        const remainingEl = document.getElementById('v2_remaining_debt');
+        if (currentEl) currentEl.textContent = `$${Number(currentDebt || 0).toFixed(2)}`;
+        if (remainingEl) remainingEl.textContent = `$${Number(remainingDebt || 0).toFixed(2)}`;
+    }
+
+    validateForm() {
+        const amount = parseFloat(document.getElementById('v2_payment_amount')?.value || 0);
+        const paymentDate = document.getElementById('v2_payment_date')?.value || '';
+        const paymentTime = document.getElementById('v2_payment_time')?.value || '';
+
+        if (!Number.isFinite(amount) || amount <= 0) return 'El monto debe ser mayor a 0.';
+        if (amount > this.currentDebt) return 'El monto no puede ser mayor que la deuda actual.';
+        if (!paymentDate) return 'La fecha del pago es requerida.';
+        if (!paymentTime) return 'La hora del pago es requerida.';
+
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (paymentDate > todayStr) return 'La fecha no puede ser mayor a hoy.';
+
+        return null;
+    }
+
+    getPayload() {
+        return {
+            payment_amount: parseFloat(document.getElementById('v2_payment_amount')?.value || 0),
+            payment_date: document.getElementById('v2_payment_date')?.value || '',
+            payment_time: document.getElementById('v2_payment_time')?.value || '',
+            notes: document.getElementById('v2_payment_notes')?.value || '',
+        };
+    }
+
+    async handleSubmit(event) {
+        event.preventDefault();
+        if (this.processing || !this.currentCustomerId) return;
+
+        const validationError = this.validateForm();
+        if (validationError) {
+            if (window.uiNotifications?.showToast) {
+                window.uiNotifications.showToast(validationError, { type: 'error', title: 'Validación' });
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'warning', title: 'Validación', text: validationError });
+            }
+            return;
+        }
+
+        this.processing = true;
+        const submitBtn = document.getElementById('v2_submit_payment_btn');
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(`/admin/customers/${this.currentCustomerId}/register-payment-ajax`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify(this.getPayload()),
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                const message = data.message || 'No se pudo registrar el pago.';
+                throw new Error(message);
+            }
+
+            if (window.uiNotifications?.showToast) {
+                window.uiNotifications.showToast('Pago registrado correctamente.', {
+                    type: 'success',
+                    title: 'Listo',
+                    theme: 'futuristic',
+                });
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Listo', text: 'Pago registrado correctamente.' });
+            }
+
+            this.closePaymentModal();
+            window.location.reload();
+        } catch (error) {
+            if (window.uiNotifications?.showToast) {
+                window.uiNotifications.showToast(error.message || 'Error al registrar pago.', { type: 'error', title: 'Error' });
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Error al registrar pago.' });
+            }
+        } finally {
+            this.processing = false;
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    }
+}
+
+window.spaPaymentHandlerV2 = new SPAPaymentHandlerV2();

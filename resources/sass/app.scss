@@ -1,3 +1,37 @@
+.debt-payment-modal-v2-alt {
+  .debt-payment-modal-v2-alt__input {
+    width: 100%;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(71, 85, 105, 0.9);
+    background: rgba(2, 6, 23, 0.72);
+    color: #e2e8f0;
+    padding: 0.58rem 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.2rem;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    color-scheme: dark;
+  }
+
+  .debt-payment-modal-v2-alt__input::placeholder {
+    color: #64748b;
+  }
+
+  .debt-payment-modal-v2-alt__input:focus {
+    outline: none;
+    border-color: rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+  }
+
+  .debt-payment-modal-v2-alt__input[readonly] {
+    background: rgba(15, 23, 42, 0.9);
+    color: #cbd5e1;
+  }
+
+  .debt-payment-modal-v2-alt__input--compact {
+    padding-top: 0.52rem;
+    padding-bottom: 0.52rem;
+  }
+}
 // Tailwind CSS
 @tailwind base;
 @tailwind components;
