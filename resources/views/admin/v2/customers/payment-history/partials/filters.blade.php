@@ -19,7 +19,12 @@
                         <i class="fas fa-search"></i>
                     </span>
                     <input type="text" x-model="searchTerm" id="customer_search_header"
+                        name="customer_search"
                         placeholder="Nombre, email o teléfono..."
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
                         class="w-full rounded-lg border border-slate-600 bg-slate-950/70 py-2.5 pl-10 pr-10 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
                     <div x-show="isSearching" class="absolute inset-y-0 right-9 flex items-center text-cyan-400">
                         <i class="fas fa-circle-notch fa-spin"></i>
