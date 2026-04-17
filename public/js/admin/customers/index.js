@@ -444,6 +444,9 @@ function exchangeRateWidget() {
                 if (data.success) {
                     this.exchangeRate = parseFloat(data.rate);
                     this.updatedAt = data.updated_at || '';
+                    window.exchangeRate = this.exchangeRate;
+                    window.currentExchangeRate = this.exchangeRate;
+                    localStorage.setItem(CONFIG.exchangeRate.key, String(this.exchangeRate));
                     this.syncToModal();
                     this.calcBs();
                     window.customersIndex.updateBsValues(this.exchangeRate);
@@ -1005,8 +1008,27 @@ function dataTable() {
 
 // Función para inicializar el tipo de cambio
 window.initializeExchangeRate = function () {
-    const savedRate = localStorage.getItem('exchangeRate');
-    const rate = savedRate ? parseFloat(savedRate) : (window.exchangeRate || CONFIG.exchangeRate.default);
+    const serverRaw = window.exchangeRate;
+    const serverRate = typeof serverRaw === 'number' ? serverRaw : parseFloat(serverRaw);
+    const hasValidServer = !Number.isNaN(serverRate) && serverRate > 0;
+
+    const savedRaw = localStorage.getItem(CONFIG.exchangeRate.key);
+    const savedRate = savedRaw ? parseFloat(savedRaw) : NaN;
+    const hasValidSaved = !Number.isNaN(savedRate) && savedRate > 0;
+
+    // La tasa inyectada desde el servidor (BD) debe mandar al cargar; localStorage era una caché
+    // que podía quedar desfasada y pisaba los montos en Bs del HTML inicial.
+    let rate;
+    if (hasValidServer) {
+        rate = serverRate;
+        localStorage.setItem(CONFIG.exchangeRate.key, String(rate));
+    } else if (hasValidSaved) {
+        rate = savedRate;
+    } else {
+        rate = CONFIG.exchangeRate.default;
+    }
+
+    window.currentExchangeRate = rate;
 
     // Actualizar el input si existe
     const exchangeRateInput = document.getElementById('exchangeRate');
@@ -1014,7 +1036,7 @@ window.initializeExchangeRate = function () {
         exchangeRateInput.value = rate;
     }
 
-    // Actualizar valores en Bs
+    // Actualizar valores en Bs (misma tasa que el render del servidor)
     window.customersIndex.updateBsValues(rate);
 
     return rate;
@@ -1151,7 +1173,6 @@ window.filtersPanel = filtersPanel;
 window.exchangeRateWidget = exchangeRateWidget;
 window.modalExchangeRateSync = modalExchangeRateSync;
 window.dataTable = dataTable;
-window.initializeExchangeRate = initializeExchangeRate;
 window.showNotification = showNotification;
 
 // Hacer la función deleteCustomer disponible globalmente

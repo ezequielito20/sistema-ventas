@@ -977,6 +977,11 @@
      * Este bloque restablece contraste sobre el panel oscuro y hover acorde al design system.
      */
     .customers-index-v2 {
+        /* Muchas columnas: fuerza scroll horizontal en .ui-table-wrap (patrón listados v2). */
+        .ui-table-wrap .ui-table {
+            min-width: 960px;
+        }
+
         .customer-name {
             color: #f1f5f9 !important;
             font-weight: 600;
@@ -1021,6 +1026,64 @@
                 background-color: rgba(15, 23, 42, 0.96) !important;
                 color: #f1f5f9;
             }
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #e2e8f0;
+            caret-color: #e2e8f0;
+            box-shadow: 0 0 0 1000px #020617 inset !important;
+        }
+    }
+
+    /**
+     * Crear/editar cliente (Livewire): fondo oscuro fijo en SCSS para que no dependa del purge
+     * de utilidades Tailwind en variables PHP ($inputBase).
+     */
+    .customer-form-v2 {
+        .customer-form-v2__input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid rgb(71 85 105);
+            background-color: rgba(2, 6, 23, 0.6);
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #f1f5f9;
+            transition:
+                border-color 0.15s ease,
+                box-shadow 0.15s ease,
+                background-color 0.15s ease;
+        }
+
+        .customer-form-v2__input::placeholder {
+            color: #64748b;
+        }
+
+        .customer-form-v2__input:focus,
+        .customer-form-v2__input:focus-visible {
+            outline: none;
+            border-color: rgb(6 182 212);
+            box-shadow: 0 0 0 1px rgb(6 182 212);
+            background-color: rgba(15, 23, 42, 0.96);
+            color: #f1f5f9;
+        }
+
+        .customer-form-v2__input--error {
+            border-color: rgba(244, 63, 94, 0.85);
+        }
+
+        .customer-form-v2__input--error:focus,
+        .customer-form-v2__input--error:focus-visible {
+            border-color: rgba(244, 63, 94, 0.95);
+            box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.45);
+        }
+
+        input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+        textarea,
+        select {
+            color-scheme: dark;
         }
 
         input:-webkit-autofill,

@@ -1,9 +1,10 @@
 @php
-    $inputBase = 'w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500';
+    /** Clases Tailwind en variable PHP no siempre entran en el purge; el aspecto real lo define .customer-form-v2__input en app.scss */
+    $inputBase = 'customer-form-v2__input';
     $labelBase = 'mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400';
 @endphp
 
-<div class="space-y-6" wire:key="customer-form-{{ $customerId ?? 'create' }}">
+<div class="customer-form-v2 space-y-6" wire:key="customer-form-{{ $customerId ?? 'create' }}">
     <div class="ui-panel">
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -36,7 +37,7 @@
                                     id="customer_name"
                                     type="text"
                                     wire:model.blur="name"
-                                    class="{{ $inputBase }} pl-9 @error('name') border-rose-500/80 @enderror"
+                                    class="{{ $inputBase }} pl-9 @error('name') customer-form-v2__input--error @enderror"
                                     autocomplete="off"
                                 >
                             </div>
@@ -51,7 +52,7 @@
                                 id="nit_number"
                                 type="text"
                                 wire:model.blur="nit_number"
-                                class="{{ $inputBase }} @error('nit_number') border-rose-500/80 @enderror"
+                                class="{{ $inputBase }} @error('nit_number') customer-form-v2__input--error @enderror"
                                 autocomplete="off"
                             >
                             @error('nit_number')
@@ -66,7 +67,7 @@
                                 type="tel"
                                 wire:model.blur="phone"
                                 maxlength="20"
-                                class="{{ $inputBase }} @error('phone') border-rose-500/80 @enderror"
+                                class="{{ $inputBase }} @error('phone') customer-form-v2__input--error @enderror"
                                 autocomplete="off"
                             >
                             @error('phone')
@@ -80,7 +81,7 @@
                                 id="email"
                                 type="email"
                                 wire:model.blur="email"
-                                class="{{ $inputBase }} @error('email') border-rose-500/80 @enderror"
+                                class="{{ $inputBase }} @error('email') customer-form-v2__input--error @enderror"
                                 autocomplete="off"
                             >
                             @error('email')
@@ -100,7 +101,7 @@
                                         type="text"
                                         inputmode="decimal"
                                         wire:model.blur="total_debt"
-                                        class="{{ $inputBase }} pl-9 @error('total_debt') border-rose-500/80 @enderror"
+                                        class="{{ $inputBase }} pl-9 @error('total_debt') customer-form-v2__input--error @enderror"
                                     >
                                 </div>
                                 @error('total_debt')

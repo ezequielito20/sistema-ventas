@@ -236,40 +236,27 @@
         </div>
     </div>
 
-    <div
-        class="ui-panel overflow-hidden"
-        x-data="{ viewMode: 'table' }"
-        x-init="if (window.innerWidth < 768) viewMode = 'cards'"
-    >
+    <div class="ui-panel overflow-hidden">
         <div class="ui-panel__header">
-            <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="ui-panel__title">Listado</h2>
                     <p class="ui-panel__subtitle">
                         {{ $customers->total() }} resultado(s) · Página {{ $customers->currentPage() }} de {{ $customers->lastPage() }}
                     </p>
                 </div>
-                <div class="hidden items-center gap-2 md:flex">
-                    <span class="text-xs font-medium uppercase tracking-wide text-slate-500">Vista</span>
-                    <div class="inline-flex rounded-lg border border-slate-600/80 bg-slate-950/50 p-0.5">
+                @if ($permissions['can_destroy'] && ! $customers->isEmpty())
+                    <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
                         <button
                             type="button"
-                            @click="viewMode = 'table'"
-                            :class="viewMode === 'table' ? 'bg-cyan-500/20 text-cyan-100 shadow-[inset_0_0_12px_rgba(34,211,238,0.2)]' : 'text-slate-500 hover:text-slate-300'"
-                            class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition"
+                            wire:click="toggleSelectionMode"
+                            class="ui-btn {{ $selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost' }} text-sm"
                         >
-                            <i class="fas fa-table"></i> Tabla
-                        </button>
-                        <button
-                            type="button"
-                            @click="viewMode = 'cards'"
-                            :class="viewMode === 'cards' ? 'bg-cyan-500/20 text-cyan-100 shadow-[inset_0_0_12px_rgba(34,211,238,0.2)]' : 'text-slate-500 hover:text-slate-300'"
-                            class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition"
-                        >
-                            <i class="fas fa-th-large"></i> Tarjetas
+                            <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
+                            {{ $selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
                         </button>
                     </div>
-                </div>
+                @endif
             </div>
         </div>
 
@@ -278,22 +265,57 @@
                 <p class="py-10 text-center text-sm text-slate-400">No hay clientes para los filtros seleccionados.</p>
             </div>
         @else
-            {{-- Vista tabla (desktop / tablet) --}}
-            <div x-show="viewMode === 'table'" x-cloak class="hidden md:block" wire:key="customers-table-wrap">
-                <div class="ui-panel__body hidden p-0 md:block" wire:loading.class.delay="opacity-60">
-                    <div class="ui-table-wrap border-0 rounded-none">
-                        <table id="customersTable" class="ui-table ui-table--nowrap-actions">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Cliente</th>
-                                    <th>Contacto</th>
-                                    <th>C.I.</th>
-                                    <th class="text-right">Compras</th>
-                                    <th class="text-right">Deuda</th>
-                                    <th class="text-right">Deuda Bs</th>
-                                    <th class="text-left">Acciones</th>
-                                </tr>
+            @if ($selectionMode)
+                <div class="flex flex-col gap-3 border-b border-slate-700/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-white">{{ count($selectedCustomerIds) }} cliente(s) seleccionado(s)</p>
+                        <p class="text-xs text-slate-400">
+                            La selección aplica a la página actual. No se eliminan clientes con ventas o pagos de deuda asociados.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" wire:click="toggleSelectAllCurrentPage" class="ui-btn ui-btn-ghost text-sm">
+                            <i class="fas {{ $allCurrentPageSelected ? 'fa-square-minus' : 'fa-square-check' }}"></i>
+                            {{ $allCurrentPageSelected ? 'Limpiar página' : 'Seleccionar página' }}
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="openBulkDeleteModal"
+                            class="ui-btn ui-btn-danger text-sm"
+                            @disabled(count($selectedCustomerIds) === 0)
+                        >
+                            <i class="fas fa-trash-alt"></i>
+                            Eliminar seleccionados
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Tabla: md+ (scroll horizontal en pantallas estrechas vía .ui-table-wrap) --}}
+            <div class="ui-panel__body hidden p-0 md:block" wire:loading.class.delay="opacity-60" wire:key="customers-table-wrap">
+                <div class="ui-table-wrap border-0 rounded-none">
+                    <table id="customersTable" class="ui-table ui-table--nowrap-actions">
+                        <thead>
+                            <tr>
+                                @if ($selectionMode)
+                                    <th class="w-12 text-center">
+                                        <input
+                                            type="checkbox"
+                                            @checked($allCurrentPageSelected)
+                                            wire:click="toggleSelectAllCurrentPage"
+                                            class="rounded border-slate-500 bg-slate-900"
+                                        />
+                                    </th>
+                                @endif
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Contacto</th>
+                                <th>C.I.</th>
+                                <th class="text-right">Compras</th>
+                                <th class="text-right">Deuda</th>
+                                <th class="text-right">Deuda Bs</th>
+                                <th class="text-left">Acciones</th>
+                            </tr>
                             </thead>
                             <tbody id="customersTableBody">
                                 @foreach ($customers as $customer)
@@ -314,6 +336,17 @@
                                         data-defaulter="{{ $row['isDefaulter'] ? 'true' : 'false' }}"
                                         data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}"
                                     >
+                                        @if ($selectionMode)
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    value="{{ $customer->id }}"
+                                                    @checked(in_array($customer->id, $selectedCustomerIds, true))
+                                                    wire:click="toggleCustomerSelection({{ $customer->id }})"
+                                                    class="rounded border-slate-500 bg-slate-900"
+                                                />
+                                            </td>
+                                        @endif
                                         <td class="tabular-nums text-slate-400">
                                             {{ $loop->iteration + ($customers->firstItem() - 1) }}
                                         </td>
@@ -421,12 +454,11 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
             </div>
 
-            {{-- Vista tarjetas (móvil por defecto; en escritorio al elegir «Tarjetas») --}}
-            <div x-show="viewMode === 'cards'" x-cloak class="ui-panel__body p-4 md:p-6" wire:loading.class.delay="opacity-60">
-                <div id="mobileCustomersContainer" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {{-- Tarjetas: solo en pantallas menores a md (como productos) --}}
+            <div class="space-y-3 p-4 md:hidden" wire:loading.class.delay="opacity-60">
+                <div id="mobileCustomersContainer" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     @foreach ($customers as $customer)
                         @php
                             $row = $customersData[$customer->id] ?? [
@@ -445,6 +477,14 @@
                             data-customer-name="{{ htmlspecialchars($customer->name, ENT_QUOTES, 'UTF-8') }}"
                         >
                             <div class="flex items-start justify-between gap-3">
+                                @if ($selectionMode)
+                                    <input
+                                        type="checkbox"
+                                        @checked(in_array($customer->id, $selectedCustomerIds, true))
+                                        wire:click="toggleCustomerSelection({{ $customer->id }})"
+                                        class="mt-1 shrink-0 rounded border-slate-500 bg-slate-900"
+                                    />
+                                @endif
                                 <div class="flex min-w-0 flex-1 gap-3">
                                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-500/20 bg-slate-900 text-base font-bold text-cyan-200">
                                         {{ strtoupper(substr($customer->name, 0, 1)) }}
@@ -472,13 +512,18 @@
                                 </div>
                                 <div class="rounded-lg border border-slate-700/50 bg-slate-900/50 p-2">
                                     <p class="text-slate-500">Deuda</p>
-                                    <p class="font-semibold tabular-nums text-slate-100">
-                                        @if ($customer->total_debt > 0)
+                                    @if ($customer->total_debt > 0)
+                                        <p class="font-semibold tabular-nums text-slate-100">
                                             {{ $currency->symbol }} {{ number_format($customer->formatted_total_debt, 2) }}
-                                        @else
-                                            Sin deuda
-                                        @endif
-                                    </p>
+                                        </p>
+                                        <p class="mt-1 tabular-nums text-[0.7rem] font-medium text-slate-400">
+                                            <span class="bs-debt" data-debt="{{ $customer->total_debt }}">
+                                                Bs. {{ number_format($customer->total_debt * $exchangeRate, 2) }}
+                                            </span>
+                                        </p>
+                                    @else
+                                        <p class="font-semibold text-slate-500">Sin deuda</p>
+                                    @endif
                                 </div>
                             </div>
                             <div class="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-700/50 pt-3">
@@ -533,6 +578,41 @@
     @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator && ! $customers->isEmpty())
         <div>
             <x-ui.pagination :paginator="$customers" scroll-into-view=".ui-panel.overflow-hidden" />
+        </div>
+    @endif
+
+    @if ($showBulkDeleteModal)
+        <div
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            wire:click.self="closeBulkDeleteModal"
+            x-data
+            x-on:keydown.escape.window="$wire.closeBulkDeleteModal()"
+            aria-modal="true"
+            role="dialog"
+        >
+            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75)]">
+                <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200">
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-semibold text-white">¿Eliminar clientes seleccionados?</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                Se intentará eliminar <span class="font-medium text-white">{{ count($selectedCustomerIds) }} cliente(s)</span>.
+                                Los que tengan ventas o pagos de deuda asociados no se eliminarán y se indicará el motivo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                    <button type="button" wire:click="closeBulkDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="confirmBulkDelete" class="ui-btn ui-btn-danger text-sm">
+                        <i class="fas fa-trash-alt mr-1.5"></i>
+                        Sí, eliminar seleccionados
+                    </button>
+                </div>
+            </div>
         </div>
     @endif
 
