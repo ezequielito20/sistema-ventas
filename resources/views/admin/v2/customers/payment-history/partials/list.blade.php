@@ -3,7 +3,7 @@
         <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h2 class="ui-panel__title">Movimientos</h2>
-                <p class="ui-panel__subtitle">
+                <p class="ui-panel__subtitle" id="paymentHistoryListMeta">
                     {{ $payments->total() }} registro(s) · Página {{ $payments->currentPage() }} de {{ $payments->lastPage() }}
                 </p>
             </div>
@@ -141,9 +141,11 @@
         </div>
     </div>
 
-    @if ($payments->hasPages())
-        <div id="paymentHistoryPagination" class="border-t border-slate-700/60 bg-slate-950/35 px-4 py-3">
-            <x-ui.pagination :paginator="$payments" />
-        </div>
-    @endif
+    <div id="paymentHistoryPaginationMount">
+        @if ($payments->hasPages())
+            <div id="paymentHistoryPagination" class="border-t border-slate-700/60 bg-slate-950/35 px-4 py-3">
+                <x-ui.pagination :paginator="$payments" :useLivewire="false" />
+            </div>
+        @endif
+    </div>
 </section>

@@ -2,6 +2,8 @@
     'paginator',
     /** Selector CSS para scrollIntoView tras cambiar de página (opcional). Ej: ".ui-panel" */
     'scrollIntoView' => null,
+    /** Si es false, enlaces con query string (Blade/Alpine/SPA). Si es true, Livewire (wire:click / wire:model). */
+    'useLivewire' => true,
 ])
 
 @if ($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator && $paginator->hasPages())
@@ -38,7 +40,7 @@
     role="navigation"
     aria-label="Paginación"
     class="ui-pagination-bar flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-    wire:key="pagination-{{ $paginator->getPageName() }}-{{ $paginator->currentPage() }}"
+    @if ($useLivewire) wire:key="pagination-{{ $paginator->getPageName() }}-{{ $paginator->currentPage() }}" @endif
 >
     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <p class="text-sm leading-5 text-slate-400">
@@ -60,10 +62,15 @@
             <span>Registros por página:</span>
             <select
                 class="rounded-lg border border-slate-600 bg-slate-950/60 py-1.5 pl-2 pr-7 text-xs sm:text-[0.8rem] text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                wire:model.live="perPage"
+                @if ($useLivewire)
+                    wire:model.live="perPage"
+                @else
+                    name="per_page"
+                    autocomplete="off"
+                @endif
             >
                 @php
-                    $options = [10, 25, 50, 100];
+                    $options = [10, 15, 25, 50, 100];
                     $currentPerPage = $paginator->perPage();
                     if (! in_array($currentPerPage, $options, true)) {
                         $options[] = $currentPerPage;
@@ -84,16 +91,27 @@
                 <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
             </span>
         @else
-            <button
-                type="button"
-                wire:click="previousPage('{{ $pageName }}')"
-                @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                wire:loading.attr="disabled"
-                class="ui-page-link ui-page-link--edge"
-                title="Anterior"
-            >
-                <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
-            </button>
+            @if ($useLivewire)
+                <button
+                    type="button"
+                    wire:click="previousPage('{{ $pageName }}')"
+                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
+                    wire:loading.attr="disabled"
+                    class="ui-page-link ui-page-link--edge"
+                    title="Anterior"
+                >
+                    <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
+                </button>
+            @else
+                <a
+                    href="{{ $paginator->previousPageUrl() }}"
+                    class="ui-page-link ui-page-link--edge"
+                    title="Anterior"
+                    rel="prev"
+                >
+                    <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
+                </a>
+            @endif
         @endif
 
         <div class="min-w-0 flex-1">
@@ -105,10 +123,10 @@
 
                     @if (is_array($element))
                         @foreach ($element as $page => $url)
-                            <span wire:key="mobile-paginator-{{ $pageName }}-page-{{ $page }}">
+                            <span @if ($useLivewire) wire:key="mobile-paginator-{{ $pageName }}-page-{{ $page }}" @endif>
                                 @if ($page == $paginator->currentPage())
                                     <span class="ui-page-link is-active" aria-current="page">{{ $page }}</span>
-                                @else
+                                @elseif ($useLivewire)
                                     <button
                                         type="button"
                                         wire:click="gotoPage({{ (int) $page }}, '{{ $pageName }}')"
@@ -119,6 +137,14 @@
                                     >
                                         {{ $page }}
                                     </button>
+                                @else
+                                    <a
+                                        href="{{ $url }}"
+                                        class="ui-page-link"
+                                        aria-label="Ir a la página {{ $page }}"
+                                    >
+                                        {{ $page }}
+                                    </a>
                                 @endif
                             </span>
                         @endforeach
@@ -128,16 +154,27 @@
         </div>
 
         @if ($paginator->hasMorePages())
-            <button
-                type="button"
-                wire:click="nextPage('{{ $pageName }}')"
-                @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                wire:loading.attr="disabled"
-                class="ui-page-link ui-page-link--edge"
-                title="Siguiente"
-            >
-                <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
-            </button>
+            @if ($useLivewire)
+                <button
+                    type="button"
+                    wire:click="nextPage('{{ $pageName }}')"
+                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
+                    wire:loading.attr="disabled"
+                    class="ui-page-link ui-page-link--edge"
+                    title="Siguiente"
+                >
+                    <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
+                </button>
+            @else
+                <a
+                    href="{{ $paginator->nextPageUrl() }}"
+                    class="ui-page-link ui-page-link--edge"
+                    title="Siguiente"
+                    rel="next"
+                >
+                    <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
+                </a>
+            @endif
         @else
             <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Siguiente">
                 <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
@@ -153,16 +190,27 @@
                     <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
                 </span>
             @else
-                <button
-                    type="button"
-                    wire:click="previousPage('{{ $pageName }}')"
-                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                    wire:loading.attr="disabled"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Anterior"
-                >
-                    <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
-                </button>
+                @if ($useLivewire)
+                    <button
+                        type="button"
+                        wire:click="previousPage('{{ $pageName }}')"
+                        @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
+                        wire:loading.attr="disabled"
+                        class="ui-page-link ui-page-link--edge"
+                        title="Anterior"
+                    >
+                        <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
+                    </button>
+                @else
+                    <a
+                        href="{{ $paginator->previousPageUrl() }}"
+                        class="ui-page-link ui-page-link--edge"
+                        title="Anterior"
+                        rel="prev"
+                    >
+                        <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
+                    </a>
+                @endif
             @endif
 
             @foreach ($desktopElements as $element)
@@ -172,10 +220,10 @@
 
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
-                        <span wire:key="paginator-{{ $pageName }}-page-{{ $page }}">
+                        <span @if ($useLivewire) wire:key="paginator-{{ $pageName }}-page-{{ $page }}" @endif>
                             @if ($page == $paginator->currentPage())
                                 <span class="ui-page-link is-active" aria-current="page">{{ $page }}</span>
-                            @else
+                            @elseif ($useLivewire)
                                 <button
                                     type="button"
                                     wire:click="gotoPage({{ (int) $page }}, '{{ $pageName }}')"
@@ -186,6 +234,14 @@
                                 >
                                     {{ $page }}
                                 </button>
+                            @else
+                                <a
+                                    href="{{ $url }}"
+                                    class="ui-page-link"
+                                    aria-label="Ir a la página {{ $page }}"
+                                >
+                                    {{ $page }}
+                                </a>
                             @endif
                         </span>
                     @endforeach
@@ -193,16 +249,27 @@
             @endforeach
 
             @if ($paginator->hasMorePages())
-                <button
-                    type="button"
-                    wire:click="nextPage('{{ $pageName }}')"
-                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                    wire:loading.attr="disabled"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Siguiente"
-                >
-                    <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
-                </button>
+                @if ($useLivewire)
+                    <button
+                        type="button"
+                        wire:click="nextPage('{{ $pageName }}')"
+                        @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
+                        wire:loading.attr="disabled"
+                        class="ui-page-link ui-page-link--edge"
+                        title="Siguiente"
+                    >
+                        <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
+                    </button>
+                @else
+                    <a
+                        href="{{ $paginator->nextPageUrl() }}"
+                        class="ui-page-link ui-page-link--edge"
+                        title="Siguiente"
+                        rel="next"
+                    >
+                        <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
+                    </a>
+                @endif
             @else
                 <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Siguiente">
                     <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>

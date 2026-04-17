@@ -1784,7 +1784,13 @@ class CustomerController extends Controller
         }
 
         // Paginación del lado del servidor
-        $payments = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $allowedPerPage = [10, 15, 25, 50, 100];
+        $perPage = (int) $request->input('per_page', 15);
+        if (! in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 15;
+        }
+
+        $payments = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         // Aplicar paginación inteligente
         $payments = $this->generateSmartPagination($payments, 2);

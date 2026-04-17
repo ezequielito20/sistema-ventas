@@ -114,11 +114,10 @@ function paymentHistory(initialData = {}) {
         _searchTimeout: null,
 
         init() {
+            window.__paymentHistoryAlpineCtx = this;
+
             // Inicializar búsqueda del servidor
             this.initializeServerSearch();
-
-            // Inicializar paginación inteligente
-            this.initializeSmartPagination();
 
             // Watcher para búsqueda fluida
             this.$watch('searchTerm', (value) => {
@@ -161,26 +160,6 @@ function paymentHistory(initialData = {}) {
                 const merged = new Set([...this.selectedPaymentIds, ...ids]);
                 this.selectedPaymentIds = [...merged];
             }
-        },
-
-        // ===== MÉTODOS DE PAGINACIÓN INTELIGENTE =====
-
-        initializeSmartPagination() {
-            // Interceptar clicks de paginación cuando servidor está activo
-            document.addEventListener('click', (e) => {
-                const paginationLink = e.target.closest('.pagination-btn, .page-number');
-                if (paginationLink && paginationLink.href && this.isServerPaginationActive()) {
-                    e.preventDefault();
-                    this.loadPaymentHistoryPage(paginationLink.href);
-                }
-            });
-        },
-
-        // Detectar si la paginación del servidor está activa
-        isServerPaginationActive() {
-            const paginator = document.querySelector('.pagination-container .page-numbers a') ||
-                document.querySelector('.pagination-container a');
-            return !!paginator;
         },
 
         // ===== MÉTODOS DE BÚSQUEDA DEL SERVIDOR =====
@@ -276,23 +255,23 @@ function paymentHistory(initialData = {}) {
                         currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
                     }
 
-                    // Actualizar paginación inteligente
-                    const newPagination = doc.querySelector('#paymentHistoryPagination');
-                    const currentPagination = document.querySelector('#paymentHistoryPagination');
-                    if (newPagination && currentPagination) {
-                        currentPagination.innerHTML = newPagination.innerHTML;
+                    const newMount = doc.querySelector('#paymentHistoryPaginationMount');
+                    const currentMount = document.querySelector('#paymentHistoryPaginationMount');
+                    if (newMount && currentMount) {
+                        currentMount.innerHTML = newMount.innerHTML;
                     }
 
-                    // Actualizar cache de items de página para selección
-                    const incomingWindowData = doc.querySelector('script');
-                    if (incomingWindowData) {
-                        // keep current structure; on full fetch we can rebuild from visible rows
-                        const rowIds = Array.from(doc.querySelectorAll('.ui-table tbody tr[data-payment-id]'))
-                            .map(row => parseInt(row.getAttribute('data-payment-id'), 10))
-                            .filter(Number.isFinite);
-                        if (window.paymentHistoryData) {
-                            window.paymentHistoryData.payments = rowIds.map(id => ({ id }));
-                        }
+                    const newMeta = doc.querySelector('#paymentHistoryListMeta');
+                    const currentMeta = document.querySelector('#paymentHistoryListMeta');
+                    if (newMeta && currentMeta) {
+                        currentMeta.textContent = newMeta.textContent;
+                    }
+
+                    const rowIds = Array.from(doc.querySelectorAll('.ui-table tbody tr[data-payment-id]'))
+                        .map(row => parseInt(row.getAttribute('data-payment-id'), 10))
+                        .filter(Number.isFinite);
+                    if (window.paymentHistoryData) {
+                        window.paymentHistoryData.payments = rowIds.map(id => ({ id }));
                     }
                     this.selectedPaymentIds = [];
 
@@ -321,8 +300,7 @@ function paymentHistory(initialData = {}) {
         },
 
         initializeEventListeners() {
-            // Reinicializar paginación si se perdieron los handlers
-            this.initializeSmartPagination();
+            // Delegación global en bindPaymentHistoryPaginationSpa; no hace falta re-vincular.
         },
 
         resetFilters() {
@@ -692,19 +670,51 @@ function calculateAveragePayment(payments) {
 
 // ===== EVENT LISTENERS =====
 
-// Interceptar clicks de paginación para navegación sin recargar
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('.pagination .page-link, .pagination-btn, .page-number');
-    if (link && link.href) {
-        e.preventDefault();
-        const url = link.href;
-        if (window.paymentHistory && window.paymentHistory.loadPaymentHistoryPage) {
-            window.paymentHistory.loadPaymentHistoryPage(url);
-        } else {
-            window.location.href = url;
-        }
+(function bindPaymentHistoryPaginationSpa() {
+    if (window.__paymentHistoryPaginationSpaBound) {
+        return;
     }
-});
+    window.__paymentHistoryPaginationSpaBound = true;
+
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('#paymentHistoryPagination a[href]');
+        if (!a || !a.getAttribute('href')) {
+            return;
+        }
+        let targetUrl;
+        try {
+            targetUrl = new URL(a.href, window.location.href);
+        } catch (_) {
+            return;
+        }
+        if (targetUrl.origin !== window.location.origin) {
+            return;
+        }
+        e.preventDefault();
+        const ctx = window.__paymentHistoryAlpineCtx;
+        if (ctx && typeof ctx.loadPaymentHistoryPage === 'function') {
+            ctx.loadPaymentHistoryPage(targetUrl.toString());
+        } else {
+            window.location.assign(targetUrl.toString());
+        }
+    });
+
+    document.addEventListener('change', (e) => {
+        const sel = e.target.closest('#paymentHistoryPagination select[name="per_page"]');
+        if (!sel) {
+            return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', sel.value);
+        url.searchParams.set('page', '1');
+        const ctx = window.__paymentHistoryAlpineCtx;
+        if (ctx && typeof ctx.loadPaymentHistoryPage === 'function') {
+            ctx.loadPaymentHistoryPage(url.toString());
+        } else {
+            window.location.assign(url.toString());
+        }
+    });
+})();
 
 // Limpiar gráficos cuando se navegue fuera de la página
 window.addEventListener('beforeunload', cleanupCharts);
