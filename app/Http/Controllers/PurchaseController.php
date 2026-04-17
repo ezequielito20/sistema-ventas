@@ -875,7 +875,7 @@ class PurchaseController extends Controller
       }
    }
 
-   public function report()
+   public function report(Request $request)
    {
       $company = Company::find($this->company->id);
       $currency = $this->currencies;
@@ -894,7 +894,22 @@ class PurchaseController extends Controller
          ->where('company_id', $company->id)
          ->orderBy('created_at', 'desc')
          ->get();
-      $pdf = Pdf::loadView('admin.purchases.report', compact('purchases', 'company', 'currency'));
-      return $pdf->stream('reporte-compras.pdf');
+
+      $emittedAt = now();
+      $filename = 'reporte-compras-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+      $pdf = Pdf::loadView('pdf.purchases.report', compact('purchases', 'company', 'currency', 'emittedAt'))
+         ->setPaper('letter', 'portrait')
+         ->setOption('enable_php', true)
+         ->addInfo([
+            'Title' => 'Informe de compras',
+            'Author' => $company->name ?? config('app.name'),
+         ]);
+
+      if ($request->boolean('download')) {
+         return $pdf->download($filename);
+      }
+
+      return $pdf->stream($filename);
    }
 }
