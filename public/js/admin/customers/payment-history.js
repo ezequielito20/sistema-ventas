@@ -19,25 +19,101 @@ const PAYMENT_HISTORY_CONFIG = {
     }
 };
 
+/**
+ * Confirmación moderna (ui-rich-dialog / tema oscuro). Mismo patrón que deleteCustomer en index.js.
+ */
+async function confirmPaymentHistoryDelete(options = {}) {
+    const title = options.title || '¿Confirmar?';
+    const text = options.text || '';
+    const subtitle = options.subtitle || 'Verifica la información antes de continuar.';
+
+    try {
+        if (window.uiNotifications && typeof window.uiNotifications.confirmDialog === 'function') {
+            return await window.uiNotifications.confirmDialog({
+                title,
+                text,
+                subtitle,
+                type: options.type || 'warning',
+                confirmText: options.confirmText || 'Sí, eliminar',
+                cancelText: options.cancelText || 'Cancelar',
+                highlight: options.highlight || '',
+                metrics: Array.isArray(options.metrics) ? options.metrics : [],
+                items: Array.isArray(options.items) ? options.items : [],
+            });
+        }
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title,
+                text,
+                icon: 'warning',
+                iconColor: '#fbbf24',
+                showCancelButton: true,
+                confirmButtonText: options.confirmText || 'Sí, eliminar',
+                cancelButtonText: options.cancelText || 'Cancelar',
+                reverseButtons: true,
+                focusCancel: true,
+                color: '#e2e8f0',
+                customClass: {
+                    popup: 'ui-swal-popup ui-swal-popup--futuristic',
+                    confirmButton: 'ui-swal-confirm',
+                    cancelButton: 'ui-swal-cancel',
+                    htmlContainer: 'ui-swal-html',
+                },
+            });
+            return Boolean(result.isConfirmed);
+        }
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+    return window.confirm(`${title}\n\n${text}`);
+}
+
+function notifyPaymentHistory(message, type = 'success') {
+    const titles = {
+        success: 'Listo',
+        error: 'Error',
+        warning: 'Atención',
+        info: 'Información',
+    };
+    const toastType = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+
+    if (window.uiNotifications && typeof window.uiNotifications.showToast === 'function') {
+        window.uiNotifications.showToast(message, {
+            type: toastType,
+            title: titles[type] || titles.info,
+            timeout: type === 'success' ? 3800 : 5200,
+            theme: 'futuristic',
+        });
+        return;
+    }
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: type,
+            title: titles[type],
+            text: message,
+            timer: type === 'success' ? 3000 : undefined,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+        });
+        return;
+    }
+    alert(message);
+}
+
 // ===== FUNCIÓN PRINCIPAL DE ALPINE.JS =====
 function paymentHistory(initialData = {}) {
     return {
-        viewMode: window.innerWidth >= 1024 ? 'table' : 'cards',
         showFilters: false,
         isDeleting: false,
         isSearching: false,
+        selectionMode: false,
+        selectedPaymentIds: [],
         searchTerm: initialData.searchTerm || '',
         _searchTimeout: null,
 
         init() {
-            // Detectar el modo de vista inicial basado en el tamaño de pantalla
-            this.updateViewMode();
-
-            // Escuchar cambios de tamaño de ventana
-            window.addEventListener('resize', () => {
-                this.updateViewMode();
-            });
-
             // Inicializar búsqueda del servidor
             this.initializeServerSearch();
 
@@ -50,13 +126,40 @@ function paymentHistory(initialData = {}) {
             });
         },
 
-        // ===== MÉTODOS DE INICIALIZACIÓN =====
+        // ===== SELECCIÓN =====
+        toggleSelectionMode() {
+            this.selectionMode = !this.selectionMode;
+            if (!this.selectionMode) {
+                this.selectedPaymentIds = [];
+            }
+        },
 
-        updateViewMode() {
-            if (window.innerWidth >= 1024) {
-                this.viewMode = 'table';
+        togglePaymentSelection(paymentId) {
+            if (this.selectedPaymentIds.includes(paymentId)) {
+                this.selectedPaymentIds = this.selectedPaymentIds.filter(id => id !== paymentId);
             } else {
-                this.viewMode = 'cards';
+                this.selectedPaymentIds.push(paymentId);
+            }
+        },
+
+        currentPagePaymentIds() {
+            return (window.paymentHistoryData?.payments || []).map(p => p.id);
+        },
+
+        allCurrentPageSelected() {
+            const ids = this.currentPagePaymentIds();
+            return ids.length > 0 && ids.every(id => this.selectedPaymentIds.includes(id));
+        },
+
+        toggleSelectAllOnPage() {
+            const ids = this.currentPagePaymentIds();
+            if (!ids.length) return;
+
+            if (this.allCurrentPageSelected()) {
+                this.selectedPaymentIds = this.selectedPaymentIds.filter(id => !ids.includes(id));
+            } else {
+                const merged = new Set([...this.selectedPaymentIds, ...ids]);
+                this.selectedPaymentIds = [...merged];
             }
         },
 
@@ -160,26 +263,38 @@ function paymentHistory(initialData = {}) {
                     const doc = parser.parseFromString(html, 'text/html');
 
                     // Actualizar tabla (tbody)
-                    const newTableBody = doc.querySelector('tbody');
-                    const currentTableBody = document.querySelector('tbody');
+                    const newTableBody = doc.querySelector('.ui-table tbody');
+                    const currentTableBody = document.querySelector('.ui-table tbody');
                     if (newTableBody && currentTableBody) {
                         currentTableBody.innerHTML = newTableBody.innerHTML;
                     }
 
                     // Actualizar tarjetas (contenedor de grid)
-                    // Buscamos el div que contiene las tarjetas por su clase de grid
-                    const newCardsGrid = doc.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
-                    const currentCardsGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.xl\\:grid-cols-3');
+                    const newCardsGrid = doc.querySelector('#paymentHistoryCardsGrid');
+                    const currentCardsGrid = document.querySelector('#paymentHistoryCardsGrid');
                     if (newCardsGrid && currentCardsGrid) {
                         currentCardsGrid.innerHTML = newCardsGrid.innerHTML;
                     }
 
                     // Actualizar paginación inteligente
-                    const newPagination = doc.querySelector('.pagination-container');
-                    const currentPagination = document.querySelector('.pagination-container');
+                    const newPagination = doc.querySelector('#paymentHistoryPagination');
+                    const currentPagination = document.querySelector('#paymentHistoryPagination');
                     if (newPagination && currentPagination) {
                         currentPagination.innerHTML = newPagination.innerHTML;
                     }
+
+                    // Actualizar cache de items de página para selección
+                    const incomingWindowData = doc.querySelector('script');
+                    if (incomingWindowData) {
+                        // keep current structure; on full fetch we can rebuild from visible rows
+                        const rowIds = Array.from(doc.querySelectorAll('.ui-table tbody tr[data-payment-id]'))
+                            .map(row => parseInt(row.getAttribute('data-payment-id'), 10))
+                            .filter(Number.isFinite);
+                        if (window.paymentHistoryData) {
+                            window.paymentHistoryData.payments = rowIds.map(id => ({ id }));
+                        }
+                    }
+                    this.selectedPaymentIds = [];
 
                     // Actualizar URL sin recargar
                     window.history.pushState({}, '', url);
@@ -228,13 +343,19 @@ function paymentHistory(initialData = {}) {
         async deletePayment(paymentId, customerName, paymentAmount) {
             if (this.isDeleting) return;
 
-            const result = await this.showConfirmAlert(
-                '¿Estás seguro?',
-                `Vas a eliminar el pago de ${paymentAmount} ${this.getCurrencySymbol()} del cliente ${customerName}. Esta acción restaurará la deuda al cliente.`,
-                'warning'
-            );
+            const sym = this.getCurrencySymbol();
+            const confirmed = await confirmPaymentHistoryDelete({
+                title: '¿Eliminar este pago?',
+                text: 'Se eliminará el abono y se restaurará la deuda del cliente por el mismo monto.',
+                subtitle: 'Verifica cliente y monto antes de continuar.',
+                type: 'warning',
+                metrics: [
+                    { label: 'Cliente', value: customerName },
+                    { label: 'Monto del pago', value: `${sym} ${Number(paymentAmount).toFixed(2)}` },
+                ],
+            });
 
-            if (result.isConfirmed) {
+            if (confirmed) {
                 this.isDeleting = true;
 
                 try {
@@ -268,6 +389,46 @@ function paymentHistory(initialData = {}) {
             }
         },
 
+        async deleteSelectedPayments() {
+            if (!this.selectedPaymentIds.length || this.isDeleting) return;
+
+            const count = this.selectedPaymentIds.length;
+            const confirmed = await confirmPaymentHistoryDelete({
+                title: '¿Eliminar pagos seleccionados?',
+                text: 'Se eliminarán los abonos y se restaurará la deuda de cada cliente según el monto de cada pago.',
+                subtitle: 'Esta acción no se puede deshacer de forma sencilla.',
+                type: 'warning',
+                metrics: [{ label: 'Pagos seleccionados', value: String(count) }],
+            });
+
+            if (!confirmed) return;
+
+            this.isDeleting = true;
+            try {
+                for (const paymentId of this.selectedPaymentIds) {
+                    const response = await fetch(`${PAYMENT_HISTORY_CONFIG.routes.delete}/${paymentId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrfToken(),
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                    });
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        throw new Error(data.message || `No se pudo eliminar el pago ${paymentId}`);
+                    }
+                }
+
+                this.showAlert('Pagos eliminados correctamente.', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (error) {
+                this.showAlert(error.message || 'Error al eliminar pagos seleccionados.', 'error');
+            } finally {
+                this.isDeleting = false;
+            }
+        },
+
         // ===== MÉTODOS DE UTILIDAD =====
 
         getCsrfToken() {
@@ -281,46 +442,7 @@ function paymentHistory(initialData = {}) {
         },
 
         showAlert(message, type = 'info') {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: this.getAlertTitle(type),
-                    text: message,
-                    icon: type,
-                    confirmButtonText: 'Entendido',
-                    timer: type === 'success' ? 3000 : undefined,
-                    timerProgressBar: type === 'success'
-                });
-            } else {
-                alert(message);
-            }
-        },
-
-        async showConfirmAlert(title, text, icon = 'warning') {
-            if (typeof Swal !== 'undefined') {
-                const result = await Swal.fire({
-                    title: title,
-                    text: text,
-                    icon: icon,
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar',
-                    reverseButtons: true
-                });
-                return result;
-            } else {
-                return { isConfirmed: confirm(text) };
-            }
-        },
-
-        getAlertTitle(type) {
-            switch (type) {
-                case 'success': return '¡Éxito!';
-                case 'error': return 'Error';
-                case 'warning': return 'Advertencia';
-                default: return 'Información';
-            }
+            notifyPaymentHistory(message, type);
         }
     }
 }
@@ -604,13 +726,19 @@ window.addEventListener('load', function () {
 
 // ===== FUNCIÓN GLOBAL PARA ELIMINAR PAGOS =====
 async function deletePayment(paymentId, customerName, paymentAmount) {
-    const result = await showConfirmAlert(
-        '¿Estás seguro?',
-        `Vas a eliminar el pago de ${paymentAmount} ${getCurrencySymbol()} del cliente ${customerName}. Esta acción restaurará la deuda al cliente.`,
-        'warning'
-    );
+    const sym = getCurrencySymbol();
+    const confirmed = await confirmPaymentHistoryDelete({
+        title: '¿Eliminar este pago?',
+        text: 'Se eliminará el abono y se restaurará la deuda del cliente por el mismo monto.',
+        subtitle: 'Verifica cliente y monto antes de continuar.',
+        type: 'warning',
+        metrics: [
+            { label: 'Cliente', value: customerName },
+            { label: 'Monto del pago', value: `${sym} ${Number(paymentAmount).toFixed(2)}` },
+        ],
+    });
 
-    if (result.isConfirmed) {
+    if (confirmed) {
         try {
             const response = await fetch(`${PAYMENT_HISTORY_CONFIG.routes.delete}/${paymentId}`, {
                 method: 'DELETE',
@@ -650,47 +778,19 @@ function getCurrencySymbol() {
     return window.paymentHistoryData?.currency?.symbol || '$';
 }
 
-async function showConfirmAlert(title, text, icon = 'warning') {
-    if (typeof Swal !== 'undefined') {
-        const result = await Swal.fire({
-            title: title,
-            text: text,
-            icon: icon,
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
-            reverseButtons: true
-        });
-        return result;
-    } else {
-        return { isConfirmed: confirm(text) };
-    }
+/** Compatibilidad: código legacy que espera `{ isConfirmed }`. */
+async function showConfirmAlert(title, text) {
+    const ok = await confirmPaymentHistoryDelete({
+        title,
+        text,
+        subtitle: 'Verifica la información antes de continuar.',
+        type: 'warning',
+    });
+    return { isConfirmed: ok };
 }
 
 function showAlert(message, type = 'info') {
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: getAlertTitle(type),
-            text: message,
-            icon: type,
-            confirmButtonText: 'Entendido',
-            timer: type === 'success' ? 3000 : undefined,
-            timerProgressBar: type === 'success'
-        });
-    } else {
-        alert(message);
-    }
-}
-
-function getAlertTitle(type) {
-    switch (type) {
-        case 'success': return '¡Éxito!';
-        case 'error': return 'Error';
-        case 'warning': return 'Advertencia';
-        default: return 'Información';
-    }
+    notifyPaymentHistory(message, type);
 }
 
 // ===== EXPONER FUNCIONES GLOBALMENTE =====

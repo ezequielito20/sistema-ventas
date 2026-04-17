@@ -1841,7 +1841,7 @@ class CustomerController extends Controller
             }
         }
 
-        return view('admin.customers.payment-history', [
+        return view('admin.v2.customers.payment-history', [
             'payments' => $payments,
             'totalPayments' => $totalPayments,
             'paymentsCount' => $paymentsCount,
