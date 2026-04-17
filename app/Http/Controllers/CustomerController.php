@@ -728,7 +728,9 @@ class CustomerController extends Controller
 
         // Reporte normal de todos los clientes
         $customers = Customer::withCount('sales')->where('company_id', $company->id)->get();
-        $pdf = Pdf::loadView('admin.customers.report', compact('customers', 'company', 'currency'));
+        $emittedAt = now();
+        $exchangeRate = ExchangeRate::current();
+        $pdf = Pdf::loadView('admin.customers.report', compact('customers', 'company', 'currency', 'emittedAt', 'exchangeRate'));
 
         return $pdf->stream('reporte-clientes.pdf');
     }
@@ -953,12 +955,14 @@ class CustomerController extends Controller
             $exchangeRate = $request->get('exchange_rate', ExchangeRate::current());
 
             // Generar PDF
+            $emittedAt = now();
             $pdf = Pdf::loadView('admin.customers.reports.debt-report', compact(
                 'customers',
                 'company',
                 'currency',
                 'totalDebt',
-                'exchangeRate'
+                'exchangeRate',
+                'emittedAt'
             ));
 
             // Configurar PDF
