@@ -12,6 +12,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\Admin\V2\PurchaseV2Controller;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
@@ -115,6 +116,7 @@ Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])-
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware(['auth', 'can:suppliers.show']);
 
 // Purchases
+Route::get('/purchases/v2', [PurchaseV2Controller::class, 'index'])->name('admin.purchases.v2.index')->middleware(['auth', 'can:purchases.index']);
 Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware(['auth', 'can:purchases.index']);
 Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware(['auth', 'can:purchases.create']);
 Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware(['auth', 'can:purchases.create']);

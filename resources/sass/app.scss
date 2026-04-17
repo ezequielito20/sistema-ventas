@@ -526,6 +526,23 @@
         backdrop-filter: blur(12px);
     }
 
+    /* Paneles con dropdowns absolutos (ej. selector de producto en filtros) */
+    .ui-panel--overflow-visible {
+        overflow: visible;
+        /* Por encima del panel siguiente (mismo nivel en el DOM) para que el menú no quede tapado */
+        z-index: 30;
+    }
+
+    .ui-panel--overflow-visible .ui-panel__body {
+        overflow: visible;
+    }
+
+    /* Listado compras v2: debajo del panel de filtros cuando el dropdown se solapa */
+    .ui-panel--purchases-v2-list {
+        position: relative;
+        z-index: 0;
+    }
+
     .ui-panel__header {
         display: flex;
         align-items: center;

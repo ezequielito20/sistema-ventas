@@ -611,9 +611,9 @@
                             Proveedores
                         </a> --}}
 
-                        <!-- Compras -->
-                        <a href="{{ route('admin.purchases.index') }}"
-                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.purchases.*') ? 'is-active' : '' }}">
+                        <!-- Compras (v2 — listado moderno; /purchases conserva la vista legacy) -->
+                        <a href="{{ route('admin.purchases.v2.index') }}"
+                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ str_starts_with((string) request()->route()?->getName(), 'admin.purchases') ? 'is-active' : '' }}">
                             <i class="fas fa-shopping-bag mr-3 text-lg"></i>
                             Compras
                         </a>
@@ -780,6 +780,9 @@
                 </div>
             </main>
         </div>
+
+        <!-- Scripts: módulos que definen funciones para x-data deben ir antes de Alpine (app.js) -->
+        @stack('scripts-before-app')
 
         <!-- Scripts -->
         @vite(['resources/js/app.js'])
