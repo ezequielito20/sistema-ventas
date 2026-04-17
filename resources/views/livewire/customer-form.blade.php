@@ -26,18 +26,18 @@
             <form wire:submit="saveAndBack" class="space-y-6">
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold text-slate-200">Datos del cliente</h3>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="sm:col-span-2">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="min-w-0">
                             <label for="customer_name" class="{{ $labelBase }}">Nombre <span class="text-rose-400">*</span></label>
                             <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                                    <i class="fas fa-user text-[0.8rem]"></i>
+                                <span class="customer-form-v2__input-icon" aria-hidden="true">
+                                    <i class="fas fa-user"></i>
                                 </span>
                                 <input
                                     id="customer_name"
                                     type="text"
                                     wire:model.blur="name"
-                                    class="{{ $inputBase }} pl-9 @error('name') customer-form-v2__input--error @enderror"
+                                    class="{{ $inputBase }} customer-form-v2__input--icon-start @error('name') customer-form-v2__input--error @enderror"
                                     autocomplete="off"
                                 >
                             </div>
@@ -46,7 +46,7 @@
                             @enderror
                         </div>
 
-                        <div>
+                        <div class="min-w-0">
                             <label for="nit_number" class="{{ $labelBase }}">Cédula / NIT</label>
                             <input
                                 id="nit_number"
@@ -60,7 +60,7 @@
                             @enderror
                         </div>
 
-                        <div>
+                        <div class="min-w-0">
                             <label for="phone" class="{{ $labelBase }}">Teléfono</label>
                             <input
                                 id="phone"
@@ -75,7 +75,7 @@
                             @enderror
                         </div>
 
-                        <div class="sm:col-span-2">
+                        <div class="min-w-0">
                             <label for="email" class="{{ $labelBase }}">Correo electrónico</label>
                             <input
                                 id="email"
@@ -90,18 +90,18 @@
                         </div>
 
                         @if ($customerId !== null)
-                            <div class="sm:col-span-2">
+                            <div class="min-w-0 md:col-span-2 xl:col-span-4">
                                 <label for="total_debt" class="{{ $labelBase }}">Deuda total registrada</label>
                                 <div class="relative">
-                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                                        <i class="fas fa-dollar-sign text-[0.8rem]"></i>
+                                    <span class="customer-form-v2__input-icon" aria-hidden="true">
+                                        <i class="fas fa-dollar-sign"></i>
                                     </span>
                                     <input
                                         id="total_debt"
                                         type="text"
                                         inputmode="decimal"
                                         wire:model.blur="total_debt"
-                                        class="{{ $inputBase }} pl-9 @error('total_debt') customer-form-v2__input--error @enderror"
+                                        class="{{ $inputBase }} customer-form-v2__input--icon-start @error('total_debt') customer-form-v2__input--error @enderror"
                                     >
                                 </div>
                                 @error('total_debt')
