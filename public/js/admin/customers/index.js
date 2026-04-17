@@ -67,78 +67,110 @@ window.customersIndex = {
         });
     },
 
-    // Función para eliminar cliente
-    deleteCustomer: function (customerId) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción no se puede revertir",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Obtener el token CSRF
-                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    /**
+     * Eliminar cliente: confirmación con el mismo patrón que resources/js/ui/notifications.js (tema oscuro).
+     */
+    deleteCustomer: async function (customerId) {
+        let confirmed = false;
 
-                fetch(`${CONFIG.routes.delete}/${customerId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                title: '¡Eliminado!',
-                                text: data.message,
-                                icon: data.icons
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            // Mostrar mensaje de error
-                            let showCancelButton = false;
-                            let cancelButtonText = '';
-                            let confirmButtonText = 'Entendido';
-
-                            if (data.has_sales) {
-                                showCancelButton = true;
-                                cancelButtonText = 'Ver Ventas';
-                                confirmButtonText = 'Entendido';
-                            }
-
-                            Swal.fire({
-                                title: data.icons === 'warning' ? 'No se puede eliminar' : 'Error',
-                                html: data.message.replace(/\n/g, '<br>'),
-                                icon: data.icons,
-                                showCancelButton: showCancelButton,
-                                cancelButtonText: cancelButtonText,
-                                confirmButtonText: confirmButtonText
-                            }).then((result) => {
-                                if (result.dismiss === Swal.DismissReason.cancel && data.has_sales) {
-                                    // Redirigir a las ventas del cliente
-                                    window.location.href = data.sales_url;
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            title: 'Error',
-                            text: 'Ocurrió un error al eliminar el cliente',
-                            icon: 'error'
-                        });
-                    });
+        try {
+            if (window.uiNotifications && typeof window.uiNotifications.confirmDialog === 'function') {
+                confirmed = await window.uiNotifications.confirmDialog({
+                    title: '¿Eliminar este cliente?',
+                    text: 'Solo se eliminará si no tiene ventas ni pagos de deuda asociados.',
+                    subtitle: 'Esta acción no se puede deshacer.',
+                    type: 'warning',
+                    confirmText: 'Sí, eliminar',
+                    cancelText: 'Cancelar',
+                });
+            } else {
+                const result = await Swal.fire({
+                    title: '¿Eliminar este cliente?',
+                    text: 'Esta acción no se puede revertir.',
+                    icon: 'warning',
+                    iconColor: '#fbbf24',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true,
+                    focusCancel: true,
+                    color: '#e2e8f0',
+                    customClass: {
+                        popup: 'ui-swal-popup',
+                        confirmButton: 'ui-swal-confirm',
+                        cancelButton: 'ui-swal-cancel',
+                        title: 'ui-swal-title',
+                    },
+                });
+                confirmed = result.isConfirmed;
             }
-        });
-    }
+        } catch (e) {
+            console.error(e);
+
+            return;
+        }
+
+        if (!confirmed) {
+            return;
+        }
+
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        try {
+            const response = await fetch(`${CONFIG.routes.delete}/${customerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                },
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                notifyCustomersUi(data.message || 'Cliente eliminado.', 'success');
+                window.setTimeout(() => location.reload(), 900);
+
+                return;
+            }
+
+            let showCancelButton = false;
+            let cancelButtonText = '';
+            const confirmButtonText = 'Entendido';
+
+            if (data.has_sales) {
+                showCancelButton = true;
+                cancelButtonText = 'Ver ventas';
+            }
+
+            const result = await Swal.fire({
+                title: data.icons === 'warning' ? 'No se puede eliminar' : 'Error',
+                html: data.message.replace(/\n/g, '<br>'),
+                icon: data.icons === 'warning' ? 'warning' : 'error',
+                iconColor: data.icons === 'warning' ? '#fbbf24' : '#fb7185',
+                showCancelButton,
+                cancelButtonText,
+                confirmButtonText,
+                reverseButtons: showCancelButton,
+                focusCancel: showCancelButton,
+                color: '#e2e8f0',
+                customClass: {
+                    popup: 'ui-swal-popup',
+                    htmlContainer: 'ui-swal-html',
+                    confirmButton: 'ui-swal-confirm',
+                    cancelButton: 'ui-swal-cancel',
+                    title: 'ui-swal-title',
+                },
+            });
+
+            if (result.dismiss === Swal.DismissReason.cancel && data.has_sales && data.sales_url) {
+                window.location.href = data.sales_url;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            notifyCustomersUi('Ocurrió un error al eliminar el cliente.', 'error');
+        }
+    },
 };
 
 // ===== FUNCIONES DE ALPINE.JS =====

@@ -631,6 +631,7 @@ class CustomerController extends Controller
                        'Ve a la sección de Ventas y busca las ventas de este cliente para eliminarlas.',
                     'icons' => 'warning',
                     'has_sales' => true,
+                    'sales_url' => route('admin.sales.index', ['search' => $customer->name]),
                     'sales_count' => $salesCount,
                     'total_sales_amount' => $totalSalesAmount,
                     'first_sale_date' => $firstSaleDate,

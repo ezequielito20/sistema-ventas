@@ -287,6 +287,13 @@
         padding: 0 !important;
     }
 
+    .ui-swal-popup .swal2-html-container {
+        color: #cbd5e1 !important;
+        font-size: 0.875rem !important;
+        line-height: 1.55 !important;
+        text-align: left !important;
+    }
+
     .ui-swal-title {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
@@ -1078,6 +1085,24 @@
         .customer-form-v2__input--error:focus-visible {
             border-color: rgba(244, 63, 94, 0.95);
             box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.45);
+        }
+
+        /* Icono a la izquierda: el padding del input base pisa cualquier pl-* de Tailwind */
+        .customer-form-v2__input--icon-start {
+            padding-left: 2.65rem;
+        }
+
+        .customer-form-v2__input-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            color: #64748b;
+            font-size: 0.8rem;
         }
 
         input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
