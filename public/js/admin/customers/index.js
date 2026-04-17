@@ -4,6 +4,52 @@ const CONFIG = {
     exchangeRate: { default: 134.0, key: 'exchangeRate' }
 };
 
+/**
+ * Toasts alineados al design system (resources/js/ui/notifications.js).
+ * SweetAlert solo como respaldo si uiNotifications no está disponible.
+ */
+function notifyCustomersUi(message, type = 'success') {
+    const titles = {
+        success: 'Listo',
+        error: 'Atención',
+        warning: 'Atención',
+        info: 'Información',
+    };
+    const uiType = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+    const title = titles[uiType];
+    const timeout =
+        uiType === 'error' ? 7200 : uiType === 'warning' ? 5600 : 4800;
+
+    if (window.uiNotifications && typeof window.uiNotifications.showToast === 'function') {
+        window.uiNotifications.showToast(message, {
+            type: uiType,
+            title,
+            timeout,
+            theme: 'futuristic',
+        });
+        return;
+    }
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon:
+                uiType === 'success'
+                    ? 'success'
+                    : uiType === 'error'
+                      ? 'error'
+                      : uiType === 'warning'
+                        ? 'warning'
+                        : 'info',
+            title,
+            text: message,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: Math.min(timeout, 5000),
+        });
+    }
+}
+
 // ===== FUNCIONES GLOBALES =====
 window.customersIndex = {
     // Actualizar valores Bs - Optimizado
@@ -402,43 +448,23 @@ function exchangeRateWidget() {
                     this.calcBs();
                     window.customersIndex.updateBsValues(this.exchangeRate);
 
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: `Tasa BCV actualizada: ${data.rate} Bs/USD`,
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true
-                        });
-                    }
+                    notifyCustomersUi(
+                        `Tasa BCV actualizada: ${data.rate} Bs/USD`,
+                        'success'
+                    );
                 } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'No se pudo actualizar',
-                            text: data.message || 'Verifique la conexión e intente nuevamente.',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 4000
-                        });
-                    }
+                    notifyCustomersUi(
+                        data.message ||
+                            'No se pudo actualizar. Verifique la conexión e intente nuevamente.',
+                        'warning'
+                    );
                 }
             } catch (error) {
                 console.error('Error al actualizar tasa:', error);
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de conexión',
-                        text: 'No se pudo comunicar con el servidor.',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                }
+                notifyCustomersUi(
+                    'No se pudo comunicar con el servidor.',
+                    'error'
+                );
             } finally {
                 this.updating = false;
             }
@@ -1082,16 +1108,7 @@ function setupExchangeRateEvents() {
                     localStorage.setItem(CONFIG.exchangeRate.key, rate);
                     window.customersIndex.updateBsValues(rate);
 
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Tipo de cambio actualizado',
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    }
+                    notifyCustomersUi('Tipo de cambio aplicado a la vista.', 'success');
                 }
             }
         }

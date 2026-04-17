@@ -26,6 +26,16 @@ globs: resources/views/**/*.blade.php, resources/sass/**/*.scss, app/Livewire/**
 ## Copy en pantalla
 - Subtítulos y textos de UI en lenguaje de negocio; **no** mostrar nombres de stack ni versiones (p. ej. “Livewire v2”) en `ui-panel__subtitle`.
 
+## Inputs en tema oscuro
+- No usar fondos claros en `:focus` (evitar el “flash” blanco del navegador). En listados clientes v2, el contenedor `customers-index-v2` fuerza foco oscuro + `color-scheme: dark` + autofill WebKit. Para otros módulos, reutilizar el mismo patrón de clases (`bg-slate-950/60`, `focus:border-cyan-500`, sin `focus:bg-white`) o ampliar el scope SCSS con cuidado.
+
+## Panel de filtros (colapsable — obligatorio en listados v2)
+- Los controles de filtro (búsqueda, segmentos, tasa, etc.) van **ocultos por defecto**.
+- El `ui-panel` de filtros lleva **`x-data="{ showFilters: @js($filtersOpen) }"`**, con **`$filtersOpen`** en el componente Livewire = `true` solo si ya hay criterios activos en la query (búsqueda no vacía, filtro aplicado, etc.), para que al recargar con filtros en la URL el panel **aparezca abierto**.
+- En el **`ui-panel__header`** siempre un botón **`ui-btn ui-btn-ghost`** que alterna `showFilters`, con el mismo copy que productos: icono `fa-filter` / `fa-sliders-h` y texto **«Filtros avanzados»** / **«Ocultar filtros»**.
+- El cuerpo del panel usa **`x-show="showFilters"`** + **`x-transition`** (y opcionalmente `wire:loading.class` en el body).
+- Referencia canónica: `resources/views/livewire/products-index.blade.php` (bloque «Filtros»). Antes de migrar un módulo nuevo a v2, **revisar ese archivo** y alinear comportamiento y clases.
+
 ## Fila de filtros (patrón estándar)
 - Resolver el layout solo con **Tailwind** en Blade (sin SCSS propio para la grilla).
 - **Orden en el DOM:** siempre `Buscar` → demás campos en orden lógico → **`Limpiar filtros` al final**. No poner el submit oculto como hijo directo de un `display:grid` (rompe columnas); si hace falta, dentro del bloque de búsqueda.

@@ -708,6 +708,35 @@
             0 8px 22px rgba(251, 113, 133, 0.12);
     }
 
+    /* Pago / registrar deuda: botón más claro que la fila + icono verde */
+    .ui-icon-action--success {
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.42);
+        background: linear-gradient(
+            155deg,
+            rgba(51, 65, 85, 0.88) 0%,
+            rgba(30, 58, 50, 0.75) 45%,
+            rgba(22, 101, 52, 0.35) 100%
+        );
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.12) inset,
+            0 4px 14px rgba(34, 197, 94, 0.14);
+    }
+
+    .ui-icon-action--success:hover {
+        border-color: rgba(74, 222, 128, 0.55);
+        color: #86efac;
+        background: linear-gradient(
+            155deg,
+            rgba(71, 85, 105, 0.92) 0%,
+            rgba(34, 84, 61, 0.8) 45%,
+            rgba(22, 101, 52, 0.45) 100%
+        );
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.14) inset,
+            0 6px 18px rgba(34, 197, 94, 0.2);
+    }
+
     .ui-widget {
         position: relative;
         overflow: hidden;
@@ -942,6 +971,67 @@
         background: rgba(148, 163, 184, 0.08);
     }
 
+    /**
+     * Clientes (Livewire v2): el CSS legacy public/css/admin/customers/index.css fuerza
+     * .customer-name / .id-badge en tema claro y .table-row:hover con fondo blanco.
+     * Este bloque restablece contraste sobre el panel oscuro y hover acorde al design system.
+     */
+    .customers-index-v2 {
+        .customer-name {
+            color: #f1f5f9 !important;
+            font-weight: 600;
+        }
+
+        .customer-email {
+            color: #94a3b8 !important;
+        }
+
+        .id-badge {
+            background: rgba(15, 23, 42, 0.92) !important;
+            color: #cbd5e1 !important;
+            border: 1px solid rgba(148, 163, 184, 0.35) !important;
+            padding: 0.32rem 0.65rem !important;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .ui-table tbody tr.customers-v2-tr:hover td {
+            background: rgba(34, 211, 238, 0.08) !important;
+        }
+
+        .sales-amount {
+            color: #e2e8f0 !important;
+        }
+
+        /*
+         * Inputs en tema oscuro: Chrome/WebKit a veces aplican fondo claro al enfocar o con autofill.
+         * Mantiene el mismo criterio que formularios v2 (sin “flash” blanco).
+         */
+        input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+        textarea,
+        select {
+            color-scheme: dark;
+        }
+
+        input:not([type='checkbox']):not([type='radio']):not([type='hidden']),
+        textarea {
+            &:focus,
+            &:focus-visible {
+                background-color: rgba(15, 23, 42, 0.96) !important;
+                color: #f1f5f9;
+            }
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #e2e8f0;
+            caret-color: #e2e8f0;
+            box-shadow: 0 0 0 1000px #020617 inset !important;
+        }
+    }
+
     .ui-badge {
         display: inline-flex;
         align-items: center;
@@ -1092,5 +1182,15 @@
 .ui-icon-action.ui-icon-action--danger,
 .ui-icon-action.ui-icon-action--danger > i {
     color: #fda4af !important;
+}
+
+.ui-icon-action.ui-icon-action--success,
+.ui-icon-action.ui-icon-action--success > i {
+    color: #4ade80 !important;
+}
+
+.ui-icon-action.ui-icon-action--success:hover,
+.ui-icon-action.ui-icon-action--success:hover > i {
+    color: #86efac !important;
 }
 
