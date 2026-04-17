@@ -14,11 +14,11 @@
 
     <div
         class="flex h-full items-center justify-center p-3 sm:p-4"
-        style="padding-top: max(1rem, env(safe-area-inset-top)); padding-bottom: max(1rem, env(safe-area-inset-bottom));"
+        style="padding-top: max(4.25rem, calc(env(safe-area-inset-top) + 0.75rem)); padding-bottom: max(1rem, env(safe-area-inset-bottom));"
     >
         <div
             class="relative my-0 flex w-full max-w-7xl flex-col overflow-hidden rounded-xl border border-slate-600/80 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75)] sm:rounded-2xl"
-            style="height: min(940px, calc(100dvh - 2rem));"
+            style="height: min(900px, calc(100dvh - 5.5rem));"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
