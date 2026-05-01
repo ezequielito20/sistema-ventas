@@ -14,6 +14,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\Admin\V2\PurchaseV2Controller;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Admin\V2\SaleV2Controller;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
@@ -164,8 +165,10 @@ Route::get('/admin/exchange-rate/current', [ExchangeRateController::class, 'curr
 Route::post('/admin/exchange-rate/update', [ExchangeRateController::class, 'forceUpdate'])
     ->name('admin.exchange-rate.update')->middleware(['auth']);
 
-// Sales
-Route::get('/sales', [SaleController::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
+// Sales v2 (override legacy with same route name)
+Route::get('/sales', [SaleV2Controller::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
+
+// Sales (legacy routes — create, store, edit, update, destroy, etc.)
 Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
 Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware(['auth', 'can:sales.create']);
 Route::post('/sales/bulk-store', [SaleController::class, 'bulkStore'])->name('admin.sales.bulk-store')->middleware(['auth', 'can:sales.create']);
