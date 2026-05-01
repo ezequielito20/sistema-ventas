@@ -115,7 +115,7 @@
                         <button
                             type="button"
                             wire:click="openProductModal"
-                            class="ui-btn ui-btn-secondary shrink-0 text-sm"
+                            class="ui-btn ui-btn-ghost shrink-0 text-sm"
                         >
                             <i class="fas fa-boxes mr-2"></i>
                             <span class="hidden xs:inline">Buscar productos</span>
@@ -371,74 +371,70 @@
 
                 {{-- Resumen y Totales --}}
                 @if (! empty($items))
-                    <div class="rounded-lg border border-slate-700/70 bg-slate-900/60 p-5">
-                        <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    <div class="rounded-lg border border-slate-700/70 bg-slate-900/60 p-3 sm:p-5">
+                        <div class="grid grid-cols-3 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                             {{-- Productos únicos --}}
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400">
-                                    <i class="fas fa-boxes text-sm"></i>
+                            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400 sm:h-9 sm:w-9">
+                                    <i class="fas fa-boxes text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
-                                    <p class="text-lg font-bold text-slate-200">{{ $this->totalProducts }}</p>
-                                    <p class="text-xs text-slate-500">Productos</p>
+                                <div class="min-w-0">
+                                    <p class="truncate text-base font-bold text-slate-200 sm:text-lg">{{ $this->totalProducts }}</p>
+                                    <p class="text-[10px] text-slate-500 sm:text-xs">Productos</p>
                                 </div>
                             </div>
                             {{-- Cantidad total --}}
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400">
-                                    <i class="fas fa-cubes text-sm"></i>
+                            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400 sm:h-9 sm:w-9">
+                                    <i class="fas fa-cubes text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
-                                    <p class="text-lg font-bold text-slate-200">{{ number_format($this->totalQuantity, 2) }}</p>
-                                    <p class="text-xs text-slate-500">Cantidad total</p>
+                                <div class="min-w-0">
+                                    <p class="truncate text-base font-bold text-slate-200 sm:text-lg">{{ number_format($this->totalQuantity, 2) }}</p>
+                                    <p class="text-[10px] text-slate-500 sm:text-xs">Cantidad</p>
                                 </div>
                             </div>
                             {{-- Subtotal --}}
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400">
-                                    <i class="fas fa-calculator text-sm"></i>
+                            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400 sm:h-9 sm:w-9">
+                                    <i class="fas fa-calculator text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
-                                    <p class="text-lg font-bold text-slate-200">{{ $currency->symbol }} {{ number_format($this->subtotal, 2) }}</p>
-                                    <p class="text-xs text-slate-500">Subtotal</p>
+                                <div class="min-w-0">
+                                    <p class="truncate text-base font-bold text-slate-200 sm:text-lg">{{ $currency->symbol }} {{ number_format($this->subtotal, 2) }}</p>
+                                    <p class="text-[10px] text-slate-500 sm:text-xs">Subtotal</p>
                                 </div>
                             </div>
                             {{-- Descuento general --}}
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-amber-400">
-                                    <i class="fas fa-tag text-sm"></i>
+                            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-amber-400 sm:h-9 sm:w-9">
+                                    <i class="fas fa-tag text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
-                                    <div class="flex items-center gap-1">
+                                <div class="min-w-0">
+                                    <div class="flex min-w-0 items-center gap-1">
                                         <input
                                             type="number"
                                             wire:model.blur="general_discount_value"
-                                            class="w-22 rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1 text-right text-sm font-bold text-slate-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                            class="w-full min-w-0 rounded-md border border-slate-600 bg-slate-900/80 px-1.5 py-1 text-right text-xs font-bold text-slate-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 sm:px-2 sm:text-sm"
                                             min="0" step="0.01"
                                         >
                                         <button
                                             type="button"
                                             wire:click="toggleGeneralDiscountType"
-                                            @class([
-                                                'rounded-md border px-2 py-1 text-xs font-semibold transition-colors',
-                                                'border-amber-500/50 bg-amber-950/50 text-amber-300' => $general_discount_type === 'percentage',
-                                                'border-slate-600 bg-slate-800 text-slate-400' => $general_discount_type === 'fixed',
-                                            ])
+                                            class="shrink-0 rounded-md border px-1.5 py-1 text-[10px] font-semibold transition-colors sm:px-2 sm:text-xs {{ $general_discount_type === 'percentage' ? 'border-amber-500/50 bg-amber-950/50 text-amber-300' : 'border-slate-600 bg-slate-800 text-slate-400' }}"
                                         >
                                             {{ $general_discount_type === 'percentage' ? '%' : $currency->symbol }}
                                         </button>
                                     </div>
-                                    <p class="mt-0.5 text-xs text-slate-500">Descuento general</p>
+                                    <p class="mt-0.5 truncate text-[10px] text-slate-500 sm:text-xs">Descuento</p>
                                 </div>
                             </div>
                             {{-- Total --}}
-                            <div class="col-span-1 flex items-center gap-3 xs:col-span-2 sm:col-span-1">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-900/60 text-emerald-400">
-                                    <i class="fas fa-dollar-sign text-sm"></i>
+                            <div class="col-span-1 flex min-w-0 items-center gap-2 sm:gap-3">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-900/60 text-emerald-400 sm:h-9 sm:w-9">
+                                    <i class="fas fa-dollar-sign text-xs sm:text-sm"></i>
                                 </div>
-                                <div>
-                                    <p class="text-xl font-bold text-emerald-400">{{ $currency->symbol }} {{ number_format($this->totalAmount, 2) }}</p>
-                                    <p class="text-xs text-slate-500">Total a pagar</p>
+                                <div class="min-w-0">
+                                    <p class="truncate text-base font-bold text-emerald-400 sm:text-lg">{{ $currency->symbol }} {{ number_format($this->totalAmount, 2) }}</p>
+                                    <p class="text-[10px] text-slate-500 sm:text-xs">Total</p>
                                 </div>
                             </div>
                         </div>
@@ -446,34 +442,37 @@
                 @endif
 
                 {{-- Botones de acción --}}
-                <div class="flex flex-wrap items-center gap-3 pt-2">
+                <div class="grid grid-cols-2 gap-2 pt-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
                     <button
                         type="button"
                         wire:click="saveAndBack"
-                        class="ui-btn ui-btn-primary text-sm"
+                        class="ui-btn ui-btn-primary col-span-2 justify-center text-sm"
                     >
-                        <i class="fas fa-save mr-2"></i>
-                        {{ $isEdit ? 'Guardar cambios' : 'Guardar compra' }}
+                        <i class="fas fa-save mr-2 sm:mr-2"></i>
+                        <span class="sm:hidden">{{ $isEdit ? 'Guardar' : 'Guardar' }}</span>
+                        <span class="hidden sm:inline">{{ $isEdit ? 'Guardar cambios' : 'Guardar compra' }}</span>
                     </button>
 
                     @if (! $isEdit)
                         <button
                             type="button"
                             wire:click="saveAndCreateAnother"
-                            class="ui-btn ui-btn-secondary text-sm"
+                            class="ui-btn ui-btn-success justify-center text-xs sm:text-sm"
                         >
-                            <i class="fas fa-plus-circle mr-2"></i>
-                            Guardar y crear otra
+                            <i class="fas fa-plus-circle mr-1.5 sm:mr-2"></i>
+                            <span class="sm:hidden">Guardar +</span>
+                            <span class="hidden sm:inline">Guardar y crear otra</span>
                         </button>
                     @endif
 
                     <a
-                href="{{ route('admin.purchases.index') }}"
-                        class="ui-btn ui-btn-ghost text-sm"
+                        href="{{ route('admin.purchases.index') }}"
+                        class="ui-btn ui-btn-ghost justify-center text-xs sm:text-sm"
                         wire:navigate
                     >
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
+                        <i class="fas fa-times mr-1.5 sm:mr-2"></i>
+                        <span class="sm:hidden">Volver</span>
+                        <span class="hidden sm:inline">Cancelar</span>
                     </a>
                 </div>
 
