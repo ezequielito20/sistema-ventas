@@ -1363,14 +1363,32 @@ class SaleController extends Controller
 
 
 
-   public function report()
-   {
-      $company = Company::find($this->company->id);
-      $currency = $this->currencies;
-      $sales = Sale::with(['saleDetails.product', 'customer', 'company'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
-      $pdf = Pdf::loadView('admin.sales.report', compact('sales', 'company', 'currency'));
-      return $pdf->stream('reporte-ventas.pdf');
-   }
+    public function report(Request $request)
+    {
+       $company = Company::find($this->company->id);
+       $currency = $this->currencies;
+       $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
+          ->where('company_id', $company->id)
+          ->orderBy('created_at', 'desc')
+          ->get();
+
+       $emittedAt = now();
+       $filename = 'reporte-ventas-'.$emittedAt->format('Y-m-d_His').'.pdf';
+
+       $pdf = Pdf::loadView('pdf.sales.report', compact('sales', 'company', 'currency', 'emittedAt'))
+          ->setPaper('letter', 'portrait')
+          ->setOption('enable_php', true)
+          ->addInfo([
+             'Title' => 'Informe de ventas',
+             'Author' => $company->name ?? config('app.name'),
+          ]);
+
+       if ($request->boolean('download')) {
+          return $pdf->download($filename);
+       }
+
+       return $pdf->stream($filename);
+    }
 
    /**
     * Obtiene los detalles de las ventas del día de hoy para el widget del dashboard
