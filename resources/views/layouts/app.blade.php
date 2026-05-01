@@ -611,8 +611,8 @@
                             Proveedores
                         </a> --}}
 
-                        <!-- Compras (v2 — listado moderno; /purchases conserva la vista legacy) -->
-                        <a href="{{ route('admin.purchases.v2.index') }}"
+                        <!-- Compras (listado moderno v2) -->
+                        <a href="{{ route('admin.purchases.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ str_starts_with((string) request()->route()?->getName(), 'admin.purchases') ? 'is-active' : '' }}">
                             <i class="fas fa-shopping-bag mr-3 text-lg"></i>
                             Compras

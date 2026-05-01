@@ -116,11 +116,10 @@ Route::delete('/suppliers/delete/{id}', [SupplierController::class, 'destroy'])-
 Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('admin.suppliers.show')->middleware(['auth', 'can:suppliers.show']);
 
 // Purchases
-Route::get('/purchases/v2', [PurchaseV2Controller::class, 'index'])->name('admin.purchases.v2.index')->middleware(['auth', 'can:purchases.index']);
-Route::get('/purchases', [PurchaseController::class, 'index'])->name('admin.purchases.index')->middleware(['auth', 'can:purchases.index']);
-Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('admin.purchases.create')->middleware(['auth', 'can:purchases.create']);
+Route::get('/purchases', [PurchaseV2Controller::class, 'index'])->name('admin.purchases.index')->middleware(['auth', 'can:purchases.index']);
+Route::get('/purchases/create', fn () => view('admin.v2.purchases.create'))->name('admin.purchases.create')->middleware(['auth', 'can:purchases.create']);
 Route::post('/purchases/create', [PurchaseController::class, 'store'])->name('admin.purchases.store')->middleware(['auth', 'can:purchases.create']);
-Route::get('/purchases/edit/{id}', [PurchaseController::class, 'edit'])->name('admin.purchases.edit')->middleware(['auth', 'can:purchases.edit']);
+Route::get('/purchases/edit/{id}', fn ($id) => view('admin.v2.purchases.edit', ['purchaseId' => (int) $id]))->name('admin.purchases.edit')->middleware(['auth', 'can:purchases.edit']);
 Route::put('/purchases/edit/{id}', [PurchaseController::class, 'update'])->name('admin.purchases.update')->middleware(['auth', 'can:purchases.edit']);
 Route::delete('/purchases/delete/{id}', [PurchaseController::class, 'destroy'])->name('admin.purchases.destroy')->middleware(['auth', 'can:purchases.destroy']);
 Route::get('/purchases/{id}/details', [PurchaseController::class, 'getDetails'])->name('admin.purchases.details')->middleware(['auth', 'can:purchases.details']);
