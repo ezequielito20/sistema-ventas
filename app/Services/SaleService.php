@@ -508,6 +508,394 @@ class SaleService
         return (float) $sum;
     }
 
+    // ─── VALIDATION ──────────────────────────────────────────
+
+    /**
+     * Reglas de validación para crear una venta.
+     *
+     * @return array<string, mixed>
+     */
+    public function rulesForCreate(): array
+    {
+        return [
+            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+            'sale_date' => ['required', 'date'],
+            'sale_time' => ['required', 'date_format:H:i'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount_value' => ['nullable', 'numeric', 'min:0'],
+            'items.*.discount_type' => ['nullable', 'in:fixed,percentage'],
+            'general_discount_value' => ['nullable', 'numeric', 'min:0'],
+            'general_discount_type' => ['nullable', 'in:fixed,percentage'],
+            'note' => ['nullable', 'string', 'max:1000'],
+            'already_paid' => ['required', 'boolean'],
+        ];
+    }
+
+    /**
+     * Reglas de validación para actualizar una venta.
+     *
+     * @return array<string, mixed>
+     */
+    public function rulesForUpdate(): array
+    {
+        return [
+            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+            'sale_date' => ['required', 'date'],
+            'sale_time' => ['required', 'date_format:H:i'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.discount_value' => ['nullable', 'numeric', 'min:0'],
+            'items.*.discount_type' => ['nullable', 'in:fixed,percentage'],
+            'general_discount_value' => ['nullable', 'numeric', 'min:0'],
+            'general_discount_type' => ['nullable', 'in:fixed,percentage'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    /**
+     * Mensajes de validación en español.
+     *
+     * @return array<string, string>
+     */
+    public function validationMessages(): array
+    {
+        return [
+            'customer_id.required' => 'Debe seleccionar un cliente.',
+            'customer_id.exists' => 'El cliente seleccionado no existe.',
+            'sale_date.required' => 'La fecha de venta es obligatoria.',
+            'sale_time.required' => 'La hora de venta es obligatoria.',
+            'items.required' => 'Debe agregar al menos un producto a la venta.',
+            'items.min' => 'Debe agregar al menos un producto a la venta.',
+            'items.*.product_id.required' => 'El producto es obligatorio.',
+            'items.*.product_id.exists' => 'El producto seleccionado no existe.',
+            'items.*.quantity.required' => 'La cantidad es obligatoria.',
+            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'items.*.price.required' => 'El precio unitario es obligatorio.',
+            'items.*.price.min' => 'El precio unitario debe ser mayor o igual a 0.',
+        ];
+    }
+
+    // ─── CALCULATIONS ─────────────────────────────────────────
+
+    /**
+     * Calcula el subtotal (suma de precio × cantidad) antes de descuento general.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    public function calculateSubtotal(array $items): float
+    {
+        return round(
+            collect($items)->sum(function ($item) {
+                $price = (float) ($item['price'] ?? 0);
+                $qty = (float) ($item['quantity'] ?? 0);
+                return $price * $qty;
+            }),
+            2
+        );
+    }
+
+    /**
+     * Calcula el subtotal de un ítem (precio final × cantidad).
+     */
+    public function calculateItemSubtotal(array $item): float
+    {
+        $finalPrice = $this->calculateItemFinalPrice($item);
+        return round($finalPrice * (float) ($item['quantity'] ?? 0), 2);
+    }
+
+    /**
+     * Calcula el total final aplicando descuento general.
+     */
+    public function calculateTotalAmount(array $items, float $generalDiscountValue, string $generalDiscountType): float
+    {
+        $subtotal = $this->calculateSubtotal($items);
+
+        if ($generalDiscountValue <= 0) {
+            return $subtotal;
+        }
+
+        $discount = $generalDiscountType === 'percentage'
+            ? $subtotal * ($generalDiscountValue / 100)
+            : $generalDiscountValue;
+
+        return round(max(0, $subtotal - $discount), 2);
+    }
+
+    /**
+     * Calcula el precio final de un ítem aplicando su descuento individual.
+     */
+    public function calculateItemFinalPrice(array $item): float
+    {
+        $price = (float) ($item['price'] ?? 0);
+        $discountValue = (float) ($item['discount_value'] ?? 0);
+        $discountType = $item['discount_type'] ?? 'fixed';
+
+        if ($discountValue <= 0) {
+            return $price;
+        }
+
+        $discount = $discountType === 'percentage'
+            ? $price * ($discountValue / 100)
+            : $discountValue;
+
+        return round(max(0, $price - $discount), 2);
+    }
+
+    // ─── CREATE / UPDATE ───────────────────────────────────────
+
+    /**
+     * Crear una venta con todos sus detalles.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function createSale(array $data, int $companyId): Sale
+    {
+        $validated = \Illuminate\Support\Facades\Validator::make(
+            $data,
+            $this->rulesForCreate(),
+            $this->validationMessages()
+        )->validate();
+
+        // 1. Verificar caja abierta
+        $currentCashCount = CashCount::where('company_id', $companyId)
+            ->whereNull('closing_date')
+            ->first();
+
+        if (! $currentCashCount) {
+            throw new \RuntimeException('No hay una caja abierta. Debe abrir una caja antes de realizar ventas.');
+        }
+
+        // 2. Calcular totales
+        $totalPrice = $this->calculateTotalAmount(
+            $validated['items'],
+            $validated['general_discount_value'] ?? 0,
+            $validated['general_discount_type'] ?? 'fixed'
+        );
+
+        $subtotalBeforeDiscount = $this->calculateSubtotal($validated['items']);
+
+        return DB::transaction(function () use ($validated, $companyId, $currentCashCount, $totalPrice, $subtotalBeforeDiscount) {
+            // 3. Validar stock y bloquear productos
+            $requestedQuantities = collect($validated['items'])
+                ->groupBy('product_id')
+                ->map(fn ($items) => $items->sum('quantity'));
+
+            $productIds = $requestedQuantities->keys()->all();
+
+            $products = Product::where('company_id', $companyId)
+                ->whereIn('id', $productIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($requestedQuantities as $productId => $requestedQty) {
+                $product = $products->get((int) $productId);
+                if (! $product) {
+                    throw new \RuntimeException("Producto no encontrado o no pertenece a esta empresa (ID: {$productId}).");
+                }
+                if ((float) $requestedQty > (float) $product->stock) {
+                    throw new \RuntimeException("Stock insuficiente para {$product->name}. Disponible: {$product->stock}, solicitado: {$requestedQty}.");
+                }
+            }
+
+            // 4. Obtener cliente
+            $customer = Customer::findOrFail($validated['customer_id']);
+
+            // 5. Crear la venta
+            $sale = Sale::create([
+                'sale_date' => $validated['sale_date'] . ' ' . $validated['sale_time'],
+                'total_price' => $totalPrice,
+                'company_id' => $companyId,
+                'customer_id' => $validated['customer_id'],
+                'cash_count_id' => $currentCashCount->id,
+                'note' => $validated['note'] ?? null,
+                'general_discount_value' => $validated['general_discount_value'] ?? 0,
+                'general_discount_type' => $validated['general_discount_type'] ?? 'fixed',
+                'subtotal_before_discount' => $subtotalBeforeDiscount,
+                'total_with_discount' => $totalPrice,
+            ]);
+
+            // 6. Crear detalles y reducir stock
+            foreach ($validated['items'] as $item) {
+                $product = $products->get((int) $item['product_id']);
+
+                SaleDetail::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['price'],
+                    'subtotal' => $this->calculateItemSubtotal($item),
+                    'discount_value' => $item['discount_value'] ?? 0,
+                    'discount_type' => $item['discount_type'] ?? 'fixed',
+                    'original_price' => $item['price'],
+                    'final_price' => $this->calculateItemFinalPrice($item),
+                ]);
+
+                // Reducir stock
+                $product->stock -= (float) $item['quantity'];
+                $product->save();
+            }
+
+            // 7. Manejar already_paid: si pagó, registrar pago de deuda; si no, incrementar deuda
+            if ($validated['already_paid']) {
+                $previousDebt = $customer->total_debt;
+                DB::table('debt_payments')->insert([
+                    'company_id' => $companyId,
+                    'customer_id' => $validated['customer_id'],
+                    'previous_debt' => $previousDebt,
+                    'payment_amount' => $totalPrice,
+                    'remaining_debt' => $previousDebt,
+                    'notes' => 'Pago automático registrado al crear la venta #' . $sale->id,
+                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // Incrementar deuda del cliente
+                $customer->total_debt = $customer->total_debt + $totalPrice;
+                $customer->save();
+            }
+
+            // 8. Registrar movimiento de caja (ingreso)
+            $currentCashCount->movements()->create([
+                'type' => 'income',
+                'amount' => $totalPrice,
+                'description' => 'Venta #' . $sale->id,
+            ]);
+
+            return $sale;
+        });
+    }
+
+    /**
+     * Actualizar una venta existente (edit).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function updateSale(int $saleId, array $data, int $companyId): Sale
+    {
+        $validated = \Illuminate\Support\Facades\Validator::make(
+            $data,
+            $this->rulesForUpdate(),
+            $this->validationMessages()
+        )->validate();
+
+        return DB::transaction(function () use ($validated, $companyId, $saleId) {
+            $sale = Sale::with('saleDetails')
+                ->where('company_id', $companyId)
+                ->findOrFail($saleId);
+
+            $totalPrice = $this->calculateTotalAmount(
+                $validated['items'],
+                $validated['general_discount_value'] ?? 0,
+                $validated['general_discount_type'] ?? 'fixed'
+            );
+
+            $subtotalBeforeDiscount = $this->calculateSubtotal($validated['items']);
+
+            // Restaurar stock de los detalles actuales
+            foreach ($sale->saleDetails as $detail) {
+                $product = Product::find($detail->product_id);
+                if ($product) {
+                    $product->stock += $detail->quantity;
+                    $product->save();
+                }
+            }
+
+            // Ajustar deuda del cliente original si cambió
+            $oldCustomerId = $sale->customer_id;
+            $newCustomerId = (int) $validated['customer_id'];
+
+            if ($oldCustomerId !== $newCustomerId) {
+                // Reducir deuda del cliente anterior
+                $oldCustomer = Customer::find($oldCustomerId);
+                if ($oldCustomer) {
+                    $oldCustomer->total_debt = max(0, $oldCustomer->total_debt - $sale->total_price);
+                    $oldCustomer->save();
+                }
+            }
+
+            // Actualizar campos de la venta
+            $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
+            $sale->customer_id = $validated['customer_id'];
+            $sale->total_price = $totalPrice;
+            $sale->note = $validated['note'] ?? null;
+            $sale->general_discount_value = $validated['general_discount_value'] ?? 0;
+            $sale->general_discount_type = $validated['general_discount_type'] ?? 'fixed';
+            $sale->subtotal_before_discount = $subtotalBeforeDiscount;
+            $sale->total_with_discount = $totalPrice;
+            $sale->save();
+
+            // Eliminar detalles anteriores
+            $sale->saleDetails()->delete();
+
+            // Validar stock y crear nuevos detalles
+            $requestedQuantities = collect($validated['items'])
+                ->groupBy('product_id')
+                ->map(fn ($items) => $items->sum('quantity'));
+
+            $productIds = $requestedQuantities->keys()->all();
+
+            $products = Product::where('company_id', $companyId)
+                ->whereIn('id', $productIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($validated['items'] as $item) {
+                $product = $products->get((int) $item['product_id']);
+                if (! $product) {
+                    throw new \RuntimeException("Producto no encontrado o no pertenece a esta empresa (ID: {$item['product_id']}).");
+                }
+
+                SaleDetail::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['price'],
+                    'subtotal' => $this->calculateItemSubtotal($item),
+                    'discount_value' => $item['discount_value'] ?? 0,
+                    'discount_type' => $item['discount_type'] ?? 'fixed',
+                    'original_price' => $item['price'],
+                    'final_price' => $this->calculateItemFinalPrice($item),
+                ]);
+
+                // Reducir stock
+                $product->stock -= (float) $item['quantity'];
+                $product->save();
+            }
+
+            // Ajustar deuda del nuevo cliente
+            if ($oldCustomerId !== $newCustomerId) {
+                $newCustomer = Customer::find($newCustomerId);
+                if ($newCustomer) {
+                    $newCustomer->total_debt = $newCustomer->total_debt + $totalPrice;
+                    $newCustomer->save();
+                }
+            } else {
+                // Mismo cliente: ajustar diferencia de deuda
+                $customer = Customer::find($newCustomerId);
+                if ($customer) {
+                    $diff = $totalPrice - $sale->getOriginal('total_price');
+                    $customer->total_debt = max(0, $customer->total_debt + $diff);
+                    $customer->save();
+                }
+            }
+
+            // Actualizar movimiento de caja
+            \App\Models\CashMovement::where('description', 'Venta #' . $sale->id)
+                ->whereHas('cashCount', fn ($q) => $q->where('company_id', $companyId))
+                ->update(['amount' => $totalPrice]);
+
+            return $sale;
+        });
+    }
+
     /**
      * Obtener arqueo de caja abierto (closing_date null).
      */

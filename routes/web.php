@@ -168,11 +168,13 @@ Route::post('/admin/exchange-rate/update', [ExchangeRateController::class, 'forc
 // Sales v2 (override legacy with same route name)
 Route::get('/sales', [SaleV2Controller::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
 
-// Sales (legacy routes — create, store, edit, update, destroy, etc.)
-Route::get('/sales/create', [SaleController::class, 'create'])->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
+// Sales v2 create/edit (override legacy views — store/update still use legacy controller)
+Route::get('/sales/create', fn () => view('admin.v2.sales.create'))->name('admin.sales.create')->middleware(['auth', 'can:sales.create']);
+Route::get('/sales/edit/{id}', fn ($id) => view('admin.v2.sales.edit', ['saleId' => (int) $id]))->name('admin.sales.edit')->middleware(['auth', 'can:sales.edit']);
+
+// Sales (legacy routes — store, update, destroy, etc.)
 Route::post('/sales/create', [SaleController::class, 'store'])->name('admin.sales.store')->middleware(['auth', 'can:sales.create']);
 Route::post('/sales/bulk-store', [SaleController::class, 'bulkStore'])->name('admin.sales.bulk-store')->middleware(['auth', 'can:sales.create']);
-Route::get('/sales/edit/{id}', [SaleController::class, 'edit'])->name('admin.sales.edit')->middleware(['auth', 'can:sales.edit']);
 Route::put('/sales/edit/{id}', [SaleController::class, 'update'])->name('admin.sales.update')->middleware(['auth', 'can:sales.edit']);
 Route::delete('/sales/delete/{id}', [SaleController::class, 'destroy'])->name('admin.sales.destroy')->middleware(['auth', 'can:sales.destroy']);
 Route::get('/sales/{id}/details', [SaleController::class, 'getDetails'])->name('admin.sales.details')->middleware(['auth', 'can:sales.details']);

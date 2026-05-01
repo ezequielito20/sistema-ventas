@@ -19,6 +19,7 @@ class Sale extends Model
         'total_price',
         'company_id',
         'customer_id',
+        'cash_count_id',
         'note',
         'general_discount_value',
         'general_discount_type',
@@ -58,6 +59,14 @@ class Sale extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Obtiene el arqueo de caja asociado a la venta.
+     */
+    public function cashCount()
+    {
+        return $this->belongsTo(CashCount::class);
     }
 
     /**
