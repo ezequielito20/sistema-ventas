@@ -77,62 +77,68 @@
     {{-- ================================================================ --}}
     {{-- FILTROS                                                          --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel ui-panel--overflow-visible">
-        <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0">
+    <div class="ui-panel" x-data="{ showFilters: false }">
+        <div class="ui-panel__header flex items-center justify-between gap-3">
+            <div>
                 <h2 class="ui-panel__title">Filtros</h2>
                 <p class="ui-panel__subtitle">Búsqueda por cliente, fecha, monto o producto.</p>
             </div>
-            <button type="button" wire:click="$toggle('showFilters')" class="ui-btn ui-btn-ghost w-full shrink-0 text-sm sm:w-auto">
-                @if ($showFilters)
-                    <i class="fas fa-sliders-h text-sm"></i> Ocultar filtros
-                @else
-                    <i class="fas fa-filter text-sm"></i> Filtros avanzados
-                @endif
+            <button
+                type="button"
+                class="ui-btn ui-btn-ghost text-sm"
+                @click="showFilters = !showFilters"
+                :aria-expanded="showFilters"
+            >
+                <i class="fas" :class="showFilters ? 'fa-sliders-h' : 'fa-filter'"></i>
+                <span x-text="showFilters ? 'Ocultar filtros' : 'Filtros avanzados'"></span>
             </button>
         </div>
 
-        @if ($showFilters)
-            <div class="ui-panel__body space-y-4" wire:key="sales-filters">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                    <div>
-                        <label class="{{ $labelBase }}">Desde</label>
-                        <input type="date" wire:model.live="dateFrom" class="{{ $inputBase }}" style="color-scheme: dark;">
-                    </div>
-                    <div>
-                        <label class="{{ $labelBase }}">Hasta</label>
-                        <input type="date" wire:model.live="dateTo" class="{{ $inputBase }}" style="color-scheme: dark;">
-                    </div>
-                    <div>
-                        <label class="{{ $labelBase }}">Monto mín.</label>
-                        <input type="number" wire:model.live="amountMin" min="0" step="0.01" placeholder="0.00"
-                            class="{{ $inputBase }}">
-                    </div>
-                    <div>
-                        <label class="{{ $labelBase }}">Monto máx.</label>
-                        <input type="number" wire:model.live="amountMax" min="0" step="0.01" placeholder="0.00"
-                            class="{{ $inputBase }}">
-                    </div>
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1">
-                            <label class="{{ $labelBase }}">Buscar</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="search" wire:model.live.debounce.300ms="search"
-                                    placeholder="Cliente, fecha, monto o producto…"
-                                    class="{{ $inputBase }} pl-10"
-                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            </div>
-                        </div>
-                        <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost shrink-0 text-sm">
-                            <i class="fas fa-eraser"></i>
-                        </button>
+        <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,1.5fr)_repeat(2,minmax(0,0.9fr))_repeat(2,minmax(0,0.85fr))_auto] 2xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_repeat(2,minmax(0,0.85fr))_repeat(2,minmax(0,0.7fr))_auto]">
+                {{-- Buscar --}}
+                <div class="min-w-0">
+                    <label class="{{ $labelBase }}">Buscar</label>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="search" wire:model.live.debounce.300ms="search"
+                            placeholder="Cliente, fecha, monto o producto…"
+                            class="{{ $inputBase }} pl-10"
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     </div>
                 </div>
+                {{-- Desde --}}
+                <div>
+                    <label class="{{ $labelBase }}">Desde</label>
+                    <input type="date" wire:model.live="dateFrom" class="{{ $inputBase }}" style="color-scheme: dark;">
+                </div>
+                {{-- Hasta --}}
+                <div>
+                    <label class="{{ $labelBase }}">Hasta</label>
+                    <input type="date" wire:model.live="dateTo" class="{{ $inputBase }}" style="color-scheme: dark;">
+                </div>
+                {{-- Monto mín. --}}
+                <div>
+                    <label class="{{ $labelBase }}">Monto mín.</label>
+                    <input type="number" wire:model.live="amountMin" min="0" step="0.01" placeholder="0.00"
+                        class="{{ $inputBase }}">
+                </div>
+                {{-- Monto máx. --}}
+                <div>
+                    <label class="{{ $labelBase }}">Monto máx.</label>
+                    <input type="number" wire:model.live="amountMax" min="0" step="0.01" placeholder="0.00"
+                        class="{{ $inputBase }}">
+                </div>
+                {{-- Limpiar --}}
+                <div class="sm:col-span-2 xl:col-span-1 xl:col-start-6 xl:row-start-1 2xl:col-start-7 2xl:row-start-1">
+                    <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full text-sm 2xl:w-auto">
+                        <i class="fas fa-eraser"></i> Limpiar filtros
+                    </button>
+                </div>
             </div>
-        @endif
+        </div>
     </div>
 
     {{-- ================================================================ --}}

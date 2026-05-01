@@ -23,17 +23,7 @@ class SalesIndex extends Component
     public string $amountMin = '';
     public string $amountMax = '';
     public int $perPage = 15;
-    public bool $showFilters = false;
-
-    protected $queryString = [
-        'search' => ['except' => ''],
-        'dateFrom' => ['except' => ''],
-        'dateTo' => ['except' => ''],
-        'amountMin' => ['except' => ''],
-        'amountMax' => ['except' => ''],
-    ];
-
-    // ─── STATS ────────────────────────────────────────────
+// ─── STATS ────────────────────────────────────────────
     public array $statsSinceCashOpen = [];
     public array $statsThisWeek = [];
     public array $statsToday = [];
