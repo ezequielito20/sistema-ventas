@@ -297,8 +297,14 @@ class SalesIndex extends Component
             return;
         }
 
-        $pageIds = $this->salesQuery()
-            ->paginate($this->perPage)
+        $pageIds = app(SaleService::class)
+            ->searchSalesQuery((int) Auth::user()->company_id, [
+                'search' => $this->search,
+                'dateFrom' => $this->dateFrom,
+                'dateTo' => $this->dateTo,
+                'amountMin' => $this->amountMin,
+                'amountMax' => $this->amountMax,
+            ])
             ->pluck('id')
             ->map(fn ($sid) => (int) $sid)
             ->all();

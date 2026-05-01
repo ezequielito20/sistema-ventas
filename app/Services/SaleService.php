@@ -265,6 +265,76 @@ class SaleService
     // ─── DELETE ──────────────────────────────────────────────
 
     /**
+     * Retornar el query builder de búsqueda SIN paginar.
+     * Usado por toggleSelectAllCurrentPage() para obtener los IDs de la página actual.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function searchSalesQuery(int $companyId, array $filters = [])
+    {
+        $query = Sale::select(['id', 'sale_date', 'total_price', 'customer_id', 'company_id', 'note'])
+            ->with([
+                'customer:id,name,email,phone',
+                'saleDetails:id,sale_id,product_id,quantity,unit_price,subtotal',
+                'saleDetails.product:id,code,name,image,category_id',
+                'saleDetails.product.category:id,name',
+            ])
+            ->where('company_id', $companyId);
+
+        $search = $filters['search'] ?? '';
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'LIKE', "%{$search}%")
+                    ->orWhereRaw("CAST(total_price AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("CAST(sale_date AS TEXT) ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM-YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM.YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD/MM') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD-MM') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(sale_date, 'DD.MM') ILIKE ?", ["%{$search}%"])
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->whereRaw('name ILIKE ?', ["%{$search}%"])
+                            ->orWhereRaw('email ILIKE ?', ["%{$search}%"])
+                            ->orWhereRaw('phone ILIKE ?', ["%{$search}%"]);
+                    })
+                    ->orWhereHas('saleDetails.product', function ($pq) use ($search) {
+                        $pq->whereRaw('code ILIKE ?', ["%{$search}%"])
+                            ->orWhereRaw('name ILIKE ?', ["%{$search}%"])
+                            ->orWhereHas('category', function ($catq) use ($search) {
+                                $catq->whereRaw('name ILIKE ?', ["%{$search}%"]);
+                            });
+                    });
+            });
+        }
+
+        $dateFrom = $filters['dateFrom'] ?? '';
+        if ($dateFrom !== '') {
+            $query->whereDate('sale_date', '>=', $dateFrom);
+        }
+
+        $dateTo = $filters['dateTo'] ?? '';
+        if ($dateTo !== '') {
+            $query->whereDate('sale_date', '<=', $dateTo);
+        }
+
+        $amountMin = $filters['amountMin'] ?? '';
+        if ($amountMin !== '' && is_numeric($amountMin)) {
+            $query->where('total_price', '>=', (float) $amountMin);
+        }
+
+        $amountMax = $filters['amountMax'] ?? '';
+        if ($amountMax !== '' && is_numeric($amountMax)) {
+            $query->where('total_price', '<=', (float) $amountMax);
+        }
+
+        return $query->orderBy('sale_date', 'desc');
+    }
+
+    /**
      * Eliminar una venta (revertir stock, deuda y movimientos de caja).
      *
      * @return array{success: bool, message: string, type: string}
