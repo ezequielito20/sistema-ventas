@@ -57,6 +57,26 @@ class PurchaseForm extends Component
         Gate::authorize('purchases.create');
         $this->purchase_date = now()->format('Y-m-d');
         $this->purchase_time = now()->format('H:i');
+
+        // ── Auto-add single product (legacy business rule) ──
+        $productCount = Product::where('company_id', Auth::user()->company_id)->count();
+        if ($productCount === 1 && empty($this->items)) {
+            $product = Product::where('company_id', Auth::user()->company_id)->first();
+            if ($product) {
+                $this->items[] = [
+                    'product_id' => $product->id,
+                    'code' => $product->code,
+                    'name' => $product->name,
+                    'image_url' => $product->image_url,
+                    'stock' => (int) $product->stock,
+                    'quantity' => 1,
+                    'price' => (float) $product->purchase_price,
+                    'discount_value' => 0,
+                    'discount_type' => 'fixed',
+                ];
+                $this->js("window.uiNotifications?.showToast?.('" . addslashes($product->name) . " se agregó automáticamente (único producto en inventario)', {type:'info', title:'Atención', timeout:6000, theme:'futuristic'})");
+            }
+        }
     }
 
     protected function loadPurchase(): void

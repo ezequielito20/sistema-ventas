@@ -117,7 +117,9 @@
                             wire:click="openProductModal"
                             class="ui-btn ui-btn-secondary shrink-0 text-sm"
                         >
-                            <i class="fas fa-boxes mr-2"></i> Buscar productos
+                            <i class="fas fa-boxes mr-2"></i>
+                            <span class="hidden xs:inline">Buscar productos</span>
+                            <span class="xs:hidden">Buscar</span>
                         </button>
                     </div>
                 </div>
@@ -145,8 +147,120 @@
                             </p>
                         </div>
                     @else
-                        {{-- Tabla --}}
-                        <div class="overflow-x-auto rounded-lg border border-slate-700/70">
+                        {{-- Mobile cards (hidden sm and up) --}}
+                        <div class="space-y-3 sm:hidden">
+                            @foreach ($items as $index => $item)
+                                <div
+                                    class="rounded-xl border border-slate-700/70 bg-slate-950/60 p-4"
+                                    wire:key="purchase-item-mobile-{{ $index }}"
+                                >
+                                    {{-- Top row: image + name/code + stock badge + delete --}}
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex min-w-0 items-center gap-3">
+                                            <img
+                                                src="{{ $item['image_url'] ?? asset('img/no-image.svg') }}"
+                                                alt="{{ $item['name'] }}"
+                                                class="h-10 w-10 shrink-0 rounded-lg object-cover"
+                                            >
+                                            <div class="min-w-0">
+                                                <p class="truncate text-sm font-medium text-slate-200">{{ $item['name'] }}</p>
+                                                <p class="text-xs text-slate-500">{{ $item['code'] }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex shrink-0 items-center gap-2">
+                                            <span @class([
+                                                'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold',
+                                                'bg-rose-900/60 text-rose-300' => ($item['stock'] ?? 0) < 10,
+                                                'bg-amber-900/60 text-amber-300' => ($item['stock'] ?? 0) >= 10 && ($item['stock'] ?? 0) < 50,
+                                                'bg-emerald-900/60 text-emerald-300' => ($item['stock'] ?? 0) >= 50,
+                                            ])>
+                                                {{ $item['stock'] ?? 0 }}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                wire:click="removeProduct({{ $index }})"
+                                                class="inline-flex items-center rounded-md border border-rose-500/30 bg-rose-950/30 px-2 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-950/60"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Inputs grid --}}
+                                    <div class="mt-3 grid grid-cols-2 gap-3">
+                                        {{-- Cantidad --}}
+                                        <div>
+                                            <label class="mb-1 block text-xs font-semibold text-slate-400">
+                                                Cantidad
+                                            </label>
+                                            <input
+                                                type="number"
+                                                wire:model.blur="items.{{ $index }}.quantity"
+                                                wire:change="updateItemQuantity({{ $index }}, $event.target.value)"
+                                                class="h-11 w-full rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-center text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                min="0.01"
+                                                step="0.01"
+                                            >
+                                        </div>
+                                        {{-- Precio --}}
+                                        <div>
+                                            <label class="mb-1 block text-xs font-semibold text-slate-400">
+                                                Precio
+                                            </label>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-xs text-slate-500">{{ $currency->symbol }}</span>
+                                                <input
+                                                    type="number"
+                                                    wire:model.blur="items.{{ $index }}.price"
+                                                    wire:change="updateItemPrice({{ $index }}, $event.target.value)"
+                                                    class="h-11 w-full rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-right text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                    min="0"
+                                                    step="0.01"
+                                                >
+                                            </div>
+                                        </div>
+                                        {{-- Descuento --}}
+                                        <div class="col-span-2">
+                                            <label class="mb-1 block text-xs font-semibold text-slate-400">
+                                                Descuento
+                                            </label>
+                                            <div class="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    wire:model.blur="items.{{ $index }}.discount_value"
+                                                    wire:change="updateItemDiscount({{ $index }}, $event.target.value)"
+                                                    class="h-11 w-full rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-right text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                    min="0"
+                                                    step="0.01"
+                                                >
+                                                <button
+                                                    type="button"
+                                                    wire:click="toggleItemDiscountType({{ $index }})"
+                                                    @class([
+                                                        'h-11 shrink-0 rounded-md border px-3 text-xs font-semibold transition-colors',
+                                                        'border-cyan-500/50 bg-cyan-950/50 text-cyan-300' => ($item['discount_type'] ?? 'fixed') === 'percentage',
+                                                        'border-slate-600 bg-slate-800 text-slate-400' => ($item['discount_type'] ?? 'fixed') === 'fixed',
+                                                    ])
+                                                >
+                                                    {{ ($item['discount_type'] ?? 'fixed') === 'percentage' ? '%' : $currency->symbol }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Bottom: Subtotal --}}
+                                    <div class="mt-3 flex items-center justify-between border-t border-slate-700/50 pt-3">
+                                        <span class="text-xs font-semibold uppercase text-slate-400">Subtotal</span>
+                                        <span class="text-base font-bold text-emerald-400">
+                                            {{ $currency->symbol }} {{ number_format($this->getItemSubtotal($index), 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- Desktop table (hidden below sm) --}}
+                        <div class="hidden sm:block overflow-x-auto rounded-lg border border-slate-700/70">
                             <table class="min-w-full divide-y divide-slate-700/70">
                                 <thead class="bg-slate-900/80">
                                     <tr>
@@ -258,7 +372,7 @@
                 {{-- Resumen y Totales --}}
                 @if (! empty($items))
                     <div class="rounded-lg border border-slate-700/70 bg-slate-900/60 p-5">
-                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5">
+                        <div class="grid grid-cols-1 gap-3 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                             {{-- Productos únicos --}}
                             <div class="flex items-center gap-3">
                                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-cyan-400">
@@ -318,7 +432,7 @@
                                 </div>
                             </div>
                             {{-- Total --}}
-                            <div class="col-span-2 flex items-center gap-3 sm:col-span-1">
+                            <div class="col-span-1 flex items-center gap-3 xs:col-span-2 sm:col-span-1">
                                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-900/60 text-emerald-400">
                                     <i class="fas fa-dollar-sign text-sm"></i>
                                 </div>
@@ -382,11 +496,11 @@
             {{-- Backdrop --}}
             <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" wire:click="closeProductModal"></div>
 
-            <div class="flex min-h-full items-center justify-center p-4">
-                <div class="relative w-full max-w-5xl rounded-2xl border border-slate-700/70 bg-slate-950 shadow-2xl">
+            <div class="flex min-h-full items-center justify-center p-2 sm:p-4">
+                <div class="relative w-full max-w-full rounded-2xl border border-slate-700/70 bg-slate-950 shadow-2xl sm:max-w-5xl">
 
                     {{-- Header --}}
-                    <div class="flex items-center justify-between border-b border-slate-700/70 px-6 py-4">
+                    <div class="flex flex-col gap-3 border-b border-slate-700/70 px-4 py-3 xs:flex-row xs:items-center xs:justify-between sm:px-6 sm:py-4">
                         <div class="flex items-center gap-3">
                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-950/60 text-cyan-400">
                                 <i class="fas fa-boxes"></i>
@@ -406,7 +520,7 @@
                     </div>
 
                     {{-- Body --}}
-                    <div class="px-6 py-4">
+                    <div class="px-3 py-3 sm:px-6 sm:py-4">
                         {{-- Búsqueda --}}
                         <div class="relative mb-4">
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
@@ -422,7 +536,7 @@
                         </div>
 
                         {{-- Tabla de productos --}}
-                        <div class="max-h-[55vh] overflow-y-auto">
+                        <div class="max-h-[55vh] overflow-y-auto overflow-x-auto">
                             @if ($modalProducts->isEmpty())
                                 <div class="py-12 text-center">
                                     <i class="fas fa-search text-3xl text-slate-600 mb-3"></i>
@@ -505,7 +619,7 @@
                     </div>
 
                     {{-- Footer --}}
-                    <div class="flex justify-end border-t border-slate-700/70 px-6 py-4">
+                    <div class="flex justify-end border-t border-slate-700/70 px-4 py-3 sm:px-6 sm:py-4">
                         <button
                             type="button"
                             wire:click="closeProductModal"
