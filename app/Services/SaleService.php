@@ -370,9 +370,24 @@ class SaleService
                 ];
             }
 
-            // Revertir deuda del cliente
             $customer = Customer::find($sale->customer_id);
+
+            // Revertir pagos de deuda automáticos asociados a esta venta
+            $autoPayments = DB::table('debt_payments')
+                ->where('company_id', $companyId)
+                ->where('customer_id', $sale->customer_id)
+                ->where(function ($q) use ($sale) {
+                    $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                      ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                })
+                ->get();
+
             if ($customer) {
+                foreach ($autoPayments as $payment) {
+                    $customer->total_debt += (float) $payment->payment_amount;
+                }
+
+                // Revertir la deuda de la venta
                 $customer->total_debt = max(0, $customer->total_debt - $sale->total_price);
                 $customer->save();
             }
@@ -395,7 +410,10 @@ class SaleService
             DB::table('debt_payments')
                 ->where('company_id', $companyId)
                 ->where('customer_id', $sale->customer_id)
-                ->where('notes', 'LIKE', '%Venta #' . $sale->id . '%')
+                ->where(function ($q) use ($sale) {
+                    $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                      ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                })
                 ->delete();
 
             $sale->delete();
@@ -790,6 +808,11 @@ class SaleService
                 ->where('company_id', $companyId)
                 ->findOrFail($saleId);
 
+            // Guardar valores originales ANTES de cualquier modificación
+            $originalTotalPrice = (float) $sale->total_price;
+            $oldCustomerId = $sale->customer_id;
+            $newCustomerId = (int) $validated['customer_id'];
+
             $totalPrice = $this->calculateTotalAmount(
                 $validated['items'],
                 $validated['general_discount_value'] ?? 0,
@@ -798,7 +821,9 @@ class SaleService
 
             $subtotalBeforeDiscount = $this->calculateSubtotal($validated['items']);
 
-            // Restaurar stock de los detalles actuales
+            // ================================================================
+            // 1. REVERTIR STOCK (devolver todo lo que se vendió originalmente)
+            // ================================================================
             foreach ($sale->saleDetails as $detail) {
                 $product = Product::find($detail->product_id);
                 if ($product) {
@@ -807,20 +832,50 @@ class SaleService
                 }
             }
 
-            // Ajustar deuda del cliente original si cambió
-            $oldCustomerId = $sale->customer_id;
-            $newCustomerId = (int) $validated['customer_id'];
+            // ================================================================
+            // 2. REVERTIR DEUDA Y PAGOS del cliente original
+            // ================================================================
+            // Buscar y eliminar pagos de deuda automáticos asociados a esta venta
+            $autoPayments = DB::table('debt_payments')
+                ->where('company_id', $companyId)
+                ->where('customer_id', $oldCustomerId)
+                ->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                ->orWhere(function ($q) use ($sale, $oldCustomerId, $companyId) {
+                    $q->where('company_id', $companyId)
+                      ->where('customer_id', $oldCustomerId)
+                      ->where('notes', 'like', '%Venta #' . $sale->id . '%');
+                })
+                ->get();
 
-            if ($oldCustomerId !== $newCustomerId) {
-                // Reducir deuda del cliente anterior
-                $oldCustomer = Customer::find($oldCustomerId);
-                if ($oldCustomer) {
-                    $oldCustomer->total_debt = max(0, $oldCustomer->total_debt - $sale->total_price);
-                    $oldCustomer->save();
+            $oldCustomer = Customer::find($oldCustomerId);
+            if ($oldCustomer) {
+                // Revertir la deuda sumada por esta venta original
+                $oldCustomer->total_debt = max(0, $oldCustomer->total_debt - $originalTotalPrice);
+
+                // Revertir el efecto de los pagos automáticos (si los hubo)
+                foreach ($autoPayments as $payment) {
+                    // Si fue un pago total (no aumentó deuda), revertimos el pago sumando
+                    // Si fue parcial, la lógica de create ya ajustó la deuda correctamente
+                    // En ambos casos, revertimos el payment_amount de la deuda
+                    $oldCustomer->total_debt += (float) $payment->payment_amount;
                 }
+
+                $oldCustomer->save();
+
+                // Eliminar los pagos automáticos asociados a esta venta
+                DB::table('debt_payments')
+                    ->where('company_id', $companyId)
+                    ->where('customer_id', $oldCustomerId)
+                    ->where(function ($q) use ($sale) {
+                        $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                          ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+                    })
+                    ->delete();
             }
 
-            // Actualizar campos de la venta
+            // ================================================================
+            // 3. ACTUALIZAR LA VENTA
+            // ================================================================
             $sale->sale_date = $validated['sale_date'] . ' ' . $validated['sale_time'];
             $sale->customer_id = $validated['customer_id'];
             $sale->total_price = $totalPrice;
@@ -834,7 +889,9 @@ class SaleService
             // Eliminar detalles anteriores
             $sale->saleDetails()->delete();
 
-            // Validar stock y crear nuevos detalles
+            // ================================================================
+            // 4. CREAR NUEVOS DETALLES Y DESCONTAR STOCK
+            // ================================================================
             $requestedQuantities = collect($validated['items'])
                 ->groupBy('product_id')
                 ->map(fn ($items) => $items->sum('quantity'));
@@ -865,29 +922,23 @@ class SaleService
                     'final_price' => $this->calculateItemFinalPrice($item),
                 ]);
 
-                // Reducir stock
                 $product->stock -= (float) $item['quantity'];
                 $product->save();
             }
 
-            // Ajustar deuda del nuevo cliente
-            if ($oldCustomerId !== $newCustomerId) {
-                $newCustomer = Customer::find($newCustomerId);
-                if ($newCustomer) {
-                    $newCustomer->total_debt = $newCustomer->total_debt + $totalPrice;
-                    $newCustomer->save();
-                }
-            } else {
-                // Mismo cliente: ajustar diferencia de deuda
-                $customer = Customer::find($newCustomerId);
-                if ($customer) {
-                    $diff = $totalPrice - $sale->getOriginal('total_price');
-                    $customer->total_debt = max(0, $customer->total_debt + $diff);
-                    $customer->save();
-                }
+            // ================================================================
+            // 5. APLICAR NUEVA DEUDA AL CLIENTE (puede ser el mismo o diferente)
+            // ================================================================
+            $targetCustomer = Customer::find($newCustomerId);
+            if ($targetCustomer) {
+                // Sumar la nueva deuda total
+                $targetCustomer->total_debt += $totalPrice;
+                $targetCustomer->save();
             }
 
-            // Actualizar movimiento de caja
+            // ================================================================
+            // 6. ACTUALIZAR MOVIMIENTO DE CAJA
+            // ================================================================
             \App\Models\CashMovement::where('description', 'Venta #' . $sale->id)
                 ->whereHas('cashCount', fn ($q) => $q->where('company_id', $companyId))
                 ->update(['amount' => $totalPrice]);

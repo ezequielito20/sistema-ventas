@@ -13,12 +13,19 @@
                 <h1 class="ui-panel__title">{{ $headingTitle }}</h1>
                 <p class="ui-panel__subtitle">{{ $headingSubtitle }}</p>
             </div>
-            <a
-                href="{{ route('admin.sales.index') }}"
-                wire:navigate
-            >
-                <i class="fas fa-arrow-left"></i> Volver al listado
-            </a>
+            <div class="flex items-center gap-3">
+                @if ($permissions['can_create'] ?? true)
+                    <button type="button" wire:click="openBulkModal" class="ui-btn ui-btn-ghost text-sm">
+                        <i class="fas fa-layer-group mr-2"></i> Ventas masivas
+                    </button>
+                @endif
+                <a
+                    href="{{ route('admin.sales.index') }}"
+                    wire:navigate
+                >
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
         </div>
     </div>
 
@@ -96,17 +103,64 @@
 
                 {{-- Ya pagó? --}}
                 @if (! $isEdit)
-                    <div class="flex items-center gap-3 rounded-lg border border-slate-700/70 bg-slate-900/60 px-4 py-3">
-                        <input
-                            type="checkbox"
-                            wire:model="already_paid"
-                            id="already_paid"
-                            class="h-4 w-4 rounded border-slate-600 bg-slate-900/80 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
-                        >
-                        <div>
-                            <label for="already_paid" class="text-sm font-medium text-slate-200">¿Ya pagó el cliente?</label>
-                            <span class="block text-xs text-slate-500">Si marca esta casilla, no se incrementará la deuda del cliente.</span>
+                    <div>
+                        <label class="{{ $labelBase }}">
+                            <i class="fas fa-credit-card mr-1 text-slate-400"></i> ¿Ya pagó?
+                        </label>
+                        <div class="relative" x-data="{
+                            isOpen: false,
+                            selectedText: 'No',
+                            selectOption(value) {
+                                if (value === true) {
+                                    Swal.fire({
+                                        title: '¿Confirmar pago automático?',
+                                        text: 'Al seleccionar Sí, se registrará automáticamente el pago de esta venta. ¿Está seguro?',
+                                        icon: 'question',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#10b981',
+                                        cancelButtonColor: '#6b7280',
+                                        confirmButtonText: 'Sí, confirmar',
+                                        cancelButtonText: 'Cancelar',
+                                        background: '#0f172a',
+                                        color: '#e2e8f0',
+                                        customClass: { popup: 'border border-slate-700 rounded-xl' }
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            $wire.set('already_paid', true);
+                                            this.selectedText = 'Sí';
+                                            this.isOpen = false;
+                                            window.uiNotifications?.showToast?.('¡Pago automático activado!', {type:'success', title:'Atención', timeout:4800, theme:'futuristic'});
+                                        }
+                                    });
+                                } else {
+                                    $wire.set('already_paid', false);
+                                    this.selectedText = 'No';
+                                    this.isOpen = false;
+                                }
+                            }
+                        }" @click.away="isOpen = false">
+                            {{-- Select button --}}
+                            <button type="button" @click="isOpen = !isOpen"
+                                class="relative w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2.5 pr-10 text-left text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <i class="fas" :class="selectedText === 'Sí' ? 'fa-check-circle text-emerald-400' : 'fa-times-circle text-rose-400'"></i>
+                                    <span x-text="selectedText"></span>
+                                </span>
+                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                    <i class="fas fa-chevron-down text-xs text-slate-500 transition-transform" :class="{ 'rotate-180': isOpen }"></i>
+                                </span>
+                            </button>
+                            {{-- Dropdown --}}
+                            <div x-show="isOpen" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-xl">
+                                <div @click="selectOption(false)" class="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-800 transition-colors">
+                                    <i class="fas fa-times-circle text-rose-400"></i> No
+                                </div>
+                                <div @click="selectOption(true)" class="flex cursor-pointer items-center gap-2 border-t border-slate-700/50 px-3 py-2.5 text-sm text-slate-200 hover:bg-slate-800 transition-colors">
+                                    <i class="fas fa-check-circle text-emerald-400"></i> Sí
+                                </div>
+                            </div>
                         </div>
+                        <p class="mt-1.5 text-xs text-slate-500"><i class="fas fa-info-circle mr-1"></i>Si selecciona "Sí", se registrará automáticamente el pago</p>
                     </div>
                 @endif
 
@@ -700,5 +754,358 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    {{-- ================================================================ --}}
+    {{-- MODAL DE VENTAS MASIVAS — estilo consistente con otros módulos  --}}
+    {{-- ================================================================ --}}
+    @if ($showBulkModal)
+        <template x-teleport="body">
+            <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+                wire:click.self="closeBulkModal"
+                x-data="{
+                    bulkProducts: {{ Js::from($bulkProducts ?? []) }},
+                    allCustomers: {{ Js::from($allCustomers ?? []) }},
+                    productOpen: false,
+                    productSearch: '',
+                    selectedProductName: '{{ $bulkProductId ? ($bulkProducts->firstWhere('id', $bulkProductId)?->name ?? 'Seleccione el producto...') : 'Seleccione el producto...' }}',
+                    getResolvedCount() { return ($wire.bulkResults || []).filter(r => r.status === 'resolved').length; },
+                    getTotalCount() { return ($wire.bulkResults || []).length; },
+                    hasResolved() { return this.getResolvedCount() > 0; },
+                    selectProduct(p) {
+                        $wire.set('bulkProductId', p.id);
+                        this.selectedProductName = p.code + ' - ' + p.name;
+                        this.productOpen = false;
+                        this.productSearch = '';
+                    }
+                }"
+                x-show="true"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-on:keydown.escape.window="$wire.closeBulkModal()"
+            >
+                <div class="relative w-full max-w-xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col">
+
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    {{-- HEADER                                                 --}}
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5 shrink-0">
+                        <div class="flex items-start gap-3">
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-indigo-500/40 bg-indigo-950 text-indigo-200">
+                                <i class="fas fa-layer-group text-lg"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-base font-semibold text-white">Cargar Ventas Masivas</h3>
+                                    <button type="button" wire:click="closeBulkModal" class="rounded-full p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors -mt-1 -mr-1">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <p class="mt-1 text-xs leading-relaxed text-slate-400">
+                                    <span x-show="$wire.bulkResults.length === 0">Ingresá los datos y analizá para ver los resultados.</span>
+                                    <span x-show="$wire.bulkResults.length > 0" x-text="getResolvedCount() + ' de ' + getTotalCount() + ' listos para procesar'"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    {{-- BODY  — inputs SIEMPRE visibles + resultados abajo     --}}
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="p-5 space-y-5">
+
+                            {{-- Inputs config — siempre presentes --}}
+                            <div class="space-y-4">
+                                {{-- Product selector --}}
+                                <div @click.away="productOpen = false">
+                                    <label class="{{ $labelBase }}">Producto Base *</label>
+                                    <div class="relative">
+                                        <button type="button" @click="productOpen = !productOpen" class="{{ $inputBase }} flex items-center justify-between">
+                                            <span class="truncate" :class="selectedProductName === 'Seleccione el producto...' ? 'text-slate-500' : 'text-slate-100'" x-text="selectedProductName"></span>
+                                            <i class="fas fa-chevron-down text-xs text-slate-500" :class="{ 'rotate-180': productOpen }"></i>
+                                        </button>
+                                        <div x-show="productOpen" x-cloak class="absolute z-50 mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 shadow-xl">
+                                            <div class="p-2 border-b border-slate-700/50">
+                                                <input type="text" x-model="productSearch" class="{{ $inputBase }} text-xs py-2" placeholder="Buscar producto...">
+                                            </div>
+                                            <div class="max-h-48 overflow-y-auto">
+                                                <template x-for="p in bulkProducts.filter(p => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()) || p.code.toLowerCase().includes(productSearch.toLowerCase()))" :key="p.id">
+                                                    <button type="button" @click="selectProduct(p)"
+                                                        class="w-full px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800 transition-colors border-b border-slate-700/30 last:border-0">
+                                                        <p class="font-medium truncate" x-text="p.name"></p>
+                                                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                                                            <span x-text="p.code"></span>
+                                                            <span>·</span>
+                                                            <span :class="p.stock <= 5 ? 'text-rose-400' : 'text-slate-500'" x-text="'Stock: ' + p.stock"></span>
+                                                            <span>·</span>
+                                                            <span class="text-emerald-400" x-text="'$ ' + parseFloat(p.sale_price).toFixed(2)"></span>
+                                                        </div>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Date + Time --}}
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="{{ $labelBase }}">Fecha *</label>
+                                        <input type="date" wire:model="bulkSaleDate" class="{{ $inputBase }}" style="color-scheme: dark;">
+                                    </div>
+                                    <div>
+                                        <label class="{{ $labelBase }}">Hora *</label>
+                                        <input type="time" wire:model="bulkSaleTime" class="{{ $inputBase }}" style="color-scheme: dark;">
+                                    </div>
+                                </div>
+
+                                {{-- Textarea --}}
+                                <div>
+                                    <label class="{{ $labelBase }}">Datos de Transacciones *</label>
+                                    <textarea wire:model="bulkRawData" rows="6" class="{{ $inputBase }} font-mono text-xs min-h-[120px]"
+                                        placeholder="Ingrese los datos de venta (un cliente por línea)&#10;&#10;Formato: nombre cantidad[-deuda]&#10;Ejemplos:&#10;  juan 1-0&#10;  pepe 2&#10;  maria 3-1"
+                                        style="color-scheme: dark;"></textarea>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <code class="text-slate-400">nombre cantidad</code> o <code class="text-slate-400">nombre cantidad-deuda_restante</code>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {{-- Divider cuando hay resultados --}}
+                            <div x-show="$wire.bulkResults.length > 0" class="border-t border-slate-700/50 pt-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-semibold text-slate-200">
+                                        <i class="fas fa-list-check mr-1.5 text-indigo-400"></i>Resultados del análisis
+                                    </h4>
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400" x-text="getResolvedCount() + '/' + getTotalCount()"></span>
+                                </div>
+
+                                {{-- Analyzing state --}}
+                                <div x-show="$wire.bulkIsAnalyzing" class="py-8 text-center">
+                                    <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-950 text-indigo-400 mb-2">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </div>
+                                    <p class="text-sm text-slate-400">Analizando datos...</p>
+                                </div>
+
+                                {{-- Results list --}}
+                                <div class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                                    <template x-for="(result, index) in $wire.bulkResults" :key="index">
+                                        <div :class="{
+                                            'border-l-4 border-l-emerald-500 bg-emerald-950/20': result.status === 'resolved',
+                                            'border-l-4 border-l-amber-500 bg-amber-950/20': result.status === 'ambiguous',
+                                            'border-l-4 border-l-rose-500 bg-rose-950/20': result.status === 'not_found' || result.status === 'error',
+                                            'border-l-4 border-l-slate-600 bg-slate-800/30 opacity-50': result.status === 'ignored',
+                                        }" class="rounded-r-lg border border-slate-700/50 p-3">
+
+                                            {{-- Ignored --}}
+                                            <div x-show="result.status === 'ignored'" class="flex items-center justify-between">
+                                                <span class="text-sm text-slate-500 line-through" x-text="result.originalText"></span>
+                                                <button type="button" @click="$wire.restoreBulkLine(index)" class="text-xs text-cyan-400 hover:text-cyan-300">
+                                                    <i class="fas fa-undo mr-1"></i>Restaurar
+                                                </button>
+                                            </div>
+
+                                            {{-- Error --}}
+                                            <div x-show="result.status === 'error'" class="flex items-center justify-between">
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-rose-300 line-through truncate" x-text="result.originalText"></p>
+                                                    <p class="text-xs text-rose-400 mt-0.5" x-text="result.error"></p>
+                                                </div>
+                                                <button type="button" @click="$wire.ignoreBulkLine(index)" class="text-xs text-slate-400 hover:text-slate-300 ml-2 shrink-0">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+
+                                            {{-- Not found --}}
+                                            <div x-show="result.status === 'not_found'" class="flex items-center justify-between">
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-rose-200 font-medium truncate" x-text="result.clientName"></p>
+                                                    <p class="text-xs text-rose-400 mt-0.5">
+                                                        <i class="fas fa-user-slash mr-1"></i>No encontrado
+                                                        <span class="text-slate-500" x-text="'(cantidad: ' + result.quantity + ')'"></span>
+                                                    </p>
+                                                </div>
+                                                <button type="button" @click="$wire.ignoreBulkLine(index)" class="text-xs text-slate-400 hover:text-slate-300 ml-2 shrink-0">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+
+                                            {{-- Resolved --}}
+                                            <div x-show="result.status === 'resolved'" class="flex items-center justify-between">
+                                                <div class="min-w-0">
+                                                    <p class="text-sm text-emerald-200 font-medium truncate" x-text="result.clientName"></p>
+                                                    <p class="text-xs text-emerald-400 mt-0.5">
+                                                        <i class="fas fa-check-circle mr-1"></i>
+                                                        <span x-text="'Cantidad: ' + result.quantity"></span>
+                                                        <template x-if="result.isPaid">
+                                                            <span class="ml-1 text-emerald-300">· Pagado</span>
+                                                        </template>
+                                                        <template x-if="result.isPartialPayment">
+                                                            <span class="ml-1 text-amber-300" x-text="'· Parcial (resta: ' + result.remainingQuantity + ')'"></span>
+                                                        </template>
+                                                    </p>
+                                                    <p class="text-xs text-slate-500 mt-0.5 truncate" x-show="result.selectedCustomer" x-text="'→ ' + result.selectedCustomer.name"></p>
+                                                </div>
+                                                <button type="button" @click="$wire.ignoreBulkLine(index)" class="text-xs text-slate-400 hover:text-slate-300 ml-2 shrink-0">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+
+                                            {{-- Ambiguous --}}
+                                            <div x-show="result.status === 'ambiguous'" class="space-y-2">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="min-w-0">
+                                                        <p class="text-sm text-amber-200 font-medium truncate" x-text="result.clientName"></p>
+                                                        <p class="text-xs text-amber-400 mt-0.5">
+                                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                            <span x-text="result.matches.length + ' coincidencias'"></span>
+                                                            <span class="text-slate-500" x-text="'(cantidad: ' + result.quantity + ')'"></span>
+                                                        </p>
+                                                    </div>
+                                                    <button type="button" @click="$wire.ignoreBulkLine(index)" class="text-xs text-slate-400 hover:text-slate-300 ml-2 shrink-0">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <select @change="$wire.resolveBulkMatch(index, parseInt($event.target.value))"
+                                                        class="flex-1 rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                                                        <option value="">Seleccionar cliente...</option>
+                                                        <template x-for="match in result.matches" :key="match.id">
+                                                            <option :value="match.id" x-text="match.name + (match.phone ? ' — ' + match.phone : '')"></option>
+                                                        </template>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    {{-- FOOTER                                                 --}}
+                    {{-- ═══════════════════════════════════════════════════════ --}}
+                    <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3 shrink-0">
+                        <button type="button" wire:click="closeBulkModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+
+                        {{-- Analyze button — siempre visible --}}
+                        <button type="button"
+                            wire:click="analyzeBulkData"
+                            wire:loading.attr="disabled"
+                            class="ui-btn ui-btn-primary text-sm"
+                        >
+                            <i class="fas fa-search mr-1.5"></i>
+                            <span wire:loading.remove wire:target="analyzeBulkData">Analizar Datos</span>
+                            <span wire:loading wire:target="analyzeBulkData">Analizando...</span>
+                        </button>
+
+                        {{-- Process button — solo visible cuando hay resultados --}}
+                        <button type="button"
+                            x-show="$wire.bulkResults.length > 0 && !$wire.bulkIsAnalyzing"
+                            x-bind:disabled="!hasResolved()"
+                            :class="hasResolved() ? 'ui-btn ui-btn-success text-sm' : 'ui-btn ui-btn-ghost text-sm opacity-50 cursor-not-allowed'"
+                            @click="
+                                const resolved = ($wire.bulkResults || []).filter(r => r.status === 'resolved');
+                                const pending = ($wire.bulkResults || []).filter(r => ['ambiguous', 'not_found', 'error'].includes(r.status));
+
+                                if (pending.length > 0) {
+                                    window.uiNotifications?.showToast?.('Hay ' + pending.length + ' transacciones por resolver', {type:'error', title:'Pendientes', timeout:4800, theme:'futuristic'});
+                                    return;
+                                }
+                                if (resolved.length === 0) {
+                                    window.uiNotifications?.showToast?.('No hay ventas válidas para procesar', {type:'warning', title:'Sin Ventas', timeout:4800, theme:'futuristic'});
+                                    return;
+                                }
+
+                                const product = bulkProducts.find(p => p.id == $wire.bulkProductId);
+                                if (!product) {
+                                    window.uiNotifications?.showToast?.('Producto no encontrado', {type:'error', title:'Error', timeout:4800, theme:'futuristic'});
+                                    return;
+                                }
+
+                                const price = parseFloat(product.sale_price) || 0;
+                                const paidCount = resolved.filter(r => r.isPaid || r.isPartialPayment).length;
+                                const paidMsg = paidCount > 0 ? ' Se registrarán ' + paidCount + ' pagos automáticos.' : '';
+
+                                Swal.fire({
+                                    title: '¿Confirmar Venta Masiva?',
+                                    html: 'Se generarán <b>' + resolved.length + '</b> ventas para <b>' + product.name + '</b>.' + paidMsg + '<br>¿Desea continuar?',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#10b981',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Sí, procesar',
+                                    cancelButtonText: 'Cancelar',
+                                    background: '#0f172a',
+                                    color: '#e2e8f0',
+                                    customClass: { popup: 'border border-slate-700 rounded-xl' }
+                                }).then((swalResult) => {
+                                    if (!swalResult.isConfirmed) return;
+
+                                    const sales = resolved.map(r => {
+                                        let paymentAmount = 0;
+                                        let isPaid = false;
+
+                                        if (r.isPaid) {
+                                            paymentAmount = r.quantity * price;
+                                            isPaid = true;
+                                        } else if (r.isPartialPayment && r.remainingQuantity !== null) {
+                                            const paidQty = r.quantity - r.remainingQuantity;
+                                            paymentAmount = paidQty * price;
+                                            isPaid = paymentAmount > 0;
+                                        }
+
+                                        return {
+                                            customer_id: r.selectedCustomer.id,
+                                            quantity: r.quantity,
+                                            price: price,
+                                            is_paid: isPaid,
+                                            payment_amount: paymentAmount
+                                        };
+                                    });
+
+                                    window.uiNotifications?.showToast?.('Procesando ' + resolved.length + ' ventas...', {type:'info', title:'Enviando', timeout:4800, theme:'futuristic'});
+
+                                    fetch('/sales/bulk-store', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                            'Accept': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        },
+                                        body: JSON.stringify({
+                                            product_id: $wire.bulkProductId,
+                                            sale_date: $wire.bulkSaleDate,
+                                            sale_time: $wire.bulkSaleTime,
+                                            sales: sales
+                                        })
+                                    })
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            window.uiNotifications?.showToast?.(data.message || '¡Ventas masivas procesadas exitosamente!', {type:'success', title:'Éxito', timeout:4800, theme:'futuristic'});
+                                            $wire.closeBulkModal();
+                                        } else {
+                                            window.uiNotifications?.showToast?.(data.message || 'Error al procesar ventas masivas', {type:'error', title:'Error', timeout:7200, theme:'futuristic'});
+                                        }
+                                    })
+                                    .catch(err => {
+                                        window.uiNotifications?.showToast?.('Error de red: ' + err.message, {type:'error', title:'Error', timeout:7200, theme:'futuristic'});
+                                    });
+                                });
+                            "
+                        >
+                            <i class="fas fa-paper-plane mr-1.5"></i> Procesar ventas
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
     @endif
 </div>

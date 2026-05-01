@@ -1080,8 +1080,33 @@ class SaleController extends Controller
             ], 200);
          }
 
-         // Restar la deuda del cliente
          $customer = Customer::findOrFail($sale->customer_id);
+
+         // Revertir pagos de deuda automáticos asociados a esta venta
+         $autoPayments = DB::table('debt_payments')
+            ->where('company_id', Auth::user()->company_id)
+            ->where('customer_id', $sale->customer_id)
+            ->where(function ($q) use ($sale) {
+               $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                 ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+            })
+            ->get();
+
+         foreach ($autoPayments as $payment) {
+            // Revertir el efecto del pago en la deuda
+            $customer->total_debt += (float) $payment->payment_amount;
+         }
+
+         DB::table('debt_payments')
+            ->where('company_id', Auth::user()->company_id)
+            ->where('customer_id', $sale->customer_id)
+            ->where(function ($q) use ($sale) {
+               $q->where('notes', 'like', '%Venta Masiva #' . $sale->id . '%')
+                 ->orWhere('notes', 'like', '%Venta #' . $sale->id . '%');
+            })
+            ->delete();
+
+         // Restar la deuda del cliente (revertir la venta)
          $customer->total_debt = max(0, $customer->total_debt - $sale->total_price);
          $customer->save();
 

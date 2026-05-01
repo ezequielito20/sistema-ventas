@@ -50,6 +50,19 @@ class SaleForm extends Component
     // ─── Verificación de caja ─────────────────────────────
     public bool $hasCashOpen = false;
 
+    // ─── Ventas Masivas ─────────────────────────────────────
+    public bool $showBulkModal = false;
+    public string $bulkProductSearch = '';
+    public ?int $bulkProductId = null;
+    public string $bulkSaleDate = '';
+    public string $bulkSaleTime = '';
+    public string $bulkRawData = '';
+
+    // Analysis results
+    /** @var array<int, array> */
+    public array $bulkResults = [];
+    public bool $bulkIsAnalyzing = false;
+
     // ─── Refs para redirección ───────────────────────────
     protected ?string $referrerUrl = null;
 
@@ -184,6 +197,17 @@ class SaleForm extends Component
         return Customer::where('company_id', Auth::user()->company_id)
             ->orderBy('name')
             ->get(['id', 'name', 'phone', 'total_debt']);
+    }
+
+    /**
+     * All customers for bulk sale fuzzy matching (minimal columns).
+     */
+    public function getAllCustomersProperty()
+    {
+        return Customer::where('company_id', Auth::user()->company_id)
+            ->select(['id', 'name', 'phone'])
+            ->orderBy('name')
+            ->get();
     }
 
     // ─── ACCIONES DE PRODUCTOS ──────────────────────────
@@ -338,6 +362,214 @@ class SaleForm extends Component
         $this->show_product_modal = false;
         $this->modal_search = '';
         $this->resetPage('modalPage');
+    }
+
+    // ─── VENTAS MASIVAS ────────────────────────────────
+
+    public function openBulkModal(): void
+    {
+        $this->showBulkModal = true;
+        $this->bulkProductId = null;
+        $this->bulkProductSearch = '';
+        $this->bulkSaleDate = now()->format('Y-m-d');
+        $this->bulkSaleTime = now()->format('H:i');
+        $this->bulkRawData = '';
+    }
+
+    public function closeBulkModal(): void
+    {
+        $this->showBulkModal = false;
+        $this->bulkProductId = null;
+        $this->bulkProductSearch = '';
+        $this->bulkRawData = '';
+        $this->bulkResults = [];
+        $this->bulkIsAnalyzing = false;
+    }
+
+    public function getBulkProductsProperty()
+    {
+        return Product::where('company_id', Auth::user()->company_id)
+            ->where('stock', '>', 0)
+            ->select(['id', 'code', 'name', 'sale_price', 'stock', 'image'])
+            ->when($this->bulkProductSearch !== '', function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('name', 'ILIKE', "%{$this->bulkProductSearch}%")
+                        ->orWhere('code', 'ILIKE', "%{$this->bulkProductSearch}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get();
+    }
+
+    /**
+     * Analyze bulk sale data: parse lines, extract client name + quantity + payment info,
+     * normalize names, fuzzy-match customers, and build results array.
+     */
+    public function analyzeBulkData(): void
+    {
+        if (trim($this->bulkRawData) === '') {
+            $this->bulkResults = [];
+            $this->js("window.uiNotifications?.showToast?.('Datos Vacíos', {type:'warning', title:'Ingrese datos para analizar', timeout:4800, theme:'futuristic'})");
+            return;
+        }
+
+        $this->bulkIsAnalyzing = true;
+        $this->bulkResults = [];
+
+        $lines = array_filter(array_map('trim', explode("\n", $this->bulkRawData)));
+        $allCustomers = $this->all_customers;
+
+        // Normalize helper: remove accents, lowercase
+        $normalize = fn (string $str): string => strtolower(
+            iconv('UTF-8', 'ASCII//TRANSLIT', $str)
+        );
+
+        foreach ($lines as $line) {
+            $parts = preg_split('/\s+/', $line);
+
+            if (count($parts) < 2) {
+                $this->bulkResults[] = [
+                    'originalText' => $line,
+                    'error' => 'Formato inválido (falta cantidad)',
+                    'status' => 'error',
+                ];
+                continue;
+            }
+
+            // Last part = quantity info
+            $quantityPart = array_pop($parts);
+
+            $quantity = 0;
+            $remainingQuantity = null;
+            $isPaid = false;
+            $isPartialPayment = false;
+
+            if (str_contains($quantityPart, '-')) {
+                $qParts = explode('-', $quantityPart);
+                $quantity = (float) $qParts[0];
+                $remainingQuantity = (float) $qParts[1];
+
+                if (!is_nan($remainingQuantity)) {
+                    if ($remainingQuantity == 0) {
+                        $isPaid = true; // Paid in full (0 remaining debt)
+                    } elseif ($remainingQuantity < $quantity) {
+                        $isPartialPayment = true; // Partial payment
+                    }
+                }
+            } else {
+                $quantity = (float) $quantityPart;
+            }
+
+            $clientNameRaw = implode(' ', $parts);
+            $clientNameNormalized = $normalize($clientNameRaw);
+
+            if (is_nan($quantity) || $quantity <= 0) {
+                $this->bulkResults[] = [
+                    'originalText' => $line,
+                    'error' => 'Cantidad no es un número',
+                    'status' => 'error',
+                ];
+                continue;
+            }
+
+            // Fuzzy match: exact or substring (both normalized)
+            $matches = [];
+            foreach ($allCustomers as $c) {
+                $dbNameNormalized = $normalize($c->name);
+                if (str_contains($dbNameNormalized, $clientNameNormalized)
+                    || str_contains($clientNameNormalized, $dbNameNormalized)) {
+                    $matches[] = [
+                        'id' => $c->id,
+                        'name' => $c->name,
+                        'phone' => $c->phone ?? '',
+                    ];
+                }
+            }
+
+            $result = [
+                'originalText' => $line,
+                'clientName' => $clientNameRaw,
+                'quantity' => $quantity,
+                'remainingQuantity' => $remainingQuantity,
+                'isPaid' => $isPaid,
+                'isPartialPayment' => $isPartialPayment,
+                'matches' => $matches,
+                'selectedCustomer' => null,
+                'status' => 'pending',
+            ];
+
+            if (count($matches) === 1) {
+                $result['selectedCustomer'] = $matches[0];
+                $result['status'] = 'resolved';
+            } elseif (count($matches) > 1) {
+                $result['status'] = 'ambiguous';
+            } else {
+                $result['status'] = 'not_found';
+            }
+
+            $this->bulkResults[] = $result;
+        }
+
+        $this->bulkIsAnalyzing = false;
+        $this->js("window.uiNotifications?.showToast?.('Análisis Completado', {type:'info', title:'Revise los resultados abajo', timeout:4800, theme:'futuristic'})");
+    }
+
+    /**
+     * Resolve an ambiguous match by selecting a specific customer.
+     */
+    public function resolveBulkMatch(int $index, int $customerId): void
+    {
+        if (!isset($this->bulkResults[$index])) {
+            return;
+        }
+
+        $customer = Customer::where('company_id', Auth::user()->company_id)
+            ->where('id', $customerId)
+            ->first(['id', 'name', 'phone']);
+
+        if ($customer) {
+            $this->bulkResults[$index]['selectedCustomer'] = [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'phone' => $customer->phone ?? '',
+            ];
+            $this->bulkResults[$index]['status'] = 'resolved';
+        }
+    }
+
+    /**
+     * Mark a line as ignored.
+     */
+    public function ignoreBulkLine(int $index): void
+    {
+        if (isset($this->bulkResults[$index])) {
+            $this->bulkResults[$index]['status'] = 'ignored';
+        }
+    }
+
+    /**
+     * Restore an ignored line back to its original status.
+     */
+    public function restoreBulkLine(int $index): void
+    {
+        if (!isset($this->bulkResults[$index])) {
+            return;
+        }
+
+        $result = &$this->bulkResults[$index];
+        if ($result['status'] !== 'ignored') {
+            return;
+        }
+
+        // Re-determine original status
+        if (isset($result['selectedCustomer'])) {
+            $result['status'] = 'resolved';
+        } elseif (!empty($result['matches'])) {
+            $result['status'] = 'ambiguous';
+        } else {
+            $result['status'] = 'not_found';
+        }
     }
 
     public function updatedModalSearch(): void
@@ -596,6 +828,8 @@ class SaleForm extends Component
             'modalProducts' => $modalProducts,
             'existingProductIds' => collect($this->items)->pluck('product_id')->all(),
             'customers' => $customers,
+            'bulkProducts' => $this->bulk_products,
+            'allCustomers' => $this->all_customers,
         ]);
     }
 }
