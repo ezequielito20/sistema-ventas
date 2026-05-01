@@ -120,11 +120,9 @@
                                     </button>
                                 @endif
                                 @if ($permissions['can_print'])
-                                    <button type="button" class="btn-action print"
-                                        onclick="window.salesSPAInstance && window.salesSPAInstance.printSale({{ $sale->id }})"
-                                        title="Imprimir">
+                                    <a href="{{ route('admin.sales.print', $sale->id) }}" target="_blank" class="btn-action print" title="Imprimir">
                                         <i class="fas fa-print"></i>
-                                    </button>
+                                    </a>
                                 @endif
                             </div>
                         </td>
@@ -227,11 +225,9 @@
                             </button>
                         @endif
                         @if ($permissions['can_print'])
-                            <button type="button" class="btn-card-action print"
-                                onclick="window.salesSPAInstance && window.salesSPAInstance.printSale({{ $sale->id }})"
-                                title="Imprimir venta">
+                            <a href="{{ route('admin.sales.print', $sale->id) }}" target="_blank" class="btn-card-action print" title="Imprimir venta">
                                 <i class="fas fa-print"></i>
-                            </button>
+                            </a>
                         @endif
                     </div>
                 </div>

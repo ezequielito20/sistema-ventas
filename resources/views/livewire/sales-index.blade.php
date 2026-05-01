@@ -256,9 +256,9 @@
                                             </a>
                                         @endif
                                         @if ($permissions['can_print'])
-                                            <button type="button" wire:click="printSale({{ $sale->id }})" class="ui-icon-action ui-icon-action--success" title="Imprimir">
+                                            <a href="{{ route('admin.sales.print', $sale->id) }}" target="_blank" class="ui-icon-action ui-icon-action--success" title="Imprimir">
                                                 <i class="fas fa-print"></i>
-                                            </button>
+                                            </a>
                                         @endif
                                         @if ($permissions['can_destroy'])
                                             <button type="button" wire:click="openDeleteModal({{ $sale->id }})" class="ui-icon-action ui-icon-action--danger" title="Eliminar">
@@ -321,9 +321,9 @@
                                 </a>
                             @endif
                             @if ($permissions['can_print'])
-                                <button type="button" wire:click="printSale({{ $sale->id }})" class="ui-icon-action ui-icon-action--success text-sm" title="Imprimir">
+                                <a href="{{ route('admin.sales.print', $sale->id) }}" target="_blank" class="ui-icon-action ui-icon-action--success text-sm" title="Imprimir">
                                     <i class="fas fa-print"></i>
-                                </button>
+                                </a>
                             @endif
                             @if ($permissions['can_destroy'])
                                 <button type="button" wire:click="openDeleteModal({{ $sale->id }})" class="ui-icon-action ui-icon-action--danger text-sm" title="Eliminar">
@@ -457,9 +457,9 @@
                 </div>
                 <div class="border-t border-slate-700/80 bg-slate-950/50 px-5 py-3 text-right">
                     @if ($permissions['can_print'])
-                        <button type="button" wire:click="printSale({{ $detailSale['id'] }})" class="ui-btn ui-btn-ghost text-sm mr-2">
+                        <a href="{{ route('admin.sales.print', $detailSale['id']) }}" target="_blank" class="ui-btn ui-btn-ghost text-sm mr-2">
                             <i class="fas fa-print mr-1"></i> Imprimir
-                        </button>
+                        </a>
                     @endif
                     <button type="button" wire:click="closeDetailModal" class="ui-btn ui-btn-primary text-sm">Cerrar</button>
                 </div>

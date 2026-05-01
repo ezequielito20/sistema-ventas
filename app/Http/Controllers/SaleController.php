@@ -1337,17 +1337,25 @@ class SaleController extends Controller
                ->first();
          }
 
+         $emittedAt = now();
+
          // Generar el PDF
-         $pdf = Pdf::loadView('admin.sales.print', compact(
+         $pdf = Pdf::loadView('pdf.sales.print', compact(
             'sale',
             'saleDetails',
             'company',
             'customer',
-            'currency'
+            'currency',
+            'emittedAt'
          ));
 
          // Configurar el PDF
-         $pdf->setPaper('a4');
+         $pdf->setPaper('a4', 'portrait')
+            ->setOption('enable_php', true)
+            ->addInfo([
+               'Title' => 'Factura ' . $sale->getFormattedInvoiceNumber(),
+               'Author' => $company->name ?? config('app.name'),
+            ]);
 
          // Nombre del archivo
          $fileName = 'factura-' . str_pad($sale->id, 8, '0', STR_PAD_LEFT) . '.pdf';

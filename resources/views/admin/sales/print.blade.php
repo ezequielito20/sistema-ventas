@@ -1,263 +1,385 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura #{{ $sale->getFormattedInvoiceNumber() }}</title>
+    <title>Factura {{ $sale->getFormattedInvoiceNumber() }}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+        @page {
             margin: 0;
-            padding: 15px;
         }
-
-        .header-container {
-            width: 100%;
-            margin-bottom: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1e293b;
+            background: #fff;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
             position: relative;
         }
-
-        .company-section {
-            float: left;
-            width: 30%;
+        .invoice-header {
+            display: table;
+            width: 100%;
+            margin-bottom: 8mm;
         }
-
-        .logo {
-            max-width: 60px;
-            max-height: 60px;
-            margin-bottom: 5px;
+        .invoice-header-col {
+            display: table-cell;
+            vertical-align: top;
         }
-
-        .company-info {
-            font-size: 10px;
-            line-height: 1.3;
-        }
-
-        .invoice-title {
-            text-align: center;
+        .invoice-header-col--left {
             width: 40%;
-            float: left;
         }
-
-        .invoice-title h1 {
-            font-size: 18px;
-            margin: 100px 0 0 0;
+        .invoice-header-col--center {
+            width: 20%;
+            text-align: center;
+            vertical-align: middle;
         }
-
-        .invoice-details {
-            float: right;
-            width: 30%;
+        .invoice-header-col--right {
+            width: 40%;
             text-align: right;
-            font-size: 10px;
-            line-height: 1.3;
         }
-
-        .customer-container {
-            margin: 20px 0;
-            padding: 5px;
-            border: 2px solid #000000;
-            border-radius: 8px;
-            background-color: #f8fafc;
+        .company-logo {
+            max-width: 70px;
+            max-height: 50px;
+            object-fit: contain;
+            margin-bottom: 6px;
         }
-
-        .customer-header {
-            border-bottom: 2px solid #000000;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #000000;
-            font-weight: bold;
-            padding-left: 35px;
-            
+        .company-name {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.02em;
         }
-
-        .customer-info {
-            display: flex;
-            align-items: center;
+        .company-meta {
+            font-size: 8.5pt;
+            color: #64748b;
+            line-height: 1.4;
+            margin-top: 3px;
         }
-
-        .customer-item {
-            display: inline-flex;
-            align-items: baseline;
-            white-space: nowrap;
+        .invoice-badge {
+            display: inline-block;
+            background: #0f172a;
+            color: #fff;
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 8px 20px;
+            border-radius: 4px;
         }
-
-        .customer-label {
-            font-weight: bold;
-            color: #000000;
-            font-size: 11px;
-            margin-right: 5px;
+        .invoice-number {
+            font-size: 9pt;
+            color: #64748b;
+            margin-top: 6px;
         }
-
-        .customer-value {
-            color: #2d3748;
-            font-size: 11px;
-            margin-right: 30px;
+        .invoice-number strong {
+            color: #0f172a;
+            font-size: 11pt;
         }
-
+        .invoice-date {
+            font-size: 9pt;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .divider {
+            height: 3px;
+            background: #0f172a;
+            border-radius: 2px;
+            margin: 6mm 0;
+        }
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 8mm;
+        }
+        .info-grid-col {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            padding-right: 10mm;
+        }
+        .info-grid-col:last-child {
+            padding-right: 0;
+            padding-left: 10mm;
+            border-left: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 10pt;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+        .info-value strong {
+            font-size: 11pt;
+        }
         .products-table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 10px 0;
-            font-size: 11px;
-            border: 1px solid #000000;
-            border-radius: 8px;
-            overflow: hidden;
+            border-collapse: collapse;
+            margin: 6mm 0;
+            font-size: 9.5pt;
         }
-
-        .products-table th {
-            background: #f8f9fa;
-            padding: 8px;
+        .products-table thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 8px 10px;
             text-align: left;
-            border: 1px solid #000000;
+            border-bottom: 2px solid #0f172a;
         }
-
-        .products-table td {
-            border: 1px solid #000000;
-            padding: 8px;
+        .products-table thead th.text-right {
+            text-align: right;
         }
-
-        .summary {
-            float: right;
-            width: 30%;
-            margin-top: 0px;
-            font-size: 11px;
-            border: 2px solid #000000;
-            border-radius: 8px;
-            overflow: hidden;
+        .products-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
         }
-
-        .footer {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #dee2e6;
-            font-size: 10px;
-            text-align: center;
-            color: #474a4d;
+        .products-table tbody tr:last-child td {
+            border-bottom: 2px solid #0f172a;
         }
-
+        .product-name {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .product-code {
+            font-size: 8pt;
+            color: #94a3b8;
+        }
         .text-right {
             text-align: right;
         }
-
-        .font-bold {
-            font-weight: bold;
+        .tabular {
+            font-variant-numeric: tabular-nums;
         }
-
-        .clearfix::after {
-            content: "";
-            clear: both;
+        .totals-section {
             display: table;
+            width: 100%;
+            margin-top: 4mm;
+        }
+        .totals-spacer {
+            display: table-cell;
+            width: 60%;
+        }
+        .totals-box {
+            display: table-cell;
+            width: 40%;
+            vertical-align: top;
+        }
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+        }
+        .totals-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .totals-table td:last-child {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .totals-table tr.total-row td {
+            background: #0f172a;
+            color: #fff;
+            font-size: 11pt;
+            font-weight: 700;
+            border-bottom: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .totals-table tr.total-row td:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+        .notes-section {
+            margin-top: 10mm;
+            padding: 5mm;
+            background: #f8fafc;
+            border-radius: 4px;
+            font-size: 8.5pt;
+            color: #64748b;
+        }
+        .notes-section strong {
+            color: #475569;
+        }
+        .footer {
+            position: absolute;
+            bottom: 15mm;
+            left: 20mm;
+            right: 20mm;
+            text-align: center;
+            font-size: 8pt;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 4mm;
+        }
+        .footer-brand {
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 2px;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 60pt;
+            font-weight: 900;
+            color: rgba(0,0,0,0.03);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 0;
         }
     </style>
 </head>
-
 <body>
-    <!-- Header -->
-    <div class="header-container clearfix">
-        <div class="company-section">
-            @if ($company->logo)
-                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo" class="logo">
-            @endif
-            <div class="company-info">
-                <strong>{{ $company->name }}</strong><br>
-                {{ $company->address }}<br>
-                Tel: {{ $company->phone }}<br>
-                Ig: {{ $company->ig }}
+    <div class="page">
+        <div class="watermark">{{ $company->name }}</div>
+
+        {{-- Header --}}
+        <div class="invoice-header">
+            <div class="invoice-header-col invoice-header-col--left">
+                @if ($company->logo)
+                    <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo" class="company-logo">
+                @endif
+                <div class="company-name">{{ $company->name }}</div>
+                <div class="company-meta">
+                    @if ($company->address){{ $company->address }}<br>@endif
+                    @if ($company->phone)Tel: {{ $company->phone }}<br>@endif
+                    @if ($company->nit)RIF/NIT: {{ $company->nit }}<br>@endif
+                    @if ($company->email){{ $company->email }}@endif
+                </div>
+            </div>
+            <div class="invoice-header-col invoice-header-col--center">
+                <div class="invoice-badge">Factura</div>
+            </div>
+            <div class="invoice-header-col invoice-header-col--right">
+                <div class="invoice-number">
+                    <strong>N° {{ $sale->getFormattedInvoiceNumber() }}</strong>
+                </div>
+                <div class="invoice-date">
+                    <strong>Fecha:</strong> {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}<br>
+                    <strong>Hora:</strong> {{ \Carbon\Carbon::parse($sale->sale_date)->format('H:i') }}
+                </div>
             </div>
         </div>
 
-        <div class="invoice-title">
-            <h1>FACTURA</h1>
+        <div class="divider"></div>
+
+        {{-- Cliente y Vendedor --}}
+        <div class="info-grid">
+            <div class="info-grid-col">
+                <div class="info-label">Facturado a</div>
+                <div class="info-value">
+                    <strong>{{ $customer->name ?? 'Consumidor Final' }}</strong><br>
+                    @if ($customer)
+                        @if ($customer->nit_number)CI/NIT: {{ $customer->nit_number }}<br>@endif
+                        @if ($customer->phone)Tel: {{ $customer->phone }}<br>@endif
+                        @if ($customer->address){{ $customer->address }}@endif
+                    @endif
+                </div>
+            </div>
+            <div class="info-grid-col">
+                <div class="info-label">Información de pago</div>
+                <div class="info-value">
+                    <strong>Método:</strong> Efectivo / Transferencia<br>
+                    <strong>Estado:</strong> {{ $sale->total_price > 0 ? 'Completado' : 'Pendiente' }}<br>
+                    @if ($sale->note)<strong>Nota:</strong> {{ $sale->note }}@endif
+                </div>
+            </div>
         </div>
 
-        <div class="invoice-details">
-            <!-- <strong>RIF:</strong> {{ $company->nit }}<br> -->
-            <strong>N° Factura:</strong> {{ $sale->getFormattedInvoiceNumber() }}<br>
-            <strong class="original margin-top-10" style="margin-top: 40px; display: block;">ORIGINAL</strong>
-        </div>
-    </div>
-
-    <!-- Información del cliente -->
-    <div class="customer-container">
-        <div class="customer-header">
-            Información del Cliente
-        </div>
-        <div class="customer-info">
-            <div class="customer-item">
-                <span class="customer-label">Nombre:</span>
-                <span class="customer-value">{{ $customer->name }}</span>
-            </div>
-            <div class="customer-item">
-                <span class="customer-label">C.I.:</span>
-                <span class="customer-value">{{ $customer->nit_number }}</span>
-            </div>
-            <div class="customer-item">
-                <span class="customer-label">Teléfono:</span>
-                <span class="customer-value">{{ $customer->phone }}</span>
-            </div>
-            <!-- <div class="customer-item">
-                <span class="customer-label">Email:</span>
-                <span class="customer-value">{{ $customer->email }}</span>
-            </div> -->
-        </div>
-    </div>
-
-    <!-- Tabla de productos -->
-    <table class="products-table">
-        <thead>
-            <tr>
-                <th>Código</th>
-                <th>Producto</th>
-                <th class="text-right">Cantidad</th>
-                <th class="text-right">Precio Unit.</th>
-                <th class="text-right">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($saleDetails as $detail)
+        {{-- Productos --}}
+        <table class="products-table">
+            <thead>
                 <tr>
-                    <td>{{ $detail->product->code }}</td>
-                    <td>{{ $detail->product->name }}</td>
-                    <td class="text-right">{{ $detail->quantity }}</td>
-                    <td class="text-right">{{ $currency->symbol }} {{ number_format($detail->product->sale_price, 2) }}</td>
-                    <td class="text-right">{{ $currency->symbol }} {{ number_format($detail->quantity * $detail->product->sale_price, 2) }}
-                    </td>
+                    <th style="width: 8%;">#</th>
+                    <th style="width: 42%;">Producto</th>
+                    <th style="width: 12%;" class="text-right">Cant.</th>
+                    <th style="width: 18%;" class="text-right">Precio Unit.</th>
+                    <th style="width: 20%;" class="text-right">Subtotal</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <!-- Total -->
-    <div class="summary">
-        <table width="100%">
-            <tr>
-                <td>Subtotal:</td>
-                <td class="text-right">{{ $currency->symbol }} {{ number_format($sale->total_price / (1 + $company->tax_amount / 100), 2) }}
-                </td>
-            </tr>
-            <tr>
-                <td>{{ $company->tax_name }} ({{ $company->tax_amount }}%):</td>
-                <td class="text-right">
-                    {{ $currency->symbol }} {{ number_format($sale->total_price - $sale->total_price / (1 + $company->tax_amount / 100), 2) }}
-                </td>
-            </tr>
-            <tr class="font-bold">
-                <td>Total:</td>
-                <td class="text-right">{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
-            </tr>
+            </thead>
+            <tbody>
+                @foreach ($saleDetails as $detail)
+                    <tr>
+                        <td class="tabular">{{ $loop->iteration }}</td>
+                        <td>
+                            <div class="product-name">{{ $detail->product->name ?? '—' }}</div>
+                            <div class="product-code">{{ $detail->product->code ?? '' }}</div>
+                        </td>
+                        <td class="text-right tabular">{{ number_format($detail->quantity, 0) }}</td>
+                        <td class="text-right tabular">{{ $currency->symbol }} {{ number_format($detail->unit_price ?? $detail->product->sale_price ?? 0, 2) }}</td>
+                        <td class="text-right tabular">{{ $currency->symbol }} {{ number_format($detail->subtotal ?? ($detail->quantity * ($detail->unit_price ?? $detail->product->sale_price ?? 0)), 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
-    </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>¡Gracias por ser parte de este proyecto!</p>
-        <small>Este documento es una representación impresa de una factura electrónica</small>
+        {{-- Totales --}}
+        <div class="totals-section">
+            <div class="totals-spacer"></div>
+            <div class="totals-box">
+                <table class="totals-table">
+                    @php
+                        $subtotal = $sale->subtotal_before_discount ?? $sale->total_price;
+                        $discount = $sale->general_discount_value ?? 0;
+                        $tax = $sale->total_price - $subtotal + $discount;
+                    @endphp
+                    <tr>
+                        <td>Subtotal</td>
+                        <td>{{ $currency->symbol }} {{ number_format($subtotal, 2) }}</td>
+                    </tr>
+                    @if ($discount > 0)
+                        <tr>
+                            <td>Descuento</td>
+                            <td style="color: #16a34a;">- {{ $currency->symbol }} {{ number_format($discount, 2) }}</td>
+                        </tr>
+                    @endif
+                    @if ($company->tax_amount > 0)
+                        <tr>
+                            <td>{{ $company->tax_name ?? 'Impuesto' }} ({{ $company->tax_amount }}%)</td>
+                            <td>{{ $currency->symbol }} {{ number_format($tax > 0 ? $tax : 0, 2) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="total-row">
+                        <td>Total</td>
+                        <td>{{ $currency->symbol }} {{ number_format($sale->total_price, 2) }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {{-- Notas --}}
+        <div class="notes-section">
+            <strong>Nota:</strong> Este documento es una representación impresa de una factura electrónica.
+            Para cualquier consulta o reclamo, contacte a {{ $company->name }}.
+            @if ($company->phone)Tel: {{ $company->phone }}@endif
+        </div>
+
+        {{-- Footer --}}
+        <div class="footer">
+            <div class="footer-brand">{{ $company->name }}</div>
+            <div>Documento generado el {{ now()->format('d/m/Y \a \l\a\s H:i') }} · Sistema de Gestión</div>
+        </div>
     </div>
 </body>
-
 </html>

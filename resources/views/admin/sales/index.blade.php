@@ -461,11 +461,12 @@
                     <div class="modal-footer-modern">
                         <div class="footer-actions">
                             @if ($permissions['can_print'])
-                                <button type="button" class="btn-modal-action btn-print"
-                                    @click="printSale(selectedSale?.id)">
+                                <a :href="selectedSale ? '{{ url('/sales/print') }}/' + selectedSale.id : '#'"
+                                   target="_blank"
+                                   class="btn-modal-action btn-print">
                                     <i class="fas fa-print"></i>
                                     <span>Imprimir</span>
-                                </button>
+                                </a>
                             @endif
                             <button type="button" class="btn-modal-action btn-secondary" @click="closeModal()">
                                 <i class="fas fa-times"></i>
