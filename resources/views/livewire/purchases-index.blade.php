@@ -97,23 +97,6 @@
                         <input type="number" wire:model.live="amountMax" min="0" step="0.01" placeholder="0.00"
                             class="{{ $inputBase }}">
                     </div>
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1">
-                            <label class="{{ $labelBase }}">Buscar</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="search" wire:model.live.debounce.300ms="search"
-                                    placeholder="Recibo, fecha, producto o monto…"
-                                    class="{{ $inputBase }} pl-10"
-                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            </div>
-                        </div>
-                        <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost shrink-0 text-sm">
-                            <i class="fas fa-eraser"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
         @endif
@@ -124,22 +107,37 @@
     {{-- ================================================================ --}}
     <div class="ui-panel ui-panel--purchases-v2-list overflow-hidden">
         <div class="ui-panel__header">
-            <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+            <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div class="shrink-0">
                     <h2 class="ui-panel__title">Registros</h2>
                     <p class="ui-panel__subtitle">
                         {{ $purchases->total() }} compra(s) · Página {{ $purchases->currentPage() }} de {{ max(1, $purchases->lastPage()) }}
                     </p>
                 </div>
-                @if ($permFlags['can_destroy'] && ! $purchases->isEmpty())
-                    <div class="flex items-center justify-end">
-                        <button type="button" wire:click="toggleSelectionMode" class="ui-btn text-sm"
-                            :class="$wire.selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost'">
-                            <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
-                            <span>{{ $selectionMode ? 'Cancelar selección' : 'Seleccionar' }}</span>
-                        </button>
+
+                <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
+                    <div class="relative min-w-[16rem] flex-1 lg:min-w-[18rem]">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i class="fas fa-search text-xs"></i>
+                        </span>
+                        <input type="search" wire:model.live.debounce.300ms="search"
+                            placeholder="Buscar recibo, fecha, producto o monto…"
+                            class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     </div>
-                @endif
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost text-sm" title="Limpiar búsqueda y filtros">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                        @if ($permFlags['can_destroy'] && ! $purchases->isEmpty())
+                            <button type="button" wire:click="toggleSelectionMode" class="ui-btn text-sm"
+                                :class="$wire.selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost'">
+                                <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
+                                <span>{{ $selectionMode ? 'Cancelar' : 'Seleccionar' }}</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
