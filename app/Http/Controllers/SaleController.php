@@ -1367,15 +1367,24 @@ class SaleController extends Controller
     {
        $company = Company::find($this->company->id);
        $currency = $this->currencies;
-       $sales = Sale::with(['saleDetails.product', 'customer', 'company'])
+
+       $salesQuery = Sale::select(['id', 'sale_date', 'total_price', 'company_id', 'customer_id', 'created_at'])
+          ->with([
+             'saleDetails' => fn ($q) => $q->select(['id', 'sale_id', 'product_id', 'quantity']),
+             'saleDetails.product' => fn ($q) => $q->select(['id', 'name']),
+             'customer' => fn ($q) => $q->select(['id', 'name', 'phone', 'total_debt']),
+          ])
           ->where('company_id', $company->id)
-          ->orderBy('created_at', 'desc')
-          ->get();
+          ->orderBy('created_at', 'desc');
+
+       $totalCount = (clone $salesQuery)->count();
+       $sales = $salesQuery->limit(500)->get();
+       $isLimited = $totalCount > 500;
 
        $emittedAt = now();
        $filename = 'reporte-ventas-'.$emittedAt->format('Y-m-d_His').'.pdf';
 
-       $pdf = Pdf::loadView('pdf.sales.report', compact('sales', 'company', 'currency', 'emittedAt'))
+       $pdf = Pdf::loadView('pdf.sales.report', compact('sales', 'company', 'currency', 'emittedAt', 'totalCount', 'isLimited'))
           ->setPaper('letter', 'portrait')
           ->setOption('enable_php', true)
           ->addInfo([

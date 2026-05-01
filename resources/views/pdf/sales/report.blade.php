@@ -36,8 +36,13 @@
         <tr>
             <td>
                 <strong>Resumen:</strong>
-                {{ $totalVentas }} {{ $totalVentas === 1 ? 'venta' : 'ventas' }}
-                · Monto total: <strong>{{ $currency->symbol }} {{ number_format($sumaTotal, 2) }}</strong>
+                @if ($isLimited)
+                    Mostrando {{ $totalVentas }} de {{ $totalCount }} ventas
+                    · Monto en página: <strong>{{ $currency->symbol }} {{ number_format($sumaTotal, 2) }}</strong>
+                @else
+                    {{ $totalVentas }} {{ $totalVentas === 1 ? 'venta' : 'ventas' }}
+                    · Monto total: <strong>{{ $currency->symbol }} {{ number_format($sumaTotal, 2) }}</strong>
+                @endif
                 · Promedio por operación: <strong>{{ $currency->symbol }} {{ number_format($promedio, 2) }}</strong>
             </td>
         </tr>
