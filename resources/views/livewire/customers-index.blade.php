@@ -212,51 +212,49 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                <div class="min-w-0">
-                    <label for="search-customers" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Buscar</label>
-                    <div class="relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                            <i class="fas fa-search"></i>
-                        </span>
-                        <input
-                            id="search-customers"
-                            type="search"
-                            wire:model.live.debounce.400ms="search"
-                            placeholder="Nombre, correo, teléfono o cédula…"
-                            class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                            autocomplete="off"
-                        >
-                    </div>
-                </div>
-                <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full justify-center text-sm sm:w-auto">
-                    <i class="fas fa-eraser"></i> Limpiar búsqueda y filtro
-                </button>
-            </div>
         </div>
     </div>
 
     <div class="ui-panel overflow-hidden">
         <div class="ui-panel__header">
-            <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+            <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div class="shrink-0">
                     <h2 class="ui-panel__title">Listado</h2>
                     <p class="ui-panel__subtitle">
                         {{ $customers->total() }} resultado(s) · Página {{ $customers->currentPage() }} de {{ $customers->lastPage() }}
                     </p>
                 </div>
-                @if ($permissions['can_destroy'] && ! $customers->isEmpty())
-                    <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
-                        <button
-                            type="button"
-                            wire:click="toggleSelectionMode"
-                            class="ui-btn {{ $selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost' }} text-sm"
+
+                <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
+                    <div class="relative min-w-[16rem] flex-1 lg:min-w-[18rem]">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                            <i class="fas fa-search text-xs"></i>
+                        </span>
+                        <input
+                            id="search-customers"
+                            type="search"
+                            wire:model.live.debounce.400ms="search"
+                            placeholder="Buscar nombre, correo, teléfono o cédula…"
+                            class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            autocomplete="off"
                         >
-                            <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
-                            {{ $selectionMode ? 'Cancelar selección' : 'Seleccionar' }}
-                        </button>
                     </div>
-                @endif
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost text-sm" title="Limpiar búsqueda y filtro">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                        @if ($permissions['can_destroy'] && ! $customers->isEmpty())
+                            <button
+                                type="button"
+                                wire:click="toggleSelectionMode"
+                                class="ui-btn {{ $selectionMode ? 'ui-btn-warning' : 'ui-btn-ghost' }} text-sm"
+                            >
+                                <i class="fas {{ $selectionMode ? 'fa-times-circle' : 'fa-check-square' }}"></i>
+                                {{ $selectionMode ? 'Cancelar' : 'Seleccionar' }}
+                            </button>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
