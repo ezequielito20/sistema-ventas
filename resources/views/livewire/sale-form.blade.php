@@ -103,10 +103,11 @@
 
                 {{-- Ya pagó? --}}
                 @if (! $isEdit)
-                    <div>
-                        <label class="{{ $labelBase }}">
-                            <i class="fas fa-credit-card mr-1 text-slate-400"></i> ¿Ya pagó?
-                        </label>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="{{ $labelBase }}">
+                                <i class="fas fa-credit-card mr-1 text-slate-400"></i> ¿Ya pagó?
+                            </label>
                         <div class="relative" x-data="{
                             isOpen: false,
                             selectedText: 'No',
@@ -162,6 +163,7 @@
                         </div>
                         <p class="mt-1.5 text-xs text-slate-500"><i class="fas fa-info-circle mr-1"></i>Si selecciona "Sí", se registrará automáticamente el pago</p>
                     </div>
+                </div>
                 @endif
 
                 {{-- Escaneo por código + búsqueda --}}
