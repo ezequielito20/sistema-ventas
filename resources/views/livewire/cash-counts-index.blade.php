@@ -16,15 +16,15 @@
                 <h1 class="ui-panel__title">Arqueo de Caja</h1>
                 <p class="ui-panel__subtitle">Control de aperturas, cierres y movimientos de caja.</p>
             </div>
-            <div class="flex flex-wrap items-center justify-end gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 @if ($permFlags['can_report'])
                     <a href="{{ route('admin.cash-counts.report') }}" target="_blank" rel="noopener"
-                        class="ui-btn ui-btn-ghost text-sm">
+                        class="ui-btn ui-btn-ghost text-sm md:py-2.5 md:px-5 md:text-[0.95rem]">
                         <i class="fas fa-file-pdf"></i> Reporte PDF
                     </a>
                 @endif
                 @if (! $currentCashCount && $permFlags['can_create'])
-                    <a href="{{ route('admin.cash-counts.create') }}" class="ui-btn ui-btn-primary text-sm">
+                    <a href="{{ route('admin.cash-counts.create') }}" class="ui-btn ui-btn-primary text-sm md:py-2.5 md:px-5 md:text-[0.95rem]">
                         <i class="fas fa-plus"></i> Abrir caja
                     </a>
                 @endif
@@ -35,7 +35,7 @@
     {{-- ================================================================ --}}
     {{-- STATS                                                            --}}
     {{-- ================================================================ --}}
-    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-2 xs:gap-3 lg:grid-cols-4">
         {{-- Caja actual --}}
         <x-ui.stat-card
             variant="{{ $currentCashCount ? 'success' : 'danger' }}"
@@ -98,11 +98,11 @@
         </div>
 
         <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_auto]">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end lg:grid-cols-4">
                 {{-- Estado --}}
                 <div>
-                    <label class="{{ $labelBase }}">Estado</label>
-                    <select wire:model.live="status" class="{{ $inputBase }}">
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Estado</label>
+                    <select wire:model.live="status" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
                         <option value="">Todos</option>
                         <option value="open">Abierto</option>
                         <option value="closed">Cerrado</option>
@@ -110,17 +110,17 @@
                 </div>
                 {{-- Desde --}}
                 <div>
-                    <label class="{{ $labelBase }}">Desde</label>
-                    <input type="date" wire:model.live="dateFrom" class="{{ $inputBase }}" style="color-scheme: dark;">
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Desde</label>
+                    <input type="date" wire:model.live="dateFrom" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" style="color-scheme: dark;">
                 </div>
                 {{-- Hasta --}}
                 <div>
-                    <label class="{{ $labelBase }}">Hasta</label>
-                    <input type="date" wire:model.live="dateTo" class="{{ $inputBase }}" style="color-scheme: dark;">
+                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Hasta</label>
+                    <input type="date" wire:model.live="dateTo" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" style="color-scheme: dark;">
                 </div>
                 {{-- Limpiar --}}
-                <div class="sm:col-span-2 xl:col-span-1">
-                    <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full text-sm 2xl:w-auto">
+                <div>
+                    <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full text-sm md:py-2.5 md:px-5 md:text-[0.95rem]">
                         <i class="fas fa-eraser"></i> Limpiar filtros
                     </button>
                 </div>
