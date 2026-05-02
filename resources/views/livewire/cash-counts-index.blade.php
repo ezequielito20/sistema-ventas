@@ -179,6 +179,10 @@
                             <i class="fas {{ $allCurrentPageSelected ? 'fa-square-minus' : 'fa-square-check' }}"></i>
                             {{ $allCurrentPageSelected ? 'Limpiar página' : 'Seleccionar página' }}
                         </button>
+                        <button type="button" wire:click="openBulkDeleteModal" class="ui-btn ui-btn-danger text-sm"
+                            :disabled="{{ count($selectedCashCountIds) === 0 ? 'true' : 'false' }}">
+                            <i class="fas fa-trash-alt"></i> Eliminar seleccionados
+                        </button>
                     </div>
                 </div>
             @endif
@@ -279,8 +283,7 @@
                                         @endif
                                         @if ($permFlags['can_destroy'])
                                             <button type="button"
-                                                wire:click="deleteCashCount({{ $cashCount->id }})"
-                                                wire:confirm="¿Eliminar este arqueo? Esta acción no se puede deshacer."
+                                                wire:click="openDeleteModal({{ $cashCount->id }}, '#{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}')"
                                                 class="ui-icon-action ui-icon-action--danger" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -362,8 +365,7 @@
                             @endif
                             @if ($permFlags['can_destroy'])
                                 <button type="button"
-                                    wire:click="deleteCashCount({{ $cashCount->id }})"
-                                    wire:confirm="¿Eliminar este arqueo? Esta acción no se puede deshacer."
+                                    wire:click="openDeleteModal({{ $cashCount->id }}, '#{{ str_pad($cashCount->id, 4, '0', STR_PAD_LEFT) }}')"
                                     class="ui-icon-action ui-icon-action--danger text-sm" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -383,5 +385,67 @@
             </div>
         @endif
     </div>
+
+    {{-- ================================================================ --}}
+    {{-- MODAL: CONFIRMAR ELIMINACIÓN                                     --}}
+    {{-- ================================================================ --}}
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            wire:click.self="closeDeleteModal" x-data x-on:keydown.escape.window="$wire.closeDeleteModal()">
+            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200">
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-semibold text-white">¿Eliminar este arqueo?</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                Se eliminará el arqueo <span class="font-medium text-white">{{ $deleteTargetName }}</span>.
+                                Esta acción no se puede deshacer.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                    <button type="button" wire:click="closeDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="confirmDeleteCashCount" class="ui-btn ui-btn-danger text-sm">
+                        <i class="fas fa-trash-alt mr-1.5"></i> Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ================================================================ --}}
+    {{-- MODAL: BORRADO MASIVO                                          --}}
+    {{-- ================================================================ --}}
+    @if ($showBulkDeleteModal)
+        <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            wire:click.self="closeBulkDeleteModal" x-data x-on:keydown.escape.window="$wire.closeBulkDeleteModal()">
+            <div class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <div class="border-b border-slate-700 bg-slate-900 px-5 pb-4 pt-5">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-950 text-rose-200">
+                            <i class="fas fa-trash-alt text-lg"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-base font-semibold text-white">¿Eliminar arqueos seleccionados?</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-300">
+                                Se intentará eliminar <span class="font-medium text-white">{{ count($selectedCashCountIds) }} arqueo(s)</span>.
+                                Los que estén abiertos o tengan registros asociados no se eliminarán.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 border-t border-slate-700 bg-slate-950 px-4 py-3">
+                    <button type="button" wire:click="closeBulkDeleteModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="confirmBulkDelete" class="ui-btn ui-btn-danger text-sm">
+                        <i class="fas fa-trash-alt mr-1.5"></i> Sí, eliminar seleccionados
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 
 </div>

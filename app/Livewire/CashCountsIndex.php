@@ -3,6 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\CashCount;
+use App\Models\DebtPayment;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Services\CashCountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +24,14 @@ class CashCountsIndex extends Component
 
     public bool $selectionMode = false;
     public array $selectedCashCountIds = [];
+
+    // ─── Modal de eliminación ───────────────────────────
+    public bool $showDeleteModal = false;
+    public ?int $deleteTargetId = null;
+    public string $deleteTargetName = '';
+
+    // ─── Modal de eliminación masiva ─────────────────────
+    public bool $showBulkDeleteModal = false;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -165,17 +176,158 @@ class CashCountsIndex extends Component
         return $currency ?? (object) ['symbol' => '$', 'code' => 'USD'];
     }
 
-    public function deleteCashCount(int $id): void
+    public function openDeleteModal(int $id, string $name): void
     {
-        $cashCount = CashCount::where('company_id', Auth::user()->company_id)->findOrFail($id);
+        $this->deleteTargetId = $id;
+        $this->deleteTargetName = $name;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deleteTargetId = null;
+        $this->deleteTargetName = '';
+    }
+
+    public function confirmDeleteCashCount(): void
+    {
+        if (! $this->deleteTargetId) {
+            return;
+        }
+
+        $companyId = Auth::user()->company_id;
+        $cashCount = CashCount::where('company_id', $companyId)->findOrFail($this->deleteTargetId);
 
         if (! $cashCount->closing_date) {
-            $this->dispatch('notify', type: 'error', message: 'No se puede eliminar una caja abierta. Cerrala primero.');
+            $this->toast('No se puede eliminar una caja abierta. Cerrala primero.', 'error');
+            $this->closeDeleteModal();
+            return;
+        }
+
+        // Verificar registros asociados
+        $openingDate = $cashCount->opening_date;
+        $closingDate = $cashCount->closing_date;
+
+        $hasSales = Sale::where('company_id', $companyId)
+            ->whereBetween('sale_date', [$openingDate, $closingDate])
+            ->exists();
+
+        $hasPurchases = Purchase::where('company_id', $companyId)
+            ->whereBetween('purchase_date', [$openingDate, $closingDate])
+            ->exists();
+
+        $hasDebtPayments = DebtPayment::where('company_id', $companyId)
+            ->whereBetween('created_at', [$openingDate, $closingDate])
+            ->exists();
+
+        if ($hasSales || $hasPurchases || $hasDebtPayments) {
+            $this->toast('No se puede eliminar este arqueo porque tiene registros asociados (ventas, compras o pagos de deuda).', 'error');
+            $this->closeDeleteModal();
             return;
         }
 
         $cashCount->delete();
-        $this->dispatch('notify', type: 'success', message: 'Arqueo eliminado correctamente.');
+        $this->toast('Arqueo eliminado correctamente.');
+        $this->closeDeleteModal();
+    }
+
+    public function openBulkDeleteModal(): void
+    {
+        if (empty($this->selectedCashCountIds)) {
+            $this->toast('Seleccioná al menos un arqueo para eliminar.', 'warning');
+            return;
+        }
+        $this->showBulkDeleteModal = true;
+    }
+
+    public function closeBulkDeleteModal(): void
+    {
+        $this->showBulkDeleteModal = false;
+    }
+
+    public function confirmBulkDelete(): void
+    {
+        if (empty($this->selectedCashCountIds)) {
+            $this->closeBulkDeleteModal();
+            return;
+        }
+
+        $companyId = Auth::user()->company_id;
+        $ids = array_map('intval', $this->selectedCashCountIds);
+
+        $deleted = 0;
+        $skipped = 0;
+
+        foreach ($ids as $id) {
+            $cashCount = CashCount::where('company_id', $companyId)->find($id);
+            if (! $cashCount) {
+                continue;
+            }
+
+            if (! $cashCount->closing_date) {
+                $skipped++;
+                continue;
+            }
+
+            $hasSales = Sale::where('company_id', $companyId)
+                ->whereBetween('sale_date', [$cashCount->opening_date, $cashCount->closing_date])
+                ->exists();
+
+            $hasPurchases = Purchase::where('company_id', $companyId)
+                ->whereBetween('purchase_date', [$cashCount->opening_date, $cashCount->closing_date])
+                ->exists();
+
+            $hasDebtPayments = DebtPayment::where('company_id', $companyId)
+                ->whereBetween('created_at', [$cashCount->opening_date, $cashCount->closing_date])
+                ->exists();
+
+            if ($hasSales || $hasPurchases || $hasDebtPayments) {
+                $skipped++;
+                continue;
+            }
+
+            $cashCount->delete();
+            $deleted++;
+        }
+
+        if ($deleted > 0 && $skipped === 0) {
+            $this->toast("{$deleted} arqueo(s) eliminado(s) correctamente.");
+        } elseif ($deleted > 0 && $skipped > 0) {
+            $this->toast("{$deleted} eliminado(s). {$skipped} no se pudieron eliminar (abiertos o con registros).", 'warning');
+        } elseif ($deleted === 0 && $skipped > 0) {
+            $this->toast("No se pudo eliminar ningún arqueo. Están abiertos o tienen registros asociados.", 'error');
+        }
+
+        $this->selectedCashCountIds = [];
+        $this->closeBulkDeleteModal();
+    }
+
+    protected function toast(string $message, string $type = 'success'): void
+    {
+        $titles = [
+            'success' => 'Listo',
+            'error' => 'Atención',
+            'warning' => 'Atención',
+            'info' => 'Información',
+        ];
+        $uiType = in_array($type, ['success', 'error', 'warning', 'info'], true) ? $type : 'info';
+        $title = $titles[$uiType] ?? $titles['info'];
+        $timeout = $uiType === 'error' ? 7200 : 4800;
+
+        $options = json_encode([
+            'type' => $uiType,
+            'title' => $title,
+            'timeout' => $timeout,
+            'theme' => 'futuristic',
+        ], JSON_THROW_ON_ERROR);
+
+        $msg = json_encode($message, JSON_THROW_ON_ERROR);
+
+        $this->js(
+            'if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}'
+        );
     }
 
     public function render()
@@ -185,6 +337,7 @@ class CashCountsIndex extends Component
             'currentCashCount' => $this->currentCashCount,
             'permFlags' => $this->permFlags,
             'currency' => $this->currency,
+            'allCurrentPageSelected' => $this->allCurrentPageSelected,
         ]);
     }
 }

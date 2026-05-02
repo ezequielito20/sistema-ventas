@@ -574,14 +574,15 @@ class CashCountController extends Controller
    /**
     * Remove the specified cash count.
     */
-   public function report()
-   {
-      $company = $this->company;
-      $currency = $this->currencies;
-      $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
-      $pdf = Pdf::loadView('admin.cash-counts.report', compact('cashCounts', 'company', 'currency'));
-      return $pdf->stream('reporte-caja.pdf');
-   }
+    public function report()
+    {
+       $company = $this->company;
+       $currency = $this->currencies;
+       $emittedAt = now();
+       $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+       $pdf = Pdf::loadView('pdf.cash-counts.report', compact('cashCounts', 'company', 'currency', 'emittedAt'));
+       return $pdf->stream('reporte-caja.pdf');
+    }
 
    /**
     * Show detailed history of a cash count
