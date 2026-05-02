@@ -183,8 +183,11 @@ Route::get('/sales/product-by-code/{code}', [SaleController::class, 'getProductB
 Route::get('/sales/today-details', [SaleController::class, 'getTodaySales'])->name('admin.sales.today-details')->middleware(['auth', 'can:sales.index']);
 Route::get('/sales/print/{id}', [SaleController::class, 'printSale'])->name('admin.sales.print')->middleware(['auth', 'can:sales.print']);
 
-// Cash Counts
-Route::get('/cash-counts', [CashCountController::class, 'index'])->name('admin.cash-counts.index')->middleware(['auth', 'can:cash-counts.index']);
+// Cash Counts v2 (nuevo index)
+Route::get('/cash-counts', fn () => view('admin.v2.cash-counts.index'))->name('admin.cash-counts.index')->middleware(['auth', 'can:cash-counts.index']);
+
+// Cash Counts Legacy (index legacy movido)
+Route::get('/cash-counts/legacy', [CashCountController::class, 'index'])->name('admin.cash-counts.legacy.index')->middleware(['auth', 'can:cash-counts.index']);
 Route::get('/cash-counts/create', [CashCountController::class, 'create'])->name('admin.cash-counts.create')->middleware(['auth', 'can:cash-counts.create']);
 Route::post('/cash-counts/create', [CashCountController::class, 'store'])->name('admin.cash-counts.store')->middleware(['auth', 'can:cash-counts.create']);
 Route::get('/cash-counts/create-movement', [CashCountController::class, 'createMovement'])->name('admin.cash-counts.create-movement')->middleware(['auth', 'can:cash-counts.store-movement']);
