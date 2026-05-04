@@ -457,11 +457,11 @@
             $openDate = isset($cc['opening_date']) ? \Carbon\Carbon::parse($cc['opening_date'])->timezone(config('app.timezone'))->format('d/m/Y H:i') : '—';
             $closeDate = isset($cc['closing_date']) ? \Carbon\Carbon::parse($cc['closing_date'])->timezone(config('app.timezone'))->format('d/m/Y H:i') : 'En curso';
         @endphp
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4 backdrop-blur-sm"
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
             wire:click.self="closeDetailModal" x-data x-on:keydown.escape.window="$wire.closeDetailModal()">
-            <div class="relative flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-900 shadow-[0_0_60px_rgba(34,211,238,0.1)]">
+            <div class="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-900/95 shadow-[0_0_40px_rgba(34,211,238,0.12)]">
                 {{-- Header --}}
-                <div class="flex flex-shrink-0 items-center justify-between border-b border-slate-700/80 bg-gradient-to-r from-cyan-500/10 to-indigo-600/10 px-4 py-3 sm:px-6">
+                <div class="flex items-center justify-between border-b border-slate-700/80 bg-gradient-to-r from-cyan-500/10 to-indigo-600/10 px-5 py-4">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
                             <i class="fas fa-cash-register text-lg"></i>
@@ -484,7 +484,7 @@
                 </div>
 
                 {{-- Body --}}
-                <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+                <div class="max-h-[calc(90vh-8rem)] overflow-y-auto p-5">
                     {{-- Info general cards --}}
                     <div class="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                         <div class="rounded-lg border border-slate-600/50 bg-slate-950/50 p-3">
