@@ -33,6 +33,22 @@ class CashCountsIndex extends Component
     // ─── Modal de eliminación masiva ─────────────────────
     public bool $showBulkDeleteModal = false;
 
+    // ─── Modal de detalle ─────────────────────────────────
+    public bool $showDetailModal = false;
+    public ?int $detailCashCountId = null;
+    public string $detailActiveTab = 'clientes';
+    public int $detailProductsPage = 1;
+    public int $detailProductsPerPage = 10;
+    public int $detailOrdersPage = 1;
+    public int $detailOrdersPerPage = 10;
+    public array $detailGeneralInfo = [];
+    public array $detailCustomerStats = [];
+    public array $detailSalesStats = [];
+    public array $detailPaymentsStats = [];
+    public array $detailPurchasesStats = [];
+    public array $detailProductsStats = [];
+    public array $detailOrdersStats = [];
+
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
@@ -301,6 +317,109 @@ class CashCountsIndex extends Component
 
         $this->selectedCashCountIds = [];
         $this->closeBulkDeleteModal();
+    }
+
+    // ─── MODAL DETALLE ───────────────────────────────────
+
+    public function openDetailModal(int $id): void
+    {
+        $companyId = (int) Auth::user()->company_id;
+        $service = app(CashCountService::class);
+
+        $cashCount = CashCount::where('company_id', $companyId)
+            ->with(['movements' => fn ($q) => $q->orderBy('created_at', 'desc')])
+            ->find($id);
+
+        if (! $cashCount) {
+            $this->toast('Arqueo no encontrado.', 'error');
+            return;
+        }
+
+        $this->detailCashCountId = $id;
+        $this->detailActiveTab = 'clientes';
+
+        $totalIncome = (float) $cashCount->movements->where('type', 'income')->sum('amount');
+        $totalExpenses = (float) $cashCount->movements->where('type', 'expense')->sum('amount');
+        $currentBalance = (float) $cashCount->initial_amount + $totalIncome - $totalExpenses;
+
+        $this->detailGeneralInfo = [
+            'id' => (int) $cashCount->id,
+            'initial_amount' => (float) $cashCount->initial_amount,
+            'final_amount' => $cashCount->final_amount !== null ? (float) $cashCount->final_amount : null,
+            'opening_date' => $cashCount->opening_date,
+            'closing_date' => $cashCount->closing_date,
+            'observations' => $cashCount->observations,
+            'total_income' => $totalIncome,
+            'total_expenses' => $totalExpenses,
+            'current_balance' => $currentBalance,
+            'movements_count' => (int) $cashCount->movements->count(),
+            'movements' => $cashCount->movements->map(fn ($m) => [
+                'id' => (int) $m->id,
+                'type' => $m->type,
+                'amount' => (float) $m->amount,
+                'description' => $m->description,
+                'created_at' => $m->created_at->toISOString(),
+            ])->toArray(),
+        ];
+
+        $this->detailCustomerStats = $service->getCustomerStats($cashCount);
+        $this->detailSalesStats = $service->getSalesStats($cashCount);
+        $this->detailPaymentsStats = $service->getPaymentsStats($cashCount);
+        $this->detailPurchasesStats = $service->getPurchasesStats($cashCount);
+        $this->detailProductsStats = $service->getProductsStats($cashCount);
+        $this->detailOrdersStats = $service->getOrdersStats($cashCount);
+
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailCashCountId = null;
+        $this->detailGeneralInfo = [];
+        $this->detailCustomerStats = [];
+        $this->detailSalesStats = [];
+        $this->detailPaymentsStats = [];
+        $this->detailPurchasesStats = [];
+        $this->detailProductsStats = [];
+        $this->detailOrdersStats = [];
+    }
+
+    public function setDetailTab(string $tab): void
+    {
+        $this->detailActiveTab = $tab;
+    }
+
+    public function detailProductsNextPage(): void
+    {
+        $total = count($this->detailProductsStats['current']['products_data'] ?? []);
+        $maxPage = max(1, (int) ceil($total / $this->detailProductsPerPage));
+        if ($this->detailProductsPage < $maxPage) {
+            $this->detailProductsPage++;
+        }
+    }
+
+    public function detailProductsPrevPage(): void
+    {
+        if ($this->detailProductsPage > 1) {
+            $this->detailProductsPage--;
+        }
+    }
+
+    public function detailOrdersNextPage(): void
+    {
+        $total = count($this->detailOrdersStats['current']['orders_data'] ?? []);
+        $maxPage = max(1, (int) ceil($total / $this->detailOrdersPerPage));
+        if ($this->detailOrdersPage < $maxPage) {
+            $this->detailOrdersPage++;
+        }
+    }
+
+    public function detailOrdersPrevPage(): void
+    {
+        if ($this->detailOrdersPage > 1) {
+            $this->detailOrdersPage--;
+        }
     }
 
     protected function toast(string $message, string $type = 'success'): void
