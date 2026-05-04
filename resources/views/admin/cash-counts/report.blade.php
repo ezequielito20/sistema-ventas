@@ -109,9 +109,12 @@
     <!-- Header -->
     <div class="header-container clearfix">
         <div class="company-section">
-            @if ($company->logo)
-                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Logo" class="logo">
-            @endif
+            @php
+            $ccLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
+        @endphp
+        @if ($ccLogoPath && file_exists($ccLogoPath))
+            <img src="{{ $ccLogoPath }}" alt="Logo" class="logo">
+        @endif
             <div class="company-info">
                 <strong>{{ $company->name }}</strong><br>
                 {{ $company->address }}<br>

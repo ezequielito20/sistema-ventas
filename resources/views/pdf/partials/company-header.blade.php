@@ -9,10 +9,16 @@
             <table class="pdf-header-main" width="100%" cellspacing="0">
                 <tr>
                     <td class="pdf-header-col" style="width: 30%;">
-                        @if ($company->logo)
+                        @php
+                            $logoPath = $company->logo
+                                ? storage_path('app/public/' . $company->logo)
+                                : null;
+                            $logoExists = $logoPath && file_exists($logoPath);
+                        @endphp
+                        @if ($logoExists)
                             <img
                                 class="pdf-logo"
-                                src="{{ public_path('storage/' . $company->logo) }}"
+                                src="{{ $logoPath }}"
                                 alt="Logo"
                             >
                         @else
