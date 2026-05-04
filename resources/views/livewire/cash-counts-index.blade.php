@@ -857,11 +857,11 @@
                     @if ($detailActiveTab === 'productos')
                         @php
                             $prodCurrent = $detailProductsStats['current'] ?? [];
-                            $prodData = $prodCurrent['products_data'] ?? [];
-                            $prodTotal = count($prodData);
+                            $prodData = collect($prodCurrent['products_data'] ?? []);
+                            $prodTotal = $prodData->count();
                             $prodMaxPage = max(1, (int) ceil($prodTotal / $detailProductsPerPage));
                             $prodOffset = ($detailProductsPage - 1) * $detailProductsPerPage;
-                            $prodSlice = array_slice($prodData, $prodOffset, $detailProductsPerPage);
+                            $prodSlice = $prodData->slice($prodOffset, $detailProductsPerPage)->values()->all();
                         @endphp
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-2 sm:grid-cols-2">
@@ -925,11 +925,11 @@
                         @php
                             $ordCurrent = $detailOrdersStats['current'] ?? [];
                             $ordComp = $detailOrdersStats['comparison'] ?? [];
-                            $ordData = $ordCurrent['orders_data'] ?? [];
-                            $ordTotal = count($ordData);
+                            $ordData = collect($ordCurrent['orders_data'] ?? []);
+                            $ordTotal = $ordData->count();
                             $ordMaxPage = max(1, (int) ceil($ordTotal / $detailOrdersPerPage));
                             $ordOffset = ($detailOrdersPage - 1) * $detailOrdersPerPage;
-                            $ordSlice = array_slice($ordData, $ordOffset, $detailOrdersPerPage);
+                            $ordSlice = $ordData->slice($ordOffset, $detailOrdersPerPage)->values()->all();
                         @endphp
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
