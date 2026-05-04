@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Sale;
 use App\Models\Purchase;
 use App\Models\CashCount;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -574,15 +575,15 @@ class CashCountController extends Controller
    /**
     * Remove the specified cash count.
     */
-    public function report()
-    {
-       $company = $this->company;
-       $currency = $this->currencies;
-       $emittedAt = now();
-       $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
-       $pdf = Pdf::loadView('pdf.cash-counts.report', compact('cashCounts', 'company', 'currency', 'emittedAt'));
-       return $pdf->stream('reporte-caja.pdf');
-    }
+public function report()
+   {
+      $company = Company::find($this->company->id);
+      $currency = $this->currencies;
+      $emittedAt = now();
+      $cashCounts = CashCount::with(['movements'])->where('company_id', $company->id)->orderBy('created_at', 'desc')->get();
+      $pdf = Pdf::loadView('pdf.cash-counts.report', compact('cashCounts', 'company', 'currency', 'emittedAt'));
+      return $pdf->stream('reporte-caja.pdf');
+   }
 
    /**
     * Show detailed history of a cash count
