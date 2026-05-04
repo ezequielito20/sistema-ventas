@@ -586,6 +586,32 @@
                                     @endif
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($cCurrent['customers_data'] ?? [] as $customer)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-semibold text-white">{{ $customer['name'] }}</p>
+                                                <p class="truncate text-xs text-slate-400">{{ $customer['phone'] ?? '—' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Total compras</p>
+                                                <p class="font-semibold tabular-nums text-emerald-300">{{ $currencySymbol }} {{ number_format($customer['total_purchases'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Deuda</p>
+                                                <p class="font-semibold tabular-nums {{ ($customer['total_debt'] ?? 0) > 0 ? 'text-rose-300' : 'text-emerald-300' }}">{{ $currencySymbol }} {{ number_format($customer['total_debt'] ?? 0, 2) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay clientes registrados en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -611,6 +637,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     @endif
@@ -664,6 +691,36 @@
                                     @endif
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($sCurrent['sales_data'] ?? [] as $sale)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-mono font-semibold text-white">{{ $sale['invoice_number'] }}</p>
+                                                <p class="truncate text-xs text-slate-400">{{ $sale['customer_name'] ?? '—' }} · {{ isset($sale['sale_date']) ? \Carbon\Carbon::parse($sale['sale_date'])->format('d/m/Y') : '—' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Total</p>
+                                                <p class="font-semibold tabular-nums text-emerald-300">{{ $currencySymbol }} {{ number_format($sale['total_amount'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Estado</p>
+                                                @if (($sale['payment_status'] ?? '') === 'Pagado')
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300"><i class="fas fa-check-circle text-[0.6rem]"></i> Pagado</span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-300"><i class="fas fa-clock text-[0.6rem]"></i> Pendiente</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay ventas en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -695,6 +752,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     @endif
@@ -748,6 +806,35 @@
                                     @endif
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($pCurrent['payments_data'] ?? [] as $payment)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-semibold text-white">{{ $payment['customer_name'] ?? '—' }}</p>
+                                                <p class="truncate text-xs text-slate-400">{{ isset($payment['payment_date']) ? \Carbon\Carbon::parse($payment['payment_date'])->format('d/m/Y H:i') : '—' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Monto</p>
+                                                <p class="font-semibold tabular-nums text-emerald-300">{{ $currencySymbol }} {{ number_format($payment['payment_amount'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Deuda restante</p>
+                                                <p class="font-semibold tabular-nums {{ ($payment['remaining_debt'] ?? 0) > 0 ? 'text-rose-300' : 'text-emerald-300' }}">{{ $currencySymbol }} {{ number_format($payment['remaining_debt'] ?? 0, 2) }}</p>
+                                            </div>
+                                        </div>
+                                        @if (($payment['notes'] ?? '') !== '—' && ($payment['notes'] ?? ''))
+                                            <p class="mt-2 text-xs text-slate-500">{{ $payment['notes'] }}</p>
+                                        @endif
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay pagos en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -773,6 +860,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     @endif
@@ -826,6 +914,36 @@
                                     @endif
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($purCurrent['purchases_data'] ?? [] as $purchase)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-semibold text-white">{{ isset($purchase['purchase_date']) ? \Carbon\Carbon::parse($purchase['purchase_date'])->format('d/m/Y') : '—' }}</p>
+                                                <p class="truncate text-xs text-slate-400">Compra registrada</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-3 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Únicos</p>
+                                                <p class="font-semibold tabular-nums text-slate-200">{{ $purchase['unique_products'] ?? 0 }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Totales</p>
+                                                <p class="font-semibold tabular-nums text-slate-200">{{ $purchase['total_products'] ?? 0 }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Monto</p>
+                                                <p class="font-semibold tabular-nums text-blue-300">{{ $currencySymbol }} {{ number_format($purchase['total_amount'] ?? 0, 2) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay compras en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -849,6 +967,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     @endif
@@ -874,6 +993,52 @@
                                     <p class="text-xl font-bold text-blue-200">{{ $currencySymbol }} {{ number_format($prodCurrent['inventory_value_cost'] ?? 0, 2) }}</p>
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($prodSlice as $row)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-semibold text-white">{{ $row['product_name'] }}</p>
+                                                <p class="truncate text-xs text-slate-400">
+                                                    Stock: <span class="inline-flex items-center rounded-full bg-slate-700/60 px-2 py-0.5 text-xs text-slate-300">{{ $row['stock'] ?? 0 }}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Vendidos</p>
+                                                <p class="font-semibold tabular-nums text-slate-200">{{ $row['quantity_sold'] ?? 0 }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Ingresos</p>
+                                                <p class="font-semibold tabular-nums text-emerald-300">{{ $currencySymbol }} {{ number_format($row['income'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Costo</p>
+                                                <p class="font-semibold tabular-nums text-blue-300">{{ $currencySymbol }} {{ number_format($row['cost'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Margen</p>
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ ($row['margin_percentage'] ?? 0) >= 0 ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300' }}">
+                                                    {{ number_format($row['margin_percentage'] ?? 0, 1) }}%
+                                                </span>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">P. compra</p>
+                                                <p class="font-semibold tabular-nums text-slate-300">{{ $currencySymbol }} {{ number_format($row['purchase_price'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">P. venta</p>
+                                                <p class="font-semibold tabular-nums text-slate-300">{{ $currencySymbol }} {{ number_format($row['sale_price'] ?? 0, 2) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay productos vendidos en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -909,6 +1074,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                             @if ($prodMaxPage > 1)
                                 <div class="flex items-center justify-between px-2">
@@ -974,6 +1140,46 @@
                                     @endif
                                 </div>
                             </div>
+                            {{-- Mobile cards --}}
+                            <div class="space-y-3 sm:hidden">
+                                @forelse ($ordSlice as $row)
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="truncate font-mono font-semibold text-white">#{{ $row['id'] }}</p>
+                                                <p class="truncate text-xs text-slate-400">{{ isset($row['order_date']) ? \Carbon\Carbon::parse($row['order_date'])->format('d/m/Y H:i') : '—' }} · {{ $row['customer_name'] ?? '—' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Únicos</p>
+                                                <p class="font-semibold tabular-nums text-slate-200">{{ $row['unique_products'] ?? 0 }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Totales</p>
+                                                <p class="font-semibold tabular-nums text-slate-200">{{ $row['total_products'] ?? 0 }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Total</p>
+                                                <p class="font-semibold tabular-nums text-emerald-300">{{ $currencySymbol }} {{ number_format($row['total_amount'] ?? 0, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-lg bg-slate-900/60 p-2">
+                                                <p class="text-slate-500">Estado</p>
+                                                @if (($row['status'] ?? '') === 'processed')
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300"><i class="fas fa-check-circle text-[0.6rem]"></i> Completado</span>
+                                                @elseif (($row['status'] ?? '') === 'pending')
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-300"><i class="fas fa-clock text-[0.6rem]"></i> Pendiente</span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-300"><i class="fas fa-times-circle text-[0.6rem]"></i> Cancelado</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="rounded-xl border border-slate-700/60 bg-slate-950/40 p-6 text-center text-sm text-slate-400">No hay pedidos en este arqueo.</div>
+                                @endforelse
+                            </div>
+                            <div class="hidden sm:block">
                             <div class="ui-table-wrap rounded-xl border border-slate-700/60">
                                 <table class="ui-table text-sm">
                                     <thead>
@@ -1011,6 +1217,7 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                             @if ($ordMaxPage > 1)
                                 <div class="flex items-center justify-between px-2">
