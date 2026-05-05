@@ -111,12 +111,12 @@
                     class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
                     style="display: none;">
                     <button @click="selectCashMode('current')"
-                        class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                         :class="cashDataMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                         <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
                     </button>
                     <button @click="selectCashMode('historical')"
-                        class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                         :class="cashDataMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                         <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
                     </button>
@@ -125,7 +125,7 @@
                             <div class="my-1 border-t border-slate-700/50"></div>
                             <template x-for="opt in cashCountOptions()" :key="opt.id">
                                 <button @click="selectCashMode(opt.id)"
-                                    class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                                    class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                                     :class="cashDataMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                                     <i class="fas fa-cash-register w-4 text-center"></i>
                                     <span x-text="opt.name"></span>
@@ -255,12 +255,12 @@
                         class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
                         style="display: none;">
                         <button @click="selectSalesMode('current')"
-                            class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                             :class="salesDataMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                             <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
                         </button>
                         <button @click="selectSalesMode('historical')"
-                            class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                             :class="salesDataMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                             <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
                         </button>
@@ -269,7 +269,7 @@
                                 <div class="my-1 border-t border-slate-700/50"></div>
                                 <template x-for="opt in cashCountOptions()" :key="opt.id">
                                     <button @click="selectSalesMode(opt.id)"
-                                        class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                                         :class="salesDataMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                                         <i class="fas fa-cash-register w-4 text-center"></i>
                                         <span x-text="opt.name"></span>
@@ -625,12 +625,12 @@
                         class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
                         style="display: none;">
                         <button @click="selectFlowMode('historical')"
-                            class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                             :class="cashFlowMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                             <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
                         </button>
                         <button @click="selectFlowMode('current')"
-                            class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                             :class="cashFlowMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                             <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
                         </button>
@@ -639,7 +639,7 @@
                                 <div class="my-1 border-t border-slate-700/50"></div>
                                 <template x-for="opt in cashCountOptions()" :key="opt.id">
                                     <button @click="selectFlowMode(opt.id)"
-                                        class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
                                         :class="cashFlowMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
                                         <i class="fas fa-cash-register w-4 text-center"></i>
                                         <span x-text="opt.name"></span>
