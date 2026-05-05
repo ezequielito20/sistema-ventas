@@ -10,19 +10,19 @@
                 <tr>
                     <td class="pdf-header-col" style="width: 30%;">
                         @php
-                            $logoPath = $company->logo
-                                ? storage_path('app/public/' . $company->logo)
-                                : null;
-                            $logoExists = $logoPath && file_exists($logoPath);
+                            $logoSrc = null;
+                            if ($company->logo) {
+                                $logoDiskPath = storage_path('app/public/' . $company->logo);
+                                if (file_exists($logoDiskPath) && is_readable($logoDiskPath)) {
+                                    // Usar ruta file:// que DomPDF soporta nativamente
+                                    $logoSrc = 'file://' . $logoDiskPath;
+                                }
+                            }
                         @endphp
-                        @if ($logoExists)
-                            <img
-                                class="pdf-logo"
-                                src="{{ $logoPath }}"
-                                alt="Logo"
-                            >
+                        @if ($logoSrc)
+                            <img class="pdf-logo" src="{{ $logoSrc }}" alt="Logo">
                         @else
-                            <div class="pdf-logo-placeholder">LOGO</div>
+                            <div class="pdf-logo-placeholder">{{ strtoupper(substr($company->name, 0, 2)) }}</div>
                         @endif
                         <p class="pdf-brand-name">{{ $company->name }}</p>
                         @if ($company->address)

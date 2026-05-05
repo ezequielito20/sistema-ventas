@@ -151,9 +151,11 @@ class SettingsIndex extends Component
 
         $company = Company::find(Auth::user()->company_id);
 
-        // Handle logo upload
+        // Handle logo upload — siempre usar disco 'public' (local).
+        // El disco por defecto está configurado como 's3' en .env para producción,
+        // pero los logos se almacenan en storage/app/public/company_logos/.
         if ($this->logo) {
-            $disk = Storage::getDefaultDriver() === 's3' ? 's3' : 'public';
+            $disk = 'public';
 
             // Delete old logo
             if ($company->logo && Storage::disk($disk)->exists($company->logo)) {

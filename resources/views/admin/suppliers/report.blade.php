@@ -94,11 +94,12 @@
     <div class="header-container clearfix">
         <div class="company-section">
             @php
-            $suppLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
-        @endphp
-        @if ($suppLogoPath && file_exists($suppLogoPath))
-            <img src="{{ $suppLogoPath }}" alt="Logo" class="logo">
-        @endif
+                $suppLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
+                $suppLogoExists = $suppLogoPath && file_exists($suppLogoPath) && is_readable($suppLogoPath);
+            @endphp
+            @if ($suppLogoExists)
+                <img src="file://{{ $suppLogoPath }}" alt="Logo" class="logo">
+            @endif
             <div class="company-info">
                 <strong>{{ $company->name }}</strong><br>
                 {{ $company->address }}<br>

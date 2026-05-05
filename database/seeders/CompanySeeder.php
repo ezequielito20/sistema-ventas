@@ -29,7 +29,7 @@ class CompanySeeder extends Seeder
             'city' => '538',        // New York City ID (primera ciudad de Estados Unidos en el seeder)
             'state' => '30032',     // New York State ID
             'postal_code' => '10001',
-            'logo' => 'logo.png',
+            'logo' => null,
         ]);
         
         $this->adjustAutoIncrement('companies');

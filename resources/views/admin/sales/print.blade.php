@@ -259,9 +259,10 @@
             <div class="invoice-header-col invoice-header-col--left">
                 @php
                     $printLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
+                    $printLogoExists = $printLogoPath && file_exists($printLogoPath) && is_readable($printLogoPath);
                 @endphp
-                @if ($printLogoPath && file_exists($printLogoPath))
-                    <img src="{{ $printLogoPath }}" alt="Logo" class="company-logo">
+                @if ($printLogoExists)
+                    <img src="file://{{ $printLogoPath }}" alt="Logo" class="company-logo">
                 @endif
                 <div class="company-name">{{ $company->name }}</div>
                 <div class="company-meta">
