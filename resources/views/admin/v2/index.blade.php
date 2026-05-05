@@ -37,13 +37,13 @@
                     <p class="ui-panel__subtitle">Panel de control inteligente — {{ $company->name ?? 'Sistema' }}</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2.5">
-                <div class="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/50 px-3.5 py-2">
-                    <i class="far fa-clock text-cyan-400 text-sm"></i>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5 rounded-xl border border-slate-700/60 bg-slate-800/50 px-4 py-2.5 min-w-[100px]">
+                    <i class="far fa-clock text-cyan-400"></i>
                     <span class="text-sm font-semibold tabular-nums text-slate-200" x-text="currentTime">{{ date('H:i') }}</span>
                 </div>
-                <div class="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/50 px-3.5 py-2">
-                    <i class="far fa-calendar-alt text-purple-400 text-sm"></i>
+                <div class="flex items-center gap-2.5 rounded-xl border border-slate-700/60 bg-slate-800/50 px-4 py-2.5 min-w-[130px]">
+                    <i class="far fa-calendar-alt text-purple-400"></i>
                     <span class="text-sm font-semibold tabular-nums text-slate-200" x-text="currentDate">{{ date('d/m/Y') }}</span>
                 </div>
             </div>
