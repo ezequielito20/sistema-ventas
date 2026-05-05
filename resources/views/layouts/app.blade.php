@@ -750,7 +750,7 @@
                                     x-transition:leave-end="transform opacity-0 scale-95" @click.away="open = false"
                                     class="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-slate-600/80 bg-slate-900 py-1 shadow-xl shadow-black/40 ring-1 ring-black/20">
                                     <div class="py-1">
-                                        <a href="#" class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+                                        {{-- <a href="#" class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
                                             <i class="fas fa-user mr-2 text-slate-400"></i>
                                             Mi Perfil
                                         </a>
@@ -758,7 +758,7 @@
                                             <i class="fas fa-cog mr-2 text-slate-400"></i>
                                             Configuración
                                         </a>
-                                        <div class="border-t border-slate-700/80"></div>
+                                        <div class="border-t border-slate-700/80"></div> --}}
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf
                                             <button type="submit"
