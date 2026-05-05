@@ -1,3 +1,4 @@
+<template x-teleport="body">
 <div
     x-show="debtReportModalV2"
     x-cloak
@@ -158,3 +159,4 @@
         </div>
     </div>
 </div>
+</template>
