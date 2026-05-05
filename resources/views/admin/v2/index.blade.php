@@ -6,9 +6,9 @@
 <div class="space-y-6">
 
     {{-- ================================================================ --}}
-    {{-- 1. HERO HEADER                                                   --}}
+    {{-- 1. HEADER PRINCIPAL                                              --}}
     {{-- ================================================================ --}}
-    <div class="hero-section" x-data="{
+    <div class="ui-panel overflow-hidden" x-data="{
         currentTime: '{{ date('H:i') }}',
         currentDate: '{{ date('d/m/Y') }}',
         init() {
@@ -19,27 +19,32 @@
             }, 60000);
         }
     }">
-        <div class="hero-gradient"></div>
-        <div class="container mx-auto px-4 sm:px-6">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div class="hero-content">
-                    <div class="hero-icon">
-                        <i class="fas fa-rocket"></i>
+        {{-- Línea de acento superior con gradiente --}}
+        <div class="h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-transparent"></div>
+
+        <div class="ui-panel__header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between !border-0">
+            <div class="flex items-center gap-4">
+                <div class="relative flex-shrink-0">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 text-cyan-400 shadow-lg shadow-cyan-500/10">
+                        <i class="fas fa-rocket text-xl"></i>
                     </div>
-                    <div>
-                        <h1 class="hero-title">Dashboard Ejecutivo</h1>
-                        <p class="hero-subtitle">Panel de control inteligente — {{ $company->name ?? 'Sistema' }}</p>
-                    </div>
+                    <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-slate-900">
+                        <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
+                    </span>
                 </div>
-                <div class="hero-actions">
-                    <div class="btn-modern text-center min-w-[90px]">
-                        <div class="text-2xl font-black" x-text="currentTime"></div>
-                        <div class="text-xs opacity-80">Hora</div>
-                    </div>
-                    <div class="btn-modern text-center min-w-[110px]">
-                        <div class="text-2xl font-black" x-text="currentDate"></div>
-                        <div class="text-xs opacity-80">Fecha</div>
-                    </div>
+                <div>
+                    <h1 class="ui-panel__title !text-lg sm:!text-xl">Dashboard Ejecutivo</h1>
+                    <p class="ui-panel__subtitle">Panel de control inteligente — {{ $company->name ?? 'Sistema' }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/50 px-3.5 py-2">
+                    <i class="far fa-clock text-cyan-400 text-sm"></i>
+                    <span class="text-sm font-semibold tabular-nums text-slate-200" x-text="currentTime">{{ date('H:i') }}</span>
+                </div>
+                <div class="flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-800/50 px-3.5 py-2">
+                    <i class="far fa-calendar-alt text-purple-400 text-sm"></i>
+                    <span class="text-sm font-semibold tabular-nums text-slate-200" x-text="currentDate">{{ date('d/m/Y') }}</span>
                 </div>
             </div>
         </div>
@@ -129,7 +134,11 @@
                         </div>
                     </template>
                 </div>
-                <span class="ui-badge ui-badge-success text-xs ml-2">Caja Abierta</span>
+                @if ($currentCashCount)
+                    <span class="ui-badge ui-badge-success text-xs ml-2">Caja Abierta</span>
+                @else
+                    <span class="ui-badge ui-badge-danger text-xs ml-2">Caja Cerrada</span>
+                @endif
             </div>
         </div>
 
