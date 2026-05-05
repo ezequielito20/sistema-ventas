@@ -244,40 +244,38 @@
                 <h2 class="ui-panel__title">Análisis de Ventas</h2>
                 <p class="ui-panel__subtitle">Métricas y rendimiento comercial</p>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="relative" @click.away="closeDropdown()">
-                    <button type="button" @click="toggleDropdown()"
-                        class="ui-btn ui-btn-ghost text-sm min-w-[200px] justify-between">
-                        <span x-text="currentSalesLabel()"></span>
-                        <i class="fas fa-chevron-down text-xs transition-transform" :class="salesDropdownOpen ? 'rotate-180' : ''"></i>
+            <div class="relative" @click.away="closeDropdown()">
+                <button type="button" @click="toggleDropdown()"
+                    class="ui-btn ui-btn-ghost text-sm min-w-[200px] justify-between">
+                    <span x-text="currentSalesLabel()"></span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="salesDropdownOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="salesDropdownOpen" x-transition
+                    class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
+                    style="display: none;">
+                    <button @click="selectSalesMode('current')"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        :class="salesDataMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                        <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
                     </button>
-                    <div x-show="salesDropdownOpen" x-transition
-                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
-                        style="display: none;">
-                        <button @click="selectSalesMode('current')"
-                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                            :class="salesDataMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                            <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
-                        </button>
-                        <button @click="selectSalesMode('historical')"
-                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                            :class="salesDataMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                            <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
-                        </button>
-                        <template x-if="cashCountOptions().length">
-                            <div>
-                                <div class="my-1 border-t border-slate-700/50"></div>
-                                <template x-for="opt in cashCountOptions()" :key="opt.id">
-                                    <button @click="selectSalesMode(opt.id)"
-                                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                                        :class="salesDataMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                                        <i class="fas fa-cash-register w-4 text-center"></i>
-                                        <span x-text="opt.name"></span>
-                                    </button>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
+                    <button @click="selectSalesMode('historical')"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        :class="salesDataMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                        <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
+                    </button>
+                    <template x-if="cashCountOptions().length">
+                        <div>
+                            <div class="my-1 border-t border-slate-700/50"></div>
+                            <template x-for="opt in cashCountOptions()" :key="opt.id">
+                                <button @click="selectSalesMode(opt.id)"
+                                    class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                                    :class="salesDataMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                                    <i class="fas fa-cash-register w-4 text-center"></i>
+                                    <span x-text="opt.name"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </template>
                 </div>
                 <span class="ui-badge ui-badge-success text-xs">Tiempo Real</span>
             </div>
@@ -614,40 +612,38 @@
                 <h2 class="ui-panel__title">El Pulso del Dinero</h2>
                 <p class="ui-panel__subtitle">Tendencia de Ingresos vs Egresos por Arqueo</p>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="relative" @click.away="closeDropdown()">
-                    <button type="button" @click="toggleDropdown()"
-                        class="ui-btn ui-btn-ghost text-sm min-w-[200px] justify-between">
-                        <span x-text="currentFlowLabel()"></span>
-                        <i class="fas fa-chevron-down text-xs transition-transform" :class="flowDropdownOpen ? 'rotate-180' : ''"></i>
+            <div class="relative" @click.away="closeDropdown()">
+                <button type="button" @click="toggleDropdown()"
+                    class="ui-btn ui-btn-ghost text-sm min-w-[200px] justify-between">
+                    <span x-text="currentFlowLabel()"></span>
+                    <i class="fas fa-chevron-down text-xs transition-transform" :class="flowDropdownOpen ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="flowDropdownOpen" x-transition
+                    class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
+                    style="display: none;">
+                    <button @click="selectFlowMode('historical')"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        :class="cashFlowMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                        <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
                     </button>
-                    <div x-show="flowDropdownOpen" x-transition
-                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
-                        style="display: none;">
-                        <button @click="selectFlowMode('historical')"
-                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                            :class="cashFlowMode === 'historical' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                            <i class="fas fa-history w-4 text-center"></i> 📈 Histórico Completo
-                        </button>
-                        <button @click="selectFlowMode('current')"
-                            class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                            :class="cashFlowMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                            <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
-                        </button>
-                        <template x-if="cashCountOptions().length">
-                            <div>
-                                <div class="my-1 border-t border-slate-700/50"></div>
-                                <template x-for="opt in cashCountOptions()" :key="opt.id">
-                                    <button @click="selectFlowMode(opt.id)"
-                                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
-                                        :class="cashFlowMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
-                                        <i class="fas fa-cash-register w-4 text-center"></i>
-                                        <span x-text="opt.name"></span>
-                                    </button>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
+                    <button @click="selectFlowMode('current')"
+                        class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                        :class="cashFlowMode === 'current' ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                        <i class="fas fa-chart-bar w-4 text-center"></i> 📊 Arqueo Actual
+                    </button>
+                    <template x-if="cashCountOptions().length">
+                        <div>
+                            <div class="my-1 border-t border-slate-700/50"></div>
+                            <template x-for="opt in cashCountOptions()" :key="opt.id">
+                                <button @click="selectFlowMode(opt.id)"
+                                    class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
+                                    :class="cashFlowMode === opt.id ? 'bg-cyan-500/10 text-cyan-300 font-semibold' : ''">
+                                    <i class="fas fa-cash-register w-4 text-center"></i>
+                                    <span x-text="opt.name"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </template>
                 </div>
                 <span class="ui-badge ui-badge-warning text-xs">Tiempo Real</span>
             </div>
