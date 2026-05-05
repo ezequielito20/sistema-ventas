@@ -53,7 +53,7 @@
     {{-- ================================================================ --}}
     {{-- 2. ARQUEO DE CAJA - Reactivo con selector de arqueo             --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel ui-panel--overflow-visible" x-data="{
+    <div class="ui-panel ui-panel--overflow-visible" style="z-index: 35;" x-data="{
         cashDataMode: 'current',
         currentCashData: @js($currentCashData ?? []),
         historicalData: @js($historicalData ?? []),
@@ -108,7 +108,7 @@
                     <i class="fas fa-chevron-down text-xs transition-transform" :class="cashDropdownOpen ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="cashDropdownOpen" x-transition
-                    class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
+                    class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
                     style="display: none;">
                     <button @click="selectCashMode('current')"
                         class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
@@ -195,7 +195,7 @@
     {{-- ================================================================ --}}
     {{-- 3. ANÁLISIS DE VENTAS - Reactivo con selector de arqueo         --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel ui-panel--overflow-visible" x-data="{
+    <div class="ui-panel ui-panel--overflow-visible" style="z-index: 32;" x-data="{
         salesDataMode: 'current',
         currentSalesData: @js($currentSalesData ?? []),
         historicalSalesData: @js($historicalSalesData ?? []),
@@ -252,7 +252,7 @@
                         <i class="fas fa-chevron-down text-xs transition-transform" :class="salesDropdownOpen ? 'rotate-180' : ''"></i>
                     </button>
                     <div x-show="salesDropdownOpen" x-transition
-                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
+                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
                         style="display: none;">
                         <button @click="selectSalesMode('current')"
                             class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
@@ -622,7 +622,7 @@
                         <i class="fas fa-chevron-down text-xs transition-transform" :class="flowDropdownOpen ? 'rotate-180' : ''"></i>
                     </button>
                     <div x-show="flowDropdownOpen" x-transition
-                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5"
+                        class="absolute right-0 z-50 mt-1 w-72 rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl py-1.5 max-h-72 overflow-y-auto"
                         style="display: none;">
                         <button @click="selectFlowMode('historical')"
                             class="w-full flex items-center gap-3 pl-4 pr-3.5 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800/80 transition"
