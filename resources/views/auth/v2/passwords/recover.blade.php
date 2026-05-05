@@ -27,7 +27,7 @@
                     {{ __('Recuperar contraseña') }}
                 </h1>
                 <p class="mt-1.5 text-sm text-slate-400">
-                    {{ __('Ingresá tu correo electrónico para continuar.') }}
+                    {{ __('Ingresa tu correo electrónico para continuar.') }}
                 </p>
             </div>
 

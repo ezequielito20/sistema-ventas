@@ -23,10 +23,10 @@
                     <i class="fas fa-shield-alt text-xl text-amber-400"></i>
                 </div>
                 <h1 class="mt-4 text-xl font-bold tracking-tight text-slate-100">
-                    {{ __('Verificá tu identidad') }}
+                    {{ __('Verifica tu identidad') }}
                 </h1>
                 <p class="mt-1.5 text-sm text-slate-400">
-                    {{ __('Respondé las siguientes preguntas de seguridad.') }}
+                    {{ __('Responde las siguientes preguntas de seguridad.') }}
                 </p>
             </div>
 

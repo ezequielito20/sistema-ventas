@@ -26,7 +26,7 @@
                     {{ __('Nueva contraseña') }}
                 </h1>
                 <p class="mt-1.5 text-sm text-slate-400">
-                    {{ __('Elegí una contraseña segura para tu cuenta.') }}
+                    {{ __('Elige una contraseña segura para tu cuenta.') }}
                 </p>
             </div>
 

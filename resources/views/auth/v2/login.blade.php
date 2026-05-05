@@ -31,7 +31,7 @@
                     {{ str_replace('_', ' ', config('app.name', 'Sistema')) }}
                 </h1>
                 <p class="mt-1.5 text-sm text-slate-400">
-                    {{ __('Ingresá tus credenciales para acceder') }}
+                    {{ __('Ingresa tus credenciales para acceder') }}
                 </p>
             </div>
 

@@ -20,7 +20,7 @@ class SecurityQuestionsController extends Controller
         $user = Auth::user();
 
         if ($user->security_questions_setup) {
-            return redirect()->intended('/');
+            return redirect('/');
         }
 
         return view('auth.v2.security-questions.setup');
@@ -32,9 +32,12 @@ class SecurityQuestionsController extends Controller
 
         $request->validate([
             'questions' => ['required', 'array', 'size:3'],
-            'questions.*' => ['required', 'string', 'min:5', 'max:255'],
+            'questions.*' => ['required', 'string', 'min:4', 'max:255'],
             'answers' => ['required', 'array', 'size:3'],
-            'answers.*' => ['required', 'string', 'min:2', 'max:255'],
+            'answers.*' => ['required', 'string', 'min:1', 'max:255'],
+        ], [
+            'questions.*.min' => __('La pregunta debe tener al menos :min caracteres.'),
+            'answers.*.min' => __('La respuesta debe tener al menos :min caracter.'),
         ]);
 
         // Delete existing questions if re-setting up
@@ -50,6 +53,13 @@ class SecurityQuestionsController extends Controller
 
         $user->update(['security_questions_setup' => true]);
 
-        return redirect()->intended('/');
+        // Refrescar la instancia del usuario en Auth para que el middleware
+        // vea security_questions_setup = true y no redirija de vuelta acá.
+        Auth::setUser($user->fresh());
+
+        return redirect('/')->with([
+            'message' => __('¡Preguntas de seguridad guardadas correctamente! Ya puedes usar el sistema.'),
+            'icons' => 'success',
+        ]);
     }
 }

@@ -75,7 +75,7 @@ class PasswordRecoveryController extends Controller
         foreach ($questions as $question) {
             $givenAnswer = $request->answers[$question->id] ?? '';
             if (!$question->checkAnswer($givenAnswer)) {
-                return back()->withErrors(['answers' => __('Una o más respuestas son incorrectas. Intentalo de nuevo.')]);
+                return back()->withErrors(['answers' => __('Una o más respuestas son incorrectas. Inténtalo de nuevo.')]);
             }
         }
 
@@ -110,6 +110,6 @@ class PasswordRecoveryController extends Controller
         session()->forget(['recovery_user_id', 'recovery_questions', 'recovery_verified']);
 
         return redirect()->route('login')
-            ->with('status', __('Contraseña actualizada correctamente. Ya podés iniciar sesión.'));
+            ->with('status', __('Contraseña actualizada correctamente. Ya puedes iniciar sesión.'));
     }
 }

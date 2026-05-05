@@ -34,6 +34,13 @@
                 @csrf
 
                 <div class="rounded-2xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-2xl backdrop-blur-xl sm:p-8 space-y-6">
+                    @error('questions')
+                        <p class="text-xs text-rose-400">{{ $message }}</p>
+                    @enderror
+                    @error('answers')
+                        <p class="text-xs text-rose-400">{{ $message }}</p>
+                    @enderror
+
                     @for ($i = 0; $i < 3; $i++)
                         <div class="space-y-3 rounded-xl border border-slate-700/40 bg-slate-800/30 p-4">
                             <div class="flex items-center gap-2">
@@ -46,7 +53,7 @@
                             </div>
 
                             <div>
-                                <input name="questions[]" type="text" required
+                                <input name="questions[]" type="text" required value="{{ old('questions.'.$i) }}"
                                     class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 px-3.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
                                     placeholder="{{ __('Ej: ¿Cuál es el nombre de mi primera mascota?') }}">
                                 @error("questions.{$i}")
@@ -55,7 +62,7 @@
                             </div>
 
                             <div>
-                                <input name="answers[]" type="text" required
+                                <input name="answers[]" type="text" required value="{{ old('answers.'.$i) }}"
                                     class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 px-3.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition"
                                     placeholder="{{ __('Tu respuesta...') }}">
                                 @error("answers.{$i}")
