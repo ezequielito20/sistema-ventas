@@ -515,7 +515,9 @@
                             <img src="{{ Auth::user()->company->logo_url }}"
                                 alt="Logo de {{ Auth::user()->company->name }}"
                                 class="w-8 h-8 object-contain rounded-lg group-hover:scale-110 transition-transform duration-200"
-                                style="max-width: 32px; max-height: 32px;">
+                                style="max-width: 32px; max-height: 32px;"
+                                onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">
+                            <i class="fas fa-store text-2xl text-cyan-200 transition-transform duration-200 group-hover:scale-110" style="display:none;"></i>
                         @else
                             <i
                                 class="fas fa-store text-2xl text-cyan-200 transition-transform duration-200 group-hover:scale-110"></i>

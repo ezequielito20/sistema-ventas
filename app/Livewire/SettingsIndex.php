@@ -1,0 +1,212 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Models\City;
+use App\Models\Company;
+use App\Models\Country;
+use App\Models\Currency;
+use App\Models\State;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+
+class SettingsIndex extends Component
+{
+    use WithFileUploads;
+
+    // ── Form fields ──
+    public string $name = '';
+    public string $business_type = '';
+    public string $nit = '';
+    public string $phone = '';
+    public string $email = '';
+    public string $tax_amount = '';
+    public string $tax_name = '';
+    public string $currency = '';
+    public string $address = '';
+    public string $city_id = '';
+    public string $state_id = '';
+    public string $country_id = '';
+    public string $postal_code = '';
+    public string $ig = '';
+
+    /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
+    public $logo = null;
+
+    public ?string $current_logo_url = null;
+
+    // ── Selects data ──
+    public $countries = [];
+    public $states = [];
+    public $cities = [];
+    public $currencies = [];
+
+    // ── UI state ──
+    public bool $saved = false;
+
+    public function mount(): void
+    {
+        Gate::authorize('companies.edit');
+
+        $company = Auth::user()->company;
+
+        $this->name = $company->name ?? '';
+        $this->business_type = $company->business_type ?? '';
+        $this->nit = $company->nit ?? '';
+        $this->phone = $company->phone ?? '';
+        $this->email = $company->email ?? '';
+        $this->tax_amount = (string) (int) ($company->tax_amount ?? 0);
+        $this->tax_name = $company->tax_name ?? '';
+        $this->currency = $company->currency ?? '';
+        $this->address = $company->address ?? '';
+        $this->city_id = (string) ($company->city ?? '');
+        $this->state_id = (string) ($company->state ?? '');
+        $this->country_id = (string) ($company->country ?? '');
+        $this->postal_code = $company->postal_code ?? '';
+        $this->ig = $company->ig ?? '';
+        $this->current_logo_url = $company->logo_url;
+
+        $this->countries = Country::orderBy('name')->get();
+        $this->currencies = Currency::select('code', 'symbol', 'name')
+            ->groupBy('code', 'symbol', 'name')
+            ->orderBy('code')
+            ->get();
+
+        if ($this->country_id) {
+            $this->states = State::where('country_id', $this->country_id)
+                ->orderBy('name')
+                ->get();
+        }
+
+        if ($this->state_id) {
+            $this->cities = City::where('state_id', $this->state_id)
+                ->orderBy('name')
+                ->get();
+        }
+    }
+
+    public function updatedCountryId(): void
+    {
+        $this->states = State::where('country_id', $this->country_id)
+            ->orderBy('name')
+            ->get();
+        $this->cities = [];
+        $this->state_id = '';
+        $this->city_id = '';
+
+        // Auto-fill currency from country
+        $currency = Currency::where('country_id', $this->country_id)->first();
+        if ($currency) {
+            $this->currency = $currency->code;
+        }
+    }
+
+    public function updatedStateId(): void
+    {
+        $this->cities = City::where('state_id', $this->state_id)
+            ->orderBy('name')
+            ->get();
+        $this->city_id = '';
+
+        // Auto-fill postal code from state/country
+        if ($this->country_id) {
+            $country = Country::find($this->country_id);
+            if ($country && $country->phone_code) {
+                // Don't overwrite if user already entered something
+            }
+        }
+    }
+
+    public function save(): void
+    {
+        Gate::authorize('companies.update');
+
+        $validated = $this->validate([
+            'name' => 'required|string|max:255',
+            'business_type' => 'required|string|max:255',
+            'nit' => 'required|string|max:255|unique:companies,nit,' . Auth::user()->company_id,
+            'phone' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:companies,email,' . Auth::user()->company_id,
+            'tax_amount' => 'required|integer',
+            'tax_name' => 'required|string|max:255',
+            'currency' => 'required|string|max:20',
+            'address' => 'required|string',
+            'city_id' => 'required|string|max:255',
+            'state_id' => 'required|string|max:255',
+            'country_id' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:255',
+            'ig' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ], [
+            'name.required' => 'El nombre es obligatorio',
+            'business_type.required' => 'El tipo de negocio es obligatorio',
+            'nit.required' => 'El NIT es obligatorio',
+            'nit.unique' => 'Este NIT ya está registrado',
+            'phone.required' => 'El teléfono es obligatorio',
+            'email.required' => 'El correo es obligatorio',
+            'email.email' => 'Debe ser un correo válido',
+            'email.unique' => 'Este correo ya está registrado',
+            'tax_amount.required' => 'El impuesto es obligatorio',
+            'tax_amount.integer' => 'El impuesto debe ser un número entero',
+            'tax_name.required' => 'El nombre del impuesto es obligatorio',
+            'currency.required' => 'La moneda es obligatoria',
+            'address.required' => 'La dirección es obligatoria',
+            'city_id.required' => 'La ciudad es obligatoria',
+            'state_id.required' => 'El estado es obligatorio',
+            'country_id.required' => 'El país es obligatorio',
+            'postal_code.required' => 'El código postal es obligatorio',
+            'logo.image' => 'El archivo debe ser una imagen',
+            'logo.mimes' => 'Debe ser JPEG, PNG o JPG',
+            'logo.max' => 'El archivo no debe superar 2MB',
+        ]);
+
+        $company = Company::find(Auth::user()->company_id);
+
+        // Handle logo upload
+        if ($this->logo) {
+            $disk = Storage::getDefaultDriver() === 's3' ? 's3' : 'public';
+
+            // Delete old logo
+            if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
+                Storage::disk($disk)->delete($company->logo);
+            }
+
+            $validated['logo'] = $this->logo->store('company_logos', $disk);
+            $this->current_logo_url = null; // Force refresh
+        }
+
+        // Map select IDs back to DB columns
+        $validated['country'] = $validated['country_id'];
+        $validated['state'] = $validated['state_id'];
+        $validated['city'] = $validated['city_id'];
+        unset($validated['country_id'], $validated['state_id'], $validated['city_id']);
+
+        // Ensure tax_amount is an integer (DB column is integer, not decimal)
+        $validated['tax_amount'] = (int) $validated['tax_amount'];
+
+        $company->update($validated);
+
+        // Update superAdmin email if changed
+        if (isset($validated['email'])) {
+            \App\Models\User::where('company_id', $company->id)
+                ->where('name', 'superAdmin')
+                ->update(['email' => $validated['email']]);
+        }
+
+        // Refresh logo URL (model accessor handles local/R2/fallback)
+        $company->refresh();
+        $this->current_logo_url = $company->logo_url;
+        $this->logo = null;
+
+        $this->saved = true;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.settings-index');
+    }
+}

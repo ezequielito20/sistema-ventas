@@ -54,7 +54,8 @@ Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])-
 Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
 Route::post('/create-company', [CompanyController::class, 'store'])->name('admin.company.store');
 
-Route::get('/settings', [CompanyController::class, 'edit'])->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
+// Settings v2 (nuevo index con Livewire)
+Route::get('/settings', fn () => view('admin.v2.settings.index'))->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
 
 // Rutas para reportes
