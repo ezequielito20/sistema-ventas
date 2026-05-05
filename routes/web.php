@@ -30,6 +30,34 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
+// Recuperación de contraseña por preguntas de seguridad (v2)
+Route::get('/password/recovery', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showRecoveryForm'])
+    ->name('password.recovery')
+    ->middleware('guest');
+Route::post('/password/recovery', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'findUser'])
+    ->name('password.recovery.find')
+    ->middleware('guest');
+Route::get('/password/recovery/questions', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showQuestions'])
+    ->name('password.recovery.questions')
+    ->middleware('guest');
+Route::post('/password/recovery/questions', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'verifyQuestions'])
+    ->name('password.recovery.verify')
+    ->middleware('guest');
+Route::get('/password/recovery/reset', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showResetForm'])
+    ->name('password.recovery.reset')
+    ->middleware('guest');
+Route::post('/password/recovery/reset', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'resetPassword'])
+    ->name('password.recovery.update')
+    ->middleware('guest');
+
+// Configuración de preguntas de seguridad (requiere auth)
+Route::get('/security-questions/setup', [App\Http\Controllers\Auth\SecurityQuestionsController::class, 'setup'])
+    ->name('security-questions.setup')
+    ->middleware('auth');
+Route::post('/security-questions/setup', [App\Http\Controllers\Auth\SecurityQuestionsController::class, 'store'])
+    ->name('security-questions.store')
+    ->middleware('auth');
+
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Dashboard administrativo (requiere autenticación)

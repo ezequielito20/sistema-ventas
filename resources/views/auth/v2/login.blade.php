@@ -88,12 +88,10 @@
                             <span class="text-xs text-slate-400 select-none">{{ __('Recordarme') }}</span>
                         </label>
 
-                        @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}"
-                                class="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
-                                {{ __('¿Olvidaste tu contraseña?') }}
-                            </a>
-                        @endif
+                        <a href="{{ route('password.recovery') }}"
+                            class="text-xs font-medium text-cyan-400 hover:text-cyan-300 transition">
+                            {{ __('¿Olvidaste tu contraseña?') }}
+                        </a>
                     </div>
 
                     {{-- Botón --}}
@@ -118,11 +116,12 @@
     {{-- Alpine.js para toggle de password --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    @if (session('message'))
+    @php $flashMsg = session('message') ?: session('status'); @endphp
+    @if ($flashMsg)
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const msg = @js(session('message'));
-            const icon = '{{ session('icons', 'info') }}';
+            const msg = @js($flashMsg);
+            const icon = '{{ session('icons', 'success') }}';
             const titles = {
                 success: '{{ __('¡Listo!') }}',
                 error: '{{ __('Error') }}',
@@ -143,26 +142,6 @@
                 });
             } else {
                 alert(msg);
-            }
-        });
-    </script>
-    @endif
-
-    @if ($errors->any())
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Swal === 'undefined') return;
-            const errorMsg = @js($errors->first());
-            if (errorMsg) {
-                Swal.fire({
-                    title: '{{ __('Error') }}',
-                    text: errorMsg,
-                    icon: 'error',
-                    confirmButtonText: '{{ __('Entendido') }}',
-                    confirmButtonColor: '#06b6d4',
-                    background: '#1e293b',
-                    color: '#e2e8f0'
-                });
             }
         });
     </script>
