@@ -206,17 +206,17 @@
             </div>
             <div class="p-5">
                 <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                    {{-- Current logo preview --}}
+                    {{-- Logo preview — new upload takes priority over saved logo --}}
                     <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-600/50 bg-slate-950/60">
-                        @if ($current_logo_url)
+                        @if ($logo)
+                            <img src="{{ $logo->temporaryUrl() }}" alt="Nuevo logo" class="h-full w-full object-contain">
+                        @elseif ($current_logo_url)
                             <img src="{{ $current_logo_url }}" alt="Logo actual" class="h-full w-full object-contain"
                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
                             <div class="hidden h-full w-full flex-col items-center justify-center text-slate-500">
                                 <i class="fas fa-image text-xl"></i>
                                 <span class="mt-0.5 text-[9px]">Sin logo</span>
                             </div>
-                        @elseif ($logo)
-                            <img src="{{ $logo->temporaryUrl() }}" alt="Nuevo logo" class="h-full w-full object-contain">
                         @else
                             <div class="flex h-full w-full flex-col items-center justify-center text-slate-500">
                                 <i class="fas fa-image text-xl"></i>
@@ -240,7 +240,10 @@
                         @if ($logo)
                             <div class="mt-2 flex items-center gap-2">
                                 <span class="text-xs text-slate-400">{{ $logo->getClientOriginalName() }}</span>
-                                <span class="text-xs text-emerald-400">✓ Listo para guardar</span>
+                                <span class="text-xs text-emerald-400">✓ Nueva imagen</span>
+                                <button type="button" wire:click="$set('logo', null)" class="text-xs text-rose-400 hover:text-rose-300 transition">
+                                    <i class="fas fa-times-circle mr-0.5"></i>Quitar
+                                </button>
                             </div>
                         @endif
                     </div>
