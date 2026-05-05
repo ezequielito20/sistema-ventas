@@ -18,15 +18,7 @@
         </div>
     </div>
 
-    {{-- Success message --}}
-    @if ($saved)
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" x-transition
-            class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-            <i class="fas fa-check-circle mr-2"></i> Configuración guardada correctamente.
-        </div>
-    @endif
-
-    <form wire:submit="save">
+    <form>
 
         {{-- ================================================================ --}}
         {{-- INFORMACIÓN BÁSICA                                             --}}
@@ -258,7 +250,30 @@
             <a href="{{ route('admin.index') }}" class="ui-btn ui-btn-ghost">
                 <i class="fas fa-arrow-left mr-1.5"></i> Volver
             </a>
-            <button type="submit" class="ui-btn ui-btn-primary" wire:loading.attr="disabled">
+            <button
+                type="button"
+                class="ui-btn ui-btn-primary"
+                wire:loading.attr="disabled"
+                x-on:click="
+                    Swal.fire({
+                        title: '¿Guardar cambios?',
+                        text: 'Se actualizarán los datos de la empresa. ¿Está seguro?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Sí, guardar',
+                        cancelButtonText: 'Cancelar',
+                        background: '#0f172a',
+                        color: '#e2e8f0',
+                        customClass: { popup: 'border border-slate-700 rounded-xl' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $wire.save();
+                        }
+                    });
+                "
+            >
                 <span wire:loading.remove><i class="fas fa-save mr-1.5"></i> Guardar cambios</span>
                 <span wire:loading><i class="fas fa-spinner fa-spin mr-1.5"></i> Guardando...</span>
             </button>

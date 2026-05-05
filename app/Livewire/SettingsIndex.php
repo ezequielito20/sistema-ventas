@@ -45,36 +45,29 @@ class SettingsIndex extends Component
     public $cities = [];
     public $currencies = [];
 
-    // ── UI state ──
-    public bool $saved = false;
-
     public function mount(): void
     {
-        Gate::authorize('companies.edit');
+        $company = Company::find(Auth::user()->company_id);
 
-        $company = Auth::user()->company;
-
-        $this->name = $company->name ?? '';
+        $this->name = $company->name;
         $this->business_type = $company->business_type ?? '';
-        $this->nit = $company->nit ?? '';
-        $this->phone = $company->phone ?? '';
-        $this->email = $company->email ?? '';
-        $this->tax_amount = (string) (int) ($company->tax_amount ?? 0);
-        $this->tax_name = $company->tax_name ?? '';
-        $this->currency = $company->currency ?? '';
-        $this->address = $company->address ?? '';
-        $this->city_id = (string) ($company->city ?? '');
-        $this->state_id = (string) ($company->state ?? '');
-        $this->country_id = (string) ($company->country ?? '');
+        $this->nit = $company->nit;
+        $this->phone = $company->phone;
+        $this->email = $company->email;
+        $this->tax_amount = (string) (int) $company->tax_amount;
+        $this->tax_name = $company->tax_name;
+        $this->currency = $company->currency;
+        $this->address = $company->address;
+        $this->city_id = (string) $company->city;
+        $this->state_id = (string) $company->state;
+        $this->country_id = (string) $company->country;
         $this->postal_code = $company->postal_code ?? '';
         $this->ig = $company->ig ?? '';
         $this->current_logo_url = $company->logo_url;
 
+        // Load select options
         $this->countries = Country::orderBy('name')->get();
-        $this->currencies = Currency::select('code', 'symbol', 'name')
-            ->groupBy('code', 'symbol', 'name')
-            ->orderBy('code')
-            ->get();
+        $this->currencies = Currency::orderBy('code')->get();
 
         if ($this->country_id) {
             $this->states = State::where('country_id', $this->country_id)
@@ -111,17 +104,9 @@ class SettingsIndex extends Component
             ->orderBy('name')
             ->get();
         $this->city_id = '';
-
-        // Auto-fill postal code from state/country
-        if ($this->country_id) {
-            $country = Country::find($this->country_id);
-            if ($country && $country->phone_code) {
-                // Don't overwrite if user already entered something
-            }
-        }
     }
 
-    public function save(): void
+    public function save()
     {
         Gate::authorize('companies.update');
 
@@ -188,21 +173,26 @@ class SettingsIndex extends Component
         // Ensure tax_amount is an integer (DB column is integer, not decimal)
         $validated['tax_amount'] = (int) $validated['tax_amount'];
 
-        $company->update($validated);
+        try {
+            $company->update($validated);
 
-        // Update superAdmin email if changed
-        if (isset($validated['email'])) {
-            \App\Models\User::where('company_id', $company->id)
-                ->where('name', 'superAdmin')
-                ->update(['email' => $validated['email']]);
+            // Update superAdmin email if changed
+            if (isset($validated['email'])) {
+                \App\Models\User::where('company_id', $company->id)
+                    ->where('name', 'superAdmin')
+                    ->update(['email' => $validated['email']]);
+            }
+
+            session()->flash('message', 'Configuración guardada correctamente');
+            session()->flash('icons', 'success');
+
+            return $this->redirect(route('admin.company.edit'));
+        } catch (\Throwable $e) {
+            session()->flash('message', 'Error al guardar: ' . $e->getMessage());
+            session()->flash('icons', 'error');
+
+            return $this->redirect(route('admin.company.edit'));
         }
-
-        // Refresh logo URL (model accessor handles local/R2/fallback)
-        $company->refresh();
-        $this->current_logo_url = $company->logo_url;
-        $this->logo = null;
-
-        $this->saved = true;
     }
 
     public function render(): View
