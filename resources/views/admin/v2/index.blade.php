@@ -430,7 +430,33 @@
                 </div>
             </div>
             <div class="ui-panel__body !p-0">
-                <div class="ui-table-wrap !rounded-none !border-0">
+                {{-- Vista móvil: cards --}}
+                <div class="md:hidden divide-y divide-slate-700/40">
+                    @forelse ($topSellingProducts as $index => $product)
+                        <div class="flex items-center gap-3 px-3 py-2.5">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold flex-shrink-0
+                                {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                                {{ $index + 1 }}
+                            </span>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-200 truncate">{{ $product->name }}</div>
+                                <div class="flex items-center gap-3 mt-0.5">
+                                    <span class="text-[11px] text-slate-400"><span class="text-amber-400 font-semibold">{{ $product->times_sold }}x</span> vendido</span>
+                                    <span class="text-[11px] text-slate-400"><span class="text-emerald-400 font-semibold">{{ $product->total_quantity }}</span> uds.</span>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <div class="text-sm font-semibold tabular-nums text-slate-200">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</div>
+                                <div class="text-[11px] text-slate-500 tabular-nums">c/u {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-3 py-8 text-center text-slate-500 text-sm">Sin datos de productos vendidos.</div>
+                    @endforelse
+                </div>
+
+                {{-- Vista desktop: tabla --}}
+                <div class="hidden md:block ui-table-wrap !rounded-none !border-0">
                     <table class="ui-table">
                         <thead>
                             <tr>
@@ -491,7 +517,29 @@
                     </a>
                 </div>
                 <div class="ui-panel__body !p-0">
-                    <div class="ui-table-wrap !rounded-none !border-0">
+                    {{-- Vista móvil: cards --}}
+                    <div class="md:hidden divide-y divide-slate-700/40">
+                        @forelse ($topCustomers as $index => $customer)
+                            <div class="flex items-center gap-3 px-3 py-2.5">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold flex-shrink-0
+                                    {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                                    {{ $index + 1 }}
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-medium text-slate-200 truncate">{{ $customer->name }}</div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-sm font-semibold tabular-nums text-slate-200">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</div>
+                                    <div class="text-[11px] text-slate-500">{{ $customer->total_products }} productos</div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="px-3 py-8 text-center text-slate-500 text-sm">Sin datos de clientes.</div>
+                        @endforelse
+                    </div>
+
+                    {{-- Vista desktop: tabla --}}
+                    <div class="hidden md:block ui-table-wrap !rounded-none !border-0">
                         <table class="ui-table">
                             <thead>
                                 <tr>
