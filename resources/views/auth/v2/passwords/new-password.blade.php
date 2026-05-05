@@ -37,13 +37,17 @@
                         <label for="password" class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                             {{ __('Nueva contraseña') }}
                         </label>
-                        <div class="relative">
+                        <div class="relative" x-data="{ show: false }">
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-slate-500">
                                 <i class="fas fa-lock text-sm"></i>
                             </span>
-                            <input id="password" name="password" type="password" required
-                                class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 pl-10 pr-3.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
+                            <input id="password" name="password" :type="show ? 'text' : 'password'" required
+                                class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 pl-10 pr-10 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
                                 placeholder="••••••••">
+                            <button type="button" @click="show = !show"
+                                class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-500 hover:text-slate-300 transition">
+                                <i class="fas text-sm" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
                         </div>
                         @error('password')
                             <p class="text-xs text-rose-400">{{ $message }}</p>
@@ -54,13 +58,17 @@
                         <label for="password_confirmation" class="text-xs font-semibold uppercase tracking-wide text-slate-400">
                             {{ __('Confirmar contraseña') }}
                         </label>
-                        <div class="relative">
+                        <div class="relative" x-data="{ show: false }">
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-slate-500">
                                 <i class="fas fa-lock text-sm"></i>
                             </span>
-                            <input id="password_confirmation" name="password_confirmation" type="password" required
-                                class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 pl-10 pr-3.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
+                            <input id="password_confirmation" name="password_confirmation" :type="show ? 'text' : 'password'" required
+                                class="block w-full rounded-xl border border-slate-600 bg-slate-950/60 py-2.5 pl-10 pr-10 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition"
                                 placeholder="••••••••">
+                            <button type="button" @click="show = !show"
+                                class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-500 hover:text-slate-300 transition">
+                                <i class="fas text-sm" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -73,5 +81,7 @@
             </form>
         </div>
     </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>

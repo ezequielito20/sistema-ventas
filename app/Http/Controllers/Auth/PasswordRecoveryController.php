@@ -25,6 +25,9 @@ class PasswordRecoveryController extends Controller
     {
         $request->validate([
             'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Ingresa un correo electrónico válido.',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -101,6 +104,11 @@ class PasswordRecoveryController extends Controller
 
         $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.string' => 'La contraseña debe ser un texto válido.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
         ]);
 
         $user = User::findOrFail(session('recovery_user_id'));

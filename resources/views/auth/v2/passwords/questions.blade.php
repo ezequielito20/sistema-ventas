@@ -52,7 +52,7 @@
                     @enderror
 
                     <button type="submit"
-                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/25 transition hover:brightness-110 active:scale-[0.98]">
+                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]">
                         <i class="fas fa-check-circle"></i>
                         {{ __('Verificar respuestas') }}
                     </button>
