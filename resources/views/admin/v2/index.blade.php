@@ -53,7 +53,7 @@
     {{-- ================================================================ --}}
     {{-- 2. ARQUEO DE CAJA - Reactivo con selector de arqueo             --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel" x-data="{
+    <div class="ui-panel ui-panel--overflow-visible" x-data="{
         cashDataMode: 'current',
         currentCashData: @js($currentCashData ?? []),
         historicalData: @js($historicalData ?? []),
@@ -195,7 +195,7 @@
     {{-- ================================================================ --}}
     {{-- 3. ANÁLISIS DE VENTAS - Reactivo con selector de arqueo         --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel" x-data="{
+    <div class="ui-panel ui-panel--overflow-visible" x-data="{
         salesDataMode: 'current',
         currentSalesData: @js($currentSalesData ?? []),
         historicalSalesData: @js($historicalSalesData ?? []),
@@ -549,7 +549,7 @@
     {{-- ================================================================ --}}
     {{-- 7. FLUJO DE CAJA - Reactivo con selector e ingreso/egreso        --}}
     {{-- ================================================================ --}}
-    <div class="ui-panel" x-data="{
+    <div class="ui-panel ui-panel--overflow-visible" x-data="{
         cashFlowMode: 'historical',
         historicalChartData: @js($chartData ?? []),
         currentCashCount: @js($currentCashCount ?? null),
