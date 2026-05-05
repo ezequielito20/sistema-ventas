@@ -431,23 +431,32 @@
             </div>
             <div class="ui-panel__body !p-0">
                 {{-- Vista móvil: cards --}}
-                <div class="md:hidden divide-y divide-slate-700/40">
+                <div class="md:hidden space-y-1.5 p-2">
                     @forelse ($topSellingProducts as $index => $product)
-                        <div class="flex items-center gap-3 px-3 py-2.5">
-                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold flex-shrink-0
-                                {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                        <div class="relative flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 px-3 py-2.5 transition hover:bg-slate-800/70 overflow-hidden
+                            {{ $index < 3 ? 'border-l-[3px] border-l-amber-500/80' : '' }}">
+                            {{-- Glow top 3 --}}
+                            @if ($index < 3)
+                                <div class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none"></div>
+                            @endif
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold flex-shrink-0
+                                {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20' : 'bg-slate-700 text-slate-400' }}">
                                 {{ $index + 1 }}
                             </span>
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm font-medium text-slate-200 truncate">{{ $product->name }}</div>
-                                <div class="flex items-center gap-3 mt-0.5">
-                                    <span class="text-[11px] text-slate-400"><span class="text-amber-400 font-semibold">{{ $product->times_sold }}x</span> vendido</span>
-                                    <span class="text-[11px] text-slate-400"><span class="text-emerald-400 font-semibold">{{ $product->total_quantity }}</span> uds.</span>
+                                <div class="text-[13px] font-semibold text-slate-100 truncate">{{ $product->name }}</div>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-px text-[10px] font-semibold text-amber-400">
+                                        <i class="fas fa-chart-line text-[9px]"></i> {{ $product->times_sold }}x
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-px text-[10px] font-semibold text-emerald-400">
+                                        <i class="fas fa-cubes text-[9px]"></i> {{ $product->total_quantity }}
+                                    </span>
                                 </div>
                             </div>
                             <div class="text-right flex-shrink-0">
-                                <div class="text-sm font-semibold tabular-nums text-slate-200">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</div>
-                                <div class="text-[11px] text-slate-500 tabular-nums">c/u {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</div>
+                                <div class="text-sm font-bold tabular-nums bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">{{ $currency->symbol }}{{ number_format($product->total_revenue, 2) }}</div>
+                                <div class="text-[10px] text-slate-500 tabular-nums mt-px">c/u {{ $currency->symbol }}{{ number_format($product->sale_price, 2) }}</div>
                             </div>
                         </div>
                     @empty
@@ -518,19 +527,28 @@
                 </div>
                 <div class="ui-panel__body !p-0">
                     {{-- Vista móvil: cards --}}
-                    <div class="md:hidden divide-y divide-slate-700/40">
+                    <div class="md:hidden space-y-1.5 p-2">
                         @forelse ($topCustomers as $index => $customer)
-                            <div class="flex items-center gap-3 px-3 py-2.5">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold flex-shrink-0
-                                    {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                            <div class="relative flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 px-3 py-2.5 transition hover:bg-slate-800/70 overflow-hidden
+                                {{ $index < 3 ? 'border-l-[3px] border-l-amber-500/80' : '' }}">
+                                @if ($index < 3)
+                                    <div class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none"></div>
+                                @endif
+                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold flex-shrink-0
+                                    {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20' : 'bg-slate-700 text-slate-400' }}">
                                     {{ $index + 1 }}
                                 </span>
                                 <div class="flex-1 min-w-0">
-                                    <div class="text-sm font-medium text-slate-200 truncate">{{ $customer->name }}</div>
+                                    <div class="text-[13px] font-semibold text-slate-100 truncate">{{ $customer->name }}</div>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <span class="inline-flex items-center gap-1 rounded-md bg-purple-500/10 px-1.5 py-px text-[10px] font-semibold text-purple-400">
+                                            <i class="fas fa-shopping-bag text-[9px]"></i> {{ $customer->total_products }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="text-right flex-shrink-0">
-                                    <div class="text-sm font-semibold tabular-nums text-slate-200">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</div>
-                                    <div class="text-[11px] text-slate-500">{{ $customer->total_products }} productos</div>
+                                    <div class="text-sm font-bold tabular-nums bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">{{ $currency->symbol }}{{ number_format($customer->total_spent, 2) }}</div>
+                                    <div class="text-[10px] text-slate-500 mt-px">gastado</div>
                                 </div>
                             </div>
                         @empty
