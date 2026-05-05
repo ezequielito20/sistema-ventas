@@ -745,7 +745,7 @@
             </div>
 
             {{-- Cash Flow Chart --}}
-            <div class="h-96">
+            <div class="h-[36rem] lg:h-[42rem]">
                 <canvas id="cashFlowChart"></canvas>
             </div>
         </div>
@@ -998,60 +998,97 @@ function initCashFlowChart() {
             labels: (data.labels || []),
             datasets: [
                 {
-                    label: 'Ingresos (Ventas)',
+                    label: 'Ingresos',
                     data: (data.income || []),
-                    backgroundColor: [],
-                    borderRadius: 6,
-                    order: 2
+                    backgroundColor: 'rgba(34, 211, 238, 0.75)',
+                    borderColor: 'rgba(34, 211, 238, 0.9)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    order: 2,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Egresos (Costo)',
-                    data: (data.expenses || []).map(e => -e),
-                    backgroundColor: 'rgba(251, 113, 133, 0.7)',
-                    borderRadius: 6,
-                    order: 2
+                    label: 'Egresos',
+                    data: (data.expenses || []),
+                    backgroundColor: 'rgba(251, 113, 133, 0.65)',
+                    borderColor: 'rgba(251, 113, 133, 0.85)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    order: 2,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Pulso (Acumulado)',
+                    label: 'Balance acumulado',
                     data: [],
                     type: 'line',
-                    borderColor: '#6366f1',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.4,
+                    borderColor: '#a78bfa',
+                    backgroundColor: 'rgba(167, 139, 250, 0.08)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
                     pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: '#a78bfa',
                     order: 1,
-                    yAxisID: 'y'
+                    yAxisID: 'y1'
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: { position: 'bottom', labels: { usePointStyle: true } },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        color: '#94a3b8',
+                        font: { size: 11 }
+                    }
+                },
                 tooltip: {
-                    mode: 'index',
-                    intersect: false,
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    padding: 10,
+                    cornerRadius: 6,
                     callbacks: {
                         label: function(context) {
                             let val = context.parsed.y;
-                            if (context.datasetIndex === 1) val = Math.abs(val);
-                            return context.dataset.label + ': {{ $currency->symbol }}' + val.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                            const label = context.dataset.label + ': ';
+                            return label + '{{ $currency->symbol }}' + val.toLocaleString('es-PE', { minimumFractionDigits: 2 });
                         }
                     }
                 }
             },
             scales: {
                 y: {
+                    position: 'left',
                     beginAtZero: true,
-                    grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                    grid: { color: 'rgba(148, 163, 184, 0.06)' },
+                    border: { display: false },
                     ticks: {
                         color: '#94a3b8',
-                        callback: val => '{{ $currency->symbol }}' + Math.abs(val).toLocaleString('es-PE')
+                        font: { size: 10 },
+                        callback: val => '{{ $currency->symbol }}' + val.toLocaleString('es-PE')
                     }
                 },
-                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: { drawOnChartArea: false },
+                    border: { display: false },
+                    ticks: {
+                        color: '#a78bfa',
+                        font: { size: 10 },
+                        callback: val => '{{ $currency->symbol }}' + val.toLocaleString('es-PE')
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: { color: '#94a3b8', font: { size: 10 } }
+                }
             }
         }
     });
@@ -1064,7 +1101,6 @@ function updateCashFlowChart(mode) {
 
     const dailyMovements = @js($chartData['daily_movements'] ?? []);
     const currentCash = @js($currentCashCount ?? null);
-    const closedCounts = @js($closedCashCountsData ?? []);
 
     let filteredData = [];
 
@@ -1078,51 +1114,81 @@ function updateCashFlowChart(mode) {
         filteredData = dailyMovements.filter(m => m.cash_count_id == id);
     }
 
+    const chart = window.cashFlowChart;
+
     if (!filteredData || filteredData.length === 0) {
-        window.cashFlowChart.data.labels = ['Sin datos'];
-        window.cashFlowChart.data.datasets[0].data = [0];
-        window.cashFlowChart.data.datasets[1].data = [0];
-        window.cashFlowChart.data.datasets[2].data = [0];
-        window.cashFlowChart.update();
+        chart.data.labels = ['Sin datos'];
+        chart.data.datasets[0].data = [0];
+        chart.data.datasets[1].data = [0];
+        chart.data.datasets[2].data = [0];
+        chart.update();
         return;
     }
 
-    const grouped = filteredData.reduce((acc, curr) => {
-        if (!acc[curr.date]) acc[curr.date] = { income: 0, expense: 0 };
-        acc[curr.date].income += parseFloat(curr.income);
-        acc[curr.date].expense += parseFloat(curr.expense);
+    const isHistorical = mode === 'historical';
+    let aggregated = {};
+
+    filteredData.forEach(curr => {
+        const key = isHistorical ? curr.date.substring(0, 7) : curr.date;
+        if (!aggregated[key]) aggregated[key] = { income: 0, expense: 0 };
+        aggregated[key].income += parseFloat(curr.income || 0);
+        aggregated[key].expense += parseFloat(curr.expense || 0);
+    });
+
+    const keys = Object.keys(aggregated).sort();
+    const incomeVals = keys.map(k => aggregated[k].income);
+    const expenseVals = keys.map(k => aggregated[k].expense);
+
+    // Labels
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const labels = keys.map(k => {
+        if (isHistorical) {
+            const [y, m] = k.split('-');
+            return monthNames[parseInt(m) - 1] + " '" + y.slice(2);
+        }
+        const [y, m, d] = k.split('-');
+        return d + '/' + m;
+    });
+
+    // Balance acumulado
+    let acc = 0;
+    const balanceData = keys.map(k => {
+        acc += (aggregated[k].income - aggregated[k].expense);
         return acc;
-    }, {});
-
-    const dates = Object.keys(grouped).sort();
-    const incomeValues = dates.map(d => grouped[d].income);
-    const expenseValues = dates.map(d => grouped[d].expense);
-
-    const sumIncome = incomeValues.reduce((a, b) => a + b, 0);
-    const avgIncome = incomeValues.length > 0 ? sumIncome / incomeValues.length : 0;
-
-    const bgColors = incomeValues.map(v =>
-        v > avgIncome ? 'rgba(34, 211, 238, 0.7)' : 'rgba(52, 211, 153, 0.6)'
-    );
-
-    let accumulated = 0;
-    const pulseData = dates.map(d => {
-        accumulated += (grouped[d].income - grouped[d].expense);
-        return accumulated;
     });
 
-    const labels = dates.map(d => {
-        const [y, m, day] = d.split('-');
-        return day + '/' + m;
-    });
+    // Eje Y principal: stepSize dinámico (~12 divisiones)
+    const combined = [...incomeVals, ...expenseVals];
+    const dataMax = Math.max(...combined, 1);
+    const targetTicks = 12;
+    const rawStep = dataMax / targetTicks;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+    const step = Math.max(Math.round(rawStep / mag) * mag, mag);
+    chart.options.scales.y.max = undefined;
+    chart.options.scales.y.ticks.stepSize = step;
+    chart.options.scales.y.ticks.maxTicksLimit = targetTicks + 2;
 
-    window.cashFlowChart.data.labels = labels;
-    window.cashFlowChart.data.datasets[0].data = incomeValues;
-    window.cashFlowChart.data.datasets[0].backgroundColor = bgColors;
-    window.cashFlowChart.data.datasets[1].data = expenseValues.map(v => -v);
-    window.cashFlowChart.data.datasets[2].data = pulseData;
+    // Balance en eje Y secundario
+    const balAbsMax = Math.max(Math.abs(Math.max(...balanceData, 0)), Math.abs(Math.min(...balanceData, 0)), 1);
+    const balRaw = balAbsMax / targetTicks;
+    const balMag = Math.pow(10, Math.floor(Math.log10(balRaw || 1)));
+    const balStep = Math.max(Math.round(balRaw / balMag) * balMag, balMag);
+    chart.options.scales.y1.max = undefined;
+    chart.options.scales.y1.min = undefined;
+    chart.options.scales.y1.ticks.stepSize = balStep;
+    chart.options.scales.y1.ticks.maxTicksLimit = targetTicks + 2;
 
-    window.cashFlowChart.update();
+    // Ajustar ancho de barras
+    const barW = keys.length <= 12 ? 0.75 : 0.9;
+    chart.data.datasets[0].barPercentage = barW;
+    chart.data.datasets[1].barPercentage = barW;
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = incomeVals;
+    chart.data.datasets[1].data = expenseVals;
+    chart.data.datasets[2].data = balanceData;
+
+    chart.update();
 }
 
 // Listener global para cambios de modo de Flujo de Caja
