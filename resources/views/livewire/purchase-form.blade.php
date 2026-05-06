@@ -489,6 +489,7 @@
     {{-- MODAL DE BÚSQUEDA DE PRODUCTOS                                --}}
     {{-- ================================================================ --}}
     @if ($show_product_modal)
+        <template x-teleport="body">
         <div
             class="fixed inset-0 z-50 overflow-y-auto"
             x-data
@@ -635,5 +636,6 @@
                 </div>
             </div>
         </div>
+        </template>
     @endif
 </div>

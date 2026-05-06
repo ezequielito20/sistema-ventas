@@ -84,6 +84,14 @@ class ProductForm extends Component
         }
     }
 
+    public function updatedName(): void
+    {
+        // Auto-generar código si el nombre tiene texto y el código está vacío
+        if ($this->name && ! $this->code) {
+            $this->code = 'PROD' . substr((string) time(), -6);
+        }
+    }
+
     /**
      * Margen sobre el costo de compra: (precio venta − precio compra) / precio compra × 100.
      * Null si el precio de compra no permite calcular (≤ 0).
