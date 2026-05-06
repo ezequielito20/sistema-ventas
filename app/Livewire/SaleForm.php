@@ -374,6 +374,8 @@ class SaleForm extends Component
 
     // ─── MODAL CREAR CLIENTE ─────────────────────────────
 
+    public int $customers_refresh_key = 0;
+
     public function openCustomerModal(): void
     {
         $this->show_customer_modal = true;
@@ -412,6 +414,9 @@ class SaleForm extends Component
 
         // Seleccionar el cliente recién creado
         $this->customer_id = $customer->id;
+
+        // Forzar reinicialización del dropdown Alpine
+        $this->customers_refresh_key++;
 
         // Limpiar formulario
         $this->new_customer_name = '';

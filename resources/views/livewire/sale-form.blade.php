@@ -22,6 +22,7 @@
                 <a
                     href="{{ route('admin.sales.index') }}"
                     wire:navigate
+                    class="ui-btn ui-btn-ghost text-sm"
                 >
                     <i class="fas fa-arrow-left"></i> Volver al listado
                 </a>
@@ -82,7 +83,7 @@
                             Cliente <span class="text-rose-400">*</span>
                         </label>
 
-                        <div class="flex items-start gap-2">
+                        <div class="flex items-start gap-2" wire:key="customer-dropdown-{{ $customers_refresh_key }}">
                             <div class="relative flex-1" x-data="{
                                 isOpen: false,
                                 searchTerm: '',
