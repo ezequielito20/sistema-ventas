@@ -892,7 +892,7 @@
     {{-- ================================================================ --}}
     @if ($showBulkModal)
         <template x-teleport="body">
-            <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-4 backdrop-blur-md"
+            <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#020617]/90 p-2 sm:p-4 backdrop-blur-md"
                 wire:click.self="closeBulkModal"
                 x-data="{
                     bulkProducts: {{ Js::from($bulkProducts ?? []) }},
@@ -916,7 +916,7 @@
                 x-transition:enter-end="opacity-100"
                 x-on:keydown.escape.window="$wire.closeBulkModal()"
             >
-                <div class="relative w-full max-w-xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col">
+                <div class="relative w-full max-w-5xl min-h-[65vh] max-h-[92vh] overflow-hidden rounded-2xl border border-slate-600 bg-slate-900 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col">
 
                     {{-- ═══════════════════════════════════════════════════════ --}}
                     {{-- HEADER                                                 --}}
@@ -995,7 +995,7 @@
                                 {{-- Textarea --}}
                                 <div>
                                     <label class="{{ $labelBase }}">Datos de Transacciones *</label>
-                                    <textarea wire:model="bulkRawData" rows="6" class="{{ $inputBase }} font-mono text-xs min-h-[120px]"
+                                    <textarea wire:model="bulkRawData" rows="10" class="{{ $inputBase }} font-mono text-sm min-h-[180px]"
                                         placeholder="Ingrese los datos de venta (un cliente por línea)&#10;&#10;Formato: nombre cantidad[-deuda]&#10;Ejemplos:&#10;  juan 1-0&#10;  pepe 2&#10;  maria 3-1"
                                         style="color-scheme: dark;"></textarea>
                                     <p class="mt-1 text-xs text-slate-500">
@@ -1023,7 +1023,7 @@
                                 </div>
 
                                 {{-- Results list --}}
-                                <div class="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                                <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1">
                                     <template x-for="(result, index) in $wire.bulkResults" :key="index">
                                         <div :class="{
                                             'border-l-4 border-l-emerald-500 bg-emerald-950/20': result.status === 'resolved',
