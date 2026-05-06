@@ -25,7 +25,7 @@ class PurchaseService
             'purchase_time' => ['required', 'date_format:H:i'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.discount_value' => ['nullable', 'numeric', 'min:0'],
             'items.*.discount_type' => ['nullable', 'in:fixed,percentage'],
@@ -49,7 +49,7 @@ class PurchaseService
             'items.*.product_id.required' => 'El producto es obligatorio.',
             'items.*.product_id.exists' => 'El producto seleccionado no existe.',
             'items.*.quantity.required' => 'La cantidad es obligatoria.',
-            'items.*.quantity.min' => 'La cantidad debe ser mayor a 0.',
+            'items.*.quantity.min' => 'La cantidad mínima es 1.',
             'items.*.price.required' => 'El precio unitario es obligatorio.',
             'items.*.price.min' => 'El precio unitario debe ser mayor o igual a 0.',
         ];

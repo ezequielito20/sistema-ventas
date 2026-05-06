@@ -147,7 +147,7 @@ class SaleForm extends Component
                 'name' => $detail->product->name ?? '',
                 'image_url' => $detail->product->image_url ?? '',
                 'stock' => (int) ($detail->product->stock ?? 0),
-                'quantity' => (float) $detail->quantity,
+                'quantity' => (int) $detail->quantity,
                 'price' => (float) ($detail->original_price ?? $detail->unit_price),
                 'discount_value' => (float) ($detail->discount_value ?? 0),
                 'discount_type' => $detail->discount_type ?? 'fixed',
@@ -162,9 +162,9 @@ class SaleForm extends Component
         return count($this->items);
     }
 
-    public function getTotalQuantityProperty(): float
+    public function getTotalQuantityProperty(): int
     {
-        return round(collect($this->items)->sum(fn ($i) => (float) ($i['quantity'] ?? 0)), 2);
+        return (int) collect($this->items)->sum(fn ($i) => (int) ($i['quantity'] ?? 0));
     }
 
     public function getSubtotalProperty(): float
@@ -285,10 +285,10 @@ class SaleForm extends Component
     /**
      * Actualiza la cantidad de un ítem.
      */
-    public function updateItemQuantity(int $index, float $value): void
+    public function updateItemQuantity(int $index, mixed $value): void
     {
         if (isset($this->items[$index])) {
-            $this->items[$index]['quantity'] = max(0.01, $value);
+            $this->items[$index]['quantity'] = max(1, (int) $value);
         }
     }
 
@@ -447,8 +447,8 @@ class SaleForm extends Component
 
             if (str_contains($quantityPart, '-')) {
                 $qParts = explode('-', $quantityPart);
-                $quantity = (float) $qParts[0];
-                $remainingQuantity = (float) $qParts[1];
+                $quantity = (int) $qParts[0];
+                $remainingQuantity = (int) $qParts[1];
 
                 if (!is_nan($remainingQuantity)) {
                     if ($remainingQuantity == 0) {
@@ -458,7 +458,7 @@ class SaleForm extends Component
                     }
                 }
             } else {
-                $quantity = (float) $quantityPart;
+                $quantity = (int) $quantityPart;
             }
 
             $clientNameRaw = implode(' ', $parts);
@@ -651,7 +651,7 @@ class SaleForm extends Component
         // Validar stock para cada producto
         foreach ($this->items as $index => $item) {
             $product = Product::find($item['product_id']);
-            if ($product && (float) ($item['quantity'] ?? 0) > (float) $product->stock) {
+            if ($product && (int) ($item['quantity'] ?? 0) > (int) $product->stock) {
                 $this->addError("items.{$index}.quantity", "Stock insuficiente para {$product->name}. Disponible: {$product->stock}");
                 return null;
             }
@@ -662,7 +662,7 @@ class SaleForm extends Component
         foreach ($this->items as $item) {
             $itemsForService[] = [
                 'product_id' => $item['product_id'],
-                'quantity' => (float) ($item['quantity'] ?? 1),
+                'quantity' => (int) ($item['quantity'] ?? 1),
                 'price' => (float) ($item['price'] ?? 0),
                 'discount_value' => (float) ($item['discount_value'] ?? 0),
                 'discount_type' => $item['discount_type'] ?? 'fixed',

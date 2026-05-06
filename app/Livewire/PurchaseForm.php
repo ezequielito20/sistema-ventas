@@ -98,7 +98,7 @@ class PurchaseForm extends Component
                 'name' => $detail->product->name ?? '',
                 'image_url' => $detail->product->image_url ?? '',
                 'stock' => (int) ($detail->product->stock ?? 0),
-                'quantity' => (float) $detail->quantity,
+                'quantity' => (int) $detail->quantity,
                 'price' => (float) $detail->original_price,
                 'discount_value' => (float) $detail->discount_value,
                 'discount_type' => $detail->discount_type ?? 'fixed',
@@ -113,9 +113,9 @@ class PurchaseForm extends Component
         return count($this->items);
     }
 
-    public function getTotalQuantityProperty(): float
+    public function getTotalQuantityProperty(): int
     {
-        return round(collect($this->items)->sum(fn ($i) => (float) ($i['quantity'] ?? 0)), 2);
+        return (int) collect($this->items)->sum(fn ($i) => (int) ($i['quantity'] ?? 0));
     }
 
     public function getSubtotalProperty(): float
@@ -212,10 +212,10 @@ class PurchaseForm extends Component
     /**
      * Actualiza la cantidad de un ítem.
      */
-    public function updateItemQuantity(int $index, float $value): void
+    public function updateItemQuantity(int $index, mixed $value): void
     {
         if (isset($this->items[$index])) {
-            $this->items[$index]['quantity'] = max(0.01, $value);
+            $this->items[$index]['quantity'] = max(1, (int) $value);
         }
     }
 
@@ -362,7 +362,7 @@ class PurchaseForm extends Component
             $productId = $item['product_id'];
             $itemsForService[] = [
                 'product_id' => $productId,
-                'quantity' => (float) ($item['quantity'] ?? 1),
+                'quantity' => (int) ($item['quantity'] ?? 1),
                 'price' => (float) ($item['price'] ?? 0),
                 'discount_value' => (float) ($item['discount_value'] ?? 0),
                 'discount_type' => $item['discount_type'] ?? 'fixed',

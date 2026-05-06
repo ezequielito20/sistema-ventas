@@ -195,11 +195,14 @@
                                             </label>
                                             <input
                                                 type="number"
+                                                inputmode="numeric"
                                                 wire:model.blur="items.{{ $index }}.quantity"
                                                 wire:change="updateItemQuantity({{ $index }}, $event.target.value)"
                                                 class="h-11 w-full rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-center text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                                                min="0.01"
-                                                step="0.01"
+                                                min="1"
+                                                step="1"
+                                                onkeydown="return event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '-' && event.key !== '+'"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                             >
                                         </div>
                                         {{-- Precio --}}
@@ -308,7 +311,9 @@
                                                     wire:model.blur="items.{{ $index }}.quantity"
                                                     wire:change="updateItemQuantity({{ $index }}, $event.target.value)"
                                                     class="w-20 rounded-md border border-slate-600 bg-slate-900/80 px-2 py-1.5 text-center text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                                                    min="0.01" step="0.01"
+                                                    min="1" step="1"
+                                                    onkeydown="return event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '-' && event.key !== '+'"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                                 >
                                             </td>
                                             {{-- Precio Unit. --}}
@@ -389,7 +394,7 @@
                                     <i class="fas fa-cubes text-xs sm:text-sm"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="truncate text-base font-bold text-slate-200 sm:text-lg">{{ number_format($this->totalQuantity, 2) }}</p>
+                                    <p class="truncate text-base font-bold text-slate-200 sm:text-lg">{{ number_format($this->totalQuantity) }}</p>
                                     <p class="text-[10px] text-slate-500 sm:text-xs">Cantidad</p>
                                 </div>
                             </div>
