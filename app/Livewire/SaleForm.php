@@ -47,6 +47,14 @@ class SaleForm extends Component
     public bool $show_product_modal = false;
     public string $modal_search = '';
 
+    // ─── Modal crear cliente rápido ──────────────────────
+    public bool $show_customer_modal = false;
+    public string $new_customer_name = '';
+    public string $new_customer_nit = '';
+    public string $new_customer_phone = '';
+    public string $new_customer_email = '';
+    public string $new_customer_debt = '';
+
     // ─── Verificación de caja ─────────────────────────────
     public bool $hasCashOpen = false;
 
@@ -362,6 +370,69 @@ class SaleForm extends Component
         $this->show_product_modal = false;
         $this->modal_search = '';
         $this->resetPage('modalPage');
+    }
+
+    // ─── MODAL CREAR CLIENTE ─────────────────────────────
+
+    public function openCustomerModal(): void
+    {
+        $this->show_customer_modal = true;
+    }
+
+    public function closeCustomerModal(): void
+    {
+        $this->show_customer_modal = false;
+    }
+
+    public function saveCustomer(): void
+    {
+        $validated = $this->validate([
+            'new_customer_name' => ['required', 'string', 'max:255'],
+            'new_customer_nit' => ['nullable', 'string', 'max:20', 'unique:customers,nit_number'],
+            'new_customer_phone' => ['nullable', 'string', 'max:20'],
+            'new_customer_email' => ['nullable', 'email', 'max:255', 'unique:customers,email'],
+            'new_customer_debt' => ['nullable', 'numeric', 'min:0'],
+        ], [
+            'new_customer_name.required' => 'El nombre es obligatorio.',
+            'new_customer_nit.unique' => 'Este NIT ya está registrado.',
+            'new_customer_email.email' => 'Ingresa un correo válido.',
+            'new_customer_email.unique' => 'Este correo ya está registrado.',
+            'new_customer_debt.numeric' => 'La deuda debe ser un número.',
+            'new_customer_debt.min' => 'La deuda no puede ser negativa.',
+        ]);
+
+        $customer = Customer::create([
+            'name' => ucwords(strtolower($validated['new_customer_name'])),
+            'nit_number' => $validated['new_customer_nit'] ?: null,
+            'phone' => $validated['new_customer_phone'] ?: null,
+            'email' => $validated['new_customer_email'] ? strtolower($validated['new_customer_email']) : null,
+            'total_debt' => $validated['new_customer_debt'] !== '' ? (float) $validated['new_customer_debt'] : 0,
+            'company_id' => Auth::user()->company_id,
+        ]);
+
+        // Seleccionar el cliente recién creado
+        $this->customer_id = $customer->id;
+
+        // Limpiar formulario
+        $this->new_customer_name = '';
+        $this->new_customer_nit = '';
+        $this->new_customer_phone = '';
+        $this->new_customer_email = '';
+        $this->new_customer_debt = '';
+
+        $this->show_customer_modal = false;
+
+        $this->toast('Cliente "' . $customer->name . '" creado y seleccionado.');
+    }
+
+    protected function toast(string $message, string $type = 'success'): void
+    {
+        $this->js(
+            'if(window.uiNotifications?.showToast){window.uiNotifications.showToast('
+            . json_encode($message) . ', {type: ' . json_encode($type) . ', theme: "futuristic"});'
+            . '}else if(typeof Swal !== "undefined"){Swal.fire({icon:"' . $type . '",text:' . json_encode($message)
+            . ',timer:2500,showConfirmButton:false,toast:true,position:"top-end"});}'
+        );
     }
 
     // ─── VENTAS MASIVAS ────────────────────────────────

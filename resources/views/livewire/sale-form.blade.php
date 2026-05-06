@@ -83,9 +83,9 @@
                         </label>
 
                         <div class="relative" x-data="{
-                            isOpen: false,
-                            searchTerm: '',
-                            customers: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
+                                isOpen: false,
+                                searchTerm: '',
+                                customers: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
                             filtered: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
                             selectedId: @entangle('customer_id'),
                             get selected() {
@@ -171,6 +171,13 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Botón crear cliente rápido --}}
+                            <button type="button" wire:click="openCustomerModal"
+                                class="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 transition hover:brightness-110 active:scale-95"
+                                title="Crear cliente">
+                                <i class="fas fa-plus text-sm"></i>
+                            </button>
                         </div>
                         @error('customer_id')
                             <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
@@ -1191,5 +1198,84 @@
                 </div>
             </div>
         </template>
+    @endif
+
+    {{-- ================================================================ --}}
+    {{-- MODAL: CREAR CLIENTE RÁPIDO                                    --}}
+    {{-- ================================================================ --}}
+    @if ($show_customer_modal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" wire:click.self="closeCustomerModal"
+            x-data x-on:keydown.escape.window="$wire.closeCustomerModal()">
+            <div class="relative max-h-[90vh] w-full max-w-lg overflow-hidden rounded-2xl border border-emerald-500/20 bg-slate-900/95 shadow-[0_0_40px_rgba(52,211,153,0.12)]">
+                <div class="flex items-center justify-between border-b border-slate-700/80 bg-gradient-to-r from-emerald-500/10 to-teal-600/10 px-5 py-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">
+                            <i class="fas fa-user-plus mr-2 text-emerald-300"></i> Nuevo cliente
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Se agregará automáticamente a la venta</p>
+                    </div>
+                    <button type="button" wire:click="closeCustomerModal"
+                        class="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-slate-300 transition hover:bg-slate-700 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="max-h-[calc(90vh-8rem)] overflow-y-auto p-5">
+                    <div class="space-y-4">
+                        {{-- Nombre --}}
+                        <div>
+                            <label class="{{ $labelBase }}">Nombre <span class="text-rose-400">*</span></label>
+                            <input type="text" wire:model="new_customer_name"
+                                class="{{ $inputBase }} @error('new_customer_name') border-rose-500/80 @enderror"
+                                placeholder="Nombre del cliente">
+                            @error('new_customer_name') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- NIT + Teléfono --}}
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="{{ $labelBase }}">NIT</label>
+                                <input type="text" wire:model="new_customer_nit"
+                                    class="{{ $inputBase }} @error('new_customer_nit') border-rose-500/80 @enderror"
+                                    placeholder="Número de NIT">
+                                @error('new_customer_nit') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="{{ $labelBase }}">Teléfono</label>
+                                <input type="text" wire:model="new_customer_phone"
+                                    class="{{ $inputBase }} @error('new_customer_phone') border-rose-500/80 @enderror"
+                                    placeholder="Número de teléfono">
+                                @error('new_customer_phone') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Email + Deuda --}}
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="{{ $labelBase }}">Email</label>
+                                <input type="email" wire:model="new_customer_email"
+                                    class="{{ $inputBase }} @error('new_customer_email') border-rose-500/80 @enderror"
+                                    placeholder="correo@ejemplo.com">
+                                @error('new_customer_email') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="{{ $labelBase }}">Deuda inicial</label>
+                                <input type="number" wire:model="new_customer_debt"
+                                    class="{{ $inputBase }} @error('new_customer_debt') border-rose-500/80 @enderror"
+                                    placeholder="0.00" min="0" step="0.01">
+                                @error('new_customer_debt') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-700/80 bg-slate-950/50 px-5 py-3 flex justify-end gap-2">
+                    <button type="button" wire:click="closeCustomerModal" class="ui-btn ui-btn-ghost text-sm">Cancelar</button>
+                    <button type="button" wire:click="saveCustomer" class="ui-btn ui-btn-primary text-sm">
+                        <i class="fas fa-save mr-1.5"></i> Guardar cliente
+                    </button>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
