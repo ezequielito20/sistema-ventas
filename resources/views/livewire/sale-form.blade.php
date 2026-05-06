@@ -750,14 +750,48 @@
                             >
                         </div>
 
-                        {{-- Tabla de productos --}}
-                        <div class="max-h-[55vh] overflow-y-auto overflow-x-auto">
+                        {{-- Productos: cards (móvil) + tabla (desktop) --}}
+                        <div class="max-h-[55vh] overflow-y-auto">
                             @if ($modalProducts->isEmpty())
                                 <div class="py-12 text-center">
                                     <i class="fas fa-search text-3xl text-slate-600 mb-3"></i>
                                     <p class="text-slate-400">No se encontraron productos</p>
                                 </div>
                             @else
+                                {{-- Vista móvil: tarjetas --}}
+                                <div class="md:hidden space-y-2 p-2">
+                                    @foreach ($modalProducts as $product)
+                                        <div class="flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 px-3 py-2.5">
+                                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="h-10 w-10 shrink-0 rounded-lg object-cover">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-sm font-medium text-slate-200 truncate">{{ $product->name }}</div>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span class="text-[11px] text-slate-500">{{ $product->code }}</span>
+                                                    <span @class([
+                                                        'inline-flex rounded-full px-1.5 py-px text-[10px] font-semibold',
+                                                        'bg-rose-900/60 text-rose-300' => $product->stock <= 0,
+                                                        'bg-amber-900/60 text-amber-300' => $product->stock > 0 && $product->stock < 10,
+                                                        'bg-emerald-900/60 text-emerald-300' => $product->stock >= 10,
+                                                    ])>Stock: {{ $product->stock }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right flex-shrink-0">
+                                                <div class="text-sm font-semibold text-cyan-400">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</div>
+                                                @if (in_array($product->id, $existingProductIds))
+                                                    <span class="text-[11px] text-emerald-400"><i class="fas fa-check"></i> Agregado</span>
+                                                @elseif($product->stock <= 0)
+                                                    <span class="text-[11px] text-rose-400"><i class="fas fa-ban"></i> Sin stock</span>
+                                                @else
+                                                    <button type="button" wire:click="addProductFromModal({{ $product->id }})"
+                                                        class="text-[11px] font-medium text-cyan-400 hover:text-cyan-300"><i class="fas fa-plus"></i> Agregar</button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                {{-- Vista desktop: tabla --}}
+                                <div class="hidden md:block overflow-x-auto">
                                 <table class="min-w-full divide-y divide-slate-700/70">
                                     <thead class="sticky top-0 z-10 bg-slate-900">
                                         <tr>
@@ -826,6 +860,7 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                                </div>
                             @endif
                         </div>
 

@@ -214,9 +214,13 @@
                             <input
                                 id="stock"
                                 type="number"
+                                inputmode="numeric"
                                 min="0"
+                                step="1"
                                 wire:model.blur="stock"
                                 class="{{ $inputBase }} tabular-nums @error('stock') border-rose-500/80 @enderror"
+                                onkeydown="return event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '-' && event.key !== '+'"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             >
                             @error('stock')
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
@@ -228,9 +232,13 @@
                             <input
                                 id="min_stock"
                                 type="number"
+                                inputmode="numeric"
                                 min="0"
+                                step="1"
                                 wire:model.blur="min_stock"
                                 class="{{ $inputBase }} tabular-nums @error('min_stock') border-rose-500/80 @enderror"
+                                onkeydown="return event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '-' && event.key !== '+'"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             >
                             @error('min_stock')
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
@@ -242,9 +250,13 @@
                             <input
                                 id="max_stock"
                                 type="number"
+                                inputmode="numeric"
                                 min="0"
+                                step="1"
                                 wire:model.blur="max_stock"
                                 class="{{ $inputBase }} tabular-nums @error('max_stock') border-rose-500/80 @enderror"
+                                onkeydown="return event.key !== '.' && event.key !== 'e' && event.key !== 'E' && event.key !== '-' && event.key !== '+'"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             >
                             @error('max_stock')
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
