@@ -82,7 +82,8 @@
                             Cliente <span class="text-rose-400">*</span>
                         </label>
 
-                        <div class="relative" x-data="{
+                        <div class="flex items-start gap-2">
+                            <div class="relative flex-1" x-data="{
                                 isOpen: false,
                                 searchTerm: '',
                                 customers: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
@@ -171,10 +172,11 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
 
                             {{-- Botón crear cliente rápido --}}
                             <button type="button" wire:click="openCustomerModal"
-                                class="flex h-[42px] w-[42px] flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 transition hover:brightness-110 active:scale-95"
+                                class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-slate-600 bg-emerald-500/10 text-emerald-400 transition hover:border-emerald-500/50 hover:bg-emerald-500/20 hover:text-emerald-300"
                                 title="Crear cliente">
                                 <i class="fas fa-plus text-sm"></i>
                             </button>
