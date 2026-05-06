@@ -1265,9 +1265,10 @@
                         {{-- Nombre --}}
                         <div>
                             <label class="{{ $labelBase }}">Nombre <span class="text-rose-400">*</span></label>
-                            <input type="text" wire:model="new_customer_name"
+                            <input type="text" wire:model.lazy="new_customer_name"
                                 class="{{ $inputBase }} @error('new_customer_name') border-rose-500/80 @enderror"
-                                placeholder="Nombre del cliente">
+                                placeholder="Nombre del cliente"
+                                @input="let v = $event.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); $event.target.value = v.replace(/\b\w/g, c => c.toUpperCase()); $wire.set('new_customer_name', $event.target.value)">
                             @error('new_customer_name') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                         </div>
 
@@ -1284,7 +1285,10 @@
                                 <label class="{{ $labelBase }}">Teléfono</label>
                                 <input type="text" wire:model="new_customer_phone"
                                     class="{{ $inputBase }} @error('new_customer_phone') border-rose-500/80 @enderror"
-                                    placeholder="Número de teléfono">
+                                    placeholder="Número de teléfono"
+                                    inputmode="numeric"
+                                    maxlength="11"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
                                 @error('new_customer_phone') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                             </div>
                         </div>

@@ -36,9 +36,10 @@
                                 <input
                                     id="customer_name"
                                     type="text"
-                                    wire:model.blur="name"
+                                    wire:model.lazy="name"
                                     class="{{ $inputBase }} customer-form-v2__input--icon-start @error('name') customer-form-v2__input--error @enderror"
                                     autocomplete="off"
+                                    @input="let v = $event.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''); $event.target.value = v.replace(/\b\w/g, c => c.toUpperCase()); $wire.set('name', $event.target.value)"
                                 >
                             </div>
                             @error('name')
@@ -66,7 +67,9 @@
                                 id="phone"
                                 type="tel"
                                 wire:model.blur="phone"
-                                maxlength="20"
+                                inputmode="numeric"
+                                maxlength="11"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
                                 class="{{ $inputBase }} @error('phone') customer-form-v2__input--error @enderror"
                                 autocomplete="off"
                             >
