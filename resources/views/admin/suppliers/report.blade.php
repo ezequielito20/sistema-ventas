@@ -94,11 +94,25 @@
     <div class="header-container clearfix">
         <div class="company-section">
             @php
-                $suppLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
-                $suppLogoExists = $suppLogoPath && file_exists($suppLogoPath) && is_readable($suppLogoPath);
+                $suppLogoSrc = null;
+                if ($company->logo) {
+                    $relative = str_starts_with($company->logo, 'storage/') ? substr($company->logo, strlen('storage/')) : $company->logo;
+                    if (Storage::disk('public')->exists($relative)) {
+                        $suppLogoSrc = 'file://' . storage_path('app/public/' . $relative);
+                    } else {
+                        try {
+                            $disk = Storage::disk(config('filesystems.default', 'public'));
+                            if ($disk->exists($relative)) {
+                                $content = $disk->get($relative);
+                                $mime = 'image/' . pathinfo($relative, PATHINFO_EXTENSION);
+                                $suppLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                            }
+                        } catch (\Throwable) {}
+                    }
+                }
             @endphp
-            @if ($suppLogoExists)
-                <img src="file://{{ $suppLogoPath }}" alt="Logo" class="logo">
+            @if ($suppLogoSrc)
+                <img src="{{ $suppLogoSrc }}" alt="Logo" class="logo">
             @endif
             <div class="company-info">
                 <strong>{{ $company->name }}</strong><br>

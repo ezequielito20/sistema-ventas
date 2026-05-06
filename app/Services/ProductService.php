@@ -23,8 +23,9 @@ class ProductService
                 $data['company_id'] = $companyId;
 
                 if ($image !== null) {
-                    $storedPath = $image->store('products', 'public');
-                    $data['image'] = 'storage/'.$storedPath;
+                    $disk = config('filesystems.default', 'public');
+                    $storedPath = $image->store('products', $disk);
+                    $data['image'] = $disk === 'public' ? 'storage/'.$storedPath : $storedPath;
                 }
 
                 return Product::create($data);
@@ -49,11 +50,12 @@ class ProductService
         try {
             DB::transaction(function () use ($product, $data, $image, &$newStoredPath, $oldRelative) {
                 if ($image !== null) {
-                    $newStoredPath = $image->store('products', 'public');
-                    $data['image'] = 'storage/'.$newStoredPath;
+                    $disk = config('filesystems.default', 'public');
+                    $newStoredPath = $image->store('products', $disk);
+                    $data['image'] = $disk === 'public' ? 'storage/'.$newStoredPath : $newStoredPath;
 
-                    if ($oldRelative && Storage::disk('public')->exists($oldRelative)) {
-                        Storage::disk('public')->delete($oldRelative);
+                    if ($oldRelative && Storage::disk($disk)->exists($oldRelative)) {
+                        Storage::disk($disk)->delete($oldRelative);
                     }
                 }
 
@@ -99,8 +101,16 @@ class ProductService
         try {
             DB::beginTransaction();
 
-            if ($product->image && Storage::disk('public')->exists(str_replace('storage/', '', $product->image))) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $product->image));
+            if ($product->image) {
+                $relative = str_starts_with($product->image, 'storage/')
+                    ? substr($product->image, strlen('storage/'))
+                    : $product->image;
+                $diskName = config('filesystems.default', 'public');
+                if (Storage::disk($diskName)->exists($relative)) {
+                    Storage::disk($diskName)->delete($relative);
+                } elseif (Storage::disk('public')->exists($relative)) {
+                    Storage::disk('public')->delete($relative);
+                }
             }
 
             $product->delete();

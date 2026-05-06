@@ -12,10 +12,25 @@
                         @php
                             $logoSrc = null;
                             if ($company->logo) {
-                                $logoDiskPath = storage_path('app/public/' . $company->logo);
-                                if (file_exists($logoDiskPath) && is_readable($logoDiskPath)) {
-                                    // Usar ruta file:// que DomPDF soporta nativamente
-                                    $logoSrc = 'file://' . $logoDiskPath;
+                                $relative = str_starts_with($company->logo, 'storage/')
+                                    ? substr($company->logo, strlen('storage/'))
+                                    : $company->logo;
+
+                                // 1. Intentar disco local 'public'
+                                if (Storage::disk('public')->exists($relative)) {
+                                    $logoSrc = 'file://' . storage_path('app/public/' . $relative);
+                                }
+                                // 2. Intentar disco por defecto (s3 en producción)
+                                else {
+                                    try {
+                                        $defaultDisk = config('filesystems.default', 'public');
+                                        $disk = Storage::disk($defaultDisk);
+                                        if ($disk->exists($relative)) {
+                                            $content = $disk->get($relative);
+                                            $mime = 'image/' . pathinfo($relative, PATHINFO_EXTENSION);
+                                            $logoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                                        }
+                                    } catch (\Throwable) {}
                                 }
                             }
                         @endphp

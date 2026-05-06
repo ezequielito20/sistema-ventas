@@ -9,15 +9,11 @@ class ImageUrlService
     /**
      * Resuelve la URL pública de una imagen.
      *
-     * Los archivos se almacenan SIEMPRE en el disco 'public' (storage/app/public/),
-     * independientemente del entorno. El symlink public/storage → storage/app/public
-     * debe existir (ejecutar `php artisan storage:link` en cada deploy).
-     *
      * Prioridad:
      * 1. URL absoluta (http/https) → se devuelve tal cual
-     * 2. Disco 'public' vía Storage::url() → requiere symlink
-     * 3. Archivo directo en public/storage/ → fallback sin symlink
-     * 4. Archivo directo en storage/app/public/ → fallback por si symlink roto
+     * 2. Disco 'public' local → para desarrollo (storage:link)
+     * 3. Disco por defecto (s3 en producción) → para Laravel Cloud / S3 / R2
+     * 4. Archivo directo en filesystem → fallback sin symlink
      * 5. Imagen de fallback
      */
     public static function getImageUrl(?string $imagePath, string $fallbackImage = 'img/no-image.svg'): string
@@ -28,7 +24,7 @@ class ImageUrlService
 
         $trimmed = trim($imagePath);
 
-        // Ya es una URL absoluta
+        // Ya es una URL absoluta (S3/R2 suelen devolver URLs completas)
         if (preg_match('#^https?://#i', $trimmed)) {
             return $trimmed;
         }
@@ -39,18 +35,38 @@ class ImageUrlService
             return asset($fallbackImage);
         }
 
-        // 1. Disco 'public' — ruta canónica (requiere symlink storage:link)
+        // 1. Disco 'public' local (desarrollo con storage:link)
         if (Storage::disk('public')->exists($relative)) {
             return Storage::disk('public')->url($relative);
         }
 
-        // 2. Archivo en public/storage/ — el symlink puede funcionar aunque Storage::exists falle
+        // 2. Disco por defecto (s3 en producción, local en dev sin storage:link)
+        try {
+            $defaultDisk = config('filesystems.default', 'public');
+            $disk = Storage::disk($defaultDisk);
+            if ($disk->exists($relative)) {
+                try {
+                    return $disk->temporaryUrl($relative, now()->addHours(24));
+                } catch (\Throwable) {
+                    // S3 sin soporte de temporaryUrl (ej. algunos endpoints R2)
+                }
+                if (method_exists($disk, 'url')) {
+                    return $disk->url($relative);
+                }
+                // Último recurso: asset con ruta relativa
+                return asset('storage/' . $relative);
+            }
+        } catch (\Throwable) {
+            // Disco no configurado o error de conexión
+        }
+
+        // 3. Archivo directo en public/storage/ (symlink funcionando)
         $publicFile = public_path('storage/' . str_replace('\\', '/', $relative));
         if (is_file($publicFile) && is_readable($publicFile)) {
             return asset('storage/' . $relative);
         }
 
-        // 3. Archivo en storage/app/public/ — acceso directo sin symlink
+        // 4. Archivo directo en storage/app/public/ (sin symlink)
         $storageFile = storage_path('app/public/' . str_replace('\\', '/', $relative));
         if (is_file($storageFile) && is_readable($storageFile)) {
             return asset('storage/' . $relative);
@@ -60,16 +76,20 @@ class ImageUrlService
     }
 
     /**
-     * Convierte valores típicos en BD a ruta relativa al disco 'public'.
+     * Convierte valores típicos en BD a ruta relativa al disco.
      *
      * Ej: "storage/products/xyz.jpg" → "products/xyz.jpg"
-     *     "/storage/products/xyz.jpg" → "products/xyz.jpg"
      *     "company_logos/xyz.jpg" → "company_logos/xyz.jpg"
-     *     "products/xyz.jpg" → "products/xyz.jpg"
+     *     "https://bucket.s3.region.amazonaws.com/xyz.jpg" → URL completa (no se normaliza)
      */
     private static function normalizePath(string $imagePath): string
     {
         $imagePath = trim($imagePath);
+
+        // URLs absolutas: no normalizar
+        if (preg_match('#^https?://#i', $imagePath)) {
+            return $imagePath;
+        }
 
         if (str_contains($imagePath, '://')) {
             $path = parse_url($imagePath, PHP_URL_PATH);

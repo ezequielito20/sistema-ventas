@@ -258,11 +258,25 @@
         <div class="invoice-header">
             <div class="invoice-header-col invoice-header-col--left">
                 @php
-                    $printLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
-                    $printLogoExists = $printLogoPath && file_exists($printLogoPath) && is_readable($printLogoPath);
+                    $printLogoSrc = null;
+                    if ($company->logo) {
+                        $relative = str_starts_with($company->logo, 'storage/') ? substr($company->logo, strlen('storage/')) : $company->logo;
+                        if (Storage::disk('public')->exists($relative)) {
+                            $printLogoSrc = 'file://' . storage_path('app/public/' . $relative);
+                        } else {
+                            try {
+                                $disk = Storage::disk(config('filesystems.default', 'public'));
+                                if ($disk->exists($relative)) {
+                                    $content = $disk->get($relative);
+                                    $mime = 'image/' . pathinfo($relative, PATHINFO_EXTENSION);
+                                    $printLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                                }
+                            } catch (\Throwable) {}
+                        }
+                    }
                 @endphp
-                @if ($printLogoExists)
-                    <img src="file://{{ $printLogoPath }}" alt="Logo" class="company-logo">
+                @if ($printLogoSrc)
+                    <img src="{{ $printLogoSrc }}" alt="Logo" class="company-logo">
                 @endif
                 <div class="company-name">{{ $company->name }}</div>
                 <div class="company-meta">
