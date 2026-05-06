@@ -36,6 +36,12 @@ class SalesIndex extends Component
     /** @var array<string, mixed>|null */
     public ?array $detailSale = null;
 
+    // ─── MODAL VENTAS DE HOY ─────────────────────────────
+    public bool $showTodaySalesModal = false;
+
+    /** @var array<int, array<string, mixed>> */
+    public array $todaySalesDetails = [];
+
     // ─── MODAL BORRADO INDIVIDUAL ─────────────────────────
     public bool $showDeleteModal = false;
     public ?int $deleteTargetId = null;
@@ -198,6 +204,47 @@ class SalesIndex extends Component
     {
         $this->showDetailModal = false;
         $this->detailSale = null;
+    }
+
+    // ─── MODAL VENTAS DE HOY ─────────────────────────────
+
+    public function openTodaySalesModal(): void
+    {
+        $companyId = (int) Auth::user()->company_id;
+        $today = now()->startOfDay();
+
+        $sales = Sale::where('company_id', $companyId)
+            ->where('sale_date', '>=', $today)
+            ->with(['customer:id,name,total_debt', 'saleDetails.product:id,name'])
+            ->orderBy('sale_date', 'desc')
+            ->get();
+
+        $details = [];
+        foreach ($sales as $sale) {
+            foreach ($sale->saleDetails as $detail) {
+                $details[] = [
+                    'customer_name' => $sale->customer->name ?? 'Consumidor Final',
+                    'product_name' => $detail->product->name ?? 'N/A',
+                    'quantity' => $detail->quantity,
+                    'sale_total' => (float) $sale->total_price,
+                    'customer_debt' => (float) ($sale->customer->total_debt ?? 0),
+                    'sale_id' => $sale->id,
+                    'time' => \Carbon\Carbon::parse($sale->sale_date)->format('H:i'),
+                ];
+            }
+        }
+
+        // Ordenar por deuda del cliente (mayor primero)
+        usort($details, fn ($a, $b) => $b['customer_debt'] <=> $a['customer_debt']);
+
+        $this->todaySalesDetails = $details;
+        $this->showTodaySalesModal = true;
+    }
+
+    public function closeTodaySalesModal(): void
+    {
+        $this->showTodaySalesModal = false;
+        $this->todaySalesDetails = [];
     }
 
     // ─── BORRADO INDIVIDUAL ───────────────────────────────

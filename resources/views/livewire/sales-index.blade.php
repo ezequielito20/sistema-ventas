@@ -50,28 +50,30 @@
             trend="{{ $wPct['salesPercentage'] ?? 0 }}% de la sesión"
             label="Total Ventas"
             :value="$currencySymbol . ' ' . number_format((float) ($sSince['totalSales'] ?? 0), 2)"
-            meta="Desde apertura de caja" />
+            meta="Sem: {{ $currencySymbol . ' ' . number_format((float) ($sWeek['totalSales'] ?? 0), 2) }} | Hoy: {{ $currencySymbol . ' ' . number_format((float) ($sToday['totalSales'] ?? 0), 2) }}" />
 
         {{-- Ganancias (since cash open) --}}
         <x-ui.stat-card variant="success" icon="fas fa-chart-line"
             trend="{{ $wPct['profitPercentage'] ?? 0 }}% de la sesión"
             label="Ganancias"
             :value="$currencySymbol . ' ' . number_format((float) ($sSince['totalProfit'] ?? 0), 2)"
-            meta="Cobros − Costo mercancía" />
+            meta="Sem: {{ $currencySymbol . ' ' . number_format((float) ($sWeek['totalProfit'] ?? 0), 2) }} | Hoy: {{ $currencySymbol . ' ' . number_format((float) ($sToday['totalProfit'] ?? 0), 2) }}" />
 
         {{-- Ventas Realizadas --}}
         <x-ui.stat-card variant="warning" icon="fas fa-receipt"
             trend="{{ $wPct['salesCountPercentage'] ?? 0 }}% de la sesión"
             label="Ventas realizadas"
             :value="number_format((int) ($sSince['salesCount'] ?? 0))"
-            meta="Desde apertura de caja" />
+            meta="Sem: {{ number_format((int) ($sWeek['salesCount'] ?? 0)) }} | Hoy: {{ number_format((int) ($sToday['salesCount'] ?? 0)) }}" />
 
-        {{-- Productos Vendidos --}}
+        {{-- Productos Vendidos — click abre modal de ventas de hoy --}}
         <x-ui.stat-card variant="danger" icon="fas fa-boxes-stacked"
             trend="Hoy: {{ number_format((int) ($sToday['productsQty'] ?? 0)) }}"
             label="Productos vendidos"
             :value="number_format((int) ($sSince['productsQty'] ?? 0))"
-            meta="Semana: {{ number_format((int) ($sWeek['productsQty'] ?? 0)) }} uds." />
+            meta="Sem: {{ number_format((int) ($sWeek['productsQty'] ?? 0)) }} uds. | Click para detalle"
+            wire:click="openTodaySalesModal"
+            class="cursor-pointer hover:brightness-110 transition" />
     </div>
 
     {{-- ================================================================ --}}
@@ -523,6 +525,83 @@
                     <button type="button" wire:click="confirmBulkDelete" class="ui-btn ui-btn-danger text-sm">
                         <i class="fas fa-trash-alt mr-1.5"></i> Sí, eliminar seleccionados
                     </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ================================================================ --}}
+    {{-- MODAL: VENTAS REALIZADAS HOY                                   --}}
+    {{-- ================================================================ --}}
+    @if ($showTodaySalesModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" wire:click.self="closeTodaySalesModal"
+            x-data x-on:keydown.escape.window="$wire.closeTodaySalesModal()">
+            <div class="relative max-h-[85vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-purple-500/20 bg-slate-900/95 shadow-[0_0_40px_rgba(168,85,247,0.12)]">
+                <div class="flex items-center justify-between border-b border-slate-700/80 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 px-5 py-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">
+                            <i class="fas fa-calendar-day mr-2 text-purple-300"></i> Ventas realizadas hoy
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ now()->format('d/m/Y') }} — detalle de productos vendidos</p>
+                    </div>
+                    <button type="button" wire:click="closeTodaySalesModal"
+                        class="rounded-lg border border-slate-600 bg-slate-800/80 px-3 py-1.5 text-slate-300 transition hover:bg-slate-700 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="max-h-[calc(85vh-8rem)] overflow-y-auto">
+                    @if (empty($todaySalesDetails))
+                        <div class="flex flex-col items-center justify-center py-16 text-slate-500">
+                            <i class="fas fa-receipt text-5xl mb-4 opacity-30"></i>
+                            <p class="text-lg font-medium">No se han registrado ventas hoy.</p>
+                        </div>
+                    @else
+                        <div class="ui-table-wrap !rounded-none !border-0">
+                            <table class="ui-table text-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-right">Total venta</th>
+                                        <th class="text-right">Deuda actual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($todaySalesDetails as $item)
+                                        <tr>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-purple-300">
+                                                        <i class="fas fa-user text-xs"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-sm font-medium text-slate-200">{{ $item['customer_name'] }}</div>
+                                                        <div class="text-xs text-slate-500">{{ $item['time'] }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-sm text-slate-200">{{ $item['product_name'] }}</td>
+                                            <td class="text-center">
+                                                <span class="ui-badge ui-badge-warning text-xs">{{ $item['quantity'] }}</span>
+                                            </td>
+                                            <td class="text-right tabular-nums text-sm font-semibold text-slate-100">
+                                                {{ $currencySymbol }} {{ number_format($item['sale_total'], 2) }}
+                                            </td>
+                                            <td class="text-right tabular-nums text-sm font-semibold">
+                                                <span class="@if ($item['customer_debt'] > 0) text-rose-400 @else text-emerald-400 @endif">
+                                                    {{ $currencySymbol }} {{ number_format($item['customer_debt'], 2) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+                <div class="border-t border-slate-700/80 bg-slate-950/50 px-5 py-3 text-right">
+                    <button type="button" wire:click="closeTodaySalesModal" class="ui-btn ui-btn-primary text-sm">Cerrar</button>
                 </div>
             </div>
         </div>
