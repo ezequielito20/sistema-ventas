@@ -2,16 +2,23 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ImageUrlService
 {
     /**
-     * Resuelve la URL pública de una imagen almacenada en BD (ruta relativa al disco o URL absoluta).
+     * Resuelve la URL pública de una imagen.
      *
-     * Prioridad: URL absoluta → archivo en disco `public` (storage/app/public) → `public/storage` en disco
-     * → lógica remota (S3, firmadas, etc.).
+     * Los archivos se almacenan SIEMPRE en el disco 'public' (storage/app/public/),
+     * independientemente del entorno. El symlink public/storage → storage/app/public
+     * debe existir (ejecutar `php artisan storage:link` en cada deploy).
+     *
+     * Prioridad:
+     * 1. URL absoluta (http/https) → se devuelve tal cual
+     * 2. Disco 'public' vía Storage::url() → requiere symlink
+     * 3. Archivo directo en public/storage/ → fallback sin symlink
+     * 4. Archivo directo en storage/app/public/ → fallback por si symlink roto
+     * 5. Imagen de fallback
      */
     public static function getImageUrl(?string $imagePath, string $fallbackImage = 'img/no-image.svg'): string
     {
@@ -21,6 +28,7 @@ class ImageUrlService
 
         $trimmed = trim($imagePath);
 
+        // Ya es una URL absoluta
         if (preg_match('#^https?://#i', $trimmed)) {
             return $trimmed;
         }
@@ -31,85 +39,33 @@ class ImageUrlService
             return asset($fallbackImage);
         }
 
+        // 1. Disco 'public' — ruta canónica (requiere symlink storage:link)
         if (Storage::disk('public')->exists($relative)) {
             return Storage::disk('public')->url($relative);
         }
 
-        // Symlink roto u otro despliegue: el archivo sigue en public/storage/...
-        $publicFile = public_path('storage'.DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative));
-        if (is_file($publicFile)) {
-            return asset('storage/'.$relative);
+        // 2. Archivo en public/storage/ — el symlink puede funcionar aunque Storage::exists falle
+        $publicFile = public_path('storage/' . str_replace('\\', '/', $relative));
+        if (is_file($publicFile) && is_readable($publicFile)) {
+            return asset('storage/' . $relative);
         }
 
-        return self::getProductionImageUrl($relative, $fallbackImage);
-    }
-
-    /**
-     * URLs en entornos donde el archivo no está en el disco local público (p. ej. solo S3).
-     */
-    private static function getProductionImageUrl(string $imagePath, string $fallbackImage): string
-    {
-        try {
-            $defaultDisk = config('filesystems.default');
-            $disk = Storage::disk($defaultDisk);
-
-            if ($disk->exists($imagePath)) {
-                try {
-                    return $disk->temporaryUrl($imagePath, now()->addHours(24));
-                } catch (\Throwable $e) {
-                    if (method_exists($disk, 'url')) {
-                        return $disk->url($imagePath);
-                    }
-
-                    throw $e;
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::debug('ImageUrlService: no se pudo resolver en disco por defecto', [
-                'path' => $imagePath,
-                'disk' => config('filesystems.default'),
-                'message' => $e->getMessage(),
-            ]);
-        }
-
-        $cloudConfig = env('LARAVEL_CLOUD_DISK_CONFIG');
-        if ($cloudConfig) {
-            $disks = json_decode($cloudConfig, true);
-            if (is_array($disks) && count($disks) > 0) {
-                $disk = collect($disks)->firstWhere('is_default', true) ?? $disks[0];
-                if ($disk && isset($disk['endpoint'], $disk['bucket'])) {
-                    return rtrim($disk['endpoint'], '/').'/'.$disk['bucket'].'/'.ltrim($imagePath, '/');
-                }
-            }
-        }
-
-        $defaultDisk = config('filesystems.default');
-        $diskConfig = config("filesystems.disks.{$defaultDisk}");
-
-        if ($diskConfig && isset($diskConfig['endpoint'], $diskConfig['bucket'])) {
-            return rtrim($diskConfig['endpoint'], '/').'/'.$diskConfig['bucket'].'/'.ltrim($imagePath, '/');
-        }
-
-        $endpoint = env('AWS_ENDPOINT');
-        $bucket = env('AWS_BUCKET');
-
-        if ($endpoint && $bucket) {
-            return rtrim($endpoint, '/').'/'.$bucket.'/'.ltrim($imagePath, '/');
+        // 3. Archivo en storage/app/public/ — acceso directo sin symlink
+        $storageFile = storage_path('app/public/' . str_replace('\\', '/', $relative));
+        if (is_file($storageFile) && is_readable($storageFile)) {
+            return asset('storage/' . $relative);
         }
 
         return asset($fallbackImage);
     }
 
     /**
-     * Disco recomendado para subidas nuevas (compatibilidad con código legado).
-     */
-    public static function getStorageDisk(): string
-    {
-        return app()->environment('local') ? 'public' : 's3';
-    }
-
-    /**
-     * Convierte valores típicos en BD (`storage/products/x.jpg`, `/storage/...`) a ruta relativa al disco `public`.
+     * Convierte valores típicos en BD a ruta relativa al disco 'public'.
+     *
+     * Ej: "storage/products/xyz.jpg" → "products/xyz.jpg"
+     *     "/storage/products/xyz.jpg" → "products/xyz.jpg"
+     *     "company_logos/xyz.jpg" → "company_logos/xyz.jpg"
+     *     "products/xyz.jpg" → "products/xyz.jpg"
      */
     private static function normalizePath(string $imagePath): string
     {
