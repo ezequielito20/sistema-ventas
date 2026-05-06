@@ -67,7 +67,10 @@ class SettingsIndex extends Component
 
         // Load select options
         $this->countries = Country::orderBy('name')->get();
-        $this->currencies = Currency::orderBy('code')->get();
+        $this->currencies = Currency::orderBy('code')
+            ->get()
+            ->unique('code')
+            ->values();
 
         if ($this->country_id) {
             $this->states = State::where('country_id', $this->country_id)

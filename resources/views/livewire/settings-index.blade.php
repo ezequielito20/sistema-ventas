@@ -133,7 +133,7 @@
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label class="{{ $labelBase }}" for="country_id">País</label>
-                        <select id="country_id" wire:model.live="country_id" wire:change="updatedCountryId" class="{{ $selectBase }}">
+                        <select id="country_id" wire:model.live="country_id" class="{{ $selectBase }}">
                             <option value="">Seleccionar país</option>
                             @foreach ($countries as $c)
                                 <option value="{{ $c->id }}" {{ $country_id == (string) $c->id ? 'selected' : '' }}>
@@ -145,7 +145,7 @@
                     </div>
                     <div>
                         <label class="{{ $labelBase }}" for="state_id">Estado / Provincia</label>
-                        <select id="state_id" wire:model.live="state_id" wire:change="updatedStateId" class="{{ $selectBase }}">
+                        <select id="state_id" wire:model.live="state_id" class="{{ $selectBase }}">
                             <option value="">Seleccionar estado</option>
                             @foreach ($states as $s)
                                 <option value="{{ $s->id }}" {{ $state_id == (string) $s->id ? 'selected' : '' }}>
