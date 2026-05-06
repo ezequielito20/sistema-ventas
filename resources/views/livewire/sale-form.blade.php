@@ -76,25 +76,102 @@
                             <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
                         @enderror
                     </div>
-                    {{-- Cliente --}}
+                    {{-- Cliente — selector personalizado con deuda --}}
                     <div>
                         <label for="customer_id" class="{{ $labelBase }}">
                             Cliente <span class="text-rose-400">*</span>
                         </label>
-                        <select
-                            id="customer_id"
-                            wire:model.live="customer_id"
-                            class="{{ $inputBase }} @error('customer_id') border-rose-500/80 @enderror"
-                        >
-                            <option value="">Seleccionar cliente...</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}"
-                                    @if($customer->total_debt > 0) data-debt="{{ number_format($customer->total_debt, 2) }}" @endif>
-                                    {{ $customer->name }}@if($customer->phone) — {{ $customer->phone }}@endif
-                                    @if($customer->total_debt > 0) (Deuda: {{ $currency->symbol }} {{ number_format($customer->total_debt, 2) }})@endif
-                                </option>
-                            @endforeach
-                        </select>
+
+                        <div class="relative" x-data="{
+                            isOpen: false,
+                            searchTerm: '',
+                            customers: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
+                            filtered: @js($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'total_debt' => (float) $c->total_debt])->values()->toArray()),
+                            selectedId: @entangle('customer_id'),
+                            get selected() {
+                                return this.customers.find(c => c.id == this.selectedId) || null;
+                            },
+                            get selectedName() {
+                                return this.selected ? this.selected.name : 'Seleccionar cliente...';
+                            },
+                            get selectedDebt() {
+                                return this.selected ? this.selected.total_debt : 0;
+                            },
+                            filter() {
+                                const t = this.searchTerm.toLowerCase();
+                                this.filtered = t ? this.customers.filter(c => c.name.toLowerCase().includes(t)) : this.customers;
+                            },
+                            select(customer) {
+                                this.selectedId = customer.id;
+                                this.isOpen = false;
+                                this.searchTerm = '';
+                            },
+                            init() {
+                                // Preseleccionar si customer_id viene de la URL
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const cid = urlParams.get('customer_id');
+                                if (cid && !this.selectedId) {
+                                    this.selectedId = parseInt(cid);
+                                }
+                            }
+                        }" @click.away="isOpen = false">
+                            {{-- Button --}}
+                            <button type="button" @click="isOpen = !isOpen; if(isOpen) $nextTick(() => $refs.csSearch?.focus())"
+                                class="{{ $inputBase }} flex items-center justify-between gap-2 text-left h-[42px] pr-10 relative
+                                    @error('customer_id') border-rose-500/80 @enderror">
+                                <span class="truncate text-sm flex-1" :class="selected ? 'text-slate-100' : 'text-slate-500'"
+                                    x-text="selectedName"></span>
+                                <span class="flex-shrink-0 flex items-center gap-1.5">
+                                    <span x-show="selectedDebt > 0"
+                                        x-text="'{{ $currency->symbol }} ' + selectedDebt.toLocaleString('es-PE', {minimumFractionDigits: 2})"
+                                        class="inline-flex items-center rounded-md bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-300 border border-rose-500/30">
+                                    </span>
+                                    <span x-show="selectedDebt === 0 && selected !== null"
+                                        class="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-300 border border-emerald-500/30">
+                                        Sin deuda
+                                    </span>
+                                </span>
+                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                    <i class="fas fa-chevron-down text-xs text-slate-500 transition-transform" :class="isOpen ? 'rotate-180' : ''"></i>
+                                </span>
+                            </button>
+
+                            {{-- Dropdown --}}
+                            <div x-show="isOpen" x-cloak x-transition
+                                class="absolute z-50 mt-1 w-full rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl overflow-hidden"
+                                style="display: none;">
+                                {{-- Search --}}
+                                <div class="border-b border-slate-700/50 p-3">
+                                    <input type="text" x-ref="csSearch" x-model="searchTerm" @input="filter()"
+                                        @keydown.escape="isOpen = false"
+                                        placeholder="Buscar cliente..."
+                                        class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                                </div>
+                                {{-- Options --}}
+                                <div class="max-h-56 overflow-y-auto py-1">
+                                    <template x-for="c in filtered" :key="c.id">
+                                        <button type="button" @click="select(c)"
+                                            class="w-full flex items-center justify-between gap-3 px-5 py-3 text-left text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-all duration-150"
+                                            :class="selectedId == c.id ? 'bg-cyan-500/10 text-cyan-300 font-medium' : ''">
+                                            <span class="truncate flex-1" x-text="c.name"></span>
+                                            <span class="flex-shrink-0 flex items-center gap-1">
+                                                <span x-show="parseFloat(c.total_debt) > 0"
+                                                    x-text="'{{ $currency->symbol }} ' + parseFloat(c.total_debt).toLocaleString('es-PE', {minimumFractionDigits: 2})"
+                                                    class="inline-flex items-center rounded-md bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold text-rose-300 border border-rose-500/30">
+                                                </span>
+                                                <span x-show="parseFloat(c.total_debt || 0) === 0"
+                                                    class="inline-flex items-center rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300 border border-emerald-500/30">
+                                                    Sin deuda
+                                                </span>
+                                            </span>
+                                        </button>
+                                    </template>
+                                    <div x-show="filtered.length === 0" class="px-5 py-10 text-center text-sm text-slate-500">
+                                        No se encontraron clientes.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         @error('customer_id')
                             <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
                         @enderror
