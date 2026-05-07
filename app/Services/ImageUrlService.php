@@ -29,9 +29,13 @@ class ImageUrlService
             return $imagePath;
         }
 
-        // Disco local 'public' (funciona con storage:link)
+        // Disco local 'public' (funciona con storage:link en desarrollo local)
+        // Verificar que el archivo realmente exista en el filesystem local
         if (Storage::disk('public')->exists($imagePath)) {
-            return '/storage/' . $imagePath;
+            $localPath = storage_path('app/public/' . str_replace('\\', '/', $imagePath));
+            if (is_file($localPath) && is_readable($localPath)) {
+                return '/storage/' . $imagePath;
+            }
         }
 
         // Ruta proxy que sirve la imagen desde el disco por defecto (S3/R2)
