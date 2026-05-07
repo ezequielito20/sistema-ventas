@@ -82,8 +82,12 @@ class UserService
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
             ],
             'password_confirmation' => ['required', 'same:password'],
-            'roleId' => [
+            'roleIds' => [
                 'required',
+                'array',
+                'min:1',
+            ],
+            'roleIds.*' => [
                 Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
             ],
         ];
@@ -97,8 +101,12 @@ class UserService
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'roleId' => [
+            'roleIds' => [
                 'required',
+                'array',
+                'min:1',
+            ],
+            'roleIds.*' => [
                 Rule::exists('roles', 'id')->where(fn ($query) => $query->where('company_id', $companyId)),
             ],
         ];
@@ -132,16 +140,18 @@ class UserService
             'password.regex' => 'La contraseña debe contener al menos una mayúscula, una minúscula y un número.',
             'password_confirmation.required' => 'Debes confirmar la contraseña.',
             'password_confirmation.same' => 'Las contraseñas no coinciden.',
-            'roleId.required' => 'El rol es obligatorio.',
-            'roleId.exists' => 'El rol seleccionado no es válido para tu empresa.',
+            'roleIds.required' => 'Debes seleccionar al menos un rol.',
+            'roleIds.min' => 'Debes seleccionar al menos un rol.',
+            'roleIds.*.exists' => 'Uno de los roles seleccionados no es válido para tu empresa.',
         ];
     }
 
     public function createUser(int $companyId, array $validated): User
     {
-        $role = Role::query()
+        $roles = Role::query()
             ->where('company_id', $companyId)
-            ->findOrFail((int) $validated['roleId']);
+            ->whereIn('id', $validated['roleIds'])
+            ->get();
 
         $user = User::create([
             'name' => trim((string) $validated['name']),
@@ -151,7 +161,7 @@ class UserService
             'email_verified_at' => now(),
         ]);
 
-        $user->assignRole($role);
+        $user->syncRoles($roles);
 
         return $user;
     }
@@ -162,9 +172,10 @@ class UserService
             throw new \RuntimeException('No tiene permisos para editar este usuario.');
         }
 
-        $role = Role::query()
+        $roles = Role::query()
             ->where('company_id', $companyId)
-            ->findOrFail((int) $validated['roleId']);
+            ->whereIn('id', $validated['roleIds'])
+            ->get();
 
         $payload = [
             'name' => trim((string) $validated['name']),
@@ -176,7 +187,7 @@ class UserService
         }
 
         $user->update($payload);
-        $user->syncRoles([$role]);
+        $user->syncRoles($roles);
     }
 
     /**

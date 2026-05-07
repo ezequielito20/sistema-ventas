@@ -70,25 +70,21 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <label for="user-role" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                Rol principal <span class="text-rose-400">*</span>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Roles <span class="text-rose-400">*</span>
                             </label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                                    <i class="fas fa-user-shield"></i>
-                                </span>
-                                <select
-                                    id="user-role"
-                                    wire:model.live="roleId"
-                                    class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 pl-10 pr-10 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 @error('roleId') border-rose-500/80 @enderror"
-                                >
-                                    <option value="">Selecciona un rol</option>
-                                    @foreach ($roleOptions as $roleOption)
-                                        <option value="{{ $roleOption['id'] }}">{{ $roleOption['name'] }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="max-h-40 space-y-1.5 overflow-y-auto rounded-lg border border-slate-600 bg-slate-950/60 p-3">
+                                @foreach ($roleOptions as $roleOption)
+                                    <label class="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 transition hover:bg-slate-800/50">
+                                        <input type="checkbox"
+                                            wire:model.live="roleIds"
+                                            value="{{ $roleOption['id'] }}"
+                                            class="h-4 w-4 rounded border-slate-500 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0">
+                                        <span class="text-sm text-slate-200">{{ $roleOption['name'] }}</span>
+                                    </label>
+                                @endforeach
                             </div>
-                            @error('roleId')
+                            @error('roleIds')
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>

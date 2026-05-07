@@ -17,7 +17,8 @@ class UserForm extends Component
 
     public string $email = '';
 
-    public string $roleId = '';
+    /** @var array<int> */
+    public array $roleIds = [];
 
     public string $password = '';
 
@@ -37,7 +38,7 @@ class UserForm extends Component
 
             $this->name = $user->name;
             $this->email = $user->email;
-            $this->roleId = (string) ($user->roles->first()?->id ?? '');
+            $this->roleIds = $user->roles->pluck('id')->map(fn ($id) => (int) $id)->all();
 
             return;
         }
@@ -68,7 +69,7 @@ class UserForm extends Component
         return [
             'name' => 'nombre',
             'email' => 'correo electrónico',
-            'roleId' => 'rol',
+            'roleIds' => 'roles',
             'password' => 'contraseña',
             'password_confirmation' => 'confirmación de contraseña',
         ];
@@ -113,7 +114,7 @@ class UserForm extends Component
                 session()->flash('icons', 'success');
 
                 if ($createAnother) {
-                    $this->reset(['name', 'email', 'roleId', 'password', 'password_confirmation']);
+                    $this->reset(['name', 'email', 'roleIds', 'password', 'password_confirmation']);
 
                     return $this->redirect(route('admin.users.create'));
                 }
@@ -146,8 +147,8 @@ class UserForm extends Component
             'isEdit' => $isEdit,
             'headingTitle' => $isEdit ? 'Editar usuario' : 'Crear usuario',
             'headingSubtitle' => $isEdit
-                ? 'Actualiza los datos base, el rol y la contraseña si es necesario.'
-                : 'Registra un nuevo usuario para tu empresa con su rol principal.',
+                ? 'Actualiza los datos base, roles y contraseña si es necesario.'
+                : 'Registra un nuevo usuario para tu empresa con sus roles.',
             'company' => $userService->companySummary($companyId),
             'roleOptions' => $userService->availableRoles($companyId),
         ]);
