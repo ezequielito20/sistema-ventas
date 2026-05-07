@@ -30,6 +30,20 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
+// Proxy de imágenes desde el disco por defecto (S3/R2 en producción)
+Route::get('/img/{path}', function (string $path) {
+    $image = \App\Services\ImageUrlService::serve($path);
+    if (!$image) {
+        abort(404);
+    }
+    return response($image['content'], 200, [
+        'Content-Type' => $image['mime'],
+        'Content-Length' => $image['size'],
+        'Cache-Control' => 'public, max-age=86400',
+        'ETag' => '"' . md5($image['content']) . '"',
+    ]);
+})->where('path', '.*')->name('image.serve');
+
 // Recuperación de contraseña por preguntas de seguridad (v2)
 Route::get('/password/recovery', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showRecoveryForm'])
     ->name('password.recovery')

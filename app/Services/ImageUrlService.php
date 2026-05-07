@@ -9,12 +9,9 @@ class ImageUrlService
     /**
      * Resuelve la URL pública de una imagen.
      *
-     * Prioridad:
-     * 1. URL absoluta (http/https) → se devuelve tal cual
-     * 2. Disco 'public' local → para desarrollo (storage:link)
-     * 3. Disco por defecto (s3 en producción) → para Laravel Cloud / S3 / R2
-     * 4. Archivo directo en filesystem → fallback sin symlink
-     * 5. Imagen de fallback
+     * En local: usa disco 'public' + symlink storage:link.
+     * Si el archivo no está en disco local, se sirve vía ruta proxy (/img/...)
+     * que lee del disco por defecto (S3/R2) y devuelve la imagen directamente.
      */
     public static function getImageUrl(?string $imagePath, string $fallbackImage = 'img/no-image.svg'): string
     {
@@ -22,87 +19,58 @@ class ImageUrlService
             return asset($fallbackImage);
         }
 
-        $trimmed = trim($imagePath);
+        $imagePath = self::normalizePath(trim($imagePath));
 
-        // Ya es una URL absoluta (S3/R2 suelen devolver URLs completas)
-        if (preg_match('#^https?://#i', $trimmed)) {
-            return $trimmed;
-        }
-
-        $relative = self::normalizePath($trimmed);
-
-        if ($relative === '') {
+        if ($imagePath === '') {
             return asset($fallbackImage);
         }
 
-        // 1. Disco 'public' local (desarrollo con storage:link)
-        if (Storage::disk('public')->exists($relative)) {
-            return Storage::disk('public')->url($relative);
-        }
-
-        // 2. Disco por defecto (s3/R2 en producción)
-        try {
-            $defaultDisk = config('filesystems.default', 'public');
-            $disk = Storage::disk($defaultDisk);
-            if ($disk->exists($relative)) {
-                // R2/S3 requieren URLs firmadas. 7 días de expiración.
-                try {
-                    return $disk->temporaryUrl($relative, now()->addDays(7));
-                } catch (\Throwable) {}
-                // Fallback a url() si temporaryUrl no funciona
-                if (method_exists($disk, 'url')) {
-                    return $disk->url($relative);
-                }
-                return asset('storage/' . $relative);
-            }
-        } catch (\Throwable) {
-            // Disco no configurado o error de conexión
-        }
-
-        // 3. Archivo directo en public/storage/ (symlink funcionando)
-        $publicFile = public_path('storage/' . str_replace('\\', '/', $relative));
-        if (is_file($publicFile) && is_readable($publicFile)) {
-            return asset('storage/' . $relative);
-        }
-
-        // 4. Archivo directo en storage/app/public/ (sin symlink)
-        $storageFile = storage_path('app/public/' . str_replace('\\', '/', $relative));
-        if (is_file($storageFile) && is_readable($storageFile)) {
-            return asset('storage/' . $relative);
-        }
-
-        return asset($fallbackImage);
-    }
-
-    /**
-     * Convierte valores típicos en BD a ruta relativa al disco.
-     *
-     * Ej: "storage/products/xyz.jpg" → "products/xyz.jpg"
-     *     "company_logos/xyz.jpg" → "company_logos/xyz.jpg"
-     *     "https://bucket.s3.region.amazonaws.com/xyz.jpg" → URL completa (no se normaliza)
-     */
-    private static function normalizePath(string $imagePath): string
-    {
-        $imagePath = trim($imagePath);
-
-        // URLs absolutas: no normalizar
         if (preg_match('#^https?://#i', $imagePath)) {
             return $imagePath;
         }
 
-        if (str_contains($imagePath, '://')) {
-            $path = parse_url($imagePath, PHP_URL_PATH);
-            if (is_string($path) && $path !== '') {
-                $imagePath = $path;
-            }
+        // Disco local 'public' (funciona con storage:link)
+        if (Storage::disk('public')->exists($imagePath)) {
+            return '/storage/' . $imagePath;
         }
 
-        $imagePath = ltrim($imagePath, '/');
+        // Ruta proxy que sirve la imagen desde el disco por defecto (S3/R2)
+        return route('image.serve', ['path' => $imagePath], false);
+    }
 
+    /**
+     * Sirve una imagen desde el disco por defecto.
+     * Usado por la ruta /img/{path}.
+     */
+    public static function serve(string $path): ?array
+    {
+        $disk = Storage::disk(config('filesystems.default', 'public'));
+
+        if (!$disk->exists($path)) {
+            return null;
+        }
+
+        return [
+            'content' => $disk->get($path),
+            'mime' => $disk->mimeType($path) ?: 'application/octet-stream',
+            'size' => $disk->size($path),
+            'lastModified' => $disk->lastModified($path),
+        ];
+    }
+
+    /**
+     * Disco recomendado para nuevas subidas.
+     */
+    public static function getStorageDisk(): string
+    {
+        return config('filesystems.default', 'public');
+    }
+
+    private static function normalizePath(string $imagePath): string
+    {
         if (str_starts_with($imagePath, 'storage/')) {
-            $imagePath = substr($imagePath, strlen('storage/'));
+            return substr($imagePath, 8);
         }
-
         return $imagePath;
     }
 }

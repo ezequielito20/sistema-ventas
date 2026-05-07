@@ -121,7 +121,7 @@ class CompanyController extends Controller
             $logoPath = null;
             if ($request->hasFile('logo')) {
                 try {
-                    $disk = config('filesystems.default', 'public');
+                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     $logoPath = $request->file('logo')->store('company_logos', $disk);
                 } catch (\Exception $e) {
                     throw new \Exception('Error al subir el logo: ' . $e->getMessage());
@@ -190,7 +190,7 @@ class CompanyController extends Controller
             DB::rollBack();
             
             if (isset($logoPath)) {
-                $disk = config('filesystems.default', 'public');
+                $disk = \App\Services\ImageUrlService::getStorageDisk();
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
@@ -205,7 +205,7 @@ class CompanyController extends Controller
             DB::rollBack();
 
             if (isset($logoPath)) {
-                $disk = config('filesystems.default', 'public');
+                $disk = \App\Services\ImageUrlService::getStorageDisk();
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
@@ -318,7 +318,7 @@ class CompanyController extends Controller
             // Maneja la actualización del logo si se proporciona uno nuevo
             if ($request->hasFile('logo')) {
                 try {
-                    $disk = config('filesystems.default', 'public');
+                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     
                     // Elimina el logo anterior si existe
                     if ($company->logo && Storage::disk($disk)->exists($company->logo)) {

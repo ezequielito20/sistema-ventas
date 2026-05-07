@@ -23,9 +23,9 @@ class ProductService
                 $data['company_id'] = $companyId;
 
                 if ($image !== null) {
-                    $disk = config('filesystems.default', 'public');
+                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     $storedPath = $image->store('products', $disk);
-                    $data['image'] = $disk === 'public' ? 'storage/'.$storedPath : $storedPath;
+                    $data['image'] = 'storage/'.$storedPath;
                 }
 
                 return Product::create($data);
@@ -50,9 +50,9 @@ class ProductService
         try {
             DB::transaction(function () use ($product, $data, $image, &$newStoredPath, $oldRelative) {
                 if ($image !== null) {
-                    $disk = config('filesystems.default', 'public');
+                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     $newStoredPath = $image->store('products', $disk);
-                    $data['image'] = $disk === 'public' ? 'storage/'.$newStoredPath : $newStoredPath;
+                    $data['image'] = 'storage/'.$newStoredPath;
 
                     if ($oldRelative && Storage::disk($disk)->exists($oldRelative)) {
                         Storage::disk($disk)->delete($oldRelative);
@@ -102,14 +102,10 @@ class ProductService
             DB::beginTransaction();
 
             if ($product->image) {
-                $relative = str_starts_with($product->image, 'storage/')
-                    ? substr($product->image, strlen('storage/'))
-                    : $product->image;
-                $diskName = config('filesystems.default', 'public');
+                $relative = str_replace('storage/', '', $product->image);
+                $diskName = \App\Services\ImageUrlService::getStorageDisk();
                 if (Storage::disk($diskName)->exists($relative)) {
                     Storage::disk($diskName)->delete($relative);
-                } elseif (Storage::disk('public')->exists($relative)) {
-                    Storage::disk('public')->delete($relative);
                 }
             }
 
