@@ -16,18 +16,19 @@
                                     ? substr($company->logo, strlen('storage/'))
                                     : $company->logo;
 
-                                // 1. Intentar disco local 'public'
-                                if (Storage::disk('public')->exists($relative)) {
-                                    $logoSrc = 'file://' . storage_path('app/public/' . $relative);
+                                // 1. Archivo local real (no solo Storage::disk()->exists)
+                                $localPath = storage_path('app/public/' . str_replace('\\', '/', $relative));
+                                if (is_file($localPath) && is_readable($localPath)) {
+                                    $logoSrc = 'file://' . $localPath;
                                 }
-                                // 2. Intentar disco por defecto (s3 en producción)
+                                // 2. Disco por defecto (s3 en producción)
                                 else {
                                     try {
-                                        $defaultDisk = config('filesystems.default', 'public');
-                                        $disk = Storage::disk($defaultDisk);
+                                        $disk = Storage::disk(config('filesystems.default', 'public'));
                                         if ($disk->exists($relative)) {
                                             $content = $disk->get($relative);
-                                            $mime = 'image/' . pathinfo($relative, PATHINFO_EXTENSION);
+                                            $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+                                            $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : 'image/jpeg'));
                                             $logoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
                                         }
                                     } catch (\Throwable) {}

@@ -110,11 +110,28 @@
     <div class="header-container clearfix">
         <div class="company-section">
             @php
-            $ccLogoPath = $company->logo ? storage_path('app/public/' . $company->logo) : null;
-        @endphp
-        @if ($ccLogoPath && file_exists($ccLogoPath))
-            <img src="{{ $ccLogoPath }}" alt="Logo" class="logo">
-        @endif
+                $ccLogoSrc = null;
+                if ($company->logo) {
+                    $relative = str_starts_with($company->logo, 'storage/') ? substr($company->logo, strlen('storage/')) : $company->logo;
+                    $localPath = storage_path('app/public/' . str_replace('\\', '/', $relative));
+                    if (is_file($localPath) && is_readable($localPath)) {
+                        $ccLogoSrc = 'file://' . $localPath;
+                    } else {
+                        try {
+                            $disk = Storage::disk(config('filesystems.default', 'public'));
+                            if ($disk->exists($relative)) {
+                                $content = $disk->get($relative);
+                                $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+                                $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                                $ccLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                            }
+                        } catch (\Throwable) {}
+                    }
+                }
+            @endphp
+            @if ($ccLogoSrc)
+                <img src="{{ $ccLogoSrc }}" alt="Logo" class="logo">
+            @endif
             <div class="company-info">
                 <strong>{{ $company->name }}</strong><br>
                 {{ $company->address }}<br>

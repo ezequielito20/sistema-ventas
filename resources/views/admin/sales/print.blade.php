@@ -261,14 +261,16 @@
                     $printLogoSrc = null;
                     if ($company->logo) {
                         $relative = str_starts_with($company->logo, 'storage/') ? substr($company->logo, strlen('storage/')) : $company->logo;
-                        if (Storage::disk('public')->exists($relative)) {
-                            $printLogoSrc = 'file://' . storage_path('app/public/' . $relative);
+                        $localPath = storage_path('app/public/' . str_replace('\\', '/', $relative));
+                        if (is_file($localPath) && is_readable($localPath)) {
+                            $printLogoSrc = 'file://' . $localPath;
                         } else {
                             try {
                                 $disk = Storage::disk(config('filesystems.default', 'public'));
                                 if ($disk->exists($relative)) {
                                     $content = $disk->get($relative);
-                                    $mime = 'image/' . pathinfo($relative, PATHINFO_EXTENSION);
+                                    $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+                                    $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : 'image/jpeg'));
                                     $printLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
                                 }
                             } catch (\Throwable) {}
