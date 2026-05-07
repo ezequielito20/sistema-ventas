@@ -73,16 +73,79 @@
                             <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
                                 Roles <span class="text-rose-400">*</span>
                             </label>
-                            <div class="max-h-40 space-y-1.5 overflow-y-auto rounded-lg border border-slate-600 bg-slate-950/60 p-3">
-                                @foreach ($roleOptions as $roleOption)
-                                    <label class="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 transition hover:bg-slate-800/50">
-                                        <input type="checkbox"
-                                            wire:model.live="roleIds"
-                                            value="{{ $roleOption['id'] }}"
-                                            class="h-4 w-4 rounded border-slate-500 bg-slate-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0">
-                                        <span class="text-sm text-slate-200">{{ $roleOption['name'] }}</span>
-                                    </label>
-                                @endforeach
+
+                            <div class="relative" x-data="{
+                                search: '',
+                                open: false,
+                                allRoles: {{ Js::from($roleOptions) }},
+                                get selectedIds() {
+                                    return $wire.get('roleIds') || [];
+                                },
+                                get selectedRoles() {
+                                    return this.allRoles.filter(r => this.selectedIds.includes(r.id));
+                                },
+                                get availableRoles() {
+                                    const s = this.search.toLowerCase();
+                                    return this.allRoles.filter(r =>
+                                        !this.selectedIds.includes(r.id) &&
+                                        r.name.toLowerCase().includes(s)
+                                    );
+                                },
+                                addRole(id) {
+                                    const current = [...this.selectedIds];
+                                    if (!current.includes(id)) {
+                                        current.push(id);
+                                        $wire.set('roleIds', current);
+                                    }
+                                    this.search = '';
+                                    this.open = false;
+                                },
+                                removeRole(id) {
+                                    $wire.set('roleIds', this.selectedIds.filter(i => i !== id));
+                                },
+                                toggleDropdown() {
+                                    this.open = !this.open;
+                                    if (this.open) { this.search = ''; $nextTick(() => $refs.roleSearch?.focus()); }
+                                }
+                            }" @click.away="open = false">
+                                {{-- Selected tags + trigger --}}
+                                <div class="flex min-h-[42px] flex-wrap items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-950/60 p-2 cursor-text"
+                                    @click="toggleDropdown()">
+                                    <template x-for="role in selectedRoles" :key="role.id">
+                                        <span class="inline-flex items-center gap-1 rounded-md bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300 border border-cyan-500/25">
+                                            <span x-text="role.name"></span>
+                                            <button type="button" @click.stop="removeRole(role.id)"
+                                                class="ml-0.5 text-cyan-400 hover:text-rose-400 transition">
+                                                <i class="fas fa-times text-[10px]"></i>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <span x-show="selectedRoles.length === 0" class="text-xs text-slate-500 px-1">Seleccionar roles...</span>
+                                </div>
+
+                                {{-- Dropdown --}}
+                                <div x-show="open" x-cloak x-transition
+                                    class="absolute z-50 mt-1 w-full rounded-xl border border-slate-600/50 bg-slate-900/95 shadow-2xl backdrop-blur-xl overflow-hidden"
+                                    style="display: none;">
+                                    <div class="border-b border-slate-700/50 p-2">
+                                        <input type="text" x-ref="roleSearch" x-model="search"
+                                            placeholder="Buscar rol..."
+                                            class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                                    </div>
+                                    <div class="max-h-44 overflow-y-auto py-1">
+                                        <template x-for="role in availableRoles" :key="role.id">
+                                            <button type="button" @click="addRole(role.id)"
+                                                class="w-full px-4 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-700/60 hover:text-white transition-all duration-150 border-b border-slate-700/30 last:border-b-0">
+                                                <span x-text="role.name"></span>
+                                            </button>
+                                        </template>
+                                        <div x-show="availableRoles.length === 0" class="px-4 py-6 text-center text-sm text-slate-500">
+                                            <span x-show="search">No se encontraron roles.</span>
+                                            <span x-show="!search">Todos los roles fueron seleccionados.</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                             @error('roleIds')
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
