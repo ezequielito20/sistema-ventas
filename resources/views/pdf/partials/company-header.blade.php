@@ -16,22 +16,10 @@
                                     ? substr($company->logo, strlen('storage/'))
                                     : $company->logo;
 
-                                // 1. Archivo local real (no solo Storage::disk()->exists)
-                                $localPath = storage_path('app/public/' . str_replace('\\', '/', $relative));
-                                if (is_file($localPath) && is_readable($localPath)) {
-                                    $logoSrc = 'file://' . $localPath;
-                                }
-                                // 2. Disco por defecto (s3 en producción)
-                                else {
-                                    try {
-                                        $disk = Storage::disk(config('filesystems.default', 'public'));
-                                        if ($disk->exists($relative)) {
-                                            $content = $disk->get($relative);
-                                            $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
-                                            $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : 'image/jpeg'));
-                                            $logoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
-                                        }
-                                    } catch (\Throwable) {}
+                                // Usar ImageUrlService para consistencia con el resto del sistema
+                                $imageData = \App\Services\ImageUrlService::serve($relative);
+                                if ($imageData) {
+                                    $logoSrc = 'data:' . $imageData['mime'] . ';base64,' . base64_encode($imageData['content']);
                                 }
                             }
                         @endphp

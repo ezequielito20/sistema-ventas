@@ -43,11 +43,25 @@ class ImageUrlService
     }
 
     /**
-     * Sirve una imagen desde el disco por defecto.
-     * Usado por la ruta /img/{path}.
+     * Sirve una imagen desde el disco por defecto (o local).
+     * Usado por la ruta /img/{path} y por los PDFs.
      */
     public static function serve(string $path): ?array
     {
+        // 1. Archivo local real
+        $localPath = storage_path('app/public/' . str_replace('\\', '/', $path));
+        if (is_file($localPath) && is_readable($localPath)) {
+            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : ($ext === 'svg' ? 'image/svg+xml' : 'image/jpeg')));
+            return [
+                'content' => file_get_contents($localPath),
+                'mime' => $mime,
+                'size' => filesize($localPath),
+                'lastModified' => filemtime($localPath),
+            ];
+        }
+
+        // 2. Disco por defecto (s3/R2)
         $disk = Storage::disk(config('filesystems.default', 'public'));
 
         if (!$disk->exists($path)) {
