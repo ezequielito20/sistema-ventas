@@ -105,9 +105,12 @@
                             $disk = Storage::disk(config('filesystems.default', 'public'));
                             if ($disk->exists($relative)) {
                                 $content = $disk->get($relative);
-                                $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
-                                $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : 'image/jpeg'));
-                                $suppLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                                $ext = pathinfo($relative, PATHINFO_EXTENSION);
+                                $tmpDir = storage_path('app/pdf-temp');
+                                if (!is_dir($tmpDir)) { mkdir($tmpDir, 0755, true); }
+                                $tmpFile = $tmpDir . '/supp_logo_' . uniqid() . '.' . $ext;
+                                file_put_contents($tmpFile, $content);
+                                $suppLogoSrc = 'file://' . $tmpFile;
                             }
                         } catch (\Throwable) {}
                     }

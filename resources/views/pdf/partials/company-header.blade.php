@@ -21,12 +21,20 @@
                                 if (is_file($localPath) && is_readable($localPath)) {
                                     $logoSrc = 'file://' . $localPath;
                                 }
-                                // 2. Usar ImageUrlService::serve (mismo método que el proxy /img/)
+                                // 2. Leer de S3 y guardar temp dentro del chroot de DomPDF
                                 else {
-                                    $imageData = \App\Services\ImageUrlService::serve($relative);
-                                    if ($imageData && !empty($imageData['content'])) {
-                                        $logoSrc = 'data:' . $imageData['mime'] . ';base64,' . base64_encode($imageData['content']);
-                                    }
+                                    try {
+                                        $disk = Storage::disk(config('filesystems.default', 'public'));
+                                        if ($disk->exists($relative)) {
+                                            $content = $disk->get($relative);
+                                            $ext = pathinfo($relative, PATHINFO_EXTENSION);
+                                            $tmpDir = storage_path('app/pdf-temp');
+                                            if (!is_dir($tmpDir)) { mkdir($tmpDir, 0755, true); }
+                                            $tmpFile = $tmpDir . '/logo_' . uniqid() . '.' . $ext;
+                                            file_put_contents($tmpFile, $content);
+                                            $logoSrc = 'file://' . $tmpFile;
+                                        }
+                                    } catch (\Throwable) {}
                                 }
                             }
                         @endphp

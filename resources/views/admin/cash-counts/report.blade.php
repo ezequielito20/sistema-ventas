@@ -121,9 +121,12 @@
                             $disk = Storage::disk(config('filesystems.default', 'public'));
                             if ($disk->exists($relative)) {
                                 $content = $disk->get($relative);
-                                $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
-                                $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                                $ccLogoSrc = 'data:' . $mime . ';base64,' . base64_encode($content);
+                                $ext = pathinfo($relative, PATHINFO_EXTENSION);
+                                $tmpDir = storage_path('app/pdf-temp');
+                                if (!is_dir($tmpDir)) { mkdir($tmpDir, 0755, true); }
+                                $tmpFile = $tmpDir . '/cc_logo_' . uniqid() . '.' . $ext;
+                                file_put_contents($tmpFile, $content);
+                                $ccLogoSrc = 'file://' . $tmpFile;
                             }
                         } catch (\Throwable) {}
                     }
