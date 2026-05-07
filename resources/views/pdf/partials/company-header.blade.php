@@ -16,10 +16,17 @@
                                     ? substr($company->logo, strlen('storage/'))
                                     : $company->logo;
 
-                                // Usar ImageUrlService para consistencia con el resto del sistema
-                                $imageData = \App\Services\ImageUrlService::serve($relative);
-                                if ($imageData) {
-                                    $logoSrc = 'data:' . $imageData['mime'] . ';base64,' . base64_encode($imageData['content']);
+                                // 1. Archivo local
+                                $localPath = storage_path('app/public/' . str_replace('\\', '/', $relative));
+                                if (is_file($localPath) && is_readable($localPath)) {
+                                    $logoSrc = 'file://' . $localPath;
+                                }
+                                // 2. Usar ImageUrlService::serve (mismo método que el proxy /img/)
+                                else {
+                                    $imageData = \App\Services\ImageUrlService::serve($relative);
+                                    if ($imageData && !empty($imageData['content'])) {
+                                        $logoSrc = 'data:' . $imageData['mime'] . ';base64,' . base64_encode($imageData['content']);
+                                    }
                                 }
                             }
                         @endphp
