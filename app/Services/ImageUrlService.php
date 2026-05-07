@@ -40,20 +40,19 @@ class ImageUrlService
             return Storage::disk('public')->url($relative);
         }
 
-        // 2. Disco por defecto (s3 en producción, local en dev sin storage:link)
+        // 2. Disco por defecto (s3/R2 en producción)
         try {
             $defaultDisk = config('filesystems.default', 'public');
             $disk = Storage::disk($defaultDisk);
             if ($disk->exists($relative)) {
+                // R2/S3 requieren URLs firmadas. 7 días de expiración.
                 try {
-                    return $disk->temporaryUrl($relative, now()->addHours(24));
-                } catch (\Throwable) {
-                    // S3 sin soporte de temporaryUrl (ej. algunos endpoints R2)
-                }
+                    return $disk->temporaryUrl($relative, now()->addDays(7));
+                } catch (\Throwable) {}
+                // Fallback a url() si temporaryUrl no funciona
                 if (method_exists($disk, 'url')) {
                     return $disk->url($relative);
                 }
-                // Último recurso: asset con ruta relativa
                 return asset('storage/' . $relative);
             }
         } catch (\Throwable) {
