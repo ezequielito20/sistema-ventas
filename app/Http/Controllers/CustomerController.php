@@ -1062,14 +1062,39 @@ class CustomerController extends Controller
                 ->get()
                 ->groupBy('customer_id');
 
+            // Pre-calcular deuda anterior para TODOS los clientes en una sola consulta (evita N+1)
+            $previousDebtMap = [];
+            if ($customerIds) {
+                $salesBefore = DB::table('sales')
+                    ->select('customer_id', DB::raw('COALESCE(SUM(total_price), 0) as total'))
+                    ->whereIn('customer_id', $customerIds)
+                    ->where('company_id', $this->company->id)
+                    ->where('sale_date', '<', $openingDate)
+                    ->groupBy('customer_id')
+                    ->pluck('total', 'customer_id');
+
+                $allPayments = DB::table('debt_payments')
+                    ->select('customer_id', DB::raw('COALESCE(SUM(payment_amount), 0) as total'))
+                    ->whereIn('customer_id', $customerIds)
+                    ->where('company_id', $this->company->id)
+                    ->groupBy('customer_id')
+                    ->pluck('total', 'customer_id');
+
+                foreach ($customerIds as $cid) {
+                    $beforeSales = (float) ($salesBefore[$cid] ?? 0);
+                    $payments = (float) ($allPayments[$cid] ?? 0);
+                    $previousDebtMap[$cid] = max(0, $beforeSales - $payments);
+                }
+            }
+
             // Crear un array para almacenar los datos calculados de cada cliente
             $customersData = [];
             $filteredCustomers = collect();
 
             // Procesar estadísticas optimizadas y aplicar filtro de tipo de deuda
             foreach ($customers as $customer) {
-                // Usar la misma función que en el método index para consistencia
-                $previousDebt = (float) $this->calculatePreviousCashCountDebt($customer->id, $openingDate);
+                // Usar valor pre-calculado en vez de query individual
+                $previousDebt = $previousDebtMap[$customer->id] ?? 0;
                 $isDefaulter = $previousDebt > 0;
 
                 // Obtener todas las ventas del cliente ordenadas por fecha (FIFO) desde la colección pre-cargada
