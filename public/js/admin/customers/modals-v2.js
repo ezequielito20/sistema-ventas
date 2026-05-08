@@ -924,3 +924,15 @@ class SPAPaymentHandlerV2 {
 }
 
 window.spaPaymentHandlerV2 = new SPAPaymentHandlerV2();
+
+// Función global para cambiar registros por página en el modal de deuda v2
+// Se llama desde el onchange del select, no depende de event listeners cacheados
+window.changeDebtReportPerPage = function(selectEl) {
+    const container = selectEl.closest('[x-data]');
+    if (!container) return;
+    const alpineData = container._x_dataStack?.[0];
+    if (alpineData && typeof alpineData.loadDebtReportV2 === 'function') {
+        alpineData.v2DebtReportPage = 1;
+        alpineData.loadDebtReportV2(alpineData.getDebtReportFiltersV2());
+    }
+};

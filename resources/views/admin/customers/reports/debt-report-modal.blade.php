@@ -325,7 +325,8 @@
 
                     {{-- Selector de registros por página --}}
                     <select id="perPageFilter"
-                        class="rounded-lg border border-slate-600 bg-slate-950/60 py-1.5 pl-2 pr-7 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer">
+                        class="rounded-lg border border-slate-600 bg-slate-950/60 py-1.5 pl-2 pr-7 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer"
+                        onchange="window.changeDebtReportPerPage?.(this)">
                         @foreach ([10, 25, 50, 100] as $size)
                             <option value="{{ $size }}" {{ $customers->perPage() == $size ? 'selected' : '' }}>
                                 {{ $size }} por página
