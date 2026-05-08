@@ -1,0 +1,36 @@
+{
+    "name": "mi-empresa/laravel-core",
+    "description": "Core package with design system, auth, PDF engine, and reusable components for Laravel projects.",
+    "type": "library",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "MiEmpresa\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MiEmpresa\\Core\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MiEmpresa\\Core\\CoreServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "livewire/livewire": "^3.0",
+        "barryvdh/laravel-dompdf": "^3.1"
+    },
+    "require-dev": {
+        "barryvdh/laravel-debugbar": "^4.0"
+    },
+    "suggest": {
+        "spatie/laravel-permission": "For role-based access control (RBAC)"
+    }
+}

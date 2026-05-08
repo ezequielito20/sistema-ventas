@@ -312,15 +312,27 @@
     @if ($customers instanceof \Illuminate\Pagination\LengthAwarePaginator && $customers->hasPages())
         <div id="debtReportPagination" class="mt-4 px-2 pb-1 sm:px-0">
             <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <p class="text-xs text-slate-400 sm:text-sm">
-                    Mostrando
-                    <span class="font-semibold text-slate-100">{{ $customers->firstItem() }}</span>
-                    a
-                    <span class="font-semibold text-slate-100">{{ $customers->lastItem() }}</span>
-                    de
-                    <span class="font-semibold text-slate-100">{{ $customers->total() }}</span>
-                    resultados
-                </p>
+                <div class="flex items-center gap-3">
+                    <p class="text-xs text-slate-400 sm:text-sm">
+                        Mostrando
+                        <span class="font-semibold text-slate-100">{{ $customers->firstItem() }}</span>
+                        a
+                        <span class="font-semibold text-slate-100">{{ $customers->lastItem() }}</span>
+                        de
+                        <span class="font-semibold text-slate-100">{{ $customers->total() }}</span>
+                        resultados
+                    </p>
+
+                    {{-- Selector de registros por página --}}
+                    <select id="perPageFilter"
+                        class="rounded-lg border border-slate-600 bg-slate-950/60 py-1.5 pl-2 pr-7 text-xs text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer">
+                        @foreach ([10, 25, 50, 100] as $size)
+                            <option value="{{ $size }}" {{ $customers->perPage() == $size ? 'selected' : '' }}>
+                                {{ $size }} por página
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="flex items-center gap-2 min-w-0">
                     @if ($customers->onFirstPage())

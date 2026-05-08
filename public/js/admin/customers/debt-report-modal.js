@@ -30,6 +30,10 @@ function initializeDebtReportModal() {
     // Inicializar eventos
     initializeEvents();
 
+    // Vincular paginación y selector de per-page inicial
+    bindPaginationEvents();
+    bindPerPageEvent();
+
     // Cargar filtros guardados (ahora reinicia a valores por defecto)
     loadSavedFilters();
 
@@ -166,35 +170,32 @@ function initializeFilters() {
 }
 
 // Función para aplicar filtros (Ahora es Server-Side para actualizar estadísticas)
-async function applyFilters() {
+async function applyFilters(page = 1) {
     const filters = getCurrentFilters();
+    const perPage = document.getElementById('perPageFilter')?.value || 10;
 
     // Guardar filtros en memoria local
-    saveFilters(filters);
+    saveFilters({...filters, per_page: perPage});
 
     // Obtener contenedor de la tabla y stats
-    const modalBody = document.querySelector('#debtReportModal .p-6.max-h-\\[80vh\\]');
-    if (!modalBody) {
-        console.error('No se encontró el cuerpo del modal con el selector #debtReportModal .p-6.max-h-\\[80vh\\]');
-        return;
-    }
+    const statsContainer = document.getElementById('debtReportStats');
+    const tableContainer = document.getElementById('debtReportTable');
+    const paginationContainer = document.getElementById('debtReportPagination');
 
-    // Obtener tasa de cambio actual para no perderla
-    const exchangeRateInput = document.getElementById('modalExchangeRate');
-    const exchangeRate = exchangeRateInput ? exchangeRateInput.value : (window.debtReportModalData?.exchangeRate || 134);
-
-    // Mostrar un sutil indicador de carga sobre la tabla
-    const tableContainer = modalBody.querySelector('.bg-white.rounded-xl.shadow-sm');
-    if (tableContainer) {
-        tableContainer.style.opacity = '0.5';
-        tableContainer.style.pointerEvents = 'none';
-    }
+    // Mostrar un sutil indicador de carga
+    [statsContainer, tableContainer, paginationContainer].forEach(el => {
+        if (el) { el.style.opacity = '0.5'; el.style.pointerEvents = 'none'; }
+    });
 
     try {
-        // Construir URL con filtros
+        const exchangeRateInput = document.getElementById('modalExchangeRate');
+        const exchangeRate = exchangeRateInput ? exchangeRateInput.value : (window.debtReportModalData?.exchangeRate || 134);
+
         const url = new URL('/admin/customers/debt-report', window.location.origin);
         url.searchParams.set('ajax', '1');
         url.searchParams.set('exchange_rate', exchangeRate);
+        url.searchParams.set('page', page);
+        url.searchParams.set('per_page', perPage);
 
         if (filters.search) url.searchParams.set('search', filters.search);
         if (filters.order) url.searchParams.set('order', filters.order);
@@ -211,35 +212,54 @@ async function applyFilters() {
 
         if (response.ok) {
             const html = await response.text();
-
-            // Extraer el contenido del body del modal
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
             const newStats = doc.getElementById('debtReportStats');
             const newTable = doc.getElementById('debtReportTable');
+            const newPagination = doc.getElementById('debtReportPagination');
 
-            if (newStats && newTable) {
-                const currentStats = document.getElementById('debtReportStats');
-                const currentTable = document.getElementById('debtReportTable');
-
-                if (currentStats) currentStats.innerHTML = newStats.innerHTML;
-                if (currentTable) {
-                    currentTable.innerHTML = newTable.innerHTML;
-                    currentTable.style.opacity = '1';
-                    currentTable.style.pointerEvents = 'auto';
-                }
-
-                // Re-inicializar valores Bs con la tasa actual
-                updateBsValues(parseFloat(exchangeRate));
+            if (newStats) statsContainer.innerHTML = newStats.innerHTML;
+            if (newTable) tableContainer.innerHTML = newTable.innerHTML;
+            if (newPagination) {
+                paginationContainer.innerHTML = newPagination.innerHTML;
+                // Re-inicializar eventos de paginación y per-page
+                bindPaginationEvents();
+                bindPerPageEvent();
             }
+
+            [statsContainer, tableContainer, paginationContainer].forEach(el => {
+                if (el) { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }
+            });
+
+            updateBsValues(parseFloat(exchangeRate));
         }
     } catch (error) {
         console.error('Error filtrando:', error);
-        if (tableContainer) {
-            tableContainer.style.opacity = '1';
-            tableContainer.style.pointerEvents = 'auto';
-        }
+        [statsContainer, tableContainer, paginationContainer].forEach(el => {
+            if (el) { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }
+        });
+    }
+}
+
+// Vincular eventos de click en paginación (carga vía AJAX)
+function bindPaginationEvents() {
+    document.querySelectorAll('#debtReportPagination a[data-page]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            if (page) applyFilters(page);
+        });
+    });
+}
+
+// Vincular evento de cambio en selector de registros por página
+function bindPerPageEvent() {
+    const perPageSelect = document.getElementById('perPageFilter');
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            applyFilters(1); // Reset a página 1 al cambiar per_page
+        });
     }
 }
 
@@ -266,10 +286,8 @@ function getCustomerName(row) {
 
 // Función para limpiar todos los filtros
 function clearAllFilters() {
-    // Usar la función de reinicio para limpiar filtros
     resetFiltersToDefault();
-
-    showNotification('Filtros limpiados', 'success');
+    applyFilters(1);
 }
 
 // ===== FUNCIONES DE PERSISTENCIA =====
@@ -468,6 +486,8 @@ window.updateExchangeRate = updateExchangeRate;
 window.updateBsValues = updateBsValues;
 window.applyFilters = applyFilters;
 window.clearAllFilters = clearAllFilters;
+window.bindPaginationEvents = bindPaginationEvents;
+window.bindPerPageEvent = bindPerPageEvent;
 window.downloadPdf = downloadPdf;
 window.showNotification = showNotification;
 window.formatCurrency = formatCurrency;

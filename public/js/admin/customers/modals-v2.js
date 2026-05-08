@@ -259,11 +259,13 @@ window.modalManagerV2 = function () {
             if (filters.date_from) url.searchParams.set('date_from', filters.date_from);
             if (filters.date_to) url.searchParams.set('date_to', filters.date_to);
             url.searchParams.set('page', String(filters.page || this.v2DebtReportPage || 1));
+            url.searchParams.set('per_page', String(filters.per_page || 10));
 
             return url;
         },
 
         getDebtReportFiltersV2() {
+            const perPageEl = document.getElementById('perPageFilter');
             return {
                 search: document.getElementById('v2SearchFilter')?.value || '',
                 order: document.getElementById('v2OrderFilter')?.value || 'debt_desc',
@@ -272,6 +274,7 @@ window.modalManagerV2 = function () {
                 date_to: document.getElementById('v2DateToFilter')?.value || '',
                 exchange_rate: parseFloat(document.getElementById('v2ModalExchangeRate')?.value || this.resolveCurrentExchangeRateV2()),
                 page: this.v2DebtReportPage || 1,
+                per_page: perPageEl ? parseInt(perPageEl.value, 10) : 10,
             };
         },
 
@@ -661,6 +664,13 @@ window.modalManagerV2 = function () {
                     });
                 });
             }
+
+            // Selector de registros por página
+            const perPageSelect = document.getElementById('perPageFilter');
+            bindOnce(perPageSelect, 'change', () => {
+                this.v2DebtReportPage = 1;
+                this.loadDebtReportV2(this.getDebtReportFiltersV2());
+            });
         },
 
         resetDebtReportFiltersV2(reload = true) {
