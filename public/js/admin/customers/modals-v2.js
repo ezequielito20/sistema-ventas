@@ -585,7 +585,7 @@ window.modalManagerV2 = function () {
                 timer = setTimeout(() => {
                     this.v2DebtReportPage = 1;
                     this.loadDebtReportV2(this.getDebtReportFiltersV2());
-                }, 320);
+                }, 500);
             };
 
             [search, order, debtType, dateFrom, dateTo].forEach((el) => {
