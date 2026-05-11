@@ -9,7 +9,9 @@ use App\Models\SubscriptionPayment;
 use App\Services\PaymentService;
 use App\Services\SubscriptionService;
 use App\Services\UsageCollectorService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -46,6 +48,25 @@ class CompanyShow extends Component
 
     public string $paymentNotes = '';
 
+    // ── Edit Subscription Modal ──
+    public bool $showEditSubscriptionModal = false;
+
+    public string $editStartedAt = '';
+
+    public int $editBillingDay = 1;
+
+    public string $editNextBillingDate = '';
+
+    public string $editGracePeriodEnd = '';
+
+    public string $editAmount = '';
+
+    public string $editDiscountAmount = '0';
+
+    public string $editDiscountReason = '';
+
+    public bool $editAutoRenew = true;
+
     public function mount(int $companyId): void
     {
         if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
@@ -63,9 +84,6 @@ class CompanyShow extends Component
             ->findOrFail($this->companyId);
 
         $this->subscription = $this->company->subscription;
-
-        $usageCollector = app(UsageCollectorService::class);
-        $this->stats = $usageCollector->getCompanyStats($this->companyId);
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -83,6 +101,63 @@ class CompanyShow extends Component
     public function switchTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    // ── Edit Subscription Modal ──
+    public function openEditSubscriptionModal(): void
+    {
+        $sub = $this->subscription;
+        $this->editStartedAt = $sub?->started_at?->format('Y-m-d') ?? '';
+        $this->editBillingDay = $sub?->billing_day ?? 1;
+        $this->editNextBillingDate = $sub?->next_billing_date?->format('Y-m-d') ?? '';
+        $this->editGracePeriodEnd = $sub?->grace_period_end?->format('Y-m-d') ?? '';
+        $this->editAmount = $sub ? number_format((float) $sub->amount, 2, '.', '') : '0.00';
+        $this->editDiscountAmount = $sub ? number_format((float) ($sub->discount_amount ?? 0), 2, '.', '') : '0.00';
+        $this->editDiscountReason = $sub?->discount_reason ?? '';
+        $this->editAutoRenew = $sub?->auto_renew ?? true;
+        $this->showEditSubscriptionModal = true;
+    }
+
+    public function closeEditSubscriptionModal(): void
+    {
+        $this->showEditSubscriptionModal = false;
+    }
+
+    public function saveSubscription(): void
+    {
+        if (!$this->subscription) {
+            $this->toast('No hay suscripción para editar.', 'error');
+            return;
+        }
+
+        $this->validate([
+            'editStartedAt' => 'required|date',
+            'editBillingDay' => 'required|integer|min:1|max:28',
+            'editNextBillingDate' => 'required|date',
+            'editGracePeriodEnd' => 'nullable|date|after_or_equal:editNextBillingDate',
+            'editAmount' => 'required|numeric|min:0',
+            'editDiscountAmount' => 'nullable|numeric|min:0',
+            'editDiscountReason' => 'nullable|string|max:500',
+            'editAutoRenew' => 'boolean',
+        ]);
+
+        $amount = (float) $this->editAmount;
+        $discount = (float) ($this->editDiscountAmount ?: 0);
+
+        $this->subscription->update([
+            'started_at' => $this->editStartedAt,
+            'billing_day' => (int) $this->editBillingDay,
+            'next_billing_date' => $this->editNextBillingDate,
+            'grace_period_end' => $this->editGracePeriodEnd ?: null,
+            'amount' => max(0, $amount - $discount),
+            'discount_amount' => $discount,
+            'discount_reason' => $this->editDiscountReason ?: null,
+            'auto_renew' => $this->editAutoRenew,
+        ]);
+
+        $this->closeEditSubscriptionModal();
+        $this->loadCompany();
+        $this->toast('Suscripción actualizada correctamente.', 'success');
     }
 
     public function openSuspendModal(): void
