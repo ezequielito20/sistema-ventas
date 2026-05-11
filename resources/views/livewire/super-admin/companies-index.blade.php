@@ -205,35 +205,187 @@
 
     {{-- Modal de Detalle --}}
     @if ($showDetailModal && $detailCompany)
-        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" x-data x-cloak x-show="true" x-transition>
+        <div class="fixed inset-0 z-50 flex items-center justify-center" x-data x-cloak x-show="true" x-transition>
             <div class="fixed inset-0 bg-black/60" wire:click="closeDetailModal"></div>
-            <div class="relative w-full max-w-2xl mx-4 my-8" @click.stop>
-                <div class="ui-panel">
+            <div class="relative w-full max-w-4xl mx-4" @click.stop>
+                <div class="ui-panel overflow-hidden">
+                    {{-- Header --}}
                     <div class="ui-panel__header flex items-center justify-between">
-                        <h3 class="ui-panel__title">{{ $detailCompany['name'] }}</h3>
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-lg font-bold uppercase text-cyan-300">
+                                {{ mb_substr($detailCompany['name'], 0, 2) }}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="ui-panel__title !text-base">{{ $detailCompany['name'] }}</h3>
+                                    <span @class([
+                                        'ui-badge ui-badge-success text-[10px]' => $detailCompany['subscription_status'] === 'active',
+                                        'ui-badge ui-badge-info text-[10px]' => $detailCompany['subscription_status'] === 'trial',
+                                        'ui-badge ui-badge-danger text-[10px]' => $detailCompany['subscription_status'] === 'suspended',
+                                        'ui-badge ui-badge-warning text-[10px]' => !in_array($detailCompany['subscription_status'], ['active', 'trial', 'suspended']),
+                                    ])>
+                                        {{ ucfirst($detailCompany['subscription_status']) }}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Creada el {{ $detailCompany['created_at'] }} · {{ $detailCompany['plan_name'] }}</p>
+                            </div>
+                        </div>
                         <button type="button" wire:click="closeDetailModal" class="text-slate-400 hover:text-slate-200">
-                            <i class="fas fa-times text-xl"></i>
+                            <i class="fas fa-times text-lg"></i>
                         </button>
                     </div>
-                    <div class="ui-panel__body space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><span class="text-xs text-slate-400">NIT</span><p class="text-sm text-slate-200">{{ $detailCompany['nit'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Email</span><p class="text-sm text-slate-200">{{ $detailCompany['email'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Teléfono</span><p class="text-sm text-slate-200">{{ $detailCompany['phone'] ?: '—' }}</p></div>
-                            <div><span class="text-xs text-slate-400">Tipo Negocio</span><p class="text-sm text-slate-200">{{ $detailCompany['business_type'] ?: '—' }}</p></div>
-                            <div><span class="text-xs text-slate-400">Plan</span><p class="text-sm text-slate-200">{{ $detailCompany['plan_name'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Estado</span><p class="text-sm text-slate-200">{{ $detailCompany['subscription_status'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Día Cobro</span><p class="text-sm text-slate-200">Día {{ $detailCompany['billing_day'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Próx. Cobro</span><p class="text-sm text-slate-200">{{ $detailCompany['next_billing_date'] }}</p></div>
-                            <div><span class="text-xs text-slate-400">Monto Mensual</span><p class="text-sm font-semibold text-emerald-400">$ {{ number_format($detailCompany['amount'], 2) }}</p></div>
-                            <div><span class="text-xs text-slate-400">Último Pago</span><p class="text-sm text-slate-200">{{ $detailCompany['last_payment_date'] }}</p></div>
+
+                    <div class="ui-panel__body p-5 space-y-4">
+                        {{-- Dos columnas: Empresa + Suscripción --}}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {{-- Empresa --}}
+                            <div class="space-y-3">
+                                <h4 class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                    <i class="fas fa-building mr-1.5 text-cyan-400"></i>Datos de la Empresa
+                                </h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
+                                            <i class="fas fa-id-card text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">NIT</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['nit'] ?: '—' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
+                                            <i class="fas fa-envelope text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Email</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['email'] ?: '—' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
+                                            <i class="fas fa-phone text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Teléfono</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['phone'] ?: '—' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
+                                            <i class="fas fa-briefcase text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Negocio</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['business_type'] ?: '—' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Suscripción --}}
+                            <div class="space-y-3">
+                                <h4 class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                    <i class="fas fa-credit-card mr-1.5 text-cyan-400"></i>Datos de Suscripción
+                                </h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                                            <i class="fas fa-calendar-day text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Día Cobro</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">Día {{ $detailCompany['billing_day'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                                            <i class="fas fa-calendar-check text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Próx. Cobro</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['next_billing_date'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                                            <i class="fas fa-layer-group text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Plan</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['plan_name'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                                            <i class="fas fa-history text-xs"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Último Pago</p>
+                                            <p class="truncate text-sm font-medium text-slate-200">{{ $detailCompany['last_payment_date'] }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-span-2 flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-3">
+                                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] uppercase tracking-wide text-slate-500">Monto Mensual</p>
+                                            <p class="text-lg font-bold text-emerald-400">$ {{ number_format($detailCompany['amount'], 2) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <hr class="border-slate-700">
-                        <div class="grid grid-cols-4 gap-4 text-center">
-                            <div><p class="text-lg font-bold text-white">{{ $detailCompany['users_count'] }}</p><p class="text-xs text-slate-400">Usuarios</p></div>
-                            <div><p class="text-lg font-bold text-white">{{ $detailCompany['customers_count'] }}</p><p class="text-xs text-slate-400">Clientes</p></div>
-                            <div><p class="text-lg font-bold text-white">{{ $detailCompany['sales_count'] }}</p><p class="text-xs text-slate-400">Ventas</p></div>
-                            <div><p class="text-lg font-bold text-white">$ {{ number_format($detailCompany['total_revenue'], 0) }}</p><p class="text-xs text-slate-400">Facturación</p></div>
+
+                        {{-- Stats resumen --}}
+                        <div class="border-t border-slate-700/50 pt-4">
+                            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-400">
+                                        <i class="fas fa-users text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-base font-bold text-white leading-tight">{{ $detailCompany['users_count'] }}</p>
+                                        <p class="text-[9px] uppercase tracking-wide text-slate-400">Usuarios</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-purple-500/10 text-purple-400">
+                                        <i class="fas fa-user-friends text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-base font-bold text-white leading-tight">{{ $detailCompany['customers_count'] }}</p>
+                                        <p class="text-[9px] uppercase tracking-wide text-slate-400">Clientes</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-500/10 text-amber-400">
+                                        <i class="fas fa-shopping-cart text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-base font-bold text-white leading-tight">{{ $detailCompany['sales_count'] }}</p>
+                                        <p class="text-[9px] uppercase tracking-wide text-slate-400">Ventas</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
+                                        <i class="fas fa-dollar-sign text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-base font-bold text-emerald-400 leading-tight">$ {{ number_format($detailCompany['total_revenue'], 0) }}</p>
+                                        <p class="text-[9px] uppercase tracking-wide text-slate-400">Facturación</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="flex items-center justify-between border-t border-slate-700/50 pt-4">
+                            <a href="{{ route('super-admin.companies.show', $detailCompany['id']) }}" class="ui-btn ui-btn-primary text-sm" wire:navigate>
+                                <i class="fas fa-cog mr-1.5"></i> Gestionar empresa
+                            </a>
+                            <button type="button" wire:click="closeDetailModal" class="ui-btn ui-btn-ghost text-sm">Cerrar</button>
                         </div>
                     </div>
                 </div>

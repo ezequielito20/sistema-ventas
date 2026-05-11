@@ -28,6 +28,8 @@ class CompanyShow extends Component
 
     public array $stats = [];
 
+    public array $dashboardStats = [];
+
     public string $activeTab = 'info';
 
     public bool $showSuspendModal = false;
@@ -84,6 +86,11 @@ class CompanyShow extends Component
             ->findOrFail($this->companyId);
 
         $this->subscription = $this->company->subscription;
+
+        $usageCollector = app(UsageCollectorService::class);
+        $this->stats = $usageCollector->getCompanyStats($this->companyId);
+
+        $this->dashboardStats = app(\App\Services\CompanyStatsService::class)->getDashboardStats($this->companyId);
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -300,6 +307,7 @@ class CompanyShow extends Component
         return view('livewire.super-admin.company-show', [
             'plans' => $plans,
             'payments' => $payments,
+            'dashboardStats' => $this->dashboardStats,
         ]);
     }
 }

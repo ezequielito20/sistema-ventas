@@ -100,10 +100,13 @@ class UsageCollectorService
             ->latest('period_end')
             ->first();
 
-        $previousLog = SubscriptionUsageLog::where('company_id', $companyId)
-            ->where('id', '!=', $latestLog?->id)
-            ->latest('period_end')
-            ->first();
+        $previousLog = null;
+        if ($latestLog) {
+            $previousLog = SubscriptionUsageLog::where('company_id', $companyId)
+                ->where('id', '!=', $latestLog->id)
+                ->latest('period_end')
+                ->first();
+        }
 
         return [
             'users_count' => $company->users_count,

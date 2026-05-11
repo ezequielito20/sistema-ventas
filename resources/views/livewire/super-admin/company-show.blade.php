@@ -337,15 +337,555 @@
             @endif
 
             @if ($activeTab === 'stats')
+                @php
+                    $ds = $dashboardStats ?? [];
+                    $salesAnalysis = $ds['sales_analysis'] ?? [];
+                    $topProducts = $ds['top_products'] ?? collect();
+                    $topCustomers = $ds['top_customers'] ?? collect();
+                    $salesByCategory = $ds['sales_by_category'] ?? ['labels' => [], 'data' => [], 'categories' => collect()];
+                    $monthlySales = $ds['monthly_sales'] ?? ['labels' => [], 'sales_data' => [], 'profit_data' => [], 'transactions_data' => []];
+                    $cashCount = $ds['cash_count'] ?? ['current_cash_data' => [], 'closed_cash_counts' => collect()];
+                    $customerStats = $ds['customer_stats'] ?? [];
+                    $currentCashData = $cashCount['current_cash_data'] ?? [];
+                    $closedCashCounts = $cashCount['closed_cash_counts'] ?? collect();
+                @endphp
+
                 <div class="p-6 space-y-6">
+
+                    {{-- 1. Basic stat cards (existing) --}}
                     <div class="grid grid-cols-2 gap-2 xs:gap-3 lg:grid-cols-5">
-                        <x-ui.stat-card variant="info" icon="fas fa-users" trend="Total" label="Usuarios" :value="number_format($stats['users_count'])" />
-                        <x-ui.stat-card variant="info" icon="fas fa-user-friends" trend="Total" label="Clientes" :value="number_format($stats['customers_count'])" />
-                        <x-ui.stat-card variant="info" icon="fas fa-box" trend="Total" label="Productos" :value="number_format($stats['products_count'])" />
-                        <x-ui.stat-card variant="success" icon="fas fa-shopping-cart" trend="Total" label="Ventas" :value="number_format($stats['sales_count'])" />
-                        <x-ui.stat-card variant="warning" icon="fas fa-dollar-sign" trend="Total" label="Facturación" :value="'$ ' . number_format($stats['total_revenue'], 0)" />
+                        <x-ui.stat-card variant="info" icon="fas fa-users" trend="Total" label="Usuarios" :value="number_format($stats['users_count'] ?? 0)" />
+                        <x-ui.stat-card variant="info" icon="fas fa-user-friends" trend="Total" label="Clientes" :value="number_format($stats['customers_count'] ?? 0)" />
+                        <x-ui.stat-card variant="info" icon="fas fa-box" trend="Total" label="Productos" :value="number_format($stats['products_count'] ?? 0)" />
+                        <x-ui.stat-card variant="success" icon="fas fa-shopping-cart" trend="Total" label="Ventas" :value="number_format($stats['sales_count'] ?? 0)" />
+                        <x-ui.stat-card variant="warning" icon="fas fa-dollar-sign" trend="Total" label="Facturación" :value="'$ ' . number_format($stats['total_revenue'] ?? 0, 0)" />
                     </div>
+
+                    {{-- 2. Sales Analysis Widgets --}}
+                    <div class="ui-panel">
+                        <div class="ui-panel__header">
+                            <div>
+                                <h2 class="ui-panel__title">Análisis de Ventas</h2>
+                                <p class="ui-panel__subtitle">Métricas y rendimiento comercial</p>
+                            </div>
+                        </div>
+                        <div class="ui-panel__body">
+                            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                <x-ui.stat-card variant="info" icon="fas fa-calendar-week"
+                                    trend="Semanal"
+                                    label="Ventas de la Semana"
+                                    :value="'$ ' . number_format($salesAnalysis['weekly_sales'] ?? 0, 2)"
+                                    meta="Hoy: $ {{ number_format($salesAnalysis['today_sales'] ?? 0, 2) }}" />
+
+                                <x-ui.stat-card variant="success" icon="fas fa-receipt"
+                                    trend="Promedio"
+                                    label="Ticket Promedio"
+                                    :value="'$ ' . number_format($salesAnalysis['average_customer_spend'] ?? 0, 2)"
+                                    meta="Por venta en el período" />
+
+                                <x-ui.stat-card variant="warning" icon="fas fa-chart-pie"
+                                    trend="Margen"
+                                    label="Ganancia Total Teórica"
+                                    :value="'$ ' . number_format($salesAnalysis['total_profit'] ?? 0, 2)"
+                                    meta="Margen de productos vendidos" />
+
+                                <x-ui.stat-card variant="danger" icon="fas fa-calendar-alt"
+                                    trend="Mensual"
+                                    label="Rendimiento Mensual"
+                                    :value="'$ ' . number_format($salesAnalysis['monthly_sales'] ?? 0, 2)"
+                                    meta="Mes calendario actual" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Customer Stats --}}
+                    <div class="ui-panel">
+                        <div class="ui-panel__header">
+                            <div>
+                                <h2 class="ui-panel__title">Información de Clientes</h2>
+                                <p class="ui-panel__subtitle">Gestión y análisis de clientes</p>
+                            </div>
+                        </div>
+                        <div class="ui-panel__body">
+                            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                <x-ui.stat-card variant="info" icon="fas fa-users"
+                                    trend="Total"
+                                    label="Total Clientes"
+                                    :value="number_format($customerStats['total_customers'] ?? 0)" />
+
+                                <x-ui.stat-card variant="success" icon="fas fa-user-plus"
+                                    trend="Nuevos"
+                                    label="Nuevos Clientes"
+                                    :value="number_format($customerStats['new_customers'] ?? 0)"
+                                    meta="Registrados este mes" />
+
+                                <x-ui.stat-card variant="warning" icon="fas fa-check-circle"
+                                    trend="Verificados"
+                                    label="Clientes Verificados"
+                                    :value="number_format($customerStats['verified_customers'] ?? 0)"
+                                    :meta="($customerStats['total_customers'] ?? 0) > 0 ? round(($customerStats['verified_customers'] ?? 0) / ($customerStats['total_customers'] ?? 1) * 100, 1) . '% del total' : 'Sin datos'" />
+
+                                <x-ui.stat-card variant="danger" icon="fas fa-chart-pulse"
+                                    trend="Actividad"
+                                    label="Deuda Pendiente"
+                                    :value="'$ ' . number_format($currentCashData['debt'] ?? 0, 2)"
+                                    meta="Total por cobrar" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Cash Count Section --}}
+                    <div class="ui-panel">
+                        <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 class="ui-panel__title">Arqueo de Caja</h2>
+                                <p class="ui-panel__subtitle">Control financiero y gestión de efectivo</p>
+                            </div>
+                            @if ($currentCashData['opening_date'] ?? null)
+                                <span class="ui-badge ui-badge-success text-xs">Caja Abierta</span>
+                            @else
+                                <span class="ui-badge ui-badge-danger text-xs">Caja Cerrada</span>
+                            @endif
+                        </div>
+                        <div class="ui-panel__body">
+                            <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                <x-ui.stat-card variant="info" icon="fas fa-balance-scale"
+                                    trend="Balance"
+                                    label="Balance Actual"
+                                    :value="'$ ' . number_format($currentCashData['balance'] ?? 0, 2)"
+                                    meta="Período seleccionado" />
+
+                                <x-ui.stat-card variant="success" icon="fas fa-chart-line"
+                                    :trend="'$ ' . number_format($salesAnalysis['monthly_sales'] ?? 0, 2)"
+                                    label="Ventas del Período"
+                                    :value="'$ ' . number_format($currentCashData['sales'] ?? 0, 2)"
+                                    meta="Compras: $ {{ number_format($currentCashData['purchases'] ?? 0, 2) }}" />
+
+                                <x-ui.stat-card variant="warning" icon="fas fa-hourglass-half"
+                                    trend="Pendiente"
+                                    label="Por Cobrar"
+                                    :value="'$ ' . number_format($currentCashData['debt'] ?? 0, 2)"
+                                    meta="Deudas pendientes" />
+
+                                <x-ui.stat-card variant="neutral" icon="fas fa-hand-holding-usd"
+                                    trend="Recibidos"
+                                    label="Pagos de Deuda"
+                                    :value="'$ ' . number_format($currentCashData['debt_payments'] ?? 0, 2)"
+                                    meta="Este período" />
+                            </div>
+
+                            @if ($closedCashCounts->isNotEmpty())
+                                <div class="mt-4 border-t border-slate-700/50 pt-4">
+                                    <h4 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Arqueos Cerrados Recientes</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="ui-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Apertura</th>
+                                                    <th>Cierre</th>
+                                                    <th class="text-right">Monto Inicial</th>
+                                                    <th class="text-right">Monto Final</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($closedCashCounts as $cc)
+                                                    <tr>
+                                                        <td class="text-sm text-slate-300">{{ $cc['opening_date_formatted'] }}</td>
+                                                        <td class="text-sm text-slate-300">{{ $cc['closing_date_formatted'] }}</td>
+                                                        <td class="text-right tabular-nums text-sm">$ {{ number_format($cc['initial_amount'], 2) }}</td>
+                                                        <td class="text-right tabular-nums text-sm font-medium">$ {{ number_format($cc['final_amount'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- 5. Top 10 Products + Top 5 Customers + Category Chart --}}
+                    <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                        {{-- Top 10 Productos --}}
+                        <div class="ui-panel">
+                            <div class="ui-panel__header">
+                                <div>
+                                    <h2 class="ui-panel__title">Top 10 Productos Más Vendidos</h2>
+                                    <p class="ui-panel__subtitle">Ranking de productos con mejor rendimiento</p>
+                                </div>
+                            </div>
+                            <div class="ui-panel__body !p-0">
+                                {{-- Vista móvil: cards --}}
+                                <div class="md:hidden space-y-1.5 p-2">
+                                    @forelse ($topProducts as $index => $product)
+                                        <div class="relative flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 px-3 py-2.5 transition hover:bg-slate-800/70 overflow-hidden
+                                            {{ $index < 3 ? 'border-l-[3px] border-l-amber-500/80' : '' }}">
+                                            @if ($index < 3)
+                                                <div class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none"></div>
+                                            @endif
+                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold flex-shrink-0
+                                                {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20' : 'bg-slate-700 text-slate-400' }}">
+                                                {{ $index + 1 }}
+                                            </span>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-[13px] font-semibold text-slate-100 truncate">{{ $product->name }}</div>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span class="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-px text-[10px] font-semibold text-amber-400">
+                                                        <i class="fas fa-chart-line text-[9px]"></i> {{ $product->times_sold }}x
+                                                    </span>
+                                                    <span class="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-px text-[10px] font-semibold text-emerald-400">
+                                                        <i class="fas fa-cubes text-[9px]"></i> {{ $product->total_quantity }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="text-right flex-shrink-0">
+                                                <div class="text-sm font-bold tabular-nums bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">$ {{ number_format($product->total_revenue, 2) }}</div>
+                                                <div class="text-[10px] text-slate-500 tabular-nums mt-px">c/u $ {{ number_format($product->sale_price, 2) }}</div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="px-3 py-8 text-center text-slate-500 text-sm">Sin datos de productos vendidos.</div>
+                                    @endforelse
+                                </div>
+
+                                {{-- Vista desktop: tabla --}}
+                                <div class="hidden md:block ui-table-wrap !rounded-none !border-0">
+                                    <table class="ui-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-12 text-center">#</th>
+                                                <th>Producto</th>
+                                                <th class="text-center">Veces</th>
+                                                <th class="text-center">Cant.</th>
+                                                <th class="text-right">Precio</th>
+                                                <th class="text-right">Ingresos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($topProducts as $index => $product)
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold
+                                                            {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                                                            {{ $index + 1 }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="font-medium">{{ $product->name }}</td>
+                                                    <td class="text-center">
+                                                        <span class="ui-badge ui-badge-warning text-xs">{{ $product->times_sold }}</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="ui-badge ui-badge-success text-xs">{{ $product->total_quantity }}</span>
+                                                    </td>
+                                                    <td class="text-right tabular-nums">$ {{ number_format($product->sale_price, 2) }}</td>
+                                                    <td class="text-right tabular-nums font-semibold">
+                                                        $ {{ number_format($product->total_revenue, 2) }}
+                                                        <div class="mt-1 h-1.5 w-full rounded-full bg-slate-700/60 overflow-hidden">
+                                                            <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-purple-600"
+                                                                style="width: {{ $topProducts->max('total_revenue') > 0 ? min(100, ($product->total_revenue / $topProducts->max('total_revenue')) * 100) : 0 }}%">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr><td colspan="6" class="text-center text-slate-500 py-8">Sin datos de productos vendidos.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Top 5 Clientes + Ventas por Categoría --}}
+                        <div class="space-y-6">
+                            {{-- Top 5 Clientes --}}
+                            <div class="ui-panel">
+                                <div class="ui-panel__header">
+                                    <div>
+                                        <h2 class="ui-panel__title">Top 5 Clientes</h2>
+                                        <p class="ui-panel__subtitle">Mayor volumen de compras</p>
+                                    </div>
+                                </div>
+                                <div class="ui-panel__body !p-0">
+                                    {{-- Vista móvil: cards --}}
+                                    <div class="md:hidden space-y-1.5 p-2">
+                                        @forelse ($topCustomers as $index => $customer)
+                                            <div class="relative flex items-center gap-3 rounded-xl border border-slate-700/50 bg-slate-800/40 px-3 py-2.5 transition hover:bg-slate-800/70 overflow-hidden
+                                                {{ $index < 3 ? 'border-l-[3px] border-l-amber-500/80' : '' }}">
+                                                @if ($index < 3)
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none"></div>
+                                                @endif
+                                                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[11px] font-bold flex-shrink-0
+                                                    {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20' : 'bg-slate-700 text-slate-400' }}">
+                                                    {{ $index + 1 }}
+                                                </span>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="text-[13px] font-semibold text-slate-100 truncate">{{ $customer->name }}</div>
+                                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                                        <span class="inline-flex items-center gap-1 rounded-md bg-purple-500/10 px-1.5 py-px text-[10px] font-semibold text-purple-400">
+                                                            <i class="fas fa-shopping-bag text-[9px]"></i> {{ $customer->total_sales }} ventas
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right flex-shrink-0">
+                                                    <div class="text-sm font-bold tabular-nums bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">$ {{ number_format($customer->total_spent, 2) }}</div>
+                                                    <div class="text-[10px] text-slate-500 mt-px">gastado</div>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="px-3 py-8 text-center text-slate-500 text-sm">Sin datos de clientes.</div>
+                                        @endforelse
+                                    </div>
+
+                                    {{-- Vista desktop: tabla --}}
+                                    <div class="hidden md:block ui-table-wrap !rounded-none !border-0">
+                                        <table class="ui-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="w-12 text-center">#</th>
+                                                    <th>Cliente</th>
+                                                    <th class="text-right">Total Gastado</th>
+                                                    <th class="text-center">Ventas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse ($topCustomers as $index => $customer)
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold
+                                                                {{ $index < 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-700 text-slate-400' }}">
+                                                                {{ $index + 1 }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="font-medium">{{ $customer->name }}</td>
+                                                        <td class="text-right tabular-nums font-semibold">
+                                                            $ {{ number_format($customer->total_spent, 2) }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span class="text-slate-300">{{ $customer->total_sales }}</span>
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr><td colspan="4" class="text-center text-slate-500 py-8">Sin datos de clientes.</td></tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Ventas por Categoría Chart --}}
+                            <div class="ui-panel">
+                                <div class="ui-panel__header">
+                                    <div>
+                                        <h2 class="ui-panel__title">Ventas por Categoría</h2>
+                                        <p class="ui-panel__subtitle">Distribución comercial principal</p>
+                                    </div>
+                                </div>
+                                <div class="ui-panel__body">
+                                    <div class="h-72">
+                                        <canvas id="superAdminSalesByCategoryChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 6. Monthly Trends Chart --}}
+                    <div class="ui-panel">
+                        <div class="ui-panel__header">
+                            <div>
+                                <h2 class="ui-panel__title">Rendimiento Mensual de Ventas</h2>
+                                <p class="ui-panel__subtitle">Ingresos, ganancias y volumen de transacciones</p>
+                            </div>
+                            @if (count($monthlySales['sales_data'] ?? []) > 0)
+                                <div class="flex items-center gap-3 text-sm text-slate-400">
+                                    <span>Prom: $ {{ number_format(collect($monthlySales['sales_data'])->avg(), 2) }}</span>
+                                    <span>Máx: $ {{ number_format(collect($monthlySales['sales_data'])->max(), 2) }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="ui-panel__body">
+                            <div class="h-80">
+                                <canvas id="superAdminSalesTrendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
+                @push('js')
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (typeof Chart === 'undefined') {
+                        console.error('[SuperAdmin Stats] Chart.js no está cargado.');
+                        return;
+                    }
+
+                    Chart.defaults.color = '#94a3b8';
+                    Chart.defaults.font.family = "'Inter', 'Nunito', system-ui, sans-serif";
+
+                    initSuperAdminSalesTrendsChart();
+                    initSuperAdminSalesByCategoryChart();
+                });
+
+                function initSuperAdminSalesTrendsChart() {
+                    const canvas = document.getElementById('superAdminSalesTrendsChart');
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+
+                    const labels = @json($monthlySales['labels'] ?? []);
+                    const salesData = @json($monthlySales['sales_data'] ?? []);
+                    const profitData = @json($monthlySales['profit_data'] ?? []);
+                    const transactionsData = @json($monthlySales['transactions_data'] ?? []);
+
+                    const gradientSales = ctx.createLinearGradient(0, 0, 0, 350);
+                    gradientSales.addColorStop(0, 'rgba(34, 211, 238, 0.35)');
+                    gradientSales.addColorStop(1, 'rgba(34, 211, 238, 0.02)');
+
+                    const gradientProfit = ctx.createLinearGradient(0, 0, 0, 350);
+                    gradientProfit.addColorStop(0, 'rgba(167, 139, 250, 0.35)');
+                    gradientProfit.addColorStop(1, 'rgba(167, 139, 250, 0.02)');
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Ventas Totales',
+                                    data: salesData,
+                                    type: 'line',
+                                    borderColor: '#22d3ee',
+                                    backgroundColor: gradientSales,
+                                    borderWidth: 2.5,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: '#22d3ee',
+                                    pointBorderColor: '#0f172a',
+                                    pointBorderWidth: 2,
+                                    pointHoverRadius: 7,
+                                    pointRadius: 4,
+                                    order: 1
+                                },
+                                {
+                                    label: 'Ganancia Neta',
+                                    data: profitData,
+                                    type: 'line',
+                                    borderColor: '#a78bfa',
+                                    backgroundColor: gradientProfit,
+                                    borderWidth: 2.5,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: '#a78bfa',
+                                    pointBorderColor: '#0f172a',
+                                    pointBorderWidth: 2,
+                                    pointHoverRadius: 7,
+                                    pointRadius: 4,
+                                    order: 2
+                                },
+                                {
+                                    label: 'Transacciones',
+                                    data: transactionsData,
+                                    type: 'bar',
+                                    backgroundColor: 'rgba(251, 191, 36, 0.35)',
+                                    borderColor: 'rgba(251, 191, 36, 0.8)',
+                                    borderWidth: 1.5,
+                                    borderRadius: 6,
+                                    barPercentage: 0.5,
+                                    yAxisID: 'y1',
+                                    order: 3
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: {
+                                    labels: { usePointStyle: true, padding: 20, font: { size: 11 } }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) label += ': ';
+                                            if (context.dataset.yAxisID === 'y1') {
+                                                label += context.parsed.y + ' ventas';
+                                            } else {
+                                                label += '$' + (context.parsed.y || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Monto ($)', font: { size: 11 } },
+                                    grid: { color: 'rgba(148, 163, 184, 0.08)' },
+                                    ticks: { callback: v => '$' + v.toLocaleString('es-PE') }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'N° de Ventas', font: { size: 11 } },
+                                    grid: { drawOnChartArea: false }
+                                },
+                                x: { grid: { display: false } }
+                            }
+                        }
+                    });
+                }
+
+                function initSuperAdminSalesByCategoryChart() {
+                    const canvas = document.getElementById('superAdminSalesByCategoryChart');
+                    if (!canvas) return;
+
+                    new Chart(canvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: @json($salesByCategory['labels'] ?? []),
+                            datasets: [{
+                                data: @json($salesByCategory['data'] ?? []),
+                                backgroundColor: ['#22d3ee', '#60a5fa', '#6366f1', '#a78bfa', '#34d399', '#fb7185'],
+                                borderColor: 'rgba(15, 23, 42, 0.8)',
+                                borderWidth: 2,
+                                hoverOffset: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '58%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 16,
+                                        font: { size: 11 }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.label + ': $' + context.parsed.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                </script>
+                @endpush
             @endif
         </div>
     @endif
