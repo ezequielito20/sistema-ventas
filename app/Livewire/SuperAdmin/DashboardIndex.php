@@ -3,16 +3,18 @@
 namespace App\Livewire\SuperAdmin;
 
 use App\Models\Company;
-use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Services\SubscriptionService;
 use App\Services\UsageCollectorService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class DashboardIndex extends Component
 {
+    use WithPagination;
+
     public array $stats = [];
 
     public array $monthlyRevenue = [];
@@ -20,6 +22,18 @@ class DashboardIndex extends Component
     public array $topCompanies = [];
 
     public array $upcomingPayments = [];
+
+    public string $search = '';
+
+    public string $statusFilter = '';
+
+    public int $perPage = 10;
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'statusFilter' => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
 
     public function mount(): void
     {
@@ -47,8 +61,44 @@ class DashboardIndex extends Component
             ->toArray();
     }
 
+    public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingStatusFilter(): void { $this->resetPage(); }
+    public function updatingPerPage(): void { $this->resetPage(); }
+
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->resetPage();
+    }
+
+    protected function companiesQuery()
+    {
+        $query = Company::with(['subscription.plan:id,name', 'subscription.latestPayment'])
+            ->withCount(['users', 'sales']);
+
+        if ($this->search !== '') {
+            $s = $this->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'ILIKE', '%' . $s . '%')
+                    ->orWhere('nit', 'ILIKE', '%' . $s . '%')
+                    ->orWhere('email', 'ILIKE', '%' . $s . '%');
+            });
+        }
+
+        if ($this->statusFilter !== '') {
+            $query->where('subscription_status', $this->statusFilter);
+        }
+
+        return $query->orderBy('name');
+    }
+
     public function render(): View
     {
-        return view('livewire.super-admin.dashboard-index');
+        $companies = $this->companiesQuery()->paginate($this->perPage);
+
+        return view('livewire.super-admin.dashboard-index', [
+            'companies' => $companies,
+        ]);
     }
 }
