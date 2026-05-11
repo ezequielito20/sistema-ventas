@@ -26,10 +26,12 @@ class CompanySeeder extends Seeder
             'tax_name' => 'Sales Tax',
             'currency' => 'USD - $',
             'address' => '123 Main Street',
-            'city' => '538',        // New York City ID (primera ciudad de Estados Unidos en el seeder)
-            'state' => '30032',     // New York State ID
+            'city' => '538',
+            'state' => '30032',
             'postal_code' => '10001',
             'logo' => null,
+            'subscription_status' => 'active',
+            'billing_day' => 1,
         ]);
         
         $this->adjustAutoIncrement('companies');

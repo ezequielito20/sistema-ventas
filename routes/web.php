@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\V2\SaleV2Controller;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 use Barryvdh\Debugbar\Controllers\AssetController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,14 @@ Route::post('/security-questions/setup', [App\Http\Controllers\Auth\SecurityQues
     ->name('security-questions.store')
     ->middleware('auth');
 
+// Cambio de contraseña desde el perfil
+Route::get('/profile/change-password', fn () => view('auth.v2.change-password'))
+    ->name('profile.change-password')
+    ->middleware('auth');
+Route::post('/profile/change-password', [ChangePasswordController::class, 'update'])
+    ->name('profile.change-password.update')
+    ->middleware('auth');
+
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Dashboard administrativo (requiere autenticación)
@@ -89,14 +98,6 @@ Route::view('/ui/shell-preview', 'admin.ui.shell-preview')
     ->name('admin.ui.shell.preview')
     ->middleware('auth');
 
-Route::get('/create-company/{country}', [CompanyController::class, 'search_country'])->name('admin.company.search_country');
-Route::get('/search-state/{state}', [CompanyController::class, 'search_state'])->name('admin.company.search_state');
-
-// Configuración de empresa
-Route::get('/create-company', [CompanyController::class, 'create'])->name('admin.company.create');
-Route::post('/create-company', [CompanyController::class, 'store'])->name('admin.company.store');
-
-// Settings v2 (nuevo index con Livewire)
 Route::get('/settings', fn () => view('admin.v2.settings.index'))->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
 
@@ -305,3 +306,18 @@ if (
         'uses' => '\Barryvdh\Debugbar\Controllers\OpenHandlerController@handle',
     ]);
 }
+
+// =========================================================================
+// PANEL SUPER ADMIN (dueño del sistema)
+// =========================================================================
+Route::prefix('super-admin')
+    ->middleware(['auth', 'superadmin'])
+    ->name('super-admin.')
+    ->group(function () {
+        Route::get('/', fn () => view('super-admin.dashboard'))->name('dashboard');
+        Route::get('/companies', fn () => view('super-admin.companies.index'))->name('companies.index');
+        Route::get('/companies/create', fn () => view('super-admin.companies.create'))->name('companies.create');
+        Route::get('/companies/{id}', fn ($id) => view('super-admin.companies.show', ['companyId' => (int) $id]))->name('companies.show');
+        Route::get('/plans', fn () => view('super-admin.plans.index'))->name('plans.index');
+        Route::get('/payments', fn () => view('super-admin.payments.index'))->name('payments.index');
+    });

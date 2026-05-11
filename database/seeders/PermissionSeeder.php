@@ -117,7 +117,17 @@ class PermissionSeeder extends Seeder
          'companies.create' => 'Crear configuración inicial',
          'companies.store' => 'Guardar configuración inicial',
          'companies.update' => 'Actualizar configuración',
-         
+
+         // Sistema / Super Admin
+         'system.owner' => 'Acceso al panel de super administrador',
+         'plans.index' => 'Ver listado de planes',
+         'plans.create' => 'Crear planes',
+         'plans.edit' => 'Editar planes',
+         'plans.destroy' => 'Eliminar planes',
+         'subscriptions.index' => 'Ver listado de suscripciones',
+         'subscriptions.edit' => 'Editar suscripciones',
+         'subscriptions.payments' => 'Gestionar pagos de suscripciones',
+         'super-admin.access' => 'Acceso al panel de administración del sistema',
       ];
 
       // Crear los permisos

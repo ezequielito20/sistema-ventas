@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\OptimizeResponseMiddleware::class);
         $middleware->web(append: [
             \App\Http\Middleware\EnsureSecurityQuestionsSetUp::class,
+            \App\Http\Middleware\EnsureCompanyIsActive::class,
+        ]);
+        $middleware->alias([
+            'superadmin' => \App\Http\Middleware\EnsureUserIsSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

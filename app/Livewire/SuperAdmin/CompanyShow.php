@@ -1,0 +1,230 @@
+<?php
+
+namespace App\Livewire\SuperAdmin;
+
+use App\Models\Company;
+use App\Models\Plan;
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
+use App\Services\PaymentService;
+use App\Services\SubscriptionService;
+use App\Services\UsageCollectorService;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
+
+class CompanyShow extends Component
+{
+    use WithPagination, WithFileUploads;
+
+    public int $companyId;
+
+    public ?Company $company = null;
+
+    public ?Subscription $subscription = null;
+
+    public array $stats = [];
+
+    public string $activeTab = 'info';
+
+    public bool $showSuspendModal = false;
+
+    public string $suspendReason = '';
+
+    public bool $showChangePlanModal = false;
+
+    public ?int $newPlanId = null;
+
+    public bool $showPaymentModal = false;
+
+    public ?int $selectedPaymentId = null;
+
+    public $receiptFile = null;
+
+    public string $transactionReference = '';
+
+    public string $paymentNotes = '';
+
+    public function mount(int $companyId): void
+    {
+        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $this->companyId = $companyId;
+        $this->loadCompany();
+    }
+
+    protected function loadCompany(): void
+    {
+        $this->company = Company::with(['subscription.plan', 'subscription.latestPayment'])
+            ->withCount(['users', 'customers', 'products', 'sales'])
+            ->findOrFail($this->companyId);
+
+        $this->subscription = $this->company->subscription;
+
+        $usageCollector = app(UsageCollectorService::class);
+        $this->stats = $usageCollector->getCompanyStats($this->companyId);
+    }
+
+    protected function toast(string $message, string $type = 'success'): void
+    {
+        $titles = ['success' => 'Listo', 'error' => 'Atención', 'warning' => 'Atención', 'info' => 'Información'];
+        $uiType = in_array($type, ['success', 'error', 'warning', 'info'], true) ? $type : 'info';
+        $title = $titles[$uiType] ?? $titles['info'];
+        $timeout = $uiType === 'error' ? 7200 : 4800;
+        $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
+        $msg = json_encode($message, JSON_THROW_ON_ERROR);
+        $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
+            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+    }
+
+    public function switchTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+    }
+
+    public function openSuspendModal(): void
+    {
+        $this->suspendReason = '';
+        $this->showSuspendModal = true;
+    }
+
+    public function closeSuspendModal(): void
+    {
+        $this->showSuspendModal = false;
+        $this->suspendReason = '';
+    }
+
+    public function suspend(): void
+    {
+        if (!$this->subscription) {
+            $this->toast('Esta empresa no tiene suscripción activa.', 'error');
+            return;
+        }
+
+        try {
+            app(SubscriptionService::class)->suspend($this->subscription, $this->suspendReason);
+            $this->closeSuspendModal();
+            $this->loadCompany();
+            $this->toast('Empresa suspendida correctamente.', 'success');
+        } catch (\Throwable $e) {
+            $this->toast('Error al suspender: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function activate(): void
+    {
+        if (!$this->subscription) {
+            $this->toast('Esta empresa no tiene suscripción.', 'error');
+            return;
+        }
+
+        try {
+            app(SubscriptionService::class)->activate($this->subscription);
+            $this->loadCompany();
+            $this->toast('Empresa reactivada correctamente.', 'success');
+        } catch (\Throwable $e) {
+            $this->toast('Error al reactivar: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function openChangePlanModal(): void
+    {
+        $this->newPlanId = $this->subscription?->plan_id;
+        $this->showChangePlanModal = true;
+    }
+
+    public function closeChangePlanModal(): void
+    {
+        $this->showChangePlanModal = false;
+    }
+
+    public function changePlan(): void
+    {
+        if (!$this->subscription || !$this->newPlanId) {
+            $this->toast('Selecciona un plan válido.', 'warning');
+            return;
+        }
+
+        try {
+            $plan = Plan::findOrFail($this->newPlanId);
+            app(SubscriptionService::class)->changePlan($this->subscription, $plan);
+            $this->closeChangePlanModal();
+            $this->loadCompany();
+            $this->toast('Plan actualizado correctamente.', 'success');
+        } catch (\Throwable $e) {
+            $this->toast('Error al cambiar plan: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function openPaymentModal(int $paymentId): void
+    {
+        $this->selectedPaymentId = $paymentId;
+        $this->receiptFile = null;
+        $this->transactionReference = '';
+        $this->paymentNotes = '';
+        $this->showPaymentModal = true;
+    }
+
+    public function closePaymentModal(): void
+    {
+        $this->showPaymentModal = false;
+        $this->selectedPaymentId = null;
+    }
+
+    public function markAsPaid(): void
+    {
+        if (!$this->selectedPaymentId) return;
+
+        $payment = SubscriptionPayment::findOrFail($this->selectedPaymentId);
+
+        $this->validate([
+            'receiptFile' => 'nullable|image|mimes:jpeg,png,jpg,pdf|max:4096',
+            'transactionReference' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $paymentService = app(PaymentService::class);
+            $paymentService->markAsPaid(
+                $payment,
+                (int) auth()->id(),
+                $this->receiptFile
+            );
+
+            $payment->update([
+                'transaction_reference' => $this->transactionReference ?: null,
+                'notes' => $this->paymentNotes ?: null,
+            ]);
+
+            $this->closePaymentModal();
+            $this->loadCompany();
+            $this->toast('Pago registrado correctamente.', 'success');
+        } catch (\Throwable $e) {
+            $this->toast('Error al registrar pago: ' . $e->getMessage(), 'error');
+        }
+    }
+
+    public function getPaymentsProperty()
+    {
+        if (!$this->subscription) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10, 1, ['pageName' => 'payments-page']);
+        }
+
+        return SubscriptionPayment::where('subscription_id', $this->subscription->id)
+            ->orderBy('due_date', 'desc')
+            ->paginate(10, pageName: 'payments-page');
+    }
+
+    public function render(): View
+    {
+        $plans = Plan::active()->orderBy('name')->get();
+        $payments = $this->payments;
+
+        return view('livewire.super-admin.company-show', [
+            'plans' => $plans,
+            'payments' => $payments,
+        ]);
+    }
+}

@@ -12,6 +12,11 @@ class EnsureSecurityQuestionsSetUp
     {
         $user = Auth::user();
 
+        // El super admin está completamente exento de las preguntas de seguridad
+        if ($user && $user->isSuperAdmin()) {
+            return $next($request);
+        }
+
         if ($user && !$user->security_questions_setup) {
             if (!in_array($request->route()->getName(), [
                 'security-questions.setup',

@@ -192,6 +192,11 @@ class Product extends Model
    /**
     * Get the category that owns the product.
     */
+   public function company(): BelongsTo
+   {
+      return $this->belongsTo(Company::class);
+   }
+
    public function category(): BelongsTo
    {
       return $this->belongsTo(Category::class);

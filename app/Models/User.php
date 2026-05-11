@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'company_id',
         'security_questions_setup',
+        'is_super_admin',
     ];
 
     /**
@@ -48,11 +49,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true || $this->hasRole('super-admin');
+    }
+
+    public function scopeSuperAdmins($query)
+    {
+        return $query->where('is_super_admin', true);
     }
 }

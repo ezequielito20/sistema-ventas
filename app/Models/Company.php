@@ -8,6 +8,7 @@ use App\Models\State;
 use App\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Services\ImageUrlService;
@@ -32,11 +33,14 @@ class Company extends Model
       'logo',
       'nit',
       'ig',
-      'last_debt_alert_fingerprint'
+      'last_debt_alert_fingerprint',
+      'subscription_status',
+      'billing_day',
    ];
 
    protected $casts = [
       'tax_amount' => 'decimal:2',
+      'billing_day' => 'integer',
       'created_at' => 'datetime',
       'updated_at' => 'datetime',
    ];
@@ -49,6 +53,16 @@ class Company extends Model
    public function purchases(): HasMany
    {
       return $this->hasMany(Purchase::class);
+   }
+
+   public function sales(): HasMany
+   {
+      return $this->hasMany(Sale::class);
+   }
+
+   public function products(): HasMany
+   {
+      return $this->hasMany(Product::class);
    }
 
    public function customers(): HasMany
@@ -74,6 +88,31 @@ class Company extends Model
    /**
     * Get the logo URL using ImageUrlService.
     */
+   public function subscription(): HasOne
+   {
+      return $this->hasOne(Subscription::class);
+   }
+
+   public function subscriptionPayments(): HasMany
+   {
+      return $this->hasMany(SubscriptionPayment::class);
+   }
+
+   public function usageLogs(): HasMany
+   {
+      return $this->hasMany(SubscriptionUsageLog::class);
+   }
+
+   public function latestUsageLog(): HasOne
+   {
+      return $this->hasOne(SubscriptionUsageLog::class)->latestOfMany();
+   }
+
+   public function plan()
+   {
+      return $this->hasOneThrough(Plan::class, Subscription::class, 'company_id', 'id', 'id', 'plan_id');
+   }
+
    public function getLogoUrlAttribute()
    {
       if (!$this->logo) {

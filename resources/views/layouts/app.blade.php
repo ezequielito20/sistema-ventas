@@ -541,13 +541,13 @@
                 <nav class="sidebar-navigation mt-6 px-3">
                     <div class="space-y-1">
 
-
-                        <!-- Pedidos Online -->
-                        {{-- <a href="{{ route('admin.orders.index') }}"
-                            class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
-                            <i class="fas fa-shopping-cart mr-3 text-lg"></i>
-                            Pedidos Online
-                        </a> --}}
+                        @if (Auth::user() && Auth::user()->isSuperAdmin())
+                            <a href="{{ route('super-admin.dashboard') }}"
+                                class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 {{ request()->is('super-admin*') ? 'is-active' : '' }}">
+                                <i class="fas fa-crown mr-3 text-lg text-amber-400"></i>
+                                Panel Super Admin
+                            </a>
+                        @endif
 
                         <!-- Config empresa -->
                         <a href="{{ route('admin.company.edit') }}"
@@ -759,6 +759,11 @@
                                             Configuración
                                         </a>
                                         <div class="border-t border-slate-700/80"></div> --}}
+                                        <a href="{{ route('profile.change-password') }}" class="block px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">
+                                            <i class="fas fa-key mr-2 text-slate-400"></i>
+                                            Cambiar Contraseña
+                                        </a>
+                                        <div class="border-t border-slate-700/80"></div>
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf
                                             <button type="submit"

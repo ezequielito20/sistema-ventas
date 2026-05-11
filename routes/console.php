@@ -14,3 +14,8 @@ Schedule::command('exchange-rate:update')
     ->withoutOverlapping()
     ->runInBackground()
     ->appendOutputTo(storage_path('logs/exchange-rate.log'));
+
+// === Scheduler SaaS ===
+Schedule::job(new \App\Jobs\GenerateMonthlyInvoices)->dailyAt('01:00')->withoutOverlapping();
+Schedule::job(new \App\Jobs\SuspendOverdueCompanies)->dailyAt('02:00')->withoutOverlapping();
+Schedule::job(new \App\Jobs\CollectMonthlyUsage)->monthlyOn(1, '03:00')->withoutOverlapping();
