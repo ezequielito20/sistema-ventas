@@ -43,14 +43,14 @@
         {{-- Tabs --}}
         <div class="ui-panel overflow-hidden">
             <div class="border-b border-slate-700/50">
-                <nav class="-mb-px flex space-x-6 px-6">
-                    <button wire:click="switchTab('info')" @class(['pb-3 pt-4 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'info', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'info'])>
+                <nav class="-mb-px flex gap-x-10 px-6">
+                    <button wire:click="switchTab('info')" @class(['pb-3 pt-4 px-2 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'info', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'info'])>
                         <i class="fas fa-info-circle mr-1.5"></i> Información
                     </button>
-                    <button wire:click="switchTab('payments')" @class(['pb-3 pt-4 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'payments', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'payments'])>
+                    <button wire:click="switchTab('payments')" @class(['pb-3 pt-4 px-2 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'payments', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'payments'])>
                         <i class="fas fa-file-invoice-dollar mr-1.5"></i> Historial de Pagos
                     </button>
-                    <button wire:click="switchTab('stats')" @class(['pb-3 pt-4 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'stats', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'stats'])>
+                    <button wire:click="switchTab('stats')" @class(['pb-3 pt-4 px-2 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'stats', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'stats'])>
                         <i class="fas fa-chart-bar mr-1.5"></i> Estadísticas
                     </button>
                 </nav>
