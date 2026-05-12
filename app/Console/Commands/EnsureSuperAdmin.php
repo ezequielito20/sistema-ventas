@@ -28,7 +28,6 @@ class EnsureSuperAdmin extends Command
 
         // Asignar al usuario elegido
         $user->update(['is_super_admin' => true]);
-        $user->syncRoles('super-admin');
 
         $this->info("✓ Usuario #{$userId} ({$user->name}) establecido como único super admin.");
         if ($revoked > 0) {
