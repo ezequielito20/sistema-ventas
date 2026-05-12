@@ -14,6 +14,18 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
 
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->isDirty('is_super_admin') && $user->is_super_admin) {
+                // Solo el usuario ID 1 puede ser super admin
+                if ($user->id !== 1) {
+                    $user->is_super_admin = false;
+                }
+            }
+        });
+    }
+
 
     /**
      * The attributes that are mass assignable.
