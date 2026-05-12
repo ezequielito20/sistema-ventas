@@ -47,6 +47,8 @@ class ProductForm extends Component
 
     public array $newImages = [];
 
+    public ?int $newCoverIndex = null;
+
     public ?int $coverImageId = null;
 
     public array $imageToDelete = [];
@@ -135,6 +137,11 @@ class ProductForm extends Component
 
     public function removeNewImage(int $index): void
     {
+        if ($this->newCoverIndex === $index) {
+            $this->newCoverIndex = null;
+        } elseif ($this->newCoverIndex !== null && $this->newCoverIndex > $index) {
+            $this->newCoverIndex--;
+        }
         unset($this->newImages[$index]);
         $this->newImages = array_values($this->newImages);
     }
@@ -151,6 +158,12 @@ class ProductForm extends Component
                 $this->image = null;
             }
         }
+    }
+
+    public function setNewCoverImage(int $index): void
+    {
+        $this->newCoverIndex = $index;
+        $this->coverImageId = null;
     }
 
     /**
@@ -297,6 +310,16 @@ class ProductForm extends Component
         $galleryImages = $this->newImages;
         $imageDeletions = $this->imageToDelete;
         $coverImageId = $this->coverImageId;
+
+        if ($this->newCoverIndex !== null) {
+            $coverIdx = $this->newCoverIndex;
+            if ($upload !== null) {
+                $galleryImages[] = $upload;
+            }
+            $upload = $galleryImages[$coverIdx] ?? $upload;
+            unset($galleryImages[$coverIdx]);
+            $galleryImages = array_values($galleryImages);
+        }
 
         $companyId = (int) Auth::user()->company_id;
 

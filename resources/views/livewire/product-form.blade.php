@@ -349,21 +349,39 @@
                         <p class="mb-2 text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">Nuevas imágenes</p>
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                             @foreach($newImages as $index => $img)
-                            <div class="group relative aspect-video overflow-hidden rounded-lg border border-cyan-500/50 bg-slate-900/80">
-                                <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
-                                <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
-                                     <button type="button"
-                                            x-on:click.prevent="if(typeof Swal==='undefined'){$wire.removeNewImage({{ $index }})}else{Swal.fire({title:'\u00bfQuitar imagen?',text:'Esta imagen no se guardara en la galeria.',icon:'question',showCancelButton:true,confirmButtonColor:'#10b981',cancelButtonColor:'#6b7280',confirmButtonText:'Si, quitar',cancelButtonText:'Cancelar',background:'#0f172a',color:'#e2e8f0',customClass:{confirmButton:'ui-btn ui-btn-primary px-4 py-2 text-sm',cancelButton:'ui-btn ui-btn-ghost px-4 py-2 text-sm'},buttonsStyling:false}).then(function(r){if(r.isConfirmed){$wire.removeNewImage({{ $index }})}})}"
-                                            class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
-                                            title="{{ __('Quitar imagen') }}">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <span class="absolute bottom-1.5 left-1.5 rounded-full bg-cyan-600/80 px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
-                                    {{ __('Nueva') }}
-                                </span>
-                            </div>
-                            @endforeach
+                             <div class="group relative aspect-video overflow-hidden rounded-lg border @if($newCoverIndex === $index) border-dv-primary ring-2 ring-dv-primary/40 @else border-cyan-500/50 @endif bg-slate-900/80">
+                                 <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                                 <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
+                                     <div class="flex gap-1">
+                                         <button type="button"
+                                                 x-on:click.prevent="
+                                                     document.getElementById('product-form-preview-img').src = '{{ $img->temporaryUrl() }}';
+                                                     document.getElementById('product-form-preview-root').setAttribute('data-existing-url', '{{ $img->temporaryUrl() }}');
+                                                     $wire.setNewCoverImage({{ $index }});
+                                                 "
+                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $newCoverIndex === $index ? 'text-dv-primary' : 'text-slate-400' }}"
+                                                 title="{{ __('Marcar como portada') }}">
+                                             <i class="fas fa-star"></i>
+                                         </button>
+                                         <button type="button"
+                                                x-on:click.prevent="if(typeof Swal==='undefined'){$wire.removeNewImage({{ $index }})}else{Swal.fire({title:'\u00bfQuitar imagen?',text:'Esta imagen no se guardara en la galeria.',icon:'question',showCancelButton:true,confirmButtonColor:'#10b981',cancelButtonColor:'#6b7280',confirmButtonText:'Si, quitar',cancelButtonText:'Cancelar',background:'#0f172a',color:'#e2e8f0',customClass:{confirmButton:'ui-btn ui-btn-primary px-4 py-2 text-sm',cancelButton:'ui-btn ui-btn-ghost px-4 py-2 text-sm'},buttonsStyling:false}).then(function(r){if(r.isConfirmed){$wire.removeNewImage({{ $index }})}})}"
+                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
+                                                title="{{ __('Quitar imagen') }}">
+                                             <i class="fas fa-times"></i>
+                                         </button>
+                                     </div>
+                                 </div>
+                                 @if($newCoverIndex === $index)
+                                     <span class="absolute bottom-1.5 left-1.5 rounded-full bg-dv-primary px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
+                                         {{ __('Portada') }}
+                                     </span>
+                                 @else
+                                     <span class="absolute bottom-1.5 left-1.5 rounded-full bg-cyan-600/80 px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
+                                         {{ __('Nueva') }}
+                                     </span>
+                                 @endif
+                             </div>
+                             @endforeach
                         </div>
                     </div>
                     @endif
