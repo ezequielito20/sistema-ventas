@@ -307,9 +307,6 @@ if (
     ]);
 }
 
-// =========================================================================
-// PANEL SUPER ADMIN (dueño del sistema)
-// =========================================================================
 Route::prefix('super-admin')
     ->middleware(['auth', 'superadmin'])
     ->name('super-admin.')
@@ -321,3 +318,11 @@ Route::prefix('super-admin')
         Route::get('/plans', fn () => view('super-admin.plans.index'))->name('plans.index');
         Route::get('/payments', fn () => view('super-admin.payments.index'))->name('payments.index');
     });
+
+// =========================================================================
+// CATÁLOGO PÚBLICO — fallback routes (MUST be last in file)
+// =========================================================================
+Route::get('/{company:slug}', [App\Http\Controllers\PublicCatalogController::class, 'index'])
+    ->name('catalog.index');
+Route::get('/{company:slug}/producto/{product}', [App\Http\Controllers\PublicCatalogController::class, 'show'])
+    ->name('catalog.product');

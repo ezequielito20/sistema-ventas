@@ -207,8 +207,16 @@ class Product extends Model
       return $this->hasMany(PurchaseDetail::class);
    }
 
-   public function saleDetails(): HasMany
-   {
-      return $this->hasMany(SaleDetail::class);
-   }
+    public function saleDetails(): HasMany
+    {
+       return $this->hasMany(SaleDetail::class);
+    }
+
+    /**
+     * Get the images for the product.
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
 }

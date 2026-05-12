@@ -182,6 +182,85 @@
         </div>
 
         {{-- ================================================================ --}}
+        {{-- CATÁLOGO PÚBLICO                                               --}}
+        {{-- ================================================================ --}}
+        <div class="ui-panel mt-4 overflow-hidden">
+            <div class="ui-panel__header">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-300">
+                        <i class="fas fa-store-alt text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-semibold text-white">Catálogo público</h2>
+                        <p class="text-xs text-slate-400">Configurá el link para compartir tus productos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {{-- Slug field --}}
+                    <div>
+                        <label class="{{ $labelBase }}" for="slug">Link personalizado (slug)</label>
+                        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950/60 overflow-hidden focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500 transition">
+                            <span class="flex items-center px-3 text-xs text-slate-500 bg-slate-900/50 border-r border-slate-700 font-mono whitespace-nowrap">
+                                {{ url('/') }}/
+                            </span>
+                            <input type="text" id="slug" wire:model="slug"
+                                   class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                                   placeholder="mi-empresa">
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">Sin espacios ni caracteres especiales. Ej: ferreteria-perez</p>
+                        @error('slug') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Catalog toggle + preview --}}
+                    <div>
+                        <label class="{{ $labelBase }}">Estado del catálogo</label>
+                        <div class="flex items-center gap-3 mt-1">
+                            <button type="button"
+                                    wire:click="$set('catalog_is_public', true)"
+                                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ $catalog_is_public ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-500 border border-slate-700 hover:border-slate-600' }}">
+                                <i class="fas fa-globe mr-1.5"></i> Público
+                            </button>
+                            <button type="button"
+                                    wire:click="$set('catalog_is_public', false)"
+                                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all {{ !$catalog_is_public ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'bg-slate-800 text-slate-500 border border-slate-700 hover:border-slate-600' }}">
+                                <i class="fas fa-lock mr-1.5"></i> Oculto
+                            </button>
+                        </div>
+                        @error('catalog_is_public') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                {{-- Preview URL --}}
+                @if($slug)
+                    <div class="mt-4 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs text-slate-400 mb-1">Tu catálogo público:</p>
+                                <p class="text-sm text-cyan-400 font-mono truncate">
+                                    {{ url('/') }}/<span class="text-white font-semibold">{{ $slug }}</span>
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button"
+                                        onclick="navigator.clipboard.writeText('{{ url('/') }}/{{ $slug }}')"
+                                        class="px-3 py-1.5 text-xs rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition"
+                                        title="Copiar link">
+                                    <i class="fas fa-copy mr-1"></i> Copiar
+                                </button>
+                                <a href="{{ url('/') }}/{{ $slug }}" target="_blank"
+                                   class="px-3 py-1.5 text-xs rounded-lg bg-purple-600/30 text-purple-300 hover:bg-purple-600/50 hover:text-white transition border border-purple-500/30">
+                                    <i class="fas fa-external-link-alt mr-1"></i> Ver catálogo
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- ================================================================ --}}
         {{-- LOGO                                                            --}}
         {{-- ================================================================ --}}
         <div class="ui-panel mt-4 overflow-hidden">

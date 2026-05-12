@@ -33,6 +33,8 @@ class SettingsIndex extends Component
     public string $country_id = '';
     public string $postal_code = '';
     public string $ig = '';
+    public string $slug = '';
+    public bool $catalog_is_public = true;
 
     /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
     public $logo = null;
@@ -63,6 +65,8 @@ class SettingsIndex extends Component
         $this->country_id = (string) $company->country;
         $this->postal_code = $company->postal_code ?? '';
         $this->ig = $company->ig ?? '';
+        $this->slug = $company->slug ?? '';
+        $this->catalog_is_public = (bool) $company->catalog_is_public;
         $this->current_logo_url = $company->logo_url;
 
         // Load select options
@@ -128,6 +132,8 @@ class SettingsIndex extends Component
             'country_id' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
             'ig' => 'nullable|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:companies,slug,' . Auth::user()->company_id . '|not_in:' . implode(',', Company::RESERVED_SLUGS),
+            'catalog_is_public' => 'boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
             'name.required' => 'El nombre es obligatorio',
@@ -150,6 +156,8 @@ class SettingsIndex extends Component
             'logo.image' => 'El archivo debe ser una imagen',
             'logo.mimes' => 'Debe ser JPEG, PNG o JPG',
             'logo.max' => 'El archivo no debe superar 2MB',
+            'slug.not_in' => 'Este slug es una palabra reservada del sistema y no puede utilizarse.',
+            'slug.unique' => 'Este slug ya está en uso por otra empresa.',
         ]);
 
         $company = Company::find(Auth::user()->company_id);
@@ -175,6 +183,14 @@ class SettingsIndex extends Component
 
         // Ensure tax_amount is an integer (DB column is integer, not decimal)
         $validated['tax_amount'] = (int) $validated['tax_amount'];
+
+        // Auto-generate slug if empty or null
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Company::generateUniqueSlug($validated['name']);
+        }
+
+        // Ensure catalog_is_public is boolean
+        $validated['catalog_is_public'] = (bool) ($validated['catalog_is_public'] ?? true);
 
         try {
             $company->update($validated);

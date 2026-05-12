@@ -640,6 +640,19 @@
                             <i class="fas fa-cash-register mr-3 text-lg"></i>
                             Arqueo de Caja
                         </a>
+
+                        {{-- Ver mi catálogo público --}}
+                        @php
+                            $userCompany = Auth::user()?->company;
+                        @endphp
+                        @if($userCompany && $userCompany->slug && $userCompany->catalog_is_public)
+                            <a href="{{ route('catalog.index', $userCompany->slug) }}" target="_blank"
+                                class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 hover:from-purple-500/20 hover:to-pink-500/20">
+                                <i class="fas fa-store-alt mr-3 text-lg text-purple-400"></i>
+                                Ver mi catálogo
+                                <i class="fas fa-external-link-alt ml-auto text-xs text-gray-400"></i>
+                            </a>
+                        @endif
                     </div>
                 </nav>
             @endauth
