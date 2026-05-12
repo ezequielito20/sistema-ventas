@@ -415,7 +415,7 @@
 
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
                     <h3 class="mb-4 text-sm font-semibold text-slate-200">Precios</h3>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
                             <label for="purchase_price" class="{{ $labelBase }}">Precio de compra <span class="text-rose-400">*</span></label>
                             <div class="relative">
