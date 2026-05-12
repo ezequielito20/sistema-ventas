@@ -156,7 +156,7 @@ window.uiNotifications = notifications;
         'change',
         function (event) {
             const el = event.target;
-            if (!el || el.id !== INPUT_ID || el.type !== 'file') {
+            if (!el || (el.id !== INPUT_ID && el.id !== 'product-form-camera-input') || el.type !== 'file') {
                 return;
             }
             const file = el.files && el.files[0];

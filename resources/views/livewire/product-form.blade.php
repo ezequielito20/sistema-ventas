@@ -151,13 +151,30 @@
                                         wire:model="image"
                                         class="sr-only"
                                     >
-                                    <label
-                                        for="product-form-image-input"
-                                        class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40 @error('image') border-rose-500/70 @enderror"
+                                    <input
+                                        id="product-form-camera-input"
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        wire:model="image"
+                                        class="sr-only"
                                     >
-                                        <i class="fas fa-folder-open text-slate-400"></i>
-                                        <span>Seleccionar imagen</span>
-                                    </label>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <label
+                                            for="product-form-image-input"
+                                            class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40 @error('image') border-rose-500/70 @enderror"
+                                        >
+                                            <i class="fas fa-folder-open text-slate-400"></i>
+                                            <span>Seleccionar</span>
+                                        </label>
+                                        <label
+                                            for="product-form-camera-input"
+                                            class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40"
+                                        >
+                                            <i class="fas fa-camera text-slate-400"></i>
+                                            <span>Tomar foto</span>
+                                        </label>
+                                    </div>
                                     <div wire:loading wire:target="image" class="inline-flex items-center gap-2 text-xs text-cyan-300/90">
                                         <i class="fas fa-circle-notch fa-spin"></i>
                                         Subiendo temporal…
