@@ -135,6 +135,22 @@
                 <div class="mt-8 border-t border-slate-700/60 pt-8"
                      x-data="{
                          dragging: false,
+                         coverPreviewUrl: '',
+                         coverPreviewAlt: '',
+                         initCover() {
+                             const els = document.querySelectorAll('[data-cover-url]');
+                             for (const el of els) {
+                                 if (el.dataset.coverUrl) {
+                                     this.coverPreviewUrl = el.dataset.coverUrl;
+                                     this.coverPreviewAlt = el.dataset.coverAlt || '';
+                                     break;
+                                 }
+                             }
+                         },
+                         setCoverPreview(url, alt) {
+                             this.coverPreviewUrl = url;
+                             this.coverPreviewAlt = alt || '';
+                         },
                          handleDrop(e) {
                              this.dragging = false;
                              const files = e.dataTransfer.files;
@@ -147,7 +163,8 @@
                              input.files = dt.files;
                              input.dispatchEvent(new Event('change', { bubbles: true }));
                          },
-                     }">
+                     }"
+                     x-init="initCover()">
                     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                         <div>
                             <h3 class="text-sm font-semibold text-slate-200">Imágenes del producto</h3>
@@ -161,6 +178,18 @@
                             </span>
                         @endif
                     </div>
+
+                    <template x-if="coverPreviewUrl">
+                        <div class="mb-4 overflow-hidden rounded-xl border border-dv-primary/40 bg-slate-900/80 ring-1 ring-dv-primary/20">
+                            <div class="relative">
+                                <img :src="coverPreviewUrl" :alt="coverPreviewAlt"
+                                     class="h-40 w-full object-contain sm:h-48">
+                                <span class="absolute bottom-3 left-3 rounded-full bg-dv-primary px-3 py-1 font-dv-label text-[10px] font-bold uppercase tracking-wide text-white shadow-lg">
+                                    <i class="fas fa-star mr-1 text-[10px]"></i>Portada
+                                </span>
+                            </div>
+                        </div>
+                    </template>
 
                     @if(count($existingImages) === 0 && count($newImages) === 0)
                     <div class="mb-4 flex items-start gap-3 rounded-xl border border-slate-700/60 bg-slate-950/40 px-4 py-3">
@@ -238,16 +267,20 @@
                         <p class="mb-2 text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">Imágenes guardadas</p>
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                             @foreach($existingImages as $img)
-                            <div class="group relative aspect-video overflow-hidden rounded-lg border @if($coverImageId === $img['id']) border-dv-primary ring-2 ring-dv-primary/40 @else border-slate-700 @endif bg-slate-900/80">
-                                <img src="{{ $img['url'] }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                             <div class="group relative aspect-video overflow-hidden rounded-lg border @if($coverImageId === $img['id']) border-dv-primary ring-2 ring-dv-primary/40 @else border-slate-700 @endif bg-slate-900/80"
+                                  @if($coverImageId === $img['id'])
+                                  data-cover-url="{{ $img['url'] }}"
+                                  data-cover-alt="{{ $product->name ?? '' }}"
+                                  @endif>
+                                 <img src="{{ $img['url'] }}" alt="" class="h-full w-full object-cover" loading="lazy">
                                 <div class="absolute inset-0 flex items-start justify-end p-1.5">
                                     <div class="flex gap-1">
-                                        <button type="button"
-                                                x-on:click.prevent="$wire.setCoverImage({{ $img['id'] }})"
-                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $coverImageId === $img['id'] ? 'text-dv-primary' : 'text-slate-400' }}"
-                                                title="{{ __('Marcar como portada') }}">
-                                            <i class="fas fa-star"></i>
-                                        </button>
+                                                        <button type="button"
+                                                                x-on:click.prevent="setCoverPreview('{{ $img['url'] }}', '{{ $product->name ?? '' }}'); $wire.setCoverImage({{ $img['id'] }})"
+                                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $coverImageId === $img['id'] ? 'text-dv-primary' : 'text-slate-400' }}"
+                                                                title="{{ __('Marcar como portada') }}">
+                                                            <i class="fas fa-star"></i>
+                                                        </button>
                                         <button type="button"
                                                 x-on:click.prevent="if(typeof Swal==='undefined'){$wire.removeExistingImage({{ $img['id'] }})}else{Swal.fire({title:'\u00bfEliminar imagen?',text:'Esta imagen se quitara de la galeria al guardar.',icon:'warning',showCancelButton:true,confirmButtonColor:'#10b981',cancelButtonColor:'#6b7280',confirmButtonText:'Si, eliminar',cancelButtonText:'Cancelar',background:'#0f172a',color:'#e2e8f0',customClass:{confirmButton:'ui-btn ui-btn-primary px-4 py-2 text-sm',cancelButton:'ui-btn ui-btn-ghost px-4 py-2 text-sm'},buttonsStyling:false}).then(function(r){if(r.isConfirmed){$wire.removeExistingImage({{ $img['id'] }})}})}"
                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
@@ -256,33 +289,39 @@
                                         </button>
                                     </div>
                                 </div>
-                                @if($coverImageId === $img['id'])
-                                    <span class="absolute bottom-1.5 left-1.5 rounded-full bg-dv-primary px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
-                                        {{ __('Portada') }}
-                                    </span>
-                                @endif
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
+                                                        @if($coverImageId === $img['id'])
+                                                            <span class="absolute bottom-1.5 left-1.5 rounded-full bg-dv-primary px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
+                                                                {{ __('Portada') }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            
 
                     {{-- New images preview --}}
                     @if(count($newImages) > 0)
                     <div class="mt-4">
                         <p class="mb-2 text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">Nuevas imágenes</p>
                         <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                            @foreach($newImages as $index => $img)
-                             <div class="group relative aspect-video overflow-hidden rounded-lg border @if($newCoverIndex === $index) border-dv-primary ring-2 ring-dv-primary/40 @else border-cyan-500/50 @endif bg-slate-900/80">
-                                 <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
-                                <div class="absolute inset-0 flex items-start justify-end p-1.5">
-                                     <div class="flex gap-1">
-                                         <button type="button"
-                                                 x-on:click.prevent="$wire.setNewCoverImage({{ $index }})"
-                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $newCoverIndex === $index ? 'text-dv-primary' : 'text-slate-400' }}"
-                                                 title="{{ __('Marcar como portada') }}">
-                                             <i class="fas fa-star"></i>
-                                         </button>
+                             @foreach($newImages as $index => $img)
+                              <div class="group relative aspect-video overflow-hidden rounded-lg border @if($newCoverIndex === $index) border-dv-primary ring-2 ring-dv-primary/40 @else border-cyan-500/50 @endif bg-slate-900/80"
+                                   @if($newCoverIndex === $index)
+                                   data-cover-url="{{ $img->temporaryUrl() }}"
+                                   data-cover-alt=""
+                                   @endif>
+                                  <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                                 <div class="absolute inset-0 flex items-start justify-end p-1.5">
+                                      <div class="flex gap-1">
+                                          <button type="button"
+                                                  x-on:click.prevent="setCoverPreview('{{ $img->temporaryUrl() }}', ''); $wire.setNewCoverImage({{ $index }})"
+                                                  class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $newCoverIndex === $index ? 'text-dv-primary' : 'text-slate-400' }}"
+                                                  title="{{ __('Marcar como portada') }}">
+                                              <i class="fas fa-star"></i>
+                                          </button>
                                          <button type="button"
                                                 x-on:click.prevent="if(typeof Swal==='undefined'){$wire.removeNewImage({{ $index }})}else{Swal.fire({title:'\u00bfQuitar imagen?',text:'Esta imagen no se guardara en la galeria.',icon:'question',showCancelButton:true,confirmButtonColor:'#10b981',cancelButtonColor:'#6b7280',confirmButtonText:'Si, quitar',cancelButtonText:'Cancelar',background:'#0f172a',color:'#e2e8f0',customClass:{confirmButton:'ui-btn ui-btn-primary px-4 py-2 text-sm',cancelButton:'ui-btn ui-btn-ghost px-4 py-2 text-sm'},buttonsStyling:false}).then(function(r){if(r.isConfirmed){$wire.removeNewImage({{ $index }})}})}"
                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
