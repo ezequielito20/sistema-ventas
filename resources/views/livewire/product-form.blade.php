@@ -179,17 +179,18 @@
                         @endif
                     </div>
 
-                    <template x-if="coverPreviewUrl">
-                        <div class="mb-4 overflow-hidden rounded-xl border border-dv-primary/40 bg-slate-900/80 ring-1 ring-dv-primary/20">
-                            <div class="relative">
-                                <img :src="coverPreviewUrl" :alt="coverPreviewAlt"
-                                     class="h-40 w-full object-contain sm:h-48">
-                                <span class="absolute bottom-3 left-3 rounded-full bg-dv-primary px-3 py-1 font-dv-label text-[10px] font-bold uppercase tracking-wide text-white shadow-lg">
-                                    <i class="fas fa-star mr-1 text-[10px]"></i>Portada
-                                </span>
+                    <div class="sm:flex sm:gap-4 sm:items-stretch">
+                        <template x-if="coverPreviewUrl">
+                            <div class="mb-4 overflow-hidden rounded-xl border border-dv-primary/40 bg-slate-900/80 ring-1 ring-dv-primary/20 sm:mb-0 sm:w-56 sm:shrink-0">
+                                <div class="relative h-full">
+                                    <img :src="coverPreviewUrl" :alt="coverPreviewAlt"
+                                         class="h-32 w-full object-cover sm:h-full">
+                                    <span class="absolute bottom-2 left-2 rounded-full bg-dv-primary px-2.5 py-0.5 font-dv-label text-[9px] font-bold uppercase tracking-wide text-white shadow-lg sm:bottom-3 sm:left-3 sm:px-3 sm:py-1 sm:text-[10px]">
+                                        <i class="fas fa-star mr-0.5 text-[9px] sm:mr-1 sm:text-[10px]"></i>Portada
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </template>
+                        </template>
 
                     @if(count($existingImages) === 0 && count($newImages) === 0)
                     <div class="mb-4 flex items-start gap-3 rounded-xl border border-slate-700/60 bg-slate-950/40 px-4 py-3">
@@ -201,11 +202,11 @@
                     </div>
                     @endif
 
-                    {{-- Dropzone --}}
+                                        {{-- Dropzone --}}
                     @if(count($existingImages) + count($newImages) < 5)
                     <div
                         x-ref="dropzone"
-                        class="relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-600 bg-slate-950/40 px-6 py-10 transition hover:border-cyan-500/60 hover:bg-slate-900/60"
+                        class="relative flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-600 bg-slate-950/40 px-6 py-10 transition hover:border-cyan-500/60 hover:bg-slate-900/60"
                         :class="{ 'border-cyan-400 bg-cyan-500/5': dragging }"
                         @dragover.prevent="dragging = true"
                         @dragleave.prevent="dragging = false"
@@ -216,11 +217,11 @@
                         </div>
                         <div class="text-center">
                             <p class="text-sm font-medium text-slate-300">
-                                Arrastrá tus imágenes acá
+                                {{ __('Arrastra tus imagenes aca') }}
                             </p>
-                            <p class="mt-1 text-xs text-slate-500">o hacé clic para seleccionar</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ __('o hace clic para seleccionar') }}</p>
                         </div>
-                        <p class="text-[0.65rem] text-slate-600">JPG, PNG, GIF o WebP · hasta 2 MB cada una</p>
+                        <p class="text-[0.65rem] text-slate-600">{{ __('JPG, PNG, GIF o WebP · hasta 2 MB cada una') }}</p>
                         <input
                             type="file"
                             accept="image/jpeg,image/png,image/gif,image/webp"
@@ -232,18 +233,18 @@
                         <div wire:loading wire:target="newImages" class="absolute inset-0 flex items-center justify-center rounded-xl bg-slate-950/80 backdrop-blur-sm">
                             <div class="flex items-center gap-3 rounded-lg bg-slate-800 px-4 py-2.5 text-sm text-cyan-300">
                                 <i class="fas fa-circle-notch fa-spin"></i>
-                                Subiendo imágenes…
+                                {{ __('Subiendo imagenes...') }}
                             </div>
                         </div>
                     </div>
-
+                    </div>
                     <div class="mt-3 flex items-center gap-3">
                         <label for="gallery-camera-input"
                                class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80">
                             <i class="fas fa-camera text-slate-400"></i>
-                            <span>Tomar foto</span>
+                            <span>{{ __('Tomar foto') }}</span>
                         </label>
-                        <span class="text-xs text-slate-500">o arrastrá imágenes al recuadro de arriba</span>
+                        <span class="text-xs text-slate-500">{{ __('o arrastra imagenes al recuadro de arriba') }}</span>
                     </div>
                     <input
                         id="gallery-camera-input"
@@ -254,10 +255,11 @@
                         class="sr-only"
                     >
                     @else
-                    <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-950/30 px-6 py-6 text-center">
+                     <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-950/30 px-6 py-6 text-center flex-1">
                         <i class="fas fa-check-circle text-2xl text-emerald-500/70"></i>
-                        <p class="text-sm font-medium text-slate-400">Límite de imágenes alcanzado</p>
-                        <p class="text-xs text-slate-500">Eliminá alguna imagen para agregar más.</p>
+                        <p class="text-sm font-medium text-slate-400">{{ __('Limite de imagenes alcanzado') }}</p>
+                        <p class="text-xs text-slate-500">{{ __('Elimina alguna imagen para agregar mas.') }}</p>
+                    </div>
                     </div>
                     @endif
 
