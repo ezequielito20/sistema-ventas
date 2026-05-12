@@ -32,7 +32,7 @@ window.__CATALOG_PRODUCTS__ = {{ Js::from($products->map(function ($p) {
 window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/producto'), '/')) }};
 </script>
 
-<div class="font-dv-body" x-data="catalog" x-init="init()">
+<div class="font-dv-body" x-data="catalog">
     @include('catalog.partials.top-nav', ['company' => $company, 'searchable' => true])
 
     <div class="flex pt-20">
