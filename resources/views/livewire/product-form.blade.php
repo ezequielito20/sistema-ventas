@@ -240,7 +240,7 @@
                             @foreach($existingImages as $img)
                             <div class="group relative aspect-video overflow-hidden rounded-lg border @if($coverImageId === $img['id']) border-dv-primary ring-2 ring-dv-primary/40 @else border-slate-700 @endif bg-slate-900/80">
                                 <img src="{{ $img['url'] }}" alt="" class="h-full w-full object-cover" loading="lazy">
-                                <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
+                                <div class="absolute inset-0 flex items-start justify-end p-1.5">
                                     <div class="flex gap-1">
                                         <button type="button"
                                                 x-on:click.prevent="$wire.setCoverImage({{ $img['id'] }})"
@@ -275,7 +275,7 @@
                             @foreach($newImages as $index => $img)
                              <div class="group relative aspect-video overflow-hidden rounded-lg border @if($newCoverIndex === $index) border-dv-primary ring-2 ring-dv-primary/40 @else border-cyan-500/50 @endif bg-slate-900/80">
                                  <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
-                                 <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
+                                <div class="absolute inset-0 flex items-start justify-end p-1.5">
                                      <div class="flex gap-1">
                                          <button type="button"
                                                  x-on:click.prevent="$wire.setNewCoverImage({{ $index }})"
