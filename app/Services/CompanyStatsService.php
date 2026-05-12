@@ -186,7 +186,8 @@ class CompanyStatsService
     }
 
     /**
-     * Cash count data: current open cash count balance + closed list.
+     * Cash count data: mirrors AdminController balance calculation.
+     * Balance = sales - current_debt - purchases + old_debt_recovered
      */
     protected function getCashCountData(int $companyId): array
     {
@@ -208,74 +209,81 @@ class CompanyStatsService
             $cashOpenDate = $currentCashCount->opening_date;
             $currentCashData['opening_date'] = $cashOpenDate;
 
-            // Sales since cash open
             $currentCashData['sales'] = (float) DB::table('sales')
                 ->where('company_id', $companyId)
                 ->where('sale_date', '>=', $cashOpenDate)
                 ->sum('total_price');
 
-            // Purchases since cash open
             $currentCashData['purchases'] = (float) DB::table('purchases')
                 ->where('company_id', $companyId)
                 ->where('purchase_date', '>=', $cashOpenDate)
                 ->sum('total_price');
 
-            // Debt payments since cash open
             $hasDebtPayments = Schema::hasTable('debt_payments');
+
+            // Debt payments: only count for customers with sales in current period
+            $totalOldDebtRecovered = 0.0;
             if ($hasDebtPayments) {
-                $currentCashData['debt_payments'] = (float) DB::table('debt_payments')
+                $allPayments = DB::table('debt_payments')
                     ->where('company_id', $companyId)
                     ->where('created_at', '>=', $cashOpenDate)
-                    ->sum('payment_amount');
-            } else {
-                $currentCashData['debt_payments'] = (float) DB::table('cash_movements')
-                    ->join('cash_counts', 'cash_counts.id', '=', 'cash_movements.cash_count_id')
-                    ->where('cash_counts.company_id', $companyId)
-                    ->where('cash_movements.type', CashMovement::TYPE_INCOME)
-                    ->where('cash_movements.description', 'like', '%pago%')
-                    ->where('cash_movements.created_at', '>=', $cashOpenDate)
-                    ->sum('cash_movements.amount');
-            }
+                    ->get();
 
-            // Current period debt
-            if ($hasDebtPayments) {
-                $debt = DB::select("
-                    SELECT COALESCE(SUM(
-                        GREATEST(sales_in_current - payments_in_current, 0)
-                    ), 0) as total_debt
-                    FROM (
-                        SELECT
-                            c.id,
-                            COALESCE(sd.sales_in_current, 0) as sales_in_current,
-                            COALESCE(pd.payments_in_current, 0) as payments_in_current
-                        FROM customers c
-                        LEFT JOIN (
-                            SELECT customer_id, SUM(total_price) as sales_in_current
-                            FROM sales WHERE company_id = ? AND sale_date >= ?
-                            GROUP BY customer_id
-                        ) sd ON c.id = sd.customer_id
-                        LEFT JOIN (
-                            SELECT customer_id, SUM(payment_amount) as payments_in_current
-                            FROM debt_payments WHERE company_id = ? AND created_at >= ?
-                            GROUP BY customer_id
-                        ) pd ON c.id = pd.customer_id
-                        WHERE c.company_id = ? AND c.total_debt > 0
-                    ) sub
+                $customerSalesData = DB::table('customers')
+                    ->select('customers.id', DB::raw('COALESCE(SUM(sales.total_price), 0) as sales_in_period'))
+                    ->leftJoin('sales', function ($join) use ($cashOpenDate) {
+                        $join->on('customers.id', '=', 'sales.customer_id')
+                            ->where('sales.sale_date', '>=', $cashOpenDate);
+                    })
+                    ->whereIn('customers.id', $allPayments->pluck('customer_id'))
+                    ->groupBy('customers.id')
+                    ->get()
+                    ->keyBy('id');
+
+                $currentCashData['debt_payments'] = (float) $allPayments->sum(function ($p) use ($customerSalesData) {
+                    $cd = $customerSalesData->get($p->customer_id);
+                    return ($cd && $cd->sales_in_period > 0) ? $p->payment_amount : 0;
+                });
+
+                $totalOldDebtRecovered = (float) $allPayments->sum(function ($p) use ($customerSalesData) {
+                    $cd = $customerSalesData->get($p->customer_id);
+                    return ($cd && $cd->sales_in_period == 0) ? $p->payment_amount : 0;
+                });
+
+                // Current period debt
+                $debtData = DB::select("
+                    SELECT
+                        c.id,
+                        c.name,
+                        c.total_debt,
+                        COALESCE(sd.sales_in_current, 0) as sales_in_current,
+                        COALESCE(pd.payments_in_current, 0) as payments_in_current
+                    FROM customers c
+                    LEFT JOIN (
+                        SELECT customer_id, SUM(total_price) as sales_in_current
+                        FROM sales WHERE company_id = ? AND sale_date >= ?
+                        GROUP BY customer_id
+                    ) sd ON c.id = sd.customer_id
+                    LEFT JOIN (
+                        SELECT customer_id, SUM(payment_amount) as payments_in_current
+                        FROM debt_payments WHERE company_id = ? AND created_at >= ?
+                        GROUP BY customer_id
+                    ) pd ON c.id = pd.customer_id
+                    WHERE c.company_id = ? AND c.total_debt > 0
                 ", [$companyId, $cashOpenDate, $companyId, $cashOpenDate, $companyId]);
 
-                $currentCashData['debt'] = (float) ($debt[0]->total_debt ?? 0);
+                $debtInCurrent = 0;
+                foreach ($debtData as $c) {
+                    $debtInCurrent += max(0, (float) ($c->sales_in_current - $c->payments_in_current));
+                }
+                $currentCashData['debt'] = (float) $debtInCurrent;
             }
 
-            // Balance = sales - debt - purchases + debt_payments
-            $currentCashData['balance'] = (float) (
-                $currentCashData['sales']
-                - $currentCashData['debt']
-                - $currentCashData['purchases']
-                + $currentCashData['debt_payments']
-            );
+            // Mirror AdminController balance formula
+            $realCashFromSales = $currentCashData['sales'] - $currentCashData['debt'];
+            $currentCashData['balance'] = (float) ($realCashFromSales - $currentCashData['purchases'] + $totalOldDebtRecovered);
         }
 
-        // Closed cash counts list
         $closedCounts = CashCount::where('company_id', $companyId)
             ->whereNotNull('closing_date')
             ->orderByDesc('opening_date')
