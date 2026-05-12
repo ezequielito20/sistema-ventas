@@ -274,7 +274,7 @@
                                         if (alreadyAdded.includes(p.id)) {
                                             window.uiNotifications?.showToast?.('Este producto ya está en la lista de venta', {type:'warning', title:'Atención', timeout:4800, theme:'futuristic'});
                                         } else {
-                                            $wire.addProductFromScan(p.id, p.code, p.name, p.image_url ?? '', p.stock ?? 0, p.price ?? 0);
+                                            $wire.addProductFromScan(p.id, p.code, p.name, p.image_url ?? '', p.stock ?? 0, p.final_price ?? 0);
                                         }
                                     } else {
                                         window.uiNotifications?.showToast?.(data.message || 'No se encontró el producto', {type:'error', title:'Atención', timeout:7200, theme:'futuristic'});
@@ -775,8 +775,11 @@
                                                     ])>Stock: {{ $product->stock }}</span>
                                                 </div>
                                             </div>
-                                            <div class="text-right flex-shrink-0">
-                                                <div class="text-sm font-semibold text-cyan-400">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</div>
+                                                <div class="text-right flex-shrink-0">
+                                                    @if($product->has_discount)
+                                                        <div class="text-[11px] text-slate-500 line-through">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</div>
+                                                    @endif
+                                                    <div class="text-sm font-semibold {{ $product->has_discount ? 'text-amber-400' : 'text-cyan-400' }}">{{ $currency->symbol }} {{ number_format($product->final_price, 2) }}</div>
                                                 @if (in_array($product->id, $existingProductIds))
                                                     <span class="text-[11px] text-emerald-400"><i class="fas fa-check"></i> Agregado</span>
                                                 @elseif($product->stock <= 0)
@@ -834,8 +837,13 @@
                                                         {{ $product->stock }}
                                                     </span>
                                                 </td>
-                                                <td class="hidden whitespace-nowrap px-4 py-3 text-sm text-slate-300 md:table-cell">
-                                                    {{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}
+                                                <td class="hidden whitespace-nowrap px-4 py-3 text-sm md:table-cell">
+                                                    @if($product->has_discount)
+                                                        <span class="mr-1 text-xs text-slate-500 line-through">{{ $currency->symbol }} {{ number_format($product->sale_price, 2) }}</span>
+                                                        <span class="text-amber-400 font-semibold">{{ $currency->symbol }} {{ number_format($product->final_price, 2) }}</span>
+                                                    @else
+                                                        {{ $currency->symbol }} {{ number_format($product->final_price, 2) }}
+                                                    @endif
                                                 </td>
                                                 <td class="whitespace-nowrap px-4 py-3 text-right">
                                                     @if (in_array($product->id, $existingProductIds))
@@ -971,7 +979,7 @@
                                                             <span>·</span>
                                                             <span :class="p.stock <= 5 ? 'text-rose-400' : 'text-slate-500'" x-text="'Stock: ' + p.stock"></span>
                                                             <span>·</span>
-                                                            <span class="text-emerald-400" x-text="'$ ' + parseFloat(p.sale_price).toFixed(2)"></span>
+                                                            <span class="text-emerald-400" x-text="'$ ' + parseFloat(p.final_price ?? p.sale_price).toFixed(2)"></span>
                                                         </div>
                                                     </button>
                                                 </template>
@@ -1159,7 +1167,7 @@
                                     return;
                                 }
 
-                                const price = parseFloat(product.sale_price) || 0;
+                                const price = parseFloat(product.final_price) || 0;
                                 const paidCount = resolved.filter(r => r.isPaid || r.isPartialPayment).length;
                                 const paidMsg = paidCount > 0 ? ' Se registrarán ' + paidCount + ' pagos automáticos.' : '';
 

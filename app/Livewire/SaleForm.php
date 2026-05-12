@@ -113,7 +113,7 @@ class SaleForm extends Component
                     'image_url' => $product->image_url,
                     'stock' => (int) $product->stock,
                     'quantity' => 1,
-                    'price' => (float) $product->sale_price,
+                    'price' => (float) $product->final_price,
                     'discount_value' => 0,
                     'discount_type' => 'fixed',
                 ];
@@ -273,7 +273,7 @@ class SaleForm extends Component
             'image_url' => $product->image_url,
             'stock' => (int) $product->stock,
             'quantity' => 1,
-            'price' => (float) $product->sale_price,
+            'price' => (float) $product->final_price,
             'discount_value' => 0,
             'discount_type' => 'fixed',
         ];

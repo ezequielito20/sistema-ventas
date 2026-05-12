@@ -4,7 +4,7 @@
 
 @php
     $productUrl = url($company->slug.'/producto/'.$product->id);
-    $whatsappMsg = 'Hola! Me interesa '.$product->name.' - $'.number_format((float) $product->sale_price, 2)."\n".$productUrl;
+    $whatsappMsg = 'Hola! Me interesa '.$product->name.' - $'.number_format($product->final_price, 2)."\n".$productUrl;
 @endphp
 
 @push('meta')
@@ -81,6 +81,12 @@ window.shareCatalogProduct = async function (title, url) {
                          @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"
                          style="aspect-ratio:4/3">
 
+                        @if($product->has_discount)
+                            <span class="absolute right-3 top-3 z-20 inline-flex items-center gap-1 rounded-full bg-amber-500 px-3 py-1.5 font-dv-label text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+                                -{{ $product->discount_percent }}%
+                            </span>
+                        @endif
+
                         <template x-if="images.length === 0">
                             <div class="absolute inset-0 flex items-center justify-center bg-dv-surface-container-high">
                                 <i class="fas fa-image text-6xl text-dv-outline/25"></i>
@@ -156,8 +162,16 @@ window.shareCatalogProduct = async function (title, url) {
                 @endif
 
                 <div class="catalog-glass-card mt-6 rounded-2xl p-6">
-                    <span class="font-dv-display text-4xl text-dv-primary sm:text-5xl">
-                        ${{ number_format((float) $product->sale_price, 2) }}</span>
+                    <div class="flex items-baseline gap-3">
+                        @if($product->has_discount)
+                            <span class="font-dv-display text-2xl text-amber-400/60 line-through sm:text-3xl">
+                                ${{ number_format((float) $product->sale_price, 2) }}
+                            </span>
+                        @endif
+                        <span class="font-dv-display text-4xl sm:text-5xl {{ $product->has_discount ? 'text-amber-400' : 'text-dv-primary' }}">
+                            ${{ number_format($product->final_price, 2) }}
+                        </span>
+                    </div>
                     @if($product->stock > 0)
                         <div class="mt-stack-sm flex items-center gap-2 font-dv-body text-dv-body-sm text-dv-secondary">
                             <span class="h-2 w-2 animate-pulse rounded-full bg-dv-secondary"></span>

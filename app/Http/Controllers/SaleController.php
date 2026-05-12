@@ -1194,7 +1194,7 @@ class SaleController extends Controller
    public function getProductByCode($code)
    {
       try {
-         $product = Product::select('id', 'code', 'name', 'stock', 'sale_price', 'image')
+          $product = Product::select('id', 'code', 'name', 'stock', 'sale_price', 'discount_percent', 'image')
             ->where('code', $code)
             ->where('company_id', Auth::user()->company_id)
             ->first();
@@ -1215,15 +1215,16 @@ class SaleController extends Controller
          }
 
          // Preparar la respuesta con los datos necesarios
-         $productData = [
-            'id' => $product->id,
-            'code' => $product->code,
-            'name' => $product->name,
-            'stock' => $product->stock,
-            'sale_price' => $product->sale_price,
-            'stock_status_class' => $product->stock > 10 ? 'success' : 'warning',
-            'image' => $product->image_url
-         ];
+          $productData = [
+             'id' => $product->id,
+             'code' => $product->code,
+             'name' => $product->name,
+             'stock' => $product->stock,
+             'sale_price' => $product->sale_price,
+             'final_price' => $product->final_price,
+             'stock_status_class' => $product->stock > 10 ? 'success' : 'warning',
+             'image' => $product->image_url
+          ];
 
          return response()->json([
             'success' => true,
