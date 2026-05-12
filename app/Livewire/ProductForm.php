@@ -153,11 +153,6 @@ class ProductForm extends Component
         }
     }
 
-    public function updatedNewImages(): void
-    {
-        $this->validateOnly('newImages.*');
-    }
-
     /**
      * Margen sobre el costo de compra: (precio venta − precio compra) / precio compra × 100.
      * Null si el precio de compra no permite calcular (≤ 0).

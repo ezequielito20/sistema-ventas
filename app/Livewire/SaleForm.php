@@ -450,6 +450,8 @@ class SaleForm extends Component
         $this->bulkSaleDate = now()->format('Y-m-d');
         $this->bulkSaleTime = now()->format('H:i');
         $this->bulkRawData = '';
+        $this->bulkResults = [];
+        $this->bulkIsAnalyzing = false;
     }
 
     public function closeBulkModal(): void
@@ -493,12 +495,13 @@ class SaleForm extends Component
         $this->bulkIsAnalyzing = true;
         $this->bulkResults = [];
 
-        $lines = array_filter(array_map('trim', explode("\n", $this->bulkRawData)));
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $this->bulkRawData)), fn($l) => $l !== ''));
         $allCustomers = $this->all_customers;
 
-        // Normalize helper: remove accents, lowercase
-        $normalize = fn (string $str): string => strtolower(
-            iconv('UTF-8', 'ASCII//TRANSLIT', $str)
+        // Normalize helper: remove accents, lowercase, strip non-ASCII artifacts
+        $normalize = fn (string $str): string => preg_replace(
+            '/[^a-z0-9\s]/', '',
+            strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str) ?: $str)
         );
 
         foreach ($lines as $line) {

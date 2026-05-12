@@ -1033,12 +1033,13 @@
                                 {{-- Results list --}}
                                 <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1">
                                     <template x-for="(result, index) in $wire.bulkResults" :key="index">
-                                        <div :class="{
-                                            'border-l-4 border-l-emerald-500 bg-emerald-950/20': result.status === 'resolved',
-                                            'border-l-4 border-l-amber-500 bg-amber-950/20': result.status === 'ambiguous',
-                                            'border-l-4 border-l-rose-500 bg-rose-950/20': result.status === 'not_found' || result.status === 'error',
-                                            'border-l-4 border-l-slate-600 bg-slate-800/30 opacity-50': result.status === 'ignored',
-                                        }" class="rounded-r-lg border border-slate-700/50 p-3">
+                                        <div x-show="result && result.status"
+                                            :class="{
+                                                'border-l-4 border-l-emerald-500 bg-emerald-950/20': result.status === 'resolved',
+                                                'border-l-4 border-l-amber-500 bg-amber-950/20': result.status === 'ambiguous',
+                                                'border-l-4 border-l-rose-500 bg-rose-950/20': result.status === 'not_found' || result.status === 'error',
+                                                'border-l-4 border-l-slate-600 bg-slate-800/30 opacity-50': result.status === 'ignored',
+                                            }" class="rounded-r-lg border border-slate-700/50 p-3">
 
                                             {{-- Ignored --}}
                                             <div x-show="result.status === 'ignored'" class="flex items-center justify-between">

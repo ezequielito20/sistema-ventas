@@ -898,14 +898,15 @@ class SPAPaymentHandlerV2 {
                 throw new Error(message);
             }
 
-            if (window.uiNotifications?.showToast) {
-                window.uiNotifications.showToast('Pago registrado correctamente.', {
+            // Guardar flag en localStorage para mostrar notificación DESPUÉS del reload
+            try {
+                localStorage.setItem('debt_payment_success', JSON.stringify({
+                    message: 'Pago registrado correctamente.',
                     type: 'success',
                     title: 'Listo',
-                    theme: 'futuristic',
-                });
-            } else if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'success', title: 'Listo', text: 'Pago registrado correctamente.' });
+                }));
+            } catch (e) {
+                // Ignorar errores de localStorage
             }
 
             this.closePaymentModal();
@@ -924,6 +925,25 @@ class SPAPaymentHandlerV2 {
 }
 
 window.spaPaymentHandlerV2 = new SPAPaymentHandlerV2();
+
+// Mostrar notificación de pago exitoso si venimos de un reload post-pago
+(function checkPaymentSuccess() {
+    try {
+        const stored = localStorage.getItem('debt_payment_success');
+        if (!stored) return;
+        localStorage.removeItem('debt_payment_success');
+        const data = JSON.parse(stored);
+        if (window.uiNotifications?.showToast) {
+            window.uiNotifications.showToast(data.message, {
+                type: data.type || 'success',
+                title: data.title || 'Listo',
+                theme: 'futuristic',
+            });
+        }
+    } catch (e) {
+        // Ignorar errores de parseo o localStorage
+    }
+})();
 
 // Función global para cambiar registros por página en el modal de deuda v2
 // Se llama desde el onchange del select, no depende de event listeners cacheados

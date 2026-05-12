@@ -1071,14 +1071,15 @@
                                                 class="bg-gray-50/50 rounded-[2rem] border border-gray-100 p-4 max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
                                                 <template x-for="(result, index) in bulkSaleResults"
                                                     :key="index">
-                                                    <div :class="{
-                                                        'bg-emerald-50 border-emerald-200 shadow-sm': result
-                                                            .status === 'resolved',
-                                                        'bg-amber-50 border-amber-200': result.status === 'ambiguous',
-                                                        'bg-red-50 border-red-200': result.status === 'not_found' ||
-                                                            result.status === 'error',
-                                                        'bg-gray-100 opacity-60': result.status === 'ignored'
-                                                    }"
+                                                    <div x-show="result && result.status"
+                                                        :class="{
+                                                            'bg-emerald-50 border-emerald-200 shadow-sm': result
+                                                                .status === 'resolved',
+                                                            'bg-amber-50 border-amber-200': result.status === 'ambiguous',
+                                                            'bg-red-50 border-red-200': result.status === 'not_found' ||
+                                                                result.status === 'error',
+                                                            'bg-gray-100 opacity-60': result.status === 'ignored'
+                                                        }"
                                                         class="p-4 rounded-2xl border-2 transition-all duration-300">
                                                         <div class="flex items-center justify-between">
                                                             <div class="flex items-center space-x-4">
