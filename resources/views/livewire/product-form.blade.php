@@ -224,7 +224,7 @@
                 </div>
 
                 {{-- Galería de imágenes adicionales --}}
-                <div class="mt-8 border-t border-slate-700/60 pt-8" x-data="productGallery()" x-init="init()">
+                <div class="mt-8 border-t border-slate-700/60 pt-8" x-data="productGallery()">
                     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                         <div>
                             <h3 class="text-sm font-semibold text-slate-200">Galería de imágenes</h3>
@@ -544,3 +544,24 @@
         </div>
     </div>
 </div>
+
+<script>
+if (window.Alpine && !window.Alpine._productGalleryRegistered) {
+    window.Alpine._productGalleryRegistered = true;
+    window.Alpine.data('productGallery', () => ({
+        dragging: false,
+        handleDrop(e) {
+            this.dragging = false;
+            const files = e.dataTransfer.files;
+            if (!files.length) return;
+            const input = this.$refs.fileInput;
+            const dt = new DataTransfer();
+            for (const f of files) {
+                dt.items.add(f);
+            }
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        },
+    }));
+}
+</script>
