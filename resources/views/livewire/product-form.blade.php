@@ -206,6 +206,127 @@
                     </div>
                 </div>
 
+                {{-- Galería de imágenes adicionales --}}
+                <div class="mt-8 border-t border-slate-700/60 pt-8" x-data="productGallery()" x-init="init()">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-200">Galería de imágenes</h3>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Podés agregar hasta {{ $galleryMax }} imágenes adicionales para mostrar el producto desde diferentes ángulos.
+                            </p>
+                        </div>
+                        @if(count($existingImages) > 0 || count($newImages) > 0)
+                            <span class="rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-400">
+                                {{ count($existingImages) + count($newImages) }} de 5
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- Dropzone --}}
+                    @if(count($existingImages) + count($newImages) < 5)
+                    <div
+                        x-ref="dropzone"
+                        class="relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-600 bg-slate-950/40 px-6 py-10 transition hover:border-cyan-500/60 hover:bg-slate-900/60"
+                        :class="{ 'border-cyan-400 bg-cyan-500/5': dragging }"
+                        @dragover.prevent="dragging = true"
+                        @dragleave.prevent="dragging = false"
+                        @drop.prevent="handleDrop($event)"
+                    >
+                        <div class="rounded-full bg-slate-800/80 p-3 text-cyan-500/90">
+                            <i class="fas fa-images text-2xl"></i>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm font-medium text-slate-300">
+                                Arrastrá tus imágenes acá
+                            </p>
+                            <p class="mt-1 text-xs text-slate-500">o hacé clic para seleccionar</p>
+                        </div>
+                        <p class="text-[0.65rem] text-slate-600">JPG, PNG, GIF o WebP · hasta 2 MB cada una</p>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            wire:model="newImages"
+                            multiple
+                            class="absolute inset-0 cursor-pointer opacity-0"
+                            x-ref="fileInput"
+                        >
+                        <div wire:loading wire:target="newImages" class="absolute inset-0 flex items-center justify-center rounded-xl bg-slate-950/80 backdrop-blur-sm">
+                            <div class="flex items-center gap-3 rounded-lg bg-slate-800 px-4 py-2.5 text-sm text-cyan-300">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                                Subiendo imágenes…
+                            </div>
+                        </div>
+                    </div>
+                    @else
+                    <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-950/30 px-6 py-6 text-center">
+                        <i class="fas fa-check-circle text-2xl text-emerald-500/70"></i>
+                        <p class="text-sm font-medium text-slate-400">Límite de imágenes alcanzado</p>
+                        <p class="text-xs text-slate-500">Eliminá alguna imagen para agregar más.</p>
+                    </div>
+                    @endif
+
+                    {{-- Existing images --}}
+                    @if(count($existingImages) > 0)
+                    <div class="mt-4">
+                        <p class="mb-2 text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">Imágenes guardadas</p>
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                            @foreach($existingImages as $img)
+                            <div class="group relative aspect-video overflow-hidden rounded-lg border @if($coverImageId === $img['id']) border-dv-primary ring-2 ring-dv-primary/40 @else border-slate-700 @endif bg-slate-900/80">
+                                <img src="{{ $img['url'] }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                                <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
+                                    <div class="flex gap-1">
+                                        <button type="button"
+                                                wire:click="setCoverImage({{ $img['id'] }})"
+                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $coverImageId === $img['id'] ? 'text-dv-primary' : 'text-slate-400' }}"
+                                                title="{{ __('Marcar como portada') }}">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                        <button type="button"
+                                                wire:click="removeExistingImage({{ $img['id'] }})"
+                                                wire:confirm="{{ __('¿Eliminar esta imagen de la galería?') }}"
+                                                class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
+                                                title="{{ __('Eliminar imagen') }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                @if($coverImageId === $img['id'])
+                                    <span class="absolute bottom-1.5 left-1.5 rounded-full bg-dv-primary px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
+                                        {{ __('Portada') }}
+                                    </span>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- New images preview --}}
+                    @if(count($newImages) > 0)
+                    <div class="mt-4">
+                        <p class="mb-2 text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">Nuevas imágenes</p>
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                            @foreach($newImages as $index => $img)
+                            <div class="group relative aspect-video overflow-hidden rounded-lg border border-cyan-500/50 bg-slate-900/80">
+                                <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                                <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
+                                    <button type="button"
+                                            wire:click="removeNewImage({{ $index }})"
+                                            class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
+                                            title="{{ __('Quitar imagen') }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <span class="absolute bottom-1.5 left-1.5 rounded-full bg-cyan-600/80 px-2 py-0.5 font-dv-label text-[9px] font-bold uppercase text-white shadow-sm">
+                                    {{ __('Nueva') }}
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
                     <h3 class="mb-4 text-sm font-semibold text-slate-200">Inventario</h3>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -1,30 +1,31 @@
 {{--
     Tarjeta de producto — Digital Vault · catálogo público
-    Requiere $product con relación category o category_name, imágenes eager si aplica.
+    Requiere $product con relación category y relación images eager cargada.
 --}}
 @php
     $categoryLabel = $product->category_name ?? optional($product->category)->name ?? __('Sin categoría');
+
+    $primaryUrl = $product->cover_image_url;
+    $fallbackUrl = $product->image_url;
+    $hasFallback = $fallbackUrl !== $primaryUrl;
 @endphp
 <a href="{{ route('catalog.product', ['company' => $company->slug, 'product' => $product]) }}"
    class="catalog-glass-card catalog-glow-hover group flex flex-col overflow-hidden">
 
     <div class="catalog-glass-card--media relative aspect-video overflow-hidden">
-        @if($product->images->isNotEmpty())
-            <img src="{{ $product->images->first()->image_url }}"
-                 alt="{{ $product->name }}"
-                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                 loading="lazy">
-        @elseif($product->image_url ?? false)
-            <img src="{{ $product->image_url }}"
-                 alt="{{ $product->name }}"
-                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                 loading="lazy">
-        @else
-            <div class="flex h-full w-full flex-col items-center justify-center gap-2 bg-dv-surface-container-high">
-                <i class="fas fa-box-open text-3xl text-dv-outline/40"></i>
-                <span class="font-dv-label text-dv-label-md text-dv-outline">{{ __('Sin imagen') }}</span>
-            </div>
-        @endif
+        <img src="{{ $primaryUrl }}"
+             alt="{{ $product->name }}"
+             class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+             loading="lazy"
+             @if($hasFallback)
+             onerror="if (!this.dataset.tried) { this.dataset.tried = '1'; this.src = '{{ $fallbackUrl }}'; } else { this.onerror = null; this.style.display = 'none'; var ph = this.parentElement.querySelector('.catalog-img-placeholder'); if (ph) ph.style.display = ''; }"
+             @else
+             onerror="this.onerror = null; this.style.display = 'none'; var ph = this.parentElement.querySelector('.catalog-img-placeholder'); if (ph) ph.style.display = '';"
+             @endif>
+        <div class="catalog-img-placeholder absolute inset-0 flex flex-col items-center justify-center gap-2 bg-dv-surface-container-high" style="display: none;">
+            <i class="fas fa-box-open text-3xl text-dv-outline/40"></i>
+            <span class="font-dv-label text-dv-label-md text-dv-outline">{{ __('Sin imagen') }}</span>
+        </div>
 
         <span class="absolute left-3 top-3 rounded-full border border-dv-secondary bg-dv-secondary/10 px-2.5 py-1 font-dv-label text-[10px] font-bold uppercase tracking-wide text-dv-secondary backdrop-blur-md sm:left-4 sm:top-4">
             {{ $categoryLabel }}

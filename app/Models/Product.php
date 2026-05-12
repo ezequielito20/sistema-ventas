@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Services\ImageUrlService;
 
@@ -37,7 +38,7 @@ class Product extends Model
     *
     * @var array
     */
-   protected $appends = ['image_url', 'stock_status_label', 'stock_status_class'];
+    protected $appends = ['image_url', 'stock_status_label', 'stock_status_class', 'cover_image_url'];
 
    /**
     * The attributes that should be cast.
@@ -218,5 +219,33 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get the cover image for the product.
+     */
+    public function coverImage(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)->where('is_cover', true);
+    }
+
+    /**
+     * Get the cover image URL or fall back to the legacy product image_url.
+     */
+    public function getCoverImageUrlAttribute(): string
+    {
+        if ($this->relationLoaded('images')) {
+            $cover = $this->images->firstWhere('is_cover', true);
+            if ($cover) {
+                return $cover->image_url;
+            }
+        } else {
+            $cover = $this->coverImage()->first();
+            if ($cover) {
+                return $cover->image_url;
+            }
+        }
+
+        return $this->getImageUrlAttribute();
     }
 }

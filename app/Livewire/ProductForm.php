@@ -43,7 +43,15 @@ class ProductForm extends Component
 
     public $image = null;
 
+    public array $newImages = [];
+
+    public ?int $coverImageId = null;
+
+    public array $imageToDelete = [];
+
     public ?string $existingImagePath = null;
+
+    public $existingImages = [];
 
     public function mount(?int $productId = null): void
     {
@@ -56,6 +64,7 @@ class ProductForm extends Component
             $product = Product::query()
                 ->where('company_id', Auth::user()->company_id)
                 ->where('id', $this->productId)
+                ->with('images')
                 ->firstOrFail();
 
             $this->code = $product->code;
@@ -69,6 +78,20 @@ class ProductForm extends Component
             $this->entry_date = $product->entry_date->format('Y-m-d');
             $this->category_id = $product->category_id;
             $this->existingImagePath = $product->image;
+
+            $this->existingImages = $product->images
+                ->map(fn ($img) => [
+                    'id' => $img->id,
+                    'url' => $img->image_url,
+                    'is_cover' => (bool) $img->is_cover,
+                ])
+                ->values()
+                ->toArray();
+
+            $cover = $product->images->firstWhere('is_cover', true);
+            if ($cover) {
+                $this->coverImageId = $cover->id;
+            }
 
             return;
         }
@@ -86,10 +109,38 @@ class ProductForm extends Component
 
     public function updatedName(): void
     {
-        // Auto-generar código si el nombre tiene texto y el código está vacío
         if ($this->name && ! $this->code) {
             $this->code = 'PROD' . substr((string) time(), -6);
         }
+    }
+
+    public function removeExistingImage(int $imageId): void
+    {
+        Gate::authorize('products.edit');
+
+        $this->imageToDelete[] = $imageId;
+        $this->existingImages = array_values(array_filter($this->existingImages, fn ($img) => $img['id'] !== $imageId));
+
+        if ($this->coverImageId === $imageId) {
+            $this->coverImageId = null;
+        }
+    }
+
+    public function removeNewImage(int $index): void
+    {
+        unset($this->newImages[$index]);
+        $this->newImages = array_values($this->newImages);
+    }
+
+    public function setCoverImage(?int $imageId): void
+    {
+        Gate::authorize('products.edit');
+        $this->coverImageId = $imageId;
+    }
+
+    public function updatedNewImages(): void
+    {
+        $this->validateOnly('newImages.*');
     }
 
     /**
@@ -161,6 +212,7 @@ class ProductForm extends Component
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'newImages.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'stock' => 'required|integer|min:0',
             'min_stock' => 'required|integer|min:0',
             'max_stock' => 'required|integer|gt:min_stock',
@@ -230,11 +282,15 @@ class ProductForm extends Component
         unset($validated['image']);
         $validated['category_id'] = (int) $validated['category_id'];
 
+        $galleryImages = $this->newImages;
+        $imageDeletions = $this->imageToDelete;
+        $coverImageId = $this->coverImageId;
+
         $companyId = (int) Auth::user()->company_id;
 
         try {
             if ($this->productId === null) {
-                $productService->create($validated, $companyId, $upload);
+                $productService->create($validated, $companyId, $upload, $galleryImages);
 
                 session()->flash(
                     'message',
@@ -253,7 +309,7 @@ class ProductForm extends Component
                     ->where('id', $this->productId)
                     ->firstOrFail();
 
-                $productService->update($product, $validated, $upload);
+                $productService->update($product, $validated, $upload, $galleryImages, $imageDeletions, $coverImageId);
 
                 session()->flash('message', 'Producto actualizado exitosamente');
                 session()->flash('icons', 'success');
@@ -328,6 +384,8 @@ class ProductForm extends Component
             ? ImageUrlService::getImageUrl($this->existingImagePath)
             : null;
 
+        $galleryMax = 5 - count($this->existingImages);
+
         return view('livewire.product-form', [
             'isEdit' => $isEdit,
             'categories' => $categories,
@@ -337,6 +395,7 @@ class ProductForm extends Component
                 ? 'Actualiza la información del producto en el inventario.'
                 : 'Registra un nuevo producto en el inventario.',
             'existingImageUrl' => $existingImageUrl,
+            'galleryMax' => $galleryMax,
         ]);
     }
 }

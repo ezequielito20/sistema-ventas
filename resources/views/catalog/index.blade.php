@@ -22,7 +22,7 @@ window.__CATALOG_PRODUCTS__ = {{ Js::from($products->map(function ($p) {
         'description' => $p->description,
         'sale_price' => (float) $p->sale_price,
         'category_name' => $p->category_name ?? 'Sin categoría',
-        'image_url' => $p->images->isNotEmpty() ? $p->images->first()->image_url : $p->image_url,
+        'image_url' => $p->cover_image_url,
         'code' => $p->code,
     ];
 })) }};
@@ -147,7 +147,16 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                             <a :href="productUrl(product.id)" class="catalog-glass-card--media relative block aspect-video overflow-hidden">
                                 <img :src="product.image_url" :alt="product.name"
                                      class="h-full w-full object-cover transition duration-500 hover:scale-105"
-                                     loading="lazy">
+                                     loading="lazy"
+                                     x-on:error="
+                                        $el.classList.add('hidden');
+                                        $el.nextElementSibling.classList.remove('hidden');
+                                        $el.nextElementSibling.classList.add('flex');
+                                     ">
+                                <div class="absolute inset-0 hidden flex-col items-center justify-center gap-2 bg-dv-surface-container-high">
+                                    <i class="fas fa-box-open text-3xl text-dv-outline/40"></i>
+                                    <span class="font-dv-label text-dv-label-md text-dv-outline">{{ __('Sin imagen') }}</span>
+                                </div>
                                 <span class="absolute left-4 top-4 rounded-full border border-dv-secondary bg-dv-secondary/10 px-3 py-1 font-dv-label text-dv-label-md font-semibold uppercase text-dv-secondary backdrop-blur-md"
                                       x-text="product.category_name"></span>
                             </a>

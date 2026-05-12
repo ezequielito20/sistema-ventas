@@ -12,9 +12,11 @@ class ProductImage extends Model
         'product_id',
         'image',
         'sort_order',
+        'is_cover',
     ];
 
     protected $casts = [
+        'is_cover' => 'boolean',
         'sort_order' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

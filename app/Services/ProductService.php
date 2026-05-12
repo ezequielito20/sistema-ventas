@@ -13,26 +13,51 @@ class ProductService
 {
     /**
      * @param  array<string, mixed>  $data
+     * @param  array<UploadedFile|TemporaryUploadedFile>  $galleryImages
      */
-    public function create(array $data, int $companyId, UploadedFile|TemporaryUploadedFile|null $image = null): Product
+    public function create(array $data, int $companyId, UploadedFile|TemporaryUploadedFile|null $image = null, array $galleryImages = []): Product
     {
         $storedPath = null;
+        $galleryPaths = [];
 
         try {
-            return DB::transaction(function () use ($data, $companyId, $image, &$storedPath) {
+            return DB::transaction(function () use ($data, $companyId, $image, $galleryImages, &$storedPath, &$galleryPaths) {
                 $data['company_id'] = $companyId;
+                $disk = ImageUrlService::getStorageDisk();
 
                 if ($image !== null) {
-                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     $storedPath = $image->store('products', $disk);
                     $data['image'] = 'storage/'.$storedPath;
                 }
 
-                return Product::create($data);
+                $product = Product::create($data);
+
+                if ($image !== null) {
+                    $product->images()->create([
+                        'image' => $data['image'],
+                        'sort_order' => 0,
+                        'is_cover' => true,
+                    ]);
+                }
+
+                foreach ($galleryImages as $index => $galleryImage) {
+                    $galleryPath = $galleryImage->store('products', $disk);
+                    $galleryPaths[] = $galleryPath;
+                    $product->images()->create([
+                        'image' => 'storage/'.$galleryPath,
+                        'sort_order' => $index + 1,
+                        'is_cover' => false,
+                    ]);
+                }
+
+                return $product;
             });
         } catch (\Throwable $e) {
             if ($storedPath !== null) {
                 Storage::disk('public')->delete($storedPath);
+            }
+            foreach ($galleryPaths as $path) {
+                Storage::disk('public')->delete($path);
             }
 
             throw $e;
@@ -41,16 +66,20 @@ class ProductService
 
     /**
      * @param  array<string, mixed>  $data
+     * @param  array<UploadedFile|TemporaryUploadedFile>  $galleryImages
+     * @param  array<int>  $imageDeletions
      */
-    public function update(Product $product, array $data, UploadedFile|TemporaryUploadedFile|null $image = null): void
+    public function update(Product $product, array $data, UploadedFile|TemporaryUploadedFile|null $image = null, array $galleryImages = [], array $imageDeletions = [], ?int $coverImageId = null): void
     {
         $newStoredPath = null;
+        $galleryPaths = [];
         $oldRelative = $product->image ? str_replace('storage/', '', $product->image) : null;
 
         try {
-            DB::transaction(function () use ($product, $data, $image, &$newStoredPath, $oldRelative) {
+            DB::transaction(function () use ($product, $data, $image, $galleryImages, $imageDeletions, $coverImageId, &$newStoredPath, &$galleryPaths, $oldRelative) {
+                $disk = ImageUrlService::getStorageDisk();
+
                 if ($image !== null) {
-                    $disk = \App\Services\ImageUrlService::getStorageDisk();
                     $newStoredPath = $image->store('products', $disk);
                     $data['image'] = 'storage/'.$newStoredPath;
 
@@ -60,10 +89,48 @@ class ProductService
                 }
 
                 $product->update($data);
+
+                if (! empty($imageDeletions)) {
+                    $deletedImages = $product->images()->whereIn('id', $imageDeletions)->get();
+                    foreach ($deletedImages as $img) {
+                        $relative = str_replace('storage/', '', $img->image);
+                        if (Storage::disk($disk)->exists($relative)) {
+                            Storage::disk($disk)->delete($relative);
+                        }
+                    }
+                    $product->images()->whereIn('id', $imageDeletions)->delete();
+                }
+
+                if ($image !== null) {
+                    $product->images()->where('is_cover', true)->update(['is_cover' => false]);
+
+                    $product->images()->create([
+                        'image' => $data['image'],
+                        'sort_order' => 0,
+                        'is_cover' => true,
+                    ]);
+                } elseif ($coverImageId !== null) {
+                    $product->images()->where('id', '!=', $coverImageId)->update(['is_cover' => false]);
+                    $product->images()->where('id', $coverImageId)->update(['is_cover' => true]);
+                }
+
+                $maxSort = $product->images()->max('sort_order') ?? 0;
+                foreach ($galleryImages as $index => $galleryImage) {
+                    $galleryPath = $galleryImage->store('products', $disk);
+                    $galleryPaths[] = $galleryPath;
+                    $product->images()->create([
+                        'image' => 'storage/'.$galleryPath,
+                        'sort_order' => $maxSort + $index + 1,
+                        'is_cover' => false,
+                    ]);
+                }
             });
         } catch (\Throwable $e) {
             if ($newStoredPath !== null) {
                 Storage::disk('public')->delete($newStoredPath);
+            }
+            foreach ($galleryPaths as $path) {
+                Storage::disk('public')->delete($path);
             }
 
             throw $e;
@@ -103,8 +170,16 @@ class ProductService
 
             if ($product->image) {
                 $relative = str_replace('storage/', '', $product->image);
-                $diskName = \App\Services\ImageUrlService::getStorageDisk();
+                $diskName = ImageUrlService::getStorageDisk();
                 if (Storage::disk($diskName)->exists($relative)) {
+                    Storage::disk($diskName)->delete($relative);
+                }
+            }
+
+            foreach ($product->images as $img) {
+                $relative = str_replace('storage/', '', $img->image);
+                $diskName = ImageUrlService::getStorageDisk();
+                if ($relative && Storage::disk($diskName)->exists($relative)) {
                     Storage::disk($diskName)->delete($relative);
                 }
             }

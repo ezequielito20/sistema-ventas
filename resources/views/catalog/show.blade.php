@@ -6,7 +6,7 @@
     <meta name="description" content="{{ Str::limit($product->description, 160) }}">
     <meta property="og:title" content="{{ $product->name }} — {{ $company->name }}">
     <meta property="og:description" content="{{ Str::limit($product->description, 200) }}">
-    <meta property="og:image" content="{{ $product->images->isNotEmpty() ? $product->images->first()->image_url : $company->logo_url }}">
+    <meta property="og:image" content="{{ $product->cover_image_url }}">
     <meta property="og:type" content="product">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -16,8 +16,11 @@
 @push('scripts')
 <script>
 window.__CATALOG_GALLERY_IMAGES__ = {{ Js::from($product->images->isNotEmpty()
-    ? $product->images->map(fn ($img) => ['url' => $img->image_url, 'id' => $img->id])->values()
-    : collect([['url' => $product->image_url, 'id' => 0]])) }};
+    ? $product->images
+        ->sortBy(fn ($img) => $img->is_cover ? -1 : $img->sort_order)
+        ->map(fn ($img) => ['url' => $img->image_url, 'id' => $img->id, 'is_cover' => (bool) $img->is_cover])
+        ->values()
+    : collect([['url' => $product->image_url, 'id' => 0, 'is_cover' => true]])) }};
 
 window.shareCatalogProduct = async function (title, url) {
     if (navigator.share) {
