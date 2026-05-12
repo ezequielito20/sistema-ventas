@@ -69,6 +69,19 @@ class CompanyShow extends Component
 
     public bool $editAutoRenew = true;
 
+    // ── Edit User Modal ──
+    public bool $showEditUserModal = false;
+
+    public ?int $editUserId = null;
+
+    public string $editUserName = '';
+
+    public string $editUserEmail = '';
+
+    public string $editUserPassword = '';
+
+    public string $editUserPasswordConfirmation = '';
+
     public function mount(int $companyId): void
     {
         if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
@@ -165,6 +178,59 @@ class CompanyShow extends Component
         $this->closeEditSubscriptionModal();
         $this->loadCompany();
         $this->toast('Suscripción actualizada correctamente.', 'success');
+    }
+
+    // ── Edit User Modal ──
+    public function openEditUserModal(int $userId): void
+    {
+        $user = \App\Models\User::where('company_id', $this->companyId)->findOrFail($userId);
+        $this->editUserId = $user->id;
+        $this->editUserName = $user->name;
+        $this->editUserEmail = $user->email;
+        $this->editUserPassword = '';
+        $this->editUserPasswordConfirmation = '';
+        $this->showEditUserModal = true;
+    }
+
+    public function closeEditUserModal(): void
+    {
+        $this->showEditUserModal = false;
+        $this->editUserId = null;
+    }
+
+    public function saveUser(): void
+    {
+        if (!$this->editUserId) {
+            $this->toast('No hay usuario seleccionado.', 'error');
+            return;
+        }
+
+        $user = \App\Models\User::where('company_id', $this->companyId)->findOrFail($this->editUserId);
+
+        $rules = [
+            'editUserName' => 'required|string|max:255',
+            'editUserEmail' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        ];
+
+        if ($this->editUserPassword !== '') {
+            $rules['editUserPassword'] = 'required|string|min:8|confirmed';
+        }
+
+        $this->validate($rules);
+
+        $data = [
+            'name' => $this->editUserName,
+            'email' => $this->editUserEmail,
+        ];
+
+        if ($this->editUserPassword !== '') {
+            $data['password'] = \Illuminate\Support\Facades\Hash::make($this->editUserPassword);
+        }
+
+        $user->update($data);
+
+        $this->closeEditUserModal();
+        $this->toast('Usuario actualizado correctamente.', 'success');
     }
 
     public function openSuspendModal(): void
@@ -303,11 +369,16 @@ class CompanyShow extends Component
     {
         $plans = Plan::active()->orderBy('name')->get();
         $payments = $this->payments;
+        $users = \App\Models\User::where('company_id', $this->companyId)
+            ->with('roles')
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.super-admin.company-show', [
             'plans' => $plans,
             'payments' => $payments,
             'dashboardStats' => $this->dashboardStats,
+            'users' => $users,
         ]);
     }
 }

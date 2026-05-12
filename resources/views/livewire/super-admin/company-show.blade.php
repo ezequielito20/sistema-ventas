@@ -58,6 +58,9 @@
                     <button wire:click="switchTab('stats')" @class(['pb-3 pt-4 px-2 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'stats', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'stats'])>
                         <i class="fas fa-chart-bar mr-1.5"></i> Estadísticas
                     </button>
+                    <button wire:click="switchTab('users')" @class(['pb-3 pt-4 px-2 text-sm font-medium border-b-2 transition-colors', 'border-cyan-400 text-cyan-400' => $activeTab === 'users', 'border-transparent text-slate-400 hover:text-slate-200' => $activeTab !== 'users'])>
+                        <i class="fas fa-users mr-1.5"></i> Usuarios
+                    </button>
                 </nav>
             </div>
 
@@ -713,6 +716,58 @@
                     </div>
 
                 </div>
+            @endif
+
+            @if ($activeTab === 'users')
+                <div class="p-6">
+                    <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                        <div>
+                            <h2 class="ui-panel__title">Usuarios de la Empresa</h2>
+                            <p class="ui-panel__subtitle">Gestión de accesos y credenciales</p>
+                        </div>
+                    </div>
+                    <div class="ui-table-wrap border-0 rounded-none">
+                        <table class="ui-table ui-table--nowrap-actions">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-left">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($users as $user)
+                                    <tr wire:key="user-row-{{ $user->id }}">
+                                        <td class="font-medium text-white">{{ $user->name }}</td>
+                                        <td class="text-sm text-slate-300">{{ $user->email }}</td>
+                                        <td class="text-sm text-slate-300">
+                                            {{ $user->roles->pluck('name')->join(', ') ?: 'Sin rol' }}
+                                        </td>
+                                        <td class="text-center">
+                                            @if ($user->email_verified_at)
+                                                <span class="ui-badge ui-badge-success">Verificado</span>
+                                            @else
+                                                <span class="ui-badge ui-badge-warning">Pendiente</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-left">
+                                            <div class="ui-icon-action-row flex flex-nowrap items-center justify-start gap-1.5 md:gap-2">
+                                                <button type="button" wire:click="openEditUserModal({{ $user->id }})" class="ui-icon-action ui-icon-action--primary" title="Editar usuario">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="text-center text-sm text-slate-400 py-8">No hay usuarios registrados.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
                 @push('js')
                 <script>
@@ -886,7 +941,6 @@
                 }
                 </script>
                 @endpush
-            @endif
         </div>
     @endif
 
@@ -1041,6 +1095,55 @@
                             <button type="button" wire:click="closePaymentModal" class="ui-btn ui-btn-ghost">Cancelar</button>
                             <button type="button" wire:click="markAsPaid" class="ui-btn ui-btn-success">
                                 <i class="fas fa-check mr-1.5"></i> Confirmar pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Editar Usuario --}}
+    @if ($showEditUserModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto" x-data x-cloak x-show="true" x-transition>
+            <div class="fixed inset-0 bg-black/60" wire:click="closeEditUserModal"></div>
+            <div class="relative w-full max-w-md mx-4 my-8" @click.stop>
+                <div class="ui-panel">
+                    <div class="ui-panel__header flex items-center justify-between">
+                        <h3 class="ui-panel__title"><i class="fas fa-user-edit mr-2 text-cyan-400"></i>Editar Usuario</h3>
+                        <button type="button" wire:click="closeEditUserModal" class="text-slate-400 hover:text-slate-200">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="ui-panel__body space-y-4">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Nombre</label>
+                            <input type="text" wire:model="editUserName" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />
+                            @error('editUserName') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Email</label>
+                            <input type="email" wire:model="editUserEmail" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" />
+                            @error('editUserEmail') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="border-t border-slate-700/50 pt-4">
+                            <p class="text-xs text-slate-400 mb-3">Dejá en blanco para mantener la contraseña actual.</p>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Nueva contraseña</label>
+                                    <input type="password" wire:model="editUserPassword" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" placeholder="Mínimo 8 caracteres" />
+                                    @error('editUserPassword') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Confirmar contraseña</label>
+                                    <input type="password" wire:model="editUserPasswordConfirmation" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none" placeholder="Repetir contraseña" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 border-t border-slate-700/50 pt-4">
+                            <button type="button" wire:click="closeEditUserModal" class="ui-btn ui-btn-ghost">Cancelar</button>
+                            <button type="button" wire:click="saveUser" class="ui-btn ui-btn-primary">
+                                <i class="fas fa-save mr-1.5"></i> Guardar cambios
                             </button>
                         </div>
                     </div>
