@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Services\ImageUrlService;
 use App\Services\ProductService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -234,7 +233,6 @@ class ProductForm extends Component
             'code' => $codeRule,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'newImages.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'stock' => 'required|integer|min:0',
             'min_stock' => 'required|integer|min:0',
@@ -303,22 +301,20 @@ class ProductForm extends Component
         }
 
         $validated = $this->validate();
-        $upload = $validated['image'] ?? null;
-        unset($validated['image']);
         $validated['category_id'] = (int) $validated['category_id'];
 
-        $galleryImages = $this->newImages;
         $imageDeletions = $this->imageToDelete;
         $coverImageId = $this->coverImageId;
 
-        if ($this->newCoverIndex !== null) {
-            $coverIdx = $this->newCoverIndex;
-            if ($upload !== null) {
-                $galleryImages[] = $upload;
-            }
-            $upload = $galleryImages[$coverIdx] ?? $upload;
-            unset($galleryImages[$coverIdx]);
+        $galleryImages = $this->newImages;
+        $upload = null;
+
+        if ($this->newCoverIndex !== null && isset($galleryImages[$this->newCoverIndex])) {
+            $upload = $galleryImages[$this->newCoverIndex];
+            unset($galleryImages[$this->newCoverIndex]);
             $galleryImages = array_values($galleryImages);
+        } elseif (!empty($galleryImages)) {
+            $upload = array_shift($galleryImages);
         }
 
         $companyId = (int) Auth::user()->company_id;
@@ -415,12 +411,6 @@ class ProductForm extends Component
 
         $isEdit = $this->productId !== null;
 
-        $existingImageUrl = $this->existingImagePath
-            ? ImageUrlService::getImageUrl($this->existingImagePath)
-            : null;
-
-        $galleryMax = 5 - count($this->existingImages);
-
         return view('livewire.product-form', [
             'isEdit' => $isEdit,
             'categories' => $categories,
@@ -429,8 +419,6 @@ class ProductForm extends Component
             'headingSubtitle' => $isEdit
                 ? 'Actualiza la información del producto en el inventario.'
                 : 'Registra un nuevo producto en el inventario.',
-            'existingImageUrl' => $existingImageUrl,
-            'galleryMax' => $galleryMax,
         ]);
     }
 }

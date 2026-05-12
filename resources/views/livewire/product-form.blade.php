@@ -131,99 +131,7 @@
                     </div>
                 </div>
 
-                <div class="mt-8 border-t border-slate-700/60 pt-8">
-                    <h3 class="mb-1 text-sm font-semibold text-slate-200">Imagen</h3>
-                    <p class="mb-4 text-xs text-slate-500">
-                        Opcional en edición si ya hay imagen. Tras elegir archivo, se sube un temporal y aquí verás la vista previa.
-                    </p>
-                    {{--
-                        Vista previa: resources/js/app.js (delegación en document). wire:ignore evita que Livewire pise el <img>.
-                    --}}
-                    <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-start sm:gap-6 md:gap-7">
-                        <div class="min-w-0 w-full max-w-md space-y-3 sm:w-auto sm:max-w-[17rem]">
-                            <span class="{{ $labelBase }}">Archivo</span>
-                            <div class="flex flex-col gap-2">
-                                <div class="flex flex-wrap items-center gap-3">
-                                    <input
-                                        id="product-form-image-input"
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/gif,image/webp"
-                                        wire:model="image"
-                                        class="sr-only"
-                                    >
-                                    <input
-                                        id="product-form-camera-input"
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        wire:model="image"
-                                        class="sr-only"
-                                    >
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <label
-                                            for="product-form-image-input"
-                                            class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40 @error('image') border-rose-500/70 @enderror"
-                                        >
-                                            <i class="fas fa-folder-open text-slate-400"></i>
-                                            <span>Seleccionar</span>
-                                        </label>
-                                        <label
-                                            for="product-form-camera-input"
-                                            class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80 focus-within:ring-2 focus-within:ring-cyan-500/40"
-                                        >
-                                            <i class="fas fa-camera text-slate-400"></i>
-                                            <span>Tomar foto</span>
-                                        </label>
-                                    </div>
-                                    <div wire:loading wire:target="image" class="inline-flex items-center gap-2 text-xs text-cyan-300/90">
-                                        <i class="fas fa-circle-notch fa-spin"></i>
-                                        Subiendo temporal…
-                                    </div>
-                                </div>
-                                @if ($image)
-                                    <p class="truncate text-xs text-slate-400" title="{{ $image->getClientOriginalName() }}">
-                                        <i class="fas fa-paperclip mr-1 text-slate-500"></i>{{ $image->getClientOriginalName() }}
-                                    </p>
-                                @endif
-                                <p class="text-xs text-slate-500">Formatos: JPG, PNG, GIF o WebP · máximo 2&nbsp;MB.</p>
-                            </div>
-                            @error('image')
-                                <p class="text-sm text-rose-300">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="flex w-full max-w-[13rem] shrink-0 flex-col gap-2 self-start sm:w-[13rem]">
-                            <p class="text-[0.65rem] font-medium uppercase tracking-wide text-slate-500">
-                                Vista previa
-                            </p>
-                            <div
-                                wire:ignore
-                                id="product-form-preview-root"
-                                data-existing-url="{{ $existingImageUrl ?? '' }}"
-                                class="relative h-48 w-full max-w-[13rem] overflow-hidden rounded-xl border border-slate-600 bg-slate-900/80 shadow-inner ring-1 ring-white/5"
-                            >
-                                <img
-                                    id="product-form-preview-img"
-                                    @if ($existingImageUrl) src="{{ $existingImageUrl }}" @endif
-                                    alt=""
-                                    class="absolute inset-0 h-full w-full object-cover {{ $existingImageUrl ? '' : 'hidden' }}"
-                                >
-                                <div
-                                    id="product-form-preview-empty"
-                                    class="{{ $existingImageUrl ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-slate-500"
-                                >
-                                    <div class="rounded-full bg-slate-800/80 p-3 text-cyan-500/90">
-                                        <i class="fas fa-cloud-upload-alt text-2xl"></i>
-                                    </div>
-                                    <span class="text-xs font-medium text-slate-400">Selecciona una imagen</span>
-                                    <span class="text-[0.65rem] leading-snug text-slate-600">JPG, PNG, GIF o WebP · hasta 2&nbsp;MB</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Galería de imágenes adicionales --}}
+                                {{-- Galería de imágenes --}}
                 <div class="mt-8 border-t border-slate-700/60 pt-8"
                      x-data="{
                          dragging: false,
@@ -242,15 +150,14 @@
                      }">
                     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                         <div>
-                            <h3 class="text-sm font-semibold text-slate-200">Galería de imágenes</h3>
+                            <h3 class="text-sm font-semibold text-slate-200">Imágenes del producto</h3>
                             <p class="mt-1 text-xs text-slate-500">
-                                Hasta 6 imágenes en total. Marcá con ★ la imagen principal,
-                                el resto se mostrarán en la galería del catálogo público.
+                                Subí las fotos del producto. Marcá con ★ la que será la portada en el catálogo.
                             </p>
                         </div>
                         @if(count($existingImages) > 0 || count($newImages) > 0)
                             <span class="rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-400">
-                                {{ count($existingImages) + count($newImages) }} de 6
+                                {{ count($existingImages) + count($newImages) }} de 5
                             </span>
                         @endif
                     </div>
@@ -259,7 +166,7 @@
                     <div class="mb-4 flex items-start gap-3 rounded-xl border border-slate-700/60 bg-slate-950/40 px-4 py-3">
                         <i class="fas fa-info-circle mt-0.5 shrink-0 text-sm text-cyan-400/80"></i>
                         <div class="space-y-1 text-xs text-slate-400">
-                            <p>Agregá varias fotos del producto para que los clientes lo vean desde diferentes ángulos.</p>
+                            <p>Arrastrá imágenes, seleccioná desde el dispositivo o tomá una foto con la cámara.</p>
                             <p>La imagen que marques con la estrella <i class="fas fa-star text-[10px] text-dv-primary"></i> será la <strong class="text-slate-300">portada</strong> del producto en el catálogo. Las demás se podrán ver al hacer clic en "Ver detalle".</p>
                         </div>
                     </div>
@@ -300,6 +207,23 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="mt-3 flex items-center gap-3">
+                        <label for="gallery-camera-input"
+                               class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-500 bg-slate-950/60 px-4 py-2.5 text-sm font-medium text-slate-100 transition hover:border-cyan-500/60 hover:bg-slate-900/80">
+                            <i class="fas fa-camera text-slate-400"></i>
+                            <span>Tomar foto</span>
+                        </label>
+                        <span class="text-xs text-slate-500">o arrastrá imágenes al recuadro de arriba</span>
+                    </div>
+                    <input
+                        id="gallery-camera-input"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        wire:model="newImages"
+                        class="sr-only"
+                    >
                     @else
                     <div class="flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-950/30 px-6 py-6 text-center">
                         <i class="fas fa-check-circle text-2xl text-emerald-500/70"></i>
@@ -319,7 +243,7 @@
                                 <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
                                     <div class="flex gap-1">
                                         <button type="button"
-                                                x-on:click.prevent="document.getElementById('product-form-preview-img').src = '{{ $img['url'] }}'; document.getElementById('product-form-preview-root').setAttribute('data-existing-url', '{{ $img['url'] }}'); $wire.setCoverImage({{ $img['id'] }})"
+                                                x-on:click.prevent="$wire.setCoverImage({{ $img['id'] }})"
                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $coverImageId === $img['id'] ? 'text-dv-primary' : 'text-slate-400' }}"
                                                 title="{{ __('Marcar como portada') }}">
                                             <i class="fas fa-star"></i>
@@ -354,11 +278,7 @@
                                  <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
                                      <div class="flex gap-1">
                                          <button type="button"
-                                                 x-on:click.prevent="
-                                                     document.getElementById('product-form-preview-img').src = '{{ $img->temporaryUrl() }}';
-                                                     document.getElementById('product-form-preview-root').setAttribute('data-existing-url', '{{ $img->temporaryUrl() }}');
-                                                     $wire.setNewCoverImage({{ $index }});
-                                                 "
+                                                 x-on:click.prevent="$wire.setNewCoverImage({{ $index }})"
                                                  class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs backdrop-blur-sm transition hover:bg-dv-primary hover:text-white {{ $newCoverIndex === $index ? 'text-dv-primary' : 'text-slate-400' }}"
                                                  title="{{ __('Marcar como portada') }}">
                                              <i class="fas fa-star"></i>
