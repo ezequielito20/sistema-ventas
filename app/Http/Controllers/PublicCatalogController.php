@@ -13,39 +13,40 @@ class PublicCatalogController extends Controller
      */
     public function index(Company $company)
     {
-        // If catalog is not public, return 404
         if (!$company->catalog_is_public) {
             abort(404);
         }
 
-        // Load categories that have products in stock
-        $categories = $company->categories()
-            ->whereHas('products', function ($query) {
-                $query->where('stock', '>', 0);
-            })
-            ->with(['products' => function ($query) {
-                $query->where('stock', '>', 0)
-                    ->orderBy('name')
-                    ->with(['images' => function ($q) {
-                        $q->orderBy('sort_order')->limit(1);
-                    }]);
+        // Cargar productos directamente de la empresa (no a través de categorías)
+        $products = $company->products()
+            ->with(['category', 'images' => function ($q) {
+                $q->orderBy('sort_order')->limit(1);
             }])
+            ->where(function ($q) {
+                $q->where('stock', '>', 0)->orWhereNull('stock');
+            })
             ->orderBy('name')
             ->get();
 
-        // Build a flat list of all products with their category for the view
-        $allProducts = collect();
-        foreach ($categories as $category) {
-            foreach ($category->products as $product) {
-                $product->category_name = $category->name;
-                $allProducts->push($product);
-            }
-        }
+        // Agregar category_name a cada producto
+        $products->each(function ($product) {
+            $product->category_name = $product->category?->name ?? 'Sin categoría';
+        });
+
+        // Calcular conteo de productos por categoría
+        $categoryCounts = $products->groupBy('category_id')->map->count();
+
+        // Cargar categorías únicas que tienen al menos un producto visible (para los filtros)
+        $categoryIds = $products->pluck('category_id')->filter()->unique();
+        $categories = \App\Models\Category::whereIn('id', $categoryIds)->orderBy('name')->get()
+            ->each(function ($cat) use ($categoryCounts) {
+                $cat->product_count = $categoryCounts[$cat->id] ?? 0;
+            });
 
         return view('catalog.index', [
             'company' => $company,
             'categories' => $categories,
-            'products' => $allProducts,
+            'products' => $products,
         ]);
     }
 
@@ -72,10 +73,12 @@ class PublicCatalogController extends Controller
             'category',
         ]);
 
-        // Related products: same category, stock > 0, different from current
+        // Related products: same category, stock > 0 or NULL, different from current
         $relatedProducts = Product::where('company_id', $company->id)
             ->where('category_id', $product->category_id)
-            ->where('stock', '>', 0)
+            ->where(function ($q) {
+                $q->where('stock', '>', 0)->orWhereNull('stock');
+            })
             ->where('id', '!=', $product->id)
             ->with(['images' => function ($q) {
                 $q->orderBy('sort_order')->limit(1);

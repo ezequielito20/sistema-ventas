@@ -1,38 +1,48 @@
 {{--
-    Product card partial.
-    Expects: $product (with images eager loaded, first image at index 0)
+    Product Card — Digital Vault
 --}}
 <a href="{{ route('catalog.product', ['company' => $company->slug, 'product' => $product]) }}"
-   class="group block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200">
+   class="group block rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
+   style="background: rgba(33, 30, 39, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 0.5px solid rgba(255,255,255,0.05);"
+   onmouseenter="this.style.boxShadow='0 0 40px rgba(208,188,255,0.12)';this.style.borderColor='rgba(208,188,255,0.2)';"
+   onmouseleave="this.style.boxShadow='none';this.style.borderColor='rgba(255,255,255,0.05)';">
 
-    {{-- Product Image --}}
-    <div class="aspect-[4/3] bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
+    <div class="aspect-[4/3] relative overflow-hidden" style="background: #2c2832;">
         @if($product->images->isNotEmpty())
-            <img src="{{ $product->images->first()->image_url }}"
-                 alt="{{ $product->name }}"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            <img src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}"
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                  loading="lazy">
         @else
             <div class="w-full h-full flex items-center justify-center">
-                <i class="fas fa-box-open text-4xl text-gray-400 dark:text-gray-500"></i>
+                <svg class="w-12 h-12" style="color: #494454;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             </div>
         @endif
 
-        {{-- Category badge --}}
-        <span class="absolute top-2 left-2 bg-blue-600 dark:bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full">
-            {{ $product->category_name ?? ($product->category->name ?? '') }}
+        <span class="absolute top-3 left-3 text-[11px] font-medium px-2.5 py-1 rounded-full backdrop-blur-md"
+              style="background: rgba(3, 181, 211, 0.15); border: 1px solid rgba(3, 181, 211, 0.2); color: #4cd7f6;">
+            {{ $product->category_name ?? ($product->category?->name ?? '') }}
         </span>
+
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+             style="background: rgba(21,18,27,0.5);">
+            <span class="text-sm font-semibold px-5 py-2.5 rounded-full backdrop-blur-md"
+                  style="color: #d0bcff; background: rgba(208,188,255,0.1); border: 1px solid rgba(208,188,255,0.35);">
+                Ver detalle
+            </span>
+        </div>
     </div>
 
-    {{-- Product Info --}}
-    <div class="p-3 sm:p-4">
-        <h3 class="text-sm sm:text-base font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            {{ $product->name }}
-        </h3>
-
-        <div class="mt-2 flex items-center justify-between">
-            <span class="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400">
-                ${{ number_format((float)$product->sale_price, 2) }}
+    <div class="p-5">
+        <h3 class="text-sm font-bold leading-snug line-clamp-2 mb-1 group-hover:opacity-80 transition-opacity"
+            style="color: #e7e0ed;">{{ $product->name }}</h3>
+        @if($product->code)
+            <p class="text-xs font-mono mt-1 mb-3" style="color: #958ea0;">#{{ $product->code }}</p>
+        @endif
+        <div class="flex items-center justify-between">
+            <span class="text-lg font-black" style="color: #d0bcff;">${{ number_format((float)$product->sale_price, 2) }}</span>
+            <span class="w-8 h-8 flex items-center justify-center rounded-full group-hover:scale-110 transition-transform"
+                  style="background: rgba(208,188,255,0.1); color: #d0bcff;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </span>
         </div>
     </div>

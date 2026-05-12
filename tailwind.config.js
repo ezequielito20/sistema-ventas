@@ -24,6 +24,7 @@ export default {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
             },
             colors: {
+                // ── Sistema existente (admin panel) ──
                 primary: {
                     50: '#eff6ff',
                     100: '#dbeafe',
@@ -71,7 +72,32 @@ export default {
                     700: '#b91c1c',
                     800: '#991b1b',
                     900: '#7f1d1d',
-                }
+                },
+
+                // ── Digital Vault · Catálogo público ──
+                'dv-surface': '#15121b',
+                'dv-surface-dim': '#15121b',
+                'dv-surface-bright': '#3b3742',
+                'dv-surface-container-lowest': '#0f0d15',
+                'dv-surface-container-low': '#1d1a23',
+                'dv-surface-container': '#211e27',
+                'dv-surface-container-high': '#2c2832',
+                'dv-surface-container-highest': '#37333d',
+                'dv-on-surface': '#e7e0ed',
+                'dv-on-surface-variant': '#cbc3d7',
+                'dv-outline': '#958ea0',
+                'dv-outline-variant': '#494454',
+                'dv-primary': '#d0bcff',
+                'dv-on-primary': '#3c0091',
+                'dv-primary-container': '#a078ff',
+                'dv-on-primary-container': '#340080',
+                'dv-secondary': '#4cd7f6',
+                'dv-on-secondary': '#003640',
+                'dv-secondary-container': '#03b5d3',
+                'dv-on-secondary-container': '#00424e',
+                'dv-tertiary': '#ffb869',
+                'dv-on-tertiary': '#482900',
+            },
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-in-out',
