@@ -74,24 +74,40 @@ document.addEventListener('alpine:init', () => {
         active: 0,
         images: window.__CATALOG_GALLERY_IMAGES__ || [],
 
+        init() {
+            this.preloadAdjacent();
+        },
+
+        preloadAdjacent() {
+            const n = this.images.length;
+            if (n < 2) return;
+
+            const prevIdx = this.active === 0 ? n - 1 : this.active - 1;
+            const nextIdx = this.active === n - 1 ? 0 : this.active + 1;
+
+            [prevIdx, nextIdx].forEach((idx) => {
+                const img = new Image();
+                img.src = this.images[idx].url;
+            });
+        },
+
         prev() {
             const n = this.images.length;
-            if (!n) {
-                return;
-            }
+            if (!n) return;
             this.active = this.active === 0 ? n - 1 : this.active - 1;
+            this.preloadAdjacent();
         },
 
         next() {
             const n = this.images.length;
-            if (!n) {
-                return;
-            }
+            if (!n) return;
             this.active = this.active === n - 1 ? 0 : this.active + 1;
+            this.preloadAdjacent();
         },
 
         goTo(i) {
             this.active = i;
+            this.preloadAdjacent();
         },
 
         touchS: 0,

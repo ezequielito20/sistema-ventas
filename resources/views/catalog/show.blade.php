@@ -48,19 +48,24 @@ window.shareCatalogProduct = async function (title, url) {
             <div class="lg:sticky lg:top-24 lg:self-start">
                 <div x-data="gallery" class="w-full" @keydown.window="keyNav">
                     <div class="catalog-glass-card relative overflow-hidden rounded-2xl border border-dv-outline-variant/30"
-                         @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd">
+                         @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"
+                         style="aspect-ratio:4/3">
 
                         <template x-if="images.length === 0">
-                            <div class="flex items-center justify-center bg-dv-surface-container-high" style="aspect-ratio:4/3">
+                            <div class="absolute inset-0 flex items-center justify-center bg-dv-surface-container-high">
                                 <i class="fas fa-image text-6xl text-dv-outline/25"></i>
                             </div>
                         </template>
 
                         <template x-for="(img, i) in images" :key="img.id">
                             <div x-show="active === i"
-                                 x-transition.opacity.duration.300ms
-                                 class="flex cursor-pointer items-center justify-center bg-dv-surface-container-low"
-                                 style="aspect-ratio:4/3"
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-200"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="absolute inset-0 flex cursor-pointer items-center justify-center bg-dv-surface-container-low"
                                  @click="window.open(img.url, '_blank')">
                                 <img :src="img.url" alt="" class="max-h-full w-full object-contain" loading="lazy">
                             </div>
@@ -69,14 +74,14 @@ window.shareCatalogProduct = async function (title, url) {
                         <template x-if="images.length > 1">
                             <div>
                                 <button type="button" @click="prev()"
-                                        class="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-dv-surface/85 text-dv-on-surface backdrop-blur-sm transition hover:bg-dv-surface-container-high">
+                                        class="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-dv-surface/85 text-dv-on-surface backdrop-blur-sm transition hover:bg-dv-surface-container-high">
                                     <i class="fas fa-chevron-left text-xs"></i>
                                 </button>
                                 <button type="button" @click="next()"
-                                        class="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-dv-surface/85 text-dv-on-surface backdrop-blur-sm transition hover:bg-dv-surface-container-high">
+                                        class="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-dv-surface/85 text-dv-on-surface backdrop-blur-sm transition hover:bg-dv-surface-container-high">
                                     <i class="fas fa-chevron-right text-xs"></i>
                                 </button>
-                                <div class="absolute right-4 top-4 rounded-full border border-white/10 bg-dv-surface/80 px-3 py-1 font-dv-label text-[11px] font-semibold uppercase text-dv-on-surface-variant backdrop-blur-sm">
+                                <div class="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-dv-surface/80 px-3 py-1 font-dv-label text-[11px] font-semibold uppercase text-dv-on-surface-variant backdrop-blur-sm">
                                     <span x-text="active + 1"></span>/<span x-text="images.length"></span>
                                 </div>
                             </div>
