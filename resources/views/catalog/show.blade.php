@@ -36,36 +36,10 @@ window.shareCatalogProduct = async function (title, url) {
     }
     try {
         await navigator.clipboard.writeText(url);
-        showCatalogToast('{{ __('Enlace copiado') }}', '{{ __('El enlace del producto se copio al portapapeles.') }}', 'success');
     } catch (e) {
         prompt({{ Js::from(__('Copia este enlace:')) }}, url);
     }
 };
-
-function showCatalogToast(title, message, type) {
-    var container = document.getElementById('catalog-toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'catalog-toast-container';
-        container.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:24rem;';
-        document.body.appendChild(container);
-    }
-    var icon = type === 'success' ? 'check-circle' : 'info-circle';
-    var accent = type === 'success' ? '#10b981' : '#22d3ee';
-    var t = document.createElement('div');
-    t.style.cssText = 'display:flex;align-items:flex-start;gap:0.75rem;padding:0.875rem 1rem;border-radius:0.75rem;background:#1e293b;border:1px solid rgba(148,163,184,0.15);box-shadow:0 4px 24px rgba(0,0,0,0.4);color:#e2e8f0;font-family:inherit;font-size:0.875rem;line-height:1.4;transform:translateX(120%);opacity:0;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);';
-    t.innerHTML = '<i class="fas fa-' + icon + '" style="color:' + accent + ';font-size:1.15rem;margin-top:0.1rem;"></i><div><strong style="display:block;font-weight:600;color:#f1f5f9;margin-bottom:0.15rem;">' + title + '</strong><span style="color:#94a3b8;">' + message + '</span></div>';
-    container.appendChild(t);
-    requestAnimationFrame(function () {
-        t.style.transform = 'translateX(0)';
-        t.style.opacity = '1';
-    });
-    setTimeout(function () {
-        t.style.transform = 'translateX(120%)';
-        t.style.opacity = '0';
-        setTimeout(function () { t.remove(); }, 350);
-    }, 3500);
-}
 </script>
 @endpush
 
