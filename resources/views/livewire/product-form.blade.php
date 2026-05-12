@@ -184,7 +184,7 @@
                             <div class="mb-4 overflow-hidden rounded-xl border border-dv-primary/40 bg-slate-900/80 ring-1 ring-dv-primary/20 sm:mb-0 sm:w-56 sm:shrink-0">
                                 <div class="relative h-full">
                                     <img :src="coverPreviewUrl" :alt="coverPreviewAlt"
-                                         class="h-32 w-full object-cover sm:h-full">
+                                         class="h-36 w-full object-cover sm:h-full">
                                     <span class="absolute bottom-2 left-2 rounded-full bg-dv-primary px-2.5 py-0.5 font-dv-label text-[9px] font-bold uppercase tracking-wide text-white shadow-lg sm:bottom-3 sm:left-3 sm:px-3 sm:py-1 sm:text-[10px]">
                                         <i class="fas fa-star mr-0.5 text-[9px] sm:mr-1 sm:text-[10px]"></i>Portada
                                     </span>
