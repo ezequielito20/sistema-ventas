@@ -4,13 +4,17 @@ namespace App\Livewire\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\Plan;
+use App\Models\SecurityQuestion;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
+use App\Models\User;
+use App\Services\CompanyStatsService;
 use App\Services\PaymentService;
 use App\Services\SubscriptionService;
 use App\Services\UsageCollectorService;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -18,7 +22,7 @@ use Livewire\WithPagination;
 
 class CompanyShow extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public int $companyId;
 
@@ -84,7 +88,7 @@ class CompanyShow extends Component
 
     public function mount(int $companyId): void
     {
-        if (!auth()->user() || !auth()->user()->isSuperAdmin()) {
+        if (! auth()->user() || ! auth()->user()->isSuperAdmin()) {
             abort(403);
         }
 
@@ -103,7 +107,7 @@ class CompanyShow extends Component
         $usageCollector = app(UsageCollectorService::class);
         $this->stats = $usageCollector->getCompanyStats($this->companyId);
 
-        $this->dashboardStats = app(\App\Services\CompanyStatsService::class)->getDashboardStats($this->companyId);
+        $this->dashboardStats = app(CompanyStatsService::class)->getDashboardStats($this->companyId);
     }
 
     protected function toast(string $message, string $type = 'success'): void
@@ -115,7 +119,7 @@ class CompanyShow extends Component
         $options = json_encode(['type' => $uiType, 'title' => $title, 'timeout' => $timeout, 'theme' => 'futuristic'], JSON_THROW_ON_ERROR);
         $msg = json_encode($message, JSON_THROW_ON_ERROR);
         $this->js('if (window.uiNotifications && typeof window.uiNotifications.showToast === "function") {'
-            . 'window.uiNotifications.showToast(' . $msg . ', ' . $options . ');}');
+            .'window.uiNotifications.showToast('.$msg.', '.$options.');}');
     }
 
     public function switchTab(string $tab): void
@@ -145,8 +149,9 @@ class CompanyShow extends Component
 
     public function saveSubscription(): void
     {
-        if (!$this->subscription) {
+        if (! $this->subscription) {
             $this->toast('No hay suscripción para editar.', 'error');
+
             return;
         }
 
@@ -183,7 +188,7 @@ class CompanyShow extends Component
     // ── Edit User Modal ──
     public function openEditUserModal(int $userId): void
     {
-        $user = \App\Models\User::where('company_id', $this->companyId)->findOrFail($userId);
+        $user = User::where('company_id', $this->companyId)->findOrFail($userId);
         $this->editUserId = $user->id;
         $this->editUserName = $user->name;
         $this->editUserEmail = $user->email;
@@ -200,12 +205,13 @@ class CompanyShow extends Component
 
     public function saveUser(): void
     {
-        if (!$this->editUserId) {
+        if (! $this->editUserId) {
             $this->toast('No hay usuario seleccionado.', 'error');
+
             return;
         }
 
-        $user = \App\Models\User::where('company_id', $this->companyId)->findOrFail($this->editUserId);
+        $user = User::where('company_id', $this->companyId)->findOrFail($this->editUserId);
 
         $rules = [
             'editUserName' => 'required|string|max:255',
@@ -224,13 +230,21 @@ class CompanyShow extends Component
         ];
 
         if ($this->editUserPassword !== '') {
-            $data['password'] = \Illuminate\Support\Facades\Hash::make($this->editUserPassword);
+            $data['password'] = Hash::make($this->editUserPassword);
         }
 
         $user->update($data);
 
         $this->closeEditUserModal();
         $this->toast('Usuario actualizado correctamente.', 'success');
+    }
+
+    public function resetSecurityQuestions(int $userId): void
+    {
+        $user = User::where('company_id', $this->companyId)->findOrFail($userId);
+        SecurityQuestion::where('user_id', $user->id)->delete();
+        $user->update(['security_questions_setup' => false]);
+        $this->toast("Preguntas de seguridad de {$user->name} reseteada(s). Deberá configurarlas al iniciar sesión.", 'success');
     }
 
     public function openSuspendModal(): void
@@ -247,8 +261,9 @@ class CompanyShow extends Component
 
     public function suspend(): void
     {
-        if (!$this->subscription) {
+        if (! $this->subscription) {
             $this->toast('Esta empresa no tiene suscripción activa.', 'error');
+
             return;
         }
 
@@ -258,14 +273,15 @@ class CompanyShow extends Component
             $this->loadCompany();
             $this->toast('Empresa suspendida correctamente.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al suspender: ' . $e->getMessage(), 'error');
+            $this->toast('Error al suspender: '.$e->getMessage(), 'error');
         }
     }
 
     public function activate(): void
     {
-        if (!$this->subscription) {
+        if (! $this->subscription) {
             $this->toast('Esta empresa no tiene suscripción.', 'error');
+
             return;
         }
 
@@ -274,7 +290,7 @@ class CompanyShow extends Component
             $this->loadCompany();
             $this->toast('Empresa reactivada correctamente.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al reactivar: ' . $e->getMessage(), 'error');
+            $this->toast('Error al reactivar: '.$e->getMessage(), 'error');
         }
     }
 
@@ -291,8 +307,9 @@ class CompanyShow extends Component
 
     public function changePlan(): void
     {
-        if (!$this->subscription || !$this->newPlanId) {
+        if (! $this->subscription || ! $this->newPlanId) {
             $this->toast('Selecciona un plan válido.', 'warning');
+
             return;
         }
 
@@ -303,7 +320,7 @@ class CompanyShow extends Component
             $this->loadCompany();
             $this->toast('Plan actualizado correctamente.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al cambiar plan: ' . $e->getMessage(), 'error');
+            $this->toast('Error al cambiar plan: '.$e->getMessage(), 'error');
         }
     }
 
@@ -324,7 +341,9 @@ class CompanyShow extends Component
 
     public function markAsPaid(): void
     {
-        if (!$this->selectedPaymentId) return;
+        if (! $this->selectedPaymentId) {
+            return;
+        }
 
         $payment = SubscriptionPayment::findOrFail($this->selectedPaymentId);
 
@@ -350,14 +369,14 @@ class CompanyShow extends Component
             $this->loadCompany();
             $this->toast('Pago registrado correctamente.', 'success');
         } catch (\Throwable $e) {
-            $this->toast('Error al registrar pago: ' . $e->getMessage(), 'error');
+            $this->toast('Error al registrar pago: '.$e->getMessage(), 'error');
         }
     }
 
     public function getPaymentsProperty()
     {
-        if (!$this->subscription) {
-            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10, 1, ['pageName' => 'payments-page']);
+        if (! $this->subscription) {
+            return new LengthAwarePaginator([], 0, 10, 1, ['pageName' => 'payments-page']);
         }
 
         return SubscriptionPayment::where('subscription_id', $this->subscription->id)
@@ -369,7 +388,7 @@ class CompanyShow extends Component
     {
         $plans = Plan::active()->orderBy('name')->get();
         $payments = $this->payments;
-        $users = \App\Models\User::where('company_id', $this->companyId)
+        $users = User::where('company_id', $this->companyId)
             ->with('roles')
             ->orderBy('name')
             ->get();

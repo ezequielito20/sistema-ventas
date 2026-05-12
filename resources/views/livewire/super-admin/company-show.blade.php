@@ -757,6 +757,29 @@
                                                 <button type="button" wire:click="openEditUserModal({{ $user->id }})" class="ui-icon-action ui-icon-action--primary" title="Editar usuario">
                                                     <i class="fas fa-pen"></i>
                                                 </button>
+                                                <button type="button"
+                                                    x-on:click="
+                                                        Swal.fire({
+                                                            title: '¿Resetear preguntas?',
+                                                            text: '{{ $user->name }} deberá configurar nuevas preguntas de seguridad al iniciar sesión.',
+                                                            icon: 'warning',
+                                                            showCancelButton: true,
+                                                            confirmButtonColor: '#f59e0b',
+                                                            cancelButtonColor: '#6b7280',
+                                                            confirmButtonText: 'Sí, resetear',
+                                                            cancelButtonText: 'Cancelar',
+                                                            background: '#0f172a',
+                                                            color: '#e2e8f0',
+                                                            customClass: { popup: 'border border-slate-700 rounded-xl' }
+                                                        }).then((result) => {
+                                                            if (result.isConfirmed) {
+                                                                $wire.resetSecurityQuestions({{ $user->id }});
+                                                            }
+                                                        });
+                                                    "
+                                                    class="ui-icon-action ui-icon-action--warning" title="Resetear preguntas de seguridad">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

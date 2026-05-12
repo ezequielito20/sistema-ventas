@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html.dark {
+        color-scheme: dark;
+    }
+}
+
+@layer components {
+    .catalog-glass-card {
+        border-radius: 1rem;
+        border: 0.5px solid rgb(255 255 255 / 0.06);
+        background: rgb(33 30 39 / 0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+    .catalog-glass-card--media {
+        background: rgb(44 40 50 / 0.55);
+    }
+
+    .catalog-glow-hover {
+        transition-property: transform, box-shadow, border-color;
+        transition-duration: 0.3s;
+        transition-timing-function: ease-out;
+    }
+
+    .catalog-glow-hover:hover {
+        box-shadow: 0 0 40px 0 rgb(208 188 255 / 0.14);
+        transform: translateY(-2px);
+        border-color: rgb(208 188 255 / 0.25);
+    }
+
+    .catalog-range-track {
+        @apply relative h-1 w-full rounded-full bg-dv-surface-variant;
+    }
+
+    .catalog-category-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .catalog-category-scroll::-webkit-scrollbar {
+        height: 0;
+        width: 0;
+    }
+
+    .catalog-range-primary::-webkit-slider-thumb {
+        @apply h-4 w-4 cursor-pointer appearance-none rounded-full border-2 border-dv-primary bg-white shadow-lg;
+    }
+
+    .catalog-range-primary::-moz-range-thumb {
+        @apply h-4 w-4 cursor-pointer rounded-full border-2 border-dv-primary bg-white shadow-lg;
+    }
+}
+
+[x-cloak] {
+    display: none !important;
+}

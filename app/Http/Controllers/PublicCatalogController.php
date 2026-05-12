@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
-use Illuminate\Http\Request;
 
 class PublicCatalogController extends Controller
 {
@@ -13,15 +13,18 @@ class PublicCatalogController extends Controller
      */
     public function index(Company $company)
     {
-        if (!$company->catalog_is_public) {
+        if (! $company->catalog_is_public) {
             abort(404);
         }
 
         // Cargar productos directamente de la empresa (no a través de categorías)
         $products = $company->products()
-            ->with(['category', 'images' => function ($q) {
-                $q->orderBy('sort_order')->limit(1);
-            }])
+            ->with([
+                'category',
+                'images' => function ($q) {
+                    $q->orderBy('sort_order');
+                },
+            ])
             ->where(function ($q) {
                 $q->where('stock', '>', 0)->orWhereNull('stock');
             })
@@ -38,7 +41,7 @@ class PublicCatalogController extends Controller
 
         // Cargar categorías únicas que tienen al menos un producto visible (para los filtros)
         $categoryIds = $products->pluck('category_id')->filter()->unique();
-        $categories = \App\Models\Category::whereIn('id', $categoryIds)->orderBy('name')->get()
+        $categories = Category::whereIn('id', $categoryIds)->orderBy('name')->get()
             ->each(function ($cat) use ($categoryCounts) {
                 $cat->product_count = $categoryCounts[$cat->id] ?? 0;
             });
@@ -56,7 +59,7 @@ class PublicCatalogController extends Controller
     public function show(Company $company, Product $product)
     {
         // If catalog is not public, return 404
-        if (!$company->catalog_is_public) {
+        if (! $company->catalog_is_public) {
             abort(404);
         }
 
@@ -80,9 +83,12 @@ class PublicCatalogController extends Controller
                 $q->where('stock', '>', 0)->orWhereNull('stock');
             })
             ->where('id', '!=', $product->id)
-            ->with(['images' => function ($q) {
-                $q->orderBy('sort_order')->limit(1);
-            }])
+            ->with([
+                'category',
+                'images' => function ($q) {
+                    $q->orderBy('sort_order')->limit(1);
+                },
+            ])
             ->orderBy('name')
             ->limit(8)
             ->get();

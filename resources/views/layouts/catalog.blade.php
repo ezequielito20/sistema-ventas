@@ -1,105 +1,45 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', $company->name . ' - Catálogo')</title>
-
-    {{-- Tailwind + Alpine via Vite (NO CDN) --}}
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-    {{-- Font Awesome local (NO CDN) --}}
+    <title>@yield('title', __('Catálogo'))</title>
+    @stack('meta')
+    @vite(['resources/js/catalog-public.js'])
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}">
-
-    <style>
-        body {
-            background-color: #15121b;
-            color: #e7e0ed;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-        .glass-card {
-            background: rgba(33, 30, 39, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 0.5px solid rgba(255, 255, 255, 0.05);
-        }
-        .glow-hover:hover {
-            box-shadow: 0 0 40px 0 rgba(208, 188, 255, 0.15);
-            transform: translateY(-2px);
-            border-color: rgba(208, 188, 255, 0.25);
-        }
-        .category-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-        .category-scroll::-webkit-scrollbar { height: 0px; }
-        [x-cloak] { display: none !important; }
-    </style>
-
     @stack('head')
 </head>
-<body class="bg-dv-surface text-dv-on-surface min-h-screen flex flex-col antialiased">
+<body class="min-h-screen bg-dv-background text-dv-on-background font-dv-body antialiased">
 
-    {{-- Top Navigation Bar — Glassmorphism --}}
-    <nav class="sticky top-0 z-50 bg-dv-surface/70 backdrop-blur-xl border-b border-white/5">
-        <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
-            {{-- Logo + Company name --}}
-            <div class="flex items-center gap-3">
-                @if($company->logo)
-                    <img src="{{ $company->logo_url }}" alt="{{ $company->name }}"
-                         class="h-8 w-8 rounded-lg object-contain bg-dv-surface-container border border-dv-outline-variant/30">
-                @else
-                    <div class="h-8 w-8 rounded-lg bg-dv-primary/20 flex items-center justify-center">
-                        <i class="fas fa-store text-sm text-dv-primary"></i>
-                    </div>
-                @endif
-                <span class="font-bold text-sm text-dv-on-surface tracking-tight hidden sm:block truncate max-w-[160px]">
-                    {{ $company->name }}
-                </span>
+@yield('content')
+
+{{-- Scripts inline antes del footer por si el pie usa datos preparados aquí --}}
+@stack('scripts')
+
+@isset($company)
+    <footer class="relative z-10 mt-12 w-full border-t border-dv-outline-variant bg-dv-surface-container-lowest py-stack-lg">
+        <div class="mx-auto flex w-full max-w-dv flex-col items-center justify-between gap-6 px-margin-mobile md:flex-row md:px-margin-desktop">
+            <div class="text-center md:text-start">
+                <span class="font-dv-display text-dv-headline-md text-dv-primary">{{ $company->name }}</span>
+                <p class="mt-stack-sm font-dv-body text-dv-body-sm text-dv-outline">
+                    &copy; {{ date('Y') }} {{ $company->name }}. {{ __('Todos los derechos reservados.') }}
+                </p>
             </div>
-
-            <div class="flex items-center gap-3">
-                @if($company->ig)
-                    <a href="https://instagram.com/{{ $company->ig }}" target="_blank" rel="noopener"
-                       class="text-dv-on-surface-variant hover:text-dv-secondary transition-colors text-sm flex items-center gap-1.5">
-                        <i class="fab fa-instagram"></i>
-                        <span class="hidden sm:inline">@ {{ $company->ig }}</span>
-                    </a>
-                @endif
+            <div class="flex flex-wrap items-center justify-center gap-6 md:gap-8">
                 @if($company->phone)
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text=Hola!+Vi+tu+catálogo+y+me+interesa+info"
-                       target="_blank" rel="noopener"
-                       class="bg-dv-secondary-container/20 border border-dv-secondary/20 text-dv-secondary px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-dv-secondary/10 transition flex items-center gap-1.5">
-                        <i class="fab fa-whatsapp"></i>
-                        <span class="hidden sm:inline">WhatsApp</span>
-                    </a>
-                @endif
-            </div>
-        </div>
-    </nav>
-
-    {{-- Main Content --}}
-    <main class="flex-1">
-        @yield('content')
-    </main>
-
-    {{-- Footer --}}
-    <footer class="w-full py-8 border-t border-dv-outline-variant/30 bg-dv-surface-container-lowest mt-auto">
-        <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-                <span class="text-dv-primary font-bold text-sm">{{ $company->name }}</span>
-                <p class="text-xs text-dv-outline mt-1">&copy; {{ date('Y') }} — Todos los derechos reservados</p>
-            </div>
-            <div class="flex gap-6 text-xs text-dv-on-surface-variant">
-                @if($company->phone)
-                    <span class="flex items-center gap-1"><i class="fas fa-phone text-[10px]"></i> {{ $company->phone }}</span>
+                    <span class="font-dv-body text-dv-body-sm text-dv-on-surface-variant">
+                        <i class="fas fa-phone mr-1.5 text-[10px] text-dv-secondary"></i>{{ $company->phone }}
+                    </span>
                 @endif
                 @if($company->email)
-                    <span class="flex items-center gap-1"><i class="fas fa-envelope text-[10px]"></i> {{ $company->email }}</span>
+                    <span class="font-dv-body text-dv-body-sm text-dv-on-surface-variant">
+                        <i class="fas fa-envelope mr-1.5 text-[10px] text-dv-secondary"></i>{{ $company->email }}
+                    </span>
                 @endif
             </div>
         </div>
     </footer>
+@endisset
 
-    @stack('scripts')
 </body>
 </html>

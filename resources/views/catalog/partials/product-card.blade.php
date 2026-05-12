@@ -1,48 +1,54 @@
 {{--
-    Product Card — Digital Vault
+    Tarjeta de producto — Digital Vault · catálogo público
+    Requiere $product con relación category o category_name, imágenes eager si aplica.
 --}}
+@php
+    $categoryLabel = $product->category_name ?? optional($product->category)->name ?? __('Sin categoría');
+@endphp
 <a href="{{ route('catalog.product', ['company' => $company->slug, 'product' => $product]) }}"
-   class="group block rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
-   style="background: rgba(33, 30, 39, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 0.5px solid rgba(255,255,255,0.05);"
-   onmouseenter="this.style.boxShadow='0 0 40px rgba(208,188,255,0.12)';this.style.borderColor='rgba(208,188,255,0.2)';"
-   onmouseleave="this.style.boxShadow='none';this.style.borderColor='rgba(255,255,255,0.05)';">
+   class="catalog-glass-card catalog-glow-hover group flex flex-col overflow-hidden">
 
-    <div class="aspect-[4/3] relative overflow-hidden" style="background: #2c2832;">
+    <div class="catalog-glass-card--media relative aspect-video overflow-hidden">
         @if($product->images->isNotEmpty())
-            <img src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            <img src="{{ $product->images->first()->image_url }}"
+                 alt="{{ $product->name }}"
+                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                 loading="lazy">
+        @elseif($product->image_url ?? false)
+            <img src="{{ $product->image_url }}"
+                 alt="{{ $product->name }}"
+                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                  loading="lazy">
         @else
-            <div class="w-full h-full flex items-center justify-center">
-                <svg class="w-12 h-12" style="color: #494454;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <div class="flex h-full w-full flex-col items-center justify-center gap-2 bg-dv-surface-container-high">
+                <i class="fas fa-box-open text-3xl text-dv-outline/40"></i>
+                <span class="font-dv-label text-dv-label-md text-dv-outline">{{ __('Sin imagen') }}</span>
             </div>
         @endif
 
-        <span class="absolute top-3 left-3 text-[11px] font-medium px-2.5 py-1 rounded-full backdrop-blur-md"
-              style="background: rgba(3, 181, 211, 0.15); border: 1px solid rgba(3, 181, 211, 0.2); color: #4cd7f6;">
-            {{ $product->category_name ?? ($product->category?->name ?? '') }}
+        <span class="absolute left-3 top-3 rounded-full border border-dv-secondary bg-dv-secondary/10 px-2.5 py-1 font-dv-label text-[10px] font-bold uppercase tracking-wide text-dv-secondary backdrop-blur-md sm:left-4 sm:top-4">
+            {{ $categoryLabel }}
         </span>
-
-        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-             style="background: rgba(21,18,27,0.5);">
-            <span class="text-sm font-semibold px-5 py-2.5 rounded-full backdrop-blur-md"
-                  style="color: #d0bcff; background: rgba(208,188,255,0.1); border: 1px solid rgba(208,188,255,0.35);">
-                Ver detalle
-            </span>
-        </div>
     </div>
 
-    <div class="p-5">
-        <h3 class="text-sm font-bold leading-snug line-clamp-2 mb-1 group-hover:opacity-80 transition-opacity"
-            style="color: #e7e0ed;">{{ $product->name }}</h3>
+    <div class="flex flex-1 flex-col p-4 sm:p-5">
+        <h3 class="font-dv-display text-dv-body-md leading-snug text-dv-on-surface line-clamp-2 transition group-hover:text-dv-primary sm:text-dv-headline-md">
+            {{ $product->name }}</h3>
+
         @if($product->code)
-            <p class="text-xs font-mono mt-1 mb-3" style="color: #958ea0;">#{{ $product->code }}</p>
+            <p class="mt-1 font-mono text-[11px] text-dv-outline">#{{ $product->code }}</p>
         @endif
-        <div class="flex items-center justify-between">
-            <span class="text-lg font-black" style="color: #d0bcff;">${{ number_format((float)$product->sale_price, 2) }}</span>
-            <span class="w-8 h-8 flex items-center justify-center rounded-full group-hover:scale-110 transition-transform"
-                  style="background: rgba(208,188,255,0.1); color: #d0bcff;">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+
+        @if($product->description ?? false)
+            <p class="mt-2 line-clamp-2 font-dv-body text-dv-body-sm text-dv-on-surface-variant">{{ \Illuminate\Support\Str::limit(strip_tags($product->description), 120) }}</p>
+        @endif
+
+        <div class="mt-auto flex flex-1 flex-col justify-end pt-4">
+            <span class="font-dv-display text-xl text-dv-primary sm:text-dv-headline-md">
+                ${{ number_format((float) $product->sale_price, 2) }}</span>
+
+            <span class="mt-4 block w-full rounded-lg border border-dv-primary/30 bg-dv-primary/10 py-2.5 text-center font-dv-label text-[11px] font-bold uppercase text-dv-primary transition group-hover:bg-dv-primary group-hover:text-dv-on-primary">
+                {{ __('Ver detalle') }}
             </span>
         </div>
     </div>
