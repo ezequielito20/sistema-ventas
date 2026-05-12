@@ -174,6 +174,112 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                 </div>
             </div>
 
+            {{-- Filtros móvil: botón + drawer --}}
+            <div class="flex items-center gap-2 px-margin-mobile pb-3 md:hidden sm:px-6">
+                <button type="button" @click="showFilters = true"
+                        class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/40 bg-dv-surface-container-high px-4 py-3 font-dv-label text-dv-label-md text-dv-on-surface-variant transition hover:bg-dv-surface-container hover:text-dv-on-surface active:scale-[0.98]">
+                    <i class="fas fa-sliders-h text-xs"></i>
+                    {{ __('Filtros') }}
+                </button>
+                <button type="button" @click="resetFilters()"
+                        class="flex items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/40 bg-dv-surface-container-high px-4 py-3 font-dv-label text-dv-label-md text-dv-on-surface-variant transition hover:bg-dv-surface-container hover:text-dv-on-surface active:scale-[0.98]">
+                    <i class="fas fa-undo-alt text-xs"></i>
+                </button>
+            </div>
+
+            {{-- Overlay para el drawer de filtros en móvil --}}
+            <div x-show="showFilters" x-cloak
+                 class="fixed inset-0 z-50 md:hidden"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showFilters = false"></div>
+                <div class="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-dv-outline-variant/40 bg-dv-surface-container-low px-margin-mobile pb-8 pt-6 shadow-2xl sm:px-6"
+                     @click.stop>
+                    <div class="mb-5 flex items-center justify-between">
+                        <h3 class="font-dv-display text-dv-headline-md text-dv-on-surface">{{ __('Filtros') }}</h3>
+                            <button type="button" @click="showFilters = false"
+                                    class="flex h-9 w-9 items-center justify-center rounded-full bg-dv-surface-container-high text-dv-on-surface-variant transition hover:bg-dv-surface-container hover:text-dv-on-surface">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        {{-- Categorías --}}
+                        <div class="mb-5">
+                            <p class="mb-3 font-dv-label text-dv-label-md font-semibold uppercase tracking-wider text-dv-outline">{{ __('Categoría') }}</p>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" @click="selectCat('all'); showFilters = false"
+                                        class="rounded-full px-4 py-2 font-dv-label text-dv-label-md font-semibold uppercase transition"
+                                        :class="selectedCategory === 'all' ? 'bg-dv-secondary-container text-dv-on-secondary-container' : 'border border-dv-outline-variant/50 bg-dv-surface-container text-dv-on-surface-variant'">
+                                    {{ __('Todos') }}
+                                </button>
+                                @foreach($categories as $cat)
+                                    <button type="button" @click="selectCat(@js($cat->name)); showFilters = false"
+                                            class="rounded-full px-4 py-2 font-dv-label text-dv-label-md font-semibold uppercase transition"
+                                            :class="selectedCategory === @js($cat->name) ? 'bg-dv-secondary-container text-dv-on-secondary-container' : 'border border-dv-outline-variant/50 bg-dv-surface-container text-dv-on-surface-variant'">
+                                        {{ $cat->name }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Precio --}}
+                        <div class="mb-5">
+                            <p class="mb-3 font-dv-label text-dv-label-md font-semibold uppercase tracking-wider text-dv-outline">{{ __('Precio') }}</p>
+                            <div class="flex items-center gap-2">
+                                <div class="relative flex-1">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-xs text-dv-outline">$</span>
+                                    <input type="number" x-model.number="priceMin" :max="priceMax" min="0"
+                                           class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-2.5 pl-6 pr-3 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
+                                           placeholder="Min">
+                                </div>
+                                <span class="text-xs text-dv-outline/50">—</span>
+                                <div class="relative flex-1">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-xs text-dv-outline">$</span>
+                                    <input type="number" x-model.number="priceMax" :min="priceMin" :max="priceSliderMax"
+                                           class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-2.5 pl-6 pr-3 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
+                                           placeholder="Max">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Ofertas --}}
+                        <div class="mb-5">
+                            <button type="button" @click="toggleDiscounted()"
+                                    class="flex w-full items-center gap-3 rounded-lg px-4 py-3 font-dv-label text-dv-label-md transition"
+                                    :class="onlyDiscounted ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'text-dv-on-surface-variant hover:bg-dv-surface-container-high border border-transparent'">
+                                <i class="fas fa-tag" :class="onlyDiscounted ? 'text-amber-400' : 'text-dv-outline'"></i>
+                                <span>{{ __('Ofertas y descuentos') }}</span>
+                                <span x-show="onlyDiscounted" class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20">
+                                    <i class="fas fa-check text-[8px] text-amber-400"></i>
+                                </span>
+                            </button>
+                        </div>
+
+                        {{-- Ordenar --}}
+                        <div class="mb-6">
+                            <p class="mb-3 font-dv-label text-dv-label-md font-semibold uppercase tracking-wider text-dv-outline">{{ __('Ordenar por') }}</p>
+                            <select x-model="sortBy"
+                                    class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high px-3 py-2.5 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40">
+                                <option value="name_asc">{{ __('Nombre A-Z') }}</option>
+                                <option value="name_desc">{{ __('Nombre Z-A') }}</option>
+                                <option value="price_asc">{{ __('Menor precio') }}</option>
+                                <option value="price_desc">{{ __('Mayor precio') }}</option>
+                            </select>
+                        </div>
+
+                        <button type="button" @click="resetFilters(); showFilters = false"
+                                class="flex w-full items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/40 bg-dv-surface-container-high px-4 py-3 font-dv-label text-dv-label-md text-dv-on-surface-variant transition hover:bg-dv-surface-container hover:text-dv-on-surface">
+                            <i class="fas fa-undo-alt text-xs"></i>
+                            {{ __('Reiniciar filtros') }}
+                        </button>
+                    </div>
+                </div>
+            </template>
+
             <div class="px-margin-mobile py-stack-lg sm:px-6 lg:px-margin-desktop">
                 <template x-if="filtered.length === 0">
                     <div class="flex flex-col items-center justify-center py-24 text-center">

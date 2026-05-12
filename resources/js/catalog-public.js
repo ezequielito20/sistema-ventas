@@ -12,6 +12,7 @@ window.Alpine = Alpine;
 document.addEventListener('alpine:init', () => {
     Alpine.data('catalog', () => ({
         search: '',
+        showFilters: false,
         selectedCategory: 'all',
         priceMin: 0,
         priceMax: 999999999,

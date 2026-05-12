@@ -17,7 +17,7 @@
 @stack('scripts')
 
 @isset($company)
-    <footer class="relative z-10 mt-12 w-full border-t border-dv-outline-variant bg-dv-surface-container-lowest py-stack-lg">
+    <footer class="relative z-10 mt-12 w-full border-t border-dv-outline-variant bg-dv-surface-container-lowest py-stack-lg md:ml-64">
         <div class="mx-auto flex w-full max-w-dv flex-col items-center justify-between gap-6 px-margin-mobile md:flex-row md:px-margin-desktop">
             <div class="text-center md:text-start">
                 <span class="font-dv-display text-dv-headline-md text-dv-primary">{{ $company->name }}</span>
