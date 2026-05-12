@@ -210,6 +210,26 @@ class Company extends Model
       return $this->hasOneThrough(Plan::class, Subscription::class, 'company_id', 'id', 'id', 'plan_id');
    }
 
+   public function canUseFeature(string $feature): bool
+   {
+      $plan = $this->plan;
+      if (!$plan || !$plan->is_active) return false;
+
+      $features = $plan->features ?? [];
+
+      return in_array($feature, $features, true);
+   }
+
+   public function getPlanLimit(string $key): ?int
+   {
+      $plan = $this->plan;
+      if (!$plan) return null;
+
+      $limits = $plan->limits ?? [];
+
+      return $limits[$key] ?? $plan->{$key} ?? null;
+   }
+
    public function getLogoUrlAttribute()
    {
       if (!$this->logo) {

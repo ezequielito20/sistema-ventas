@@ -542,11 +542,40 @@
                     <div class="space-y-1">
 
                         @if (Auth::user() && Auth::user()->isSuperAdmin())
-                            <a href="{{ route('super-admin.dashboard') }}"
-                                class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 {{ request()->is('super-admin*') ? 'is-active' : '' }}">
-                                <i class="fas fa-crown mr-3 text-lg text-amber-400"></i>
-                                Panel Super Admin
-                            </a>
+                            <div x-data="{ open: {{ request()->is('super-admin*') ? 'true' : 'false' }} }">
+                                <button @click="open = !open" type="button"
+                                    class="app-sidebar-parent-btn group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-crown mr-3 text-lg text-amber-400"></i>
+                                        Super Admin
+                                    </div>
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200"
+                                        :class="{ 'rotate-180': open }"></i>
+                                </button>
+                                <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95" class="ml-6 mt-1 space-y-1">
+                                    <a href="{{ route('super-admin.dashboard') }}"
+                                        class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('super-admin.dashboard') ? 'is-active' : '' }}">
+                                        <i class="fas fa-chart-pie mr-2 text-xs"></i> Dashboard
+                                    </a>
+                                    <a href="{{ route('super-admin.companies.index') }}"
+                                        class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('super-admin.companies.*') ? 'is-active' : '' }}">
+                                        <i class="fas fa-building mr-2 text-xs"></i> Empresas
+                                    </a>
+                                    <a href="{{ route('super-admin.plans.index') }}"
+                                        class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('super-admin.plans.*') ? 'is-active' : '' }}">
+                                        <i class="fas fa-box mr-2 text-xs"></i> Planes
+                                    </a>
+                                    <a href="{{ route('super-admin.payments.index') }}"
+                                        class="app-sidebar-sub-link block rounded-lg px-3 py-2 text-sm transition-all duration-200 {{ request()->routeIs('super-admin.payments.*') ? 'is-active' : '' }}">
+                                        <i class="fas fa-credit-card mr-2 text-xs"></i> Pagos
+                                    </a>
+                                </div>
+                            </div>
                         @endif
 
                         <!-- Config empresa -->
