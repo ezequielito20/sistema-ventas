@@ -212,15 +212,26 @@
                         <div>
                             <h3 class="text-sm font-semibold text-slate-200">Galería de imágenes</h3>
                             <p class="mt-1 text-xs text-slate-500">
-                                Podés agregar hasta {{ $galleryMax }} imágenes adicionales para mostrar el producto desde diferentes ángulos.
+                                Hasta 6 imágenes en total. Marcá con ★ la imagen principal,
+                                el resto se mostrarán en la galería del catálogo público.
                             </p>
                         </div>
                         @if(count($existingImages) > 0 || count($newImages) > 0)
                             <span class="rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-400">
-                                {{ count($existingImages) + count($newImages) }} de 5
+                                {{ count($existingImages) + count($newImages) }} de 6
                             </span>
                         @endif
                     </div>
+
+                    @if(count($existingImages) === 0 && count($newImages) === 0)
+                    <div class="mb-4 flex items-start gap-3 rounded-xl border border-slate-700/60 bg-slate-950/40 px-4 py-3">
+                        <i class="fas fa-info-circle mt-0.5 shrink-0 text-sm text-cyan-400/80"></i>
+                        <div class="space-y-1 text-xs text-slate-400">
+                            <p>Agregá varias fotos del producto para que los clientes lo vean desde diferentes ángulos.</p>
+                            <p>La imagen que marques con la estrella <i class="fas fa-star text-[10px] text-dv-primary"></i> será la <strong class="text-slate-300">portada</strong> del producto en el catálogo. Las demás se podrán ver al hacer clic en "Ver detalle".</p>
+                        </div>
+                    </div>
+                    @endif
 
                     {{-- Dropzone --}}
                     @if(count($existingImages) + count($newImages) < 5)
