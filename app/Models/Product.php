@@ -18,42 +18,39 @@ class Product extends Model
     *
     * @var array<int, string>
     */
-   protected $fillable = [
-      'code',
-      'name',
-      'description',
-      'image',
-      'stock',
-      'min_stock',
-      'max_stock',
-      'purchase_price',
-      'sale_price',
-      'entry_date',
-      'category_id',
-      'company_id'
-   ];
+    protected $fillable = [
+       'code',
+       'name',
+       'description',
+       'image',
+       'stock',
+       'min_stock',
+       'max_stock',
+       'purchase_price',
+       'sale_price',
+       'discount_percent',
+       'entry_date',
+       'category_id',
+       'company_id'
+    ];
 
-   /**
-    * The accessors to append to the model's array form.
-    *
-    * @var array
-    */
-    protected $appends = ['image_url', 'stock_status_label', 'stock_status_class', 'cover_image_url'];
+    protected $appends = ['image_url', 'stock_status_label', 'stock_status_class', 'cover_image_url', 'final_price', 'has_discount'];
 
    /**
     * The attributes that should be cast.
     *
     * @var array<string, string>
     */
-   protected $casts = [
-      'entry_date' => 'datetime',
-      'purchase_price' => 'decimal:2',
-      'sale_price' => 'decimal:2',
-      'stock' => 'integer',
-      'min_stock' => 'integer',
-      'max_stock' => 'integer',
-      'company_id' => 'integer'
-   ];
+    protected $casts = [
+       'entry_date' => 'datetime',
+       'purchase_price' => 'decimal:2',
+       'sale_price' => 'decimal:2',
+       'discount_percent' => 'integer',
+       'stock' => 'integer',
+       'min_stock' => 'integer',
+       'max_stock' => 'integer',
+       'company_id' => 'integer'
+    ];
 
    /**
     * Get the formatted purchase price.
@@ -173,14 +170,28 @@ class Product extends Model
    /**
     * Get the image URL using ImageUrlService.
     */
-   public function getImageUrlAttribute()
-   {
-      if (!$this->image) {
-         return asset('img/no-image.svg');
-      }
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return asset('img/no-image.svg');
+        }
 
-      return ImageUrlService::getImageUrl($this->image);
-   }
+        return ImageUrlService::getImageUrl($this->image);
+    }
+
+    public function getFinalPriceAttribute(): float
+    {
+        if ($this->discount_percent > 0) {
+            return round($this->sale_price * (1 - $this->discount_percent / 100), 2);
+        }
+
+        return (float) $this->sale_price;
+    }
+
+    public function getHasDiscountAttribute(): bool
+    {
+        return $this->discount_percent > 0;
+    }
 
    /**
     * Get the supplier that owns the product.

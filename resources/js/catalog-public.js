@@ -16,6 +16,7 @@ document.addEventListener('alpine:init', () => {
         priceMin: 0,
         priceMax: 999999999,
         priceSliderMax: 5000,
+        onlyDiscounted: false,
         allProducts: [],
         sortBy: 'name_asc',
 
@@ -48,33 +49,44 @@ document.addEventListener('alpine:init', () => {
         },
 
         get filtered() {
+            const min = Math.max(0, Number(this.priceMin) || 0);
+            const max = Math.max(min, Number(this.priceMax) || this.priceSliderMax);
+
             return this.allProducts
                 .filter((p) => {
-                    const matchCat =
-                        this.selectedCategory === 'all' || p.category_name === this.selectedCategory;
-                    const q = this.search.toLowerCase();
-                    const matchSearch =
-                        !q ||
-                        p.name.toLowerCase().includes(q) ||
-                        (p.description && p.description.toLowerCase().includes(q)) ||
-                        (p.code && p.code.toLowerCase().includes(q));
-                    const matchPrice = p.sale_price >= this.priceMin && p.sale_price <= this.priceMax;
+                    if (this.selectedCategory !== 'all' && p.category_name !== this.selectedCategory) return false;
 
-                    return matchCat && matchSearch && matchPrice;
+                    const q = this.search.toLowerCase();
+                    if (q && !p.name.toLowerCase().includes(q) && !(p.description && p.description.toLowerCase().includes(q)) && !(p.code && p.code.toLowerCase().includes(q))) return false;
+
+                    const price = p.final_price ?? p.sale_price;
+                    if (price < min || price > max) return false;
+
+                    if (this.onlyDiscounted && !p.has_discount) return false;
+
+                    return true;
                 })
                 .sort((a, b) => {
                     switch (this.sortBy) {
                         case 'name_asc': return a.name.localeCompare(b.name);
                         case 'name_desc': return b.name.localeCompare(a.name);
-                        case 'price_asc': return a.sale_price - b.sale_price;
-                        case 'price_desc': return b.sale_price - a.sale_price;
+                        case 'price_asc': return (a.final_price ?? a.sale_price) - (b.final_price ?? b.sale_price);
+                        case 'price_desc': return (b.final_price ?? b.sale_price) - (a.final_price ?? a.sale_price);
                         default: return 0;
                     }
                 });
         },
 
+        get filteredCount() {
+            return this.filtered.length;
+        },
+
         selectCat(cat) {
             this.selectedCategory = cat;
+        },
+
+        toggleDiscounted() {
+            this.onlyDiscounted = !this.onlyDiscounted;
         },
 
         resetFilters() {
@@ -83,6 +95,7 @@ document.addEventListener('alpine:init', () => {
             this.priceMin = 0;
             this.priceMax = this.priceSliderMax;
             this.sortBy = 'name_asc';
+            this.onlyDiscounted = false;
         },
     }));
 

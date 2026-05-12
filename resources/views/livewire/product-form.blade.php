@@ -451,6 +451,31 @@
                                 <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label for="discount_percent" class="{{ $labelBase }}">Descuento</label>
+                            <div class="relative">
+                                <input
+                                    id="discount_percent"
+                                    type="number"
+                                    min="0"
+                                    max="99"
+                                    step="1"
+                                    wire:model.live="discount_percent"
+                                    class="{{ $inputBase }} pr-9 tabular-nums @error('discount_percent') border-rose-500/80 @enderror"
+                                >
+                                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-slate-500">%</span>
+                            </div>
+                            @if($discount_percent > 0)
+                                <p class="mt-1 text-xs text-emerald-400">
+                                    <i class="fas fa-tag"></i>
+                                    Precio final: {{ $currency->symbol }}{{ number_format((float) $this->sale_price * (1 - $discount_percent / 100), 2, ',', '.') }}
+                                </p>
+                            @endif
+                            @error('discount_percent')
+                                <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     @php

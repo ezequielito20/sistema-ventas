@@ -36,6 +36,8 @@ class ProductForm extends Component
 
     public string $sale_price = '0';
 
+    public int $discount_percent = 0;
+
     public string $entry_date;
 
     /** @var int|string|null */
@@ -75,6 +77,7 @@ class ProductForm extends Component
             $this->max_stock = (int) $product->max_stock;
             $this->purchase_price = (string) $product->purchase_price;
             $this->sale_price = (string) $product->sale_price;
+            $this->discount_percent = (int) $product->discount_percent;
             $this->entry_date = $product->entry_date->format('Y-m-d');
             $this->category_id = $product->category_id;
             $this->existingImagePath = $product->image;
@@ -230,6 +233,7 @@ class ProductForm extends Component
             'max_stock' => 'required|integer|gt:min_stock',
             'purchase_price' => 'required|numeric|min:0',
             'sale_price' => 'required|numeric|min:0|gt:purchase_price',
+            'discount_percent' => 'required|integer|min:0|max:99',
             'entry_date' => 'required|date|before_or_equal:today',
             'category_id' => [
                 'required',
@@ -250,6 +254,7 @@ class ProductForm extends Component
             'max_stock' => 'stock máximo',
             'purchase_price' => 'precio de compra',
             'sale_price' => 'precio de venta',
+            'discount_percent' => 'descuento',
             'entry_date' => 'fecha de ingreso',
             'category_id' => 'categoría',
             'image' => 'imagen',

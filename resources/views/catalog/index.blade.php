@@ -24,6 +24,9 @@ window.__CATALOG_PRODUCTS__ = {{ Js::from($products->map(function ($p) {
         'category_name' => $p->category_name ?? 'Sin categoría',
         'image_url' => $p->cover_image_url,
         'code' => $p->code,
+        'final_price' => (float) $p->final_price,
+        'has_discount' => $p->has_discount,
+        'discount_percent' => $p->discount_percent,
     ];
 })) }};
 window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/producto'), '/')) }};
@@ -49,7 +52,8 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                         {{ __('Todos los productos') }}
                     </span>
                     <span class="rounded px-2 py-0.5 text-[10px] font-bold"
-                          :class="selectedCategory === 'all' ? 'bg-black/20' : 'text-dv-outline'">{{ $products->count() }}</span>
+                          :class="selectedCategory === 'all' ? 'bg-black/20' : 'text-dv-outline'"
+                          x-text="filteredCount"></span>
                 </button>
 
                 @foreach($categories as $cat)
@@ -85,6 +89,18 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                                placeholder="Max">
                     </div>
                 </div>
+            </div>
+
+            <div class="mt-stack-lg border-t border-dv-outline-variant pt-stack-lg">
+                <button type="button" @click="toggleDiscounted()"
+                        class="flex w-full items-center gap-3 rounded-lg px-4 py-3 font-dv-label text-dv-label-md transition"
+                        :class="onlyDiscounted ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'text-dv-on-surface-variant hover:bg-dv-surface-container-high border border-transparent'">
+                    <i class="fas fa-tag" :class="onlyDiscounted ? 'text-amber-400' : 'text-dv-outline'"></i>
+                    <span>{{ __('Ofertas y descuentos') }}</span>
+                    <span x-show="onlyDiscounted" class="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20">
+                        <i class="fas fa-check text-[8px] text-amber-400"></i>
+                    </span>
+                </button>
             </div>
 
             <div class="mt-stack-lg border-t border-dv-outline-variant pt-stack-lg">
@@ -188,12 +204,23 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                                 </div>
                                 <span class="absolute left-4 top-4 rounded-full border border-dv-secondary bg-dv-secondary/10 px-3 py-1 font-dv-label text-dv-label-md font-semibold uppercase text-dv-secondary backdrop-blur-md"
                                       x-text="product.category_name"></span>
+                                <template x-if="product.has_discount">
+                                    <span class="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 font-dv-label text-[10px] font-bold uppercase tracking-wide text-white shadow-lg"
+                                          x-text="'-' + product.discount_percent + '%'"></span>
+                                </template>
                             </a>
                             <div class="flex flex-1 flex-col p-6">
                                 <div class="mb-2 flex items-start justify-between gap-3">
                                     <h3 class="font-dv-display text-dv-headline-md text-dv-on-surface line-clamp-2" x-text="product.name"></h3>
-                                    <p class="shrink-0 font-dv-display text-dv-headline-md text-dv-primary"
-                                       x-text="'$' + formatPrice(product.sale_price)"></p>
+                                    <div class="shrink-0 text-right">
+                                        <template x-if="product.has_discount">
+                                            <p class="text-[11px] font-medium text-amber-400 line-through"
+                                               x-text="'$' + formatPrice(product.sale_price)"></p>
+                                        </template>
+                                        <p class="font-dv-display text-dv-headline-md"
+                                           :class="product.has_discount ? 'text-amber-400' : 'text-dv-primary'"
+                                           x-text="'$' + formatPrice(product.final_price)"></p>
+                                    </div>
                                 </div>
                                 <p class="mb-4 line-clamp-2 font-dv-body text-dv-body-sm text-dv-on-surface-variant"
                                    x-text="product.description || @js(__('Sin descripción breve.'))"></p>
