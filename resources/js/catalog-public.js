@@ -14,8 +14,8 @@ document.addEventListener('alpine:init', () => {
         search: '',
         showFilters: false,
         selectedCategory: 'all',
-        priceMin: 0,
-        priceMax: 999999999,
+        priceMin: null,
+        priceMax: null,
         priceSliderMax: 5000,
         onlyDiscounted: false,
         allProducts: [],
@@ -27,14 +27,12 @@ document.addEventListener('alpine:init', () => {
 
             if (!products.length) {
                 this.priceSliderMax = 5000;
-                this.priceMax = 5000;
                 return;
             }
 
             const max = Math.max(...products.map((p) => p.sale_price), 0);
             const rounded = Math.max(500, Math.ceil(max / 500) * 500);
             this.priceSliderMax = rounded;
-            this.priceMax = rounded;
         },
 
         formatPrice(value) {
@@ -50,8 +48,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         get filtered() {
-            const min = Math.max(0, Number(this.priceMin) || 0);
-            const max = Math.max(min, Number(this.priceMax) || this.priceSliderMax);
+            const min = this.priceMin !== null && this.priceMin !== '' ? Number(this.priceMin) : 0;
+            const max = this.priceMax !== null && this.priceMax !== '' ? Number(this.priceMax) : Infinity;
 
             return this.allProducts
                 .filter((p) => {
@@ -93,8 +91,8 @@ document.addEventListener('alpine:init', () => {
         resetFilters() {
             this.search = '';
             this.selectedCategory = 'all';
-            this.priceMin = 0;
-            this.priceMax = this.priceSliderMax;
+            this.priceMin = null;
+            this.priceMax = null;
             this.sortBy = 'name_asc';
             this.onlyDiscounted = false;
         },

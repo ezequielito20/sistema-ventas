@@ -77,16 +77,16 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-[10px] text-dv-outline">$</span>
-                        <input type="number" x-model.number="priceMin" :max="priceMax" min="0"
+                        <input type="number" x-model.number="priceMin" min="0"
                                class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-1.5 pl-5 pr-2 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
-                               placeholder="Min">
+                               placeholder="{{ __('Mín') }}">
                     </div>
                     <span class="text-dv-outline/50 text-xs">—</span>
                     <div class="relative flex-1">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-[10px] text-dv-outline">$</span>
-                        <input type="number" x-model.number="priceMax" :min="priceMin" :max="priceSliderMax"
+                        <input type="number" x-model.number="priceMax" min="0"
                                class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-1.5 pl-5 pr-2 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
-                               placeholder="Max">
+                               placeholder="{{ __('Máx') }}">
                     </div>
                 </div>
             </div>
@@ -232,16 +232,16 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                             <div class="flex items-center gap-2">
                                 <div class="relative flex-1">
                                     <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-xs text-dv-outline">$</span>
-                                    <input type="number" x-model.number="priceMin" :max="priceMax" min="0"
+                                    <input type="number" x-model.number="priceMin" min="0"
                                            class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-2.5 pl-6 pr-3 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
-                                           placeholder="Min">
+                                           placeholder="{{ __('Mín') }}">
                                 </div>
                                 <span class="text-xs text-dv-outline/50">—</span>
                                 <div class="relative flex-1">
                                     <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-xs text-dv-outline">$</span>
-                                    <input type="number" x-model.number="priceMax" :min="priceMin" :max="priceSliderMax"
+                                    <input type="number" x-model.number="priceMax" min="0"
                                            class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-2.5 pl-6 pr-3 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
-                                           placeholder="Max">
+                                           placeholder="{{ __('Máx') }}">
                                 </div>
                             </div>
                         </div>
