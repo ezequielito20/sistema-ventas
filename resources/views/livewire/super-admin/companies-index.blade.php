@@ -33,7 +33,7 @@
             </button>
         </div>
         <div class="ui-panel__body space-y-4" x-show="showFilters" x-transition>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[10rem_10rem_10rem_10rem_auto]">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-end xl:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
                 <div>
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Estado</label>
                     <select wire:model.live="statusFilter" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
@@ -60,8 +60,8 @@
                     <label class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Hasta</label>
                     <input type="date" wire:model.live="dateTo" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2 px-3 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" />
                 </div>
-                <div>
-                    <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full text-sm">
+                <div class="sm:col-span-2 xl:col-span-1 xl:col-start-5 xl:row-start-1">
+                    <button type="button" wire:click="clearFilters" class="ui-btn ui-btn-ghost w-full text-sm xl:w-auto">
                         <i class="fas fa-eraser"></i> Limpiar filtros
                     </button>
                 </div>
@@ -141,7 +141,10 @@
                                 <tr wire:key="company-row-{{ $company->id }}">
                                     @if ($selectionMode)
                                         <td class="text-center">
-                                            <input type="checkbox" value="{{ $company->id }}" @checked(in_array($company->id, $selectedIds, true)) wire:click="toggleSelection({{ $company->id }})" class="rounded border-slate-500 bg-slate-900" />
+                                            @php
+                                                $hasRecords = $company->users_count > 0 || $company->customers_count > 0 || $company->products_count > 0 || $company->sales_count > 0 || $company->purchases_count > 0;
+                                            @endphp
+                                            <input type="checkbox" value="{{ $company->id }}" @checked(in_array($company->id, $selectedIds, true)) @disabled($hasRecords) wire:click="toggleSelection({{ $company->id }})" class="rounded border-slate-500 bg-slate-900 disabled:opacity-30 disabled:cursor-not-allowed" title="{{ $hasRecords ? 'No se puede seleccionar: tiene registros asociados' : '' }}" />
                                         </td>
                                     @endif
                                     <td>
@@ -185,9 +188,11 @@
                                             <a href="{{ route('super-admin.companies.show', $company->id) }}" class="ui-icon-action ui-icon-action--primary" title="Gestionar">
                                                 <i class="fas fa-cog"></i>
                                             </a>
-                                            <button type="button" wire:click="openDeleteModal({{ $company->id }})" class="ui-icon-action ui-icon-action--danger" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            @if ($company->users_count === 0 && $company->customers_count === 0 && $company->products_count === 0 && $company->sales_count === 0 && $company->purchases_count === 0)
+                                                <button type="button" wire:click="openDeleteModal({{ $company->id }})" class="ui-icon-action ui-icon-action--danger" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

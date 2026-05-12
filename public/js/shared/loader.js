@@ -4,7 +4,16 @@
  * Versión: 1.0.0
  */
 
-// ===== SISTEMA DE CARGA OPTIMIZADA =====
+(function() {
+    // Guard: evitar redeclaración al navegar con Livewire (wire:navigate)
+    if (typeof window.resourceLoader !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', detectCurrentView);
+        } else {
+            detectCurrentView();
+        }
+        return;
+    }
 
 class ResourceLoader {
     constructor() {
@@ -385,3 +394,5 @@ if (document.readyState === 'loading') {
 } else {
     detectCurrentView();
 }
+
+})();

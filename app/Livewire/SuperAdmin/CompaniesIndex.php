@@ -192,8 +192,13 @@ class CompaniesIndex extends Component
     public function toggleSelectAll(): void
     {
         if (!$this->selectionMode) return;
-        $pageIds = $this->query()
-            ->paginate($this->perPage)
+        $pageCompanies = $this->query()
+            ->withCount(['users', 'customers', 'products', 'sales', 'purchases'])
+            ->paginate($this->perPage);
+
+        // Only select companies without associated records
+        $pageIds = $pageCompanies
+            ->filter(fn ($c) => $c->users_count === 0 && $c->customers_count === 0 && $c->products_count === 0 && $c->sales_count === 0 && $c->purchases_count === 0)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -226,13 +231,18 @@ class CompaniesIndex extends Component
         if ($this->selectedIds === []) return;
 
         $deleted = 0;
-        $failed = 0;
+        $skipped = 0;
         foreach ($this->selectedIds as $id) {
             try {
-                Company::findOrFail($id)->delete();
+                $company = Company::withCount(['users', 'customers', 'products', 'sales', 'purchases'])->findOrFail($id);
+                if ($company->users_count > 0 || $company->customers_count > 0 || $company->products_count > 0 || $company->sales_count > 0 || $company->purchases_count > 0) {
+                    $skipped++;
+                    continue;
+                }
+                $company->delete();
                 $deleted++;
             } catch (\Throwable $e) {
-                $failed++;
+                $skipped++;
             }
         }
 
@@ -242,16 +252,16 @@ class CompaniesIndex extends Component
         $this->resetPage();
 
         $msg = "{$deleted} empresa(s) eliminada(s) correctamente.";
-        if ($failed > 0) {
-            $msg .= " {$failed} no se pudieron eliminar.";
+        if ($skipped > 0) {
+            $msg .= " {$skipped} omitidas por tener registros.";
         }
-        $this->toast($msg, $failed > 0 ? 'warning' : 'success');
+        $this->toast($msg, $skipped > 0 ? 'warning' : 'success');
     }
 
     protected function query()
     {
         $query = Company::with(['subscription.plan:id,name', 'subscription.latestPayment'])
-            ->withCount(['users', 'sales']);
+            ->withCount(['users', 'customers', 'products', 'sales', 'purchases']);
 
         if ($this->search !== '') {
             $s = $this->search;
@@ -287,8 +297,13 @@ class CompaniesIndex extends Component
     {
         $companies = $this->query()->paginate($this->perPage);
         $currentPageIds = $companies->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $allCurrentPageSelected = $currentPageIds !== []
-            && count(array_intersect($currentPageIds, $this->selectedIds)) === count($currentPageIds);
+        $deletablePageIds = $companies
+            ->filter(fn ($c) => $c->users_count === 0 && $c->customers_count === 0 && $c->products_count === 0 && $c->sales_count === 0 && $c->purchases_count === 0)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $allCurrentPageSelected = $deletablePageIds !== []
+            && count(array_intersect($deletablePageIds, $this->selectedIds)) === count($deletablePageIds);
 
         $stats = [
             'total' => Company::count(),

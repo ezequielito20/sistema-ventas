@@ -79,7 +79,7 @@ class CompanyShow extends Component
         $this->loadCompany();
     }
 
-    protected function loadCompany(): void
+    public function loadCompany(): void
     {
         $this->company = Company::with(['subscription.plan', 'subscription.latestPayment'])
             ->withCount(['users', 'customers', 'products', 'sales'])
