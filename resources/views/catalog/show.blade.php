@@ -2,6 +2,11 @@
 
 @section('title', $product->name.' — '.$company->name)
 
+@php
+    $productUrl = url($company->slug.'/producto/'.$product->id);
+    $whatsappMsg = 'Hola! Me interesa '.$product->name.' - $'.number_format((float) $product->sale_price, 2)."\n".$productUrl;
+@endphp
+
 @push('meta')
     <meta name="description" content="{{ Str::limit($product->description, 160) }}">
     <meta property="og:title" content="{{ $product->name }} — {{ $company->name }}">
@@ -11,6 +16,57 @@
     <meta property="og:url" content="{{ request()->url() }}">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="{{ request()->url() }}">
+@endpush
+
+@push('scripts')
+<script>
+window.__CATALOG_GALLERY_IMAGES__ = {{ Js::from($product->images->isNotEmpty()
+    ? $product->images
+        ->sortBy(fn ($img) => $img->is_cover ? -1 : $img->sort_order)
+        ->map(fn ($img) => ['url' => $img->image_url, 'id' => $img->id, 'is_cover' => (bool) $img->is_cover])
+        ->values()
+    : collect([['url' => $product->image_url, 'id' => 0, 'is_cover' => true]])) }};
+
+window.shareCatalogProduct = async function (title, url) {
+    if (navigator.share) {
+        try {
+            await navigator.share({ title, url });
+        } catch (e) {}
+        return;
+    }
+    try {
+        await navigator.clipboard.writeText(url);
+        showCatalogToast('{{ __('Enlace copiado') }}', '{{ __('El enlace del producto se copio al portapapeles.') }}', 'success');
+    } catch (e) {
+        prompt({{ Js::from(__('Copia este enlace:')) }}, url);
+    }
+};
+
+function showCatalogToast(title, message, type) {
+    var container = document.getElementById('catalog-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'catalog-toast-container';
+        container.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:24rem;';
+        document.body.appendChild(container);
+    }
+    var icon = type === 'success' ? 'check-circle' : 'info-circle';
+    var accent = type === 'success' ? '#10b981' : '#22d3ee';
+    var t = document.createElement('div');
+    t.style.cssText = 'display:flex;align-items:flex-start;gap:0.75rem;padding:0.875rem 1rem;border-radius:0.75rem;background:#1e293b;border:1px solid rgba(148,163,184,0.15);box-shadow:0 4px 24px rgba(0,0,0,0.4);color:#e2e8f0;font-family:inherit;font-size:0.875rem;line-height:1.4;transform:translateX(120%);opacity:0;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);';
+    t.innerHTML = '<i class="fas fa-' + icon + '" style="color:' + accent + ';font-size:1.15rem;margin-top:0.1rem;"></i><div><strong style="display:block;font-weight:600;color:#f1f5f9;margin-bottom:0.15rem;">' + title + '</strong><span style="color:#94a3b8;">' + message + '</span></div>';
+    container.appendChild(t);
+    requestAnimationFrame(function () {
+        t.style.transform = 'translateX(0)';
+        t.style.opacity = '1';
+    });
+    setTimeout(function () {
+        t.style.transform = 'translateX(120%)';
+        t.style.opacity = '0';
+        setTimeout(function () { t.remove(); }, 350);
+    }, 3500);
+}
+</script>
 @endpush
 
 @push('scripts')
@@ -138,7 +194,7 @@ window.shareCatalogProduct = async function (title, url) {
 
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row">
                     @if($company->phone)
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode('Hola! Me interesa '.$product->name.' - $'.number_format((float) $product->sale_price, 2)) }}"
+                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode($whatsappMsg) }}"
                            target="_blank" rel="noopener"
                            class="flex flex-1 items-center justify-center gap-3 rounded-xl bg-dv-primary px-6 py-3.5 font-dv-label text-dv-label-md font-bold text-dv-on-primary shadow-[0_0_30px_-4px_rgb(208_188_255/0.4)] transition hover:opacity-95 active:scale-[0.99]">
                             <i class="fab fa-whatsapp text-lg"></i>{{ __('Consultar por WhatsApp') }}
@@ -213,7 +269,7 @@ window.shareCatalogProduct = async function (title, url) {
     </div>
 
     @if($company->phone)
-        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode('Hola! Me interesa '.$product->name.' - $'.number_format((float) $product->sale_price, 2)) }}"
+        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode($whatsappMsg) }}"
            target="_blank" rel="noopener"
            class="fixed inset-x-4 bottom-6 z-50 flex items-center justify-center gap-3 rounded-2xl bg-dv-primary px-6 py-4 font-dv-display text-base font-bold text-dv-on-primary shadow-[0_0_40px_-8px_rgb(208_188_255/0.45)] transition active:scale-[0.98] lg:hidden">
             <i class="fab fa-whatsapp text-xl"></i>{{ __('Consultar por WhatsApp') }}
