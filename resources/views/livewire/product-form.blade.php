@@ -283,7 +283,23 @@
                                         </button>
                                         <button type="button"
                                                 wire:click="removeExistingImage({{ $img['id'] }})"
-                                                wire:confirm="{{ __('¿Eliminar esta imagen de la galería?') }}"
+                                                x-on:click.prevent="
+                                                    if (typeof Swal === 'undefined') { $wire.removeExistingImage({{ $img['id'] }}); return; }
+                                                    Swal.fire({
+                                                        title: '{{ __('¿Eliminar imagen?') }}',
+                                                        text: '{{ __('Esta imagen se quitará de la galería al guardar.') }}',
+                                                        icon: 'warning',
+                                                        showCancelButton: true,
+                                                        confirmButtonColor: '#d33',
+                                                        cancelButtonColor: '#475569',
+                                                        confirmButtonText: '{{ __('Sí, eliminar') }}',
+                                                        cancelButtonText: '{{ __('Cancelar') }}'
+                                                    }).then((result) => {
+                                                        if (result.isConfirmed) {
+                                                            $wire.removeExistingImage({{ $img['id'] }});
+                                                        }
+                                                    });
+                                                "
                                                 class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
                                                 title="{{ __('Eliminar imagen') }}">
                                             <i class="fas fa-trash"></i>
@@ -310,8 +326,24 @@
                             <div class="group relative aspect-video overflow-hidden rounded-lg border border-cyan-500/50 bg-slate-900/80">
                                 <img src="{{ $img->temporaryUrl() }}" alt="" class="h-full w-full object-cover" loading="lazy">
                                 <div class="absolute inset-0 flex items-start justify-end p-1.5 opacity-0 transition group-hover:opacity-100">
-                                    <button type="button"
-                                            wire:click="removeNewImage({{ $index }})"
+                                     <button type="button"
+                                            x-on:click.prevent="
+                                                if (typeof Swal === 'undefined') { $wire.removeNewImage({{ $index }}); return; }
+                                                Swal.fire({
+                                                    title: '{{ __('¿Quitar imagen?') }}',
+                                                    text: '{{ __('Esta imagen no se guardará en la galería.') }}',
+                                                    icon: 'question',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#d33',
+                                                    cancelButtonColor: '#475569',
+                                                    confirmButtonText: '{{ __('Sí, quitar') }}',
+                                                    cancelButtonText: '{{ __('Cancelar') }}'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        $wire.removeNewImage({{ $index }});
+                                                    }
+                                                });
+                                            "
                                             class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 text-xs text-rose-400 backdrop-blur-sm transition hover:bg-rose-600/80 hover:text-white"
                                             title="{{ __('Quitar imagen') }}">
                                         <i class="fas fa-times"></i>
@@ -326,6 +358,42 @@
                     </div>
                     @endif
                 </div>
+
+                <script>
+                document.addEventListener('alpine:init', () => {
+                    Alpine.data('productGallery', () => ({
+                        dragging: false,
+                        init() {
+                            if (typeof Livewire !== 'undefined') {
+                                Livewire.on('cover-image-changed', (event) => {
+                                    const data = event?.[0];
+                                    const root = document.getElementById('product-form-preview-root');
+                                    const img = document.getElementById('product-form-preview-img');
+                                    const empty = document.getElementById('product-form-preview-empty');
+                                    if (root && img && data?.url) {
+                                        root.setAttribute('data-existing-url', data.url);
+                                        img.src = data.url;
+                                        img.classList.remove('hidden');
+                                        if (empty) empty.classList.add('hidden');
+                                    }
+                                });
+                            }
+                        },
+                        handleDrop(e) {
+                            this.dragging = false;
+                            const files = e.dataTransfer.files;
+                            if (!files.length) return;
+                            const input = this.$refs.fileInput;
+                            const dt = new DataTransfer();
+                            for (const f of files) {
+                                dt.items.add(f);
+                            }
+                            input.files = dt.files;
+                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                        },
+                    }));
+                });
+                </script>
 
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
                     <h3 class="mb-4 text-sm font-semibold text-slate-200">Inventario</h3>

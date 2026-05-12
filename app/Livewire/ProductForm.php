@@ -136,6 +136,22 @@ class ProductForm extends Component
     {
         Gate::authorize('products.edit');
         $this->coverImageId = $imageId;
+
+        if ($imageId !== null) {
+            $cover = collect($this->existingImages)->firstWhere('id', $imageId);
+            if ($cover && isset($cover['url'])) {
+                $this->existingImagePath = $this->resolveImagePath($imageId);
+                $this->image = null;
+                $this->dispatch('cover-image-changed', ['url' => $cover['url']]);
+            }
+        }
+    }
+
+    protected function resolveImagePath(int $imageId): ?string
+    {
+        $img = \App\Models\ProductImage::find($imageId);
+
+        return $img?->image;
     }
 
     public function updatedNewImages(): void

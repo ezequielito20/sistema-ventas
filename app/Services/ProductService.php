@@ -112,6 +112,11 @@ class ProductService
                 } elseif ($coverImageId !== null) {
                     $product->images()->where('id', '!=', $coverImageId)->update(['is_cover' => false]);
                     $product->images()->where('id', $coverImageId)->update(['is_cover' => true]);
+
+                    $coverImg = $product->images()->find($coverImageId);
+                    if ($coverImg) {
+                        $product->update(['image' => $coverImg->image]);
+                    }
                 }
 
                 $maxSort = $product->images()->max('sort_order') ?? 0;
