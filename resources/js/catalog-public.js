@@ -13,10 +13,11 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('catalog', () => ({
         search: '',
         selectedCategory: 'all',
-        priceCeiling: 500000,
+        priceMin: 0,
+        priceMax: 999999999,
         priceSliderMax: 5000,
-        priceSliderMin: 0,
         allProducts: [],
+        sortBy: 'name_asc',
 
         init() {
             this.allProducts = window.__CATALOG_PRODUCTS__ || [];
@@ -24,16 +25,14 @@ document.addEventListener('alpine:init', () => {
 
             if (!products.length) {
                 this.priceSliderMax = 5000;
-                this.priceCeiling = 5000;
-
+                this.priceMax = 5000;
                 return;
             }
 
             const max = Math.max(...products.map((p) => p.sale_price), 0);
             const rounded = Math.max(500, Math.ceil(max / 500) * 500);
             this.priceSliderMax = rounded;
-            this.priceCeiling = rounded;
-            this.priceSliderMin = 0;
+            this.priceMax = rounded;
         },
 
         formatPrice(value) {
@@ -45,28 +44,45 @@ document.addEventListener('alpine:init', () => {
 
         productUrl(id) {
             const base = window.__CATALOG_PRODUCT_BASE__ || '';
-
             return `${base}/${id}`;
         },
 
         get filtered() {
-            return this.allProducts.filter((p) => {
-                const matchCat =
-                    this.selectedCategory === 'all' || p.category_name === this.selectedCategory;
-                const q = this.search.toLowerCase();
-                const matchSearch =
-                    !q ||
-                    p.name.toLowerCase().includes(q) ||
-                    (p.description && p.description.toLowerCase().includes(q)) ||
-                    (p.code && p.code.toLowerCase().includes(q));
-                const matchPrice = p.sale_price <= this.priceCeiling;
+            return this.allProducts
+                .filter((p) => {
+                    const matchCat =
+                        this.selectedCategory === 'all' || p.category_name === this.selectedCategory;
+                    const q = this.search.toLowerCase();
+                    const matchSearch =
+                        !q ||
+                        p.name.toLowerCase().includes(q) ||
+                        (p.description && p.description.toLowerCase().includes(q)) ||
+                        (p.code && p.code.toLowerCase().includes(q));
+                    const matchPrice = p.sale_price >= this.priceMin && p.sale_price <= this.priceMax;
 
-                return matchCat && matchSearch && matchPrice;
-            });
+                    return matchCat && matchSearch && matchPrice;
+                })
+                .sort((a, b) => {
+                    switch (this.sortBy) {
+                        case 'name_asc': return a.name.localeCompare(b.name);
+                        case 'name_desc': return b.name.localeCompare(a.name);
+                        case 'price_asc': return a.sale_price - b.sale_price;
+                        case 'price_desc': return b.sale_price - a.sale_price;
+                        default: return 0;
+                    }
+                });
         },
 
         selectCat(cat) {
             this.selectedCategory = cat;
+        },
+
+        resetFilters() {
+            this.search = '';
+            this.selectedCategory = 'all';
+            this.priceMin = 0;
+            this.priceMax = this.priceSliderMax;
+            this.sortBy = 'name_asc';
         },
     }));
 

@@ -67,16 +67,45 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
             </nav>
 
             <div class="mt-stack-lg border-t border-dv-outline-variant pt-stack-lg">
-                <div class="mb-4 flex items-center justify-between font-dv-label text-dv-label-md uppercase tracking-wider text-dv-outline">
-                    <span>{{ __('Rango de precio') }}</span>
-                    <span class="font-dv-body normal-case text-[10px] text-dv-primary" x-text="'$0 — $' + formatPrice(priceCeiling)"></span>
+                <div class="mb-3 flex items-center justify-between font-dv-label text-dv-label-md uppercase tracking-wider text-dv-outline">
+                    <span>{{ __('Precio') }}</span>
                 </div>
-                <input type="range" class="catalog-range-primary h-2 w-full cursor-pointer appearance-none rounded-full bg-transparent accent-dv-primary"
-                       x-model.number="priceCeiling" :max="priceSliderMax" min="0" step="50">
-                <div class="mt-3 flex justify-between font-dv-label text-[10px] text-dv-outline">
-                    <span>$0</span>
-                    <span x-text="'Max $' + formatPrice(priceSliderMax)"></span>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-[10px] text-dv-outline">$</span>
+                        <input type="number" x-model.number="priceMin" :max="priceMax" min="0"
+                               class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-1.5 pl-5 pr-2 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
+                               placeholder="Min">
+                    </div>
+                    <span class="text-dv-outline/50 text-xs">—</span>
+                    <div class="relative flex-1">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5 text-[10px] text-dv-outline">$</span>
+                        <input type="number" x-model.number="priceMax" :min="priceMin" :max="priceSliderMax"
+                               class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high py-1.5 pl-5 pr-2 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40"
+                               placeholder="Max">
+                    </div>
                 </div>
+            </div>
+
+            <div class="mt-stack-lg border-t border-dv-outline-variant pt-stack-lg">
+                <div class="mb-3 flex items-center justify-between font-dv-label text-dv-label-md uppercase tracking-wider text-dv-outline">
+                    <span>{{ __('Ordenar por') }}</span>
+                </div>
+                <select x-model="sortBy"
+                        class="w-full rounded-lg border border-dv-outline-variant/50 bg-dv-surface-container-high px-3 py-2 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition focus:border-dv-primary focus:ring-1 focus:ring-dv-primary/40">
+                    <option value="name_asc">{{ __('Nombre A-Z') }}</option>
+                    <option value="name_desc">{{ __('Nombre Z-A') }}</option>
+                    <option value="price_asc">{{ __('Menor precio') }}</option>
+                    <option value="price_desc">{{ __('Mayor precio') }}</option>
+                </select>
+            </div>
+
+            <div class="mt-stack-lg border-t border-dv-outline-variant pt-stack-lg">
+                <button type="button" @click="resetFilters()"
+                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-dv-outline-variant/40 bg-dv-surface-container-high px-4 py-2.5 font-dv-label text-dv-label-md text-dv-on-surface-variant transition hover:bg-dv-surface-container hover:text-dv-on-surface">
+                    <i class="fas fa-undo-alt text-xs"></i>
+                    {{ __('Reiniciar filtros') }}
+                </button>
             </div>
 
             @if($company->phone)
