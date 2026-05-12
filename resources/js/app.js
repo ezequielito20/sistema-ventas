@@ -4,6 +4,26 @@ import { notifications } from './ui/notifications';
 
 window.Chart = Chart;
 
+/**
+ * Componente Alpine para galeria del formulario de producto.
+ * Registrado ANTES de Alpine.start() para que funcione siempre.
+ */
+Alpine.data('productGallery', () => ({
+    dragging: false,
+    handleDrop(e) {
+        this.dragging = false;
+        const files = e.dataTransfer.files;
+        if (!files.length) return;
+        const input = this.$refs.fileInput;
+        const dt = new DataTransfer();
+        for (const f of files) {
+            dt.items.add(f);
+        }
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    },
+}));
+
 // Inicializar Alpine.js solo si no está ya inicializado
 if (!window.Alpine) {
     window.Alpine = Alpine;

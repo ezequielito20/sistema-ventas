@@ -84,13 +84,17 @@ class ProductForm extends Component
                     'id' => $img->id,
                     'url' => $img->image_url,
                     'is_cover' => (bool) $img->is_cover,
+                    'path' => $img->image,
                 ])
                 ->values()
                 ->toArray();
 
-            $cover = $product->images->firstWhere('is_cover', true);
+            $cover = collect($this->existingImages)->first(fn ($img) => ($img['is_cover'] ?? false) === true);
             if ($cover) {
-                $this->coverImageId = $cover->id;
+                $this->coverImageId = $cover['id'];
+                $this->existingImagePath = $cover['path'] ?? null;
+            } else {
+                $this->existingImagePath = $product->image;
             }
 
             return;
@@ -138,20 +142,12 @@ class ProductForm extends Component
         $this->coverImageId = $imageId;
 
         if ($imageId !== null) {
-            $cover = collect($this->existingImages)->firstWhere('id', $imageId);
-            if ($cover && isset($cover['url'])) {
-                $this->existingImagePath = $this->resolveImagePath($imageId);
+            $cover = collect($this->existingImages)->first(fn ($img) => ($img['id'] ?? 0) === $imageId);
+            if ($cover && isset($cover['path'])) {
+                $this->existingImagePath = $cover['path'] ?? null;
                 $this->image = null;
-                $this->dispatch('cover-image-changed', ['url' => $cover['url']]);
             }
         }
-    }
-
-    protected function resolveImagePath(int $imageId): ?string
-    {
-        $img = \App\Models\ProductImage::find($imageId);
-
-        return $img?->image;
     }
 
     public function updatedNewImages(): void
