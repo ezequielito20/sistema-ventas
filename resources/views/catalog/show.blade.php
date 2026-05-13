@@ -2,6 +2,8 @@
 
 @section('title', $product->name.' — '.$company->name)
 
+@section('footer_width', 'md:ml-0')
+
 @php
     $productUrl = url($company->slug.'/producto/'.$product->id);
     $whatsappMsg = 'Hola! Me interesa '.$product->name.' - $'.number_format($product->final_price, 2)."\n".$productUrl;
@@ -36,31 +38,6 @@ window.shareCatalogProduct = async function (title, url) {
     }
     try {
         await navigator.clipboard.writeText(url);
-    } catch (e) {
-        prompt({{ Js::from(__('Copia este enlace:')) }}, url);
-    }
-};
-</script>
-@endpush
-
-@push('scripts')
-<script>
-window.__CATALOG_GALLERY_IMAGES__ = {{ Js::from($product->images->isNotEmpty()
-    ? $product->images
-        ->sortBy(fn ($img) => $img->is_cover ? -1 : $img->sort_order)
-        ->map(fn ($img) => ['url' => $img->image_url, 'id' => $img->id, 'is_cover' => (bool) $img->is_cover])
-        ->values()
-    : collect([['url' => $product->image_url, 'id' => 0, 'is_cover' => true]])) }};
-
-window.shareCatalogProduct = async function (title, url) {
-    if (navigator.share) {
-        try {
-            await navigator.share({ title, url });
-        } catch (e) {}
-        return;
-    }
-    try {
-        await navigator.clipboard.writeText(url);
         alert({{ Js::from(__('Enlace copiado al portapapeles.')) }});
     } catch (e) {
         prompt({{ Js::from(__('Copiá este enlace:')) }}, url);
@@ -72,12 +49,12 @@ window.shareCatalogProduct = async function (title, url) {
 @section('content')
     @include('catalog.partials.product-nav', ['company' => $company, 'productName' => $product->name])
 
-    <div class="mx-auto max-w-dv px-margin-mobile pb-24 pt-24 sm:px-6 lg:px-margin-desktop lg:pb-12">
+    <div class="mx-auto max-w-dv px-margin-mobile pb-24 pt-20 sm:px-6 sm:pt-24 lg:px-margin-desktop lg:pb-12">
         <div class="grid grid-cols-1 gap-stack-lg lg:grid-cols-2 lg:gap-12 xl:gap-16">
 
-            <div class="lg:sticky lg:top-24 lg:self-start">
+            <div class="lg:sticky lg:top-20 lg:self-start xl:top-24">
                 <div x-data="gallery" class="w-full" @keydown.window="keyNav">
-                    <div class="catalog-glass-card relative overflow-hidden rounded-2xl border border-dv-outline-variant/30"
+                    <div class="relative overflow-hidden rounded-xl border border-dv-outline-variant/20 bg-dv-surface-container-low"
                          @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"
                          style="aspect-ratio:4/3">
 
@@ -161,19 +138,19 @@ window.shareCatalogProduct = async function (title, url) {
                         {{ __('Cód.') }} {{ $product->code }}</p>
                 @endif
 
-                <div class="catalog-glass-card mt-6 rounded-2xl p-6">
+                <div class="mt-6 rounded-xl border border-dv-outline-variant/20 bg-dv-surface-container-low p-5 sm:p-6">
                     <div class="flex items-baseline gap-3">
                         @if($product->has_discount)
-                            <span class="font-dv-display text-2xl text-amber-400/60 line-through sm:text-3xl">
+                            <span class="font-dv-display text-xl text-amber-400/60 line-through sm:text-2xl">
                                 ${{ number_format((float) $product->sale_price, 2) }}
                             </span>
                         @endif
-                        <span class="font-dv-display text-4xl sm:text-5xl {{ $product->has_discount ? 'text-amber-400' : 'text-dv-primary' }}">
+                        <span class="font-dv-display text-3xl sm:text-4xl {{ $product->has_discount ? 'text-amber-400' : 'text-dv-primary' }}">
                             ${{ number_format($product->final_price, 2) }}
                         </span>
                     </div>
                     @if($product->stock > 0)
-                        <div class="mt-stack-sm flex items-center gap-2 font-dv-body text-dv-body-sm text-dv-secondary">
+                        <div class="mt-3 flex items-center gap-2 text-sm text-dv-secondary">
                             <span class="h-2 w-2 animate-pulse rounded-full bg-dv-secondary"></span>
                             {{ $product->stock }} {{ __('disponibles') }}
                         </div>
@@ -184,7 +161,7 @@ window.shareCatalogProduct = async function (title, url) {
                     @if($company->phone)
                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode($whatsappMsg) }}"
                            target="_blank" rel="noopener"
-                           class="flex flex-1 items-center justify-center gap-3 rounded-xl bg-dv-primary px-6 py-3.5 font-dv-label text-dv-label-md font-bold text-dv-on-primary shadow-[0_0_30px_-4px_rgb(208_188_255/0.4)] transition hover:opacity-95 active:scale-[0.99]">
+                           class="flex flex-1 items-center justify-center gap-3 rounded-xl bg-dv-primary px-6 py-3.5 text-sm font-bold text-dv-on-primary shadow-lg transition hover:opacity-90 active:scale-[0.99]">
                             <i class="fab fa-whatsapp text-lg"></i>{{ __('Consultar por WhatsApp') }}
                         </a>
                     @endif
@@ -210,9 +187,9 @@ window.shareCatalogProduct = async function (title, url) {
                     </div>
                 @endif
 
-                <div class="catalog-glass-card mt-stack-lg rounded-2xl border border-dv-outline-variant/30 p-5">
-                    <h3 class="mb-4 font-dv-label text-dv-label-md font-semibold uppercase tracking-wider text-dv-outline">{{ __('Detalles') }}</h3>
-                    <dl class="grid grid-cols-1 gap-3 font-dv-body text-dv-body-sm sm:grid-cols-2 sm:gap-4">
+                <div class="mt-6 rounded-xl border border-dv-outline-variant/20 bg-dv-surface-container-low p-5">
+                    <h3 class="mb-4 text-xs font-semibold uppercase tracking-widest text-dv-outline/70">{{ __('Detalles') }}</h3>
+                    <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 sm:gap-4">
                         @if($product->category)
                             <div>
                                 <dt class="font-dv-label text-[11px] uppercase tracking-wide text-dv-outline">{{ __('Categoría') }}</dt>
@@ -247,7 +224,7 @@ window.shareCatalogProduct = async function (title, url) {
                 <h2 class="mb-gutter flex items-center gap-3 font-dv-display text-dv-headline-md text-dv-on-surface">
                     <span class="h-5 w-1 rounded-full bg-dv-primary"></span>{{ __('Productos similares') }}
                 </h2>
-                <div class="grid grid-cols-2 gap-gutter sm:grid-cols-3 lg:grid-cols-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-gutter sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5">
                     @foreach($relatedProducts as $related)
                         @include('catalog.partials.product-card', ['product' => $related, 'company' => $company])
                     @endforeach
@@ -259,7 +236,7 @@ window.shareCatalogProduct = async function (title, url) {
     @if($company->phone)
         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $company->phone) }}?text={{ urlencode($whatsappMsg) }}"
            target="_blank" rel="noopener"
-           class="fixed inset-x-4 bottom-6 z-50 flex items-center justify-center gap-3 rounded-2xl bg-dv-primary px-6 py-4 font-dv-display text-base font-bold text-dv-on-primary shadow-[0_0_40px_-8px_rgb(208_188_255/0.45)] transition active:scale-[0.98] lg:hidden">
+           class="fixed z-50 flex items-center justify-center gap-3 rounded-xl bg-dv-primary px-5 py-3.5 text-sm font-bold text-dv-on-primary shadow-lg transition active:scale-[0.98] [bottom:max(1rem,env(safe-area-inset-bottom,0px))] [left:max(1rem,env(safe-area-inset-left,0px))] [right:max(1rem,env(safe-area-inset-right,0px))] lg:hidden">
             <i class="fab fa-whatsapp text-xl"></i>{{ __('Consultar por WhatsApp') }}
         </a>
     @endif

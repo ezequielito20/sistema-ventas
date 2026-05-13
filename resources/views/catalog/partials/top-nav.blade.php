@@ -4,18 +4,18 @@
     'searchable' => false,
 ])
 
-<nav class="fixed top-0 z-50 w-full border-b border-white/5 bg-dv-surface/70 shadow-sm backdrop-blur-xl">
-    <div class="mx-auto flex h-20 w-full max-w-dv items-center gap-4 px-margin-mobile md:gap-6 md:px-margin-desktop">
-        <a href="{{ route('catalog.index', $company->slug) }}" class="flex shrink-0 items-center gap-3">
+<nav class="fixed top-0 z-50 w-full overflow-x-hidden border-b border-white/5 bg-dv-surface/70 shadow-sm backdrop-blur-xl">
+    <div class="mx-auto flex h-16 min-h-[3.5rem] w-full max-w-dv min-w-0 items-center gap-2 overflow-x-hidden px-margin-mobile sm:h-20 sm:min-h-0 sm:gap-4 md:gap-6 md:px-margin-desktop">
+        <a href="{{ route('catalog.index', $company->slug) }}" class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
             @if($company->logo)
                 <img src="{{ $company->logo_url }}" alt="{{ $company->name }}"
-                     class="h-9 w-9 rounded-lg border border-dv-outline-variant/30 bg-dv-surface-container object-contain">
+                     class="h-8 w-8 shrink-0 rounded-lg border border-dv-outline-variant/30 bg-dv-surface-container object-contain sm:h-9 sm:w-9">
             @else
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-dv-primary-container/20">
-                    <i class="fas fa-store text-sm text-dv-primary"></i>
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dv-primary-container/20 sm:h-9 sm:w-9">
+                    <i class="fas fa-store text-xs text-dv-primary sm:text-sm"></i>
                 </div>
             @endif
-            <span class="font-dv-display text-dv-headline-md tracking-tight text-dv-on-surface max-[420px]:hidden sm:inline">
+            <span class="max-w-[140px] truncate font-dv-display text-dv-headline-md tracking-tight text-dv-on-surface max-[420px]:hidden sm:max-w-[200px] md:max-w-none">
                 {{ \Illuminate\Support\Str::upper($company->name) }}
             </span>
         </a>
@@ -30,13 +30,13 @@
         <div class="min-w-0 flex-1"></div>
 
         @if($searchable)
-            <div class="relative hidden min-w-0 max-w-md flex-1 md:block lg:max-w-lg">
-                <i class="fas fa-search pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-dv-outline text-xs"></i>
+            <div class="relative hidden min-w-0 max-w-md flex-1 md:block lg:max-w-xl">
+                <i class="fas fa-search pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-dv-outline text-xs sm:left-4"></i>
                 <label class="sr-only" for="catalog-nav-search">{{ __('Buscar') }}</label>
                 <input id="catalog-nav-search" type="search" x-model="search"
                        autocomplete="off"
                        placeholder="{{ __('Buscar por nombre, código o detalle…') }}"
-                       class="w-full rounded-xl border border-dv-outline-variant bg-dv-surface-container-low py-3 pe-10 ps-11 font-dv-body text-dv-body-md text-dv-on-surface outline-none transition-all placeholder:text-dv-outline focus:border-transparent focus:ring-2 focus:ring-dv-primary">
+                       class="w-full rounded-xl border border-dv-outline-variant bg-dv-surface-container-low py-2.5 pe-10 ps-10 font-dv-body text-dv-body-sm text-dv-on-surface outline-none transition-all placeholder:text-dv-outline focus:border-transparent focus:ring-2 focus:ring-dv-primary sm:py-3 sm:ps-11 sm:text-dv-body-md">
                 <button type="button" x-show="search.length" x-cloak @click="search = ''"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-dv-outline transition hover:text-dv-on-surface-variant">
                     <i class="fas fa-times text-xs"></i>
