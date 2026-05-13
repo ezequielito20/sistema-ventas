@@ -15,8 +15,8 @@
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 
-    <!-- Styles (Tailwind + design system; no Bootstrap CDN) -->
-    @vite(['resources/sass/app.scss'])
+    {{-- Una sola directiva Vite en head: evita preload duplicado de CSS y warning en consola --}}
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @livewireStyles
     @stack('css')
 
@@ -842,8 +842,7 @@
         <!-- Scripts: módulos que definen funciones para x-data deben ir antes de Alpine (app.js) -->
         @stack('scripts-before-app')
 
-        <!-- Scripts -->
-        @vite(['resources/js/app.js'])
+        {{-- JS principal ya en head vía Vite (módulo diferido); no duplicar la directiva aquí --}}
         @livewireScripts
 
         <!-- Chart.js -->
