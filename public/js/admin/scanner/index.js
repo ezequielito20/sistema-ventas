@@ -5,12 +5,14 @@ document.addEventListener('alpine:init', () => {
         hasCamera: false,
         cameraError: '',
         mode: 'usd-to-bs',
+        zoom: 1,
         result: null,
         history: [],
         _worker: null,
         _stream: null,
         _scanTimer: null,
         _rateCache: null,
+        _pinchStart: null,
 
         init() {
             this.isMobile = this.checkMobile()
@@ -70,6 +72,42 @@ document.addEventListener('alpine:init', () => {
             return this.mode === 'usd-to-bs' ? 'Bs' : '$'
         },
 
+        get zoomPercent() {
+            return Math.round(this.zoom * 100) + '%'
+        },
+
+        setZoom(val) {
+            this.zoom = Math.max(1, Math.min(3, parseFloat(val) || 1))
+        },
+
+        handleTouchStart(e) {
+            if (e.touches.length === 2) {
+                this._pinchStart = {
+                    dist: Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY,
+                    ),
+                    zoom: this.zoom,
+                }
+            }
+        },
+
+        handleTouchMove(e) {
+            if (e.touches.length === 2 && this._pinchStart) {
+                e.preventDefault()
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY,
+                )
+                const scale = dist / this._pinchStart.dist
+                this.zoom = Math.max(1, Math.min(3, this._pinchStart.zoom * scale))
+            }
+        },
+
+        handleTouchEnd() {
+            this._pinchStart = null
+        },
+
         async initWorker() {
             try {
                 this._worker = await Tesseract.createWorker('eng')
@@ -79,31 +117,67 @@ document.addEventListener('alpine:init', () => {
                 this.workerReady = true
                 this.startCamera()
             } catch (e) {
-                this.cameraError = 'Error al cargar el motor OCR. Verificá tu conexión a internet.'
+                this.cameraError = 'Error al cargar el motor OCR.'
             }
         },
 
         async startCamera() {
+            let stream = null
+            let lastError = null
+
+            for (const constraints of [{ facingMode: 'environment' }, true]) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: constraints })
+                    break
+                } catch (e) {
+                    lastError = e
+                }
+            }
+
+            if (!stream) {
+                const name = lastError?.name || ''
+                if (name === 'NotAllowedError') {
+                    this.cameraError = 'Permiso de cámara denegado.'
+                } else if (name === 'NotFoundError') {
+                    this.cameraError = 'No se detectó cámara en este dispositivo.'
+                } else if (name === 'NotReadableError') {
+                    this.cameraError = 'Cámara ocupada por otra app.'
+                } else if (name === 'OverconstrainedError') {
+                    this.cameraError = 'Cámara no soporta el formato requerido.'
+                } else {
+                    this.cameraError = 'Error de cámara (' + name + ')'
+                }
+                return
+            }
+
+            this._stream = stream
+
             try {
-                this._stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                    },
+                const video = this.$refs.video
+                video.srcObject = stream
+
+                await new Promise((resolve, reject) => {
+                    const fallback = setTimeout(() => resolve(), 3000)
+                    video.onloadeddata = () => {
+                        clearTimeout(fallback)
+                        resolve()
+                    }
+                    video.play()
+                        .then(() => {
+                            if (video.readyState >= 2) {
+                                clearTimeout(fallback)
+                                resolve()
+                            }
+                        })
+                        .catch(reject)
                 })
-                this.$refs.video.srcObject = this._stream
-                await this.$refs.video.play()
+
                 this.hasCamera = true
                 this.startScanLoop()
             } catch (e) {
-                if (e.name === 'NotAllowedError') {
-                    this.cameraError = 'Permiso de cámara denegado. Habilitalo en la configuración del navegador.'
-                } else if (e.name === 'NotFoundError') {
-                    this.cameraError = 'No se detectó una cámara en este dispositivo.'
-                } else {
-                    this.cameraError = 'No se pudo acceder a la cámara.'
-                }
+                stream.getTracks().forEach(t => t.stop())
+                this._stream = null
+                this.cameraError = 'Error al reproducir cámara (' + e.name + ')'
             }
         },
 
@@ -111,17 +185,30 @@ document.addEventListener('alpine:init', () => {
             const scan = async () => {
                 if (!this.workerReady || !this.hasCamera) return
 
-                const canvas = this.$refs.canvas
                 const video = this.$refs.video
+                const canvas = this.$refs.canvas
 
                 if (!video.videoWidth) {
-                    this._scanTimer = setTimeout(scan, 500)
+                    this._scanTimer = setTimeout(scan, 300)
                     return
                 }
 
-                canvas.width = video.videoWidth
-                canvas.height = video.videoHeight
-                canvas.getContext('2d').drawImage(video, 0, 0)
+                const vw = video.videoWidth
+                const vh = video.videoHeight
+                const zoom = this.zoom
+
+                canvas.width = vw
+                canvas.height = vh
+
+                if (zoom > 1) {
+                    const cropW = vw / zoom
+                    const cropH = vh / zoom
+                    const cx = (vw - cropW) / 2
+                    const cy = (vh - cropH) / 2
+                    canvas.getContext('2d').drawImage(video, cx, cy, cropW, cropH, 0, 0, vw, vh)
+                } else {
+                    canvas.getContext('2d').drawImage(video, 0, 0)
+                }
 
                 try {
                     const { data: { text } } = await this._worker.recognize(canvas)
