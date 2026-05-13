@@ -47,25 +47,16 @@
                 </div>
             </div>
 
-            {{-- Contenedor de la cámara (con zoom y touch) --}}
-            <div class="relative flex-1 bg-black rounded-xl overflow-hidden shadow-lg"
-                 @touchstart="handleTouchStart"
-                 @touchmove="handleTouchMove"
-                 @touchend="handleTouchEnd">
+            {{-- Contenedor de la cámara --}}
+            <div class="relative flex-1 bg-black rounded-xl overflow-hidden shadow-lg">
                 <video x-ref="video" class="absolute inset-0 w-full h-full object-cover"
                        autoplay playsinline muted></video>
                 <canvas x-ref="canvas" class="hidden"></canvas>
 
-                {{-- Indicador de zoom --}}
-                <template x-if="zoom > 1">
-                    <div class="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-20"
-                         x-text="zoomPercent"></div>
-                </template>
-
-                {{-- Overlay del frame de escaneo --}}
+                {{-- Overlay del frame de escaneo (zona de captura) --}}
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <div class="relative w-80">
-                        <div class="border-2 border-white/50 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px]">
+                    <div class="relative w-80" x-ref="scanZone">
+                        <div class="border-2 border-white/60 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px] shadow-[0_0_20px_rgba(255,255,255,0.08)]">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-white/80 text-xl font-medium" x-text="inputSymbol"></span>
                                 <div class="w-0.5 h-9 bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
@@ -113,20 +104,6 @@
                         </div>
                     </div>
                 </template>
-            </div>
-
-            {{-- Zoom slider --}}
-            <div class="flex items-center gap-3 px-3 py-2 mt-1">
-                <span class="text-xs text-gray-400 font-medium w-6 text-center">1×</span>
-                <input type="range" min="1" max="3" step="0.1"
-                       :value="zoom"
-                       @input="setZoom($event.target.value)"
-                       class="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-emerald-500
-                              [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
-                              [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500
-                              [&::-webkit-slider-thumb]:shadow-sm">
-                <span class="text-xs text-gray-400 font-medium w-6 text-center">3×</span>
-                <span class="text-xs text-emerald-600 font-semibold w-10 text-right" x-text="zoomPercent"></span>
             </div>
 
             {{-- Resultado de la conversión --}}

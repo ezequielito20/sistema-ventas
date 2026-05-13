@@ -6,13 +6,11 @@ document.addEventListener('alpine:init', () => {
         cameraError: '',
         scanning: false,
         mode: 'usd-to-bs',
-        zoom: 1,
         result: null,
         history: [],
         _worker: null,
         _stream: null,
         _rateCache: null,
-        _pinchStart: null,
 
         init() {
             this.isMobile = this.checkMobile()
@@ -66,42 +64,6 @@ document.addEventListener('alpine:init', () => {
 
         get outputSymbol() {
             return this.mode === 'usd-to-bs' ? 'Bs' : '$'
-        },
-
-        get zoomPercent() {
-            return Math.round(this.zoom * 100) + '%'
-        },
-
-        setZoom(val) {
-            this.zoom = Math.max(1, Math.min(3, parseFloat(val) || 1))
-        },
-
-        handleTouchStart(e) {
-            if (e.touches.length === 2) {
-                this._pinchStart = {
-                    dist: Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY,
-                    ),
-                    zoom: this.zoom,
-                }
-            }
-        },
-
-        handleTouchMove(e) {
-            if (e.touches.length === 2 && this._pinchStart) {
-                e.preventDefault()
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY,
-                )
-                const scale = dist / this._pinchStart.dist
-                this.zoom = Math.max(1, Math.min(3, this._pinchStart.zoom * scale))
-            }
-        },
-
-        handleTouchEnd() {
-            this._pinchStart = null
         },
 
         async initWorker() {
@@ -175,8 +137,9 @@ document.addEventListener('alpine:init', () => {
 
             const video = this.$refs.video
             const canvas = this.$refs.canvas
+            const scanZone = this.$refs.scanZone
 
-            if (!video.videoWidth) {
+            if (!video.videoWidth || !scanZone) {
                 video.play().catch(() => {})
                 return
             }
@@ -185,20 +148,52 @@ document.addEventListener('alpine:init', () => {
 
             const vw = video.videoWidth
             const vh = video.videoHeight
-            const zoom = this.zoom
+            const container = video.parentElement
 
-            canvas.width = vw
-            canvas.height = vh
+            const crect = container.getBoundingClientRect()
+            const srect = scanZone.getBoundingClientRect()
 
-            if (zoom > 1) {
-                const cropW = vw / zoom
-                const cropH = vh / zoom
-                const cx = (vw - cropW) / 2
-                const cy = (vh - cropH) / 2
-                canvas.getContext('2d').drawImage(video, cx, cy, cropW, cropH, 0, 0, vw, vh)
+            const containerW = crect.width
+            const containerH = crect.height
+            const videoAspect = vw / vh
+            const containerAspect = containerW / containerH
+
+            let displayW, displayH, offsetX, offsetY
+            if (videoAspect > containerAspect) {
+                displayH = containerH
+                displayW = containerH * videoAspect
+                offsetX = (containerW - displayW) / 2
+                offsetY = 0
             } else {
-                canvas.getContext('2d').drawImage(video, 0, 0)
+                displayW = containerW
+                displayH = containerW / videoAspect
+                offsetX = 0
+                offsetY = (containerH - displayH) / 2
             }
+
+            const rectX = srect.left - crect.left
+            const rectY = srect.top - crect.top
+            const rectW = srect.width
+            const rectH = srect.height
+
+            const cropX = Math.round((rectX - offsetX) * vw / displayW)
+            const cropY = Math.round((rectY - offsetY) * vh / displayH)
+            const cropW = Math.round(rectW * vw / displayW)
+            const cropH = Math.round(rectH * vh / displayH)
+
+            const cx = Math.max(0, cropX)
+            const cy = Math.max(0, cropY)
+            const cw = Math.min(vw - cx, cropW)
+            const ch = Math.min(vh - cy, cropH)
+
+            if (cw < 10 || ch < 10) {
+                this.scanning = false
+                return
+            }
+
+            canvas.width = cw
+            canvas.height = ch
+            canvas.getContext('2d').drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch)
 
             try {
                 const { data: { text } } = await this._worker.recognize(canvas)
