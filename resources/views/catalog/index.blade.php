@@ -6,11 +6,12 @@
     <meta name="description" content="{{ __('Catálogo de productos de') }} {{ $company->name }}. {{ __('Consultá disponibilidad por WhatsApp.') }}">
     <meta property="og:title" content="{{ $company->name }} — {{ __('Catálogo') }}">
     <meta property="og:description" content="{{ __('Catálogo de productos de') }} {{ $company->name }}">
-    <meta property="og:image" content="{{ $company->logo_url_absolute }}">
+    <meta property="og:image" content="{{ $company->catalog_og_image_url_absolute }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ request()->url() }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="{{ $company->logo_url_absolute }}">
+    {{-- summary = miniatura pequeña a la izquierda; WhatsApp usa sobre todo el ancho real de og:image (<300px) --}}
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="{{ $company->catalog_og_image_url_absolute }}">
     <link rel="canonical" href="{{ request()->url() }}">
 @endpush
 

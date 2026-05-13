@@ -85,6 +85,18 @@ class ImageUrlService
         return config('filesystems.default', 'public');
     }
 
+    /**
+     * Normaliza la ruta guardada en BD (igual que en getImageUrl) para usar con serve().
+     */
+    public static function normalizeStoredPath(?string $imagePath): string
+    {
+        if ($imagePath === null || trim($imagePath) === '') {
+            return '';
+        }
+
+        return self::normalizePath(trim($imagePath));
+    }
+
     private static function normalizePath(string $imagePath): string
     {
         if (str_starts_with($imagePath, 'storage/')) {

@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\V2\PurchaseV2Controller;
+use App\Http\Controllers\Admin\V2\SaleV2Controller;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\PasswordRecoveryController;
+use App\Http\Controllers\Auth\SecurityQuestionsController;
 use App\Http\Controllers\CashCountController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
@@ -8,18 +13,17 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DebtPaymentController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\Admin\V2\PurchaseV2Controller;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\Admin\V2\SaleV2Controller;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Services\ImageUrlService;
 use Barryvdh\Debugbar\Controllers\AssetController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -34,43 +38,44 @@ Auth::routes(['register' => false]);
 
 // Proxy de imágenes desde el disco por defecto (S3/R2 en producción)
 Route::get('/img/{path}', function (string $path) {
-    $image = \App\Services\ImageUrlService::serve($path);
-    if (!$image) {
+    $image = ImageUrlService::serve($path);
+    if (! $image) {
         abort(404);
     }
+
     return response($image['content'], 200, [
         'Content-Type' => $image['mime'],
         'Content-Length' => $image['size'],
         'Cache-Control' => 'public, max-age=86400',
-        'ETag' => '"' . md5($image['content']) . '"',
+        'ETag' => '"'.md5($image['content']).'"',
     ]);
 })->where('path', '.*')->name('image.serve');
 
 // Recuperación de contraseña por preguntas de seguridad (v2)
-Route::get('/password/recovery', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showRecoveryForm'])
+Route::get('/password/recovery', [PasswordRecoveryController::class, 'showRecoveryForm'])
     ->name('password.recovery')
     ->middleware('guest');
-Route::post('/password/recovery', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'findUser'])
+Route::post('/password/recovery', [PasswordRecoveryController::class, 'findUser'])
     ->name('password.recovery.find')
     ->middleware('guest');
-Route::get('/password/recovery/questions', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showQuestions'])
+Route::get('/password/recovery/questions', [PasswordRecoveryController::class, 'showQuestions'])
     ->name('password.recovery.questions')
     ->middleware('guest');
-Route::post('/password/recovery/questions', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'verifyQuestions'])
+Route::post('/password/recovery/questions', [PasswordRecoveryController::class, 'verifyQuestions'])
     ->name('password.recovery.verify')
     ->middleware('guest');
-Route::get('/password/recovery/reset', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'showResetForm'])
+Route::get('/password/recovery/reset', [PasswordRecoveryController::class, 'showResetForm'])
     ->name('password.recovery.reset')
     ->middleware('guest');
-Route::post('/password/recovery/reset', [App\Http\Controllers\Auth\PasswordRecoveryController::class, 'resetPassword'])
+Route::post('/password/recovery/reset', [PasswordRecoveryController::class, 'resetPassword'])
     ->name('password.recovery.update')
     ->middleware('guest');
 
 // Configuración de preguntas de seguridad (requiere auth)
-Route::get('/security-questions/setup', [App\Http\Controllers\Auth\SecurityQuestionsController::class, 'setup'])
+Route::get('/security-questions/setup', [SecurityQuestionsController::class, 'setup'])
     ->name('security-questions.setup')
     ->middleware('auth');
-Route::post('/security-questions/setup', [App\Http\Controllers\Auth\SecurityQuestionsController::class, 'store'])
+Route::post('/security-questions/setup', [SecurityQuestionsController::class, 'store'])
     ->name('security-questions.store')
     ->middleware('auth');
 
@@ -329,7 +334,9 @@ Route::prefix('super-admin')
 // =========================================================================
 // CATÁLOGO PÚBLICO — fallback routes (MUST be last in file)
 // =========================================================================
-Route::get('/{company:slug}', [App\Http\Controllers\PublicCatalogController::class, 'index'])
+Route::get('/{company:slug}/og-logo', [PublicCatalogController::class, 'ogLogo'])
+    ->name('catalog.og-logo');
+Route::get('/{company:slug}', [PublicCatalogController::class, 'index'])
     ->name('catalog.index');
-Route::get('/{company:slug}/producto/{product}', [App\Http\Controllers\PublicCatalogController::class, 'show'])
+Route::get('/{company:slug}/producto/{product}', [PublicCatalogController::class, 'show'])
     ->name('catalog.product');

@@ -198,8 +198,33 @@ class CatalogTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertMatchesRegularExpression(
-            '#<meta property="og:image" content="https?://[^"]+"#',
+            '#<meta property="og:image" content="https?://[^"]+/og-logo"#',
             $response->getContent()
         );
+    }
+
+    public function test_catalog_og_logo_route_returns_image_for_public_catalog(): void
+    {
+        $company = Company::factory()->create([
+            'slug' => 'og-route-co',
+            'catalog_is_public' => true,
+            'logo' => null,
+        ]);
+
+        $response = $this->get('/og-route-co/og-logo');
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'image/png');
+    }
+
+    public function test_catalog_og_logo_returns_404_when_catalog_private(): void
+    {
+        $company = Company::factory()->create([
+            'slug' => 'og-private-co',
+            'catalog_is_public' => false,
+            'logo' => null,
+        ]);
+
+        $this->get('/og-private-co/og-logo')->assertStatus(404);
     }
 }

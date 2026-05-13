@@ -246,4 +246,19 @@ class Company extends Model
     {
         return ImageUrlService::absolutePublicUrl($this->logo_url);
     }
+
+    /**
+     * URL absoluta de imagen Open Graph para el listado del catálogo: logo reducido (<300px)
+     * para que WhatsApp muestre miniatura compacta a la izquierda.
+     */
+    public function getCatalogOgImageUrlAbsoluteAttribute(): string
+    {
+        if (! $this->slug || ! $this->catalog_is_public) {
+            return ImageUrlService::absolutePublicUrl($this->logo_url);
+        }
+
+        $relative = route('catalog.og-logo', ['company' => $this->slug], false);
+
+        return ImageUrlService::absolutePublicUrl($relative);
+    }
 }

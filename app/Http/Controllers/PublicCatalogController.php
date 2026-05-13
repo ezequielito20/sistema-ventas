@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
+use App\Services\ImageUrlService;
 
 class PublicCatalogController extends Controller
 {
@@ -97,6 +98,135 @@ class PublicCatalogController extends Controller
             'company' => $company,
             'product' => $product,
             'relatedProducts' => $relatedProducts,
+        ]);
+    }
+
+    /**
+     * Logo recortado para Open Graph / WhatsApp: ancho &lt; 300px muestra miniatura compacta a la izquierda.
+     *
+     * @see https://developers.facebook.com/docs/sharing/webmasters/images/
+     */
+    public function ogLogo(Company $company)
+    {
+        if (! $company->catalog_is_public) {
+            abort(404);
+        }
+
+        if (! $company->logo) {
+            return $this->catalogOgFallbackPng();
+        }
+
+        $rawLogo = trim((string) $company->logo);
+        if (preg_match('#^https?://#i', $rawLogo)) {
+            return redirect(ImageUrlService::absolutePublicUrl($rawLogo), 302);
+        }
+
+        $path = ImageUrlService::normalizeStoredPath($company->logo);
+        if ($path === '') {
+            return $this->catalogOgFallbackPng();
+        }
+
+        $served = ImageUrlService::serve($path);
+        if (! $served) {
+            return $this->catalogOgFallbackPng();
+        }
+
+        $mime = strtolower((string) $served['mime']);
+        $content = $served['content'];
+        $maxDimension = 280;
+
+        if (! extension_loaded('gd') || ! $this->ogLogoResizeSupportsMime($mime)) {
+            return response($content, 200, [
+                'Content-Type' => $served['mime'],
+                'Cache-Control' => 'public, max-age=604800',
+            ]);
+        }
+
+        $image = @imagecreatefromstring($content);
+        if ($image === false) {
+            return response($content, 200, [
+                'Content-Type' => $served['mime'],
+                'Cache-Control' => 'public, max-age=604800',
+            ]);
+        }
+
+        $w = imagesx($image);
+        $h = imagesy($image);
+        if ($w <= 0 || $h <= 0) {
+            imagedestroy($image);
+
+            return response($content, 200, [
+                'Content-Type' => $served['mime'],
+                'Cache-Control' => 'public, max-age=604800',
+            ]);
+        }
+
+        if ($w > $maxDimension || $h > $maxDimension) {
+            if ($w >= $h) {
+                $newW = $maxDimension;
+                $newH = (int) max(1, round($h * ($maxDimension / $w)));
+            } else {
+                $newH = $maxDimension;
+                $newW = (int) max(1, round($w * ($maxDimension / $h)));
+            }
+            $scaled = imagescale($image, $newW, $newH);
+            if ($scaled !== false) {
+                imagedestroy($image);
+                $image = $scaled;
+            }
+        }
+
+        if (imageistruecolor($image)) {
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+        }
+
+        ob_start();
+        imagepng($image);
+        imagedestroy($image);
+        $png = ob_get_clean();
+
+        return response($png, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=604800',
+        ]);
+    }
+
+    protected function ogLogoResizeSupportsMime(string $mime): bool
+    {
+        return in_array($mime, [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ], true);
+    }
+
+    /**
+     * PNG neutro pequeño cuando no hay logo (WhatsApp suele ignorar SVG en og:image).
+     */
+    protected function catalogOgFallbackPng()
+    {
+        if (! extension_loaded('gd')) {
+            return redirect(ImageUrlService::absolutePublicUrl(
+                ImageUrlService::getImageUrl(null)
+            ), 302);
+        }
+
+        $w = 200;
+        $h = 200;
+        $im = imagecreatetruecolor($w, $h);
+        imagesavealpha($im, true);
+        $transparent = imagecolorallocatealpha($im, 0, 0, 0, 127);
+        imagefill($im, 0, 0, $transparent);
+        ob_start();
+        imagepng($im);
+        imagedestroy($im);
+        $png = ob_get_clean();
+
+        return response($png, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=86400',
         ]);
     }
 }
