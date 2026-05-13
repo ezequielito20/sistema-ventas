@@ -152,36 +152,31 @@ document.addEventListener('alpine:init', () => {
 
             this._stream = stream
 
-            try {
-                const video = this.$refs.video
-                video.srcObject = stream
+            const video = this.$refs.video
+            video.srcObject = stream
 
-                await new Promise((resolve, reject) => {
-                    const fallback = setTimeout(() => resolve(), 3000)
-                    video.onloadeddata = () => {
-                        clearTimeout(fallback)
-                        resolve()
-                    }
-                    video.play()
-                        .then(() => {
-                            if (video.readyState >= 2) {
-                                clearTimeout(fallback)
-                                resolve()
-                            }
-                        })
-                        .catch(reject)
-                })
+            await new Promise((resolve) => {
+                const timeout = setTimeout(resolve, 3000)
 
-                this.hasCamera = true
-                this.startScanLoop()
-            } catch (e) {
-                stream.getTracks().forEach(t => t.stop())
-                this._stream = null
-                this.cameraError = 'Error al reproducir cámara (' + e.name + ')'
-            }
+                video.addEventListener('loadeddata', () => {
+                    clearTimeout(timeout)
+                    resolve()
+                }, { once: true })
+
+                if (video.readyState >= 2) {
+                    clearTimeout(timeout)
+                    resolve()
+                }
+
+                video.play().catch(() => {})
+            })
+
+            this.hasCamera = true
+            this.startScanLoop()
         },
 
         startScanLoop() {
+            let idleFrames = 0
             const scan = async () => {
                 if (!this.workerReady || !this.hasCamera) return
 
@@ -189,9 +184,14 @@ document.addEventListener('alpine:init', () => {
                 const canvas = this.$refs.canvas
 
                 if (!video.videoWidth) {
+                    if (++idleFrames > 10) {
+                        video.play().catch(() => {})
+                        idleFrames = 0
+                    }
                     this._scanTimer = setTimeout(scan, 300)
                     return
                 }
+                idleFrames = 0
 
                 const vw = video.videoWidth
                 const vh = video.videoHeight
