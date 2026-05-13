@@ -9,7 +9,7 @@
 </script>
 
 <div x-data="scannerApp()" x-init="init()" x-on:beforeunload.window="stopScanner()"
-     class="flex flex-col min-h-[calc(100vh-8rem)]">
+     class="flex flex-col min-h-[calc(100vh-8rem)] gap-3">
 
     {{-- Desktop: mensaje de no soporte --}}
     <template x-if="!isMobile">
@@ -26,9 +26,9 @@
 
     {{-- Mobile: escáner --}}
     <template x-if="isMobile">
-        <div class="relative flex flex-col flex-1">
+        <div class="flex flex-col gap-3 flex-1">
             {{-- Selector de modo USD→Bs / Bs→USD --}}
-            <div class="flex justify-center mb-3">
+            <div class="flex justify-center">
                 <div class="inline-flex rounded-xl bg-gray-100 p-1 shadow-sm">
                     <button @click="setMode('usd-to-bs')"
                             :class="mode === 'usd-to-bs'
@@ -47,43 +47,27 @@
                 </div>
             </div>
 
-            {{-- Contenedor de la cámara --}}
-            <div class="relative flex-1 bg-black rounded-xl overflow-hidden shadow-lg">
+            {{-- Cámara chica -- solo el recuadro de escaneo --}}
+            <div class="relative h-56 bg-black rounded-xl overflow-hidden shadow-lg">
                 <video x-ref="video" class="absolute inset-0 w-full h-full object-cover"
                        autoplay playsinline muted></video>
                 <canvas x-ref="canvas" class="hidden"></canvas>
 
-                {{-- Overlay del frame de escaneo (zona de captura) --}}
+                {{-- Overlay del recuadro de escaneo --}}
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <div class="relative w-80" x-ref="scanZone">
-                        <div class="border-2 border-white/60 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px] shadow-[0_0_20px_rgba(255,255,255,0.08)]">
+                    <div class="flex flex-col items-center" x-ref="scanZone">
+                        <div class="w-72 sm:w-80 border-2 border-white/60 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px] shadow-[0_0_20px_rgba(255,255,255,0.08)]">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-white/80 text-xl font-medium" x-text="inputSymbol"></span>
                                 <div class="w-0.5 h-9 bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
                             </div>
                         </div>
-                        <p class="text-white/60 text-xs text-center mt-2.5" x-text="mode === 'usd-to-bs' ? 'Colocá el precio en $ aquí' : 'Colocá el monto en Bs aquí'"></p>
                     </div>
                 </div>
 
-                {{-- Botón Convertir --}}
-                <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                    <button @click="scanNow"
-                            :disabled="scanning || !workerReady"
-                            class="pointer-events-auto w-16 h-16 rounded-full bg-white shadow-xl
-                                   flex flex-col items-center justify-center
-                                   transition-all duration-150 active:scale-90
-                                   disabled:opacity-60 disabled:cursor-not-allowed
-                                   focus:outline-none focus:ring-2 focus:ring-white/50">
-                        <template x-if="!scanning">
-                            <span class="text-[11px] font-bold text-gray-700 leading-tight text-center px-1">
-                                Conv.<br>ertir
-                            </span>
-                        </template>
-                        <template x-if="scanning">
-                            <div class="w-6 h-6 border-[3px] border-gray-300 border-t-emerald-500 rounded-full animate-spin"></div>
-                        </template>
-                    </button>
+                {{-- Texto indicador debajo del recuadro (dentro de la cámara) --}}
+                <div class="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
+                    <p class="text-white/60 text-xs" x-text="mode === 'usd-to-bs' ? 'Colocá el precio en $ aquí' : 'Colocá el monto en Bs aquí'"></p>
                 </div>
 
                 {{-- Estados de carga y error --}}
@@ -106,12 +90,35 @@
                 </template>
             </div>
 
+            {{-- Botón Convertir -- fuera de la cámara, siempre accesible --}}
+            <button @click="scanNow"
+                    :disabled="scanning || !workerReady || !hasCamera"
+                    class="w-full py-3.5 rounded-xl font-bold text-base transition-all duration-150
+                           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+                           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                    :class="scanning
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700'">
+                <template x-if="!scanning">
+                    <span class="flex items-center justify-center gap-2">
+                        <i class="fas fa-camera text-sm"></i>
+                        Convertir
+                    </span>
+                </template>
+                <template x-if="scanning">
+                    <span class="flex items-center justify-center gap-2">
+                        <div class="w-5 h-5 border-[3px] border-emerald-300 border-t-emerald-600 rounded-full animate-spin"></div>
+                        Escaneando...
+                    </span>
+                </template>
+            </button>
+
             {{-- Resultado de la conversión --}}
             <template x-if="result">
                 <div x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
-                     class="bg-white rounded-xl shadow-lg -mt-4 relative z-10 px-5 py-4 mx-2">
+                     class="bg-white rounded-xl shadow-lg px-5 py-4">
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="text-3xl font-bold text-gray-800" x-text="result.original"></div>
@@ -128,7 +135,7 @@
             </template>
 
             {{-- Historial --}}
-            <div class="mt-3 px-2" x-data="{ open: false }">
+            <div x-data="{ open: false }">
                 <button @click="open = !open"
                         class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
                     <i class="fas fa-history"></i>

@@ -70,7 +70,8 @@ document.addEventListener('alpine:init', () => {
             try {
                 this._worker = await Tesseract.createWorker('eng')
                 await this._worker.setParameters({
-                    tessedit_char_whitelist: '0123456789.$',
+                    tessedit_char_whitelist: '0123456789.,$',
+                    tessedit_pageseg_mode: '7',
                 })
                 this.workerReady = true
                 this.startCamera()
@@ -83,7 +84,11 @@ document.addEventListener('alpine:init', () => {
             let stream = null
             let lastError = null
 
-            for (const constraints of [{ facingMode: 'environment' }, true]) {
+            for (const constraints of [
+                { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                { facingMode: 'environment' },
+                true,
+            ]) {
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ video: constraints })
                     break
@@ -136,7 +141,6 @@ document.addEventListener('alpine:init', () => {
             if (!this.workerReady || !this.hasCamera || this.scanning) return
 
             const video = this.$refs.video
-            const canvas = this.$refs.canvas
             const scanZone = this.$refs.scanZone
 
             if (!video.videoWidth || !scanZone) {
@@ -146,58 +150,80 @@ document.addEventListener('alpine:init', () => {
 
             this.scanning = true
 
-            const vw = video.videoWidth
-            const vh = video.videoHeight
-            const container = video.parentElement
-
-            const crect = container.getBoundingClientRect()
-            const srect = scanZone.getBoundingClientRect()
-
-            const containerW = crect.width
-            const containerH = crect.height
-            const videoAspect = vw / vh
-            const containerAspect = containerW / containerH
-
-            let displayW, displayH, offsetX, offsetY
-            if (videoAspect > containerAspect) {
-                displayH = containerH
-                displayW = containerH * videoAspect
-                offsetX = (containerW - displayW) / 2
-                offsetY = 0
-            } else {
-                displayW = containerW
-                displayH = containerW / videoAspect
-                offsetX = 0
-                offsetY = (containerH - displayH) / 2
-            }
-
-            const rectX = srect.left - crect.left
-            const rectY = srect.top - crect.top
-            const rectW = srect.width
-            const rectH = srect.height
-
-            const cropX = Math.round((rectX - offsetX) * vw / displayW)
-            const cropY = Math.round((rectY - offsetY) * vh / displayH)
-            const cropW = Math.round(rectW * vw / displayW)
-            const cropH = Math.round(rectH * vh / displayH)
-
-            const cx = Math.max(0, cropX)
-            const cy = Math.max(0, cropY)
-            const cw = Math.min(vw - cx, cropW)
-            const ch = Math.min(vh - cy, cropH)
-
-            if (cw < 10 || ch < 10) {
-                this.scanning = false
-                return
-            }
-
-            canvas.width = cw
-            canvas.height = ch
-            canvas.getContext('2d').drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch)
+            const safety = setTimeout(() => { this.scanning = false }, 12000)
 
             try {
-                const { data: { text } } = await this._worker.recognize(canvas)
-                const cleaned = text.replace(/[^0-9.]/g, '')
+                const vw = video.videoWidth
+                const vh = video.videoHeight
+                const container = video.parentElement
+
+                const crect = container.getBoundingClientRect()
+                const srect = scanZone.getBoundingClientRect()
+
+                const containerW = crect.width
+                const containerH = crect.height
+                const videoAspect = vw / vh
+                const containerAspect = containerW / containerH
+
+                let displayW, displayH, offsetX, offsetY
+                if (videoAspect > containerAspect) {
+                    displayH = containerH
+                    displayW = containerH * videoAspect
+                    offsetX = (containerW - displayW) / 2
+                    offsetY = 0
+                } else {
+                    displayW = containerW
+                    displayH = containerW / videoAspect
+                    offsetX = 0
+                    offsetY = (containerH - displayH) / 2
+                }
+
+                const rectX = srect.left - crect.left
+                const rectY = srect.top - crect.top
+                const rectW = srect.width
+                const rectH = srect.height
+
+                const cropX = Math.round((rectX - offsetX) * vw / displayW)
+                const cropY = Math.round((rectY - offsetY) * vh / displayH)
+                const cropW = Math.round(rectW * vw / displayW)
+                const cropH = Math.round(rectH * vh / displayH)
+
+                const cx = Math.max(0, cropX)
+                const cy = Math.max(0, cropY)
+                const cw = Math.min(vw - cx, cropW)
+                const ch = Math.min(vh - cy, cropH)
+
+                if (cw < 10 || ch < 10) return
+
+                const img = document.createElement('canvas')
+                img.width = cw
+                img.height = ch
+                const ictx = img.getContext('2d')
+                ictx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch)
+
+                const imageData = ictx.getImageData(0, 0, cw, ch)
+                const d = imageData.data
+                let min = 255, max = 0
+
+                for (let i = 0; i < d.length; i += 4) {
+                    const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]
+                    d[i] = d[i + 1] = d[i + 2] = g
+                    if (g < min) min = g
+                    if (g > max) max = g
+                }
+
+                const range = max - min
+                if (range > 15) {
+                    for (let i = 0; i < d.length; i += 4) {
+                        const val = (d[i] - min) / range * 255
+                        d[i] = d[i + 1] = d[i + 2] = val
+                    }
+                }
+
+                ictx.putImageData(imageData, 0, 0)
+
+                const { data: { text } } = await this._worker.recognize(img)
+                const cleaned = text.replace(/[^0-9.,]/g, '').replace(',', '.')
                 const match = cleaned.match(/(\d+\.?\d*)/)
 
                 if (match) {
@@ -209,6 +235,7 @@ document.addEventListener('alpine:init', () => {
                 }
             } catch (e) { /* OCR falló */ }
 
+            clearTimeout(safety)
             this.scanning = false
         },
 
