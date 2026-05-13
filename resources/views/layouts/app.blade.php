@@ -670,12 +670,14 @@
                             Arqueo de Caja
                         </a>
 
+                        @if(Auth::user()?->isSuperAdmin())
                         <!-- Escaner de Precios -->
                         <a href="{{ route('admin.scanner.index') }}"
                             class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.scanner.*') ? 'is-active' : '' }}">
                             <i class="fas fa-camera mr-3 text-lg"></i>
                             Escaner
                         </a>
+                        @endif
 
                         {{-- Ver mi catálogo público --}}
                         @php

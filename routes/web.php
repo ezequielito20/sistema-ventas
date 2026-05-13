@@ -210,11 +210,11 @@ Route::get('/admin/exchange-rate/current', [ExchangeRateController::class, 'curr
 Route::post('/admin/exchange-rate/update', [ExchangeRateController::class, 'forceUpdate'])
     ->name('admin.exchange-rate.update')->middleware(['auth']);
 
-// Escaner de precios OCR
+// Escaner de precios OCR (solo super admin)
 Route::get('/admin/scanner', [ScannerController::class, 'index'])
-    ->name('admin.scanner.index')->middleware(['auth']);
+    ->name('admin.scanner.index')->middleware(['auth', 'superadmin']);
 Route::post('/admin/scanner/ocr', [ScannerController::class, 'ocr'])
-    ->name('admin.scanner.ocr')->middleware(['auth']);
+    ->name('admin.scanner.ocr')->middleware(['auth', 'superadmin']);
 
 // Sales v2 (override legacy with same route name)
 Route::get('/sales', [SaleV2Controller::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
