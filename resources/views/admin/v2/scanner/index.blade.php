@@ -8,7 +8,7 @@
     window.rateUpdatedAt = '{{ $rateUpdatedAt }}';
 </script>
 
-<div x-data="scannerApp()" x-init="init()" x-on:beforeunload.window="stopScanner()"
+<div x-data="scannerApp()" x-init="init()" x-on:beforeunload.window="destroy()"
      class="flex flex-col min-h-[calc(100vh-8rem)] gap-3">
 
     {{-- Desktop: mensaje de no soporte --}}
@@ -47,32 +47,55 @@
                 </div>
             </div>
 
-            {{-- Cámara chica -- solo el recuadro de escaneo --}}
+            {{-- Cámara con overlay oscuro alrededor del recuadro --}}
             <div class="relative h-56 bg-black rounded-xl overflow-hidden shadow-lg">
                 <video x-ref="video" class="absolute inset-0 w-full h-full object-cover"
                        autoplay playsinline muted></video>
                 <canvas x-ref="canvas" class="hidden"></canvas>
 
-                {{-- Overlay del recuadro de escaneo --}}
+                {{-- Overlay: recuadro nítido + zonas externas oscurecidas --}}
                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <div class="flex flex-col items-center" x-ref="scanZone">
-                        <div class="w-72 sm:w-80 border-2 border-white/60 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px] shadow-[0_0_20px_rgba(255,255,255,0.08)]">
-                            <div class="flex items-center gap-1.5">
-                                <span class="text-white/80 text-xl font-medium" x-text="inputSymbol"></span>
-                                <div class="w-0.5 h-9 bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
-                            </div>
+                    {{-- El recuadro mismo (x-ref sobre el borde para crop preciso) --}}
+                    <div x-ref="scanZone"
+                         class="w-72 sm:w-80 aspect-[3/1] rounded-xl border-2 border-white/70
+                                flex items-center justify-center z-10"
+                         :style="{ boxShadow: '0 0 0 9999px rgba(0,0,0,0.55)' }">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-white/90 text-xl font-medium" x-text="inputSymbol"></span>
+                            <div class="w-0.5 h-9 bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Texto indicador debajo del recuadro (dentro de la cámara) --}}
-                <div class="absolute bottom-3 left-0 right-0 text-center pointer-events-none">
-                    <p class="text-white/60 text-xs" x-text="mode === 'usd-to-bs' ? 'Colocá el precio en $ aquí' : 'Colocá el monto en Bs aquí'"></p>
+                {{-- Texto indicador debajo del recuadro --}}
+                <div class="absolute bottom-3 left-0 right-0 text-center pointer-events-none z-10">
+                    <p class="text-white/70 text-xs" x-text="mode === 'usd-to-bs' ? 'Colocá el precio en $ aquí' : 'Colocá el monto en Bs aquí'"></p>
+                </div>
+
+                {{-- Badge modo auto/manual --}}
+                <div class="absolute top-2 right-2 z-20">
+                    <button @click="toggleScanMode" :disabled="!cameraReady"
+                            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold
+                                   transition-all pointer-events-auto disabled:opacity-50"
+                            :class="scanMode === 'auto'
+                                ? 'bg-emerald-500/80 text-white'
+                                : 'bg-white/20 text-white/70'">
+                        <template x-if="scanMode === 'auto'">
+                            <span class="flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                                Auto
+                            </span>
+                        </template>
+                        <template x-if="scanMode !== 'auto'">
+                            <span>Manual</span>
+                        </template>
+                        <i class="fas fa-sync-alt text-[10px]" :class="{ 'animate-spin': scanMode === 'auto' }"></i>
+                    </button>
                 </div>
 
                 {{-- Estados de carga y error --}}
-                <template x-if="!workerReady && !cameraError">
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/70">
+                <template x-if="!hasCamera && !cameraError">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/70 z-20">
                         <div class="text-center">
                             <div class="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-white mx-auto mb-3"></div>
                             <p class="text-white text-sm">Preparando escáner...</p>
@@ -81,7 +104,7 @@
                 </template>
 
                 <template x-if="cameraError">
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/80">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
                         <div class="text-center px-6">
                             <i class="fas fa-exclamation-triangle text-yellow-400 text-3xl mb-3"></i>
                             <p class="text-white text-sm" x-text="cameraError"></p>
@@ -90,28 +113,37 @@
                 </template>
             </div>
 
-            {{-- Botón Convertir -- fuera de la cámara, siempre accesible --}}
-            <button @click="scanNow"
-                    :disabled="scanning || !workerReady || !hasCamera"
-                    class="w-full py-3.5 rounded-xl font-bold text-base transition-all duration-150
-                           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
-                           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                    :class="scanning
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700'">
-                <template x-if="!scanning">
+            {{-- Botón Convertir (solo en modo manual) --}}
+            <template x-if="scanMode === 'manual'">
+                <button @click="scanNow"
+                        :disabled="!canScan"
+                        class="w-full py-3.5 rounded-xl font-bold text-base transition-all duration-150
+                               active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
+                               focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                        :class="scanning
+                            ? 'bg-emerald-50 text-emerald-600'
+                            : 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-700'">
                     <span class="flex items-center justify-center gap-2">
-                        <i class="fas fa-camera text-sm"></i>
-                        Convertir
+                        <template x-if="!scanning">
+                            <span class="flex items-center gap-2"><i class="fas fa-camera text-sm"></i> Convertir</span>
+                        </template>
+                        <template x-if="scanning">
+                            <span class="flex items-center gap-2">
+                                <div class="w-5 h-5 border-[3px] border-emerald-300 border-t-emerald-600 rounded-full animate-spin"></div>
+                                Escaneando...
+                            </span>
+                        </template>
                     </span>
-                </template>
-                <template x-if="scanning">
-                    <span class="flex items-center justify-center gap-2">
-                        <div class="w-5 h-5 border-[3px] border-emerald-300 border-t-emerald-600 rounded-full animate-spin"></div>
-                        Escaneando...
-                    </span>
-                </template>
-            </button>
+                </button>
+            </template>
+
+            {{-- Indicador de auto-scan --}}
+            <template x-if="scanMode === 'auto' && scanning">
+                <div class="flex items-center justify-center gap-2 py-2">
+                    <div class="w-4 h-4 border-[3px] border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <span class="text-sm text-emerald-600 font-medium">Escaneando...</span>
+                </div>
+            </template>
 
             {{-- Resultado de la conversión --}}
             <template x-if="result">
@@ -126,8 +158,13 @@
                         </div>
                         <div class="text-right">
                             <div class="text-3xl font-bold text-emerald-600" x-text="result.converted"></div>
-                            <div class="text-xs text-gray-400 mt-0.5">
-                                Tasa: <span x-text="result.rate"></span> Bs/USD
+                            <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-1 justify-end">
+                                <span>Tasa: <span x-text="result.rate"></span> Bs/USD</span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase"
+                                      :class="result.engine === 'gemini'
+                                          ? 'bg-purple-100 text-purple-700'
+                                          : 'bg-amber-100 text-amber-700'"
+                                      x-text="result.engine"></span>
                             </div>
                         </div>
                     </div>
