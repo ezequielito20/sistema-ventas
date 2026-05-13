@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DebtPaymentController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductController;
@@ -208,6 +209,10 @@ Route::get('/admin/exchange-rate/current', [ExchangeRateController::class, 'curr
     ->name('admin.exchange-rate.current')->middleware(['auth']);
 Route::post('/admin/exchange-rate/update', [ExchangeRateController::class, 'forceUpdate'])
     ->name('admin.exchange-rate.update')->middleware(['auth']);
+
+// Escaner de precios OCR
+Route::get('/admin/scanner', [ScannerController::class, 'index'])
+    ->name('admin.scanner.index')->middleware(['auth']);
 
 // Sales v2 (override legacy with same route name)
 Route::get('/sales', [SaleV2Controller::class, 'index'])->name('admin.sales.index')->middleware(['auth', 'can:sales.index']);
