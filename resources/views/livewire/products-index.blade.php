@@ -1,3 +1,4 @@
+@php($productFormReturnUrl = url()->full())
 <div
     class="space-y-6"
     wire:key="products-index-root"
@@ -80,7 +81,7 @@
                     @endif
                     @if ($permissions['products.create'])
                         <a
-                            href="{{ route('admin.products.create') }}"
+                            href="{{ route('admin.products.create', ['return' => $productFormReturnUrl]) }}"
                             class="ui-btn ui-btn-primary text-sm md:py-2.5 md:px-5 md:text-[0.95rem]"
                             wire:navigate
                         >
@@ -341,7 +342,7 @@
                                                 @endif
                                                 @if ($permissions['products.edit'])
                                                     <a
-                                                        href="{{ route('admin.products.edit', $product->id) }}"
+                                                        href="{{ route('admin.products.edit', ['id' => $product->id, 'return' => $productFormReturnUrl]) }}"
                                                         class="ui-icon-action ui-icon-action--primary"
                                                         title="Editar"
                                                         wire:navigate
@@ -427,7 +428,7 @@
                                 @endif
                                 @if ($permissions['products.edit'])
                                     <a
-                                        href="{{ route('admin.products.edit', $product->id) }}"
+                                        href="{{ route('admin.products.edit', ['id' => $product->id, 'return' => $productFormReturnUrl]) }}"
                                         class="ui-btn ui-btn-ghost flex-1 text-xs sm:flex-none sm:text-sm"
                                         wire:navigate
                                     >

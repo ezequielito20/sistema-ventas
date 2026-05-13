@@ -209,16 +209,63 @@ class ProductForm extends Component
 
     protected function captureProductsReferrer(): void
     {
+        $fromQuery = $this->sanitizeInternalReturnUrl(request()->query('return'));
+        if ($fromQuery !== null) {
+            session(['products_referrer' => $fromQuery]);
+
+            return;
+        }
+
         $referrerUrl = request()->header('referer');
         if (! $referrerUrl) {
             return;
         }
 
         if ($this->productId === null && ! str_contains($referrerUrl, 'products/create')) {
-            session(['products_referrer' => $referrerUrl]);
-        } elseif ($this->productId !== null && ! str_contains($referrerUrl, 'products/edit')) {
-            session(['products_referrer' => $referrerUrl]);
+            $safe = $this->sanitizeInternalReturnUrl($referrerUrl);
+            if ($safe !== null) {
+                session(['products_referrer' => $safe]);
+            }
+
+            return;
         }
+
+        if ($this->productId !== null && ! str_contains($referrerUrl, 'products/edit')) {
+            $safe = $this->sanitizeInternalReturnUrl($referrerUrl);
+            if ($safe !== null) {
+                session(['products_referrer' => $safe]);
+            }
+        }
+    }
+
+    /**
+     * Solo URLs internas de la app (path relativo o mismo host que APP_URL).
+     */
+    protected function sanitizeInternalReturnUrl(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        $value = trim($value);
+
+        if (str_starts_with($value, '/') && ! str_starts_with($value, '//')) {
+            return $value;
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        if ($appUrl !== '' && str_starts_with($value, $appUrl.'/')) {
+            return $value;
+        }
+
+        $appHost = $appUrl !== '' ? parse_url($appUrl, PHP_URL_HOST) : null;
+        $candidateHost = parse_url($value, PHP_URL_HOST);
+
+        if ($appHost && $candidateHost && strcasecmp((string) $candidateHost, (string) $appHost) === 0) {
+            return $value;
+        }
+
+        return null;
     }
 
     protected function rules(): array

@@ -359,23 +359,29 @@
                             @enderror
                         </div>
                         <div class="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:items-end sm:pl-4" wire:key="catalog-toggle-{{ $productId ?? 'new' }}">
-                            <div class="inline-flex rounded-xl border border-slate-600/80 bg-slate-950/60 p-1 shadow-inner" role="group" aria-label="{{ __('Catálogo público') }}">
+                            <div class="inline-flex gap-1 rounded-xl border border-slate-600/80 bg-slate-950/80 p-1 shadow-inner" role="group" aria-label="{{ __('Catálogo público') }}">
                                 <button
                                     type="button"
                                     wire:click="$set('include_in_catalog', true)"
-                                    class="min-w-[7rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition {{ $include_in_catalog ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200' }}"
+                                    aria-pressed="{{ $include_in_catalog ? 'true' : 'false' }}"
+                                    class="min-w-[7.5rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition duration-150 {{ $include_in_catalog
+                                        ? '!bg-cyan-500 !text-white shadow-lg shadow-cyan-900/40 ring-2 ring-cyan-300/90 ring-offset-2 ring-offset-slate-950 z-10'
+                                        : 'bg-transparent text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 border border-transparent' }}"
                                 >
                                     {{ __('Sí, incluir') }}
                                 </button>
                                 <button
                                     type="button"
                                     wire:click="$set('include_in_catalog', false)"
-                                    class="min-w-[7rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition {{ ! $include_in_catalog ? 'bg-slate-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200' }}"
+                                    aria-pressed="{{ ! $include_in_catalog ? 'true' : 'false' }}"
+                                    class="min-w-[7.5rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition duration-150 {{ ! $include_in_catalog
+                                        ? '!bg-rose-600 !text-white shadow-lg shadow-rose-900/35 ring-2 ring-rose-300/85 ring-offset-2 ring-offset-slate-950 z-10'
+                                        : 'bg-transparent text-slate-500 hover:bg-slate-800/60 hover:text-slate-300 border border-transparent' }}"
                                 >
                                     {{ __('No, ocultar') }}
                                 </button>
                             </div>
-                            <p class="text-center text-[11px] font-medium tabular-nums text-slate-400 sm:text-end">
+                            <p class="text-center text-[11px] font-medium tabular-nums sm:text-end {{ $include_in_catalog ? 'text-cyan-400/90' : 'text-rose-300/90' }}">
                                 {{ $include_in_catalog ? __('Visible en catálogo (si hay stock)') : __('No se publicará en el catálogo') }}
                             </p>
                         </div>

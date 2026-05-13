@@ -23,6 +23,7 @@
 @endpush
 
 @section('content')
+    @php($productFormReturnUrl = url()->full())
     <!-- Background Pattern -->
     <div class="page-background"></div>
 
@@ -76,7 +77,7 @@
                         @endif
 
                         @if ($permissions['products.create'])
-                            <a href="{{ route('admin.products.create') }}"
+                            <a href="{{ route('admin.products.create', ['return' => $productFormReturnUrl]) }}"
                                 class="inline-flex items-center justify-center px-4 py-2.5 bg-white text-indigo-600 font-bold rounded-xl hover:bg-opacity-90 transition-all duration-200 shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 text-center">
                                 <i class="fas fa-plus text-base mr-2"></i>
                                 <span class="text-xs sm:text-sm tracking-wide">Nuevo</span>
@@ -478,7 +479,7 @@
                                         @endif
 
                                         @if ($permissions['products.edit'])
-                                            <a href="{{ route('admin.products.edit', $product->id) }}"
+                                            <a href="{{ route('admin.products.edit', ['id' => $product->id, 'return' => $productFormReturnUrl]) }}"
                                                 class="card-btn card-btn-edit" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                                 <span>Editar</span>
@@ -610,7 +611,7 @@
                                                         </button>
                                                     @endif
                                                     @if ($permissions['products.edit'])
-                                                        <a href="{{ route('admin.products.edit', $product->id) }}"
+                                                        <a href="{{ route('admin.products.edit', ['id' => $product->id, 'return' => $productFormReturnUrl]) }}"
                                                             class="btn-action btn-edit" data-toggle="tooltip"
                                                             title="Editar">
                                                             <i class="fas fa-edit"></i>
@@ -661,7 +662,7 @@
                                                 </button>
                                             @endif
                                             @if ($permissions['products.edit'])
-                                                <a href="{{ route('admin.products.edit', $product->id) }}"
+                                                <a href="{{ route('admin.products.edit', ['id' => $product->id, 'return' => $productFormReturnUrl]) }}"
                                                     class="mobile-btn mobile-btn-edit" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
