@@ -153,30 +153,15 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                 </div>
             </header>
 
-            {{-- Categorías móvil — chips en varias filas (sin scroll horizontal en la página) --}}
-            <div class="border-b border-dv-outline-variant/15 px-margin-mobile pb-2.5 pt-3 lg:hidden sm:px-6">
-                <div class="catalog-category-scroll flex flex-wrap gap-1.5">
-                    <button type="button" @click="selectCat('all')"
-                            class="rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide transition"
-                            :class="selectedCategory === 'all' ? 'bg-dv-primary text-dv-on-primary' : 'border border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant hover:border-dv-outline-variant/50'">
-                        {{ __('Todos') }}
-                    </button>
-                    @foreach($categories as $cat)
-                        <button type="button" @click="selectCat(@js($cat->name))"
-                                class="rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide transition whitespace-nowrap"
-                                :class="selectedCategory === @js($cat->name) ? 'bg-dv-primary text-dv-on-primary' : 'border border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant hover:border-dv-outline-variant/50'">
-                            {{ $cat->name }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Filtros móvil — hidden desde lg --}}
+            {{-- Filtros móvil — categorías dentro del drawer (lg: sidebar) --}}
             <div class="flex items-center gap-2 px-margin-mobile pb-3 pt-3 lg:hidden sm:px-6">
                 <button type="button" @click="showFilters = true"
-                        class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/25 bg-dv-surface-container px-4 py-2.5 text-xs font-semibold text-dv-on-surface-variant transition hover:bg-dv-surface-container-high hover:text-dv-on-surface active:scale-[0.98]">
+                        class="relative flex flex-1 items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/25 bg-dv-surface-container px-4 py-2.5 text-xs font-semibold text-dv-on-surface-variant transition hover:bg-dv-surface-container-high hover:text-dv-on-surface active:scale-[0.98]">
                     <i class="fas fa-sliders-h text-[10px]"></i>
                     {{ __('Filtros') }}
+                    <span x-show="hasActiveFilters" x-cloak
+                          class="absolute right-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-dv-primary ring-2 ring-dv-surface-container"
+                          aria-hidden="true"></span>
                 </button>
                 <button type="button" @click="resetFilters()"
                         class="flex items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/25 bg-dv-surface-container px-4 py-2.5 text-xs font-semibold text-dv-on-surface-variant transition hover:bg-dv-surface-container-high hover:text-dv-on-surface active:scale-[0.98]">
@@ -204,19 +189,19 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                         </button>
                     </div>
 
-                    <div class="mb-5">
+                    <div class="mb-5 min-w-0">
                         <p class="mb-2.5 text-xs font-semibold uppercase tracking-widest text-dv-outline/70">{{ __('Categoría') }}</p>
-                        <div class="flex flex-wrap gap-1.5">
-                            <button type="button" @click="selectCat('all'); showFilters = false"
-                                    class="rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide transition"
-                                    :class="selectedCategory === 'all' ? 'bg-dv-primary text-dv-on-primary' : 'border border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant'">
+                        <div class="catalog-category-chips flex max-w-full flex-wrap gap-2">
+                            <button type="button" @click="selectCat('all')"
+                                    class="max-w-full rounded-full border px-3 py-2 text-left text-xs font-semibold leading-snug transition sm:px-3.5 sm:py-2 sm:text-sm"
+                                    :class="selectedCategory === 'all' ? 'border-transparent bg-dv-primary text-dv-on-primary' : 'border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant hover:border-dv-outline-variant/50'">
                                 {{ __('Todos') }}
                             </button>
                             @foreach($categories as $cat)
-                                <button type="button" @click="selectCat(@js($cat->name)); showFilters = false"
-                                        class="rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide transition"
-                                        :class="selectedCategory === @js($cat->name) ? 'bg-dv-primary text-dv-on-primary' : 'border border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant'">
-                                    {{ $cat->name }}
+                                <button type="button" @click="selectCat(@js($cat->name))"
+                                        class="max-w-full rounded-full border px-3 py-2 text-left text-xs font-semibold leading-snug transition sm:px-3.5 sm:py-2 sm:text-sm"
+                                        :class="selectedCategory === @js($cat->name) ? 'border-transparent bg-dv-primary text-dv-on-primary' : 'border-dv-outline-variant/25 bg-dv-surface-container text-dv-on-surface-variant hover:border-dv-outline-variant/50'">
+                                    <span class="line-clamp-2 break-words">{{ $cat->name }}</span>
                                 </button>
                             @endforeach
                         </div>
@@ -246,7 +231,7 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                                 class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-xs font-semibold transition"
                                 :class="onlyDiscounted ? 'bg-amber-500/10 text-amber-400' : 'text-dv-on-surface-variant border border-dv-outline-variant/25'">
                             <i class="fas fa-tag w-3.5 text-center text-[10px]" :class="onlyDiscounted ? 'text-amber-400' : 'text-dv-outline'"></i>
-                            <span>{{ __('Ofertas y descuentos') }}</span>
+                            <span>{{ __('En ofertas y descuentos') }}</span>
                             <span x-show="onlyDiscounted" class="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-amber-500/20">
                                 <i class="fas fa-check text-[6px] text-amber-400"></i>
                             </span>
@@ -264,11 +249,17 @@ window.__CATALOG_PRODUCT_BASE__ = {{ Js::from(rtrim(url('/'.$company->slug.'/pro
                         </select>
                     </div>
 
-                    <button type="button" @click="resetFilters(); showFilters = false"
-                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/25 bg-dv-surface-container px-4 py-2.5 text-xs font-semibold text-dv-on-surface-variant transition hover:bg-dv-surface-container-high hover:text-dv-on-surface">
-                        <i class="fas fa-undo-alt text-[10px]"></i>
-                        {{ __('Reiniciar filtros') }}
-                    </button>
+                    <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                        <button type="button" @click="resetFilters()"
+                                class="flex w-full flex-1 items-center justify-center gap-2 rounded-xl border border-dv-outline-variant/25 bg-dv-surface-container px-4 py-2.5 text-xs font-semibold text-dv-on-surface-variant transition hover:bg-dv-surface-container-high hover:text-dv-on-surface sm:w-auto sm:min-w-0">
+                            <i class="fas fa-undo-alt text-[10px]"></i>
+                            {{ __('Reiniciar filtros') }}
+                        </button>
+                        <button type="button" @click="showFilters = false"
+                                class="flex w-full flex-1 items-center justify-center gap-2 rounded-xl bg-dv-primary px-4 py-2.5 text-xs font-bold text-dv-on-primary transition hover:opacity-90 active:scale-[0.98] sm:w-auto sm:min-w-[40%]">
+                            {{ __('Ver resultados') }}
+                        </button>
+                    </div>
                 </div>
             </div>
 

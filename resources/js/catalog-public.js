@@ -80,6 +80,18 @@ document.addEventListener('alpine:init', () => {
             return this.filtered.length;
         },
 
+        get hasActiveFilters() {
+            const hasPriceMin = this.priceMin !== null && this.priceMin !== '';
+            const hasPriceMax = this.priceMax !== null && this.priceMax !== '';
+            return (
+                this.selectedCategory !== 'all'
+                || this.onlyDiscounted
+                || hasPriceMin
+                || hasPriceMax
+                || this.sortBy !== 'name_asc'
+            );
+        },
+
         selectCat(cat) {
             this.selectedCategory = cat;
         },

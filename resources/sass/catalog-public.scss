@@ -9,6 +9,7 @@
 }
 
 @layer components {
+    /* Galería producto: carrusel horizontal de thumbs */
     .catalog-category-scroll {
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -24,6 +25,14 @@
 
     .catalog-category-scroll > button {
         touch-action: manipulation;
+    }
+
+    /* Chips de categoría en drawer: varias filas, buena zona táctil */
+    .catalog-category-chips > button {
+        touch-action: manipulation;
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: 100%;
     }
 }
 
