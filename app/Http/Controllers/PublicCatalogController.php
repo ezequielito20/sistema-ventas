@@ -25,9 +25,7 @@ class PublicCatalogController extends Controller
                     $q->orderBy('sort_order');
                 },
             ])
-            ->where(function ($q) {
-                $q->where('stock', '>', 0)->orWhereNull('stock');
-            })
+            ->visibleInPublicCatalog()
             ->orderBy('name')
             ->get();
 
@@ -68,6 +66,10 @@ class PublicCatalogController extends Controller
             abort(404);
         }
 
+        if (! $product->isVisibleInPublicCatalog()) {
+            abort(404);
+        }
+
         // Load product with all images and category
         $product->load([
             'images' => function ($q) {
@@ -76,12 +78,10 @@ class PublicCatalogController extends Controller
             'category',
         ]);
 
-        // Related products: same category, stock > 0 or NULL, different from current
+        // Related products: same category, visible in public catalog, different from current
         $relatedProducts = Product::where('company_id', $company->id)
             ->where('category_id', $product->category_id)
-            ->where(function ($q) {
-                $q->where('stock', '>', 0)->orWhereNull('stock');
-            })
+            ->visibleInPublicCatalog()
             ->where('id', '!=', $product->id)
             ->with([
                 'category',

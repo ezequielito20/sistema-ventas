@@ -84,6 +84,7 @@ class ProductController extends Controller
             'sale_price' => 'required|numeric|min:0|gt:purchase_price',
             'entry_date' => 'required|date|before_or_equal:today',
             'category_id' => 'required|exists:categories,id',
+            'include_in_catalog' => 'sometimes|boolean',
         ], [
             'code.required' => 'El código es obligatorio',
             'code.unique' => 'Este código ya está en uso',
@@ -107,6 +108,7 @@ class ProductController extends Controller
 
         try {
             $data = $validator->validated();
+            $data['include_in_catalog'] = $request->boolean('include_in_catalog', true);
             $image = $data['image'] ?? null;
             unset($data['image']);
 
@@ -221,6 +223,7 @@ class ProductController extends Controller
             'sale_price' => 'required|numeric|min:0|gt:purchase_price',
             'entry_date' => 'required|date|before_or_equal:today',
             'category_id' => 'required|exists:categories,id',
+            'include_in_catalog' => 'sometimes|boolean',
         ], [
             'code.required' => 'El código es obligatorio',
             'code.unique' => 'Este código ya está en uso',
@@ -244,6 +247,7 @@ class ProductController extends Controller
 
         try {
             $data = $validator->validated();
+            $data['include_in_catalog'] = $request->boolean('include_in_catalog', true);
             $image = $data['image'] ?? null;
             unset($data['image']);
 

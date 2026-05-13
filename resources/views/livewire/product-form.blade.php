@@ -350,6 +350,36 @@
 
                 <div class="mt-8 border-t border-slate-700/60 pt-8">
                     <h3 class="mb-4 text-sm font-semibold text-slate-200">Inventario</h3>
+                    <div class="mb-6 flex flex-col gap-4 rounded-xl border border-slate-700/50 bg-slate-900/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0 flex-1">
+                            <span class="{{ $labelBase }}">Incluir en catálogo público</span>
+                            <p class="mt-1 text-xs leading-relaxed text-slate-500">Si está activo, el producto puede mostrarse en el catálogo cuando hay stock. Si está desactivado, no se muestra aunque haya stock.</p>
+                            @error('include_in_catalog')
+                                <p class="mt-1.5 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:items-end sm:pl-4" wire:key="catalog-toggle-{{ $productId ?? 'new' }}">
+                            <div class="inline-flex rounded-xl border border-slate-600/80 bg-slate-950/60 p-1 shadow-inner" role="group" aria-label="{{ __('Catálogo público') }}">
+                                <button
+                                    type="button"
+                                    wire:click="$set('include_in_catalog', true)"
+                                    class="min-w-[7rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition {{ $include_in_catalog ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200' }}"
+                                >
+                                    {{ __('Sí, incluir') }}
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="$set('include_in_catalog', false)"
+                                    class="min-w-[7rem] rounded-lg px-4 py-2.5 text-center text-xs font-semibold uppercase tracking-wide transition {{ ! $include_in_catalog ? 'bg-slate-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200' }}"
+                                >
+                                    {{ __('No, ocultar') }}
+                                </button>
+                            </div>
+                            <p class="text-center text-[11px] font-medium tabular-nums text-slate-400 sm:text-end">
+                                {{ $include_in_catalog ? __('Visible en catálogo (si hay stock)') : __('No se publicará en el catálogo') }}
+                            </p>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
                             <label for="stock" class="{{ $labelBase }}">Stock actual <span class="text-rose-400">*</span></label>

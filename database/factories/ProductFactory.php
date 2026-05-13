@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product>
+ * @extends Factory<Product>
  */
 class ProductFactory extends Factory
 {
@@ -34,6 +35,7 @@ class ProductFactory extends Factory
             'entry_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'category_id' => Category::factory(),
             'company_id' => 1, // Valor por defecto como solicitado
+            'include_in_catalog' => true,
         ];
     }
 }

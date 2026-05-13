@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\Product;
-use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -67,7 +67,7 @@ class CatalogTest extends TestCase
             'company_id' => $company->id,
         ]);
 
-        $response = $this->get('/detail-co/producto/' . $product->id);
+        $response = $this->get('/detail-co/producto/'.$product->id);
 
         $response->assertStatus(200);
     }
@@ -102,7 +102,7 @@ class CatalogTest extends TestCase
         ]);
 
         // Try to access product from company A using company B's slug
-        $response = $this->get('/company-b/producto/' . $product->id);
+        $response = $this->get('/company-b/producto/'.$product->id);
 
         $response->assertStatus(404);
     }
@@ -142,5 +142,46 @@ class CatalogTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee($productInStock->name);
         $response->assertDontSee($productOutOfStock->name);
+
+        $this->get('/stock-co/producto/'.$productOutOfStock->id)->assertStatus(404);
+    }
+
+    public function test_catalog_excludes_products_not_flagged_for_catalog(): void
+    {
+        $company = Company::factory()->create([
+            'name' => 'Catalog Flag Co',
+            'slug' => 'catalog-flag-co',
+            'catalog_is_public' => true,
+        ]);
+
+        $category = Category::factory()->create([
+            'name' => 'Flag Cat',
+            'company_id' => $company->id,
+        ]);
+
+        $productShown = Product::factory()->create([
+            'name' => 'Shown In Catalog',
+            'stock' => 5,
+            'include_in_catalog' => true,
+            'category_id' => $category->id,
+            'company_id' => $company->id,
+        ]);
+
+        $productHidden = Product::factory()->create([
+            'name' => 'Hidden From Catalog',
+            'stock' => 5,
+            'include_in_catalog' => false,
+            'category_id' => $category->id,
+            'company_id' => $company->id,
+        ]);
+
+        $response = $this->get('/catalog-flag-co');
+
+        $response->assertStatus(200);
+        $response->assertSee($productShown->name);
+        $response->assertDontSee($productHidden->name);
+
+        $detail = $this->get('/catalog-flag-co/producto/'.$productHidden->id);
+        $detail->assertStatus(404);
     }
 }
