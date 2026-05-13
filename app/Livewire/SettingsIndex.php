@@ -7,11 +7,14 @@ use App\Models\Company;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\State;
+use App\Models\User;
+use App\Services\ImageUrlService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class SettingsIndex extends Component
@@ -20,31 +23,49 @@ class SettingsIndex extends Component
 
     // ── Form fields ──
     public string $name = '';
+
     public string $business_type = '';
+
     public string $nit = '';
+
     public string $phone = '';
+
     public string $email = '';
+
     public string $tax_amount = '';
+
     public string $tax_name = '';
+
     public string $currency = '';
+
     public string $address = '';
+
     public string $city_id = '';
+
     public string $state_id = '';
+
     public string $country_id = '';
+
     public string $postal_code = '';
+
     public string $ig = '';
+
     public string $slug = '';
+
     public bool $catalog_is_public = true;
 
-    /** @var \Livewire\Features\SupportFileUploads\TemporaryUploadedFile|null */
+    /** @var TemporaryUploadedFile|null */
     public $logo = null;
 
     public ?string $current_logo_url = null;
 
     // ── Selects data ──
     public $countries = [];
+
     public $states = [];
+
     public $cities = [];
+
     public $currencies = [];
 
     public function mount(): void
@@ -120,9 +141,9 @@ class SettingsIndex extends Component
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
-            'nit' => 'required|string|max:255|unique:companies,nit,' . Auth::user()->company_id,
+            'nit' => 'required|string|max:255|unique:companies,nit,'.Auth::user()->company_id,
             'phone' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:companies,email,' . Auth::user()->company_id,
+            'email' => 'required|email|max:255|unique:companies,email,'.Auth::user()->company_id,
             'tax_amount' => 'required|integer',
             'tax_name' => 'required|string|max:255',
             'currency' => 'required|string|max:20',
@@ -132,7 +153,7 @@ class SettingsIndex extends Component
             'country_id' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
             'ig' => 'nullable|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:companies,slug,' . Auth::user()->company_id . '|not_in:' . implode(',', Company::RESERVED_SLUGS),
+            'slug' => 'nullable|string|max:255|unique:companies,slug,'.Auth::user()->company_id.'|not_in:'.implode(',', Company::RESERVED_SLUGS),
             'catalog_is_public' => 'boolean',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ], [
@@ -162,9 +183,12 @@ class SettingsIndex extends Component
 
         $company = Company::find(Auth::user()->company_id);
 
+        // No incluir logo en $validated salvo que haya archivo nuevo; si no, update() pondría logo=null en BD.
+        unset($validated['logo']);
+
         // Handle logo upload — usar disco según entorno (public en local, s3 en producción)
         if ($this->logo) {
-            $disk = \App\Services\ImageUrlService::getStorageDisk();
+            $disk = ImageUrlService::getStorageDisk();
 
             // Delete old logo
             if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
@@ -172,7 +196,6 @@ class SettingsIndex extends Component
             }
 
             $validated['logo'] = $this->logo->store('company_logos', $disk);
-            $this->current_logo_url = null; // Force refresh
         }
 
         // Map select IDs back to DB columns
@@ -197,7 +220,7 @@ class SettingsIndex extends Component
 
             // Update superAdmin email if changed
             if (isset($validated['email'])) {
-                \App\Models\User::where('company_id', $company->id)
+                User::where('company_id', $company->id)
                     ->where('name', 'superAdmin')
                     ->update(['email' => $validated['email']]);
             }
@@ -207,7 +230,7 @@ class SettingsIndex extends Component
 
             return $this->redirect(route('admin.company.edit'));
         } catch (\Throwable $e) {
-            session()->flash('message', 'Error al guardar: ' . $e->getMessage());
+            session()->flash('message', 'Error al guardar: '.$e->getMessage());
             session()->flash('icons', 'error');
 
             return $this->redirect(route('admin.company.edit'));

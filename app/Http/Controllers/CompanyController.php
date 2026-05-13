@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\City;
-use App\Models\State;
 use App\Models\Company;
 use App\Models\Country;
 use App\Models\Currency;
-use Nnjeim\World\World;
+use App\Models\Role;
+use App\Models\State;
+use App\Models\User;
+use App\Services\ImageUrlService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use App\Http\Requests\StoreCompanyRequest;
-use App\Http\Requests\UpdateCompanyRequest;
-use App\Services\ImageUrlService;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 
 class CompanyController extends Controller
 {
@@ -41,6 +40,7 @@ class CompanyController extends Controller
             ->groupBy('code', 'symbol', 'name')
             ->orderBy('code')
             ->get();
+
         return view('admin.companies.create', compact('countries', 'states', 'cities', 'currencies'));
     }
 
@@ -68,7 +68,7 @@ class CompanyController extends Controller
                 'state' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:255',
                 'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-                'ig' => 'nullable|string|max:255'
+                'ig' => 'nullable|string|max:255',
             ], [
                 'country.required' => 'El país es requerido',
                 'country.string' => 'El país debe ser texto',
@@ -114,17 +114,17 @@ class CompanyController extends Controller
                 'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
                 'logo.max' => 'El archivo no debe pesar más de 2MB',
                 'ig.string' => 'El usuario de Instagram debe ser texto',
-                'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres'
+                'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres',
             ]);
 
             // Handle logo upload
             $logoPath = null;
             if ($request->hasFile('logo')) {
                 try {
-                    $disk = \App\Services\ImageUrlService::getStorageDisk();
+                    $disk = ImageUrlService::getStorageDisk();
                     $logoPath = $request->file('logo')->store('company_logos', $disk);
                 } catch (\Exception $e) {
-                    throw new \Exception('Error al subir el logo: ' . $e->getMessage());
+                    throw new \Exception('Error al subir el logo: '.$e->getMessage());
                 }
             }
 
@@ -144,22 +144,22 @@ class CompanyController extends Controller
                 'state' => $validated['state'],
                 'postal_code' => $validated['postal_code'],
                 'logo' => $logoPath,
-                'ig' => $validated['ig'] ?? null
+                'ig' => $validated['ig'] ?? null,
             ]);
 
             // Crear el rol de administrador específico para esta empresa
-            $adminRole = \App\Models\Role::create([
+            $adminRole = Role::create([
                 'name' => 'administrador',
                 'guard_name' => 'web',
-                'company_id' => $company->id
+                'company_id' => $company->id,
             ]);
 
             // Asignar todos los permisos disponibles al rol administrador
-            $allPermissions = \Spatie\Permission\Models\Permission::all();
+            $allPermissions = Permission::all();
             $adminRole->syncPermissions($allPermissions);
 
             // Create default admin user for the company
-            $user = \App\Models\User::create([
+            $user = User::create([
                 'name' => 'superAdmin',
                 'email' => $validated['email'],
                 'password' => Hash::make('12345'), // Default password
@@ -186,11 +186,11 @@ class CompanyController extends Controller
                     ->withInput();
             }
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
-            
+
             if (isset($logoPath)) {
-                $disk = \App\Services\ImageUrlService::getStorageDisk();
+                $disk = ImageUrlService::getStorageDisk();
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
@@ -205,14 +205,14 @@ class CompanyController extends Controller
             DB::rollBack();
 
             if (isset($logoPath)) {
-                $disk = \App\Services\ImageUrlService::getStorageDisk();
+                $disk = ImageUrlService::getStorageDisk();
                 if (Storage::disk($disk)->exists($logoPath)) {
                     Storage::disk($disk)->delete($logoPath);
                 }
             }
 
             return redirect()->route('admin.company.create')
-                ->with('error', 'Error al crear la empresa: ' . $e->getMessage())
+                ->with('error', 'Error al crear la empresa: '.$e->getMessage())
                 ->with('icons', 'error')
                 ->withInput();
         }
@@ -239,6 +239,7 @@ class CompanyController extends Controller
             ->orderBy('code')
             ->get();
         $company = Auth::user()->company;
+
         return view('admin.companies.edit', compact('countries', 'states', 'cities', 'currencies', 'company'));
     }
 
@@ -255,9 +256,9 @@ class CompanyController extends Controller
             'country' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'business_type' => 'required|string|max:255',
-            'nit' => 'required|string|max:255|unique:companies,nit,' . $id,
+            'nit' => 'required|string|max:255|unique:companies,nit,'.$id,
             'phone' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:companies,email,' . $id,
+            'email' => 'required|email|max:255|unique:companies,email,'.$id,
             'tax_amount' => 'required|integer',
             'tax_name' => 'required|string|max:255',
             'currency' => 'required|string|max:20',
@@ -266,7 +267,7 @@ class CompanyController extends Controller
             'state' => 'required|string|max:255',
             'postal_code' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'ig' => 'nullable|string|max:255'
+            'ig' => 'nullable|string|max:255',
         ], [
             'country.required' => 'El país es requerido',
             'country.string' => 'El país debe ser texto',
@@ -311,25 +312,28 @@ class CompanyController extends Controller
             'logo.mimes' => 'El archivo debe ser una imagen con formato jpeg, png o jpg',
             'logo.max' => 'El archivo no debe pesar más de 2MB',
             'ig.string' => 'El usuario de Instagram debe ser texto',
-            'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres'
+            'ig.max' => 'El usuario de Instagram no debe exceder 255 caracteres',
         ]);
 
         try {
+            // No persistir logo ausente como null (sobrescribiría el logo guardado)
+            unset($validated['logo']);
+
             // Maneja la actualización del logo si se proporciona uno nuevo
             if ($request->hasFile('logo')) {
                 try {
-                    $disk = \App\Services\ImageUrlService::getStorageDisk();
-                    
+                    $disk = ImageUrlService::getStorageDisk();
+
                     // Elimina el logo anterior si existe
                     if ($company->logo && Storage::disk($disk)->exists($company->logo)) {
                         Storage::disk($disk)->delete($company->logo);
                     }
-                    
+
                     // Guarda el nuevo logo
                     $logoPath = $request->file('logo')->store('company_logos', $disk);
                     $validated['logo'] = $logoPath;
                 } catch (\Exception $e) {
-                    throw new \Exception('Error al procesar el logo: ' . $e->getMessage());
+                    throw new \Exception('Error al procesar el logo: '.$e->getMessage());
                 }
             }
 
@@ -348,9 +352,8 @@ class CompanyController extends Controller
                 ->with('icons', 'success');
         } catch (\Exception $e) {
 
-
             return redirect()->route('admin.company.edit')
-                ->with('message', 'Hubo un problema al actualizar la empresa: ' . $e->getMessage())
+                ->with('message', 'Hubo un problema al actualizar la empresa: '.$e->getMessage())
                 ->with('icons', 'error');
         }
     }
@@ -379,13 +382,13 @@ class CompanyController extends Controller
             return response()->json([
                 'states' => $states,
                 'postal_code' => $country->phone_code ?? '',
-                'currency_code' => $currency ? $currency->code . ' - ' . $currency->symbol : null
+                'currency_code' => $currency ? $currency->code.' - '.$currency->symbol : null,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'states' => [],
                 'postal_code' => '',
-                'currency_code' => null
+                'currency_code' => null,
             ], 500);
         }
     }
@@ -403,11 +406,11 @@ class CompanyController extends Controller
 
             // No enviamos el código postal en la respuesta del estado
             return response()->json([
-                'cities' => $cities
+                'cities' => $cities,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'cities' => []
+                'cities' => [],
             ], 500);
         }
     }
