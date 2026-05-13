@@ -4,13 +4,13 @@ document.addEventListener('alpine:init', () => {
         workerReady: false,
         hasCamera: false,
         cameraError: '',
+        scanning: false,
         mode: 'usd-to-bs',
         zoom: 1,
         result: null,
         history: [],
         _worker: null,
         _stream: null,
-        _scanTimer: null,
         _rateCache: null,
         _pinchStart: null,
 
@@ -58,10 +58,6 @@ document.addEventListener('alpine:init', () => {
         setMode(m) {
             this.mode = m
             try { localStorage.setItem('scanner_mode', m) } catch (e) { /* ignorar */ }
-        },
-
-        get modeLabel() {
-            return this.mode === 'usd-to-bs' ? '$ → Bs' : 'Bs → $'
         },
 
         get inputSymbol() {
@@ -172,61 +168,53 @@ document.addEventListener('alpine:init', () => {
             })
 
             this.hasCamera = true
-            this.startScanLoop()
         },
 
-        startScanLoop() {
-            let idleFrames = 0
-            const scan = async () => {
-                if (!this.workerReady || !this.hasCamera) return
+        async scanNow() {
+            if (!this.workerReady || !this.hasCamera || this.scanning) return
 
-                const video = this.$refs.video
-                const canvas = this.$refs.canvas
+            const video = this.$refs.video
+            const canvas = this.$refs.canvas
 
-                if (!video.videoWidth) {
-                    if (++idleFrames > 10) {
-                        video.play().catch(() => {})
-                        idleFrames = 0
-                    }
-                    this._scanTimer = setTimeout(scan, 300)
-                    return
-                }
-                idleFrames = 0
-
-                const vw = video.videoWidth
-                const vh = video.videoHeight
-                const zoom = this.zoom
-
-                canvas.width = vw
-                canvas.height = vh
-
-                if (zoom > 1) {
-                    const cropW = vw / zoom
-                    const cropH = vh / zoom
-                    const cx = (vw - cropW) / 2
-                    const cy = (vh - cropH) / 2
-                    canvas.getContext('2d').drawImage(video, cx, cy, cropW, cropH, 0, 0, vw, vh)
-                } else {
-                    canvas.getContext('2d').drawImage(video, 0, 0)
-                }
-
-                try {
-                    const { data: { text } } = await this._worker.recognize(canvas)
-                    const cleaned = text.replace(/[^0-9.]/g, '')
-                    const match = cleaned.match(/(\d+\.?\d*)/)
-
-                    if (match) {
-                        const value = parseFloat(match[1])
-                        if (value > 0 && (!this.result || Math.abs(value - this.result.value) > 0.01)) {
-                            const rate = await this.getRate()
-                            this.convertAndShow(value, rate)
-                        }
-                    }
-                } catch (e) { /* frame de OCR falló, siguiente */ }
-
-                this._scanTimer = setTimeout(scan, 2500)
+            if (!video.videoWidth) {
+                video.play().catch(() => {})
+                return
             }
-            this._scanTimer = setTimeout(scan, 1000)
+
+            this.scanning = true
+
+            const vw = video.videoWidth
+            const vh = video.videoHeight
+            const zoom = this.zoom
+
+            canvas.width = vw
+            canvas.height = vh
+
+            if (zoom > 1) {
+                const cropW = vw / zoom
+                const cropH = vh / zoom
+                const cx = (vw - cropW) / 2
+                const cy = (vh - cropH) / 2
+                canvas.getContext('2d').drawImage(video, cx, cy, cropW, cropH, 0, 0, vw, vh)
+            } else {
+                canvas.getContext('2d').drawImage(video, 0, 0)
+            }
+
+            try {
+                const { data: { text } } = await this._worker.recognize(canvas)
+                const cleaned = text.replace(/[^0-9.]/g, '')
+                const match = cleaned.match(/(\d+\.?\d*)/)
+
+                if (match) {
+                    const value = parseFloat(match[1])
+                    if (value > 0) {
+                        const rate = await this.getRate()
+                        this.convertAndShow(value, rate)
+                    }
+                }
+            } catch (e) { /* OCR falló */ }
+
+            this.scanning = false
         },
 
         convertAndShow(value, rate) {
@@ -297,10 +285,6 @@ document.addEventListener('alpine:init', () => {
         },
 
         stopScanner() {
-            if (this._scanTimer) {
-                clearTimeout(this._scanTimer)
-                this._scanTimer = null
-            }
             if (this._stream) {
                 this._stream.getTracks().forEach(t => t.stop())
                 this._stream = null

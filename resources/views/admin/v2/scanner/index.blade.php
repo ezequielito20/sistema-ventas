@@ -63,19 +63,39 @@
                 </template>
 
                 {{-- Overlay del frame de escaneo --}}
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div class="relative w-72">
-                        <div class="border-2 border-white/40 rounded-xl aspect-[3/1] flex items-center justify-center">
-                            <div class="flex items-center gap-1">
-                                <span class="text-white/60 text-lg font-medium" x-text="inputSymbol"></span>
-                                <div class="w-0.5 h-8 bg-green-400 animate-pulse"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div class="relative w-80">
+                        <div class="border-2 border-white/50 rounded-xl aspect-[3/1] flex items-center justify-center bg-white/5 backdrop-blur-[1px]">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-white/80 text-xl font-medium" x-text="inputSymbol"></span>
+                                <div class="w-0.5 h-9 bg-green-400 animate-pulse shadow-lg shadow-green-400/50"></div>
                             </div>
                         </div>
-                        <p class="text-white/50 text-xs text-center mt-2" x-text="mode === 'usd-to-bs' ? 'Enfocá el precio en $' : 'Enfocá el precio en Bs'"></p>
+                        <p class="text-white/60 text-xs text-center mt-2.5" x-text="mode === 'usd-to-bs' ? 'Colocá el precio en $ aquí' : 'Colocá el monto en Bs aquí'"></p>
                     </div>
                 </div>
 
-                {{-- Estados de error / carga --}}
+                {{-- Botón Convertir --}}
+                <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                    <button @click="scanNow"
+                            :disabled="scanning || !workerReady"
+                            class="pointer-events-auto w-16 h-16 rounded-full bg-white shadow-xl
+                                   flex flex-col items-center justify-center
+                                   transition-all duration-150 active:scale-90
+                                   disabled:opacity-60 disabled:cursor-not-allowed
+                                   focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <template x-if="!scanning">
+                            <span class="text-[11px] font-bold text-gray-700 leading-tight text-center px-1">
+                                Conv.<br>ertir
+                            </span>
+                        </template>
+                        <template x-if="scanning">
+                            <div class="w-6 h-6 border-[3px] border-gray-300 border-t-emerald-500 rounded-full animate-spin"></div>
+                        </template>
+                    </button>
+                </div>
+
+                {{-- Estados de carga y error --}}
                 <template x-if="!workerReady && !cameraError">
                     <div class="absolute inset-0 flex items-center justify-center bg-black/70">
                         <div class="text-center">
