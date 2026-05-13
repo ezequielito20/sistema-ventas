@@ -1,5 +1,6 @@
-<div id="debtPaymentModalV2" class="debt-payment-modal-v2-alt fixed inset-0 z-[70] hidden" style="display: none;">
-    <div class="absolute inset-0 bg-[#020617]/92 backdrop-blur-sm" onclick="spaPaymentHandlerV2.closePaymentModal()"></div>
+<template x-teleport="body">
+<div id="debtPaymentModalV2" class="debt-payment-modal-v2-alt fixed inset-0 z-[75]" style="display: none;">
+    <div class="fixed inset-0 bg-[#020617]/92 backdrop-blur-sm" onclick="spaPaymentHandlerV2.closePaymentModal()"></div>
 
     <div
         class="relative flex h-full items-center justify-center p-3 sm:p-4"
@@ -139,3 +140,4 @@
         </div>
     </div>
 </div>
+</template>

@@ -89,7 +89,19 @@
     {{-- Tasa BCV + filtros: colapsados por defecto (mismo patrón que products-index) --}}
     <div
         class="ui-panel"
-        x-data="{ showFilters: @js($filtersOpen) }"
+        x-data="{
+            showFilters: (() => {
+                const stored = localStorage.getItem('customers_filters_open');
+                if (stored !== null) return stored === 'true';
+                const initial = @js($filtersOpen);
+                try { localStorage.setItem('customers_filters_open', initial); } catch (e) {}
+                return initial;
+            })(),
+            toggleFilters() {
+                this.showFilters = !this.showFilters;
+                try { localStorage.setItem('customers_filters_open', this.showFilters); } catch (e) {}
+            },
+        }"
     >
         <div class="ui-panel__header flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="min-w-0">
@@ -99,7 +111,7 @@
             <button
                 type="button"
                 class="ui-btn ui-btn-ghost w-full shrink-0 text-sm sm:w-auto"
-                @click="showFilters = !showFilters"
+                @click="toggleFilters()"
                 :aria-expanded="showFilters"
             >
                 <i class="fas" :class="showFilters ? 'fa-sliders-h' : 'fa-filter'"></i>
