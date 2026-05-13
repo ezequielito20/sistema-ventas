@@ -8,16 +8,6 @@
 
 @if ($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator && $paginator->hasPages())
 @php
-    $mobilePaginator = clone $paginator;
-    $mobileWindow = \Illuminate\Pagination\UrlWindow::make($mobilePaginator->onEachSide(0));
-    $mobileElements = array_filter([
-        $mobileWindow['first'],
-        is_array($mobileWindow['slider']) ? '...' : null,
-        $mobileWindow['slider'],
-        is_array($mobileWindow['last']) ? '...' : null,
-        $mobileWindow['last'],
-    ]);
-
     $desktopPaginator = clone $paginator;
     $desktopWindow = \Illuminate\Pagination\UrlWindow::make($desktopPaginator->onEachSide(1));
     $desktopElements = array_filter([
@@ -27,6 +17,22 @@
         is_array($desktopWindow['last']) ? '...' : null,
         $desktopWindow['last'],
     ]);
+
+    // Mobile: máximo 3 páginas con elipsis laterales
+    $cp = (int) $paginator->currentPage();
+    $lp = (int) $paginator->lastPage();
+    $mobilePages = [];
+    $showLeftDots  = false;
+    $showRightDots = false;
+    if ($lp <= 3) {
+        for ($i = 1; $i <= $lp; $i++) { $mobilePages[$i] = $paginator->url($i); }
+    } else {
+        $start = max(1, min($cp - 1, $lp - 2));
+        $end   = min($lp, $start + 2);
+        for ($i = $start; $i <= $end; $i++) { $mobilePages[$i] = $paginator->url($i); }
+        $showLeftDots  = $start > 1;
+        $showRightDots = $end < $lp;
+    }
 
     $pageName = $paginator->getPageName();
 
@@ -84,102 +90,64 @@
         </div>
     </div>
 
-    {{-- Móvil: anterior / páginas / siguiente (sin overflow del contenedor principal) --}}
-    <div class="flex items-center gap-2 sm:hidden">
-        @if ($paginator->onFirstPage())
-            <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Anterior">
-                <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
-            </span>
-        @else
-            @if ($useLivewire)
-                <button
-                    type="button"
-                    wire:click="previousPage('{{ $pageName }}')"
-                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                    wire:loading.attr="disabled"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Anterior"
-                >
-                    <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
-                </button>
+    {{-- Móvil: segmentado con máximo 3 páginas (nunca desborda) --}}
+    <div class="flex items-center justify-center gap-1 sm:hidden">
+        <div class="ui-pagination ui-pagination--segmented inline-flex flex-nowrap">
+            @if ($paginator->onFirstPage())
+                <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Anterior">
+                    <i class="fas fa-chevron-left text-[0.65rem]" aria-hidden="true"></i>
+                </span>
             @else
-                <a
-                    href="{{ $paginator->previousPageUrl() }}"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Anterior"
-                    rel="prev"
-                >
-                    <i class="fas fa-chevron-left text-[0.7rem]" aria-hidden="true"></i>
-                </a>
+                @if ($useLivewire)
+                    <button type="button" wire:click="previousPage('{{ $pageName }}')" @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif wire:loading.attr="disabled"
+                            class="ui-page-link ui-page-link--edge" title="Anterior" rel="prev">
+                        <i class="fas fa-chevron-left text-[0.65rem]" aria-hidden="true"></i>
+                    </button>
+                @else
+                    <a href="{{ $paginator->previousPageUrl() }}" class="ui-page-link ui-page-link--edge" title="Anterior" rel="prev">
+                        <i class="fas fa-chevron-left text-[0.65rem]" aria-hidden="true"></i>
+                    </a>
+                @endif
             @endif
-        @endif
 
-        <div class="min-w-0 flex-1">
-            <div class="ui-pagination ui-pagination--segmented inline-flex max-w-full flex-nowrap">
-                @foreach ($mobileElements as $element)
-                    @if (is_string($element))
-                        <span class="ui-page-link ui-page-link--ellipsis" aria-hidden="true">{{ $element }}</span>
-                    @endif
+            @if ($showLeftDots)
+                <span class="ui-page-link ui-page-link--ellipsis" aria-hidden="true">...</span>
+            @endif
 
-                    @if (is_array($element))
-                        @foreach ($element as $page => $url)
-                            <span @if ($useLivewire) wire:key="mobile-paginator-{{ $pageName }}-page-{{ $page }}" @endif>
-                                @if ($page == $paginator->currentPage())
-                                    <span class="ui-page-link is-active" aria-current="page">{{ $page }}</span>
-                                @elseif ($useLivewire)
-                                    <button
-                                        type="button"
-                                        wire:click="gotoPage({{ (int) $page }}, '{{ $pageName }}')"
-                                        @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                                        wire:loading.attr="disabled"
-                                        class="ui-page-link"
-                                        aria-label="Ir a la página {{ $page }}"
-                                    >
-                                        {{ $page }}
-                                    </button>
-                                @else
-                                    <a
-                                        href="{{ $url }}"
-                                        class="ui-page-link"
-                                        aria-label="Ir a la página {{ $page }}"
-                                    >
-                                        {{ $page }}
-                                    </a>
-                                @endif
-                            </span>
-                        @endforeach
+            @foreach ($mobilePages as $page => $url)
+                <span @if ($useLivewire) wire:key="mobile-paginator-{{ $pageName }}-page-{{ $page }}" @endif>
+                    @if ($page == $paginator->currentPage())
+                        <span class="ui-page-link is-active" aria-current="page">{{ $page }}</span>
+                    @elseif ($useLivewire)
+                        <button type="button" wire:click="gotoPage({{ (int) $page }}, '{{ $pageName }}')" @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif wire:loading.attr="disabled"
+                                class="ui-page-link" aria-label="Ir a la página {{ $page }}">{{ $page }}</button>
+                    @else
+                        <a href="{{ $url }}" class="ui-page-link" aria-label="Ir a la página {{ $page }}">{{ $page }}</a>
                     @endif
-                @endforeach
-            </div>
+                </span>
+            @endforeach
+
+            @if ($showRightDots)
+                <span class="ui-page-link ui-page-link--ellipsis" aria-hidden="true">...</span>
+            @endif
+
+            @if ($paginator->hasMorePages())
+                @if ($useLivewire)
+                    <button type="button" wire:click="nextPage('{{ $pageName }}')" @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif wire:loading.attr="disabled"
+                            class="ui-page-link ui-page-link--edge" title="Siguiente" rel="next">
+                        <i class="fas fa-chevron-right text-[0.65rem]" aria-hidden="true"></i>
+                    </button>
+                @else
+                    <a href="{{ $paginator->nextPageUrl() }}" class="ui-page-link ui-page-link--edge" title="Siguiente" rel="next">
+                        <i class="fas fa-chevron-right text-[0.65rem]" aria-hidden="true"></i>
+                    </a>
+                @endif
+            @else
+                <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Siguiente">
+                    <i class="fas fa-chevron-right text-[0.65rem]" aria-hidden="true"></i>
+                </span>
+            @endif
         </div>
-
-        @if ($paginator->hasMorePages())
-            @if ($useLivewire)
-                <button
-                    type="button"
-                    wire:click="nextPage('{{ $pageName }}')"
-                    @if ($scrollJs) x-on:click="{{ $scrollJs }}" @endif
-                    wire:loading.attr="disabled"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Siguiente"
-                >
-                    <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
-                </button>
-            @else
-                <a
-                    href="{{ $paginator->nextPageUrl() }}"
-                    class="ui-page-link ui-page-link--edge"
-                    title="Siguiente"
-                    rel="next"
-                >
-                    <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
-                </a>
-            @endif
-        @else
-            <span class="ui-page-link ui-page-link--edge opacity-40" aria-disabled="true" title="Siguiente">
-                <i class="fas fa-chevron-right text-[0.7rem]" aria-hidden="true"></i>
-            </span>
-        @endif
     </div>
 
     {{-- Desktop: segmentado --}}
