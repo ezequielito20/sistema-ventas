@@ -646,7 +646,12 @@
             this.summary.income = income;
             this.summary.expenses = expenses;
             this.summary.balance = income - expenses;
-            window.dispatchEvent(new CustomEvent('cashFlowModeChanged', { detail: { mode } }));
+            const chartReady = typeof Chart !== 'undefined'
+                && window.cashFlowChart instanceof Chart
+                && window.cashFlowChart.canvas;
+            if (chartReady) {
+                window.dispatchEvent(new CustomEvent('cashFlowModeChanged', { detail: { mode } }));
+            }
         },
 
         flowDropdownOpen: false,
@@ -1097,7 +1102,10 @@ function initCashFlowChart() {
 }
 
 function updateCashFlowChart(mode) {
-    if (!window.cashFlowChart) return;
+    const chart = window.cashFlowChart;
+    if (!(chart instanceof Chart) || !chart.canvas) {
+        return;
+    }
 
     const dailyMovements = @js($chartData['daily_movements'] ?? []);
     const currentCash = @js($currentCashCount ?? null);
@@ -1113,8 +1121,6 @@ function updateCashFlowChart(mode) {
         const id = mode.replace('cash_', '');
         filteredData = dailyMovements.filter(m => m.cash_count_id == id);
     }
-
-    const chart = window.cashFlowChart;
 
     if (!filteredData || filteredData.length === 0) {
         chart.data.labels = ['Sin datos'];
@@ -1164,19 +1170,24 @@ function updateCashFlowChart(mode) {
     const rawStep = dataMax / targetTicks;
     const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
     const step = Math.max(Math.round(rawStep / mag) * mag, mag);
-    chart.options.scales.y.max = undefined;
-    chart.options.scales.y.ticks.stepSize = step;
-    chart.options.scales.y.ticks.maxTicksLimit = targetTicks + 2;
+    // Chart.js v4: mutar escalas en chart.config.options; chart.options es el resolver y puede no exponer .scales.
+    const scaleOpts = chart.config && chart.config.options && chart.config.options.scales;
+    if (scaleOpts && scaleOpts.y && scaleOpts.y1) {
+        scaleOpts.y.max = undefined;
+        scaleOpts.y.ticks = scaleOpts.y.ticks || {};
+        scaleOpts.y.ticks.stepSize = step;
+        scaleOpts.y.ticks.maxTicksLimit = targetTicks + 2;
 
-    // Balance en eje Y secundario
-    const balAbsMax = Math.max(Math.abs(Math.max(...balanceData, 0)), Math.abs(Math.min(...balanceData, 0)), 1);
-    const balRaw = balAbsMax / targetTicks;
-    const balMag = Math.pow(10, Math.floor(Math.log10(balRaw || 1)));
-    const balStep = Math.max(Math.round(balRaw / balMag) * balMag, balMag);
-    chart.options.scales.y1.max = undefined;
-    chart.options.scales.y1.min = undefined;
-    chart.options.scales.y1.ticks.stepSize = balStep;
-    chart.options.scales.y1.ticks.maxTicksLimit = targetTicks + 2;
+        const balAbsMax = Math.max(Math.abs(Math.max(...balanceData, 0)), Math.abs(Math.min(...balanceData, 0)), 1);
+        const balRaw = balAbsMax / targetTicks;
+        const balMag = Math.pow(10, Math.floor(Math.log10(balRaw || 1)));
+        const balStep = Math.max(Math.round(balRaw / balMag) * balMag, balMag);
+        scaleOpts.y1.max = undefined;
+        scaleOpts.y1.min = undefined;
+        scaleOpts.y1.ticks = scaleOpts.y1.ticks || {};
+        scaleOpts.y1.ticks.stepSize = balStep;
+        scaleOpts.y1.ticks.maxTicksLimit = targetTicks + 2;
+    }
 
     // Ajustar ancho de barras
     const barW = keys.length <= 12 ? 0.75 : 0.9;
