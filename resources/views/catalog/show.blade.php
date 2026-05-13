@@ -10,13 +10,17 @@
 @endphp
 
 @push('meta')
+    @php
+        $ogProductImage = \App\Services\ImageUrlService::absolutePublicUrl($product->cover_image_url);
+    @endphp
     <meta name="description" content="{{ Str::limit($product->description, 160) }}">
     <meta property="og:title" content="{{ $product->name }} — {{ $company->name }}">
     <meta property="og:description" content="{{ Str::limit($product->description, 200) }}">
-    <meta property="og:image" content="{{ $product->cover_image_url }}">
+    <meta property="og:image" content="{{ $ogProductImage }}">
     <meta property="og:type" content="product">
     <meta property="og:url" content="{{ request()->url() }}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ $ogProductImage }}">
     <link rel="canonical" href="{{ request()->url() }}">
 @endpush
 

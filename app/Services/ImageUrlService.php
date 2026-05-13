@@ -32,9 +32,9 @@ class ImageUrlService
         // Disco local 'public' (funciona con storage:link en desarrollo local)
         // Verificar que el archivo realmente exista en el filesystem local
         if (Storage::disk('public')->exists($imagePath)) {
-            $localPath = storage_path('app/public/' . str_replace('\\', '/', $imagePath));
+            $localPath = storage_path('app/public/'.str_replace('\\', '/', $imagePath));
             if (is_file($localPath) && is_readable($localPath)) {
-                return '/storage/' . $imagePath;
+                return '/storage/'.$imagePath;
             }
         }
 
@@ -49,10 +49,11 @@ class ImageUrlService
     public static function serve(string $path): ?array
     {
         // 1. Archivo local real
-        $localPath = storage_path('app/public/' . str_replace('\\', '/', $path));
+        $localPath = storage_path('app/public/'.str_replace('\\', '/', $path));
         if (is_file($localPath) && is_readable($localPath)) {
             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
             $mime = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : ($ext === 'webp' ? 'image/webp' : ($ext === 'svg' ? 'image/svg+xml' : 'image/jpeg')));
+
             return [
                 'content' => file_get_contents($localPath),
                 'mime' => $mime,
@@ -64,7 +65,7 @@ class ImageUrlService
         // 2. Disco por defecto (s3/R2)
         $disk = Storage::disk(config('filesystems.default', 'public'));
 
-        if (!$disk->exists($path)) {
+        if (! $disk->exists($path)) {
             return null;
         }
 
@@ -89,6 +90,41 @@ class ImageUrlService
         if (str_starts_with($imagePath, 'storage/')) {
             return substr($imagePath, 8);
         }
+
         return $imagePath;
+    }
+
+    /**
+     * URL absoluta para meta tags (og:image, Twitter) y rastreadores.
+     * Usa el host de la petición actual cuando existe, para coincidir con el dominio público (p. ej. Laravel Cloud).
+     * Si la URL ya es absoluta pero el path es de esta app (/storage/, /img/), se reescribe el host al de la petición
+     * (evita og:image con APP_URL incorrecto respecto al enlace compartido).
+     */
+    public static function absolutePublicUrl(?string $url): string
+    {
+        if ($url === null || trim($url) === '') {
+            return '';
+        }
+
+        $url = trim($url);
+        if (preg_match('#^https?://#i', $url)) {
+            $path = parse_url($url, PHP_URL_PATH);
+            $path = is_string($path) ? $path : '';
+            if (str_starts_with($path, '/storage/') || str_starts_with($path, '/img/')) {
+                $query = parse_url($url, PHP_URL_QUERY);
+                $url = $path.($query !== null && $query !== '' ? '?'.$query : '');
+            } else {
+                return $url;
+            }
+        }
+
+        $base = request()->getSchemeAndHttpHost();
+        if ($base === '') {
+            $base = rtrim((string) config('app.url'), '/');
+        } else {
+            $base = rtrim($base, '/');
+        }
+
+        return $base.'/'.ltrim($url, '/');
     }
 }

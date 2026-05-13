@@ -184,4 +184,22 @@ class CatalogTest extends TestCase
         $detail = $this->get('/catalog-flag-co/producto/'.$productHidden->id);
         $detail->assertStatus(404);
     }
+
+    public function test_catalog_index_includes_absolute_og_image_url(): void
+    {
+        Company::factory()->create([
+            'name' => 'OG Test Co',
+            'slug' => 'og-test-co',
+            'catalog_is_public' => true,
+            'logo' => null,
+        ]);
+
+        $response = $this->get('/og-test-co');
+
+        $response->assertStatus(200);
+        $this->assertMatchesRegularExpression(
+            '#<meta property="og:image" content="https?://[^"]+"#',
+            $response->getContent()
+        );
+    }
 }
