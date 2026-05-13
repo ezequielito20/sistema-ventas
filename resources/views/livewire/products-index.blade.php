@@ -37,9 +37,15 @@
                 this.detailOpen = false;
             },
             async confirmDelete(id, name) {
-                if (!window.confirm(`¿Eliminar el producto «${name}»?`)) {
-                    return;
-                }
+                const confirmed = await window.uiNotifications.confirmDialog({
+                    title: 'Eliminar producto',
+                    text: `¿Eliminar el producto «${name}»? Esta acción no se puede deshacer.`,
+                    type: 'warning',
+                    confirmText: 'Eliminar',
+                    cancelText: 'Cancelar',
+                });
+                if (!confirmed) return;
+
                 try {
                     const response = await fetch(`${this.productDestroyBase}/${id}`, {
                         method: 'DELETE',
@@ -51,12 +57,28 @@
                     });
                     const data = await response.json();
                     if (data.status === 'success') {
+                        window.uiNotifications.showToast(data.message, {
+                            type: 'success',
+                            title: 'Listo',
+                            timeout: 4800,
+                            theme: 'futuristic',
+                        });
                         $wire.$refresh();
                         return;
                     }
-                    window.alert(data.message || 'No fue posible eliminar el producto.');
+                    window.uiNotifications.showToast(data.message || 'No fue posible eliminar el producto.', {
+                        type: 'error',
+                        title: 'Atención',
+                        timeout: 7200,
+                        theme: 'futuristic',
+                    });
                 } catch (e) {
-                    window.alert('Error inesperado al eliminar el producto.');
+                    window.uiNotifications.showToast('Error inesperado al eliminar el producto.', {
+                        type: 'error',
+                        title: 'Atención',
+                        timeout: 7200,
+                        theme: 'futuristic',
+                    });
                 }
             },
         }"
