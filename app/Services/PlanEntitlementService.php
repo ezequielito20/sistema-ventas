@@ -175,10 +175,38 @@ class PlanEntitlementService
 
         $current = $this->currentCount($company, $moduleKey);
         if ($current >= $limit) {
+            $plan = $company->plan;
+            $noun = $this->planQuotaNounPluralForModule($moduleKey);
+            $suffix = ($plan && filled($plan->name))
+                ? 'en el plan «'.$plan->name.'».'
+                : 'en el plan al que está suscrita tu empresa.';
+            $message = 'Has alcanzado el límite de tu suscripción para este módulo. '
+                .'(Máx. '.$limit.' '.$noun.' '.$suffix.')';
+
             throw ValidationException::withMessages([
-                'plan' => 'Has alcanzado el límite de registros de tu plan para este módulo ('.$limit.').',
+                'plan' => $message,
             ]);
         }
+    }
+
+    /**
+     * Texto en plural para mensajes de cupo (p. ej. "clientes", "productos").
+     */
+    private function planQuotaNounPluralForModule(string $moduleKey): string
+    {
+        $def = ModuleRegistry::modules()[$moduleKey] ?? null;
+        if (! $def) {
+            return 'registros';
+        }
+
+        $custom = $def['plan_quota_noun_plural'] ?? null;
+        if (is_string($custom) && $custom !== '') {
+            return $custom;
+        }
+
+        $label = (string) ($def['label'] ?? 'registros');
+
+        return mb_strtolower($label, 'UTF-8');
     }
 
     /**
@@ -256,9 +284,13 @@ class PlanEntitlementService
 
         $count = $this->countDocumentsOnDate($company, $kind, $dateYmd);
         if ($count >= $limit) {
-            $msg = $kind === 'purchases'
-                ? "Has alcanzado el límite de compras diarias de tu plan ({$limit})."
-                : "Has alcanzado el límite de ventas diarias de tu plan ({$limit}).";
+            $plan = $company->plan;
+            $noun = $kind === 'purchases' ? 'compras' : 'ventas';
+            $suffix = ($plan && filled($plan->name))
+                ? 'en el plan «'.$plan->name.'».'
+                : 'en el plan al que está suscrita tu empresa.';
+            $msg = 'Has alcanzado el límite diario de tu suscripción para '.$noun.'. '
+                .'(Máx. '.$limit.' '.$noun.' por día natural '.$suffix.')';
 
             throw ValidationException::withMessages([
                 'plan' => $msg,

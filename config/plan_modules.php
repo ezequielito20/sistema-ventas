@@ -13,6 +13,7 @@ return [
     | - platform_console_only: consola plataforma; no en formulario de plan ni en menú tenant
     | - plan_limit_is_daily: si es true, el cupo del formulario de plan se guarda como límite diario
     |   (p. ej. ventas/compras por día natural), no como tope total de registros.
+    | - plan_quota_noun_plural: sustantivo en plural para mensajes de cupo (opcional; por defecto se usa label en minúsculas).
     */
     'modules' => [
         'companies' => [
@@ -99,6 +100,7 @@ return [
         ],
         'cash_counts' => [
             'label' => 'Arqueo de caja',
+            'plan_quota_noun_plural' => 'arqueos de caja',
             'permission_prefixes' => ['cash-counts'],
             'limit_relation' => 'cashCounts',
             'super_admin_only' => false,
