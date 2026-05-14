@@ -29,6 +29,10 @@ class CompanyForm extends Component
 
     public string $adminPasswordConfirmation = '';
 
+    public bool $showAdminPassword = false;
+
+    public bool $showAdminPasswordConfirmation = false;
+
     public string $planId = '';
 
     public int $billingDay = 1;
@@ -51,7 +55,7 @@ class CompanyForm extends Component
             'email' => ['required', 'email', 'max:255', 'unique:companies,email'],
             'adminName' => ['required', 'string', 'max:255'],
             'adminEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'adminPassword' => ['required', 'string', 'min:8', 'confirmed'],
+            'adminPassword' => ['required', 'string', 'min:8', 'same:adminPasswordConfirmation'],
             'planId' => ['required', 'exists:plans,id'],
             'billingDay' => ['required', 'integer', 'min:1', 'max:28'],
         ];
@@ -70,7 +74,7 @@ class CompanyForm extends Component
             'adminEmail.unique' => 'Este correo ya está registrado.',
             'adminPassword.required' => 'La contraseña es requerida.',
             'adminPassword.min' => 'La contraseña debe tener al menos :min caracteres.',
-            'adminPassword.confirmed' => 'Las contraseñas no coinciden.',
+            'adminPassword.same' => 'Las contraseñas no coinciden.',
             'planId.required' => 'Debe seleccionar un plan.',
             'billingDay.required' => 'El día de cobro es requerido.',
         ];

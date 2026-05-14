@@ -44,12 +44,37 @@
                         </div>
                         <div>
                             <label for="adminPassword" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Contraseña *</label>
-                            <input type="password" id="adminPassword" wire:model="adminPassword" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 px-4 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" placeholder="Mínimo 8 caracteres" />
+                            <div class="relative">
+                                <input
+                                    id="adminPassword"
+                                    wire:model="adminPassword"
+                                    type="{{ $showAdminPassword ? 'text' : 'password' }}"
+                                    autocomplete="new-password"
+                                    class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 pl-4 pr-11 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                    placeholder="Mínimo 8 caracteres"
+                                />
+                                <button type="button" wire:click="$toggle('showAdminPassword')" class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-400 hover:text-cyan-400 focus:outline-none" tabindex="-1" title="{{ $showAdminPassword ? 'Ocultar' : 'Mostrar' }} contraseña">
+                                    <i class="fas {{ $showAdminPassword ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
+                                </button>
+                            </div>
                             @error('adminPassword') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="adminPasswordConfirmation" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Confirmar contraseña *</label>
-                            <input type="password" id="adminPasswordConfirmation" wire:model="adminPasswordConfirmation" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 px-4 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500" placeholder="Repetí la contraseña" />
+                            <div class="relative">
+                                <input
+                                    id="adminPasswordConfirmation"
+                                    wire:model.live="adminPasswordConfirmation"
+                                    type="{{ $showAdminPasswordConfirmation ? 'text' : 'password' }}"
+                                    autocomplete="new-password"
+                                    class="w-full rounded-lg border border-slate-600 bg-slate-950/60 py-2.5 pl-4 pr-11 text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                    placeholder="Repetí la contraseña"
+                                />
+                                <button type="button" wire:click="$toggle('showAdminPasswordConfirmation')" class="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-400 hover:text-cyan-400 focus:outline-none" tabindex="-1" title="{{ $showAdminPasswordConfirmation ? 'Ocultar' : 'Mostrar' }} contraseña">
+                                    <i class="fas {{ $showAdminPasswordConfirmation ? 'fa-eye-slash' : 'fa-eye' }} text-sm"></i>
+                                </button>
+                            </div>
+                            @error('adminPasswordConfirmation') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>

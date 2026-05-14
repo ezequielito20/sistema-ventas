@@ -54,7 +54,7 @@
                     </div>
                     <div>
                         <label class="{{ $labelBase }}" for="phone">Teléfono</label>
-                        <input type="text" id="phone" wire:model="phone" class="{{ $inputBase }}" placeholder="Número de teléfono">
+                        <input type="text" id="phone" wire:model.live="phone" maxlength="11" inputmode="numeric" autocomplete="tel" pattern="[0-9]*" class="{{ $inputBase }}" placeholder="04148965789">
                         @error('phone') <p class="mt-1 text-xs text-rose-400">{{ $message }}</p> @enderror
                     </div>
                     <div>

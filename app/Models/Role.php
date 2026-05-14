@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Spatie\Permission\Models\Role as SpatieRole;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Exceptions\RoleAlreadyExists;
+use Spatie\Permission\Guard;
+use Spatie\Permission\Models\Role as SpatieRole;
+use Spatie\Permission\PermissionRegistrar;
 
 class Role extends SpatieRole
 {
@@ -26,6 +29,43 @@ class Role extends SpatieRole
     protected $casts = [
         'company_id' => 'integer',
     ];
+
+    /**
+     * Spatie solo valida duplicados por name+guard cuando teams=false.
+     * En multi-empresa el índice único es (name, guard_name, company_id): repetimos esa lógica aquí.
+     *
+     * @param  array<string, mixed>  $attributes
+     *
+     * @throws RoleAlreadyExists
+     */
+    public static function create(array $attributes = [])
+    {
+        $attributes['guard_name'] ??= Guard::getDefaultName(static::class);
+
+        $registrar = app(PermissionRegistrar::class);
+
+        if ($registrar->teams) {
+            return parent::create($attributes);
+        }
+
+        $query = static::query()
+            ->where('name', $attributes['name'])
+            ->where('guard_name', $attributes['guard_name']);
+
+        if (array_key_exists('company_id', $attributes)) {
+            if ($attributes['company_id'] === null) {
+                $query->whereNull('company_id');
+            } else {
+                $query->where('company_id', $attributes['company_id']);
+            }
+        }
+
+        if ($query->exists()) {
+            throw RoleAlreadyExists::create($attributes['name'], $attributes['guard_name']);
+        }
+
+        return static::query()->create($attributes);
+    }
 
     /**
      * Get the company that owns the role.
@@ -66,4 +106,4 @@ class Role extends SpatieRole
     {
         return $this->company_id == $companyId;
     }
-} 
+}

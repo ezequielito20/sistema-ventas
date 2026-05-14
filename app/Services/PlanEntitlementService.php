@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Models\User;
 use App\Support\ModuleRegistry;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
@@ -155,6 +158,137 @@ class PlanEntitlementService
                 '_' => 'Has alcanzado el límite de registros de tu plan para este módulo ('.$limit.').',
             ]);
         }
+    }
+
+    /**
+     * Tope de documentos (ventas o compras) por día natural según el plan (null = sin tope).
+     *
+     * @param  'sales'|'purchases'  $kind
+     */
+    public function dailyDocumentsLimit(?Company $company, string $kind): ?int
+    {
+        if (! $company) {
+            return null;
+        }
+
+        $plan = $company->plan;
+        if (! $plan || ! $plan->is_active) {
+            return null;
+        }
+
+        $key = $kind === 'purchases' ? 'purchases_daily' : 'sales_daily';
+        $limits = $plan->limits ?? [];
+        if (! array_key_exists($key, $limits)) {
+            return null;
+        }
+
+        $v = $limits[$key];
+        if ($v === null || $v === '') {
+            return null;
+        }
+
+        $n = (int) $v;
+
+        return $n > 0 ? $n : null;
+    }
+
+    /**
+     * Cantidad de ventas o compras registradas en un día (zona horaria de la app).
+     *
+     * @param  'sales'|'purchases'  $kind
+     */
+    public function countDocumentsOnDate(Company $company, string $kind, string $dateYmd): int
+    {
+        if ($kind === 'purchases') {
+            return (int) Purchase::query()
+                ->where('company_id', $company->id)
+                ->whereDate('purchase_date', $dateYmd)
+                ->count();
+        }
+
+        return (int) Sale::query()
+            ->where('company_id', $company->id)
+            ->whereDate('sale_date', $dateYmd)
+            ->count();
+    }
+
+    /**
+     * Impide crear otra venta/compra si ya se alcanzó el tope diario del plan.
+     *
+     * @param  'sales'|'purchases'  $kind
+     */
+    public function assertCanCreateDocumentOnDate(?User $user, string $kind, string $dateYmd): void
+    {
+        if (! $user || $user->isSuperAdmin()) {
+            return;
+        }
+
+        $company = $user->company;
+        if (! $company) {
+            return;
+        }
+
+        $limit = $this->dailyDocumentsLimit($company, $kind);
+        if ($limit === null) {
+            return;
+        }
+
+        $count = $this->countDocumentsOnDate($company, $kind, $dateYmd);
+        if ($count >= $limit) {
+            $msg = $kind === 'purchases'
+                ? "Has alcanzado el límite de compras diarias de tu plan ({$limit})."
+                : "Has alcanzado el límite de ventas diarias de tu plan ({$limit}).";
+
+            throw ValidationException::withMessages([
+                '_' => $msg,
+            ]);
+        }
+    }
+
+    /**
+     * Al listar un solo día, solo se exponen hasta N documentos más recientes (según plan).
+     *
+     * @param  'sales'|'purchases'  $kind
+     */
+    public function applyDailyDocumentsViewCapToQuery(
+        Builder $query,
+        ?User $user,
+        string $kind,
+        string $dateFrom,
+        string $dateTo,
+        string $dateColumn
+    ): void {
+        if ($dateFrom === '' || $dateTo === '' || $dateFrom !== $dateTo) {
+            return;
+        }
+
+        if (! $user || $user->isSuperAdmin()) {
+            return;
+        }
+
+        $company = $user->company;
+        if (! $company) {
+            return;
+        }
+
+        $limit = $this->dailyDocumentsLimit($company, $kind);
+        if ($limit === null || $limit <= 0) {
+            return;
+        }
+
+        $table = $query->getModel()->getTable();
+        $companyId = (int) $company->id;
+        $day = $dateFrom;
+
+        $query->whereIn($table.'.id', function ($sub) use ($table, $companyId, $dateColumn, $day, $limit) {
+            $sub->from($table)
+                ->select('id')
+                ->where($table.'.company_id', $companyId)
+                ->whereDate($table.'.'.$dateColumn, $day)
+                ->orderByDesc($table.'.'.$dateColumn)
+                ->orderByDesc($table.'.id')
+                ->limit($limit);
+        });
     }
 
     /**

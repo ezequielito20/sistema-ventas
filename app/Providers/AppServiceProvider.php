@@ -23,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Cargar traducciones PHP en /lang (auth, validation, etc.); el loader por defecto solo usa resources/lang.
+        if (is_dir(base_path('lang'))) {
+            app('translation.loader')->addPath(base_path('lang'));
+        }
+
         // Evita preload de hojas de estilo: ya van con <link rel="stylesheet"> y Chrome
         // advierte "preloaded but not used" con el mismo recurso.
         app(Vite::class)->usePreloadTagAttributes(function (?string $src, string $url, ?array $chunk, ?array $manifest): array|false {
