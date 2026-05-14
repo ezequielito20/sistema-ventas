@@ -30,7 +30,6 @@
         </div>
     </div>
 
-    <x-plan-limit-alert />
 
     {{-- Cash count warning --}}
     @if (! $hasCashOpen && ! $isEdit)

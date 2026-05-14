@@ -13,5 +13,10 @@ trait MergesValidationErrors
                 $this->addError($field, $message);
             }
         }
+
+        if (isset($e->errors()['plan'][0])) {
+            $msg = (string) $e->errors()['plan'][0];
+            $this->js('window.dispatchEvent(new CustomEvent("plan-limit-reached", { detail: { message: '.json_encode($msg).' } }))');
+        }
     }
 }

@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Company;
+use App\Models\Plan;
 use App\Models\Purchase;
 use App\Models\Sale;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Support\ModuleRegistry;
 use Illuminate\Database\Eloquent\Builder;
@@ -42,6 +44,10 @@ class PlanEntitlementService
         $company = $user->company;
         if (! $company) {
             return false;
+        }
+
+        if (! empty($def['always_visible_for_tenant'])) {
+            return true;
         }
 
         return $this->companyHasModule($company, $moduleKey);
@@ -94,6 +100,18 @@ class PlanEntitlementService
 
         $plan = $company->plan;
         if (! $plan) {
+            return null;
+        }
+
+        return $this->readModuleRecordLimitFromPlan($plan, $moduleKey);
+    }
+
+    /**
+     * Lee el tope de registros del JSON del plan (sin comprobar si el módulo está activo para la empresa).
+     */
+    private function readModuleRecordLimitFromPlan(Plan $plan, string $moduleKey): ?int
+    {
+        if (in_array($moduleKey, self::moduleKeysWithDailyPlanLimit(), true)) {
             return null;
         }
 
@@ -225,6 +243,14 @@ class PlanEntitlementService
             return null;
         }
 
+        return $this->readDailyDocumentsLimitFromPlan($plan, $kind);
+    }
+
+    /**
+     * @param  'sales'|'purchases'  $kind
+     */
+    private function readDailyDocumentsLimitFromPlan(Plan $plan, string $kind): ?int
+    {
         $key = $kind === 'purchases' ? 'purchases_daily' : 'sales_daily';
         $limits = $plan->limits ?? [];
         if (! array_key_exists($key, $limits)) {
@@ -298,6 +324,98 @@ class PlanEntitlementService
         }
     }
 
+    public function planContractIncludesModule(Plan $plan, string $moduleKey): bool
+    {
+        $features = $plan->features ?? [];
+        if ($features === [] || $features === null) {
+            return true;
+        }
+
+        return in_array($moduleKey, $features, true);
+    }
+
+    /**
+     * Resumen de módulos, límites y uso para la pantalla «Mi plan» (tenant).
+     *
+     * @return array{subscription: Subscription|null, plan: Plan|null, plan_is_active: bool, today: string, rows: list<array<string, mixed>>}
+     */
+    public function tenantPlanOverviewForCompany(Company $company): array
+    {
+        $company->loadMissing(['subscription.plan']);
+        $subscription = $company->subscription;
+        $plan = $subscription?->plan;
+        $today = now()->timezone(config('app.timezone'))->toDateString();
+
+        $rows = [];
+        foreach (ModuleRegistry::modulesForPlanForm() as $moduleKey => $def) {
+            $label = (string) ($def['label'] ?? $moduleKey);
+            $contractIncluded = $plan ? $this->planContractIncludesModule($plan, $moduleKey) : false;
+            $effectiveAccess = $this->companyHasModule($company, $moduleKey);
+
+            $limitLabel = '—';
+            $usageLabel = '—';
+
+            if (! empty($def['plan_limit_is_daily'])) {
+                $kind = $moduleKey === 'purchases' ? 'purchases' : 'sales';
+                if (! $plan) {
+                    $limitLabel = '—';
+                    $usageLabel = '—';
+                } else {
+                    $configured = $this->readDailyDocumentsLimitFromPlan($plan, $kind);
+                    if ($configured === null) {
+                        $limitLabel = 'Sin tope diario en la suscripción';
+                        $usageLabel = '—';
+                    } else {
+                        $noun = $kind === 'purchases' ? 'compras' : 'ventas';
+                        $limitLabel = 'Hasta '.$configured.' '.$noun.' por día natural (zona horaria de la app)';
+                        if ($effectiveAccess) {
+                            $cnt = $this->countDocumentsOnDate($company, $kind, $today);
+                            $usageLabel = 'Hoy ('.$today.'): '.$cnt.' / '.$configured;
+                        } else {
+                            $usageLabel = 'Sin acceso efectivo al módulo';
+                        }
+                    }
+                }
+            } elseif (! empty($def['limit_relation'])) {
+                $current = $this->currentCount($company, $moduleKey);
+                if (! $plan) {
+                    $limitLabel = '—';
+                    $usageLabel = (string) $current.' en total';
+                } else {
+                    $configured = $this->readModuleRecordLimitFromPlan($plan, $moduleKey);
+                    if ($configured === null) {
+                        $limitLabel = 'Registros ilimitados según el contrato';
+                        $usageLabel = (string) $current.' actuales';
+                    } else {
+                        $noun = $this->planQuotaNounPluralForModule($moduleKey);
+                        $limitLabel = 'Máximo '.$configured.' '.$noun;
+                        $usageLabel = $current.' / '.$configured.' usados';
+                    }
+                }
+            } else {
+                $limitLabel = 'Sin cupo por cantidad de registros';
+                $usageLabel = '—';
+            }
+
+            $rows[] = [
+                'module_key' => $moduleKey,
+                'label' => $label,
+                'contract_included' => $contractIncluded,
+                'effective_access' => $effectiveAccess,
+                'limit_label' => $limitLabel,
+                'usage_label' => $usageLabel,
+            ];
+        }
+
+        return [
+            'subscription' => $subscription,
+            'plan' => $plan,
+            'plan_is_active' => (bool) ($plan?->is_active),
+            'today' => $today,
+            'rows' => $rows,
+        ];
+    }
+
     /**
      * Al listar un solo día, solo se exponen hasta N documentos más recientes (según plan).
      *
@@ -368,6 +486,13 @@ class PlanEntitlementService
 
             $moduleKey = $prefixToModule[$prefix] ?? null;
             if ($moduleKey === null) {
+                $ids[] = (int) $permission->id;
+
+                continue;
+            }
+
+            $def = ModuleRegistry::modules()[$moduleKey] ?? [];
+            if (! empty($def['always_visible_for_tenant'])) {
                 $ids[] = (int) $permission->id;
 
                 continue;

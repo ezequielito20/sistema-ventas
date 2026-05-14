@@ -14,8 +14,18 @@ return [
     | - plan_limit_is_daily: si es true, el cupo del formulario de plan se guarda como límite diario
     |   (p. ej. ventas/compras por día natural), no como tope total de registros.
     | - plan_quota_noun_plural: sustantivo en plural para mensajes de cupo (opcional; por defecto se usa label en minúsculas).
+    | - always_visible_for_tenant: el ítem del menú tenant se muestra siempre que haya empresa (no depende de features del plan).
     */
     'modules' => [
+        'my_plan' => [
+            'label' => 'Mi plan',
+            'permission_prefixes' => ['my-plan'],
+            'limit_relation' => null,
+            'super_admin_only' => false,
+            'platform_console_only' => false,
+            'in_plan_form' => false,
+            'always_visible_for_tenant' => true,
+        ],
         'companies' => [
             'label' => 'Configuración de empresa',
             'permission_prefixes' => ['companies'],

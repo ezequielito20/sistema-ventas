@@ -104,6 +104,10 @@ Route::view('/ui/shell-preview', 'admin.ui.shell-preview')
     ->name('admin.ui.shell.preview')
     ->middleware('auth');
 
+Route::view('/my-plan', 'admin.v2.my-plan')
+    ->name('admin.my-plan')
+    ->middleware(['auth', 'can:my-plan.view']);
+
 Route::get('/settings', fn () => view('admin.v2.settings.index'))->name('admin.company.edit')->middleware(['auth', 'can:companies.edit']);
 Route::put('/settings/{id}', [CompanyController::class, 'update'])->name('admin.companies.update')->middleware(['auth', 'can:companies.update']);
 

@@ -587,6 +587,17 @@
                         </a>
                         @endif
 
+                        @can('my-plan.view')
+                            @if ($planMod('my_plan'))
+                                <a href="{{ route('admin.my-plan') }}"
+                                    class="app-sidebar-nav-link group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ request()->routeIs('admin.my-plan') ? 'is-active' : '' }}"
+                                    wire:navigate>
+                                    <i class="fas fa-id-card mr-3 text-lg"></i>
+                                    Mi plan
+                                </a>
+                            @endif
+                        @endcan
+
                         @if ($planMod('roles') || $planMod('permissions'))
                         <!-- Roles y Permisos -->
                         <div
@@ -849,9 +860,46 @@
                 </div>
             </header>
 
+            <div
+                x-show="planLimitBannerOpen"
+                x-cloak
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-1"
+                class="shrink-0 border-b border-amber-500/45 bg-gradient-to-r from-amber-950/95 to-amber-900/55 px-4 py-3 shadow-md shadow-amber-950/25 sm:px-6"
+                role="alert"
+                aria-live="polite"
+            >
+                <div class="mx-auto flex max-w-7xl items-start gap-3">
+                    <div
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-300"
+                        aria-hidden="true"
+                    >
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="min-w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-semibold text-amber-50">Límite de suscripción</p>
+                        <p class="mt-1 text-sm leading-relaxed text-amber-100/95" x-text="planLimitBannerMessage"></p>
+                    </div>
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-lg border border-amber-400/40 px-3 py-1.5 text-xs font-semibold text-amber-100 transition hover:bg-amber-500/15"
+                        @click="planLimitBannerOpen = false"
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+
             <!-- Page Content -->
             <main class="app-main flex-1 overflow-y-auto">
                 <div class="px-4 py-6 sm:px-6 lg:px-8">
+                    @error('plan')
+                        <x-plan-limit-alert class="mb-4" />
+                    @enderror
                     @yield('content')
                 </div>
             </main>
@@ -1020,8 +1068,18 @@
             function appLayout() {
                 return {
                     sidebarOpen: false, // Estado inicial cerrado
+                    planLimitBannerOpen: false,
+                    planLimitBannerMessage: '',
 
                     init() {
+                        window.addEventListener('plan-limit-reached', (ev) => {
+                            const m = ev.detail && ev.detail.message ? String(ev.detail.message) : '';
+                            if (!m) {
+                                return;
+                            }
+                            this.planLimitBannerMessage = m;
+                            this.planLimitBannerOpen = true;
+                        });
                         // Inicializar después de que Alpine.js esté completamente cargado
                         this.$nextTick(() => {
                             // Esperar a que todo esté completamente listo

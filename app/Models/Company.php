@@ -29,7 +29,7 @@ class Company extends Model
         'sales', 'cash-counts',
         'permissions', 'notifications', 'orders',
         'exchange-rate', 'debt-payments',
-        'catalog', 'catalogo', 'auth', 'verify', 'email',
+        'catalog', 'catalogo', 'auth', 'verify', 'email', 'my-plan',
         'profile', 'security-questions',
     ];
 
